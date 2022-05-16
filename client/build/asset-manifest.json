@@ -1,0 +1,33 @@
+{
+  "files": {
+    "main.css": "/static/css/main.2d89a1b4.css",
+    "main.js": "/static/js/main.8b9713e6.js",
+    "static/media/onboarding-wallet-dark.svg": "/static/media/onboarding-wallet-dark.b00c6cca91fa470d3e7f1be3ddec6d8c.svg",
+    "static/media/onboarding-wallet-light.svg": "/static/media/onboarding-wallet-light.834c5a8cf519f880fdd77a9932b4c36e.svg",
+    "static/media/onboarding-started-dark.svg": "/static/media/onboarding-started-dark.861f1be9e06a6b50677e6f74a84b8215.svg",
+    "static/media/onboarding-started-light.svg": "/static/media/onboarding-started-light.597337f06c186351e408697080b924fb.svg",
+    "static/media/onboarding-completed-dark.svg": "/static/media/onboarding-completed-dark.7cafbba1ba599710be284221cd8b0749.svg",
+    "static/media/onboarding-completed-light.svg": "/static/media/onboarding-completed-light.349f343cf901971111de19a3f3f7386b.svg",
+    "static/media/onboarding-credential-dark.svg": "/static/media/onboarding-credential-dark.ca3c2fdc7a756107e9c2caf33be788f0.svg",
+    "static/media/onboarding-credential-light.svg": "/static/media/onboarding-credential-light.92fa93d29fba91edf0cca5afafa3f707.svg",
+    "static/media/onboarding-connect-dark.svg": "/static/media/onboarding-connect-dark.e37f77ab69dea00acba942df645ef0ea.svg",
+    "static/media/onboarding-connect-light.svg": "/static/media/onboarding-connect-light.f74b577da157c00fe35063a49f52c1ba.svg",
+    "static/media/onboarding-choose-dark.svg": "/static/media/onboarding-choose-dark.b9859aa6a1ec48d41761314dac1e720b.svg",
+    "static/media/onboarding-choose-light.svg": "/static/media/onboarding-choose-light.0fff4923d8b7b30cfe6737cf176fe1a3.svg",
+    "static/media/icon-moon-dark.svg": "/static/media/icon-moon-dark.28ab75564bdf2d9ef7f56dbc6550c29a.svg",
+    "static/media/icon-moon-light.svg": "/static/media/icon-moon-light.fc3e6d352a0e6027b96fec94bdcb64f9.svg",
+    "static/media/icon-balloon-light.svg": "/static/media/icon-balloon-light.90aa595ff07b4f8e4270c3834c722603.svg",
+    "static/media/icon-balloon-dark.svg": "/static/media/icon-balloon-dark.139266e7c98e67893d19d4fd5c081187.svg",
+    "static/media/icon-notification-light.svg": "/static/media/icon-notification-light.390533cf606509ed703f4d6e8d67794e.svg",
+    "index.html": "/index.html",
+    "static/media/icon-notification-dark.svg": "/static/media/icon-notification-dark.db23457ce99d11b6789d599a42e9a201.svg",
+    "static/media/icon-person-dark.svg": "/static/media/icon-person-dark.0c65014e1520494356fbbd86c1a01115.svg",
+    "static/media/icon-person-light.svg": "/static/media/icon-person-light.c267caff91390a122b397247486cdbc1.svg",
+    "static/media/icon-wallet-dark.svg": "/static/media/icon-wallet-dark.9a06cca3fabbe336f7313bc46a10f0cd.svg",
+    "static/media/icon-wallet-light.svg": "/static/media/icon-wallet-light.22b38df5889e80f0ab8adae13b45e4a1.svg"
+  },
+  "entrypoints": [
+    "static/css/main.2d89a1b4.css",
+    "static/js/main.8b9713e6.js"
+  ]
+}

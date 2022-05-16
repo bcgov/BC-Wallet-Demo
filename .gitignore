@@ -105,4 +105,3 @@ client/src/.env.local
 server/logs.txt
 
 .DS_Store
-build

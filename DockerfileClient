@@ -16,9 +16,6 @@ RUN add-apt-repository "deb https://repo.sovrin.org/sdk/deb bionic stable"
 # nodejs
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
 
-# yarn
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
 # install depdencies
 RUN apt-get update -y && apt-get install -y --allow-unauthenticated \
@@ -28,17 +25,10 @@ RUN apt-get update -y && apt-get install -y --allow-unauthenticated \
     indy-cli \
     nodejs
 
-# Install yarn seperately due to `no-install-recommends` to skip nodejs install 
-RUN apt-get install -y --no-install-recommends yarn
+
 
 COPY ./ /www
 WORKDIR /www/client
-
-RUN yarn install
-
-RUN ls -la
-
-RUN yarn build
 
 RUN npm install -g serve
 
