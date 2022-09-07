@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
 import { standardFade, dropIn } from '../../../FramerAnimations'
-import { Button } from '../../../components/Button'
 import { SmallButton } from '../../../components/SmallButton'
 import { SmallButtonText } from '../../../components/SmallButtonText'
 export interface Props {
@@ -14,7 +13,8 @@ export const DemoCompletedModal: React.FC<Props> = ({ action, cancel }) => {
   const navigate = useNavigate()
 
   const TITLE = 'Showcase Completed!'
-  const DESCRIPTION = 'Looking to leave some feedback? Take our survey and connect with us!'
+  //const DESCRIPTION = 'Looking to leave some feedback? Take our survey and connect with us!'
+  const DESCRIPTION = ''
 
   return (
     <AnimatePresence>
@@ -45,7 +45,7 @@ export const DemoCompletedModal: React.FC<Props> = ({ action, cancel }) => {
                   <div className="mt-2 text-sm">
                     <p>{DESCRIPTION}</p>
 
-                    <a
+                    {/* <a
                       href="https://chefs.nrs.gov.bc.ca/app/form/submit?f=245707da-c13b-4ae0-8d1f-ba318b25269d"
                       target="_blank"
                     >
@@ -56,7 +56,7 @@ export const DemoCompletedModal: React.FC<Props> = ({ action, cancel }) => {
                       >
                         {'Give feedback'}
                       </motion.button>
-                    </a>
+                    </a> */}
 
                     <br />
                     <a href="https://animo.id/">
