@@ -11,14 +11,14 @@ export const tractionApiKeyUpdaterInit = async () => {
   // get traction api key
   const tractionBaseUrl = process.env.TRACTION_URL ?? ''
   const tenantId = process.env.TENANT_ID ?? ''
-  const walletSecret = process.env.WALLET_SECRET ?? ''
+  const apiKey = process.env.API_KEY ?? ''
   agentKey =
-    (await axios.post(`${tractionBaseUrl}/multitenancy/wallet/${tenantId}/token`, { wallet_key: walletSecret })).data
+    (await axios.post(`${tractionBaseUrl}/multitenancy/wallet/${tenantId}/token`, { api_key: apiKey })).data
       ?.token ?? agentKey
   // refresh agent key every hour
   setInterval(async () => {
     agentKey =
-      (await axios.post(`${tractionBaseUrl}/multitenancy/wallet/${tenantId}/token`, { wallet_key: walletSecret })).data
+      (await axios.post(`${tractionBaseUrl}/multitenancy/wallet/${tenantId}/token`, { api_key: apiKey })).data
         ?.token ?? agentKey
   }, 3600000)
 }
