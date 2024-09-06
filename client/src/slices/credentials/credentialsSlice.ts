@@ -3,8 +3,6 @@ import type { SerializedError } from '@reduxjs/toolkit'
 
 import { createSlice } from '@reduxjs/toolkit'
 
-import { isCredIssued } from '../../utils/Helpers'
-
 import { fetchCredentialById, issueCredential, deleteCredentialById } from './credentialsThunks'
 
 interface CredentialState {

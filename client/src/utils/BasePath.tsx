@@ -1,1 +1,3 @@
-export const basePath: string = '/digital-trust/showcase'
+import { baseRoute } from '../api/BaseUrl'
+
+export const basePath: string = baseRoute ?? ''

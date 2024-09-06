@@ -1,4 +1,4 @@
-import type { Credential, CredentialData } from '../types'
+import type { Credential } from '../types'
 
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
