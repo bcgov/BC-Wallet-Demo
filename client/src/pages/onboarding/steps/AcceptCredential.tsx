@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
 
 import { fade, fadeX } from '../../../FramerAnimations'
-import { baseWsUrl } from '../../../api/BaseUrl'
+import { baseWsUrl, socketPath } from '../../../api/BaseUrl'
 import { getOrCreateCredDefId } from '../../../api/CredentialApi'
 import { ActionCTA } from '../../../components/ActionCTA'
 import { Loader } from '../../../components/Loader'
@@ -116,7 +116,7 @@ export const AcceptCredential: React.FC<Props> = ({
   }, [error])
 
   useEffect(() => {
-    const ws = io(baseWsUrl)
+    const ws = io(baseWsUrl, { path: socketPath })
     ws.on('connect', () => {
       ws.emit('subscribe', { connectionId: connectionId })
     })

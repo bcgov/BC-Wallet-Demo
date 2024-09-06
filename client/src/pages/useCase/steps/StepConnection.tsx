@@ -8,7 +8,7 @@ import { FiExternalLink } from 'react-icons/fi'
 import { io } from 'socket.io-client'
 
 import { fade, fadeX } from '../../../FramerAnimations'
-import { baseWsUrl } from '../../../api/BaseUrl'
+import { baseWsUrl, socketPath } from '../../../api/BaseUrl'
 import { QRCode } from '../../../components/QRCode'
 import { useAppDispatch } from '../../../hooks/hooks'
 import { setDeepLink } from '../../../slices/connection/connectionSlice'
@@ -35,7 +35,7 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
       dispatch(createInvitation({ issuer: step.verifier?.name ?? 'Unknown', goalCode: 'aries.vc.verify.once' }))
   }, [])
   useEffect(() => {
-    const ws = io(baseWsUrl)
+    const ws = io(baseWsUrl, { path: socketPath })
     ws.on('connect', () => {
       ws.emit('subscribe', { connectionId: id })
     })

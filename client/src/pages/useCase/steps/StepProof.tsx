@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { io } from 'socket.io-client'
 
 import { fadeX } from '../../../FramerAnimations'
-import { baseWsUrl } from '../../../api/BaseUrl'
+import { baseWsUrl, socketPath } from '../../../api/BaseUrl'
 import { ActionCTA } from '../../../components/ActionCTA'
 import { useAppDispatch } from '../../../hooks/hooks'
 import { useConnection } from '../../../slices/connection/connectionSelectors'
@@ -114,7 +114,7 @@ export const StepProof: React.FC<Props> = ({
   }, [])
 
   useEffect(() => {
-    const ws = io(baseWsUrl)
+    const ws = io(baseWsUrl, { path: socketPath })
     ws.on('connect', () => {
       ws.emit('subscribe', { connectionId: connectionId })
     })

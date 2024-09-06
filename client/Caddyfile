@@ -30,7 +30,7 @@
     templates
 
     vars basePath "/digital-trust/showcase/"
-    handle /socket.io/* {
+    handle /digital-trust/showcase/socket/* {
         reverse_proxy backend:5000
     }
     

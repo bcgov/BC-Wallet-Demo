@@ -5,7 +5,7 @@ import { FiExternalLink } from 'react-icons/fi'
 import { io } from 'socket.io-client'
 
 import { fade, fadeX } from '../../../FramerAnimations'
-import { baseWsUrl } from '../../../api/BaseUrl'
+import { baseWsUrl, socketPath } from '../../../api/BaseUrl'
 import { Button } from '../../../components/Button'
 import { QRCode } from '../../../components/QRCode'
 import { useAppDispatch } from '../../../hooks/hooks'
@@ -76,7 +76,7 @@ export const SetupConnection: React.FC<Props> = ({
   }, [connectionId])
 
   useEffect(() => {
-    const ws = io(baseWsUrl)
+    const ws = io(baseWsUrl, { path: socketPath })
     ws.on('connect', () => {
       ws.emit('subscribe', { connectionId: connectionId })
     })

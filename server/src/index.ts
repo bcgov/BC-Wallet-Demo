@@ -18,7 +18,7 @@ const server = http.createServer(app)
 
 const ws = new Server(server, {cors:{
   origin:true
-}})
+}, path:'/digital-trust/showcase/socket/'})
 
 const socketMap = new Map()
 const connectionMap = new Map()
