@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import React, { useEffect } from 'react'
 import { isMobile } from 'react-device-detect'
 import { FiExternalLink } from 'react-icons/fi'
+import { io } from 'socket.io-client'
 
 import { fade, fadeX } from '../../../FramerAnimations'
 import { baseWsUrl } from '../../../api/BaseUrl'
@@ -33,20 +34,17 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
     if (!isCompleted || newConnection)
       dispatch(createInvitation({ issuer: step.verifier?.name ?? 'Unknown', goalCode: 'aries.vc.verify.once' }))
   }, [])
-
   useEffect(() => {
-    const ws = new WebSocket(baseWsUrl as string)
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ connectionId: id }))
-    }
+    const ws = io(baseWsUrl)
+    ws.on('connect', () => {
+      ws.emit('subscribe', { connectionId: id })
+    })
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      const { state, endpoint } = data
-      if (endpoint === 'connections' && state === 'active') {
+    ws.on('connections', ({ state }) => {
+      if (state === 'active') {
         dispatch(fetchConnectionById(id as string))
       }
-    }
+    })
   }, [id])
 
   const handleDeepLink = () => {

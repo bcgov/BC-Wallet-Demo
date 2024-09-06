@@ -4,7 +4,7 @@
   "private": true,
   "license": "Apache-2.0",
   "description": "BC Wallet - Verifiable Credential Demo",
-  "engines":{
+  "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
@@ -31,6 +31,7 @@
     "redux": "^4.1.1",
     "redux-persist": "^6.0.0",
     "redux-thunk": "^2.4.1",
+    "socket.io-client": "^4.7.5",
     "ws": "^8.18.0"
   },
   "scripts": {

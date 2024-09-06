@@ -6,6 +6,7 @@ import { track } from 'insights-js'
 import { startCase } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { io } from 'socket.io-client'
 
 import { fade, fadeX } from '../../../FramerAnimations'
 import { baseWsUrl } from '../../../api/BaseUrl'
@@ -115,18 +116,16 @@ export const AcceptCredential: React.FC<Props> = ({
   }, [error])
 
   useEffect(() => {
-    const ws = new WebSocket(baseWsUrl)
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ connectionId: connectionId }))
-    }
+    const ws = io(baseWsUrl)
+    ws.on('connect', () => {
+      ws.emit('subscribe', { connectionId: connectionId })
+    })
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      const { state, endpoint } = data
-      if (endpoint === 'issue_credential' && state === 'credential_issued') {
+    ws.on('issue_credential', ({ state }) => {
+      if (state === 'credential_issued') {
         dispatch(fetchCredentialsByConId(connectionId))
       }
-    }
+    })
   }, [connectionId])
 
   const routeError = () => {

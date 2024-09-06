@@ -30,6 +30,9 @@
     templates
 
     vars basePath "/digital-trust/showcase/"
+    handle /socket.io/* {
+        reverse_proxy backend:5000
+    }
     
     # Health check for openshift
     handle /health {
@@ -48,7 +51,7 @@
             header Upgrade    websocket
         }
 
-        reverse_proxy @websockets backend:5001
+        reverse_proxy @websockets backend:5000
 
          # Required for SPA router to work
         @spa_router {

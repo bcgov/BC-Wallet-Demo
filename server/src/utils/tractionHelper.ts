@@ -13,13 +13,13 @@ export const tractionApiKeyUpdaterInit = async () => {
   const tenantId = process.env.TENANT_ID ?? ''
   const apiKey = process.env.API_KEY ?? ''
   agentKey =
-    (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data
-      ?.token ?? agentKey
+    (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data?.token ??
+    agentKey
   // refresh agent key every hour
   setInterval(async () => {
     agentKey =
-      (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data
-        ?.token ?? agentKey
+      (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data?.token ??
+      agentKey
   }, 3600000)
 }
 

@@ -1,12 +1,43 @@
 import 'reflect-metadata'
 import type { Express } from 'express'
-import type WebSocket from 'ws'
 
 import { json, static as stx } from 'express'
+import * as http from 'http'
 import { createExpressServer } from 'routing-controllers'
-import { WebSocketServer } from 'ws'
+import { Server } from 'socket.io'
 
 import { tractionApiKeyUpdaterInit, tractionRequest, tractionGarbageCollection } from './utils/tractionHelper'
+
+const app: Express = createExpressServer({
+  controllers: [__dirname + '/controllers/**/*.ts'],
+  cors: true,
+  routePrefix: '/digital-trust/showcase/demo',
+})
+
+const server = http.createServer(app)
+
+const ws = new Server(server, {cors:{
+  origin:true
+}})
+
+const socketMap = new Map()
+const connectionMap = new Map()
+
+ws.on('connection', (socket) => {
+  socket.on('subscribe', ({ connectionId }) => {
+    if (connectionId) {
+      socketMap.set(connectionId, socket)
+      connectionMap.set(socket.id, connectionId)
+    }
+  })
+  socket.on('disconnect', () => {
+    const connectionId = connectionMap.get(socket.id)
+    connectionMap.delete(socket.id)
+    if (connectionId) {
+      socketMap.delete(connectionId)
+    }
+  })
+})
 
 process.on('unhandledRejection', (error) => {
   if (error instanceof Error) {
@@ -22,44 +53,7 @@ const run = async () => {
   await tractionApiKeyUpdaterInit()
   await tractionGarbageCollection()
 
-  // setup websockets
-  // Websocket server for the demo
-  const wss = new WebSocketServer({ port: 5001 })
-  interface CustomWebSocket extends WebSocket {
-    isAlive: boolean
-    connectionId?: string
-  }
-  wss.on('connection', function connection(c) {
-    const ws = c as CustomWebSocket
-    ws.isAlive = true
-    ws.on('pong', () => (ws.isAlive = true))
-    ws.on('message', (message) => {
-      const data = JSON.parse(message.toString())
-      ws.connectionId = data.connectionId
-    })
-  })
-
-  const interval = setInterval(function ping() {
-    wss.clients.forEach(function each(c) {
-      const ws = c as CustomWebSocket
-      if (ws.isAlive === false) return ws.terminate()
-
-      ws.isAlive = false
-      ws.ping()
-    })
-  }, 5000)
-
-  wss.on('close', function close() {
-    clearInterval(interval)
-  })
-
-  const app: Express = createExpressServer({
-    controllers: [__dirname + '/controllers/**/*.ts'],
-    cors: true,
-    routePrefix: '/digital-trust/showcase/demo',
-  })
-
-  app.set('wss', wss)
+  app.set('sockets', socketMap)
 
   app.use(json())
 
@@ -102,7 +96,7 @@ const run = async () => {
     return response
   })
 
-  app.listen(5000)
+  server.listen(5000)
 }
 
 run()

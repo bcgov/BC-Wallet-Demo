@@ -3,6 +3,7 @@ import type { CredentialRequest, UseCaseScreen } from '../../../slices/types'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
+import { io } from 'socket.io-client'
 
 import { fadeX } from '../../../FramerAnimations'
 import { baseWsUrl } from '../../../api/BaseUrl'
@@ -113,17 +114,16 @@ export const StepProof: React.FC<Props> = ({
   }, [])
 
   useEffect(() => {
-    const ws = new WebSocket(baseWsUrl as string)
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ connectionId: connectionId }))
-    }
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      const { state, endpoint } = data
-      if (proof && endpoint === 'present_proof' && (state === 'presentation_received' || state === 'verified')) {
+    const ws = io(baseWsUrl)
+    ws.on('connect', () => {
+      ws.emit('subscribe', { connectionId: connectionId })
+    })
+
+    ws.on('present_proof', ({ state }) => {
+      if (state === 'presentation_received' || state === 'verified') {
         dispatch(fetchProofById(proof.id as string))
       }
-    }
+    })
   }, [connectionId, proof])
 
   // remove proof record after we're done with it
