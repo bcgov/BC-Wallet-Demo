@@ -14,6 +14,7 @@ import { useCurrentCharacter } from '../../slices/characters/charactersSelectors
 import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { usePreferences } from '../../slices/preferences/preferencesSelectors'
 import { setDemoCompleted } from '../../slices/preferences/preferencesSlice'
+import { useSocket } from '../../slices/socket/socketSelector'
 import { basePath } from '../../utils/BasePath'
 import { Footer } from '../landing/components/Footer'
 import { NavBar } from '../landing/components/Navbar'
@@ -28,6 +29,7 @@ export const DashboardPage: React.FC = () => {
 
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const socket = useSocket()
   const { issuedCredentials, revokableCredentials } = useCredentials()
   const { completedUseCaseSlugs, demoCompleted, completeCanceled, revocationEnabled, showHiddenUseCases } =
     usePreferences()

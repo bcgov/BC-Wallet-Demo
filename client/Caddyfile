@@ -28,20 +28,20 @@
 
     # Enable templates module - required for 
     templates
-
-    vars basePath "/digital-trust/showcase/"
+    
+    vars basePath {$REACT_APP_BASE_ROUTE}
     
     # Health check for openshift
     handle /health {
         respond 200
     }
-    handle /digital-trust/showcase/demo {
+    handle {$REACT_APP_BASE_ROUTE}/demo {
         redir {vars.basePath}
     }
-    handle /digital-trust/showcase/dashboard {
+    handle {$REACT_APP_BASE_ROUTE}/dashboard {
         redir {vars.basePath}
     }
-    handle /digital-trust/showcase* {
+    handle {$REACT_APP_BASE_ROUTE}* {
         
         @websockets {
             header Connection *Upgrade*
@@ -52,7 +52,7 @@
 
          # Required for SPA router to work
         @spa_router {
-            not path /digital-trust/showcase/demo/* /digital-trust/showcase/server/* /digital-trust/showcase/agent/ready /digital-trust/showcase/public/* /digital-trust/showcase/qr
+            not path {$REACT_APP_BASE_ROUTE}/demo/* {$REACT_APP_BASE_ROUTE}/server/* {$REACT_APP_BASE_ROUTE}/agent/ready {$REACT_APP_BASE_ROUTE}/public/* {$REACT_APP_BASE_ROUTE}/qr
             file {
                 try_files {path} /index.html
             }
@@ -61,7 +61,7 @@
 
         # pass API requests to backend
         @pass {
-            path /digital-trust/showcase/demo/* /digital-trust/showcase/server/* /digital-trust/showcase/agent/ready /digital-trust/showcase/public/* /digital-trust/showcase/qr
+            path {$REACT_APP_BASE_ROUTE}/demo/* {$REACT_APP_BASE_ROUTE}/server/* {$REACT_APP_BASE_ROUTE}/agent/ready {$REACT_APP_BASE_ROUTE}/public/* {$REACT_APP_BASE_ROUTE}/qr
         }
 
         # Proxy requests to API service

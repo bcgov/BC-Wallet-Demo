@@ -7,12 +7,14 @@ import onboardingSlice from './onboarding/onboardingSlice'
 import preferencesSlice from './preferences/preferencesSlice'
 import proofSlice from './proof/proofSlice'
 import sectionSlice from './section/sectionSlice'
+import socketSlice from './socket/socketSlice'
 import useCaseSlice from './useCases/useCasesSlice'
 import walletsSlice from './wallets/walletsSlice'
 
 export const VERSION = 4
 
 const rootReducer = combineReducers({
+  socket: socketSlice,
   wallets: walletsSlice,
   characters: charactersSlice,
   connection: connectionSlice,

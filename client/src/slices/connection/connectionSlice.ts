@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-import { createInvitation, fetchConnectionById } from './connectionThunks'
+import { createInvitation } from './connectionThunks'
 
 export interface ConnectionState {
   id?: string
@@ -32,6 +32,10 @@ const connectionSlice = createSlice({
       state.isLoading = false
       state.isDeepLink = false
     },
+    setConnection: (state, action) => {
+      state.id = action.payload.connection_id
+      state.state = action.payload.state
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -44,13 +48,6 @@ const connectionSlice = createSlice({
         state.state = 'invited'
         state.invitationUrl = action.payload.invitation_url
       })
-      .addCase(fetchConnectionById.pending, (state) => {
-        state.isLoading = true
-      })
-      .addCase(fetchConnectionById.fulfilled, (state, action) => {
-        state.isLoading = false
-        state.state = action.payload.state
-      })
       .addCase('clearUseCase', (state) => {
         state.id = undefined
         state.state = undefined
@@ -60,6 +57,6 @@ const connectionSlice = createSlice({
   },
 })
 
-export const { clearConnection, setDeepLink } = connectionSlice.actions
+export const { clearConnection, setDeepLink, setConnection } = connectionSlice.actions
 
 export default connectionSlice.reducer

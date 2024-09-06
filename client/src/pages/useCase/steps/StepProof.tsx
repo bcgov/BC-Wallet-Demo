@@ -6,11 +6,11 @@ import React, { useEffect, useState } from 'react'
 import { io } from 'socket.io-client'
 
 import { fadeX } from '../../../FramerAnimations'
-import { baseWsUrl, socketPath } from '../../../api/BaseUrl'
 import { ActionCTA } from '../../../components/ActionCTA'
 import { useAppDispatch } from '../../../hooks/hooks'
 import { useConnection } from '../../../slices/connection/connectionSelectors'
-import { createProof, deleteProofById, fetchProofById, createDeepProof } from '../../../slices/proof/proofThunks'
+import { createProof, deleteProofById, createDeepProof, fetchProofById } from '../../../slices/proof/proofThunks'
+import { useSocket } from '../../../slices/socket/socketSelector'
 import { FailedRequestModal } from '../../onboarding/components/FailedRequestModal'
 import { ProofAttributesCard } from '../components/ProofAttributesCard'
 import { StepInfo } from '../components/StepInfo'
@@ -43,6 +43,7 @@ export const StepProof: React.FC<Props> = ({
   const closeFailedRequestModal = () => setIsFailedRequestModalOpen(false)
 
   const { isDeepLink } = useConnection()
+  const { message } = useSocket()
 
   const createProofRequest = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -114,17 +115,14 @@ export const StepProof: React.FC<Props> = ({
   }, [])
 
   useEffect(() => {
-    const ws = io(baseWsUrl, { path: socketPath })
-    ws.on('connect', () => {
-      ws.emit('subscribe', { connectionId: connectionId })
-    })
-
-    ws.on('present_proof', ({ state }) => {
-      if (state === 'presentation_received' || state === 'verified') {
-        dispatch(fetchProofById(proof.id as string))
-      }
-    })
-  }, [connectionId, proof])
+    if (!message || !message.endpoint || !message.state) {
+      return
+    }
+    const { endpoint, state } = message
+    if (endpoint === 'present_proof' && (state === 'presentation_received' || state === 'verified')) {
+      dispatch(fetchProofById(message.presentation_exchange_id))
+    }
+  }, [message])
 
   // remove proof record after we're done with it
   useEffect(() => {

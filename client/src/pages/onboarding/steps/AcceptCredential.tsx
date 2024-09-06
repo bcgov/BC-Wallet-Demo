@@ -17,11 +17,9 @@ import { Modal } from '../../../components/Modal'
 import { useAppDispatch } from '../../../hooks/hooks'
 import { useConnection } from '../../../slices/connection/connectionSelectors'
 import { useCredentials } from '../../../slices/credentials/credentialsSelectors'
-import {
-  fetchCredentialsByConId,
-  issueCredential,
-  issueDeepCredential,
-} from '../../../slices/credentials/credentialsThunks'
+import { setCredential } from '../../../slices/credentials/credentialsSlice'
+import { issueCredential, issueDeepCredential } from '../../../slices/credentials/credentialsThunks'
+import { useSocket } from '../../../slices/socket/socketSelector'
 import { basePath } from '../../../utils/BasePath'
 import { FailedRequestModal } from '../components/FailedRequestModal'
 import { StarterCredentials } from '../components/StarterCredentials'
@@ -55,6 +53,8 @@ export const AcceptCredential: React.FC<Props> = ({
   const { isIssueCredentialLoading, error, issuedCredentials } = useCredentials()
 
   const { isDeepLink } = useConnection()
+
+  const { message } = useSocket()
 
   const showFailedRequestModal = () => setIsFailedRequestModalOpen(true)
   const closeFailedRequestModal = () => setIsFailedRequestModalOpen(false)
@@ -116,17 +116,14 @@ export const AcceptCredential: React.FC<Props> = ({
   }, [error])
 
   useEffect(() => {
-    const ws = io(baseWsUrl, { path: socketPath })
-    ws.on('connect', () => {
-      ws.emit('subscribe', { connectionId: connectionId })
-    })
-
-    ws.on('issue_credential', ({ state }) => {
-      if (state === 'credential_issued') {
-        dispatch(fetchCredentialsByConId(connectionId))
-      }
-    })
-  }, [connectionId])
+    if (!message || !message.endpoint || !message.state) {
+      return
+    }
+    const { endpoint, state } = message
+    if (endpoint === 'issue_credential' && state === 'credential_issued') {
+      dispatch(setCredential(message))
+    }
+  }, [message])
 
   const routeError = () => {
     navigate(`${basePath}/demo`)

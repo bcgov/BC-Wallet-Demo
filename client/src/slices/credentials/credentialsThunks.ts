@@ -4,11 +4,6 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 
 import * as Api from '../../api/CredentialApi'
 
-export const fetchCredentialsByConId = createAsyncThunk('credentials/fetchAllByConId', async (connectionId: string) => {
-  const response = await Api.getDemoCredentialsByConnectionId(connectionId)
-  return response.data
-})
-
 export const issueCredential = createAsyncThunk(
   'credentials/issueCredential',
   async (data: { connectionId: string; cred: Credential; credDefId: string }) => {

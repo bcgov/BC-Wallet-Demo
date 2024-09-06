@@ -2,18 +2,17 @@ import { motion } from 'framer-motion'
 import React, { useEffect } from 'react'
 import { isMobile } from 'react-device-detect'
 import { FiExternalLink } from 'react-icons/fi'
-import { io } from 'socket.io-client'
 
 import { fade, fadeX } from '../../../FramerAnimations'
-import { baseWsUrl, socketPath } from '../../../api/BaseUrl'
 import { Button } from '../../../components/Button'
 import { QRCode } from '../../../components/QRCode'
 import { useAppDispatch } from '../../../hooks/hooks'
-import { clearConnection, setDeepLink } from '../../../slices/connection/connectionSlice'
-import { createInvitation, fetchConnectionById } from '../../../slices/connection/connectionThunks'
+import { clearConnection, setConnection, setDeepLink } from '../../../slices/connection/connectionSlice'
+import { createInvitation } from '../../../slices/connection/connectionThunks'
 import { clearCredentials } from '../../../slices/credentials/credentialsSlice'
 import { setOnboardingConnectionId } from '../../../slices/onboarding/onboardingSlice'
 import { setConnectionDate } from '../../../slices/preferences/preferencesSlice'
+import { useSocket } from '../../../slices/socket/socketSelector'
 import { isConnected } from '../../../utils/Helpers'
 import { prependApiUrl } from '../../../utils/Url'
 import { StepInformation } from '../components/StepInformation'
@@ -53,6 +52,8 @@ export const SetupConnection: React.FC<Props> = ({
 
   const isCompleted = isConnected(connectionState as string)
 
+  const { message } = useSocket()
+
   useEffect(() => {
     if (!isCompleted || newConnection) {
       dispatch(clearConnection())
@@ -76,17 +77,14 @@ export const SetupConnection: React.FC<Props> = ({
   }, [connectionId])
 
   useEffect(() => {
-    const ws = io(baseWsUrl, { path: socketPath })
-    ws.on('connect', () => {
-      ws.emit('subscribe', { connectionId: connectionId })
-    })
-
-    ws.on('connections', ({ state }) => {
-      if (state === 'active') {
-        dispatch(fetchConnectionById(connectionId as string))
-      }
-    })
-  }, [connectionId])
+    if (!message || !message.endpoint || !message.state) {
+      return
+    }
+    const { endpoint, state } = message
+    if (endpoint === 'connections' && state === 'active') {
+      dispatch(setConnection(message))
+    }
+  }, [message])
 
   const renderQRCode = (overlay?: boolean) => {
     return invitationUrl ? (

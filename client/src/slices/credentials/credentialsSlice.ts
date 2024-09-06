@@ -5,12 +5,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 import { isCredIssued } from '../../utils/Helpers'
 
-import {
-  fetchCredentialsByConId,
-  fetchCredentialById,
-  issueCredential,
-  deleteCredentialById,
-} from './credentialsThunks'
+import { fetchCredentialById, issueCredential, deleteCredentialById } from './credentialsThunks'
 
 interface CredentialState {
   issuedCredentials: string[]
@@ -36,42 +31,24 @@ const credentialSlice = createSlice({
       // state.credentials.map((x) => isCredIssued(x.state) && state.issuedCredentials.push(x))
       // state.credentials = []
     },
+    setCredential: (state, action) => {
+      const credentialData = action.payload
+      const credDefParts = credentialData.credential_definition_id.split(':')
+      const credName = credDefParts[credDefParts.length - 1]
+      if (!state.issuedCredentials.includes(credName)) {
+        state.issuedCredentials.push(credName)
+      }
+      if (!state.revokableCredentials.map((rev) => rev.revocationRegId).includes(credentialData.revoc_reg_id)) {
+        state.revokableCredentials.push({
+          revocationRegId: credentialData.revoc_reg_id,
+          connectionId: credentialData.connection_id,
+          credRevocationId: credentialData.revocation_id,
+        })
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchCredentialsByConId.pending, (state) => {
-        state.isLoading = true
-      })
-      .addCase(fetchCredentialsByConId.fulfilled, (state, action) => {
-        state.isLoading = false
-        const results = action.payload.results
-        let revocationObjects: RevocationRecord[] = []
-        if (results?.length) {
-          results.forEach((cred: any) => {
-            if (isCredIssued(cred.state)) {
-              const credDefParts = cred.credential_definition_id.split(':')
-              const credName = credDefParts[credDefParts.length - 1]
-              if (!state.issuedCredentials.includes(credName)) {
-                state.issuedCredentials.push(credDefParts[credDefParts.length - 1])
-              }
-            }
-          })
-          revocationObjects = results
-            .filter(
-              (item: any) =>
-                item.revoc_reg_id !== undefined &&
-                !state.revokableCredentials.map((rev) => rev.revocationRegId).includes(item.revoc_reg_id)
-            )
-            .map((item: any) => {
-              return {
-                revocationRegId: item.revoc_reg_id,
-                connectionId: item.connection_id,
-                credRevocationId: item.revocation_id,
-              }
-            })
-        }
-        state.revokableCredentials.push(...revocationObjects)
-      })
       .addCase(issueCredential.rejected, (state, action) => {
         state.isIssueCredentialLoading = false
         state.error = action.error
@@ -113,6 +90,6 @@ const credentialSlice = createSlice({
   },
 })
 
-export const { clearCredentials } = credentialSlice.actions
+export const { clearCredentials, setCredential } = credentialSlice.actions
 
 export default credentialSlice.reducer

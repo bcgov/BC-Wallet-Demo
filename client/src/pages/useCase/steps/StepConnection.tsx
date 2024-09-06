@@ -11,8 +11,9 @@ import { fade, fadeX } from '../../../FramerAnimations'
 import { baseWsUrl, socketPath } from '../../../api/BaseUrl'
 import { QRCode } from '../../../components/QRCode'
 import { useAppDispatch } from '../../../hooks/hooks'
-import { setDeepLink } from '../../../slices/connection/connectionSlice'
-import { createInvitation, fetchConnectionById } from '../../../slices/connection/connectionThunks'
+import { setConnection, setDeepLink } from '../../../slices/connection/connectionSlice'
+import { createInvitation } from '../../../slices/connection/connectionThunks'
+import { useSocket } from '../../../slices/socket/socketSelector'
 import { nextStep } from '../../../slices/useCases/useCasesSlice'
 import { isConnected } from '../../../utils/Helpers'
 import { prependApiUrl } from '../../../utils/Url'
@@ -27,6 +28,7 @@ export interface Props {
 export const StepConnection: React.FC<Props> = ({ step, connection, newConnection }) => {
   const dispatch = useAppDispatch()
   const { id, state, invitationUrl } = connection
+  const { message } = useSocket()
   const isCompleted = isConnected(state as string)
   const deepLink = `bcwallet://aries_connection_invitation?${invitationUrl?.split('?')[1]}`
 
@@ -34,18 +36,16 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
     if (!isCompleted || newConnection)
       dispatch(createInvitation({ issuer: step.verifier?.name ?? 'Unknown', goalCode: 'aries.vc.verify.once' }))
   }, [])
-  useEffect(() => {
-    const ws = io(baseWsUrl, { path: socketPath })
-    ws.on('connect', () => {
-      ws.emit('subscribe', { connectionId: id })
-    })
 
-    ws.on('connections', ({ state }) => {
-      if (state === 'active') {
-        dispatch(fetchConnectionById(id as string))
-      }
-    })
-  }, [id])
+  useEffect(() => {
+    if (!message || !message.endpoint || !message.state) {
+      return
+    }
+    const { endpoint, state } = message
+    if (endpoint === 'connections' && state === 'active') {
+      dispatch(setConnection(message))
+    }
+  }, [message])
 
   const handleDeepLink = () => {
     if (connection.id) {

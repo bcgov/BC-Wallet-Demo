@@ -21,7 +21,7 @@ export class WebhookController {
 
     const socket = socketMap.get(connectionId)
     if (socket) {
-      socket.emit(endpoint, params)
+      socket.emit('message', params)
     }
     return { message: 'Webhook received' }
   }
