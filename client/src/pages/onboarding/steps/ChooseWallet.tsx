@@ -2,7 +2,7 @@ import type { Wallet } from '../../../slices/types'
 
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
-import { isMobile, isBrowser } from 'react-device-detect'
+import { isBrowser } from 'react-device-detect'
 
 import { fadeX, rowContainer } from '../../../FramerAnimations'
 import { useWallets } from '../../../slices/wallets/walletsSelectors'

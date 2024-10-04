@@ -1,5 +1,4 @@
 import type { CustomCharacter, TextWithImage } from '../../../slices/types'
-import type { Content } from '../../../utils/OnboardingUtils'
 
 import { motion } from 'framer-motion'
 import { track } from 'insights-js'

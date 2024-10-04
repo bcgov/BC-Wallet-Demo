@@ -1,10 +1,8 @@
 import type { CustomCharacter, ProgressBarStep } from '../../../slices/types'
-import type { StepperStep } from '../../../utils/OnboardingSteps'
 
 import React from 'react'
 
 import { useDarkMode } from '../../../hooks/useDarkMode'
-import { Progress } from '../../../utils/OnboardingUtils'
 import { prependApiUrl } from '../../../utils/Url'
 
 export interface Props {

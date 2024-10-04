@@ -1,4 +1,4 @@
-import type { Credential, CredentialData } from '../../../slices/types'
+import type { Credential } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import { startCase } from 'lodash'

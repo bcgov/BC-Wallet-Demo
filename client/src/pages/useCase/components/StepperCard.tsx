@@ -1,4 +1,4 @@
-import type { StepperItem, UseCaseScreen } from '../../../slices/types'
+import type { UseCaseScreen } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import React from 'react'

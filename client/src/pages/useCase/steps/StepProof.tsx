@@ -3,7 +3,6 @@ import type { CredentialRequest, UseCaseScreen } from '../../../slices/types'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { io } from 'socket.io-client'
 
 import { fadeX } from '../../../FramerAnimations'
 import { ActionCTA } from '../../../components/ActionCTA'

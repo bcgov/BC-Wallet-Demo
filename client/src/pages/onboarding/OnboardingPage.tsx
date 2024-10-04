@@ -1,18 +1,16 @@
 import { trackPageView } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { page } from '../../FramerAnimations'
 import { CustomUpload } from '../../components/CustomUpload'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useTitle } from '../../hooks/useTitle'
 import { useCharacters } from '../../slices/characters/charactersSelectors'
-import { setCharacter } from '../../slices/characters/charactersSlice'
 import { fetchAllCharacters } from '../../slices/characters/charactersThunks'
 import { useConnection } from '../../slices/connection/connectionSelectors'
 import { clearConnection } from '../../slices/connection/connectionSlice'
-import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
 import { useOnboarding } from '../../slices/onboarding/onboardingSelectors'
 import { completeOnboarding } from '../../slices/onboarding/onboardingSlice'
@@ -37,10 +35,15 @@ export const OnboardingPage: React.FC = () => {
 
   const [mounted, setMounted] = useState(false)
 
-  const allCharacters = [...characters]
-  if (uploadedCharacter) {
-    allCharacters.push(uploadedCharacter)
-  }
+  const allCharacters = useMemo(() => {
+    const allChars = [...characters].filter((char) => !char.hidden || showHiddenUseCases)
+
+    if (uploadedCharacter) {
+      allChars.push(uploadedCharacter)
+    }
+
+    return allChars
+  }, [characters, uploadedCharacter, showHiddenUseCases])
 
   useEffect(() => {
     if ((OnboardingComplete(onboardingStep) || isCompleted) && currentCharacter) {
@@ -49,7 +52,6 @@ export const OnboardingPage: React.FC = () => {
       dispatch(clearConnection())
       navigate(`${basePath}/dashboard`)
     } else {
-      dispatch({ type: 'demo/RESET' })
       dispatch(fetchWallets())
       dispatch(fetchAllCharacters())
       setMounted(true)

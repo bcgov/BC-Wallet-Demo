@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react'
 import { fadeDelay, fadeExit } from '../../../FramerAnimations'
 import { BackButton } from '../../../components/BackButton'
 import { Button } from '../../../components/Button'
-import { Progress } from '../../../utils/OnboardingUtils'
 
 export interface Props {
   onboardingStep: string
