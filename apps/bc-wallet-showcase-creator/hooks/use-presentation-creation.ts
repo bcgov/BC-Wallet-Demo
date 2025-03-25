@@ -28,7 +28,7 @@ export const usePresentationCreation = () => {
     
     personas.forEach((persona: Persona) => {
       initialScenarios.set(persona.id, {
-        name: "University of British Columbia",
+        name: "Add your students exam results",
         description: `Onboarding scenario for ${persona.name}`,
         type: "PRESENTATION",
         steps: [

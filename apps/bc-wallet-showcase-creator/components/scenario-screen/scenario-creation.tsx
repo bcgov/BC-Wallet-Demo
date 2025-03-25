@@ -8,14 +8,24 @@ import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import { useRouter } from '@/i18n/routing'
 
 import { Button } from '../ui/button'
 import { SortableStep } from './sortable-step'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { Copy } from 'lucide-react'
 
 export const CreateScenariosScreen = () => {
   const t = useTranslations()
-  const { steps, selectedStep, moveStep, setStepState, personas, activePersonaId, setActivePersonaId, activePersona } =
+  const { steps, selectedStep, moveStep, setStepState, personas, activePersonaId, setActivePersonaId, scenarios } =
     usePresentationAdapter()
+  const { selectedPersonaIds } = useShowcaseStore()
+  const router = useRouter()
+
+  console.log(
+    'Persona scenarios',
+    scenarios.filter((scenario) => scenario.personas.includes(activePersonaId || '')),
+  )
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -33,13 +43,15 @@ export const CreateScenariosScreen = () => {
     // Handle drag start if needed
   }
 
+  const filteredScenarios = scenarios.filter((scenario) => scenario.personas.includes(activePersonaId || ''))
+
   return (
     <div className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text rounded-md border shadow-sm">
-      {personas.length === 0 ? (
+      {selectedPersonaIds.length === 0 ? (
         <div className="p-6 text-center">
           <h3 className="text-lg font-semibold mb-4">No personas selected</h3>
           <p className="mb-4">You need to select personas before creating onboarding steps.</p>
-          <Button variant="outlineAction" onClick={() => window.history.back()}>
+          <Button variant="outlineAction" onClick={() => router.push('/showcases/create')}>
             Go Back to Select Personas
           </Button>
         </div>
@@ -86,37 +98,51 @@ export const CreateScenariosScreen = () => {
             </div>
           </div>
 
-          <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
-              {steps.length === 0 ? (
-                <div className="text-center text-gray-500 p-4">
-                  <p>No steps created yet. Click the button below to add your first step.</p>
-                </div>
-              ) : (
-                steps.map((step, index) => (
-                  <div key={index} className="flex flex-row px-4 pt-4">
-                    <SortableStep
-                      selectedStep={selectedStep}
-                      myScreen={step as any}
-                      stepIndex={index + 1}
-                      totalSteps={steps.length}
-                    />
-                  </div>
-                ))
-              )}
+          {filteredScenarios.map((scenario, index) => (
+            <div key={index} className="pb-2 border rounded-lg dark:border-dark-border overflow-hidden flex">
+              <div onClick={() => console.log(index)} className="w-12 bg-[#3A3B3B] flex justify-center items-center">
+                <Copy className="h-6 w-6 text-white" />
+              </div>
 
-              <DragOverlay>
-                {selectedStep !== null && steps[selectedStep] && (
-                  <div className="top-1">
-                    <p>{steps[selectedStep].title}</p>
-                    <div className="highlight-container w-full flex flex-row justify-items-center items-center rounded p-3 unselected-item backdrop-blur">
-                      <p className="text-sm">{steps[selectedStep].description}</p>
-                    </div>
-                  </div>
-                )}
-              </DragOverlay>
-            </SortableContext>
-          </DndContext>
+              <div className="flex-1">
+                <div onClick={() => setStepState('editing-scenario')} className="p-3 bg-light-bg dark:bg-dark-bg">
+                  <h3 className="text-xl font-bold">{scenario?.name}</h3>
+                </div>
+
+                <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+                  <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
+                    {steps.length === 0 ? (
+                      <div className="text-center text-gray-500 p-4">
+                        <p>No steps created yet. Click the button below to add your first step.</p>
+                      </div>
+                    ) : (
+                      steps.map((step, index) => (
+                        <div key={index} className="flex flex-row px-4 pt-4">
+                          <SortableStep
+                            selectedStep={selectedStep}
+                            myScreen={step as any}
+                            stepIndex={index + 1}
+                            totalSteps={steps.length}
+                          />
+                        </div>
+                      ))
+                    )}
+
+                    <DragOverlay>
+                      {selectedStep !== null && steps[selectedStep] && (
+                        <div className="top-1">
+                          <p>{steps[selectedStep].title}</p>
+                          <div className="highlight-container w-full flex flex-row justify-items-center items-center rounded p-3 unselected-item backdrop-blur">
+                            <p className="text-sm">{steps[selectedStep].description}</p>
+                          </div>
+                        </div>
+                      )}
+                    </DragOverlay>
+                  </SortableContext>
+                </DndContext>
+              </div>
+            </div>
+          ))}
 
           <div className="p-4 mt-auto border-t">
             <Button

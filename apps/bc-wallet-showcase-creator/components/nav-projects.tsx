@@ -21,12 +21,7 @@ const projects = [
     name: 'credential_library_label',
     url: '/credentials',
     icon: CreditCard,
-  },
-  {
-    name: 'character_library_label',
-    url: '/characters',
-    icon: User,
-  },
+  }
 ]
 
 export function NavProjects() {

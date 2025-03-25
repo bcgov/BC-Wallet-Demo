@@ -20,7 +20,7 @@ export const CreateOnboardingScreen = () => {
   const { steps, selectedStep, moveStep, setStepState, personas, activePersonaId, setActivePersonaId, activePersona } =
     useOnboardingAdapter()
   const { selectedPersonaIds } = useShowcaseStore()
-  const { data: personasData, isLoading } = usePersonas()
+  const { data: personasData } = usePersonas()
   const router = useRouter()
   console.log(personasData?.personas)
 

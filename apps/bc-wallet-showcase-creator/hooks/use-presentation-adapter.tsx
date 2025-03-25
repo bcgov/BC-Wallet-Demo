@@ -146,6 +146,7 @@ export const usePresentationAdapter = () => {
     activePersonaId,
     setActivePersonaId,
     activePersona,
+    scenarios: Array.from(personaScenarios.values()),
     
     // Combined functionality
     saveShowcase,
