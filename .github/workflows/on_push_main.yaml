@@ -232,7 +232,7 @@ jobs:
                   kind: Rule
                   services:
                     - name: bc-wallet-bc-wallet-traction-adapter
-                      port: 3757
+                      port: 3000
               tls:
                 secretName: bc-wallet-tls
             EOF
@@ -251,7 +251,7 @@ jobs:
                   kind: Rule
                   services:
                     - name: bc-wallet-bc-wallet-showcase-creator
-                      port: 80
+                      port: 3050
               tls:
                 secretName: bc-wallet-tls
             EOF
@@ -305,11 +305,11 @@ jobs:
           username: ${{ secrets.K3S_USERNAME }}
           key: ${{ secrets.K3S_SSH_KEY }}
           script: |
-            kubectl rollout restart deployment bc-wallet-bc-wallet-api-server
-            kubectl rollout restart deployment bc-wallet-bc-wallet-traction-adapter
-            kubectl rollout restart deployment bc-wallet-bc-wallet-showcase-creator
-            kubectl rollout restart deployment bc-wallet-bc-wallet-demo-web
-            kubectl rollout restart deployment bc-wallet-bc-wallet-demo-server
+            sudo kubectl rollout restart deployment bc-wallet-bc-wallet-api-server
+            sudo kubectl rollout restart deployment bc-wallet-bc-wallet-traction-adapter
+            sudo kubectl rollout restart deployment bc-wallet-bc-wallet-showcase-creator
+            sudo kubectl rollout restart deployment bc-wallet-bc-wallet-demo-web
+            sudo kubectl rollout restart deployment bc-wallet-bc-wallet-demo-server
 
   # deploy_uat:
   #   name: Deploy to UAT

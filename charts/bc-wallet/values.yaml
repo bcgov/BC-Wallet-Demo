@@ -1,9 +1,6 @@
 nameOverride: ""
 fullnameOverride: "bc-wallet"
 
-# Add ingressSuffix for dynamic host generation
-# ingressSuffix: "-dev.apps.silver.devops.gov.bc.ca"
-
 api_server:
   name: bc-wallet-api-server
   image:
@@ -84,12 +81,12 @@ traction_adapter:
     targetMemoryUtilizationPercentage: 80
     stabilizationWindowSeconds: 300
   labelOverride: ""
-  port: 3757
+  port: 3000
   path: /traction
   env:
     APP_NAME: bc-wallet-traction-adapter
     LOG_LEVEL: debug
-    NODE_PORT: 3757
+    NODE_PORT: 3000
     RABBITMQ_PORT: 5672
     RABBITMQ_USER: guest
     RABBITMQ_VHOST: /
@@ -105,7 +102,7 @@ traction_adapter:
   containerSecurityContext: {}
   service:
     type: ClusterIP
-    port: 3757
+    port: 3000
   affinity: {}
   nodeSelector: {}
   tolerations: []
@@ -137,7 +134,7 @@ showcase_creator:
     tag: ""
   replicaCount: 1
   labelOverride: ""
-  port: 3000
+  port: 3050
   path: /
   env:
     APP_NAME: bc-wallet-showcase-creator
@@ -154,7 +151,7 @@ showcase_creator:
   containerSecurityContext: {}
   service:
     type: ClusterIP
-    port: 3000
+    port: 3050
   affinity: {}
   nodeSelector: {}
   tolerations: []
