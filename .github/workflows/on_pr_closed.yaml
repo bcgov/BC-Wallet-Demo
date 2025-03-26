@@ -10,7 +10,7 @@ on:
   pull_request:
     branches:
       - main
-      - develop-4sure
+      # - develop-4sure
     paths:
       - "apps/bc-wallet-api-server/**"
       - "packages/bc-wallet-traction-adapter/**"

@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-      - develop-4sure
+      # - develop-4sure
     paths:
       - "apps/**"
       - "packages/**"
