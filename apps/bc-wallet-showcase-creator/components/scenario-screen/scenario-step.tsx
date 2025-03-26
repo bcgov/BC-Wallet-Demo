@@ -1,12 +1,11 @@
-import { useScenarios } from '@/hooks/use-scenarios'
 import { cn } from '@/lib/utils'
-import type { ScenarioStep as ScenarioStepType } from '@/types'
+import type { StepType } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { produce } from 'immer'
 import { Copy, GripVertical } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 
 const MAX_CHARS = 10
 
@@ -15,12 +14,21 @@ export const ScenarioStep = ({
   stepIndex,
   scenarioIndex,
 }: {
-  step: ScenarioStepType
+  step: StepType
   stepIndex: number
   scenarioIndex: number
 }) => {
   const t = useTranslations()
-  const { selectedStep, setSelectedStep, setSelectedScenario, setStepState } = useScenarios()
+
+  const {
+    selectedStep,
+    setSelectedStep,
+    setStepState,
+    duplicateStep,
+    activeScenarioIndex,
+    setActiveScenarioIndex,
+    activePersonaId,
+  } = usePresentationAdapter()
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: step.id,
@@ -32,29 +40,27 @@ export const ScenarioStep = ({
   }
 
   const handleSelect = () => {
-    setSelectedStep(stepIndex)
-    setSelectedScenario(scenarioIndex)
-    setStepState(step.type === 'CONNET_AND_VERIFY' ? 'proof-step-edit' : 'basic-step-edit')
-  }
-
+    setSelectedStep(stepIndex);
+    
+    if (activeScenarioIndex !== scenarioIndex) {
+      setActiveScenarioIndex(scenarioIndex);
+    }
+    
+    // Use the correct signature for setStepState
+    const stepType = step.type === 'SERVICE' ? 'editing-issue' : 'editing-basic';
+    setStepState(stepIndex); // This passes the index, not the state type
+  };
   const handleCopyStep = (index: number) => {
     try {
-      const { scenarios } = useScenarios.getState()
-      if (!scenarios[index].steps[index]) return
+      if (!activePersonaId) {
+        console.error('Cannot duplicate - no active persona')
+        return
+      }
 
-      const stepToCopy = scenarios[index].steps[index]
-
-      const newStep = JSON.parse(JSON.stringify(stepToCopy))
-      newStep.id = `${Date.now()}` // Ensure a unique ID
-
-      useScenarios.setState(
-        produce((state) => {
-          state.scenarios[index].steps.splice(index + 1, 0, newStep)
-          state.selectedStep = index + 1
-        })
-      )
+      // Make sure we're using the correct scenario index
+      duplicateStep(index)
     } catch (error) {
-      console.log('Error in Copy Step', error)
+      console.error('Error duplicating step:', error)
     }
   }
 
@@ -62,12 +68,14 @@ export const ScenarioStep = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex mb-2 flex-row  w-full bg-white dark:bg-dark-bg-secondary min-h-28"
+      className="flex mb-2 flex-row w-full bg-white dark:bg-dark-bg-secondary min-h-28"
     >
       <div
-        className={`cursor-default flex-shrink-0 flex items-center ${
-          step.type == 'CONNET_AND_VERIFY' ? 'bg-yellow-500' : 'bg-[#898A8A]'
-        } px-3 py-5 rounded-l`}
+        className={cn(
+          'cursor-default flex-shrink-0 flex items-center',
+          step.type == 'SERVICE' ? 'bg-yellow-500' : 'bg-[#898A8A]',
+          'px-3 py-5 rounded-l',
+        )}
       >
         <div className="flex flex-col gap-3">
           {/* Dragging Only on GripVertical */}
@@ -95,7 +103,7 @@ export const ScenarioStep = ({
             'min-h-28  w-full hover:bg-light-btn-hover dark:hover:bg-dark-btn-hover',
             'flex flex-col justify-center rounded p-3',
             'border-b-2 border-light-border dark:border-dark-border',
-            selectedStep === stepIndex ? 'border-foreground' : 'border-light-bg-secondary'
+            selectedStep === stepIndex ? 'border-foreground' : 'border-light-bg-secondary',
           )}
         >
           <span className="font-semibold">{step.title}</span>

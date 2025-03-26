@@ -55,7 +55,7 @@ export const SortableStep = ({
       const stepToCopy = screens[index];
 
       const newStep = JSON.parse(JSON.stringify(stepToCopy));
-      newStep.id = `${Date.now()}`; // Ensure a unique ID
+      newStep.id = `${Date.now()}`;
 
       useOnboarding.setState(
         produce((state) => {

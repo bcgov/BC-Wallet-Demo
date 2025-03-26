@@ -15,7 +15,7 @@ export const PublishInfo = ({
   return (
     <div className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text">
       <div className="flex flex-col gap-4">
-        {characters.map((char, index) => (
+        {(characters || []).map((char, index) => (
           <div key={index} className="bg-white dark:bg-gray-800 border rounded-lg shadow-lg p-6 flex flex-col">
             {/* Character Header */}
             <div className="flex items-center gap-4">

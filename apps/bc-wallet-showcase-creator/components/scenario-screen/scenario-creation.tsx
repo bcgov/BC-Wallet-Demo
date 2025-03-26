@@ -2,7 +2,7 @@
 
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { cn, ensureBase64HasPrefix } from '@/lib/utils'
-import type { Persona, ScenarioRequestType } from '@/openapi-types'
+import type { Persona, ScenarioRequestType, StepRequestType } from '@/openapi-types'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -34,15 +34,34 @@ export const CreateScenariosScreen = () => {
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
 
+  // const handleDragEnd = (event: DragEndEvent) => {
+  //   const { active, over } = event
+  //   if (!over) return
+
+  //   const oldIndex = steps.findIndex((step) => step.id === active.id)
+  //   const newIndex = steps.findIndex((step) => step.id === over.id)
+
+  //   if (oldIndex !== newIndex) {
+  //     moveStep(oldIndex, newIndex)
+  //   }
+  // }
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     if (!over) return
 
-    const oldIndex = steps.findIndex((step) => step.id === active.id)
-    const newIndex = steps.findIndex((step) => step.id === over.id)
+    // Extract the stepIndex from the ID format "step-scenarioIndex-stepIndex"
+    const activeIdParts = active.id.toString().split('-')
+    const overIdParts = over.id.toString().split('-')
 
-    if (oldIndex !== newIndex) {
-      moveStep(oldIndex, newIndex)
+    // Ensure we have valid IDs
+    if (activeIdParts.length >= 3 && overIdParts.length >= 3) {
+      const oldIndex = parseInt(activeIdParts[2])
+      const newIndex = parseInt(overIdParts[2])
+
+      if (oldIndex !== newIndex) {
+        moveStep(oldIndex, newIndex)
+      }
     }
   }
 
@@ -55,11 +74,14 @@ export const CreateScenariosScreen = () => {
       duplicateScenario(index)
     }
   }
+
   const handleScenarioDelete = (index: number) => {
     deleteScenario(index)
   }
 
-  console.log(scenarios)
+  // Get the current active scenario's steps
+  const activeScenario = scenarios[activeScenarioIndex]
+  const currentSteps = activeScenario?.steps || []
 
   return (
     <div className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text rounded-md border shadow-sm">
@@ -109,10 +131,8 @@ export const CreateScenariosScreen = () => {
           <div className="p-4">
             <div className="border-b w-full light-border dark:dark-border">
               <div className="pb-4">
-                <h2 className="text-base font-bold">You are editing Ana’s scenario.</h2>
-                <p className="text-xs">
-                  {t('onboarding.editing_steps_message') || 'Make sure to complete all character’s scenario(s).'}
-                </p>
+                <h2 className="text-base font-bold">You are editing Ana's scenario.</h2>
+                <p className="text-xs">{t('onboarding.editing_steps_message')}</p>
               </div>
             </div>
 
@@ -143,66 +163,72 @@ export const CreateScenariosScreen = () => {
                   </div>
 
                   {/* Only show steps for the active scenario */}
-                  {activeScenarioIndex === index && (
-                    <>
-                      <DndContext
-                        collisionDetection={closestCenter}
-                        onDragStart={handleDragStart}
-                        onDragEnd={handleDragEnd}
-                      >
-                        <div className="p-2">
-                          <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
-                            {steps.length === 0 ? (
-                              <div className="text-center text-gray-500 p-4">
-                                <p>No steps created yet. Click the button below to add your first step.</p>
-                              </div>
-                            ) : (
-                              steps.map((step, index) => (
-                                <div key={index} className="flex flex-row">
+                  {/* {activeScenarioIndex === index && ( */}
+                  <>
+                    <DndContext
+                      collisionDetection={closestCenter}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <div className="p-2">
+                        <SortableContext
+                          items={scenario.steps?.map((step, i) => `step-${index}-${i}`)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {!scenario.steps || scenario.steps.length === 0 ? (
+                            <div className="text-center text-gray-500 p-4">
+                              <p>No steps created yet. Click the button below to add your first step.</p>
+                            </div>
+                          ) : (
+                            scenario.steps.map((step: StepRequestType, stepIndex: number) => {
+                              console.log('step ==>', step)
+                              return (
+                                <div key={`step-${index}-${stepIndex}`} className="flex flex-row">
                                   <SortableStep
                                     selectedStep={selectedStep}
                                     myScreen={step as any}
-                                    stepIndex={index + 1}
-                                    totalSteps={steps.length}
+                                    stepIndex={stepIndex + 1}
+                                    totalSteps={scenario.steps.length}
                                     scenarioIndex={index}
                                   />
                                 </div>
-                              ))
-                            )}
+                              )
+                            })
+                          )}
 
-                            <DragOverlay>
-                              {selectedStep !== null && steps[selectedStep] && (
-                                <div className="top-1">
-                                  <p>{steps[selectedStep].title}</p>
-                                  <div className="highlight-container w-full flex flex-row justify-items-center items-center rounded p-3 unselected-item backdrop-blur">
-                                    <p className="text-sm">{steps[selectedStep].description}</p>
-                                  </div>
+                          <DragOverlay>
+                            {selectedStep !== null && scenario.steps && scenario.steps[selectedStep] && (
+                              <div className="top-1">
+                                <p>{scenario.steps[selectedStep].title}</p>
+                                <div className="highlight-container w-full flex flex-row justify-items-center items-center rounded p-3 unselected-item backdrop-blur">
+                                  <p className="text-sm">{scenario.steps[selectedStep].description}</p>
                                 </div>
-                              )}
-                            </DragOverlay>
-                          </SortableContext>
-                        </div>
-                      </DndContext>
-
-                      <div className="p-2 pt-0 flex flex-row gap-2">
-                        <Button
-                          onClick={() => setStepState('creating-new')}
-                          variant="outlineAction"
-                          disabled={activePersonaId === null}
-                        >
-                          {t('onboarding.add_step_label')}
-                        </Button>
-
-                        <Button
-                          onClick={() => handleScenarioDelete(index)}
-                          variant="outlineAction"
-                          disabled={activePersonaId === null}
-                        >
-                          {t('scenario.remove_scenario_label').toUpperCase()}
-                        </Button>
+                              </div>
+                            )}
+                          </DragOverlay>
+                        </SortableContext>
                       </div>
-                    </>
-                  )}
+                    </DndContext>
+
+                    <div className="p-2 pt-0 flex flex-row gap-2">
+                      <Button
+                        onClick={() => setStepState('creating-new')}
+                        variant="outlineAction"
+                        disabled={activePersonaId === null}
+                      >
+                        {t('onboarding.add_step_label')}
+                      </Button>
+
+                      <Button
+                        onClick={() => handleScenarioDelete(index)}
+                        variant="outlineAction"
+                        disabled={activePersonaId === null}
+                      >
+                        {t('scenario.remove_scenario_label').toUpperCase()}
+                      </Button>
+                    </div>
+                  </>
+                  {/* )} */}
                 </div>
               </div>
             ))}

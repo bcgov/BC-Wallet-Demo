@@ -16,7 +16,7 @@ import { StepType } from '@/types'
 
 export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
-  const { stepState, activePersonaId } = usePresentationAdapter()
+  const { stepState, activePersonaId, selectedStep } = usePresentationAdapter()
 
   const handleAddStep = (type: StepType) => {
     // if (selectedScenario === null) return
@@ -30,7 +30,10 @@ export const CreateScenariosStepsScreen = () => {
       className=" bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
     >
       {JSON.stringify(stepState)}
-      {stepState === 'editing-scenario' && <ScenarioEdit />}
+      {JSON.stringify(selectedStep)}
+      {/* {stepState === 'editing-scenario' && */}
+       <ScenarioEdit />
+       {/* } */}
 
       {!activePersonaId && (
         <NoSelection

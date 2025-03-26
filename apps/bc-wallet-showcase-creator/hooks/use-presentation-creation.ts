@@ -1,123 +1,81 @@
-import { useState, useCallback } from 'react'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { create } from 'zustand'
+import { immer } from 'zustand/middleware/immer'
+import { enableMapSet } from 'immer'
+import { useEffect } from 'react'
 import type { Persona, StepRequestType, AriesOOBActionRequest, PresentationScenarioRequestType } from '@/openapi-types'
 import { sampleAction } from '@/lib/steps'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
 
-export const usePresentationCreation = () => {
-  const { selectedPersonaIds } = useShowcaseStore()
-  const [activeScenarioIndex, setActiveScenarioIndex] = useState<number>(0)
+enableMapSet();
+// Define the interface structure for our scenarios
+interface PresentationCreationState {
+  // Instead of using a Map directly, we'll use a Record object for better compatibility
+  personaScenariosMap: Record<string, PresentationScenarioRequestType[]>;
+  activePersonaId: string | null;
+  activeScenarioIndex: number;
+  
+  // Actions
+  setActivePersonaId: (id: string | null) => void;
+  setActiveScenarioIndex: (index: number) => void;
+  updatePersonaSteps: (personaId: string, scenarioIndex: number, steps: StepRequestType[]) => void;
+  addActionToStep: (personaId: string, stepIndex: number, action: typeof AriesOOBActionRequest._type) => void;
+  addPersonaScenario: (persona: Persona, relayerId: string) => void;
+  duplicateScenario: (scenarioIndex: number) => void;
+  deleteScenario: (scenarioIndex: number) => void;
+  addStep: (personaId: string, scenarioIndex: number, stepData: StepRequestType) => void;
+  updateStep: (personaId: string, scenarioIndex: number, stepIndex: number, stepData: StepRequestType) => void;
+  deleteStep: (personaId: string, scenarioIndex: number, stepIndex: number) => void;
+  moveStep: (personaId: string, scenarioIndex: number, oldIndex: number, newIndex: number) => void;
+  duplicateStep: (personaId: string, scenarioIndex: number, stepIndex: number) => void;
+}
 
-  const { relayerId, selectedCredentialDefinitionIds } = useHelpersStore()
-  const { data: personasData } = usePersonas()
-
-  const [personaScenarios, setPersonaScenarios] = useState(() => {
-    const initialScenarios = new Map<string, PresentationScenarioRequestType[]>()
-
-    const personas = (personasData?.personas || []).filter((persona: Persona) =>
-      selectedPersonaIds.includes(persona.id),
-    )
-
-    personas.forEach((persona: Persona) => {
-      initialScenarios.set(persona.id, [
-        {
-          name: 'Add your students exam results',
-          description: `Onboarding scenario for ${persona.name}`,
-          type: 'PRESENTATION',
-          steps: [
-            {
-              title: `Scan the QR Code to start sharing`,
-              description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
-              order: 0,
-              type: 'HUMAN_TASK',
-              actions: [sampleAction],
-            },
-          ],
-          personas: [persona.id],
-          hidden: false,
-          relyingParty: relayerId,
-        },
-      ])
-    })
-
-    return initialScenarios
-  })
-
-  const [activePersonaId, setActivePersonaId] = useState<string | null>(() => {
-    const personas = (personasData?.personas || []).filter((persona: Persona) =>
-      selectedPersonaIds.includes(persona.id),
-    )
-    return personas.length > 0 ? personas[0].id : null
-  })
-
-  const selectedPersonas = (personasData?.personas || []).filter((persona: Persona) =>
-    selectedPersonaIds.includes(persona.id),
-  )
-
-  const updatePersonaSteps = useCallback((personaId: string, scenarioIndex: number, steps: StepRequestType[]) => {
-    setPersonaScenarios((prevScenarios) => {
-      if (!prevScenarios.has(personaId)) {
-        return prevScenarios
-      }
-
-      const scenarios = prevScenarios.get(personaId)!
-
-      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) {
-        return prevScenarios
-      }
-
-      // Update the steps of the specified scenario
-      const updatedScenarios = [...scenarios]
-      updatedScenarios[scenarioIndex] = {
-        ...updatedScenarios[scenarioIndex],
-        steps: steps,
-      }
-
-      const newScenarios = new Map(prevScenarios)
-      newScenarios.set(personaId, updatedScenarios)
-
-      return newScenarios
-    })
-  }, [])
-
-  const addActionToStep = useCallback(
-    (personaId: string, stepIndex: number, action: typeof AriesOOBActionRequest._type) => {
-      setPersonaScenarios((prevScenarios) => {
-        if (!prevScenarios.has(personaId)) {
-          return prevScenarios
-        }
-
-        const scenario = prevScenarios.get(personaId)!
-        const steps = [...scenario.steps]
-
-        if (stepIndex < 0 || stepIndex >= steps.length) {
-          return prevScenarios
-        }
-
-        const step = steps[stepIndex]
-        const actions = [...(step.actions || []), action]
-
-        steps[stepIndex] = { ...step, actions }
-
-        const newScenarios = new Map(prevScenarios)
-        newScenarios.set(personaId, {
-          ...scenario,
-          steps: steps,
-        })
-
-        return newScenarios
-      })
-    },
-    [],
-  )
-
-  const addPersonaScenario = useCallback((persona: Persona) => {
-    setPersonaScenarios((prevScenarios) => {
-      if (prevScenarios.has(persona.id)) {
-        return prevScenarios
-      }
-
+// Create the Zustand store with Immer middleware
+const usePresentationCreationStore = create<PresentationCreationState>()(
+  immer((set) => ({
+    personaScenariosMap: {},
+    activePersonaId: null,
+    activeScenarioIndex: 0,
+    
+    setActivePersonaId: (id) => set(state => {
+      state.activePersonaId = id;
+    }),
+    
+    setActiveScenarioIndex: (index) => set(state => {
+      state.activeScenarioIndex = index;
+    }),
+    
+    updatePersonaSteps: (personaId, scenarioIndex, steps) => set(state => {
+      if (!state.personaScenariosMap[personaId]) return;
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return;
+      
+      scenarios[scenarioIndex].steps = steps;
+    }),
+    
+    addActionToStep: (personaId, stepIndex, action) => set(state => {
+      if (!state.personaScenariosMap[personaId]) return;
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      const scenarioIndex = state.activeScenarioIndex;
+      
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return;
+      
+      const steps = scenarios[scenarioIndex].steps;
+      if (stepIndex < 0 || stepIndex >= steps.length) return;
+      
+      const step = steps[stepIndex];
+      steps[stepIndex] = { 
+        ...step, 
+        actions: [...(step.actions || []), action] 
+      };
+    }),
+    
+    addPersonaScenario: (persona, relayerId) => set(state => {
+      if (state.personaScenariosMap[persona.id]) return;
+      
       const defaultScenario: PresentationScenarioRequestType = {
         name: "You're done!",
         description: `Onboarding scenario for ${persona.name}`,
@@ -128,88 +86,226 @@ export const usePresentationCreation = () => {
             description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
             order: 0,
             type: 'HUMAN_TASK',
-            actions: [],
+            actions: [
+              sampleAction
+            ],
           },
         ],
         personas: [persona.id],
         hidden: false,
         relyingParty: relayerId,
+      };
+      
+      state.personaScenariosMap[persona.id] = [defaultScenario];
+    }),
+    
+    duplicateScenario: (scenarioIndex) => set(state => {
+      const personaId = state.activePersonaId;
+      if (!personaId || !state.personaScenariosMap[personaId]) return;
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return;
+      
+      const scenarioToDuplicate = scenarios[scenarioIndex];
+      const duplicatedScenario = JSON.parse(JSON.stringify(scenarioToDuplicate));
+      
+      duplicatedScenario.name = `${duplicatedScenario.name} (Copy)`;
+      
+      const newScenarioIndex = scenarios.length;
+      
+      duplicatedScenario.steps = duplicatedScenario.steps.map((step: StepRequestType, idx: number) => ({
+        ...step,
+        id: `step-${newScenarioIndex}-${idx}-${Date.now()}`,
+        scenarioIndex: newScenarioIndex,
+      }));
+      
+      scenarios.push(duplicatedScenario);
+    }),
+    
+    addStep: (personaId, scenarioIndex, stepData) => set(state => {
+      if (!state.personaScenariosMap[personaId]) return;
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return;
+      
+      const currentSteps = scenarios[scenarioIndex].steps;
+      
+      const newStep = {
+        ...stepData,
+        id: `step-${scenarioIndex}-${currentSteps.length}-${Date.now()}`,
+        order: currentSteps.length,
+        type: stepData.type || 'HUMAN_TASK',
+        actions: stepData.actions || [],
+      };
+      
+      scenarios[scenarioIndex].steps.push(newStep);
+    }),
+    
+    updateStep: (personaId, scenarioIndex, stepIndex, stepData) => set(state => {
+      if (!state.personaScenariosMap[personaId]) return;
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return;
+      
+      const steps = scenarios[scenarioIndex].steps;
+      if (stepIndex < 0 || stepIndex >= steps.length) return;
+      
+      steps[stepIndex] = {
+        ...steps[stepIndex],
+        ...stepData,
+        order: stepIndex,
+      };
+    }),
+    
+    deleteStep: (personaId, scenarioIndex, stepIndex) => set(state => {
+      if (!state.personaScenariosMap[personaId]) return;
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return;
+      
+      const steps = scenarios[scenarioIndex].steps;
+      if (stepIndex < 0 || stepIndex >= steps.length) return;
+      
+      // Remove the step
+      steps.splice(stepIndex, 1);
+      
+      // Update orders for all steps
+      steps.forEach((step, idx) => {
+        step.order = idx;
+      });
+    }),
+    
+    moveStep: (personaId, scenarioIndex, oldIndex, newIndex) => set(state => {
+      if (!state.personaScenariosMap[personaId]) return;
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return;
+      
+      const steps = scenarios[scenarioIndex].steps;
+      if (oldIndex < 0 || oldIndex >= steps.length || newIndex < 0 || newIndex >= steps.length) return;
+      
+      // Move the step
+      const [movedStep] = steps.splice(oldIndex, 1);
+      steps.splice(newIndex, 0, movedStep);
+      
+      // Update orders
+      steps.forEach((step, idx) => {
+        step.order = idx;
+      });
+    }),
+    
+    duplicateStep: (personaId, scenarioIndex, stepIndex) => set(state => {
+      console.log('Duplicating step with:', { personaId, scenarioIndex, stepIndex });
+      
+      if (!state.personaScenariosMap[personaId]) {
+        console.log('No persona found with ID:', personaId);
+        return;
       }
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) {
+        console.log('Invalid scenario index:', scenarioIndex);
+        return;
+      }
+      
+      // Ensure we're working with the correct scenario
+      const scenario = scenarios[scenarioIndex];
+      const steps = scenario.steps;
+      
+      if (stepIndex < 0 || stepIndex >= steps.length) {
+        console.log('Invalid step index:', stepIndex);
+        return;
+      }
+      
+      // Clone the step
+      const stepToDuplicate = steps[stepIndex];
+      console.log('Step to duplicate:', stepToDuplicate);
+      
+      const duplicatedStep = {
+        ...JSON.parse(JSON.stringify(stepToDuplicate)),
+        title: `${stepToDuplicate.title} (Copy)`,
+        id: `step-${scenarioIndex}-${stepIndex}-${Date.now()}`,
+        order: stepIndex + 1,
+      };
+      
+      console.log('Created duplicated step:', duplicatedStep);
+      
+      // Insert after the original in the SAME scenario
+      steps.splice(stepIndex + 1, 0, duplicatedStep);
+      
+      // Update orders for all steps
+      steps.forEach((step, idx) => {
+        step.order = idx;
+      });
+      
+      console.log('Updated steps after duplication:', steps);
+    }),
 
-      const newScenarios = new Map(prevScenarios)
-      newScenarios.set(persona.id, defaultScenario as PresentationScenarioRequestType)
-      return newScenarios
-    })
-  }, [])
+    deleteScenario: (scenarioIndex) => set(state => {
+      const personaId = state.activePersonaId;
+      if (!personaId || !state.personaScenariosMap[personaId]) return;
+      
+      const scenarios = state.personaScenariosMap[personaId];
+      if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return; 
+      
+      scenarios.splice(scenarioIndex, 1);
+    }),
+  }))
+);
 
-  const duplicateScenario = useCallback(
-    (scenarioIndex: number) => {
-      if (!activePersonaId) return
+// Create a custom hook to use the store
+export const usePresentationCreation = () => {
+  const { selectedPersonaIds } = useShowcaseStore();
+  const { relayerId, selectedCredentialDefinitionIds } = useHelpersStore();
+  const { data: personasData } = usePersonas();
   
-      setPersonaScenarios((prevScenarios: any) => {
-        const newScenarios = new Map(prevScenarios)
-        
-        const personaScenarioList = Array.isArray(prevScenarios.get(activePersonaId))
-          ? [...prevScenarios.get(activePersonaId)]
-          : [prevScenarios.get(activePersonaId)]
-        
-        const scenarioToDuplicate = personaScenarioList[scenarioIndex]
-        if (!scenarioToDuplicate) return prevScenarios
-        
-        const duplicatedScenario = JSON.parse(JSON.stringify(scenarioToDuplicate))
-        duplicatedScenario.name = `${duplicatedScenario.name} (Copy)`
-        
-        // Set new scenario index to the array length (which will be its index after adding)
-        const newScenarioIndex = personaScenarioList.length;
-        
-        // Update all steps to have the new scenario index
-        duplicatedScenario.steps = duplicatedScenario.steps.map((step: StepRequestType, idx: number) => ({
-          ...step,
-          id: `step-${newScenarioIndex}-${idx}-${Date.now()}`,
-          scenarioIndex: newScenarioIndex
-        }))
-        
-        personaScenarioList.push(duplicatedScenario)
-        newScenarios.set(activePersonaId, personaScenarioList)
-        
-        return newScenarios
-      })
-    },
-    [activePersonaId],
-  )
-
-  const deleteScenario = useCallback(
-    (scenarioIndex: number) => {
-      if (!activePersonaId) return
+  // Get store state and actions
+  const {
+    personaScenariosMap,
+    activePersonaId,
+    setActivePersonaId,
+    activeScenarioIndex,
+    setActiveScenarioIndex,
+    updatePersonaSteps,
+    addActionToStep,
+    addPersonaScenario,
+    duplicateScenario,
+    deleteScenario,
+    addStep,
+    updateStep,
+    deleteStep,
+    moveStep,
+    duplicateStep,
+  } = usePresentationCreationStore();
   
-      setPersonaScenarios((prevScenarios) => {
-        // Get current scenarios for the active persona
-        const currentScenarios = prevScenarios.get(activePersonaId)
-        if (!currentScenarios || !Array.isArray(currentScenarios)) return prevScenarios
-        
-        // Create a new array without the scenario at the specified index
-        const updatedScenarios = [
-          ...currentScenarios.slice(0, scenarioIndex),
-          ...currentScenarios.slice(scenarioIndex + 1)
-        ]
-        
-        // Create a new map with the updated scenarios for this persona
-        const newScenarios = new Map(prevScenarios)
-        newScenarios.set(activePersonaId, updatedScenarios)
-        
-        // Update active scenario index if needed
-        if (scenarioIndex === activeScenarioIndex && updatedScenarios.length > 0) {
-          setActiveScenarioIndex(0)
-        } else if (scenarioIndex < activeScenarioIndex) {
-          setActiveScenarioIndex(activeScenarioIndex - 1)
-        }
-        
-        return newScenarios
-      })
-    },
-    [activePersonaId, activeScenarioIndex, setActiveScenarioIndex]
-  )
-
+  // Initialize the store when needed
+  useEffect(() => {
+    const personas = (personasData?.personas || []).filter((persona: Persona) =>
+      selectedPersonaIds.includes(persona.id),
+    );
+    
+    // Initialize store with personas if needed
+    personas.forEach((persona: Persona) => {
+      if (!personaScenariosMap[persona.id]) {
+        addPersonaScenario(persona, relayerId);
+      }
+    });
+    
+    // Set initial active persona if not already set
+    if (!activePersonaId && personas.length > 0) {
+      setActivePersonaId(personas[0].id);
+    }
+  }, [personasData, selectedPersonaIds, personaScenariosMap, activePersonaId, relayerId, addPersonaScenario, setActivePersonaId]);
+  
+  const selectedPersonas = (personasData?.personas || []).filter((persona: Persona) =>
+    selectedPersonaIds.includes(persona.id),
+  );
+  
+  // Convert the flat map to a Map object for API compatibility with the old hook
+  const personaScenarios = new Map(
+    Object.entries(personaScenariosMap)
+  );
+  
   return {
     selectedPersonas,
     selectedCredentialDefinitionIds,
@@ -218,10 +314,16 @@ export const usePresentationCreation = () => {
     setActivePersonaId,
     updatePersonaSteps,
     addActionToStep,
-    addPersonaScenario,
+    addPersonaScenario: (persona: Persona) => addPersonaScenario(persona, relayerId),
     duplicateScenario,
     activeScenarioIndex,
     setActiveScenarioIndex,
-    deleteScenario
-  }
-}
+    deleteScenario,
+    // steps
+    addStep,
+    updateStep,
+    deleteStep,
+    moveStep,
+    duplicateStep,
+  };
+};

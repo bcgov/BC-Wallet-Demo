@@ -1,7 +1,5 @@
-import { useEffect, useState, useCallback } from 'react'
-import { usePresentations } from '@/hooks/use-presentation'
+import { useState, useCallback } from 'react'
 import type { Persona, ShowcaseRequestType, StepRequestType } from '@/openapi-types'
-import { createDefaultStep } from '@/lib/steps'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/lib/apiService'
@@ -9,17 +7,6 @@ import { useHelpersStore } from './use-helpers-store'
 import { usePresentationCreation } from './use-presentation-creation'
 
 export const usePresentationAdapter = () => {
-  const {
-    screens: steps,
-    selectedStep,
-    initializeScenarios,
-    createStep,
-    updateStep,
-    moveStep,
-    setStepState,
-    stepState,
-  } = usePresentations()
-
   const {
     selectedPersonas,
     personaScenarios,
@@ -30,65 +17,75 @@ export const usePresentationAdapter = () => {
     activeScenarioIndex,
     setActiveScenarioIndex,
     deleteScenario,
+    addStep,
+    updateStep,
+    deleteStep,
+    moveStep,
+    duplicateStep,
   } = usePresentationCreation()
 
   const { displayShowcase, setShowcase, showcase } = useShowcaseStore()
-
-  const { selectedCredentialDefinitionIds, relayerId } = useHelpersStore()
-
-  const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null)
+  const { selectedCredentialDefinitionIds } = useHelpersStore()
   const queryClient = useQueryClient()
 
-  const loadPersonaSteps = useCallback(
-    (personaId: string, scenarioIndex: number) => {
-      if (personaId && personaScenarios.has(personaId)) {
-        const scenarioList = personaScenarios.get(personaId)!
-
-        if (scenarioIndex >= 0 && scenarioIndex < scenarioList.length) {
-          const scenario = scenarioList[scenarioIndex]
-
-          const scenarioSteps = scenario.steps.map((step, index) => {
-            return {
-              ...createDefaultStep({
-                title: step.title,
-                description: step.description,
-              }),
-              id: `step-${scenarioIndex}-${index}`,
-              order: index,
-              type: step.type,
-              actions: step.actions || [],
-              scenarioIndex: scenarioIndex, // Add this line to track which scenario the step belongs to
-            }
-          })
-
-          initializeScenarios(scenarioSteps)
-          setLoadedPersonaId(personaId)
-        }
-      }
-    },
-    [personaScenarios, initializeScenarios],
+  const [selectedStep, setSelectedStep] = useState<number | null>(null)
+  const [stepState, setStepState] = useState<'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new'>(
+    'no-selection',
   )
 
-  useEffect(() => {
-    if (activePersonaId !== loadedPersonaId) {
-      loadPersonaSteps(activePersonaId!, activeScenarioIndex)
-    }
-  }, [activePersonaId, loadedPersonaId, activeScenarioIndex, loadPersonaSteps])
+  const getCurrentSteps = useCallback(() => {
+    if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
 
-  useEffect(() => {
-    if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
-      const scenarioSteps: StepRequestType[] = steps.map((step, index) => ({
-        title: step.title,
-        description: step.description,
-        order: index,
-        type: step.type as 'HUMAN_TASK' | 'SERVICE' | 'SCENARIO',
-        actions: step.actions || [],
-        relyingParty: relayerId,
-      }))
+    const scenarioList = personaScenarios.get(activePersonaId)!
 
-      updatePersonaSteps(activePersonaId, activeScenarioIndex, scenarioSteps)
-    }
-  }, [steps, activePersonaId, loadedPersonaId, activeScenarioIndex, updatePersonaSteps])
+    if (activeScenarioIndex < 0 || activeScenarioIndex >= scenarioList.length) return []
+
+    return scenarioList[activeScenarioIndex].steps
+  }, [activePersonaId, personaScenarios, activeScenarioIndex])
+
+  const steps = getCurrentSteps()
+
+  const createStep = useCallback(
+    (stepData: StepRequestType) => {
+      if (!activePersonaId) return
+
+      addStep(activePersonaId, activeScenarioIndex, stepData)
+      // Set the newly added step as selected
+      setSelectedStep(steps.length) // This will be the index of the new step
+      setStepState('editing-basic')
+    },
+    [activePersonaId, activeScenarioIndex, addStep, steps.length],
+  )
+
+  // Update step wrapper
+  const handleUpdateStep = useCallback(
+    (index: number, stepData: StepRequestType) => {
+      if (!activePersonaId) return
+
+      updateStep(activePersonaId, activeScenarioIndex, index, stepData)
+    },
+    [activePersonaId, activeScenarioIndex, updateStep],
+  )
+
+  const handleDuplicateStep = useCallback(
+    (index: number) => {
+      if (!activePersonaId) {
+        return
+      }
+
+      duplicateStep(activePersonaId, activeScenarioIndex, index)
+    },
+    [activePersonaId, activeScenarioIndex, duplicateStep],
+  )
+
+  const handleMoveStep = useCallback(
+    (oldIndex: number, newIndex: number) => {
+      if (!activePersonaId) return
+
+      moveStep(activePersonaId, activeScenarioIndex, oldIndex, newIndex)
+    },
+    [activePersonaId, activeScenarioIndex, moveStep],
+  )
 
   const updateShowcaseMutation = useMutation({
     mutationFn: async (showcaseData: ShowcaseRequestType) => {
@@ -129,7 +126,14 @@ export const usePresentationAdapter = () => {
         throw error
       }
     },
-    [displayShowcase, selectedPersonas, updateShowcaseMutation, setShowcase],
+    [
+      displayShowcase,
+      selectedPersonas,
+      updateShowcaseMutation,
+      setShowcase,
+      showcase.scenarios,
+      selectedCredentialDefinitionIds,
+    ],
   )
 
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
@@ -137,9 +141,12 @@ export const usePresentationAdapter = () => {
   return {
     steps,
     selectedStep,
+    setSelectedStep,
     createStep,
-    updateStep,
-    moveStep,
+    updateStep: handleUpdateStep,
+    moveStep: handleMoveStep,
+    deleteStep: (index: number) => activePersonaId && deleteStep(activePersonaId, activeScenarioIndex, index),
+    duplicateStep: handleDuplicateStep,
     setStepState,
     stepState,
     personas: selectedPersonas,
