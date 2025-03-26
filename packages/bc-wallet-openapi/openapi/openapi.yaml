@@ -1913,9 +1913,7 @@ components:
           description: Unique identifier for the action
           example: 123e4567-ef2d-12d3-abcd-426614174456
         actionType:
-          type: string
-          description: Type of action
-          example: EXAMPLE_ACTION
+          $ref: '#/components/schemas/StepActionType'
         title:
           type: string
           description: Title of the action
@@ -1959,8 +1957,7 @@ components:
           description: Descriptive text for the action
           example: Connect your wallet to continue
         actionType:
-          type: string
-          example: HUMAN_TASK
+          $ref: '#/components/schemas/StepActionType'
       discriminator:
         propertyName: actionType
         mapping:
@@ -1980,6 +1977,18 @@ components:
       properties:
         action:
           $ref: '#/components/schemas/StepAction'
+
+    StepActionType:
+      type: string
+      enum:
+        - ARIES_OOB
+        - ACCEPT_CREDENTIAL
+        - SHARE_CREDENTIAL
+        - SETUP_CONNECTION
+        - CHOOSE_WALLET
+        - BUTTON
+      description: Type of action
+      example: ARIES_OOB
 
     AriesOOBAction:
       allOf:

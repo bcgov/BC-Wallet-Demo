@@ -1,3 +1,5 @@
+import { StepActionType } from 'bc-wallet-openapi'
+
 export interface RevocationRecord {
   connectionId: string
   revocationRegId: string
@@ -194,7 +196,7 @@ export interface Step {
 }
 
 export interface StepAction {
-  actionType: string
+  actionType: StepActionType
 }
 
 export interface Issuer {
