@@ -35,13 +35,13 @@ export interface Props {
 }
 
 export const OnboardingContainer: React.FC<Props> = ({
-                                                       scenarios,
-                                                       currentPersona,
-                                                       currentStep,
-                                                       connectionId,
-                                                       connectionState,
-                                                       invitationUrl,
-                                                     }) => {
+  scenarios,
+  currentPersona,
+  currentStep,
+  connectionId,
+  connectionState,
+  invitationUrl,
+}) => {
   const dispatch = useAppDispatch()
   const [currentScenario, setCurrentScenario] = useState<Scenario | undefined>()
 

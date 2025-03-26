@@ -17,14 +17,14 @@ export interface Props {
 }
 
 export const OnboardingBottomNav: React.FC<Props> = ({
-                                                       currentStep,
-                                                       maxSteps,
-                                                       addOnboardingStep,
-                                                       removeOnboardingStep,
-                                                       forwardDisabled,
-                                                       backDisabled,
-                                                       onboardingCompleted,
-                                                     }) => {
+     currentStep,
+     maxSteps,
+     addOnboardingStep,
+     removeOnboardingStep,
+     forwardDisabled,
+     backDisabled,
+     onboardingCompleted,
+}) => {
   const [label, setLabel] = useState('NEXT')
   const isCompleted = maxSteps && currentStep === maxSteps
 
