@@ -3,22 +3,19 @@ import { isBrowser } from 'react-device-detect'
 
 import { motion, AnimatePresence } from 'framer-motion'
 
-import { fadeX, rowContainer } from '../../../FramerAnimations'
-import type { Wallet } from '../../../slices/types'
-import { useWallets } from '../../../slices/wallets/walletsSelectors'
-import { StepInformation } from '../components/StepInformation'
-import { WalletItem } from '../components/WalletItem'
-import { WalletModal } from '../components/WalletModal'
+import { rowContainer } from '../../../../FramerAnimations'
+import type { Wallet } from '../../../../slices/types'
+import { useWallets } from '../../../../slices/wallets/walletsSelectors'
+import { WalletItem } from '../../components/WalletItem'
+import { WalletModal } from '../../components/WalletModal'
 
 export interface Props {
-  title: string
-  text: string
-  addOnboardingProgress(): void
+  nextStep?: () => Promise<void>
 }
 
-export const ChooseWallet: React.FC<Props> = ({ title, text, addOnboardingProgress }) => {
+export const ChooseWalletAction: React.FC<Props> = (props: Props) => {
+  const { nextStep } = props
   const { wallets } = useWallets()
-
   const [isChooseWalletModalOpen, setIsChooseWalletModalOpen] = useState(false)
   const [selectedWallet, setSelectedWallet] = useState<Wallet | undefined>(undefined)
 
@@ -29,7 +26,7 @@ export const ChooseWallet: React.FC<Props> = ({ title, text, addOnboardingProgre
 
   const renderWallets = wallets.map((wallet) => {
     return (
-      <div key={wallet.id} onClick={() => openWalletModal(wallet.id)}>
+      <div className="flex justify-center" key={wallet.id} onClick={() => openWalletModal(wallet.id)}>
         <WalletItem
           name={wallet.name}
           icon={wallet.icon}
@@ -43,18 +40,19 @@ export const ChooseWallet: React.FC<Props> = ({ title, text, addOnboardingProgre
   const onCompleted = () => {
     setIsChooseWalletModalOpen(false)
 
-    setTimeout(function () {
-      addOnboardingProgress()
-    }, 300)
+    if (nextStep) {
+      setTimeout(async () => {
+        await nextStep()
+      }, 300)
+    }
   }
 
   const style = isBrowser ? { marginBottom: '1rem', maxHeight: '35vh' } : { maxHeight: '34vh' }
 
   return (
-    <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit">
-      <StepInformation title={title} text={text} />
+    <>
       <motion.div
-        className="flex flex-col md:px-4 h-full max-h-96 overflow-x-hidden"
+        className="flex flex-col md:px-4 max-h-96 overflow-x-hidden"
         variants={rowContainer}
         initial="hidden"
         animate="show"
@@ -72,6 +70,6 @@ export const ChooseWallet: React.FC<Props> = ({ title, text, addOnboardingProgre
           />
         )}
       </AnimatePresence>
-    </motion.div>
+    </>
   )
 }

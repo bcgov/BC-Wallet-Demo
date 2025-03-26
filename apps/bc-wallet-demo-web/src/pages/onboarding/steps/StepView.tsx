@@ -7,6 +7,7 @@ import { fadeX } from '../../../FramerAnimations'
 import type { StepAction, TextWithImage } from '../../../slices/types'
 import { StepInformation } from '../components/StepInformation'
 import { SetupConnectionAction } from './actions/SetupConnectionAction'
+import { ChooseWalletAction } from './actions/ChooseWalletAction'
 
 export interface Props {
   title: string
@@ -36,9 +37,8 @@ export const StepView: React.FC<Props> = (props: Props): ReactElement => {
   const getActionElements = () => {
     return actions.map((action, index) => {
       switch (action.actionType) {
-        case 'SETUP_CONNECTION': {
-          return (
-            <SetupConnectionAction
+        case 'SETUP_CONNECTION':
+          return <SetupConnectionAction
               key={index}
               connectionId={connectionId}
               nextStep={nextStep}
@@ -49,8 +49,8 @@ export const StepView: React.FC<Props> = (props: Props): ReactElement => {
               connectionState={connectionState}
               //backgroundImage={} // FIXME we need to support a background image
             />
-          )
-        }
+        case 'CHOOSE_WALLET':
+          return <ChooseWalletAction key={index} nextStep={nextStep} />
         default:
           return <div />
       }
