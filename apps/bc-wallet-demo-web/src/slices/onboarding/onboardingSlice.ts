@@ -1,15 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-import type { Scenario } from '../types'
+import type { Scenario, Step } from '../types'
 
 interface OnboardingState {
   scenario?: Scenario
-  currentStep: number
   isCompleted: boolean
+  currentStep?: Step
 }
 
 const initialState: OnboardingState = {
-  currentStep: 0,
   isCompleted: false,
 }
 
@@ -28,7 +27,7 @@ const onboardingSlice = createSlice({
     },
     resetOnboarding(state) {
       state.scenario = undefined
-      state.currentStep = 0
+      state.currentStep = undefined
       state.isCompleted = false
     },
   },
