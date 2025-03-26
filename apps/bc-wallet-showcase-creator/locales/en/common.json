@@ -20,7 +20,9 @@
     "description_label": "Description",
     "character_label": "Character(s)",
     "description_version": "Version",
-    "loading_label": "Loading..."
+    "loading_label": "Loading...",
+    "publish_info_title": "Review and Publish Showcase",
+    "publish_info_subtitle": "Select the character and review their showcase."
   },
   "character": {
     "header_title": "Create your Character",

@@ -20,7 +20,9 @@
     "description_label": "Description",
     "character_label": "Personnage(s)",
     "description_version": "Version",
-    "loading_label": "Chargement..."
+    "loading_label": "Chargement...",
+    "publish_info_title": "Vitrine de révision et de publication",
+    "publish_info_subtitle": "Sélectionnez le personnage et examinez la vitrine."
   },
   "character": {
     "header_title": "Créez votre Personnage",

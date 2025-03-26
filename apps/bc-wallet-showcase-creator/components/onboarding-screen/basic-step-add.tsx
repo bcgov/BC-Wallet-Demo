@@ -135,22 +135,21 @@ export const BasicStepAdd = () => {
     })
 
     const scenarioIds = []
-    console.log('personaScenarios',personaScenarios)
-    console.log('current',currentStep);
-    // for (const scenario of personaScenarios) {
-    //   try {
-    //     const result = await mutateAsync(scenario)
-    //     scenarioIds.push((result as IssuanceScenarioResponseType).issuanceScenario.id)
-    //     toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
-    //   } catch (error) {
-    //     console.error('Error creating scenario:', error)
-    //     setErrorModal(true)
-    //     return // Stop if there's an error
-    //   }
-    // }
 
-    // setScenarioIds(scenarioIds)
-    // router.push(`/showcases/create/scenarios`)
+    for (const scenario of personaScenarios) {
+      try {
+        const result = await mutateAsync(scenario)
+        scenarioIds.push((result as IssuanceScenarioResponseType).issuanceScenario.id)
+        toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
+      } catch (error) {
+        console.error('Error creating scenario:', error)
+        setErrorModal(true)
+        return // Stop if there's an error
+      }
+    }
+
+    setScenarioIds(scenarioIds)
+    router.push(`/showcases/create/scenarios`)
   }
 
   const handleCancel = () => {
@@ -267,17 +266,6 @@ export const BasicStepAdd = () => {
                 })
               }}
             />
-            {/* <LocalFileUpload
-              text={t('onboarding.icon_label')}
-              element="asset"
-              handleLocalUpdate={(_, value) =>
-                form.setValue('asset', value, {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                })
-              }
-            /> */}
             {form.formState.errors.asset && (
               <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
             )}
