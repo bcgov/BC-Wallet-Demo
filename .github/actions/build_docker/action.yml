@@ -26,7 +26,7 @@ inputs:
 outputs:
   image_tag:
     description: 'The tag of the built image'
-    value: ${{ steps.set-output.outputs.image_tag }}
+    value: ${{ steps.docker_build.outputs.image_tag }}
 runs:
   using: 'composite'
   steps:
@@ -51,18 +51,24 @@ runs:
         fi
         echo "image_tag=${TAG}" >> $GITHUB_OUTPUT
 
-    - name: Login to registry
-      shell: bash
-      run: echo "${{ inputs.registry_password }}" | docker login ${{ inputs.registry }} -u ${{ inputs.registry_username }} --password-stdin
-
     - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        push: true
+        tags: ${{ inputs.registry }}/${{ inputs.image_name }}:${{ steps.docker_build.outputs.image_tag }}
+
+    - name: Set package visibility
+      if: inputs.registry == 'ghcr.io' && inputs.visibility == 'public'
       shell: bash
       run: |
-        docker build -t ${{ inputs.registry }}/${{ inputs.image_name }}:$TAG ${{ inputs.context }}
+        # Get the package name from the image name
+        PACKAGE_NAME=$(echo "${{ inputs.image_name }}" | tr '/' '_')
         
-        # Push with visibility setting if using GHCR
-        if [[ "${{ inputs.registry }}" == "ghcr.io" ]]; then
-          docker push ${{ inputs.registry }}/${{ inputs.image_name }}:$TAG --visibility=${{ inputs.visibility }}
-        else
-          docker push ${{ inputs.registry }}/${{ inputs.image_name }}:$TAG
-        fi 
+        # Use GitHub API to set package visibility to public
+        curl -X PATCH \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ inputs.registry_password }}" \
+          -d '{"visibility":"public"}' \
+          "https://api.github.com/user/packages/container/$PACKAGE_NAME"
