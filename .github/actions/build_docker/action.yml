@@ -13,17 +13,20 @@ inputs:
   registry:
     description: 'Container registry'
     required: true
-    default: 'ghcr.io'
   registry_username:
     description: 'Registry username'
     required: true
   registry_password:
     description: 'Registry password'
     required: true
+  visibility:
+    description: 'Package visibility (public or private)'
+    required: false
+    default: 'private'
 outputs:
   image_tag:
     description: 'The tag of the built image'
-    value: ${{ steps.docker_build.outputs.image_tag }}
+    value: ${{ steps.set-output.outputs.image_tag }}
 runs:
   using: 'composite'
   steps:
@@ -48,10 +51,18 @@ runs:
         fi
         echo "image_tag=${TAG}" >> $GITHUB_OUTPUT
 
+    - name: Login to registry
+      shell: bash
+      run: echo "${{ inputs.registry_password }}" | docker login ${{ inputs.registry }} -u ${{ inputs.registry_username }} --password-stdin
+
     - name: Build and push
-      uses: docker/build-push-action@v5
-      with:
-        context: ${{ inputs.context }}
-        file: ${{ inputs.dockerfile }}
-        push: true
-        tags: ${{ inputs.registry }}/${{ inputs.image_name }}:${{ steps.docker_build.outputs.image_tag }} 
+      shell: bash
+      run: |
+        docker build -t ${{ inputs.registry }}/${{ inputs.image_name }}:$TAG ${{ inputs.context }}
+        
+        # Push with visibility setting if using GHCR
+        if [[ "${{ inputs.registry }}" == "ghcr.io" ]]; then
+          docker push ${{ inputs.registry }}/${{ inputs.image_name }}:$TAG --visibility=${{ inputs.visibility }}
+        else
+          docker push ${{ inputs.registry }}/${{ inputs.image_name }}:$TAG
+        fi 

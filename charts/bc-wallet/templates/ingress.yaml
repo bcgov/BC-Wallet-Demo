@@ -33,6 +33,18 @@ spec:
             name: {{ $.Release.Name }}-{{ $.Values.traction_adapter.name }}
             port:
               number: {{ $.Values.traction_adapter.service.port }}
+            {{- else if eq .service "demo-web" }}
+            name: {{ $.Release.Name }}-{{ $.Values.demo_web.name }}
+            port:
+              number: {{ $.Values.demo_web.service.port }}
+            {{- else if eq .service "showcase-creator" }}
+            name: {{ $.Release.Name }}-{{ $.Values.showcase_creator.name }}
+            port:
+              number: {{ $.Values.showcase_creator.service.port }}
+            {{- else if eq .service "demo-server" }}
+            name: {{ $.Release.Name }}-{{ $.Values.demo_server.name }}
+            port:
+              number: {{ $.Values.demo_server.service.port }}
             {{- end }}
       {{- end }}
   {{- end }}

@@ -1,0 +1,20 @@
+{{- if .Values.showcase_creator.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: creator
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.showcase_creator.service.type }}
+  ports:
+    - port: {{ .Values.showcase_creator.service.port }}
+      targetPort: {{ .Values.showcase_creator.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+{{- end }} 

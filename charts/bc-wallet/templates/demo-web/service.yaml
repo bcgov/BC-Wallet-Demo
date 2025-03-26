@@ -1,0 +1,20 @@
+{{- if .Values.demo_web.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.demo_web.name }}
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.demo_web.service.type }}
+  ports:
+    - port: {{ .Values.demo_web.service.port }}
+      targetPort: {{ .Values.demo_web.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Release.Name }}-{{ .Values.demo_web.name }}
+{{- end }} 
