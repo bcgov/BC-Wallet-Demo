@@ -58,13 +58,13 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
         return {
           ...action,
           actionType: StepActionType.ACCEPT_CREDENTIAL,
-          credentialDefinitionId: action.credentialDefinitionId || '',
+          credentialDefinitionId: action.credentialDefinitionId || null,
         } as AcceptCredentialAction
       case StepActionType.SHARE_CREDENTIAL:
         return {
           ...action,
           actionType: StepActionType.SHARE_CREDENTIAL,
-          credentialDefinitionId: action.credentialDefinitionId || '',
+          credentialDefinitionId: action.credentialDefinitionId || null,
         } as ShareCredentialAction
       case StepActionType.BUTTON:
         return {
