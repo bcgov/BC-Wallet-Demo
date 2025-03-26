@@ -174,6 +174,7 @@ export interface Showcase {
 export interface Scenario {
   persona: Persona
   steps: Step[]
+  issuer?: Issuer
 }
 
 export interface Persona {
@@ -189,4 +190,13 @@ export interface Step {
   description: string
   asset?: string
   order: number
+  actions?: StepAction[]
+}
+
+export interface StepAction {
+  actionType: string
+}
+
+export interface Issuer {
+  name: string
 }
