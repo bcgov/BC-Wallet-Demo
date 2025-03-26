@@ -12,16 +12,26 @@ import { useTranslations } from 'next-intl'
 
 import { NoSelection } from '../credentials/no-selection'
 import { BasicStepAdd } from './basic-step-add'
+import { StepType } from '@/types'
 
 export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
   const { stepState, activePersonaId } = usePresentationAdapter()
 
+  const handleAddStep = (type: StepType) => {
+    // if (selectedScenario === null) return
+    // const newStep = createEmptyStep(type)
+    // addStep(selectedScenario, newStep)
+  }
+  
   return (
     <div
       id="editStep"
       className=" bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
     >
+      {JSON.stringify(stepState)}
+      {stepState === 'editing-scenario' && <ScenarioEdit />}
+
       {!activePersonaId && (
         <NoSelection
           text={
@@ -38,9 +48,23 @@ export const CreateScenariosStepsScreen = () => {
           }
         />
       )}
-      {activePersonaId && stepState === 'creating-new' && <BasicStepAdd />}
+      {activePersonaId && stepState === 'creating-new' && <ChooseStepType addNewStep={() => {}} />}
       {activePersonaId && stepState === 'editing-basic' && <BasicStepAdd />}
       {activePersonaId && stepState === 'editing-issue' && <BasicStepEdit />}
+
+
+      {/* LEGACY VERSION */}
+      {stepState === 'adding-step' && <ChooseStepType addNewStep={handleAddStep} />}
+
+      {stepState === 'editing-scenario' && <ScenarioEdit />}
+
+      {stepState === 'basic-step-edit' && currentStep?.type === 'HUMAN_TASK' && <BasicStepEdit />}
+
+      {stepState === 'proof-step-edit' && currentStep?.type === 'CONNET_AND_VERIFY' && <ProofStepEdit />}
+
+      {(stepState === 'none-selected' || stepState === null) && (
+        <NoSelection text={t('scenario.no_scenario_selected_message')} />
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { ensureBase64HasPrefix } from '@/lib/utils'
 import type { Persona, Credential } from '@/openapi-types'
+
 import Image from 'next/image'
 
 export const PublishInfo = ({

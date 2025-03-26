@@ -399,6 +399,9 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.67.3
         version: 5.69.0(@tanstack/react-query@5.69.0(react@19.0.0))(react@19.0.0)
+      bc-wallet-openapi:
+        specifier: workspace:*
+        version: link:../../packages/bc-wallet-openapi
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

@@ -16,15 +16,16 @@ export const SortableStep = ({
   selectedStep,
   myScreen,
   stepIndex,
+  scenarioIndex,  
 }: {
   selectedStep: number | null
   myScreen: typeof Step._type
   stepIndex: number
   totalSteps: number
+  scenarioIndex: number
 }) => {
   const t = useTranslations()
-  const { setSelectedStep, setStepState } = usePresentations()
-  const { selectedCharacter } = useShowcaseStore()
+  const { setSelectedStep, setStepState, setCurrentScenarioIndex } = usePresentations()
 
   const { selectedCredential } = useCredentials()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
@@ -40,34 +41,36 @@ export const SortableStep = ({
     setSelectedStep(stepIndex - 1)
     const ScreenType = myScreen.type
     setStepState(ScreenType == 'SERVICE' ? 'editing-issue' : 'editing-basic')
+
+    // Store the current scenario index with the selected step
+    setCurrentScenarioIndex(scenarioIndex)
   }
 
-  const handleCopyStep = (index: number) => {
+  const handleCopyStep = (stepIndex: number) => {
     try {
-      const { screens } = usePresentations.getState()
-
-      if (!screens[index]) return
-
-      const stepToCopy = screens[index]
-
+      const { screens, currentScenarioIndex } = usePresentations.getState()
+  
+      if (!screens[stepIndex]) return
+  
+      const stepToCopy = screens[stepIndex]
+  
       const newStep = JSON.parse(JSON.stringify(stepToCopy))
-      newStep.id = `${Date.now()}` // Ensure a unique ID
-
+      // Create a unique ID that includes the scenario index
+      newStep.id = `step-${currentScenarioIndex}-${stepIndex}-${Date.now()}`
+      // Ensure the step is associated with the correct scenario
+      newStep.scenarioIndex = currentScenarioIndex
+  
       usePresentations.setState(
         produce((state) => {
-          state.screens.splice(index + 1, 0, newStep)
-          state.selectedStep = index + 1
-
-          useShowcaseStore.setState((draft) => {
-            draft.showcaseJSON.personas[selectedCharacter].onboarding = JSON.parse(JSON.stringify(state.screens))
-          })
+          state.screens.splice(stepIndex + 1, 0, newStep)
+          state.selectedStep = stepIndex + 1
         })
       )
     } catch (error) {
       console.log('Error ', error)
     }
   }
-  // console.log('myScreenmyScreen',myScreen);
+
   return (
     <div
       ref={setNodeRef}

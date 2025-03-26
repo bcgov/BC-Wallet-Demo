@@ -20,7 +20,9 @@
     "description_label": "Description",
     "character_label": "Personnage(s)",
     "description_version": "Version",
-    "loading_label": "Chargement..."
+    "loading_label": "Chargement...",
+    "publish_info_title": "Publier les informations",
+    "publish_info_subtitle": "Configurez l'expérience d'intégration pour ce personnage"
   },
   "character": {
     "header_title": "Créez votre Personnage",
@@ -190,7 +192,8 @@
     "proof_attribute_placeholder": "Sélectionner un attribut",
     "basic_label":"Basique",
     "proof_request_label":"Demande de preuve",
-    "scenario_description" : "Scenario Description"
+    "scenario_description" : "Scenario Description",
+    "remove_scenario_label": "Supprimer le Scénario"
   },
   "action": {
     "cancel_label": "ANNULER",

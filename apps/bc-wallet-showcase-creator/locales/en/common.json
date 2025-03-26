@@ -20,7 +20,9 @@
     "description_label": "Description",
     "character_label": "Character(s)",
     "description_version": "Version",
-    "loading_label": "Loading..."
+    "loading_label": "Loading...",
+    "publish_info_title": "Publish Info",
+    "publish_info_subtitle": "Configure the onboarding experience for this persona"
   },
   "character": {
     "header_title": "Create your Character",
@@ -196,7 +198,8 @@
     "confirm_information_to_send_label": "Confirm the information to send",
     "basic_label": "Basic",
     "proof_request_label": "Proof Request",
-    "scenario_description": "Scenario Description"
+    "scenario_description": "Scenario Description",
+    "remove_scenario_label": "Remove Scenario"
   },
   "action": {
     "cancel_label": "CANCEL",
