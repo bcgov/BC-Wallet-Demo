@@ -195,12 +195,12 @@ export type NewStepActionTypes =
   | NewChooseWalletAction
 
 export type Step = Omit<typeof steps.$inferSelect, 'asset'> & {
-  actions: StepActionTypes[]
+  actions?: AriesOOBAction[]
   asset?: Asset | null
 }
 export type NewStep = Omit<typeof steps.$inferInsert, 'scenario'> & {
   asset?: string | null
-  actions: NewStepActionTypes[]
+  actions?: NewAriesOOBAction[]
   subScenario?: string | null
 }
 
