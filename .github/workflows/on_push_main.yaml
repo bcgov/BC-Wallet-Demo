@@ -170,7 +170,7 @@ jobs:
             cd /home/ubuntu/pipeline/charts/bc-wallet
             
             # Update dependencies and deploy with Helm
-            helm dependency update
+            # helm dependency update
             
             helm upgrade --install bc-wallet -f ./values.yaml \
               --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
@@ -199,8 +199,103 @@ jobs:
                 - bcshowcase-demo-server.dev.nborbit.ca
             EOF
             
+            # Create Traefik IngressRoute for API Server
+            cat <<EOF | kubectl apply -f -
+            apiVersion: traefik.containo.us/v1alpha1
+            kind: IngressRoute
+            metadata:
+              name: api-server-route
+            spec:
+              entryPoints:
+                - websecure
+              routes:
+                - match: Host(\`bcshowcase-api.dev.nborbit.ca\`)
+                  kind: Rule
+                  services:
+                    - name: bc-wallet-bc-wallet-api-server
+                      port: 3000
+              tls:
+                secretName: bc-wallet-tls
+            EOF
+            
+            # Create Traefik IngressRoute for Traction Adapter
+            cat <<EOF | kubectl apply -f -
+            apiVersion: traefik.containo.us/v1alpha1
+            kind: IngressRoute
+            metadata:
+              name: traction-adapter-route
+            spec:
+              entryPoints:
+                - websecure
+              routes:
+                - match: Host(\`bcshowcase-traction.dev.nborbit.ca\`)
+                  kind: Rule
+                  services:
+                    - name: bc-wallet-bc-wallet-traction-adapter
+                      port: 3757
+              tls:
+                secretName: bc-wallet-tls
+            EOF
+            
+            # Create Traefik IngressRoute for Showcase Creator
+            cat <<EOF | kubectl apply -f -
+            apiVersion: traefik.containo.us/v1alpha1
+            kind: IngressRoute
+            metadata:
+              name: showcase-creator-route
+            spec:
+              entryPoints:
+                - websecure
+              routes:
+                - match: Host(\`bcshowcase-ui.dev.nborbit.ca\`)
+                  kind: Rule
+                  services:
+                    - name: bc-wallet-bc-wallet-showcase-creator
+                      port: 80
+              tls:
+                secretName: bc-wallet-tls
+            EOF
+            
+            # Create Traefik IngressRoute for Demo Web
+            cat <<EOF | kubectl apply -f -
+            apiVersion: traefik.containo.us/v1alpha1
+            kind: IngressRoute
+            metadata:
+              name: demo-web-route
+            spec:
+              entryPoints:
+                - websecure
+              routes:
+                - match: Host(\`bcshowcase-demo-web.dev.nborbit.ca\`)
+                  kind: Rule
+                  services:
+                    - name: bc-wallet-bc-wallet-demo-web
+                      port: 80
+              tls:
+                secretName: bc-wallet-tls
+            EOF
+            
+            # Create Traefik IngressRoute for Demo Server
+            cat <<EOF | kubectl apply -f -
+            apiVersion: traefik.containo.us/v1alpha1
+            kind: IngressRoute
+            metadata:
+              name: demo-server-route
+            spec:
+              entryPoints:
+                - websecure
+              routes:
+                - match: Host(\`bcshowcase-demo-server.dev.nborbit.ca\`)
+                  kind: Rule
+                  services:
+                    - name: bc-wallet-bc-wallet-demo-server
+                      port: 3000
+              tls:
+                secretName: bc-wallet-tls
+            EOF
+            
             # Clean up
-            rm -rf /home/ubuntu/bc-wallet/charts
+            rm -rf /home/ubuntu/pipeline/charts
       
       # Restart deployments to ensure they pick up any changes
       - name: Restart Deployments

@@ -20,11 +20,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ .Values.traction_adapter.name }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.traction_adapter.labelOverride }}
-    app.kubernetes.io/component: {{ .Values.traction_adapter.labelOverride }}
-    {{- else }}
-    app.kubernetes.io/component: traction-adapter
-    {{- end }}
+    app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
 {{- end }}

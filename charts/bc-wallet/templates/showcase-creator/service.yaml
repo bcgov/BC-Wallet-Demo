@@ -20,11 +20,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ .Values.showcase_creator.name }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.showcase_creator.labelOverride }}
-    app.kubernetes.io/component: {{ .Values.showcase_creator.labelOverride }}
-    {{- else }}
-    app.kubernetes.io/component: showcase-creator
-    {{- end }}
+    app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
 {{- end }} 

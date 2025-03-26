@@ -20,11 +20,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ .Values.demo_web.name }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.demo_web.labelOverride }}
-    app.kubernetes.io/component: {{ .Values.demo_web.labelOverride }}
-    {{- else }}
-    app.kubernetes.io/component: demo-web
-    {{- end }}
+    app: {{ .Release.Name }}-{{ .Values.demo_web.name }}
 {{- end }} 
