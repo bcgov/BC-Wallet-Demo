@@ -46,7 +46,6 @@ jobs:
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.CR_PAT }}
-          visibility: "public"
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
@@ -68,7 +67,6 @@ jobs:
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.CR_PAT }}
-          visibility: "public"
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
@@ -90,7 +88,6 @@ jobs:
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.CR_PAT }}
-          visibility: "public"
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
@@ -112,7 +109,6 @@ jobs:
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.CR_PAT }}
-          visibility: "public"
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
@@ -134,7 +130,6 @@ jobs:
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.CR_PAT }}
-          visibility: "public"
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
