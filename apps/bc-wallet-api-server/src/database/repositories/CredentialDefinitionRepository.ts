@@ -16,7 +16,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
   ) {}
 
   async create(credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> {
-    const iconResult = await this.assetRepository.findById(credentialDefinition.icon)
+    const iconResult = credentialDefinition.icon && (await this.assetRepository.findById(credentialDefinition.icon))
     const credentialSchemaResult = await this.credentialSchemaRepository.findById(credentialDefinition.credentialSchema)
 
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<CredentialDefinition> => {
@@ -44,7 +44,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
       return {
         ...credentialDefinitionResult,
         credentialSchema: credentialSchemaResult,
-        icon: iconResult,
+        icon: iconResult ? iconResult : undefined,
         representations: [], //credentialRepresentationsResult, TODO SHOWCASE-81 enable
         revocation: revocationResult,
       }
@@ -59,7 +59,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
   async update(id: string, credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> {
     await this.findById(id)
 
-    const iconResult = await this.assetRepository.findById(credentialDefinition.icon)
+    const iconResult = credentialDefinition.icon && (await this.assetRepository.findById(credentialDefinition.icon))
     const credentialSchemaResult = await this.credentialSchemaRepository.findById(credentialDefinition.credentialSchema)
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<CredentialDefinition> => {
       const [credentialDefinitionResult] = await tx
@@ -93,7 +93,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
       return {
         ...credentialDefinitionResult,
         credentialSchema: credentialSchemaResult,
-        icon: iconResult,
+        icon: iconResult || undefined,
         representations: [], //credentialRepresentationsResult, TODO SHOWCASE-81 enable
         revocation: revocationResult,
       }
@@ -123,6 +123,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
 
     return {
       ...result,
+      icon: result.icon ? result.icon : undefined,
       credentialSchema: result.cs,
     }
   }

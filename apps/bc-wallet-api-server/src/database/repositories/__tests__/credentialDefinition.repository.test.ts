@@ -102,11 +102,11 @@ describe('Database credential definition repository tests', (): void => {
     expect(savedCredentialDefinition.name).toEqual(credentialDefinition.name)
     expect(savedCredentialDefinition.version).toEqual(credentialDefinition.version)
     expect(savedCredentialDefinition.icon).toBeDefined()
-    expect(savedCredentialDefinition.icon.id).toBeDefined()
-    expect(savedCredentialDefinition.icon.mediaType).toEqual(asset.mediaType)
-    expect(savedCredentialDefinition.icon.fileName).toEqual(asset.fileName)
-    expect(savedCredentialDefinition.icon.description).toEqual(asset.description)
-    expect(savedCredentialDefinition.icon.content).toStrictEqual(asset.content)
+    expect(savedCredentialDefinition.icon!.id).toBeDefined()
+    expect(savedCredentialDefinition.icon!.mediaType).toEqual(asset.mediaType)
+    expect(savedCredentialDefinition.icon!.fileName).toEqual(asset.fileName)
+    expect(savedCredentialDefinition.icon!.description).toEqual(asset.description)
+    expect(savedCredentialDefinition.icon!.content).toStrictEqual(asset.content)
 
     // TODO SHOWCASE-81 representations
     //expect(savedCredentialDefinition.representations.length).toEqual(2)
@@ -114,6 +114,37 @@ describe('Database credential definition repository tests', (): void => {
     // expect(savedCredentialDefinition.revocation).not.toBeNull()
     // expect(savedCredentialDefinition.revocation!.title).toEqual(credentialDefinition.revocation!.title)
     // expect(savedCredentialDefinition.revocation!.description).toEqual(credentialDefinition.revocation!.description)
+  })
+
+  it('Should save the credential definition without icon to database', async (): Promise<void> => {
+    const credentialDefinition: NewCredentialDefinition = {
+      name: 'example_name',
+      version: 'example_version',
+      identifierType: IdentifierType.DID,
+      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
+      type: CredentialType.ANONCRED,
+      credentialSchema: credentialSchema.id,
+      // representations: [
+      //     { // TODO SHOWCASE-81 OCARepresentation
+      //
+      //     },
+      //     { // TODO SHOWCASE-81 OCARepresentation
+      //
+      //     }
+      // ],
+      //revocation: {
+      // TODO SHOWCASE-80 AnonCredRevocation
+      //title: 'example_revocation_title',
+      //     description: 'example_revocation_description',
+      // },
+    }
+
+    const savedCredentialDefinition = await credentialDefinitionRepository.create(credentialDefinition)
+
+    expect(savedCredentialDefinition).toBeDefined()
+    expect(savedCredentialDefinition.name).toEqual(credentialDefinition.name)
+    expect(savedCredentialDefinition.version).toEqual(credentialDefinition.version)
+    expect(savedCredentialDefinition.icon).toBeUndefined()
   })
 
   it('Should throw error when saving credential definition with invalid icon id', async (): Promise<void> => {
@@ -169,11 +200,11 @@ describe('Database credential definition repository tests', (): void => {
     expect(fromDb.name).toEqual(credentialDefinition.name)
     expect(fromDb.version).toEqual(credentialDefinition.version)
     expect(fromDb.icon).toBeDefined()
-    expect(fromDb.icon.id).toBeDefined()
-    expect(fromDb.icon.mediaType).toEqual(asset.mediaType)
-    expect(fromDb.icon.fileName).toEqual(asset.fileName)
-    expect(fromDb.icon.description).toEqual(asset.description)
-    expect(fromDb.icon.content).toStrictEqual(asset.content)
+    expect(fromDb.icon!.id).toBeDefined()
+    expect(fromDb.icon!.mediaType).toEqual(asset.mediaType)
+    expect(fromDb.icon!.fileName).toEqual(asset.fileName)
+    expect(fromDb.icon!.description).toEqual(asset.description)
+    expect(fromDb.icon!.content).toStrictEqual(asset.content)
     // TODO SHOWCASE-81 representations
     //expect(fromDb.representations.length).toEqual(2)
     // expect(fromDb.revocation).not.toBeNull()
@@ -278,11 +309,58 @@ describe('Database credential definition repository tests', (): void => {
     expect(updatedCredentialDefinition.name).toEqual(newName)
     expect(updatedCredentialDefinition.version).toEqual(credentialDefinition.version)
     expect(updatedCredentialDefinition.icon).toBeDefined()
-    expect(updatedCredentialDefinition.icon.id).toBeDefined()
-    expect(updatedCredentialDefinition.icon.mediaType).toEqual(asset.mediaType)
-    expect(updatedCredentialDefinition.icon.fileName).toEqual(asset.fileName)
-    expect(updatedCredentialDefinition.icon.description).toEqual(asset.description)
-    expect(updatedCredentialDefinition.icon.content).toStrictEqual(asset.content)
+    expect(updatedCredentialDefinition.icon!.id).toBeDefined()
+    expect(updatedCredentialDefinition.icon!.mediaType).toEqual(asset.mediaType)
+    expect(updatedCredentialDefinition.icon!.fileName).toEqual(asset.fileName)
+    expect(updatedCredentialDefinition.icon!.description).toEqual(asset.description)
+    expect(updatedCredentialDefinition.icon!.content).toStrictEqual(asset.content)
+    // TODO SHOWCASE-81 representations
+    //expect(updatedCredentialDefinition.representations.length).toEqual(2)
+    // TODO SHOWCASE-80 AnonCredRevocation
+    // expect(updatedCredentialDefinition.revocation).not.toBeNull()
+    // expect(updatedCredentialDefinition.revocation!.title).toEqual(credentialDefinition.revocation!.title)
+    // expect(updatedCredentialDefinition.revocation!.description).toEqual(credentialDefinition.revocation!.description)
+  })
+
+  it('Should update credential definition in database passing in an undefined icon', async (): Promise<void> => {
+    const credentialDefinition: NewCredentialDefinition = {
+      name: 'example_name',
+      version: 'example_version',
+      identifierType: IdentifierType.DID,
+      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
+      icon: asset.id,
+      type: CredentialType.ANONCRED,
+      credentialSchema: credentialSchema.id,
+      // representations: [
+      //     { // TODO SHOWCASE-81 OCARepresentation
+      //
+      //     },
+      //     { // TODO SHOWCASE-81 OCARepresentation
+      //
+      //     }
+      // ],
+      //revocation: {
+      // TODO SHOWCASE-80 AnonCredRevocation
+      //title: 'example_revocation_title',
+      //     description: 'example_revocation_description',
+      // },
+    }
+
+    const savedCredentialDefinition = await credentialDefinitionRepository.create(credentialDefinition)
+    expect(savedCredentialDefinition).toBeDefined()
+
+    const newName = 'new_name'
+    const updatedCredentialDefinition = await credentialDefinitionRepository.update(savedCredentialDefinition.id, {
+      ...credentialDefinition,
+      icon: undefined,
+      credentialSchema: credentialSchema.id,
+      name: newName,
+    })
+
+    expect(updatedCredentialDefinition).toBeDefined()
+    expect(updatedCredentialDefinition.name).toEqual(newName)
+    expect(updatedCredentialDefinition.version).toEqual(credentialDefinition.version)
+    expect(updatedCredentialDefinition.icon).toBeUndefined()
     // TODO SHOWCASE-81 representations
     //expect(updatedCredentialDefinition.representations.length).toEqual(2)
     // TODO SHOWCASE-80 AnonCredRevocation

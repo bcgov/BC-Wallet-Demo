@@ -14,6 +14,9 @@ export const stepActions = pgTable(
     step: uuid()
       .references(() => steps.id, { onDelete: 'cascade' })
       .notNull(),
+    credentialDefinitionId: text('credential_definition_id'), // TODO redesign when we get more properties
+    connectionId: text('connection_id'), // TODO redesign when we get more properties
+    goToStep: text('go_to_step'), // TODO redesign when we get more properties
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()

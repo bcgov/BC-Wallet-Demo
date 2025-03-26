@@ -3,7 +3,14 @@ import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 import PresentationScenarioController from '../PresentationScenarioController'
 import { Application } from 'express'
-import { AriesOOBActionRequest, IssuanceScenarioRequest, PresentationScenarioRequest, StepRequest, StepType } from 'bc-wallet-openapi'
+import {
+  AriesOOBActionRequest,
+  IssuanceScenarioRequest,
+  PresentationScenarioRequest,
+  StepAction,
+  StepRequest,
+  StepType,
+} from 'bc-wallet-openapi'
 import { PGlite } from '@electric-sql/pglite'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
@@ -12,13 +19,13 @@ import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepo
 import PersonaRepository from '../../database/repositories/PersonaRepository'
 import ScenarioRepository from '../../database/repositories/ScenarioRepository'
 import ScenarioService from '../../services/ScenarioService'
-import supertest = require('supertest')
 import { CredentialAttributeType, CredentialType, IdentifierType, NewPersona, RelyingPartyType, ScenarioType, StepActionType } from '../../types'
 import { drizzle } from 'drizzle-orm/pglite'
 import * as schema from '../../database/schema'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import DatabaseService from '../../services/DatabaseService'
+import supertest = require('supertest')
 
 describe('PresentationScenarioController Integration Tests', () => {
   let client: PGlite
@@ -473,5 +480,177 @@ describe('PresentationScenarioController Integration Tests', () => {
     }
 
     await request.post('/scenarios/issuances').send(invalidScenarioRequest2).expect(404)
+  })
+
+  it('should create, update, and verify different step action types', async () => {
+    // Set up assets and dependencies
+    const assetRepository = Container.get(AssetRepository)
+    const asset = await assetRepository.create({
+      mediaType: 'image/png',
+      fileName: 'test.png',
+      description: 'Test image',
+      content: Buffer.from('binary data'),
+    })
+
+    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
+    const credentialSchema = await credentialSchemaRepository.create({
+      name: 'example_name',
+      version: 'example_version',
+      identifierType: IdentifierType.DID,
+      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
+      attributes: [
+        { name: 'example_attribute_name1', value: 'example_attribute_value1', type: CredentialAttributeType.STRING },
+        { name: 'example_attribute_name2', value: 'example_attribute_value2', type: CredentialAttributeType.STRING },
+      ],
+    })
+
+    const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
+    const credentialDefinition = await credentialDefinitionRepository.create({
+      name: 'Test Definition',
+      version: '1.0',
+      identifierType: IdentifierType.DID,
+      identifier: 'did:test:123',
+      icon: asset.id,
+      type: CredentialType.ANONCRED,
+      credentialSchema: credentialSchema.id,
+    })
+
+    const relyingPartyRepository = Container.get(RelyingPartyRepository)
+    const relyingParty = await relyingPartyRepository.create({
+      name: 'Action Types Test RP',
+      type: RelyingPartyType.ARIES,
+      credentialDefinitions: [credentialDefinition.id],
+      description: 'Test RP for action types',
+      organization: 'Test Organization',
+      logo: asset.id,
+    })
+
+    const personaRepository = Container.get(PersonaRepository)
+    const persona = await personaRepository.create({
+      name: 'Action Test Person',
+      role: 'Tester',
+      description: 'Test persona for actions',
+      headshotImage: asset.id,
+      bodyImage: asset.id,
+      hidden: false,
+    })
+
+    // Create a scenario with initial step
+    const scenarioRequest = {
+      name: 'Action Types Test Scenario',
+      description: 'Testing different action types',
+      steps: [
+        {
+          title: 'Initial Step',
+          description: 'Initial step for action tests',
+          order: 1,
+          type: StepType.HumanTask,
+          asset: asset.id,
+          actions: [
+            {
+              title: 'Initial Action',
+              actionType: StepActionType.ARIES_OOB,
+              text: 'Initial action',
+              proofRequest: {
+                attributes: {},
+                predicates: {},
+              },
+            },
+          ],
+        },
+      ],
+      personas: [persona.id],
+      relyingParty: relyingParty.id,
+      hidden: false,
+    }
+
+    const createResponse = await request.post('/scenarios/presentations').send(scenarioRequest).expect(201)
+    const createdScenario = createResponse.body.presentationScenario
+    expect(createdScenario).toHaveProperty('id')
+
+    // Test ButtonAction
+    const buttonActionRequest = {
+      title: 'Button Action',
+      actionType: StepActionType.BUTTON,
+      text: 'Click this button',
+      goToStep: 'step2',
+    }
+
+    const buttonActionResponse = await request
+      .post(`/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions`)
+      .send(buttonActionRequest)
+      .expect(201)
+
+    const buttonAction = buttonActionResponse.body.action
+    expect(buttonAction).toHaveProperty('id')
+    expect(buttonAction.actionType).toEqual(StepActionType.BUTTON)
+    expect(buttonAction.goToStep).toEqual('step2')
+
+    // Test SetupConnectionAction
+    const setupConnectionActionRequest = {
+      title: 'Setup Connection',
+      actionType: StepActionType.SETUP_CONNECTION,
+      text: 'Set up a connection',
+    }
+
+    const setupConnectionResponse = await request
+      .post(`/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions`)
+      .send(setupConnectionActionRequest)
+      .expect(201)
+
+    const setupConnectionAction = setupConnectionResponse.body.action
+    expect(setupConnectionAction).toHaveProperty('id')
+    expect(setupConnectionAction.actionType).toEqual(StepActionType.SETUP_CONNECTION)
+
+    // Test ChooseWalletAction
+    const chooseWalletActionRequest = {
+      title: 'Choose Wallet',
+      actionType: StepActionType.CHOOSE_WALLET,
+      text: 'Select your wallet',
+    }
+
+    const chooseWalletResponse = await request
+      .post(`/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions`)
+      .send(chooseWalletActionRequest)
+      .expect(201)
+
+    const chooseWalletAction = chooseWalletResponse.body.action
+    expect(chooseWalletAction).toHaveProperty('id')
+    expect(chooseWalletAction.actionType).toEqual(StepActionType.CHOOSE_WALLET)
+
+    // Verify we can get all actions
+    const getAllActionsResponse = await request
+      .get(`/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions`)
+      .expect(200)
+
+    const actions = getAllActionsResponse.body.actions
+    expect(actions).toBeInstanceOf(Array)
+    expect(actions.length).toBe(4) // Original + 3 new ones
+
+    // Check each action type is present
+    const actionTypes = actions.map((a: StepAction) => a.actionType)
+    expect(actionTypes).toContain(StepActionType.ARIES_OOB)
+    expect(actionTypes).toContain(StepActionType.BUTTON)
+    expect(actionTypes).toContain(StepActionType.SETUP_CONNECTION)
+    expect(actionTypes).toContain(StepActionType.CHOOSE_WALLET)
+
+    // Test updating a specific action - modify the ButtonAction
+    const updateButtonRequest = {
+      ...buttonActionRequest,
+      text: 'Updated button text',
+      goToStep: 'newStep',
+    }
+
+    const updateResponse = await request
+      .put(`/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions/${buttonAction.id}`)
+      .send(updateButtonRequest)
+      .expect(200)
+
+    const updatedButtonAction = updateResponse.body.action
+    expect(updatedButtonAction.text).toEqual('Updated button text')
+    expect(updatedButtonAction.goToStep).toEqual('newStep')
+
+    // Clean up by deleting the scenario
+    await request.delete(`/scenarios/presentations/${createdScenario.slug}`).expect(204)
   })
 })

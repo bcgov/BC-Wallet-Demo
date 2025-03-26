@@ -159,7 +159,6 @@ describe('ShowcaseController Integration Tests', () => {
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
       scenarios: [scenario.id],
-      credentialDefinitions: [credentialDefinition.id],
       personas: [persona.id],
       bannerImage: asset.id,
       completionMessage: 'Congratulations on completing the showcase!',
@@ -172,7 +171,6 @@ describe('ShowcaseController Integration Tests', () => {
     expect(createdShowcase.name).toEqual('Test Showcase')
     expect(createdShowcase.status).toEqual(ShowcaseStatus.ACTIVE)
     expect(createdShowcase.scenarios.length).toEqual(1)
-    expect(createdShowcase.credentialDefinitions.length).toEqual(1)
     expect(createdShowcase.personas.length).toEqual(1)
     expect(createdShowcase.bannerImage).toBeDefined()
     expect(createdShowcase.completionMessage).toEqual('Congratulations on completing the showcase!')
@@ -231,7 +229,6 @@ describe('ShowcaseController Integration Tests', () => {
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
       scenarios: [nonExistentId],
-      credentialDefinitions: [nonExistentId],
       personas: [nonExistentId],
     }
 

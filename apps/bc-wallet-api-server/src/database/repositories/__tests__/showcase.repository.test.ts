@@ -28,11 +28,14 @@ import {
   NewIssuer,
   NewPersona,
   NewShowcase,
+  NewUser,
   Persona,
   ShowcaseStatus,
   StepActionType,
   StepType,
+  User,
 } from '../../../types'
+import UserRepository from '../UserRepository'
 
 describe('Database showcase repository tests', (): void => {
   let client: PGlite
@@ -44,6 +47,7 @@ describe('Database showcase repository tests', (): void => {
   let credentialDefinition1: CredentialDefinition
   let credentialDefinition2: CredentialDefinition
   let asset: Asset
+  let user: User
 
   beforeEach(async (): Promise<void> => {
     client = new PGlite()
@@ -58,6 +62,14 @@ describe('Database showcase repository tests', (): void => {
     const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     const assetRepository = Container.get(AssetRepository)
+    const userRepository = Container.get(UserRepository)
+    const newUser: NewUser = {
+      identifierType: IdentifierType.DID,
+      identifier: 'did:example.org',
+    }
+
+    user = await userRepository.create(newUser)
+
     const newAsset: NewAsset = {
       mediaType: 'image/png',
       fileName: 'image.png',
@@ -241,6 +253,7 @@ describe('Database showcase repository tests', (): void => {
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
       bannerImage: asset.id,
+      createdBy: user.id,
     }
 
     const savedShowcase = await repository.create(showcase)
@@ -252,13 +265,19 @@ describe('Database showcase repository tests', (): void => {
     expect(savedShowcase.status).toEqual(showcase.status)
     expect(savedShowcase.hidden).toEqual(showcase.hidden)
     expect(savedShowcase.scenarios.length).toEqual(2)
-    expect(savedShowcase.credentialDefinitions.length).toEqual(2)
     expect(savedShowcase.personas.length).toEqual(2)
     expect(savedShowcase.bannerImage!.id).toBeDefined()
     expect(savedShowcase.bannerImage!.mediaType).toEqual(asset.mediaType)
     expect(savedShowcase.bannerImage!.fileName).toEqual(asset.fileName)
     expect(savedShowcase.bannerImage!.description).toEqual(asset.description)
     expect(savedShowcase.bannerImage!.content).toStrictEqual(asset.content)
+    expect(savedShowcase.createdBy).toEqual({
+      createdAt: expect.any(Date),
+      id: expect.any(String),
+      identifier: 'did:example.org',
+      identifierType: 'DID',
+      updatedAt: expect.any(Date),
+    })
   })
 
   it('Should throw error when saving showcase with no personas', async (): Promise<void> => {
@@ -357,7 +376,6 @@ describe('Database showcase repository tests', (): void => {
     expect(fromDb.status).toEqual(showcase.status)
     expect(fromDb.hidden).toEqual(showcase.hidden)
     expect(fromDb.scenarios.length).toEqual(2)
-    expect(fromDb.credentialDefinitions.length).toEqual(2)
     expect(fromDb.personas.length).toEqual(2)
   })
 
@@ -436,7 +454,6 @@ describe('Database showcase repository tests', (): void => {
     expect(updatedShowcase.status).toEqual(showcase.status)
     expect(updatedShowcase.hidden).toEqual(showcase.hidden)
     expect(updatedShowcase.scenarios.length).toEqual(2)
-    expect(updatedShowcase.credentialDefinitions.length).toEqual(2)
     expect(updatedShowcase.personas.length).toEqual(2)
   })
 

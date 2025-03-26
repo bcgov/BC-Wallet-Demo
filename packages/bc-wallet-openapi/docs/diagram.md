@@ -12,12 +12,12 @@ classDiagram
         +status : String
         +scenarios: List~String~
         +personas: List~String~
-        +credentialDefinitions: List~String~
         +hidden : Boolean
         +createdAt : DateTime
         +updatedAt : DateTime
         bannerImage: Asset
         completionMessage : String
+        createdBy: User
     }
     class Scenario {
         <!-- Scenarios is a collection of workflows -->
@@ -57,6 +57,21 @@ classDiagram
     }
     class AriesOOBAction {
         proofRequest: AriesProofRequest
+    }
+    class AcceptCredentialAction {
+        credentialDefinitionId: String
+        connectionId: String
+    }
+    class ShareCredentialAction {
+        credentialDefinitionId: String
+        connectionId: String
+    }
+    class SetupConnectionAction {
+    }
+    class ChooseWalletAction {
+    }
+    class ButtonAction {
+        goToStep: String
     }
     class AriesProofRequest {
         +createdAt : DateTime
@@ -109,6 +124,8 @@ classDiagram
         +updatedAt : DateTime
         organization: String
         logo: Asset
+        identifierType: IdentifierType
+        identifier: String
     }
     class IssuerType {
         <<enumeration>>
@@ -135,6 +152,8 @@ classDiagram
         identifier: String
         +attributes: List~CredentialAttribute~
         source: Source
+        +createdAt : DateTime
+        +updatedAt : DateTime
     }
     class IdentifierType {
         <<enumeration>>
@@ -162,6 +181,7 @@ classDiagram
         +updatedAt : DateTime
    }
    class AnonCredRevocation {
+        registryId: String
    }
    class CredentialRepresentation {
         +id: String
@@ -192,17 +212,37 @@ classDiagram
     BOOLEAN
     DATE
    }
+   class ShowcaseStatus {
+    <<enumeration>>
+    PENDING
+    ACTIVE
+    ARCHIVED
+   }
+   class ScenarioType {
+    <<enumeration>>
+    ISSUANCE
+    PRESENTATION
+   }
+   class User {
+    +id: String
+    +identifierType: IdentifierType
+    +identifier: String
+    +createdAt : DateTime
+    +updatedAt : DateTime
+   }
     Showcase "1" <|-- "1..*" Scenario: has
     Showcase "1..*" o-- "1..*" Persona
-    Showcase "1..*" o-- "1..*" CredentialDefinition : contains
     Showcase "1" -- "0..*" Asset : references
+    Showcase "1" -- "1" User : created by
     Scenario <|-- IssuanceScenario : specialization (onboarding)
     Scenario <|-- PresentationScenario : specialization (scenario)
     Scenario "1" *-- "1..*" Step : contains
     Scenario "1" -- "0..*" Asset : references
+    Scenario o-- "1" ScenarioType: of
     CredentialAttribute  o-- "1" CredentialAttributeType : of
     CredentialSchema "1" *-- "1..*" CredentialAttribute : has
     CredentialSchema o-- "1" IdentifierType : of
+    CredentialSchema o-- "1" Source: of
     CredentialDefinition "icon" --> Asset
     CredentialDefinition "1" *-- "1..*" CredentialRepresentation : has
     CredentialDefinition "1" *-- "0..*" RevocationInfo : has
@@ -219,10 +259,16 @@ classDiagram
     Persona -- "0..*" Asset : references
     Issuer -- "0..*" Asset : references
     Issuer o-- "1" IssuerType: of
+    Issuer o-- "1" IdentifierType: of
     RelyingParty -- "0..*" Asset : references
     Step o-- "1" StepType: of
     Step "1" *-- "0..*" StepAction: actions
     StepAction <|-- AriesOOBAction: Aries implementation
+    StepAction <|-- AcceptCredentialAction: Accept credential
+    StepAction <|-- ShareCredentialAction: Share credential
+    StepAction <|-- SetupConnectionAction: Setup connection
+    StepAction <|-- ChooseWalletAction: Choose wallet
+    StepAction <|-- ButtonAction: Button action
     AriesOOBAction "1" *-- "1" AriesProofRequest
     AriesProofRequest "1" *-- "1..*" AriesRequestCredentialAttributes: attributes
     AriesProofRequest "1" *-- "1..*" AriesRequestCredentialPredicates: predicates

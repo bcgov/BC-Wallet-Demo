@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: BC Wallet API
+  title: Credential Showcase API
   version: 0.1.1
 
 servers:
@@ -1673,7 +1673,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
-
 components:
   securitySchemes:
     OAuth2:
@@ -1691,6 +1690,27 @@ components:
       openIdConnectUrl: <https://auth.example.com/.well-known/openid-configuration>
       description: OpenID Connect security scheme for OAuth2 flows
   schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the user
+          example: 123e4567-e89b-12d3-a456-426614174456
+        identifierType:
+          $ref: '#/components/schemas/IdentifierType'
+        identifier:
+          type: string
+        createdAt:
+          type: string
+          description: Date and time the asset was created
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
+        updatedAt:
+          type: string
+          description: Date and time the asset was created
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
     Asset:
       type: object
       required:
@@ -1885,8 +1905,8 @@ components:
         - actionType
         - title
         - text
-        - createdAt
-        - updatedAt
+#        - createdAt  FIXME This gives issues with the individual step types, they do not all have *Request variants yet
+#        - updatedAt
       properties:
         id:
           type: string
@@ -1918,6 +1938,11 @@ components:
         propertyName: actionType
         mapping:
           ARIES_OOB: '#/components/schemas/AriesOOBAction'
+          ACCEPT_CREDENTIAL: '#/components/schemas/AcceptCredentialAction'
+          SHARE_CREDENTIAL: '#/components/schemas/ShareCredentialAction'
+          SETUP_CONNECTION: '#/components/schemas/SetupConnectionAction'
+          CHOOSE_WALLET: '#/components/schemas/ChooseWalletAction'
+          BUTTON: '#/components/schemas/ButtonAction'
     StepActionRequest:
       type: object
       required:
@@ -1939,7 +1964,12 @@ components:
       discriminator:
         propertyName: actionType
         mapping:
-          ARIES_OOB: '#/components/schemas/AriesOOBActionRequest'
+          ARIES_OOB: '#/components/schemas/AriesOOBAction'
+          ACCEPT_CREDENTIAL: '#/components/schemas/AcceptCredentialAction'
+          SHARE_CREDENTIAL: '#/components/schemas/ShareCredentialAction'
+          SETUP_CONNECTION: '#/components/schemas/SetupConnectionAction'
+          CHOOSE_WALLET: '#/components/schemas/ChooseWalletAction'
+          BUTTON: '#/components/schemas/ButtonAction'
     StepActionsResponse:
       properties:
         actions:
@@ -1975,8 +2005,8 @@ components:
         - id
         - attributes
         - predicates
-        - createdAt
-        - updatedAt
+#        - createdAt FIXME This gives issues with the individual step types, they do not all have *Request variants yet
+#        - updatedAt
       properties:
         attributes:
           type: object
@@ -2069,6 +2099,55 @@ components:
           items:
             type: string
           description: List of restrictions on the predicate
+    AcceptCredentialAction:
+      allOf:
+        - $ref: '#/components/schemas/StepAction'
+        - type: object
+          required:
+            - credentialDefinitionId
+          properties:
+            credentialDefinitionId:
+              type: string
+              description: Credential definition ID
+              example: 123e4567-e89b-12d3-a456-426614174456
+            connectionId:
+              type: string
+              description: Connection ID
+              example: 341c384b-3313-41ba-96a7-4f07329cd6b5
+    ShareCredentialAction:
+      allOf:
+        - $ref: '#/components/schemas/StepAction'
+        - type: object
+          required:
+            - credentialDefinitionId
+          properties:
+            credentialDefinitionId:
+              type: string
+              description: Credential definition ID
+              example: 123e4567-e89b-12d3-a456-426614174456
+            connectionId:
+              type: string
+              description: Connection ID
+              example: 341c384b-3313-41ba-96a7-4f07329cd6b5
+    SetupConnectionAction:
+      allOf:
+        - $ref: '#/components/schemas/StepAction'
+        - type: object
+      # TODO properties?
+    ChooseWalletAction:
+      allOf:
+        - $ref: '#/components/schemas/StepAction'
+        - type: object
+      # TODO properties?
+    ButtonAction:
+      allOf:
+        - $ref: '#/components/schemas/StepAction'
+        - type: object
+          properties:
+            goToStep:
+              type: string
+              description: Step ID
+              example: 123e4567-e89b-12d3-a456-426614174456
 
     Persona:
       type: object
@@ -2571,7 +2650,6 @@ components:
         - version
         - type
         - credentialSchema
-        - icon
         # TODO enable back in SHOWCASE-81
         # - representations
         - createdAt
@@ -2627,7 +2705,6 @@ components:
         - name
         - version
         - type
-        - icon
         - credentialSchema
         # TODO enable back in SHOWCASE-81
         # - representations
@@ -2969,6 +3046,8 @@ components:
           type: string
           description: Message to display when the showcase is completed
           example: "You have successfully completed the showcase"
+        createdBy:
+          $ref: '#/components/schemas/User'
         createdAt:
           type: string
           description: Date and time the showcase was created
@@ -3019,12 +3098,6 @@ components:
         scenarios:
           type: array
           description: List of scenarios in this showcase
-          items:
-            type: string
-            example: 123e4567-e89b-12d3-a456-426614174469
-        credentialDefinitions:
-          type: array
-          description: List of credential definitions used in this showcase
           items:
             type: string
             example: 123e4567-e89b-12d3-a456-426614174469
