@@ -210,19 +210,29 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         scenarios: scenariosResult.map((scenario) => ({
           ...scenario,
           steps: sortSteps(scenario.steps),
-          ...(scenario.relyingParty && {
-            relyingParty: {
-              ...(scenario.relyingParty as any), // TODO check this typing issue at a later point in time
-              credentialDefinitions: scenario.relyingParty!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            },
-          }),
-          ...(scenario.issuer && {
-            issuer: {
-              ...(scenario.issuer as any), // TODO check this typing issue at a later point in time
-              credentialDefinitions: scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-              credentialSchemas: scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
-            },
-          }),
+          relyingParty: scenario.relyingParty ? {
+            id: scenario.relyingParty.id,
+            name: scenario.relyingParty.name,
+            type: scenario.relyingParty.type,
+            description: scenario.relyingParty.description,
+            organization: scenario.relyingParty.organization,
+            logo: scenario.relyingParty.logo,
+            credentialDefinitions: scenario.relyingParty!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
+            createdAt: scenario.relyingParty.createdAt,
+            updatedAt: scenario.relyingParty.updatedAt,
+          } : undefined,
+          issuer: scenario.issuer ? {
+            id: scenario.issuer.id,
+            name: scenario.issuer.name,
+            type: scenario.issuer.type,
+            description: scenario.issuer.description,
+            organization: scenario.issuer.organization,
+            logo: scenario.issuer.logo,
+            credentialDefinitions: scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
+            credentialSchemas: scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
+            createdAt: scenario.issuer.createdAt,
+            updatedAt: scenario.issuer.updatedAt,
+          } : undefined,
           personas: scenario.personas.map((item: any) => item.persona),
         })),
         credentialDefinitions: credentialDefinitionsResult.map((item: any) => ({
@@ -429,19 +439,29 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         scenarios: scenariosResult.map((scenario) => ({
           ...scenario,
           steps: sortSteps(scenario.steps),
-          ...(scenario.relyingParty && {
-            relyingParty: {
-              ...(scenario.relyingParty as any), // TODO check this typing issue at a later point in time
-              credentialDefinitions: scenario.relyingParty!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            },
-          }),
-          ...(scenario.issuer && {
-            issuer: {
-              ...(scenario.issuer as any), // TODO check this typing issue at a later point in time
-              credentialDefinitions: scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-              credentialSchemas: scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
-            },
-          }),
+          relyingParty: scenario.relyingParty ? {
+            id: scenario.relyingParty.id,
+            name: scenario.relyingParty.name,
+            type: scenario.relyingParty.type,
+            description: scenario.relyingParty.description,
+            organization: scenario.relyingParty.organization,
+            logo: scenario.relyingParty.logo,
+            credentialDefinitions: scenario.relyingParty!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
+            createdAt: scenario.relyingParty.createdAt,
+            updatedAt: scenario.relyingParty.updatedAt,
+          } : undefined,
+          issuer: scenario.issuer ? {
+            id: scenario.issuer.id,
+            name: scenario.issuer.name,
+            type: scenario.issuer.type,
+            description: scenario.issuer.description,
+            organization: scenario.issuer.organization,
+            logo: scenario.issuer.logo,
+            credentialDefinitions: scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
+            credentialSchemas: scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
+            createdAt: scenario.issuer.createdAt,
+            updatedAt: scenario.issuer.updatedAt,
+          } : undefined,
           personas: scenario.personas.map((item: any) => item.persona),
         })),
         credentialDefinitions: credentialDefinitionsResult.map((item: any) => ({
@@ -580,19 +600,31 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       scenarios: result.scenarios.map((scenario: any) => ({
         ...(scenario.scenario as any),
         steps: sortSteps(scenario.scenario.steps),
-        ...(scenario.scenario.relyingParty && {
+        relyingParty: scenario.relyingParty ? {
           relyingParty: {
-            ...(scenario.scenario.relyingParty as any), // TODO check this typing issue at a later point in time
+            id: scenario.scenario.relyingParty.id,
+            name: scenario.scenario.relyingParty.name,
+            type: scenario.scenario.relyingParty.type,
+            description: scenario.scenario.relyingParty.description,
+            organization: scenario.scenario.relyingParty.organization,
+            logo: scenario.scenario.relyingParty.logo,
             credentialDefinitions: scenario.scenario.relyingParty!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
+            createdAt: scenario.scenario.relyingParty.createdAt,
+            updatedAt: scenario.scenario.relyingParty.updatedAt,
           },
-        }),
-        ...(scenario.scenario.issuer && {
-          issuer: {
-            ...(scenario.scenario.issuer as any), // TODO check this typing issue at a later point in time
-            credentialDefinitions: scenario.scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            credentialSchemas: scenario.scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
-          },
-        }),
+        } : undefined,
+        issuer: scenario.issuer ? {
+          id: scenario.scenario.issuer.id,
+          name: scenario.scenario.issuer.name,
+          type: scenario.scenario.issuer.type,
+          description: scenario.scenario.issuer.description,
+          organization: scenario.scenario.issuer.organization,
+          logo: scenario.scenario.issuer.logo,
+          credentialDefinitions: scenario.scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
+          credentialSchemas: scenario.scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
+          createdAt: scenario.scenario.issuer.createdAt,
+          updatedAt: scenario.scenario.issuer.updatedAt,
+        } : undefined,
         personas: scenario.scenario.personas.map((item: any) => item.persona),
       })),
       credentialDefinitions: result.credentialDefinitions.map((item: any) => ({
