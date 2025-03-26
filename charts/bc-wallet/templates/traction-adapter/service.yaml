@@ -5,16 +5,26 @@ metadata:
   name: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: adapter
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ .Values.traction_adapter.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.traction_adapter.labelOverride }}
+    app.kubernetes.io/component: {{ .Values.traction_adapter.labelOverride }}
+    {{- else }}
+    app.kubernetes.io/component: traction-adapter
+    {{- end }}
 spec:
   type: {{ .Values.traction_adapter.service.type }}
   ports:
     - port: {{ .Values.traction_adapter.service.port }}
-      targetPort: {{ .Values.traction_adapter.port }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+    app.kubernetes.io/name: {{ .Values.traction_adapter.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.traction_adapter.labelOverride }}
+    app.kubernetes.io/component: {{ .Values.traction_adapter.labelOverride }}
+    {{- else }}
+    app.kubernetes.io/component: traction-adapter
+    {{- end }}
 {{- end }}

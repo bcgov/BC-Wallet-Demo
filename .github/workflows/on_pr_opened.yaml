@@ -28,22 +28,6 @@ jobs:
           echo "true_false=${{ toJSON(github.event.pull_request.draft != true && github.repository_owner == 'getmoin') }}" >> $GITHUB_OUTPUT #should change to bcgov
           echo "owner_true_false=${{ toJSON(github.repository_owner == 'getmoin') }}" >> $GITHUB_OUTPUT #bcgov
 
-  # test_api_server:
-  #   name: "Test API Server"
-  #   needs: ready
-  #   if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true }}
-  #   uses: ./.github/workflows/test.yaml
-  #   with:
-  #     package_name: "bc-wallet-api-server"
-
-  # test_traction_adapter:
-  #   name: "Test Traction Adapter"
-  #   needs: ready
-  #   if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true }}
-  #   uses: ./.github/workflows/test.yaml
-  #   with:
-  #     package_name: "bc-wallet-traction-adapter"
-          
   build_api_server:
     name: "Build API Server"
     runs-on: ubuntu-latest

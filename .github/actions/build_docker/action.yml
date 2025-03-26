@@ -63,12 +63,19 @@ runs:
       if: inputs.registry == 'ghcr.io' && inputs.visibility == 'public'
       shell: bash
       run: |
-        # Get the package name from the image name
-        PACKAGE_NAME=$(echo "${{ inputs.image_name }}" | tr '/' '_')
+        # Extract the repository name from the image name
+        REPO_NAME=$(echo "${{ inputs.image_name }}" | cut -d'/' -f2)
         
         # Use GitHub API to set package visibility to public
         curl -X PATCH \
           -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization: token ${{ inputs.registry_password }}" \
-          -d '{"visibility":"public"}' \
-          "https://api.github.com/user/packages/container/$PACKAGE_NAME"
+          -H "Authorization: Bearer ${{ inputs.registry_password }}" \
+          "https://api.github.com/user/packages/container/${{ inputs.image_name }}/visibility" \
+          -d '{"visibility":"public"}'
+        
+        # Alternative approach - set at org level if the first one fails
+        curl -X PATCH \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: Bearer ${{ inputs.registry_password }}" \
+          "https://api.github.com/orgs/${{ inputs.registry_username }}/packages/container/$REPO_NAME/visibility" \
+          -d '{"visibility":"public"}'

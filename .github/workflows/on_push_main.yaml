@@ -3,8 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - k3s-depolyment
       - main
-      - develop-4sure
+      # - develop-4sure
     paths:
         - "apps/bc-wallet-api-server/**"
         - "packages/bc-wallet-traction-adapter/**"
@@ -12,6 +13,7 @@ on:
         - "apps/bc-wallet-demo-server/**"
         - "apps/bc-wallet-demo-web/**"
         - "charts/**"
+        - "*"
 
 jobs:
   ready:
@@ -136,147 +138,191 @@ jobs:
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
-  deploy_dev:
-    name: Deploy to Development
+  deploy:
+    name: "Deploy to K3s"
     environment: development
     runs-on: ubuntu-latest
     needs:
       - build_api_server
       - build_traction_adapter
       - build_showcase_creator
-      - build_demo_server
       - build_demo_web
-    if: ${{ contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) }}
+      - build_demo_server
+    if: ${{ always() && !(contains(needs.*.result, 'failure')) }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
-        with:
-          oc: "4.14"
-
-      - name: Authenticate and set context
-        uses: redhat-actions/oc-login@v1
-        with:
-          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
-          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
-          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
-     
-      - name: Deploy to OpenShift with Helm
-        run: |
-          cd charts/bc-wallet
-          # helm dependency update
-          helm upgrade --install bc-wallet --namespace ${{ secrets.OPENSHIFT_NAMESPACE }} -f ./values.yaml 
-            --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }}  --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} . --wait
       
-      - name: Restart Deployments
-        run: |
-          oc rollout restart deployment/bc-wallet-bc-wallet-api-server
-          oc rollout restart deployment/bc-wallet-bc-wallet-traction-adapter
-
-  deploy_uat:
-    name: Deploy to UAT
-    environment: uat  
-    runs-on: ubuntu-latest
-    needs: deploy_dev
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
+      # Copy charts to K3s server
+      - name: Copy charts to K3s server
+        uses: appleboy/scp-action@v0.1.4
         with:
-          oc: "4.14"
+          host: ${{ secrets.K3S_HOST }}
+          username: ${{ secrets.K3S_USERNAME }}
+          key: ${{ secrets.K3S_SSH_KEY }}
+          source: "charts/"
+          target: "/home/ubuntu/pipeline"
+          overwrite: true
+          strip_components: 0
 
-      - name: Authenticate and set context
-        uses: redhat-actions/oc-login@v1
+      # Deploy using SSH to K3s instance
+      - name: Deploy to K3s via SSH
+        uses: appleboy/ssh-action@v0.1.10
         with:
-          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
-          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
-          namespace: ${{ secrets.OPENSHIFT_UAT_NAMESPACE }}
-     
-      - name: Deploy to OpenShift with Helm
-        run: |
-          cd charts/bc-wallet
-          #helm dependency update
-          helm upgrade --install bc-wallet \
-            --namespace ${{ secrets.OPENSHIFT_UAT_NAMESPACE }} -f ./values.yaml -f ./values-uat.yaml --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} . --wait
+          host: ${{ secrets.K3S_HOST }}
+          username: ${{ secrets.K3S_USERNAME }}
+          key: ${{ secrets.K3S_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/pipeline/charts/bc-wallet
+            
+            # Update dependencies and deploy with Helm
+            helm dependency update
+            
+            helm upgrade --install bc-wallet -f ./values.yaml \
+              --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
+              --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
+              --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
+              --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
+              --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
+              . --wait
+            
+            # Create Certificate for TLS
+            cat <<EOF | kubectl apply -f -
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: bc-wallet-tls
+            spec:
+              secretName: bc-wallet-tls
+              issuerRef:
+                name: letsencrypt-prod
+                kind: ClusterIssuer
+              dnsNames:
+                - bcshowcase-api.dev.nborbit.ca
+                - bcshowcase-traction.dev.nborbit.ca
+                - bcshowcase-ui.dev.nborbit.ca
+                - bcshowcase-demo-web.dev.nborbit.ca
+                - bcshowcase-demo-server.dev.nborbit.ca
+            EOF
+            
+            # Clean up
+            rm -rf /home/ubuntu/bc-wallet/charts
       
+      # Restart deployments to ensure they pick up any changes
       - name: Restart Deployments
-        run: |
-          oc rollout restart deployment/bc-wallet-bc-wallet-api-server
-          oc rollout restart deployment/bc-wallet-bc-wallet-traction-adapter
-
-  deploy_prod:
-    name: Deploy to Production
-    environment: production 
-    runs-on: ubuntu-latest
-    needs: deploy_uat
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
+        uses: appleboy/ssh-action@v0.1.10
         with:
-          oc: "4.14"
+          host: ${{ secrets.K3S_HOST }}
+          username: ${{ secrets.K3S_USERNAME }}
+          key: ${{ secrets.K3S_SSH_KEY }}
+          script: |
+            kubectl rollout restart deployment bc-wallet-bc-wallet-api-server
+            kubectl rollout restart deployment bc-wallet-bc-wallet-traction-adapter
+            kubectl rollout restart deployment bc-wallet-bc-wallet-showcase-creator
+            kubectl rollout restart deployment bc-wallet-bc-wallet-demo-web
+            kubectl rollout restart deployment bc-wallet-bc-wallet-demo-server
 
-      - name: Authenticate and set context
-        uses: redhat-actions/oc-login@v1
-        with:
-          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
-          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
-          namespace: ${{ secrets.OPENSHIFT_PROD_NAMESPACE }}
+  # deploy_uat:
+  #   name: Deploy to UAT
+  #   environment: uat  
+  #   runs-on: ubuntu-latest
+  #   needs: deploy_dev
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Install OpenShift CLI tools
+  #       uses: redhat-actions/openshift-tools-installer@v1
+  #       with:
+  #         oc: "4.14"
+
+  #     - name: Authenticate and set context
+  #       uses: redhat-actions/oc-login@v1
+  #       with:
+  #         openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+  #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+  #         certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
+  #         namespace: ${{ secrets.OPENSHIFT_UAT_NAMESPACE }}
      
-      - name: Deploy to OpenShift with Helm
-        run: |
-          cd charts/bc-wallet
+  #     - name: Deploy to OpenShift with Helm
+  #       run: |
+  #         cd charts/bc-wallet
+  #         #helm dependency update
+  #         helm upgrade --install bc-wallet \
+  #           --namespace ${{ secrets.OPENSHIFT_UAT_NAMESPACE }} -f ./values.yaml -f ./values-uat.yaml --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} . --wait
+      
+  #     - name: Restart Deployments
+  #       run: |
+  #         oc rollout restart deployment/bc-wallet-bc-wallet-api-server
+  #         oc rollout restart deployment/bc-wallet-bc-wallet-traction-adapter
+
+  # deploy_prod:
+  #   name: Deploy to Production
+  #   environment: production 
+  #   runs-on: ubuntu-latest
+  #   needs: deploy_uat
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Install OpenShift CLI tools
+  #       uses: redhat-actions/openshift-tools-installer@v1
+  #       with:
+  #         oc: "4.14"
+
+  #     - name: Authenticate and set context
+  #       uses: redhat-actions/oc-login@v1
+  #       with:
+  #         openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+  #         openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+  #         certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
+  #         namespace: ${{ secrets.OPENSHIFT_PROD_NAMESPACE }}
+     
+  #     - name: Deploy to OpenShift with Helm
+  #       run: |
+  #         cd charts/bc-wallet
           
-          helm dependency update
-          helm upgrade --install bc-wallet \
-            --namespace ${{ secrets.OPENSHIFT_PROD_NAMESPACE }} -f ./values.yaml -f ./values-prod.yaml --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} . --wait
+  #         helm dependency update
+  #         helm upgrade --install bc-wallet \
+  #           --namespace ${{ secrets.OPENSHIFT_PROD_NAMESPACE }} -f ./values.yaml -f ./values-prod.yaml --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} . --wait
       
-      - name: Restart Deployments
-        run: |
-          oc rollout restart deployment/bc-wallet-bc-wallet-api-server
-          oc rollout restart deployment/bc-wallet-bc-wallet-traction-adapter
+  #     - name: Restart Deployments
+  #       run: |
+  #         oc rollout restart deployment/bc-wallet-bc-wallet-api-server
+  #         oc rollout restart deployment/bc-wallet-bc-wallet-traction-adapter
 
-  image-scan:
-    name: "Image Scan"
-    needs: [build_api_server, build_traction_adapter, build_showcase_creator, build_demo_server, build_demo_web, ready]
-    runs-on: ubuntu-latest
-    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      - name: Scan API Server Docker Image
-        uses: ./.github/actions/trivy-scan
-        with:
-          scan-type: 'image'
-          scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-api-server:${{ needs.build_api_server.outputs.image_tag }}'
-          scan-title: 'Docker Image Scan Results for bc-wallet-api-server'
-      - name: Scan Traction Adapter Docker Image
-        uses: ./.github/actions/trivy-scan
-        with:
-          scan-type: 'image'
-          scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-traction-adapter:${{ needs.build_traction_adapter.outputs.image_tag }}'
-          scan-title: 'Docker Image Scan Results for bc-wallet-traction-adapter'
-      - name: Scan API Server Docker Image
-        uses: ./.github/actions/trivy-scan
-        with:
-          scan-type: 'image'
-          scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-web:${{ needs.build_demo_web.outputs.image_tag }}'
-          scan-title: 'Docker Image Scan Results for bc-wallet-demo-web'
-      - name: Scan Traction Adapter Docker Image
-        uses: ./.github/actions/trivy-scan
-        with:
-          scan-type: 'image'
-          scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-creator:${{ needs.build_showcase_creator.outputs.image_tag }}'
-          scan-title: 'Docker Image Scan Results for bc-wallet-showcase-creator'
-      - name: Scan Demo Server Docker Image
-        uses: ./.github/actions/trivy-scan
-        with:
-          scan-type: 'image'
-          scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-server:${{ needs.build_demo_server.outputs.image_tag }}'
-          scan-title: 'Docker Image Scan Results for bc-wallet-demo-server'
+  # image-scan:
+  #   name: "Image Scan"
+  #   needs: [build_api_server, build_traction_adapter, build_showcase_creator, build_demo_server, build_demo_web, ready]
+  #   runs-on: ubuntu-latest
+  #   if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+  #     - name: Scan API Server Docker Image
+  #       uses: ./.github/actions/trivy-scan
+  #       with:
+  #         scan-type: 'image'
+  #         scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-api-server:${{ needs.build_api_server.outputs.image_tag }}'
+  #         scan-title: 'Docker Image Scan Results for bc-wallet-api-server'
+  #     - name: Scan Traction Adapter Docker Image
+  #       uses: ./.github/actions/trivy-scan
+  #       with:
+  #         scan-type: 'image'
+  #         scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-traction-adapter:${{ needs.build_traction_adapter.outputs.image_tag }}'
+  #         scan-title: 'Docker Image Scan Results for bc-wallet-traction-adapter'
+  #     - name: Scan API Server Docker Image
+  #       uses: ./.github/actions/trivy-scan
+  #       with:
+  #         scan-type: 'image'
+  #         scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-web:${{ needs.build_demo_web.outputs.image_tag }}'
+  #         scan-title: 'Docker Image Scan Results for bc-wallet-demo-web'
+  #     - name: Scan Traction Adapter Docker Image
+  #       uses: ./.github/actions/trivy-scan
+  #       with:
+  #         scan-type: 'image'
+  #         scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-creator:${{ needs.build_showcase_creator.outputs.image_tag }}'
+  #         scan-title: 'Docker Image Scan Results for bc-wallet-showcase-creator'
+  #     - name: Scan Demo Server Docker Image
+  #       uses: ./.github/actions/trivy-scan
+  #       with:
+  #         scan-type: 'image'
+  #         scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-server:${{ needs.build_demo_server.outputs.image_tag }}'
+  #         scan-title: 'Docker Image Scan Results for bc-wallet-demo-server'

@@ -5,16 +5,26 @@ metadata:
   name: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: creator
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ .Values.showcase_creator.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.showcase_creator.labelOverride }}
+    app.kubernetes.io/component: {{ .Values.showcase_creator.labelOverride }}
+    {{- else }}
+    app.kubernetes.io/component: showcase-creator
+    {{- end }}
 spec:
   type: {{ .Values.showcase_creator.service.type }}
   ports:
     - port: {{ .Values.showcase_creator.service.port }}
-      targetPort: {{ .Values.showcase_creator.port }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+    app.kubernetes.io/name: {{ .Values.showcase_creator.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.showcase_creator.labelOverride }}
+    app.kubernetes.io/component: {{ .Values.showcase_creator.labelOverride }}
+    {{- else }}
+    app.kubernetes.io/component: showcase-creator
+    {{- end }}
 {{- end }} 

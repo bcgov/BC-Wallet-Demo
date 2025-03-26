@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enabled }}
+{{- if and .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -16,56 +16,38 @@ spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
   rules:
-  - host: {{ include "bc-wallet.api-server.host" . | quote }}
+  {{- range .Values.ingress.hosts }}
+  - host: {{ .host }}
     http:
       paths:
-      - path: /
-        pathType: Prefix
+      {{- range .paths }}
+      - path: {{ .path }}
+        pathType: {{ .pathType }}
         backend:
           service:
+            {{- if eq .service "api-server" }}
             name: {{ $.Release.Name }}-{{ $.Values.api_server.name }}
             port:
               number: {{ $.Values.api_server.service.port }}
-  - host: {{ include "bc-wallet.traction-adapter.host" . | quote }}
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
+            {{- else if eq .service "traction-adapter" }}
             name: {{ $.Release.Name }}-{{ $.Values.traction_adapter.name }}
             port:
               number: {{ $.Values.traction_adapter.service.port }}
-  - host: {{ include "bc-wallet.demo-web.host" . | quote }}
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ $.Release.Name }}-{{ $.Values.demo_web.name }}
-            port:
-              number: {{ $.Values.demo_web.service.port }}
-  - host: {{ include "bc-wallet.showcase-creator.host" . | quote }}
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
+            {{- else if eq .service "showcase-creator" }}
             name: {{ $.Release.Name }}-{{ $.Values.showcase_creator.name }}
             port:
               number: {{ $.Values.showcase_creator.service.port }}
-  - host: {{ include "bc-wallet.demo-server.host" . | quote }}
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
+            {{- else if eq .service "demo-web" }}
+            name: {{ $.Release.Name }}-{{ $.Values.demo_web.name }}
+            port:
+              number: {{ $.Values.demo_web.service.port }}
+            {{- else if eq .service "demo-server" }}
             name: {{ $.Release.Name }}-{{ $.Values.demo_server.name }}
             port:
               number: {{ $.Values.demo_server.service.port }}
+            {{- end }}
+      {{- end }}
+  {{- end }}
   {{- with .Values.ingress.tls }}
   tls:
     {{- toYaml . | nindent 4 }}

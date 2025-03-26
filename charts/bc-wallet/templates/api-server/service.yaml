@@ -5,16 +5,26 @@ metadata:
   name: {{ .Release.Name }}-{{ .Values.api_server.name }}
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ .Values.api_server.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.api_server.labelOverride }}
+    app.kubernetes.io/component: {{ .Values.api_server.labelOverride }}
+    {{- else }}
+    app.kubernetes.io/component: api-server
+    {{- end }}
 spec:
   type: {{ .Values.api_server.service.type }}
   ports:
     - port: {{ .Values.api_server.service.port }}
-      targetPort: {{ .Values.api_server.port }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ .Release.Name }}-{{ .Values.api_server.name }}
+    app.kubernetes.io/name: {{ .Values.api_server.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.api_server.labelOverride }}
+    app.kubernetes.io/component: {{ .Values.api_server.labelOverride }}
+    {{- else }}
+    app.kubernetes.io/component: api-server
+    {{- end }}
 {{- end }}

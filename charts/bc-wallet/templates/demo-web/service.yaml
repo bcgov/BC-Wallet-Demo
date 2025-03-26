@@ -5,16 +5,26 @@ metadata:
   name: {{ .Release.Name }}-{{ .Values.demo_web.name }}
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: web
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ .Values.demo_web.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.demo_web.labelOverride }}
+    app.kubernetes.io/component: {{ .Values.demo_web.labelOverride }}
+    {{- else }}
+    app.kubernetes.io/component: demo-web
+    {{- end }}
 spec:
   type: {{ .Values.demo_web.service.type }}
   ports:
     - port: {{ .Values.demo_web.service.port }}
-      targetPort: {{ .Values.demo_web.port }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ .Release.Name }}-{{ .Values.demo_web.name }}
+    app.kubernetes.io/name: {{ .Values.demo_web.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.demo_web.labelOverride }}
+    app.kubernetes.io/component: {{ .Values.demo_web.labelOverride }}
+    {{- else }}
+    app.kubernetes.io/component: demo-web
+    {{- end }}
 {{- end }} 
