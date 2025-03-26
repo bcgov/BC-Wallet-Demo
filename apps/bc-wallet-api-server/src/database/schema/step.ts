@@ -5,6 +5,7 @@ import { scenarios } from './scenario'
 import { stepActions } from './stepAction'
 import { assets } from './asset'
 import { StepType } from '../../types'
+import { credentialDefinitions } from './credentialDefinition'
 
 export const steps = pgTable(
   'step',
@@ -14,6 +15,7 @@ export const steps = pgTable(
     description: text().notNull(),
     order: integer().notNull(),
     type: StepTypePg().notNull().$type<StepType>(),
+    credentialDefinition: uuid('credential_definition_id').references(() => credentialDefinitions.id),
     subScenario: uuid('sub_scenario').references(() => scenarios.id),
     scenario: uuid()
       .references(() => scenarios.id, { onDelete: 'cascade' })
@@ -48,5 +50,9 @@ export const stepRelations = relations(steps, ({ one, many }) => ({
   asset: one(assets, {
     fields: [steps.asset],
     references: [assets.id],
+  }),
+  credentialDefinition: one(credentialDefinitions, {
+    fields: [steps.credentialDefinition],
+    references: [credentialDefinitions.id],
   }),
 }))

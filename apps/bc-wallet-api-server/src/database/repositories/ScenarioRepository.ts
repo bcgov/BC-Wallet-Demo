@@ -35,6 +35,7 @@ import {
   StepActionType,
   StepActionTypes,
 } from '../../types'
+import CredentialDefinitionRepository from './CredentialDefinitionRepository'
 
 @Service()
 class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> {
@@ -44,6 +45,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     private readonly issuerRepository: IssuerRepository,
     private readonly relyingPartyRepository: RelyingPartyRepository,
     private readonly assetRepository: AssetRepository,
+    private readonly credentialDefinitionRepository: CredentialDefinitionRepository,
   ) {}
 
   private mapStepAction(action: StepAction & { proofRequest?: AriesProofRequest | null }): StepActionTypes {
@@ -129,6 +131,19 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
 
     await Promise.all(scenario.personas.map((persona) => this.personaRepository.findById(persona)))
 
+    const updatedSteps = await Promise.all(
+      scenario.steps.map(async (step: NewStep) => ({
+        ...step,
+        credentialDefinition:
+          step?.credentialDefinitionIdentifier && step?.credentialDefinitionIdentifierType
+            ? await this.credentialDefinitionRepository.findIdByIdentifier(
+              step.credentialDefinitionIdentifier,
+              step.credentialDefinitionIdentifierType,
+            )
+            : null,
+      })),
+    )
+
     const scenarioType = isIssuanceScenario(scenario) ? ScenarioType.ISSUANCE : ScenarioType.PRESENTATION
 
     const scenarioPartyResult: Issuer | RelyingParty = isIssuanceScenario(scenario)
@@ -178,7 +193,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
       const stepsResult = await tx
         .insert(steps)
         .values(
-          scenario.steps.map((step: NewStep) => ({
+          updatedSteps.map((step: NewStep) => ({
             ...step,
             scenario: scenarioResult.id,
           })),
@@ -255,6 +270,19 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
 
     await Promise.all(scenario.personas.map((persona) => this.personaRepository.findById(persona)))
 
+    const updatedSteps = await Promise.all(
+      scenario.steps.map(async (step: NewStep) => ({
+        ...step,
+        credentialDefinition:
+          step.credentialDefinitionIdentifier && step.credentialDefinitionIdentifierType
+            ? await this.credentialDefinitionRepository.findIdByIdentifier(
+              step.credentialDefinitionIdentifier,
+              step.credentialDefinitionIdentifierType,
+            )
+            : null,
+      })),
+    )
+
     const scenarioType = isIssuanceScenario(scenario) ? ScenarioType.ISSUANCE : ScenarioType.PRESENTATION
 
     const scenarioPartyResult: Issuer | RelyingParty = isIssuanceScenario(scenario)
@@ -310,7 +338,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
       const stepsResult = await tx
         .insert(steps)
         .values(
-          scenario.steps.map((step: NewStep) => ({
+          updatedSteps.map((step: NewStep) => ({
             ...step,
             scenario: scenarioResult.id,
           })),
@@ -382,6 +410,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
               },
             },
             asset: true,
+            credentialDefinition: true,
           },
         },
         relyingParty: {
@@ -488,6 +517,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
               },
             },
             asset: true,
+            credentialDefinition: true,
           },
         },
         relyingParty: {
@@ -582,12 +612,18 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
       return Promise.reject(new BadRequestError('At least one action is required'))
     }
 
+    const credentialDefinitionIdResult =
+      step.credentialDefinitionIdentifier && step.credentialDefinitionIdentifierType
+        ? await this.credentialDefinitionRepository.findIdByIdentifier(step.credentialDefinitionIdentifier, step.credentialDefinitionIdentifierType)
+        : null
+
     const assetResult = step.asset ? await this.assetRepository.findById(step.asset) : null
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<Step> => {
       const [stepResult] = await tx
         .insert(steps)
         .values({
           ...step,
+          credentialDefinition: credentialDefinitionIdResult,
           scenario: scenarioId,
         })
         .returning()
@@ -626,12 +662,18 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
       return Promise.reject(new BadRequestError('At least one action is required'))
     }
 
+    const credentialDefinitionIdResult =
+      step?.credentialDefinitionIdentifier && step?.credentialDefinitionIdentifierType
+        ? await this.credentialDefinitionRepository.findIdByIdentifier(step.credentialDefinitionIdentifier, step.credentialDefinitionIdentifierType)
+        : null
+
     const assetResult = step.asset ? await this.assetRepository.findById(step.asset) : null
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<Step> => {
       const [stepResult] = await tx
         .update(steps)
         .set({
           ...step,
+          credentialDefinition: credentialDefinitionIdResult,
           scenario: scenarioId,
         })
         .where(eq(steps.id, stepId))
@@ -675,6 +717,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
           },
         },
         asset: true,
+        credentialDefinition: true,
       },
     })
 
@@ -695,6 +738,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
       where: eq(steps.scenario, scenarioId),
       with: {
         asset: true,
+        credentialDefinition: true,
         actions: {
           with: {
             proofRequest: true,
