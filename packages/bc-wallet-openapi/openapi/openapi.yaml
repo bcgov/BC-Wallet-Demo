@@ -1813,10 +1813,6 @@ components:
           type: string
           description: Detailed description of the step
           example: Verify the user's identity
-        screenId:
-          type: string
-          description: Screen attached to step
-          example: PICK_PERSONA
         order:
           type: integer
           description: Order of the step in the scenario
@@ -1861,10 +1857,6 @@ components:
           type: string
           description: Detailed description of the step
           example: Verify the user's identity
-        screenId:
-          type: string
-          description: Screen attached to step
-          example: PICK_PERSONA
         order:
           type: integer
           description: Order of the step in the scenario
@@ -2356,6 +2348,10 @@ components:
           properties:
             issuer:
               $ref: '#/components/schemas/Issuer'
+            type:
+              type: string
+              enum:
+                - "ISSUANCE"
       description: Scenario specialization for credential issuance
     IssuanceScenarioRequest:
       type: object
@@ -2392,6 +2388,10 @@ components:
           properties:
             relyingParty:
               $ref: '#/components/schemas/RelyingParty'
+            type:
+              type: string
+              enum:
+                - "PRESENTATION"
       description: Scenario specialization for credential presentation
     PresentationScenarioRequest:
       allOf:
@@ -3027,7 +3027,14 @@ components:
           type: array
           description: List of scenarios in this showcase
           items:
-            $ref: '#/components/schemas/Scenario'
+            oneOf:
+              - $ref: '#/components/schemas/IssuanceScenario'
+              - $ref: '#/components/schemas/PresentationScenario'
+            discriminator:
+              propertyName: type
+              mapping:
+                ISSUANCE: '#/components/schemas/IssuanceScenario'
+                PRESENTATION: '#/components/schemas/PresentationScenario'
         personas:
           type: object
           description: List of personas involved in this showcase
