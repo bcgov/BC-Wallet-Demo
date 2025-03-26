@@ -13,7 +13,7 @@ on:
         - "apps/bc-wallet-demo-server/**"
         - "apps/bc-wallet-demo-web/**"
         - "charts/**"
-        - "*"
+        - ".github/**"
 
 jobs:
   ready:
@@ -170,7 +170,7 @@ jobs:
             cd /home/ubuntu/pipeline/charts/bc-wallet
             
             # Update dependencies and deploy with Helm
-            # helm dependency update
+            helm dependency update
             
             helm upgrade --install bc-wallet -f ./values.yaml \
               --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
@@ -181,7 +181,7 @@ jobs:
               . --wait
             
             # Create Certificate for TLS
-            cat <<EOF | kubectl apply -f -
+            cat <<EOF | sudo kubectl apply -f -
             apiVersion: cert-manager.io/v1
             kind: Certificate
             metadata:
@@ -200,7 +200,7 @@ jobs:
             EOF
             
             # Create Traefik IngressRoute for API Server
-            cat <<EOF | kubectl apply -f -
+            cat <<EOF | sudo kubectl apply -f -
             apiVersion: traefik.containo.us/v1alpha1
             kind: IngressRoute
             metadata:
@@ -219,7 +219,7 @@ jobs:
             EOF
             
             # Create Traefik IngressRoute for Traction Adapter
-            cat <<EOF | kubectl apply -f -
+            cat <<EOF | sudo kubectl apply -f -
             apiVersion: traefik.containo.us/v1alpha1
             kind: IngressRoute
             metadata:
@@ -238,7 +238,7 @@ jobs:
             EOF
             
             # Create Traefik IngressRoute for Showcase Creator
-            cat <<EOF | kubectl apply -f -
+            cat <<EOF | sudo kubectl apply -f -
             apiVersion: traefik.containo.us/v1alpha1
             kind: IngressRoute
             metadata:
@@ -257,7 +257,7 @@ jobs:
             EOF
             
             # Create Traefik IngressRoute for Demo Web
-            cat <<EOF | kubectl apply -f -
+            cat <<EOF | sudo kubectl apply -f -
             apiVersion: traefik.containo.us/v1alpha1
             kind: IngressRoute
             metadata:
@@ -276,7 +276,7 @@ jobs:
             EOF
             
             # Create Traefik IngressRoute for Demo Server
-            cat <<EOF | kubectl apply -f -
+            cat <<EOF | sudo kubectl apply -f -
             apiVersion: traefik.containo.us/v1alpha1
             kind: IngressRoute
             metadata:
