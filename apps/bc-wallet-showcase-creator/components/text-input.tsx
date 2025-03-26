@@ -15,6 +15,8 @@ interface FormInputProps<T extends FieldValues> {
   placeholder?: string
   className?: string
   rules?: RegisterOptions
+  readOnly?: boolean
+  disabled?: boolean
 }
 
 export const FormTextInput = <T extends FieldValues>({
@@ -24,6 +26,8 @@ export const FormTextInput = <T extends FieldValues>({
   error,
   placeholder,
   className,
+  readOnly,
+  disabled,
 }: FormInputProps<T>) => {
   return (
     <div className={cn('space-y-2', className)}>
@@ -36,6 +40,9 @@ export const FormTextInput = <T extends FieldValues>({
         type="text"
         placeholder={placeholder}
         {...register(name)}
+        readOnly={readOnly}
+        disabled={disabled}
+        style={{ pointerEvents: disabled ? 'none' : 'auto' }} 
       />
       {error && <FormMessage className="text-red-500 text-sm">{error}</FormMessage>}
     </div>
@@ -49,6 +56,8 @@ export const FormTextArea = <T extends FieldValues>({
   error,
   placeholder,
   className,
+  readOnly,
+  disabled,
 }: FormInputProps<T>) => {
   return (
     <div className={cn('space-y-2', className)}>
@@ -61,8 +70,12 @@ export const FormTextArea = <T extends FieldValues>({
         id={name}
         placeholder={placeholder}
         {...register(name)}
+        readOnly={readOnly}
+        disabled={disabled}
+        style={{ pointerEvents: disabled ? 'none' : 'auto' }} // Block pointer events when disabled
       />
       {error && <FormMessage className="text-red-500 text-sm">{error}</FormMessage>}
     </div>
   )
 }
+
