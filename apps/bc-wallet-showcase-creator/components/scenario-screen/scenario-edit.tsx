@@ -101,6 +101,7 @@ export const ScenarioEdit = () => {
               register={form.register}
               error={form.formState.errors.name?.message}
               placeholder={t('scenario.edit_name_placeholder')}
+              control={form.control}
             />
 
             <FormTextInput
@@ -109,6 +110,7 @@ export const ScenarioEdit = () => {
               register={form.register}
               error={form.formState.errors.overview?.title?.message}
               placeholder={t('scenario.edit_page_title_placeholder')}
+              control={form.control}
             />
             {/* 
           <FormTextArea

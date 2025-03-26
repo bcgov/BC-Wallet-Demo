@@ -85,6 +85,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
           <div key={field.id} className="grid grid-cols-12 gap-4 items-end">
             <div className="col-span-4">
               <FormTextInput
+                control={form.control}
                 name={`attributes.${index}.name`}
                 label={t('credentials.attribute_name_label')}
                 register={form.register}
@@ -94,6 +95,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
             </div>
             <div className="col-span-4">
               <FormTextInput
+                control={form.control}
                 name={`attributes.${index}.value`}
                 label={t('credentials.attribute_value_label')}
                 register={form.register}

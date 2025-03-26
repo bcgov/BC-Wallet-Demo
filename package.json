@@ -67,8 +67,7 @@
     "jest-fetch-mock": "^3.0.3",
     "ts-jest": "^29.2.5",
     "supertest": "^7.0.0",
-    "ts-node": "^10.9.2",
-    "typescript": "5.7.3"
+    "ts-node": "^10.9.2"
   },
   "engines": {
     "node": ">= 20.0.0 < 22"

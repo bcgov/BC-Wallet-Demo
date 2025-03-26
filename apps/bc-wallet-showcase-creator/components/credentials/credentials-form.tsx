@@ -333,6 +333,7 @@ export const CredentialsForm = () => {
                   register={form.register}
                   error={form.formState.errors.name?.message}
                   placeholder={t('credentials.credential_name_placeholder')}
+                  control={form.control}
                 />
                 <FormTextInput
                   label={t('credentials.version_label')}
@@ -340,6 +341,7 @@ export const CredentialsForm = () => {
                   register={form.register}
                   error={form.formState.errors.version?.message}
                   placeholder={t('credentials.version_placeholder')}
+                  control={form.control}
                 />
               </div>
               {/* <div className="flex space-x-4">

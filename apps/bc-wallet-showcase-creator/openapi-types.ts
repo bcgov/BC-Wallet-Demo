@@ -106,6 +106,8 @@ export const Step = z.object({
   type: StepTypeEnum,
   subScenario: z.string().optional(),
   actions: z.array(StepActionSchema),
+  credentialDefinitionIdentifierType: IdentifierTypeEnum.optional(),
+  credentialDefinitionIdentifier: z.string().optional(),
   asset: AssetSchema.optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -118,6 +120,8 @@ export const StepRequest = z.object({
   type: StepTypeEnum,
   subScenario: z.string().optional(),
   actions: z.array(AriesOOBActionRequest), // Fixed: Using direct type instead of z.union with single element
+  credentialDefinitionIdentifierType: IdentifierTypeEnum.optional(),
+  credentialDefinitionIdentifier: z.string().optional(),
   asset: z.string().optional(),
 });
 

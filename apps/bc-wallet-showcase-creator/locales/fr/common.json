@@ -20,9 +20,7 @@
     "description_label": "Description",
     "character_label": "Personnage(s)",
     "description_version": "Version",
-    "loading_label": "Chargement...",
-    "publish_info_title": "Revoir et publier la vitrine",
-    "publish_info_subtitle": "Sélectionnez le personnage et examinez leur vitrine"
+    "loading_label": "Chargement..."
   },
   "character": {
     "header_title": "Créez votre Personnage",
@@ -76,6 +74,7 @@
     "version_label": "Version",
     "version_placeholder": "Entrez la version",
     "attributes_label": "Attributs",
+    "attribute_label": "Attribute",
     "attributes_add_attribute_label": "Ajouter un attribut",
     "attribute_name_label": "Nom",
     "attribute_name_placeholder": "Nom de l'attribut",
@@ -93,6 +92,7 @@
     "schema_empty": "Schema non disponible",
     "schema_id_label": "Identifiant du schéma: (obligatoire)",
     "first_checkbox_label": "Justificatif",
+    "id_label": "Identifiant du schéma",
     "second_checkbox_label": "Demande de preuve",
     "import_header_title": "Importation d'un Justificatif",
     "import_header": "IMPORTATION D'UN JUSTIFICATIF",
@@ -167,7 +167,8 @@
     "add_your_credential_label": "Ajoutez justificatif",
     "search_credential_label": "Rechercher un justificatif:",
     "search_credential_placeholder": "ex. Carte d'étudiant",
-    "no_credentials_added_message": "Aucun justificatif ajouté"
+    "no_credentials_added_message": "Aucun justificatif ajouté",
+    "go_back_to_select_personas": "Retour à la sélection des personnages"
   },
   "scenario": {
     "header_title": "Créer des Scénarios",
@@ -217,7 +218,8 @@
     "save_draft_header_label": "Enregistrer le brouillon",
     "preview_header_label": "Aperçu",
     "revert_header_label": "Annuler les modifications",
-    "delete_header_label": "Supprimer la page"
+    "delete_header_label": "Supprimer la page",
+    "select_credential_label": "Sélectionnez les informations d'identification pour continuer"
   },
   "file_upload": {
     "click_to_upload_label": "Cliquez pour téléverser",

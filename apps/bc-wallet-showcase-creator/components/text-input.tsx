@@ -1,8 +1,8 @@
-import type { UseFormRegister, FieldValues, Path, RegisterOptions } from 'react-hook-form'
+import type { UseFormRegister, FieldValues, Path, RegisterOptions, Control } from 'react-hook-form'
 
 import { cn } from '@/lib/utils'
 
-import { FormMessage } from './ui/form'
+import { FormField, FormItem, FormMessage } from './ui/form'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Textarea } from './ui/textarea'
@@ -17,6 +17,7 @@ interface FormInputProps<T extends FieldValues> {
   rules?: RegisterOptions
   readOnly?: boolean
   disabled?: boolean
+  control: Control<T>
 }
 
 export const FormTextInput = <T extends FieldValues>({
@@ -26,26 +27,31 @@ export const FormTextInput = <T extends FieldValues>({
   error,
   placeholder,
   className,
-  readOnly,
-  disabled,
+  control,
 }: FormInputProps<T>) => {
   return (
-    <div className={cn('space-y-2', className)}>
-      <Label className="text-md font-bold text-foreground/80" htmlFor={name}>
-        {label}
-      </Label>
-      <Input
-        className="mt-3 border dark:border-dark-border text-foreground"
-        id={name}
-        type="text"
-        placeholder={placeholder}
-        {...register(name)}
-        readOnly={readOnly}
-        disabled={disabled}
-        style={{ pointerEvents: disabled ? 'none' : 'auto' }} 
-      />
-      {error && <FormMessage className="text-red-500 text-sm">{error}</FormMessage>}
-    </div>
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <div className={cn('space-y-2', className)}>
+            <Label className="text-md font-bold text-foreground/80" htmlFor={name}>
+              {label}
+            </Label>
+            <Input
+              className="mt-3 border dark:border-dark-border text-foreground"
+              id={name}
+              type="text"
+              placeholder={placeholder}
+              {...register(name)}
+              {...field}
+            />
+            {error && <FormMessage className="text-red-500 text-sm">{error}</FormMessage>}
+          </div>
+        </FormItem>
+      )}
+    />
   )
 }
 

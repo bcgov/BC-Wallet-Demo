@@ -3,27 +3,28 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import StepHeader from "@/components/step-header";
-import { FormTextInput, FormTextArea } from "@/components/text-input";
+import StepHeader from '@/components/step-header'
+import { FormTextInput, FormTextArea } from '@/components/text-input'
 import ButtonOutline from '@/components/ui/button-outline'
 import { Form } from '@/components/ui/form'
-import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from "@/hooks/use-personas";
-import { useShowcaseStore } from "@/hooks/use-showcase-store";
+import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas'
+import { useShowcaseStore as usePersonaUIStore } from '@/hooks/use-showcase-store'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+
 import apiClient from '@/lib/apiService'
 import { ensureBase64HasPrefix } from '@/lib/utils'
 import type { Persona } from '@/openapi-types'
-import { characterSchema } from "@/schemas/character";
+import { characterSchema } from '@/schemas/character'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CircleAlert, EyeOff, Monitor } from 'lucide-react'
-import { useTranslations } from "next-intl";
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import type { z } from 'zod'
 
 import DeleteModal from '../delete-modal'
 import { FileUploadFull } from '../file-upload'
-import Header from '../header'
-
+import { useRouter } from '@/i18n/routing'
 type CharacterFormData = z.infer<typeof characterSchema>
 
 export default function NewCharacterPage() {
@@ -33,21 +34,19 @@ export default function NewCharacterPage() {
   const [isHeadShotImageEdited, setHeadShotImageEdited] = useState<boolean>(false)
   const [bodyImage, setBodyImage] = useState<string | null>(null)
   const [isBodyImageEdited, setIsBodyImageEdited] = useState<boolean>(false)
-  const [searchTerm, setSearchTerm] = useState('')
-
+  const router = useRouter()
   // Track the selected persona by ID for UI stability
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null)
 
-  const { setEditMode, personaState, setStepState } = useShowcaseStore()
+  const { setEditMode, personaState, setStepState } = usePersonaUIStore()
+  const { selectedPersonaIds, setSelectedPersonaIds } = useShowcaseStore()
 
-  // Queries and mutations
   const { data: personasData, isLoading } = usePersonas()
   const { mutateAsync: createPersona } = useCreatePersona()
   const { mutateAsync: updatePersona } = useUpdatePersona()
   const { mutateAsync: deletePersona } = useDeletePersona()
 
-  // Get selected persona data directly from the personasData list based on ID
-  const selectedPersona = personasData?.personas?.find((p: any) => p.id === selectedPersonaId) || null
+  const selectedPersona = personasData?.personas?.find((p: Persona) => p.id === selectedPersonaId) || null
 
   const form = useForm<CharacterFormData>({
     resolver: zodResolver(characterSchema),
@@ -61,7 +60,6 @@ export default function NewCharacterPage() {
     shouldFocusError: true,
   })
 
-  // Reset form when selected persona changes
   useEffect(() => {
     if (selectedPersona) {
       form.reset(
@@ -161,6 +159,7 @@ export default function NewCharacterPage() {
         await createPersona(personaData, {
           onSuccess: (data: unknown) => {
             setSelectedPersonaId((data as { persona: Persona }).persona.id)
+            setSelectedPersonaIds([...selectedPersonaIds, (data as { persona: Persona }).persona.id])
             toast.success('Persona has been created.')
           },
         })
@@ -204,25 +203,24 @@ export default function NewCharacterPage() {
     }
   }
 
-  const searchFilter = (persona: Persona) => {
-    if (searchTerm === '') {
-      return true
-    }
-    return persona.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const onlyRecentlyCreated = (persona: Persona) => {
+    return selectedPersonaIds.find((id: string) => id === persona.id)
   }
 
+  const handleProceed = () => {
+    if (selectedPersonaIds.length === 0) {
+      toast.error('Please select at least one character to proceed')
+      return
+    }
+
+    toast.success('Characters selected successfully')
+    router.push('/showcases/create/onboarding')
+  }
   return (
     <>
-      <div className="flex bg-white dark:bg-dark-bg dark:text-dark-text text-light-text flex-col h-full w-full">
-        <div className="flex flex-col h-screen">
-          <Header
-            title="Characters"
-            searchTerm={searchTerm}
-            showSearch={true}
-            setSearchTerm={setSearchTerm}
-            showIcon={false}
-          />
-          <div className="flex gap-4 p-4 h-full">
+      <div className="flex dark:text-dark-text text-light-text flex-col h-full w-full">
+        <div className="flex flex-col">
+          <div className="flex gap-4 p-4 h-[calc(100vh-225px)]">
             {/* Left panel - Character list */}
             <div className="w-1/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
               <div className="p-4">
@@ -238,7 +236,7 @@ export default function NewCharacterPage() {
               ) : (
                 <div className="flex-grow overflow-y-auto">
                   {personasData?.personas &&
-                    personasData.personas.filter(searchFilter).map((persona: Persona) => (
+                    personasData.personas.filter(onlyRecentlyCreated).map((persona: Persona) => (
                       <div
                         key={persona.id}
                         className={`hover:bg-light-bg dark:hover:bg-dark-input-hover relative p-4 border-t border-b border-light-border-secondary dark:border-dark-border flex ${
@@ -248,18 +246,11 @@ export default function NewCharacterPage() {
                         }`}
                         onClick={() => handlePersonaSelect(persona)}
                       >
-                        {selectedPersonaId === persona.id && (
-                          <>
-                            <div className="absolute left-0 top-4 bg-yellow-500 text-light-text dark:text-dark-text px-4 py-2 text-sm font-medium rounded-tr-lg rounded-br-lg">
-                              {t('character.selected_label')}
-                            </div>
-                            {persona.hidden && (
-                              <div className="flex gap-2 items-center absolute top-4 left-24 bg-[#D9D9D9] text-light-text dark:text-dark-text px-4 py-2 text-sm font-medium rounded">
-                                <EyeOff size={22} />
-                                {t('character.hidden_label')}
-                              </div>
-                            )}
-                          </>
+                        {selectedPersonaId === persona.id && persona.hidden && (
+                          <div className="flex gap-2 items-center absolute top-4 left-24 bg-[#D9D9D9] text-light-text dark:text-dark-text px-4 py-2 text-sm font-medium rounded">
+                            <EyeOff size={22} />
+                            {t('character.hidden_label')}
+                          </div>
                         )}
 
                         <div className={`shrink-0 ${selectedPersonaId === persona.id ? 'mb-4 mt-12' : 'mr-4'}`}>
@@ -342,6 +333,7 @@ export default function NewCharacterPage() {
                                 register={form.register}
                                 error={form.formState.errors.name?.message}
                                 placeholder={t('character.edit_name_placeholder')}
+                                control={form.control}
                               />
                             </div>
                             <div>
@@ -351,6 +343,7 @@ export default function NewCharacterPage() {
                                 register={form.register}
                                 error={form.formState.errors.role?.message}
                                 placeholder={t('character.edit_role_placeholder')}
+                                control={form.control}
                               />
                             </div>
                           </div>
@@ -362,6 +355,7 @@ export default function NewCharacterPage() {
                               register={form.register}
                               error={form.formState.errors.description?.message}
                               placeholder={t('character.edit_description_placeholder')}
+                              control={form.control}
                             />
                           </div>
 
@@ -415,7 +409,17 @@ export default function NewCharacterPage() {
 
                         <div className="mt-auto pt-4 border-t flex justify-end gap-3">
                           <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline>
-                          <ButtonOutline type="submit">{t('action.save_label')}</ButtonOutline>
+                          <ButtonOutline type="submit" disabled={!form.formState.isValid}>
+                            {t('action.save_label')}
+                          </ButtonOutline>
+                          <ButtonOutline disabled={selectedPersonaIds.length === 0} onClick={handleProceed}>
+                            {t('action.next_label')}
+                          </ButtonOutline>
+                          {process.env.NODE_ENV === 'development' && (
+                            <ButtonOutline className="bg-red-500" onClick={() => setSelectedPersonaIds([])}>
+                              Clear storage
+                            </ButtonOutline>
+                          )}
                         </div>
                       </div>
                     </form>
@@ -433,7 +437,6 @@ export default function NewCharacterPage() {
         isLoading={false}
         onClose={() => setIsModalOpen(false)}
         onDelete={() => {
-          console.log('Persona to be Deleted', selectedPersonaId)
           setIsModalOpen(false)
           handleDeletePersona()
         }}

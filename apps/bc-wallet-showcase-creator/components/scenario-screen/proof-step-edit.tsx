@@ -178,6 +178,7 @@ export const ProofStepEdit = () => {
                 register={form.register}
                 error={form.formState.errors.title?.message}
                 placeholder="Enter Page title"
+                control={form.control}
               />
 
               <FormTextArea
@@ -186,6 +187,7 @@ export const ProofStepEdit = () => {
                 register={form.register}
                 error={form.formState.errors.description?.message}
                 placeholder="Enter Page Content"
+                control={form.control}
               />
             </div>
 
@@ -199,6 +201,7 @@ export const ProofStepEdit = () => {
                 register={form.register}
                 error={form.formState.errors.requestOptions?.title?.message}
                 placeholder="Enter request title"
+                control={form.control}
               />
 
               <FormTextArea
@@ -207,6 +210,7 @@ export const ProofStepEdit = () => {
                 register={form.register}
                 error={form.formState.errors.requestOptions?.text?.message}
                 placeholder="Enter request text"
+                control={form.control}
               />
 
               <div className="space-y-4">

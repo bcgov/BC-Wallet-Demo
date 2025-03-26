@@ -35,7 +35,8 @@
     "redux-persist": "^6.0.0",
     "redux-thunk": "^2.4.1",
     "socket.io-client": "^4.7.5",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "cross-env": "^7.0.3"
   },
   "scripts": {
     "dev": "cross-env DISABLE_ESLINT_PLUGIN=true GGENERATE_SOURCEMAP=false react-scripts start",

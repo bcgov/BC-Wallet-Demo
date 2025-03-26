@@ -1,9 +1,25 @@
-*/**/node_modules
-*/**/build
-*/**/dist
-*/**/coverage
-*/**/logs
-*/**/temp
-*/**/
+**/node_modules
+**/dist
+**/build
+**/coverage
+
+.git
+.github
+.gitignore
+
+**/.vscode
+**/.idea
+**/.DS_Store
+
+**/test
+**/tests
+**/__tests__
+**/cypress
+
+**/logs
+**/*.log
+
+**/tmp
+**/temp
 
 

@@ -1,5 +1,5 @@
-import CreateCharacterList from '@/components/character-screen/character-list'
 import TabsComponent from '@/components/Tabs-component'
+import CharactersPage from '@/components/character-screen/characters'
 
 export default function CharacterPageMain() {
   return (
@@ -12,7 +12,7 @@ export default function CharacterPageMain() {
           </div>
         </div>
 
-        <CreateCharacterList />
+        <CharactersPage />
       </div>
     </div>
   )

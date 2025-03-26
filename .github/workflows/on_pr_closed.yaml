@@ -1,77 +1,60 @@
-name: Uninstall PR instance
-
+name: Uninstall PR resources
 on:
+  # Add manual trigger with PR number input
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to uninstall'
+        required: true
+        type: string
   pull_request:
     branches:
       - main
+      - develop
     paths:
-      - "**"
+      - "apps/bc-wallet-api-server/**"
+      - "packages/bc-wallet-traction-adapter/**"
+      - "apps/bc-wallet-showcase-creator/**"
+      - "apps/bc-wallet-demo-server/**"
+      - "apps/bc-wallet-demo-web/**"
+      - "charts/**"
     types:
       - closed
 
 jobs:
-  uninstall:
-    name: Uninstall PR
-    environment: development
-    runs-on: ubuntu-22.04
-    if: github.repository_owner == 'Sphereon-Opensource'
+  ready:
+    name: "Check if PR is ready for review"
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.ready_for_review.outputs.true_false }}
+      build: ${{ steps.ready_for_review.outputs.owner_true_false }}
     steps:
-      - uses: actions/checkout@v4
+      - id: ready_for_review
+        run: |
+          echo "true_false=${{ toJSON(github.event.pull_request.draft != true && github.repository_owner == 'getmoin') }}" >> $GITHUB_OUTPUT #should change to bcgov
+          echo "owner_true_false=${{ toJSON(github.repository_owner == 'getmoin') }}" >> $GITHUB_OUTPUT
 
-      # Uninstall via SSH to EC2 instance
-      - name: Uninstall PR via SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            # Uninstall Helm release
-            helm uninstall pr-${{ github.event.number }}-showcase-ui || true
-            
-            # Delete Certificate
-            kubectl delete certificate pr-${{ github.event.number }}-showcase-ui-tls || true
-            
-            # Delete IngressRoute
-            kubectl delete ingressroute pr-${{ github.event.number }}-showcase-ui-route || true
-            
-            # Delete any remaining resources with the PR label
-            kubectl delete secret,pvc --selector "app.kubernetes.io/instance=pr-${{ github.event.number }}-showcase-ui" || true
-
-  # clean-ecr:
-  #   runs-on: ubuntu-22.04
-  #   name: Delete closed PR images
-  #   steps:
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v2
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
-
-  #     - name: Delete ECR Image
-  #       run: |
-  #         # Delete the PR-specific image from ECR
-  #         aws ecr-public batch-delete-image \
-  #           --repository-name k8o4d9r5/bcshowcase/ditp-showcase-creator-ui \
-  #           --image-ids imageTag=pr-${{ github.event.number }} \
-  #           --region us-east-1 || true
-
-
-#### FOR OPENSHIFT USE THE FOLLOWING:
+          
   # uninstall:
   #   name: Uninstall PR
   #   environment: development
   #   runs-on: ubuntu-22.04
   #   if: github.repository_owner == 'bcgov'
   #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Check out manifest repo
-  #       uses: actions/checkout@v4
+  #     # Set PR number based on event type
+  #     - name: Set PR number
+  #       id: pr_number
+  #       run: |
+  #         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+  #           echo "PR_NUM=${{ github.event.inputs.pr_number }}" >> $GITHUB_ENV
+  #         else
+  #           echo "PR_NUM=${{ github.event.number }}" >> $GITHUB_ENV
+  #         fi
+
+  #     - name: Install OpenShift CLI tools
+  #       uses: redhat-actions/openshift-tools-installer@v1
   #       with:
-  #         ssh-key: ${{ secrets.MANIFEST_REPO_DEPLOY_KEY }}
-  #         repository: ${{ secrets.MANIFEST_REPO }}
-  #         path: charts
+  #         oc: "4.14"
 
   #     - name: Authenticate and set context
   #       uses: redhat-actions/oc-login@v1
@@ -81,27 +64,62 @@ jobs:
   #         certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
   #         namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
 
-  #     - name: Uninstall via Helm
+  #     - name: Uninstall Credential Showcase resources via Helm
   #       continue-on-error: true
   #       run: |
-  #         helm uninstall pr-${{ github.event.number }}-showcase-ui
+  #         helm uninstall pr-${{ env.PR_NUM }}-bc-wallet
 
-  #     - name: Remove Openshift Objects
+  #     - name: Remove Credential Showcase Openshift Objects
   #       continue-on-error: true
   #       run: |
-  #         oc delete secret,pvc --selector "app.kubernetes.io/instance"=pr-${{ github.event.number }}-showcase-ui
+  #         oc delete secret,pvc,route,service,deployment,statefulset,configmap \
+  #           --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet"
 
+  clean-ghcr:
+    runs-on: ubuntu-22.04
+    name: Delete closed PR images
+    steps:
+      - name: Delete API Server Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-api-server
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.CR_PAT }}
+          
+      - name: Delete Traction Adapter Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-traction-adapter
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.CR_PAT }}
 
-  # clean-ghcr:
-  #   runs-on: ubuntu-22.04
-  #   if: ${{ false }}
-  #   name: Delete closed PR images
-  #   steps:
-  #     - name: Delete Images
-  #       uses: snok/container-retention-policy@v3.0.0
-  #       with:
-  #         account: bcgov
-  #         image-names: ditp-showcase-creator-ui
-  #         image-tags: pr-${{ github.event.number }}
-  #         cut-off: 1second
-  #         token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete Showcase Creator Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-showcase-creator 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.CR_PAT }}
+
+      - name: Delete Demo Server Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-demo-server 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.CR_PAT }}
+
+      - name: Delete Demo Web Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-demo-web 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.CR_PAT }}

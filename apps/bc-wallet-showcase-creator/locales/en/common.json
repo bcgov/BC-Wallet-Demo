@@ -20,9 +20,7 @@
     "description_label": "Description",
     "character_label": "Character(s)",
     "description_version": "Version",
-    "loading_label": "Loading...",
-    "publish_info_title": "Review and Publish Showcase",
-    "publish_info_subtitle": "Select the character and review their showcase"
+    "loading_label": "Loading..."
   },
   "character": {
     "header_title": "Create your Character",
@@ -76,6 +74,7 @@
     "version_label": "Version",
     "version_placeholder": "Enter Version",
     "attributes_label": "Attributes",
+    "attribute_label": "Attribute",
     "attributes_add_attribute_label": "Add Attribute",
     "attribute_name_label": "Name",
     "attribute_name_placeholder": "Attribute Name",
@@ -90,6 +89,7 @@
     "credential_added_label": "Credential Added:",
     "credential_id_label": "Credential ID:",
     "schema_id_label": "Schema ID: (required)",
+    "id_label": "Schema ID",
     "schema_id_placeholder": "Enter Schema ID",
     "schema_empty": "Schema not available",
     "credential_id_placeholder": "Enter Credential ID",
@@ -172,7 +172,8 @@
     "add_your_credential_label": "Add Credential",
     "search_credential_label": "Search for a Credential:",
     "search_credential_placeholder": "ex. Student Card",
-    "no_credentials_added_message": "No Credentials Added"
+    "no_credentials_added_message": "No Credentials Added",
+    "go_back_to_select_personas": "Go Back to Select Personas"
   },
   "scenario": {
     "header_title": "Create Scenarios",
@@ -223,7 +224,8 @@
     "save_draft_header_label": "Save Draft",
     "preview_header_label": "Preview",
     "revert_header_label": "Revert Changes",
-    "delete_header_label": "Delete Page"
+    "delete_header_label": "Delete Page",
+    "select_credential_label": "Select Credential to Proceed"
   },
   "file_upload": {
     "click_to_upload_label": "Click to upload",

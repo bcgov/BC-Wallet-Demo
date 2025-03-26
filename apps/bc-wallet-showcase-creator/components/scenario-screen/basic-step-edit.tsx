@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form'
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import { Form } from '@/components/ui/form'
 import { useScenarios } from '@/hooks/use-scenarios'
-import { Link } from '@/i18n/routing'
 import type { BasicStepFormData } from '@/schemas/scenario'
 import { basicStepSchema } from '@/schemas/scenario'
 import { RequestType, StepType } from '@/types'
@@ -24,7 +23,7 @@ export const BasicStepEdit = () => {
 
   const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  console.log('scenarios============ ', scenarios)
+
   const currentScenario = selectedScenario !== null ? scenarios[selectedScenario] : null
   const currentStep = currentScenario && selectedStep !== null ? currentScenario.steps[selectedStep] : null
 
@@ -119,6 +118,7 @@ export const BasicStepEdit = () => {
           <div className="space-y-6">
             <FormTextInput
               label={t('scenario.edit_page_title_label')}
+              control={form.control}
               name="title"
               register={form.register}
               error={form.formState.errors.title?.message}
@@ -127,6 +127,7 @@ export const BasicStepEdit = () => {
 
             <FormTextArea
               label={t('scenario.edit_page_description_label')}
+              control={form.control}
               name="description"
               register={form.register}
               error={form.formState.errors.description?.message}

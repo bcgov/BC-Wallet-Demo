@@ -9,21 +9,21 @@ import type {
 } from "@/openapi-types";
 import { sampleAction } from "@/lib/steps";
 import { useHelpersStore } from "@/hooks/use-helpers-store";
-
+import { usePersonas } from "@/hooks/use-personas";
 export const useShowcaseCreation = () => {
   const { 
-    displayShowcase, 
     selectedPersonaIds,
   } = useShowcaseStore();
+  const { data: personasData } = usePersonas();
 
   const { issuerId, selectedCredentialDefinitionIds } = useHelpersStore();
   const [personaScenarios, setPersonaScenarios] = useState(() => {
-    const initialScenarios = new Map<string, IssuanceScenarioRequestType>()
-
-    const personas = (displayShowcase.personas || []).filter((persona: Persona) =>
-      selectedPersonaIds.includes(persona.id),
-    )
-
+    const initialScenarios = new Map<string, IssuanceScenarioRequestType>();
+    
+    const personas = (personasData?.personas || []).filter(
+      (persona: Persona) => selectedPersonaIds.includes(persona.id)
+    );
+    
     personas.forEach((persona: Persona) => {
       initialScenarios.set(persona.id, {
         name: `${persona.name}'s Journey`,
@@ -94,13 +94,13 @@ export const useShowcaseCreation = () => {
   })
   
   const [activePersonaId, setActivePersonaId] = useState<string | null>(() => {
-    const personas = (displayShowcase.personas || []).filter(
+    const personas = (personasData?.personas || []).filter(
       (persona: Persona) => selectedPersonaIds.includes(persona.id)
     );
     return personas.length > 0 ? personas[0].id : null;
   });
   
-  const selectedPersonas = (displayShowcase.personas || []).filter(
+  const selectedPersonas = (personasData?.personas || []).filter(
     (persona: Persona) => selectedPersonaIds.includes(persona.id)
   );
   

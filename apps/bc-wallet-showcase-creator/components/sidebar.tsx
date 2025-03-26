@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { useState } from 'react'
 
 import { Link } from '@/i18n/routing'
@@ -119,7 +120,7 @@ function SidebarItem({
   isActive,
   alt,
 }: {
-  icon: JSX.Element | string
+  icon: React.ReactNode | string
   text: string
   alt: string
   expanded: boolean

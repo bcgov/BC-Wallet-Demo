@@ -1,5 +1,0 @@
-apiVersion: v1
-name: showcase-ui
-description: Frontend UI for the Credential Showcase application
-version: 0.1.0
-type: application 

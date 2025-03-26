@@ -3,46 +3,47 @@
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { FormTextArea, FormTextInput } from '@/components/text-input'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import { useHelpersStore } from '@/hooks/use-helpers-store'
-import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { useRouter } from '@/i18n/routing'
-import { sampleAction } from '@/lib/steps'
-import type { IssuanceScenarioResponseType } from '@/openapi-types'
-import type { BasicStepFormData } from '@/schemas/onboarding'
-import { zodResolver } from "@hookform/resolvers/zod";
-import { debounce } from 'lodash'
+import { FormTextArea, FormTextInput } from '@/components/text-input'
 import { Edit, Monitor } from 'lucide-react'
+import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
+import { BasicStepFormData } from '@/schemas/onboarding'
 import { basicStepSchema } from '@/schemas/onboarding'
+import { LocalFileUpload } from './local-file-upload'
 import { useTranslations } from 'next-intl'
-
-import { toast } from 'sonner'
-import { ErrorModal } from '../error-modal'
-import StepHeader from '../step-header'
-import { LocalFileUpload } from "./local-file-upload";
+import StepHeader from '../step-header';
 import ButtonOutline from '../ui/button-outline'
-
-
-import Loader from '../loader'
-
+import { useRouter } from '@/i18n/routing'
+import { ErrorModal } from '../error-modal'
+import Loader from '../loader';
+import { IssuanceScenarioResponseType } from '@/openapi-types';
+import { useShowcaseStore } from '@/hooks/use-showcases-store';
+import { toast } from 'sonner';
+import { sampleAction } from '@/lib/steps'
 import { sampleScenario } from '@/lib/steps'
-
 import { NoSelection } from '../credentials/no-selection'
-
+import { debounce } from 'lodash';
+import { useHelpersStore } from '@/hooks/use-helpers-store';
 export const BasicStepAdd = () => {
   const t = useTranslations()
 
-  const { screens, selectedStep, setSelectedStep, setStepState, stepState, updateStep } = useOnboarding()
+  const {
+    screens,
+    selectedStep,
+    setSelectedStep,
+    setStepState,
+    stepState,
+    updateStep,
+  } = useOnboarding();
 
-  const router = useRouter()
-  const { mutateAsync, isPending } = useCreateScenario()
-  const currentStep = selectedStep !== null ? screens[selectedStep] : null
-  const { showcase, setScenarioIds } = useShowcaseStore()
-  const { issuerId } = useHelpersStore()
-  const personas = showcase.personas || []
+  const router = useRouter();
+  const { mutateAsync, isPending } = useCreateScenario();
+  const currentStep = selectedStep !== null ? screens[selectedStep] : null;
+  const { showcase, setScenarioIds } = useShowcaseStore();
+  const { issuerId } = useHelpersStore();
+  const personas = showcase.personas || [];
 
   const isEditMode = stepState === 'editing-basic'
   const [showErrorModal, setErrorModal] = useState(false)
@@ -134,21 +135,22 @@ export const BasicStepAdd = () => {
     })
 
     const scenarioIds = []
+    console.log('personaScenarios',personaScenarios)
+    console.log('current',currentStep);
+    // for (const scenario of personaScenarios) {
+    //   try {
+    //     const result = await mutateAsync(scenario)
+    //     scenarioIds.push((result as IssuanceScenarioResponseType).issuanceScenario.id)
+    //     toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
+    //   } catch (error) {
+    //     console.error('Error creating scenario:', error)
+    //     setErrorModal(true)
+    //     return // Stop if there's an error
+    //   }
+    // }
 
-    for (const scenario of personaScenarios) {
-      try {
-        const result = await mutateAsync(scenario)
-        scenarioIds.push((result as IssuanceScenarioResponseType).issuanceScenario.id)
-        toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
-      } catch (error) {
-        console.error('Error creating scenario:', error)
-        setErrorModal(true)
-        return // Stop if there's an error
-      }
-    }
-
-    setScenarioIds(scenarioIds)
-    router.push(`/showcases/create/scenarios`)
+    // setScenarioIds(scenarioIds)
+    // router.push(`/showcases/create/scenarios`)
   }
 
   const handleCancel = () => {
@@ -218,6 +220,7 @@ export const BasicStepAdd = () => {
         />
         <div className="space-y-6">
           <FormTextInput
+            control={form.control}
             label={t('onboarding.page_title_label')}
             name="title"
             register={form.register}
@@ -227,6 +230,7 @@ export const BasicStepAdd = () => {
 
           <div className="space-y-2">
             <FormTextArea
+              control={form.control}
               label={t('onboarding.page_description_label')}
               name="description"
               register={form.register}
@@ -239,7 +243,31 @@ export const BasicStepAdd = () => {
           </div>
 
           <div className="space-y-2">
-            <LocalFileUpload
+          <LocalFileUpload
+              text={t("onboarding.icon_label")}
+              element="asset"
+              existingAssetId={form.watch("asset")}
+              handleLocalUpdate={(_, value) => {
+                console.log('Value',value);
+                if (!currentStep) return;
+
+                const updatedStep1 = {
+                  ...currentStep,
+                  title: currentStep.title,
+                  description: currentStep.description,
+                  asset: value || undefined,
+                  // credentials: data.credentials || [],
+                };
+                updateStep(selectedStep || 0, updatedStep1);
+
+                form.setValue("asset", value, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                })
+              }}
+            />
+            {/* <LocalFileUpload
               text={t('onboarding.icon_label')}
               element="asset"
               handleLocalUpdate={(_, value) =>
@@ -249,7 +277,7 @@ export const BasicStepAdd = () => {
                   shouldValidate: true,
                 })
               }
-            />
+            /> */}
             {form.formState.errors.asset && (
               <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
             )}

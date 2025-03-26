@@ -18,7 +18,6 @@ interface ShowcaseStore {
   
   // Persona selection functions
   setSelectedPersonaIds: (ids: string[]) => void;
-  toggleSelectedPersona: (personaId: string) => void;
   clearSelectedPersonas: () => void;
   
   // Credential definition functions
@@ -99,15 +98,6 @@ export const useShowcaseStore = create<ShowcaseStore>()(
       
       // Persona selection functions
       setSelectedPersonaIds: (ids) => set({ selectedPersonaIds: ids }),
-      
-      toggleSelectedPersona: (personaId) => set((state) => {
-        const newSelectedIds = state.selectedPersonaIds.includes(personaId)
-          ? state.selectedPersonaIds.filter(id => id !== personaId)
-          : [...state.selectedPersonaIds, personaId];
-        
-        return { selectedPersonaIds: newSelectedIds };
-      }),
-      
       clearSelectedPersonas: () => set({ selectedPersonaIds: [] }),
       
       // Credential definition functions

@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useShowcaseCreation } from "@/hooks/use-showcase-creation";
-import type { Persona, ShowcaseRequestType, StepRequestType } from "@/openapi-types";
-import { createDefaultStep } from "@/lib/steps";
+import { Persona, ShowcaseRequestType, StepRequestType } from "@/openapi-types";
+import { createDefaultStep, createServiceStep, StepWithCredentials } from "@/lib/steps";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
@@ -47,16 +47,34 @@ export const useOnboardingAdapter = () => {
       const scenario = personaScenarios.get(personaId)!;
       
       const onboardingSteps = scenario.steps.map((step, index) => {
-        return {
-          ...createDefaultStep({
-            title: step.title,
-            description: step.description
-          }),
+        const baseStep = {
           id: `step-${index}`,
           order: index,
           type: step.type,
-          actions: step.actions || []
+          actions: step.actions || [],
+          asset: step.asset || ""
         };
+
+        if (step.type === 'SERVICE') {
+          return {
+            ...createServiceStep({
+              title: step.title,
+              description: step.description,
+              asset: step.asset || "",
+              credentials: (step as StepWithCredentials).credentials || []
+            }),
+            ...baseStep
+          };
+        } else {
+          return {
+            ...createDefaultStep({
+              title: step.title,
+              description: step.description,
+              asset: step.asset || ""
+            }),
+            ...baseStep
+          };
+        }
       });
       
       initializeScreens(onboardingSteps);
@@ -72,19 +90,31 @@ export const useOnboardingAdapter = () => {
   
   useEffect(() => {
     if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
+      const scenarioSteps: StepRequestType[] = steps.map((step, index) => {
+        const baseStep = {
+          title: step.title,
+          description: step.description,
+          order: index,
+          type: step.type as 'HUMAN_TASK' | 'SERVICE' | 'SCENARIO',
+          actions: step.actions || [],
+          issuer: issuerId,
+          asset: step.asset || ""
+        };
 
-      const scenarioSteps: StepRequestType[] = steps.map((step, index) => ({
-        title: step.title,
-        description: step.description,
-        order: index,
-        type: step.type as 'HUMAN_TASK' | 'SERVICE' | 'SCENARIO',
-        actions: step.actions || [],
-        issuer: issuerId
-      }));
+        if (step.type === 'SERVICE') {
+          const serviceStep = step as StepWithCredentials;
+          return {
+            ...baseStep,
+            credentials: serviceStep.credentials || []
+          };
+        }
+
+        return baseStep;
+      });
       
       updatePersonaSteps(activePersonaId, scenarioSteps);
     }
-  }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps]);
+  }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId]);
   
   const updateShowcaseMutation = useMutation({
     mutationFn: async (showcaseData: ShowcaseRequestType) => {
@@ -123,7 +153,7 @@ export const useOnboardingAdapter = () => {
       console.error("Error saving showcase:", error);
       throw error;
     }
-  }, [displayShowcase, selectedPersonas, updateShowcaseMutation, setShowcase]);
+  }, [displayShowcase, selectedPersonas, updateShowcaseMutation, setShowcase, showcase, selectedCredentialDefinitionIds]);
   
   const activePersona = activePersonaId 
     ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null

@@ -172,6 +172,7 @@ export const PublishEdit = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-grow space-y-6">
           <div className="space-y-6 flex-grow">
             <FormTextInput
+              control={form.control}
               label="Showcase Name"
               name="name"
               register={form.register}
@@ -179,6 +180,7 @@ export const PublishEdit = () => {
               placeholder="Enter showcase name"
             />
             <FormTextArea
+              control={form.control}
               label="Showcase Description"
               name="description"
               register={form.register}
@@ -186,6 +188,7 @@ export const PublishEdit = () => {
               placeholder="Enter showcase description"
             />
             <FormTextArea
+              control={form.control}
               label="Showcase Completion Details"
               name="completionMessage"
               register={form.register}

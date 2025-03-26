@@ -1,0 +1,64 @@
+{{- if .Values.traction_adapter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: adapter
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.traction_adapter.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+        app.kubernetes.io/component: adapter
+        app.kubernetes.io/part-of: bc-wallet
+        {{- include "bc-wallet.labels" . | nindent 8 }}
+      {{- with .Values.traction_adapter.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.traction_adapter.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Values.traction_adapter.name }}
+        image: "{{ .Values.traction_adapter.image.repository }}:{{ .Values.traction_adapter.image.tag }}"
+        imagePullPolicy: {{ .Values.traction_adapter.image.pullPolicy }}
+        {{- with .Values.traction_adapter.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.traction_adapter.port }}
+          name: http
+        env:
+        - name: RABBITMQ_HOST
+          value: {{ .Release.Name }}-rabbitmq
+        {{- range $key, $value := .Values.traction_adapter.env }}
+        {{- if and (ne $key "RABBITMQ_HOST") (kindIs "map" $value) }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- toYaml $value | nindent 12 }}
+        {{- else if ne $key "RABBITMQ_HOST" }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
+              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+        resources:
+          {{- toYaml .Values.traction_adapter.resources | nindent 12 }}
+      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ $.Release.Name }}-{{ .Values.traction_adapter.name }}{{ end }}{{ end }}
+{{- end }}

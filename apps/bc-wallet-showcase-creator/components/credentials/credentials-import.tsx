@@ -89,6 +89,7 @@ export const CredentialsImport = () => {
           </div>
           <div className="grid grid-cols-1 gap-4">
             <FormTextInput
+              control={form.control}
               label={t('credentials.credential_id_label')}
               name="credentialId"
               register={form.register}
@@ -97,6 +98,7 @@ export const CredentialsImport = () => {
             />
 
             <FormTextInput
+              control={form.control}
               label={t('credentials.schema_id_label')}
               name="schemaId"
               register={form.register}

@@ -12,7 +12,7 @@ RUN yarn build
 # production stage
 FROM ${runtime_image} as production-stage
 RUN mkdir -p /srv/digital-trust/showcase
-COPY --from=build-stage /app/client/build /srv/digital-trust/showcase
+COPY --from=build-stage /app/build /srv/digital-trust/showcase
 
 # Fix permissions issue with Caddy image
 # - Between version 2.6.2 and 2.6.3 there were some permissions changes on the official images that stopped them from working on OpenShift.
