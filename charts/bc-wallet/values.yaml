@@ -250,6 +250,17 @@ demo_server:
   env:
     APP_NAME: bc-wallet-demo-server
     LOG_LEVEL: debug
+    TENANT_ID: "xyz"
+    API_KEY: "xyz"
+    TRACTION_URL: "https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca"
+    TRACTION_DID: "xyz"
+    BASE_ROUTE: "/digital-trust/showcase"
+    WEBHOOK_SECRET: "xyz"
+    STUDENT_VERSION: "1.6"
+    LAWYER_VERSION: "1.54"
+    PERSON_VERSION: "1.3"
+    BUSINESS_VERSION: "1.0.0"
+    NODE_ENV: "production"
   resources:
     limits:
       cpu: 200m
