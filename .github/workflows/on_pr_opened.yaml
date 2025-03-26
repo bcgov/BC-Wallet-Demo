@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-      - develop
+      - develop-4sure
     paths:
       - "apps/**"
       - "packages/**"
@@ -25,8 +25,8 @@ jobs:
     steps:
       - id: ready_for_review
         run: |
-          echo "true_false=${{ toJSON(github.event.pull_request.draft != true && github.repository_owner == 'bcgov') }}" >> $GITHUB_OUTPUT #should change to bcgov
-          echo "owner_true_false=${{ toJSON(github.repository_owner == 'bcgov') }}" >> $GITHUB_OUTPUT
+          echo "true_false=${{ toJSON(github.event.pull_request.draft != true && github.repository_owner == 'getmoin') }}" >> $GITHUB_OUTPUT #should change to bcgov
+          echo "owner_true_false=${{ toJSON(github.repository_owner == 'getmoin') }}" >> $GITHUB_OUTPUT #bcgov
 
   # test_api_server:
   #   name: "Test API Server"
@@ -224,11 +224,8 @@ jobs:
       - name: Deploy PR Environment with Helm
         run: |
           cd charts/bc-wallet
-
-          # Deploy with Helm
           # helm dependency update
-          helm upgrade --install pr-${{ github.event.number }}-bc-wallet \
-            --namespace ${{ secrets.OPENSHIFT_NAMESPACE }} -f ./values.yaml --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} . --wait
+          helm upgrade --install pr-${{ github.event.number }}-bc-wallet --namespace ${{ secrets.OPENSHIFT_NAMESPACE }} -f ./values.yaml --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} . --wait
 
       - name: Restart PR Deployments
         run: |
@@ -260,7 +257,10 @@ jobs:
           body: |
             | Deployment | Resource | Location |
             | --- | --- | --- |
-            | API Server | | https://pr-${{ github.event.number }}-api-${{ secrets.OPENSHIFT_PROJECT }}-${{ secrets.OPENSHIFT_ROUTE_SUFFIX }}/ |
-            | Traction Adapter | | https://pr-${{ github.event.number }}-traction-${{ secrets.OPENSHIFT_PROJECT }}-${{ secrets.OPENSHIFT_ROUTE_SUFFIX }}/ |
+            | API Server | | https://pr-${{ github.event.number }}-api-server-dev.apps.silver.devops.gov.bc.ca/ |
+            | Traction Adapter | | https://pr-${{ github.event.number }}-traction-adapter-dev.apps.silver.devops.gov.bc.ca/ |
+            | Demo Web | | https://pr-${{ github.event.number }}-demo-web-dev.apps.silver.devops.gov.bc.ca/ |
+            | Showcase Creator | | https://pr-${{ github.event.number }}-showcase-creator-dev.apps.silver.devops.gov.bc.ca/ |
+            | Demo Server | | https://pr-${{ github.event.number }}-demo-server-dev.apps.silver.devops.gov.bc.ca/ |
 
             PR Deployment URLs ready for review.

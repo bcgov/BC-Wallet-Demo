@@ -158,47 +158,57 @@ tls:
 {{- end -}}
 
 {{/*
-API Server Route Host
+Generate API Server host if not overridden
 */}}
 {{- define "bc-wallet.api-server.host" -}}
 {{- if .Values.api_server.openshift.route.host -}}
 {{- .Values.api_server.openshift.route.host -}}
 {{- else -}}
-{{- if .Values.openshift.routeSuffix -}}
-{{- printf "%s-%s.%s" .Release.Name "api" .Values.openshift.routeSuffix -}}
-{{- else -}}
-{{- printf "%s-%s" .Release.Name "api" -}}
-{{- end -}}
+{{- printf "%s-%s%s" .Release.Name "api-server" .Values.ingressSuffix -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Traction Adapter Route Host
+Generate Traction Adapter host if not overridden
 */}}
 {{- define "bc-wallet.traction-adapter.host" -}}
 {{- if .Values.traction_adapter.openshift.route.host -}}
 {{- .Values.traction_adapter.openshift.route.host -}}
 {{- else -}}
-{{- if .Values.openshift.routeSuffix -}}
-{{- printf "%s-%s.%s" .Release.Name "traction" .Values.openshift.routeSuffix -}}
-{{- else -}}
-{{- printf "%s-%s" .Release.Name "traction" -}}
-{{- end -}}
+{{- printf "%s-%s%s" .Release.Name "traction-adapter" .Values.ingressSuffix -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Demo Web Route Host
+Generate Demo Web host if not overridden
 */}}
 {{- define "bc-wallet.demo-web.host" -}}
 {{- if .Values.demo_web.openshift.route.host -}}
 {{- .Values.demo_web.openshift.route.host -}}
 {{- else -}}
-{{- if .Values.openshift.routeSuffix -}}
-{{- printf "%s-%s.%s" .Release.Name "demo-web" .Values.openshift.routeSuffix -}}
-{{- else -}}
-{{- printf "%s-%s" .Release.Name "demo-web" -}}
+{{- printf "%s-%s%s" .Release.Name "demo-web" .Values.ingressSuffix -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Generate Showcase Creator host if not overridden
+*/}}
+{{- define "bc-wallet.showcase-creator.host" -}}
+{{- if .Values.showcase_creator.openshift.route.host -}}
+{{- .Values.showcase_creator.openshift.route.host -}}
+{{- else -}}
+{{- printf "%s-%s%s" .Release.Name "showcase-creator" .Values.ingressSuffix -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Generate Demo Server host if not overridden
+*/}}
+{{- define "bc-wallet.demo-server.host" -}}
+{{- if .Values.demo_server.openshift.route.host -}}
+{{- .Values.demo_server.openshift.route.host -}}
+{{- else -}}
+{{- printf "%s-%s%s" .Release.Name "demo-server" .Values.ingressSuffix -}}
 {{- end -}}
 {{- end -}}
 
@@ -214,21 +224,6 @@ tls:
 {{- end -}}
 
 {{/*
-Showcase Creator Route Host
-*/}}
-{{- define "bc-wallet.showcase-creator.host" -}}
-{{- if .Values.showcase_creator.openshift.route.host -}}
-{{- .Values.showcase_creator.openshift.route.host -}}
-{{- else -}}
-{{- if .Values.openshift.routeSuffix -}}
-{{- printf "%s-%s.%s" .Release.Name "showcase-creator" .Values.openshift.routeSuffix -}}
-{{- else -}}
-{{- printf "%s-%s" .Release.Name "showcase-creator" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Generate showcase-creator openshift route tls config
 */}}
 {{- define "bc-wallet.showcase-creator.openshift.route.tls" -}}
@@ -236,21 +231,6 @@ Generate showcase-creator openshift route tls config
 tls:
   insecureEdgeTerminationPolicy: {{ .Values.showcase_creator.openshift.route.tls.insecureEdgeTerminationPolicy }}
   termination: {{ .Values.showcase_creator.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Demo Server Route Host
-*/}}
-{{- define "bc-wallet.demo-server.host" -}}
-{{- if .Values.demo_server.openshift.route.host -}}
-{{- .Values.demo_server.openshift.route.host -}}
-{{- else -}}
-{{- if .Values.openshift.routeSuffix -}}
-{{- printf "%s-%s.%s" .Release.Name "demo-server" .Values.openshift.routeSuffix -}}
-{{- else -}}
-{{- printf "%s-%s" .Release.Name "demo-server" -}}
-{{- end -}}
 {{- end -}}
 {{- end -}}
 

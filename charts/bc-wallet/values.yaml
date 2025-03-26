@@ -4,6 +4,9 @@ fullnameOverride: "bc-wallet"
 global:
   namespaceOverride: ""
 
+# Add ingressSuffix for dynamic host generation
+ingressSuffix: "-dev.apps.silver.devops.gov.bc.ca"
+
 ingress:
   enabled: true
   className: ""
@@ -11,27 +14,27 @@ ingress:
     kubernetes.io/ingress.class: openshift-default
     route.openshift.io/termination: edge
   hosts:
-    - host: bc-wallet-api-server-dev.apps.silver.devops.gov.bc.ca
+    - host: ""  
       paths:
         - path: /
           pathType: Prefix
           service: api-server
-    - host: bc-wallet-traction-adapter-dev.apps.silver.devops.gov.bc.ca
+    - host: ""  
       paths:
         - path: /
           pathType: Prefix
           service: traction-adapter
-    - host: bc-wallet-demo-web-dev.apps.silver.devops.gov.bc.ca
+    - host: ""  
       paths:
         - path: /
           pathType: Prefix
           service: demo-web
-    - host: bc-wallet-showcase-creator-dev.apps.silver.devops.gov.bc.ca
+    - host: "" 
       paths:
         - path: /
           pathType: Prefix
           service: showcase-creator
-    - host: bc-wallet-demo-server-dev.apps.silver.devops.gov.bc.ca
+    - host: "" 
       paths:
         - path: /
           pathType: Prefix
