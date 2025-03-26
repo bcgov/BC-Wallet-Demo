@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - k3s-depolyment
+      - k3s-deployment
       - main
       # - develop-4sure
     paths:
