@@ -6,40 +6,29 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { track } from 'insights-js'
 import { startCase } from 'lodash'
 
-import { getOrCreateCredDefId } from '../../../api/CredentialApi'
-import { ActionCTA } from '../../../components/ActionCTA'
-import { Loader } from '../../../components/Loader'
-import { Modal } from '../../../components/Modal'
-import { fade, fadeX } from '../../../FramerAnimations'
-import { useAppDispatch } from '../../../hooks/hooks'
-import { useConnection } from '../../../slices/connection/connectionSelectors'
-import { useCredentials } from '../../../slices/credentials/credentialsSelectors'
-import { setCredential } from '../../../slices/credentials/credentialsSlice'
-import { issueCredential, issueDeepCredential } from '../../../slices/credentials/credentialsThunks'
-import { useSocket } from '../../../slices/socket/socketSelector'
-import type { Credential, Persona } from '../../../slices/types'
-import { basePath } from '../../../utils/BasePath'
-import { FailedRequestModal } from '../components/FailedRequestModal'
-import { StarterCredentials } from '../components/StarterCredentials'
-import { StepInformation } from '../components/StepInformation'
+import { getOrCreateCredDefId } from '../../../../api/CredentialApi'
+import { ActionCTA } from '../../../../components/ActionCTA'
+import { Loader } from '../../../../components/Loader'
+import { Modal } from '../../../../components/Modal'
+import { fade, fadeX } from '../../../../FramerAnimations'
+import { useAppDispatch } from '../../../../hooks/hooks'
+import { useConnection } from '../../../../slices/connection/connectionSelectors'
+import { useCredentials } from '../../../../slices/credentials/credentialsSelectors'
+import { setCredential } from '../../../../slices/credentials/credentialsSlice'
+import { issueCredential, issueDeepCredential } from '../../../../slices/credentials/credentialsThunks'
+import { useSocket } from '../../../../slices/socket/socketSelector'
+import type { Credential } from '../../../../slices/types'
+import { basePath } from '../../../../utils/BasePath'
+import { FailedRequestModal } from '../../components/FailedRequestModal'
+import { StarterCredentials } from '../../components/StarterCredentials'
 
 export interface Props {
   connectionId: string
   credentials: Credential[]
-  currentPersona?: Persona
-  title: string
-  text: string
-  onCredentialAccepted?: () => void
 }
 
-export const AcceptCredential: React.FC<Props> = ({
-  connectionId,
-  credentials,
-  currentPersona,
-  title,
-  text,
-  onCredentialAccepted,
-}) => {
+export const AcceptCredentialAction: React.FC<Props> = (props: Props) => {
+  const { connectionId, credentials } = props
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
@@ -68,9 +57,9 @@ export const AcceptCredential: React.FC<Props> = ({
         const credDefId = (await getOrCreateCredDefId(item)).data
         if (item !== undefined) {
           if (isDeepLink) {
-            dispatch(issueDeepCredential({ connectionId: connectionId, cred: item, credDefId }))
+            dispatch(issueDeepCredential({ connectionId, cred: item, credDefId }))
           } else {
-            dispatch(issueCredential({ connectionId: connectionId, cred: item, credDefId }))
+            dispatch(issueCredential({ connectionId, cred: item, credDefId }))
           }
           track({
             id: 'credential_issued',
@@ -79,13 +68,7 @@ export const AcceptCredential: React.FC<Props> = ({
       })
       setCredentialsIssued(true)
     }
-  }, [currentPersona, connectionId])
-
-  useEffect(() => {
-    if (credentialsAccepted && onCredentialAccepted) {
-      onCredentialAccepted()
-    }
-  }, [credentialsAccepted])
+  }, [connectionId])
 
   const handleCredentialTimeout = () => {
     if (!isIssueCredentialLoading || !error) return
@@ -129,21 +112,11 @@ export const AcceptCredential: React.FC<Props> = ({
   }
 
   const sendNewCredentials = () => {
-    // credentials.forEach((cred) => {
-    //   if (!isCredIssued(cred.state)) {
-    //     dispatch(deleteCredentialById(cred.credential_exchange_id))
-    //     const newCredential = getCharacterCreds().find((item) => {
-    //       return item?.credentialDefinitionId === cred.credential_offer.cred_def_id
-    //     })
-    //     if (newCredential) dispatch(issueCredential({ connectionId: connectionId, cred: newCredential }))
-    //   }
-    // })
     closeFailedRequestModal()
   }
 
   return (
-    <motion.div className="flex flex-col h-full" variants={fadeX} initial="hidden" animate="show" exit="exit">
-      <StepInformation title={title} text={text} />
+    <motion.div className="flex flex-col" variants={fadeX} initial="hidden" animate="show" exit="exit">
       <div className="flex flex-row m-auto content-center">
         {credentials.length ? (
           <AnimatePresence mode="wait">
@@ -171,8 +144,6 @@ export const AcceptCredential: React.FC<Props> = ({
               schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
               data: {
                 action: 'cred_not_received',
-                path: currentPersona?.role.toLowerCase(),
-                step: title,
               },
             },
           })
