@@ -26,6 +26,7 @@ import { sampleScenario } from '@/lib/steps'
 import { NoSelection } from '../credentials/no-selection'
 import { debounce } from 'lodash';
 import { useHelpersStore } from '@/hooks/use-helpers-store';
+import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 export const BasicStepAdd = () => {
   const t = useTranslations()
 
@@ -41,9 +42,9 @@ export const BasicStepAdd = () => {
   const router = useRouter();
   const { mutateAsync, isPending } = useCreateScenario();
   const currentStep = selectedStep !== null ? screens[selectedStep] : null;
-  const { showcase, setScenarioIds } = useShowcaseStore();
+  const { setScenarioIds } = useShowcaseStore();
   const { issuerId } = useHelpersStore();
-  const personas = showcase.personas || [];
+  const { personas } = useOnboardingAdapter()
 
   const isEditMode = stepState === 'editing-basic'
   const [showErrorModal, setErrorModal] = useState(false)
@@ -102,7 +103,7 @@ export const BasicStepAdd = () => {
     const personaScenarios = personas.map((persona) => {
       const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario))
 
-      scenarioForPersona.personas = [persona]
+      scenarioForPersona.personas = [persona.id]
       scenarioForPersona.issuer = issuerId
 
       scenarioForPersona.steps = [
@@ -112,6 +113,7 @@ export const BasicStepAdd = () => {
           asset: screen.asset || undefined,
           type: screen.type || 'HUMAN_TASK',
           order: index,
+          screenId:'INFO',
           actions: screen.actions || [sampleAction],
         })),
       ]
@@ -242,16 +244,29 @@ export const BasicStepAdd = () => {
           </div>
 
           <div className="space-y-2">
-            <LocalFileUpload
-              text={t('onboarding.icon_label')}
+          <LocalFileUpload
+              text={t("onboarding.icon_label")}
               element="asset"
-              handleLocalUpdate={(_, value) =>
-                form.setValue('asset', value, {
+              existingAssetId={form.watch("asset")}
+              handleLocalUpdate={(_, value) => {
+                console.log('Value',value);
+                if (!currentStep) return;
+
+                const updatedStep1 = {
+                  ...currentStep,
+                  title: currentStep.title,
+                  description: currentStep.description,
+                  asset: value || undefined,
+                  // credentials: data.credentials || [],
+                };
+                updateStep(selectedStep || 0, updatedStep1);
+
+                form.setValue("asset", value, {
                   shouldDirty: true,
                   shouldTouch: true,
                   shouldValidate: true,
                 })
-              }
+              }}
             />
             {form.formState.errors.asset && (
               <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>

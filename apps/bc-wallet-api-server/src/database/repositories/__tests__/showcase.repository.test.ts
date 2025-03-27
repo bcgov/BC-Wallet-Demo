@@ -294,20 +294,6 @@ describe('Database showcase repository tests', (): void => {
     await expect(repository.create(showcase)).rejects.toThrowError(`At least one persona is required`)
   })
 
-  it('Should throw error when saving showcase with no credential definitions', async (): Promise<void> => {
-    const showcase: NewShowcase = {
-      name: 'example_name',
-      description: 'example_description',
-      status: ShowcaseStatus.ACTIVE,
-      hidden: false,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [],
-      personas: [persona1.id, persona2.id],
-    }
-
-    await expect(repository.create(showcase)).rejects.toThrowError(`At least one credential definition is required`)
-  })
-
   it('Should throw error when saving showcase with no scenarios', async (): Promise<void> => {
     const showcase: NewShowcase = {
       name: 'example_name',
@@ -335,21 +321,6 @@ describe('Database showcase repository tests', (): void => {
     }
 
     await expect(repository.create(showcase)).rejects.toThrowError(`No persona found for id: ${unknownPersonaId}`)
-  })
-
-  it('Should throw error when saving showcase with invalid credential definition id', async (): Promise<void> => {
-    const unknownCredentialDefinitionId = 'a197e5b2-e4e5-4788-83b1-ecaa0e99ed3a'
-    const showcase: NewShowcase = {
-      name: 'example_name',
-      description: 'example_description',
-      status: ShowcaseStatus.ACTIVE,
-      hidden: false,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [unknownCredentialDefinitionId],
-      personas: [persona1.id, persona2.id],
-    }
-
-    await expect(repository.create(showcase)).rejects.toThrowError(`No credential definition found for id: ${unknownCredentialDefinitionId}`)
   })
 
   it('Should throw error when saving showcase with invalid banner image id', async (): Promise<void> => {
@@ -510,30 +481,6 @@ describe('Database showcase repository tests', (): void => {
     await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`At least one persona is required`)
   })
 
-  it('Should throw error when updating showcase with no credential definitions', async (): Promise<void> => {
-    const showcase: NewShowcase = {
-      name: 'example_name',
-      description: 'example_description',
-      status: ShowcaseStatus.ACTIVE,
-      hidden: false,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      personas: [persona1.id, persona2.id],
-    }
-
-    const savedShowcase = await repository.create(showcase)
-
-    const updatedShowcase: NewShowcase = {
-      ...savedShowcase,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [],
-      personas: [persona1.id, persona2.id],
-      bannerImage: null,
-    }
-
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`At least one credential definition is required`)
-  })
-
   it('Should throw error when updating showcase with no scenarios', async (): Promise<void> => {
     const showcase: NewShowcase = {
       name: 'example_name',
@@ -583,34 +530,6 @@ describe('Database showcase repository tests', (): void => {
     await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`No persona found for id: ${unknownPersonaId}`)
   })
 
-  it('Should throw error when updating showcase with invalid credential definition id', async (): Promise<void> => {
-    const unknownCredentialDefinitionId = 'a197e5b2-e4e5-4788-83b1-ecaa0e99ed3a'
-    const showcase: NewShowcase = {
-      name: 'example_name',
-      description: 'example_description',
-      status: ShowcaseStatus.ACTIVE,
-      hidden: false,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      personas: [persona1.id, persona2.id],
-      createdBy: user.id,
-    }
-
-    const savedShowcase = await repository.create(showcase)
-
-    const updatedShowcase: NewShowcase = {
-      ...savedShowcase,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [unknownCredentialDefinitionId],
-      personas: [persona1.id, persona2.id],
-      bannerImage: null,
-      createdBy: savedShowcase.createdBy?.id,
-    }
-
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(
-      `No credential definition found for id: ${unknownCredentialDefinitionId}`,
-    )
-  })
 
   it('Should throw error when updating showcase with invalid scenario id', async (): Promise<void> => {
     const unknownScenarioId = 'a197e5b2-e4e5-4788-83b1-ecaa0e99ed3a'

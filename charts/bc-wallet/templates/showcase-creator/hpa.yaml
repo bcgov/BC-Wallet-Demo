@@ -1,0 +1,32 @@
+{{- if .Values.showcase_creator.enabled }}
+{{- if .Values.showcase_creator.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+  minReplicas: {{ .Values.showcase_creator.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.showcase_creator.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.showcase_creator.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.showcase_creator.autoscaling.targetMemoryUtilizationPercentage }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.showcase_creator.autoscaling.stabilizationWindowSeconds }}
+{{- end }}
+{{- end }} 

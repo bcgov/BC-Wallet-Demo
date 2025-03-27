@@ -25,7 +25,7 @@ import {
   instanceOfStepActionRequest,
 } from 'bc-wallet-openapi'
 import { issuanceScenarioDTOFrom, stepDTOFrom } from '../utils/mappers'
-import { ScenarioType } from '../types'
+import { IssuanceScenario, ScenarioType } from '../types'
 
 @JsonController('/scenarios/issuances')
 @Service()
@@ -35,7 +35,7 @@ class IssuanceScenarioController {
   @Get('/')
   public async getAllIssuanceScenarios(): Promise<IssuanceScenariosResponse> {
     try {
-      const result = await this.scenarioService.getScenarios({ filter: { scenarioType: ScenarioType.ISSUANCE } })
+      const result = await this.scenarioService.getScenarios({ filter: { scenarioType: ScenarioType.ISSUANCE } }) as IssuanceScenario[]
       const issuanceScenarios = result.map((issuanceScenario) => issuanceScenarioDTOFrom(issuanceScenario))
       return IssuanceScenariosResponseFromJSONTyped({ issuanceScenarios }, false)
     } catch (e) {
@@ -50,7 +50,7 @@ class IssuanceScenarioController {
   public async getOneIssuanceScenario(@Param('slug') slug: string): Promise<IssuanceScenarioResponse> {
     const issuanceScenarioId = await this.scenarioService.getIdBySlug(slug)
     try {
-      const result = await this.scenarioService.getScenario(issuanceScenarioId)
+      const result = await this.scenarioService.getScenario(issuanceScenarioId) as IssuanceScenario
       return IssuanceScenarioResponseFromJSONTyped({ issuanceScenario: issuanceScenarioDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -67,7 +67,7 @@ class IssuanceScenarioController {
       if (!instanceOfIssuanceScenarioRequest(issuanceScenarioRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.scenarioService.createScenario(IssuanceScenarioRequestToJSONTyped(issuanceScenarioRequest))
+      const result = await this.scenarioService.createScenario(IssuanceScenarioRequestToJSONTyped(issuanceScenarioRequest)) as IssuanceScenario
       return IssuanceScenarioResponseFromJSONTyped({ issuanceScenario: issuanceScenarioDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -87,7 +87,7 @@ class IssuanceScenarioController {
       if (!instanceOfIssuanceScenarioRequest(issuanceScenarioRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.scenarioService.updateScenario(issuanceScenarioId, IssuanceScenarioRequestToJSONTyped(issuanceScenarioRequest))
+      const result = await this.scenarioService.updateScenario(issuanceScenarioId, IssuanceScenarioRequestToJSONTyped(issuanceScenarioRequest)) as IssuanceScenario
       return IssuanceScenarioResponseFromJSONTyped({ issuanceScenario: issuanceScenarioDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {

@@ -243,7 +243,31 @@ export const BasicStepAdd = () => {
           </div>
 
           <div className="space-y-2">
-            <LocalFileUpload
+          <LocalFileUpload
+              text={t("onboarding.icon_label")}
+              element="asset"
+              existingAssetId={form.watch("asset")}
+              handleLocalUpdate={(_, value) => {
+                console.log('Value',value);
+                if (!currentStep) return;
+
+                const updatedStep1 = {
+                  ...currentStep,
+                  title: currentStep.title,
+                  description: currentStep.description,
+                  asset: value || undefined,
+                  // credentials: data.credentials || [],
+                };
+                updateStep(selectedStep || 0, updatedStep1);
+
+                form.setValue("asset", value, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                })
+              }}
+            />
+            {/* <LocalFileUpload
               text={t('onboarding.icon_label')}
               element="asset"
               handleLocalUpdate={(_, value) =>
@@ -253,7 +277,7 @@ export const BasicStepAdd = () => {
                   shouldValidate: true,
                 })
               }
-            />
+            /> */}
             {form.formState.errors.asset && (
               <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
             )}
