@@ -140,6 +140,12 @@
   },
   "onboarding": {
     "header_title": "Add Steps",
+    "connect_step_header_title": "Edit a Connection Step",
+    "wallet_step_header_title": "Edit a Wallet Step",
+    "qrCode_label": "QR Code Title",
+    "install_wallet_step_label": "Install Wallet Step",
+    "connect_step_label": "Connect Step",
+    "install_wallet_label": "Install Wallet",
     "header_subtitle": "Add steps below to create the onboarding steps for each character.",
     "steps_added_label": "Steps Added: {stepCount}",
     "editing_steps_label": "You are editing {name}’s onboarding.",

@@ -42,10 +42,22 @@ export const SortableStep = ({
 
   const handleStepClick = () => {
     setSelectedStep(stepIndex - 1);
-    const ScreenType = myScreen.type 
-    setStepState(ScreenType == 'SERVICE' ? "editing-issue" : "editing-basic");
+    const ScreenType = myScreen.type;
+  
+    switch (ScreenType) {
+      case 'SERVICE':
+        setStepState('editing-issue');
+        break;
+      case 'wallet':
+        setStepState('editing-wallet');
+        break;
+      case 'connect':
+        setStepState('editing-connect');
+        break;
+      default:
+        setStepState('editing-basic');
+    }
   };
-
   const handleCopyStep = (index: number) => {
     try {
       const { screens, selectedStep } = useOnboarding.getState();
@@ -79,7 +91,7 @@ export const SortableStep = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex mb-2 flex-row items-center w-full bg-white dark:bg-dark-bg-secondary min-h-28"
+      className="flex flex-row items-center w-full bg-white dark:bg-dark-bg-secondary min-h-28"
     >
       <div
         className={`cursor-default h-full flex-shrink-0 flex items-center ${
@@ -170,7 +182,7 @@ export const SortableStep = ({
               </div>
               <div className="align-middle ml-auto">
                 <div className="font-semibold">Attributes</div>
-                <div className="text-sm text-end">{Object.keys(selectedCredential.credentialSchema.attributes).length}</div>
+                {/* <div className="text-sm text-end">{Object.keys(selectedCredential.credentialSchema.attributes).length}</div> */}
               </div>
             </div>
             }

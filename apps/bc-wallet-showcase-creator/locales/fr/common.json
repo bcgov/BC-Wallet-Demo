@@ -21,8 +21,8 @@
     "character_label": "Personnage(s)",
     "description_version": "Version",
     "loading_label": "Chargement...",
-    "publish_info_title": "Publier les informations",
-    "publish_info_subtitle": "Configurez l'expérience d'intégration pour ce personnage"
+    "publish_info_title": "Vitrine de révision et de publication",
+    "publish_info_subtitle": "Sélectionnez le personnage et examinez la vitrine."
   },
   "character": {
     "header_title": "Créez votre Personnage",
@@ -52,7 +52,7 @@
     "create_new_character_label": "CRÉER UN NOUVEAU PERSONNAGE",
     "hide_character_placeholder": "L’activation de ce paramètre masquera ce personnage et tous les scénarios associés.",
     "no_character_selected_label": "Aucun persona sélectionné",
-    "character_delete_title" : "Êtes-vous sûr de vouloir supprimer ce personnage ?",
+    "character_delete_title": "Êtes-vous sûr de vouloir supprimer ce personnage ?",
     "character_delete_description": "Cette action ne peut pas être annulée."
   },
   "credentials": {
@@ -97,7 +97,7 @@
     "id_label": "Identifiant du schéma",
     "second_checkbox_label": "Demande de preuve",
     "import_header_title": "Importation d'un Justificatif",
-    "import_header":"IMPORTATION D'UN JUSTIFICATIF",
+    "import_header": "IMPORTATION D'UN JUSTIFICATIF",
     "import_header_subtitle": "Pour importer un justificatif, trouvez d'abord la transaction CLAIM_DEF dans CandyScan. Ensuite, entrez l'ID du schéma et l'ID du justificatif ci-dessous.",
     "link_text": "Trouver sur CandyScan",
     "import_instructions_title": "Voir les Instructions",
@@ -110,7 +110,7 @@
     "step2_description": "Recherchez le schéma ou le justificatif souhaité",
     "step2_details": "Utilisez la barre de recherche pour trouver le schéma ou la définition du justificatif dont vous avez besoin.",
     "step3_title": "Étape 3",
-    "loading" : "Chargement...",
+    "loading": "Chargement...",
     "step3_description": "Identifiez les identifiants requis",
     "step3_credential_id_label": "Identifiant de définition du justificatif →",
     "step3_credential_id_format": "Format : TxID:3:<nom-du-schéma>:<définition>",
@@ -127,7 +127,7 @@
     "image_label": "Image",
     "image_placeholder": "Telecharger Image",
     "revocation_label": "Est-ce que ce justificatif peut être révoqué?",
-   " revocation_checkbox_label": "Oui",
+    " revocation_checkbox_label": "Oui",
     "type_label": "Credential Type",
     "representations_label": "Representations",
     "icon_label": "Icon",
@@ -135,6 +135,12 @@
   },
   "onboarding": {
     "header_title": "Ajouter des étapes",
+    "install_wallet_step_label": "Installer le Portefeuille",
+    "connect_step_header_title": "Modifier l'étape de Connexion",
+    "qrCode_label": "Titre du QR Code",
+    "wallet_step_header_title": "Modifier l'étape du Portefeuille",
+    "install_wallet_label": "Installer le Portefeuille",
+    "connect_step_label": "Configurer la Connexion",
     "header_subtitle": "Ajoutez les étapes ci-dessous pour créer les étapes d’intégration pour chaque personnage.",
     "steps_added_label": "Étapes ajoutées: {stepCount}",
     "editing_steps_label": "Vous êtes en train de modifier l’intégration d’{name}",
