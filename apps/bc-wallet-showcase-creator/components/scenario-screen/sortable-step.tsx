@@ -1,11 +1,9 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
-import { usePresentations } from '@/hooks/use-presentation'
-import { useShowcaseStore } from '@/hooks/use-showcase-store'
+import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { cn, ensureBase64HasPrefix } from '@/lib/utils'
-import type { Step } from '@/openapi-types'
+import type { StepType } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { produce } from 'immer'
 import { Copy, GripVertical } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -16,20 +14,22 @@ export const SortableStep = ({
   selectedStep,
   myScreen,
   stepIndex,
-  scenarioIndex,  
+  scenarioIndex,
+  totalSteps,
 }: {
-  selectedStep: number | null
-  myScreen: typeof Step._type
+  selectedStep: { stepIndex: number, scenarioIndex: number } | null
+  myScreen: StepType
   stepIndex: number
   totalSteps: number
   scenarioIndex: number
 }) => {
   const t = useTranslations()
-  const { setSelectedStep, setStepState, setCurrentScenarioIndex } = usePresentations()
+  const { handleSelectStep, duplicateStep, activePersonaId, setSelectedStep, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
 
   const { selectedCredential } = useCredentials()
+
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: myScreen.id,
+    id: myScreen.id || `step-${scenarioIndex}-${stepIndex}`,
   })
 
   const style = {
@@ -37,37 +37,38 @@ export const SortableStep = ({
     transition,
   }
 
-  const handleStepClick = () => {
-    setSelectedStep(stepIndex - 1)
-    const ScreenType = myScreen.type
-    setStepState(ScreenType == 'SERVICE' ? 'editing-issue' : 'editing-basic')
-
-    // Store the current scenario index with the selected step
-    setCurrentScenarioIndex(scenarioIndex)
+const handleStepClick = () => {
+  console.log('Step clicked!', { 
+    stepIndex, 
+    scenarioIndex,
+    myScreen: {
+      type: myScreen.type,
+      title: myScreen.title
+    }
+  });
+    
+  handleSelectStep(stepIndex, scenarioIndex)
+  setStepState('editing-issue');
+  
+  if (activeScenarioIndex !== scenarioIndex) {
+    setActiveScenarioIndex(scenarioIndex);
   }
+};
 
-  const handleCopyStep = (stepIndex: number) => {
+  const handleCopyStep = (stepIndex: number, scenarioIndex: number) => {
     try {
-      const { screens, currentScenarioIndex } = usePresentations.getState()
-  
-      if (!screens[stepIndex]) return
-  
-      const stepToCopy = screens[stepIndex]
-  
-      const newStep = JSON.parse(JSON.stringify(stepToCopy))
-      // Create a unique ID that includes the scenario index
-      newStep.id = `step-${currentScenarioIndex}-${stepIndex}-${Date.now()}`
-      // Ensure the step is associated with the correct scenario
-      newStep.scenarioIndex = currentScenarioIndex
-  
-      usePresentations.setState(
-        produce((state) => {
-          state.screens.splice(stepIndex + 1, 0, newStep)
-          state.selectedStep = stepIndex + 1
-        })
-      )
+      console.log('Duplicating step:', { stepIndex, scenarioIndex })
+
+      if (!activePersonaId) {
+        console.error('Cannot duplicate - no active persona')
+        return
+      }
+
+      duplicateStep(stepIndex)
+
+      handleSelectStep(stepIndex + 1, scenarioIndex)
     } catch (error) {
-      console.log('Error ', error)
+      console.error('Error duplicating step:', error)
     }
   }
 
@@ -87,11 +88,10 @@ export const SortableStep = ({
             <GripVertical />
           </div>
 
-          {/* Copy Step on Click */}
           <div
             onClick={(e) => {
-              e.stopPropagation() // Prevent drag interference
-              handleCopyStep(stepIndex - 1)
+              e.stopPropagation()
+              handleCopyStep(stepIndex, scenarioIndex)
             }}
             className="text-white text-2xl flex flex-col gap-2 cursor-pointer"
           >
@@ -105,7 +105,7 @@ export const SortableStep = ({
             'min-h-28  w-full hover:bg-light-btn-hover dark:hover:bg-dark-btn-hover',
             'flex flex-col justify-center rounded p-3',
             'border-b-2 border-light-border dark:border-dark-border',
-            selectedStep === stepIndex - 1 ? 'border-foreground' : 'border-light-bg-secondary'
+            selectedStep?.stepIndex === stepIndex ? 'border-foreground' : 'border-light-bg-secondary',
           )}
         >
           <span className="font-semibold">{myScreen.title}</span>
@@ -122,12 +122,7 @@ export const SortableStep = ({
           {myScreen.type == 'SERVICE' && (
             <>
               {!selectedCredential ? (
-                <>
-                  {/* <div className="bg-[#FFE6AB] mt-2 font-bold rounded gap-2 flex flex-row items-center justify-center">
-               <TriangleAlert fill={'#FFCB00'} size={22}/>
-               Select Credential to Proceed
-             </div> */}
-                </>
+                <>{/* Optional warning message could go here */}</>
               ) : (
                 <>
                   {selectedCredential && (

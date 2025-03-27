@@ -1,7 +1,5 @@
-import { useEffect, useState, useCallback } from 'react'
-import { usePresentations } from '@/hooks/use-presentation'
+import { useState, useCallback } from 'react'
 import type { Persona, ShowcaseRequestType, StepRequestType } from '@/openapi-types'
-import { createDefaultStep } from '@/lib/steps'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/lib/apiService'
@@ -10,85 +8,87 @@ import { usePresentationCreation } from './use-presentation-creation'
 
 export const usePresentationAdapter = () => {
   const {
-    screens: steps,
-    selectedStep,
-    initializeScenarios,
-    createStep,
-    updateStep,
-    moveStep,
-    setStepState,
-    stepState,
-  } = usePresentations()
-
-  const {
     selectedPersonas,
     personaScenarios,
     activePersonaId,
     setActivePersonaId,
-    updatePersonaSteps,
     duplicateScenario,
     activeScenarioIndex,
     setActiveScenarioIndex,
     deleteScenario,
+    addStep,
+    updateStep,
+    deleteStep,
+    moveStep,
+    duplicateStep,
+    setStepState,
+    stepState,
+    selectedScenario,
+    updateScenario,
+    removeScenario,
+    selectedStep,
+    setSelectedStep,
+    selectStep,
   } = usePresentationCreation()
 
   const { displayShowcase, setShowcase, showcase } = useShowcaseStore()
-
-  const { selectedCredentialDefinitionIds, relayerId } = useHelpersStore()
-
-  const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null)
+  const { selectedCredentialDefinitionIds } = useHelpersStore()
   const queryClient = useQueryClient()
 
-  const loadPersonaSteps = useCallback(
-    (personaId: string, scenarioIndex: number) => {
-      if (personaId && personaScenarios.has(personaId)) {
-        const scenarioList = personaScenarios.get(personaId)!
+  const getCurrentSteps = useCallback(() => {
+    if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
 
-        if (scenarioIndex >= 0 && scenarioIndex < scenarioList.length) {
-          const scenario = scenarioList[scenarioIndex]
+    const scenarioList = personaScenarios.get(activePersonaId)!
 
-          const scenarioSteps = scenario.steps.map((step, index) => {
-            return {
-              ...createDefaultStep({
-                title: step.title,
-                description: step.description,
-              }),
-              id: `step-${scenarioIndex}-${index}`,
-              order: index,
-              type: step.type,
-              actions: step.actions || [],
-              scenarioIndex: scenarioIndex, // Add this line to track which scenario the step belongs to
-            }
-          })
+    if (activeScenarioIndex < 0 || activeScenarioIndex >= scenarioList.length) return []
 
-          initializeScenarios(scenarioSteps)
-          setLoadedPersonaId(personaId)
-        }
-      }
+    return scenarioList[activeScenarioIndex].steps
+  }, [activePersonaId, personaScenarios, activeScenarioIndex])
+
+  const steps = getCurrentSteps()
+
+  const createStep = useCallback(
+    (stepData: StepRequestType) => {
+      if (!activePersonaId) return
+
+      addStep(activePersonaId, activeScenarioIndex, stepData)
+      // Set the newly added step as selected
+      setSelectedStep({ stepIndex: steps.length, scenarioIndex: activeScenarioIndex })
+      setStepState('editing-basic')
     },
-    [personaScenarios, initializeScenarios],
+    [activePersonaId, activeScenarioIndex, addStep, steps.length],
   )
 
-  useEffect(() => {
-    if (activePersonaId !== loadedPersonaId) {
-      loadPersonaSteps(activePersonaId!, activeScenarioIndex)
-    }
-  }, [activePersonaId, loadedPersonaId, activeScenarioIndex, loadPersonaSteps])
+  // Update step wrapper
+  const handleUpdateStep = useCallback(
+    (index: number, stepData: StepRequestType) => {
+      if (!activePersonaId) return
 
-  useEffect(() => {
-    if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
-      const scenarioSteps: StepRequestType[] = steps.map((step, index) => ({
-        title: step.title,
-        description: step.description,
-        order: index,
-        type: step.type as 'HUMAN_TASK' | 'SERVICE' | 'SCENARIO',
-        actions: step.actions || [],
-        relyingParty: relayerId,
-      }))
+      updateStep(activePersonaId, activeScenarioIndex, index, stepData)
+    },
+    [activePersonaId, activeScenarioIndex, updateStep],
+  )
 
-      updatePersonaSteps(activePersonaId, activeScenarioIndex, scenarioSteps)
-    }
-  }, [steps, activePersonaId, loadedPersonaId, activeScenarioIndex, updatePersonaSteps])
+  const handleDuplicateStep = useCallback(
+    (stepIndex: number) => {
+      if (!activePersonaId) {
+        console.error('Cannot duplicate - no active persona')
+        return
+      }
+
+      duplicateStep(activePersonaId, activeScenarioIndex, stepIndex)
+    },
+    [activePersonaId, activeScenarioIndex, duplicateStep],
+  )
+
+  const handleMoveStep = useCallback(
+    (oldIndex: number, newIndex: number) => {
+      if (!activePersonaId) return
+
+      moveStep(activePersonaId, activeScenarioIndex, oldIndex, newIndex)
+    },
+    [activePersonaId, activeScenarioIndex, moveStep],
+  )
 
   const updateShowcaseMutation = useMutation({
     mutationFn: async (showcaseData: ShowcaseRequestType) => {
@@ -129,17 +129,67 @@ export const usePresentationAdapter = () => {
         throw error
       }
     },
-    [displayShowcase, selectedPersonas, updateShowcaseMutation, setShowcase],
+    [
+      displayShowcase,
+      selectedPersonas,
+      updateShowcaseMutation,
+      setShowcase,
+      showcase.scenarios,
+      selectedCredentialDefinitionIds,
+    ],
   )
 
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
+  // const handleSelectStep = useCallback(
+  //   (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
+  //     console.log('handleSelectStep', { stepIndex, scenarioIndex })
+  //     if (scenarioIndex !== activeScenarioIndex) {
+  //       setActiveScenarioIndex(scenarioIndex)
+  //     }
+
+  //     setSelectedStep(stepIndex)
+
+  //     if (activePersonaId && personaScenarios.has(activePersonaId)) {
+  //       const scenarios = personaScenarios.get(activePersonaId)!
+
+  //       if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
+  //         const steps = scenarios[scenarioIndex].steps
+
+  //         if (stepIndex >= 0 && stepIndex < steps.length) {
+  //           const currentStep = steps[stepIndex]
+
+  //           if (currentStep.type === 'SERVICE') {
+  //             setStepState('editing-issue')
+  //           } else {
+  //             setStepState('editing-basic')
+  //           }
+  //         }
+  //       }
+  //     }
+  //   },
+  //   [activeScenarioIndex, setActiveScenarioIndex, setSelectedStep, activePersonaId, personaScenarios, setStepState],
+  // )
+
+  const handleSelectStep = useCallback(
+    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
+      console.log('handleSelectStep', { stepIndex, scenarioIndex });
+      
+      selectStep(stepIndex, scenarioIndex);
+    },
+    [selectStep],
+  );
+
   return {
     steps,
     selectedStep,
+    setSelectedStep,
+    handleSelectStep,
     createStep,
-    updateStep,
-    moveStep,
+    updateStep: handleUpdateStep,
+    moveStep: handleMoveStep,
+    deleteStep: (index: number) => activePersonaId && deleteStep(activePersonaId, activeScenarioIndex, index),
+    duplicateStep: handleDuplicateStep,
     setStepState,
     stepState,
     personas: selectedPersonas,
@@ -155,5 +205,8 @@ export const usePresentationAdapter = () => {
     activeScenarioIndex,
     setActiveScenarioIndex,
     deleteScenario,
+    selectedScenario,
+    updateScenario,
+    removeScenario,
   }
 }

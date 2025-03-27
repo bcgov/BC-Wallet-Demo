@@ -20,7 +20,9 @@
     "description_label": "Description",
     "character_label": "Personnage(s)",
     "description_version": "Version",
-    "loading_label": "Chargement..."
+    "loading_label": "Chargement...",
+    "publish_info_title": "Vitrine de révision et de publication",
+    "publish_info_subtitle": "Sélectionnez le personnage et examinez la vitrine."
   },
   "character": {
     "header_title": "Créez votre Personnage",
@@ -168,7 +170,8 @@
     "search_credential_label": "Rechercher un justificatif:",
     "search_credential_placeholder": "ex. Carte d'étudiant",
     "no_credentials_added_message": "Aucun justificatif ajouté",
-    "go_back_to_select_personas": "Retour à la sélection des personnages"
+    "go_back_to_select_personas": "Retour à la sélection des personnages",
+    "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration."
   },
   "scenario": {
     "header_title": "Créer des Scénarios",
@@ -196,7 +199,8 @@
     "proof_attribute_placeholder": "Sélectionner un attribut",
     "basic_label":"Basique",
     "proof_request_label":"Demande de preuve",
-    "scenario_description" : "Scenario Description"
+    "scenario_description" : "Scenario Description",
+    "remove_scenario_label": "Supprimer le Scénario"
   },
   "action": {
     "cancel_label": "ANNULER",
