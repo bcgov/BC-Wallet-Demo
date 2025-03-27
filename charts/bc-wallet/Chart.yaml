@@ -1,6 +1,6 @@
 apiVersion: v1
 name: bc-wallet
-description: Credential Showcase services with PostgreSQL and RabbitMQ
+description: BC Wallet services with PostgreSQL and RabbitMQ
 version: 0.1.0
 dependencies:
   - name: postgresql
