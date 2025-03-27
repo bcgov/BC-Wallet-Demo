@@ -9,7 +9,8 @@ on:
         type: string
   pull_request:
     branches:
-      - main
+      - random-branch # change this to main or your branch
+      # - main
       # - develop-4sure
     paths:
       - "apps/bc-wallet-api-server/**"
@@ -31,15 +32,14 @@ jobs:
     steps:
       - id: ready_for_review
         run: |
-          echo "true_false=${{ toJSON(github.event.pull_request.draft != true && github.repository_owner == '4sure-tech') }}" >> $GITHUB_OUTPUT #should change to bcgov
-          echo "owner_true_false=${{ toJSON(github.repository_owner == '4sure-tech') }}" >> $GITHUB_OUTPUT #bcgov
+          echo "true_false=${{ toJSON(github.event.pull_request.draft != true && github.repository_owner == '4sure-tech') }}" >> $GITHUB_OUTPUT
+          echo "owner_true_false=${{ toJSON(github.repository_owner == '4sure-tech') }}" >> $GITHUB_OUTPUT
 
-          
   uninstall:
-    name: Uninstall PR
+    name: Uninstall PR Resources
     environment: development
-    runs-on: ubuntu-22.04
-    if: github.repository_owner == 'bcgov'
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
     steps:
       # Set PR number based on event type
       - name: Set PR number
@@ -51,32 +51,34 @@ jobs:
             echo "PR_NUM=${{ github.event.number }}" >> $GITHUB_ENV
           fi
 
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
+      # Uninstall resources via SSH to K3s server
+      - name: Uninstall resources from K3s
+        uses: appleboy/ssh-action@v0.1.10
         with:
-          oc: "4.14"
-
-      - name: Authenticate and set context
-        uses: redhat-actions/oc-login@v1
-        with:
-          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
-          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
-          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
-
-      - name: Uninstall Credential Showcase resources via Helm
-        continue-on-error: true
-        run: |
-          helm uninstall pr-${{ env.PR_NUM }}-bc-wallet
-
-      - name: Remove Credential Showcase Openshift Objects
-        continue-on-error: true
-        run: |
-          oc delete secret,pvc,route,service,deployment,statefulset,configmap \
-            --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet"
+          host: ${{ secrets.K3S_HOST }}
+          username: ${{ secrets.K3S_USERNAME }}
+          key: ${{ secrets.K3S_SSH_KEY }}
+          script: |
+            # Uninstall Helm release
+            helm uninstall pr-${{ env.PR_NUM }}-bc-wallet || true
+            
+            # Delete any remaining resources
+            kubectl delete secret,pvc,service,deployment,statefulset,configmap,ingress,ingressroute,certificate \
+              --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet" || true
+            
+            # Delete IngressRoutes specifically
+            kubectl delete ingressroute \
+              api-server-route-pr-${{ env.PR_NUM }} \
+              traction-adapter-route-pr-${{ env.PR_NUM }} \
+              showcase-creator-route-pr-${{ env.PR_NUM }} \
+              demo-web-route-pr-${{ env.PR_NUM }} \
+              demo-server-route-pr-${{ env.PR_NUM }} || true
+            
+            # Delete Certificate
+            kubectl delete certificate bc-wallet-tls-pr-${{ env.PR_NUM }} || true
 
   clean-ghcr:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     name: Delete closed PR images
     steps:
       - name: Delete API Server Image
