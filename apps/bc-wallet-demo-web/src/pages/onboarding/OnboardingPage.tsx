@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { trackPageView } from '@snowplow/browser-tracker'
@@ -61,31 +61,31 @@ export const OnboardingPage: React.FC = () => {
   }
 
   return (
-    <>
-      {characterUploadEnabled && <CustomUpload />}
-      <motion.div
-        variants={page}
-        initial="hidden"
-        animate="show"
-        exit="exit"
-        className="container flex flex-col items-center p-4"
-      >
-        {scenario?.steps !== undefined && scenario?.steps.length > 0 && currentStep && (
-          <Stepper steps={scenario.steps} currentStep={currentStep} />
-        )}
-        {showcase && (
-          <AnimatePresence mode="wait">
-            <OnboardingContainer
-              scenarios={showcase.scenarios}
-              currentPersona={currentPersona}
-              currentStep={currentStep}
-              connectionId={id}
-              connectionState={state}
-              invitationUrl={invitationUrl}
-            />
-          </AnimatePresence>
-        )}
-      </motion.div>
-    </>
+      <>
+        {characterUploadEnabled && <CustomUpload />}
+        <motion.div
+            variants={page}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            className="container flex flex-col items-center p-4"
+        >
+          {scenario?.steps !== undefined && scenario?.steps.length > 0 && currentStep && (
+              <Stepper steps={scenario.steps} currentStep={currentStep.order} />
+          )}
+          {showcase && (
+              <AnimatePresence mode="wait">
+                <OnboardingContainer
+                    scenarios={showcase.scenarios}
+                    currentPersona={currentPersona}
+                    currentStep={currentStep}
+                    connectionId={id}
+                    connectionState={state}
+                    invitationUrl={invitationUrl}
+                />
+              </AnimatePresence>
+          )}
+        </motion.div>
+      </>
   )
 }

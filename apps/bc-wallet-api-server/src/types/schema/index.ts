@@ -202,7 +202,6 @@ export type NewStep = Omit<typeof steps.$inferInsert, 'scenario'> & {
   asset?: string | null
   actions: NewStepActionTypes[]
   subScenario?: string | null
-  screenId?: string | null
 }
 
 export type StepAction = typeof stepActions.$inferSelect

@@ -12,7 +12,6 @@ export const steps = pgTable(
     id: uuid('id').notNull().primaryKey().defaultRandom(),
     title: text().notNull(),
     description: text().notNull(),
-    screenId: text(),
     order: integer().notNull(),
     type: StepTypePg().notNull().$type<StepType>(),
     subScenario: uuid('sub_scenario').references(() => scenarios.id),

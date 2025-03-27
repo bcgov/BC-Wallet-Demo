@@ -1813,10 +1813,6 @@ components:
           type: string
           description: Detailed description of the step
           example: Verify the user's identity
-        screenId:
-          type: string
-          description: Screen attached to step
-          example: PICK_PERSONA
         order:
           type: integer
           description: Order of the step in the scenario
@@ -1861,10 +1857,6 @@ components:
           type: string
           description: Detailed description of the step
           example: Verify the user's identity
-        screenId:
-          type: string
-          description: Screen attached to step
-          example: PICK_PERSONA
         order:
           type: integer
           description: Order of the step in the scenario
@@ -1921,9 +1913,7 @@ components:
           description: Unique identifier for the action
           example: 123e4567-ef2d-12d3-abcd-426614174456
         actionType:
-          type: string
-          description: Type of action
-          example: EXAMPLE_ACTION
+          $ref: '#/components/schemas/StepActionType'
         title:
           type: string
           description: Title of the action
@@ -1967,8 +1957,7 @@ components:
           description: Descriptive text for the action
           example: Connect your wallet to continue
         actionType:
-          type: string
-          example: HUMAN_TASK
+          $ref: '#/components/schemas/StepActionType'
       discriminator:
         propertyName: actionType
         mapping:
@@ -1988,6 +1977,18 @@ components:
       properties:
         action:
           $ref: '#/components/schemas/StepAction'
+
+    StepActionType:
+      type: string
+      enum:
+        - ARIES_OOB
+        - ACCEPT_CREDENTIAL
+        - SHARE_CREDENTIAL
+        - SETUP_CONNECTION
+        - CHOOSE_WALLET
+        - BUTTON
+      description: Type of action
+      example: ARIES_OOB
 
     AriesOOBAction:
       allOf:
@@ -2356,6 +2357,10 @@ components:
           properties:
             issuer:
               $ref: '#/components/schemas/Issuer'
+            type:
+              type: string
+              enum:
+                - "ISSUANCE"
       description: Scenario specialization for credential issuance
     IssuanceScenarioRequest:
       type: object
@@ -2392,6 +2397,10 @@ components:
           properties:
             relyingParty:
               $ref: '#/components/schemas/RelyingParty'
+            type:
+              type: string
+              enum:
+                - "PRESENTATION"
       description: Scenario specialization for credential presentation
     PresentationScenarioRequest:
       allOf:
@@ -3027,7 +3036,14 @@ components:
           type: array
           description: List of scenarios in this showcase
           items:
-            $ref: '#/components/schemas/Scenario'
+            oneOf:
+              - $ref: '#/components/schemas/IssuanceScenario'
+              - $ref: '#/components/schemas/PresentationScenario'
+            discriminator:
+              propertyName: type
+              mapping:
+                ISSUANCE: '#/components/schemas/IssuanceScenario'
+                PRESENTATION: '#/components/schemas/PresentationScenario'
         personas:
           type: object
           description: List of personas involved in this showcase
