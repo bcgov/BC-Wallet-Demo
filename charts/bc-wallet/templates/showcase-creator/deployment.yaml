@@ -1,0 +1,69 @@
+{{- if .Values.showcase_creator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: creator
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.showcase_creator.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+        app.kubernetes.io/component: creator
+        app.kubernetes.io/part-of: bc-wallet
+        {{- include "bc-wallet.labels" . | nindent 8 }}
+      {{- with .Values.showcase_creator.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.showcase_creator.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Values.showcase_creator.name }}
+        image: "{{ .Values.showcase_creator.image.repository }}:{{ .Values.showcase_creator.image.tag }}"
+        imagePullPolicy: {{ .Values.showcase_creator.image.pullPolicy }}
+        {{- with .Values.showcase_creator.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.showcase_creator.port }}
+          name: http
+        env:
+        - name: DB_HOST
+          value: {{ .Release.Name }}-postgresql
+        {{- range $key, $value := .Values.showcase_creator.env }}
+        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- toYaml $value | nindent 12 }}
+        {{- else if ne $key "DB_HOST" }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.database.secret.name" . }}
+              key: {{ include "bc-wallet.database.userPasswordKey" . }}
+        - name: AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.authtoken.secret.name" . }}
+              key: token
+        resources:
+          {{- toYaml .Values.showcase_creator.resources | nindent 12 }}
+      serviceAccountName: {{ if .Values.showcase_creator.serviceAccount.create }}{{ if .Values.showcase_creator.serviceAccount.name }}{{ .Values.showcase_creator.serviceAccount.name }}{{ else }}{{ $.Release.Name }}-{{ .Values.showcase_creator.name }}{{ end }}{{ end }}
+{{- end }} 

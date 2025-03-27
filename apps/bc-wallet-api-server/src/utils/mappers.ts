@@ -77,7 +77,7 @@ export const credentialDefinitionDTOFrom = (credentialDefinition: CredentialDefi
     credentialSchema: credentialSchemaDTOFrom(credentialDefinition.credentialSchema),
     representations: credentialDefinition.representations,
     revocation: credentialDefinition.revocation || undefined,
-    icon: credentialDefinition.icon ? assetDTOFrom(credentialDefinition?.icon) : undefined,
+    icon: credentialDefinition.icon ? assetDTOFrom(credentialDefinition.icon) : undefined,
   }
 }
 
@@ -131,9 +131,9 @@ export const presentationScenarioDTOFrom = (presentationScenario: PresentationSc
 export const scenarioDTOFrom = (scenario: Scenario): IssuanceScenarioDTO | PresentationScenarioDTO => {
   switch (scenario.scenarioType) {
     case ScenarioType.PRESENTATION:
-      return presentationScenarioDTOFrom(scenario)
+      return presentationScenarioDTOFrom(scenario as PresentationScenario)
     case ScenarioType.ISSUANCE:
-      return issuanceScenarioDTOFrom(scenario)
+      return issuanceScenarioDTOFrom(scenario as IssuanceScenario)
     default:
       throw Error(`Unsupported scenario type ${scenario.scenarioType}`)
   }
@@ -207,8 +207,7 @@ export const stepDTOFrom = (step: Step): StepDTO => {
     ...step,
     actions: step.actions.map(stepActionDTOFrom),
     asset: step.asset ? assetDTOFrom(step.asset) : undefined,
-    subScenario: step.subScenario || undefined,
-    screenId: step.screenId || undefined,
+    subScenario: step.subScenario || undefined
   }
 }
 

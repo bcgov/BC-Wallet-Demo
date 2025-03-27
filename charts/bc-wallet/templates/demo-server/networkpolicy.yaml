@@ -1,0 +1,57 @@
+{{- if and .Values.demo_server.enabled .Values.demo_server.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.demo_server.name }}-allow-external
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.demo_server.name }}
+  ingress:
+  - from:
+    {{- if .Values.demo_server.networkPolicy.ingress.namespaceSelector }}
+    - namespaceSelector:
+        matchLabels:
+          {{- if kindIs "map" .Values.demo_server.networkPolicy.ingress.namespaceSelector }}
+          {{- toYaml .Values.demo_server.networkPolicy.ingress.namespaceSelector | nindent 10 }}
+          {{- end }}
+      {{- if .Values.demo_server.networkPolicy.ingress.podSelector }}
+      podSelector:
+        {{- toYaml .Values.demo_server.networkPolicy.ingress.podSelector | nindent 10 }}
+      {{- end }}
+    {{- else }}
+    - {}  # Allow all ingress traffic if no selector specified
+    {{- end }}
+---
+# Network policy for Demo Server to database
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-postgres-allow-demo-server
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: {{ .Release.Name }}-{{ .Values.demo_server.name }}
+    ports:
+    - protocol: TCP
+      port: {{ .Values.postgresql.primary.service.ports.postgresql }}
+---
+{{- $context := dict "componentName" .Values.demo_server.name "componentLabel" "server" "servicePort" .Values.demo_server.service.port "Values" .Values "Release" .Release }}
+{{- include "bc-wallet.intra-release-network-policy" $context }}
+{{- end }} 

@@ -1,0 +1,69 @@
+{{- if .Values.demo_server.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.demo_server.name }}
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.demo_server.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.demo_server.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.demo_server.name }}
+        app.kubernetes.io/component: server
+        app.kubernetes.io/part-of: bc-wallet
+        {{- include "bc-wallet.labels" . | nindent 8 }}
+      {{- with .Values.demo_server.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.demo_server.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Values.demo_server.name }}
+        image: "{{ .Values.demo_server.image.repository }}:{{ .Values.demo_server.image.tag }}"
+        imagePullPolicy: {{ .Values.demo_server.image.pullPolicy }}
+        {{- with .Values.demo_server.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.demo_server.port }}
+          name: http
+        env:
+        - name: DB_HOST
+          value: {{ .Release.Name }}-postgresql
+        {{- range $key, $value := .Values.demo_server.env }}
+        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- toYaml $value | nindent 12 }}
+        {{- else if ne $key "DB_HOST" }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.database.secret.name" . }}
+              key: {{ include "bc-wallet.database.userPasswordKey" . }}
+        - name: AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.authtoken.secret.name" . }}
+              key: token
+        resources:
+          {{- toYaml .Values.demo_server.resources | nindent 12 }}
+      serviceAccountName: {{ if .Values.demo_server.serviceAccount.create }}{{ if .Values.demo_server.serviceAccount.name }}{{ .Values.demo_server.serviceAccount.name }}{{ else }}{{ $.Release.Name }}-{{ .Values.demo_server.name }}{{ end }}{{ end }}
+{{- end }} 

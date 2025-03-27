@@ -25,7 +25,7 @@ import {
   StepsResponseFromJSONTyped,
 } from 'bc-wallet-openapi'
 import { presentationScenarioDTOFrom, stepDTOFrom } from '../utils/mappers'
-import { ScenarioType } from '../types'
+import { PresentationScenario, ScenarioType } from '../types'
 
 @JsonController('/scenarios/presentations')
 @Service()
@@ -35,7 +35,7 @@ class PresentationScenarioController {
   @Get('/')
   public async getAllPresentationScenarios(): Promise<PresentationScenariosResponse> {
     try {
-      const result = await this.scenarioService.getScenarios({ filter: { scenarioType: ScenarioType.PRESENTATION } })
+      const result = await this.scenarioService.getScenarios({ filter: { scenarioType: ScenarioType.PRESENTATION } }) as PresentationScenario[]
       const presentationScenarios = result.map((presentationScenario) => presentationScenarioDTOFrom(presentationScenario))
       return PresentationScenariosResponseFromJSONTyped({ presentationScenarios }, false)
     } catch (e) {
@@ -50,7 +50,7 @@ class PresentationScenarioController {
   public async getOnePresentationScenario(@Param('slug') slug: string): Promise<PresentationScenarioResponse> {
     const presentationScenarioId = await this.scenarioService.getIdBySlug(slug)
     try {
-      const result = await this.scenarioService.getScenario(presentationScenarioId)
+      const result = await this.scenarioService.getScenario(presentationScenarioId) as PresentationScenario
       return PresentationScenarioResponseFromJSONTyped({ presentationScenario: presentationScenarioDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -67,7 +67,7 @@ class PresentationScenarioController {
       if (!instanceOfPresentationScenarioRequest(presentationScenarioRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.scenarioService.createScenario(PresentationScenarioRequestToJSONTyped(presentationScenarioRequest))
+      const result = await this.scenarioService.createScenario(PresentationScenarioRequestToJSONTyped(presentationScenarioRequest)) as PresentationScenario
       return PresentationScenarioResponseFromJSONTyped({ presentationScenario: presentationScenarioDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -90,7 +90,7 @@ class PresentationScenarioController {
       const result = await this.scenarioService.updateScenario(
         presentationScenarioId,
         PresentationScenarioRequestToJSONTyped(presentationScenarioRequest),
-      )
+      ) as PresentationScenario
       return PresentationScenarioResponseFromJSONTyped({ presentationScenario: presentationScenarioDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {

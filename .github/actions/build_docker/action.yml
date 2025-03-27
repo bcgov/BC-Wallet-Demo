@@ -13,13 +13,16 @@ inputs:
   registry:
     description: 'Container registry'
     required: true
-    default: 'ghcr.io'
   registry_username:
     description: 'Registry username'
     required: true
   registry_password:
     description: 'Registry password'
     required: true
+  visibility:
+    description: 'Package visibility (public or private)'
+    required: false
+    default: 'private'
 outputs:
   image_tag:
     description: 'The tag of the built image'
@@ -54,4 +57,4 @@ runs:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
         push: true
-        tags: ${{ inputs.registry }}/${{ inputs.image_name }}:${{ steps.docker_build.outputs.image_tag }} 
+        tags: ${{ inputs.registry }}/${{ inputs.image_name }}:${{ steps.docker_build.outputs.image_tag }}
