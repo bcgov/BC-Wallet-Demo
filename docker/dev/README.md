@@ -23,6 +23,9 @@ This guide provides instructions for setting up and running the BC Wallet Demo s
 
 The BC Wallet Demo system is a comprehensive digital credential showcase platform that consists of multiple microservices communicating via a message broker. This Docker setup allows you to run the entire system locally for development and testing purposes.
 
+
+For more info on the devops setup there is [devops.md](../../resources/DEVOPS/devops.md) in the resources/DEVOPS folder in the root.
+
 ## Components
 
 The system consists of the following components:

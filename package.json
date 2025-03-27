@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
-  "description": "BC Wallet - Verifiable Credential Demo",
+  "description": "BC Wallet - Verifiable Credential Showcase",
   "repository": {
     "url": "https://github.com/bcgov/bc-wallet-demo",
     "type": "git"
