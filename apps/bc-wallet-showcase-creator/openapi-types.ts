@@ -465,4 +465,3 @@ export type CredentialDefinitionRequestType = z.infer<typeof CredentialDefinitio
 export type CredentialDefinitionResponseType = z.infer<typeof CredentialDefinitionResponse>;
 export type CredentialSchemaResponseType = z.infer<typeof CredentialSchemaResponse>;
 export type CredentialDefinitionType = z.infer<typeof CredentialDefinition>;
-
