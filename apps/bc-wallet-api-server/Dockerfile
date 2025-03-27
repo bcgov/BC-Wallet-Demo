@@ -1,6 +1,6 @@
 # Build stage
 FROM node:20-bookworm AS builder
-RUN apk add --no-cache maven openjdk17
+RUN apt update && apt install -y maven openjdk-17-jdk
 
 SHELL ["/bin/bash", "-c"]
 ENV SHELL=bash
