@@ -182,7 +182,7 @@ export const SortableStep = ({
               </div>
               <div className="align-middle ml-auto">
                 <div className="font-semibold">Attributes</div>
-                <div className="text-sm text-end">{Object.keys(selectedCredential.credentialSchema.attributes).length}</div>
+                {/* <div className="text-sm text-end">{Object.keys(selectedCredential.credentialSchema.attributes).length}</div> */}
               </div>
             </div>
             }

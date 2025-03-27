@@ -26,6 +26,7 @@ import { sampleScenario } from '@/lib/steps'
 import { NoSelection } from '../credentials/no-selection'
 import { debounce } from 'lodash';
 import { useHelpersStore } from '@/hooks/use-helpers-store';
+import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 export const BasicStepAdd = () => {
   const t = useTranslations()
 
@@ -41,9 +42,9 @@ export const BasicStepAdd = () => {
   const router = useRouter();
   const { mutateAsync, isPending } = useCreateScenario();
   const currentStep = selectedStep !== null ? screens[selectedStep] : null;
-  const { showcase, setScenarioIds } = useShowcaseStore();
+  const { setScenarioIds } = useShowcaseStore();
   const { issuerId } = useHelpersStore();
-  const personas = showcase.personas || [];
+  const { personas } = useOnboardingAdapter()
 
   const isEditMode = stepState === 'editing-basic'
   const [showErrorModal, setErrorModal] = useState(false)
@@ -102,7 +103,7 @@ export const BasicStepAdd = () => {
     const personaScenarios = personas.map((persona) => {
       const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario))
 
-      scenarioForPersona.personas = [persona]
+      scenarioForPersona.personas = [persona.id]
       scenarioForPersona.issuer = issuerId
 
       scenarioForPersona.steps = [
