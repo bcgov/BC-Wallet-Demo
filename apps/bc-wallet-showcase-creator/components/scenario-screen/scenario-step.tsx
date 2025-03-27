@@ -28,6 +28,7 @@ export const ScenarioStep = ({
     activeScenarioIndex,
     setActiveScenarioIndex,
     activePersonaId,
+    handleSelectStep
   } = usePresentationAdapter()
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
@@ -40,16 +41,9 @@ export const ScenarioStep = ({
   }
 
   const handleSelect = () => {
-    setSelectedStep(stepIndex);
-    
-    if (activeScenarioIndex !== scenarioIndex) {
-      setActiveScenarioIndex(scenarioIndex);
-    }
-    
-    // Use the correct signature for setStepState
-    const stepType = step.type === 'SERVICE' ? 'editing-issue' : 'editing-basic';
-    setStepState(stepIndex); // This passes the index, not the state type
+    handleSelectStep(stepIndex, scenarioIndex);
   };
+
   const handleCopyStep = (index: number) => {
     try {
       if (!activePersonaId) {
@@ -57,7 +51,6 @@ export const ScenarioStep = ({
         return
       }
 
-      // Make sure we're using the correct scenario index
       duplicateStep(index)
     } catch (error) {
       console.error('Error duplicating step:', error)

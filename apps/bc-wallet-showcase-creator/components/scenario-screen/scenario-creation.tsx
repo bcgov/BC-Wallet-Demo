@@ -34,34 +34,22 @@ export const CreateScenariosScreen = () => {
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
 
-  // const handleDragEnd = (event: DragEndEvent) => {
-  //   const { active, over } = event
-  //   if (!over) return
-
-  //   const oldIndex = steps.findIndex((step) => step.id === active.id)
-  //   const newIndex = steps.findIndex((step) => step.id === over.id)
-
-  //   if (oldIndex !== newIndex) {
-  //     moveStep(oldIndex, newIndex)
-  //   }
-  // }
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     if (!over) return
 
-    // Extract the stepIndex from the ID format "step-scenarioIndex-stepIndex"
-    const activeIdParts = active.id.toString().split('-')
-    const overIdParts = over.id.toString().split('-')
+    // Find the steps by their IDs
+    const activeStep = activeScenario?.steps.find((step) => step.id === active.id)
+    const overStep = activeScenario?.steps.find((step) => step.id === over.id)
 
-    // Ensure we have valid IDs
-    if (activeIdParts.length >= 3 && overIdParts.length >= 3) {
-      const oldIndex = parseInt(activeIdParts[2])
-      const newIndex = parseInt(overIdParts[2])
+    if (!activeStep || !overStep) return
 
-      if (oldIndex !== newIndex) {
-        moveStep(oldIndex, newIndex)
-      }
+    // Get the indexes
+    const oldIndex = activeScenario.steps.indexOf(activeStep)
+    const newIndex = activeScenario.steps.indexOf(overStep)
+
+    if (oldIndex !== newIndex) {
+      moveStep(oldIndex, newIndex)
     }
   }
 
@@ -181,13 +169,13 @@ export const CreateScenariosScreen = () => {
                             </div>
                           ) : (
                             scenario.steps.map((step: StepRequestType, stepIndex: number) => {
-                              console.log('step ==>', step)
+                              // console.log('step ==>', step)
                               return (
                                 <div key={`step-${index}-${stepIndex}`} className="flex flex-row">
                                   <SortableStep
                                     selectedStep={selectedStep}
                                     myScreen={step as any}
-                                    stepIndex={stepIndex + 1}
+                                    stepIndex={stepIndex}
                                     totalSteps={scenario.steps.length}
                                     scenarioIndex={index}
                                   />

@@ -24,18 +24,13 @@ export const SortableStep = ({
   scenarioIndex: number
 }) => {
   const t = useTranslations()
-  const { setSelectedStep, setStepState, duplicateStep, activeScenarioIndex, setActiveScenarioIndex } =
-    usePresentationAdapter()
+  const { handleSelectStep, duplicateStep, activePersonaId } = usePresentationAdapter()
 
   const { selectedCredential } = useCredentials()
 
-  // const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-  //   id: myScreen.id,
-  // })
-
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: `step-${scenarioIndex}-${stepIndex}`,
-  });
+    id: myScreen.id || `step-${scenarioIndex}-${stepIndex}`,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -43,21 +38,25 @@ export const SortableStep = ({
   }
 
   const handleStepClick = () => {
-    const adjustedIndex = stepIndex - 1
-    setSelectedStep(adjustedIndex)
-    const screenType = myScreen.type
-    setStepState(screenType === 'SERVICE' ? 'editing-issue' : 'editing-basic')
-    if (activeScenarioIndex !== scenarioIndex) {
-      setActiveScenarioIndex(scenarioIndex)
-    }
+    handleSelectStep(stepIndex, scenarioIndex)
   }
 
-  const handleCopyStep = (index: number) => {
+  const handleCopyStep = (stepIndex: number, scenarioIndex: number) => {
     try {
-      duplicateStep(index)
-      setSelectedStep(index + 1)
+      console.log('Duplicating step:', { stepIndex, scenarioIndex })
+
+      if (!activePersonaId) {
+        console.error('Cannot duplicate - no active persona')
+        return
+      }
+
+      // Call duplicateStep with the correct scenarioIndex
+      duplicateStep(stepIndex)
+
+      // Update to select the newly created step (index + 1) in the same scenario
+      handleSelectStep(stepIndex + 1, scenarioIndex)
     } catch (error) {
-      console.log('Error duplicating step:', error)
+      console.error('Error duplicating step:', error)
     }
   }
 
@@ -80,7 +79,7 @@ export const SortableStep = ({
           <div
             onClick={(e) => {
               e.stopPropagation()
-              handleCopyStep(stepIndex - 1)
+              handleCopyStep(stepIndex, scenarioIndex)
             }}
             className="text-white text-2xl flex flex-col gap-2 cursor-pointer"
           >
