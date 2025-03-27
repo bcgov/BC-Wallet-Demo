@@ -1,5 +1,7 @@
 # Build stage
 FROM node:20-bookworm AS builder
+RUN apk add --no-cache maven openjdk17
+
 SHELL ["/bin/bash", "-c"]
 ENV SHELL=bash
 ENV PNPM_HOME=/usr/local/share/pnpm
@@ -20,7 +22,7 @@ COPY packages/bc-wallet-openapi packages/bc-wallet-openapi
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib drizzle-kit
 RUN pnpm install
 RUN pnpm generate:models
-RUN cd packages/bc-wallet-openapi && pnpm build && cd ../..
+RUN pnpm --filter bc-wallet-openapi build:clean
 RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-api-server --prod --no-optional
 
