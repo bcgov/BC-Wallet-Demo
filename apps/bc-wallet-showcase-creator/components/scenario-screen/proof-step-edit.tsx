@@ -7,10 +7,7 @@ import { FormTextInput, FormTextArea } from '@/components/text-input'
 import { Form } from '@/components/ui/form'
 import { useScenarios } from '@/hooks/use-scenarios'
 import { useShowcaseStore } from '@/hooks/use-showcase-store'
-import type { ProofStepFormData } from '@/schemas/scenario'
-import { proofStepSchema } from '@/schemas/scenario'
-import type { ScenarioStep } from '@/types'
-import { RequestType, StepType } from '@/types'
+import { StepType } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -20,7 +17,7 @@ import { DisplaySearchResults } from '../onboarding-screen/display-search-result
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { DisplayStepCredentials } from './display-step-credentials'
-
+import { StepRequest, StepRequestType } from '@/openapi-types'
 export const ProofStepEdit = () => {
   const t = useTranslations()
   const { showcaseJSON, selectedCharacter } = useShowcaseStore()
@@ -31,27 +28,17 @@ export const ProofStepEdit = () => {
   const currentScenario = selectedScenario !== null ? scenarios[selectedScenario] : null
   const currentStep = currentScenario && selectedStep !== null ? currentScenario.steps[selectedStep] : null
 
-  const form = useForm<ProofStepFormData>({
-    resolver: zodResolver(proofStepSchema),
+  const form = useForm<StepRequestType>({
+    resolver: zodResolver(StepRequest),
     mode: 'onChange',
   })
 
   useEffect(() => {
     if (currentStep && currentStep.type === StepType.CONNECT_AND_VERIFY) {
-      const proofStep = {
-        ...currentStep,
-        requestOptions: {
-          ...currentStep.requestOptions,
-          proofRequest: {
-            attributes: currentStep.requestOptions.proofRequest.attributes || {},
-            predicates: currentStep.requestOptions.proofRequest.predicates || {},
-          },
-        },
-      } as ProofStepFormData
-
-      form.reset(proofStep)
+      form.reset(currentStep as any)
     }
   }, [currentStep, form.reset])
+
 
   const searchCredential = (value: string) => {
     setSearchResults([])
@@ -71,12 +58,12 @@ export const ProofStepEdit = () => {
 
   const addCredential = (credentialId: string) => {
     setSearchResults([])
-    const currentAttributes = form.getValues('requestOptions.proofRequest.attributes')
+    const currentAttributes = form.getValues('actions.0.proofRequest.attributes')
 
     if (!currentAttributes[credentialId]) {
       const credential = showcaseJSON.personas[selectedCharacter].credentials[credentialId]
       form.setValue(
-        `requestOptions.proofRequest.attributes.${credentialId}`,
+        `actions.0.proofRequest.attributes.${credentialId}`,
         {
           attributes: [credential.attributes[0].name],
         },
@@ -92,20 +79,20 @@ export const ProofStepEdit = () => {
   const removeCredential = (credentialId: string) => {
     const formValues = form.getValues()
     const newAttributes = {
-      ...formValues.requestOptions.proofRequest.attributes,
+      ...formValues.actions[0].proofRequest.attributes,
     }
     delete newAttributes[credentialId]
 
-    form.setValue('requestOptions.proofRequest.attributes', newAttributes, {
+    form.setValue('actions.0.proofRequest.attributes', newAttributes, {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,
     })
 
     // Remove any predicates that reference this credential
-    if (formValues.requestOptions.proofRequest.predicates) {
+    if (formValues.actions[0].proofRequest.predicates) {
       const newPredicates = {
-        ...formValues.requestOptions.proofRequest.predicates,
+        ...formValues.actions[0].proofRequest.predicates,
       }
       Object.entries(newPredicates).forEach(([key, predicate]) => {
         if (predicate.restrictions[0] === credentialId) {
@@ -113,7 +100,7 @@ export const ProofStepEdit = () => {
         }
       })
 
-      form.setValue('requestOptions.proofRequest.predicates', newPredicates, {
+      form.setValue('actions.0.proofRequest.predicates', newPredicates, {
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,
@@ -121,27 +108,27 @@ export const ProofStepEdit = () => {
     }
   }
 
-  const onSubmit = (data: ProofStepFormData) => {
+  const onSubmit = (data: StepRequestType) => {
     if (selectedScenario === null || selectedStep === null) return
 
-    const updatedStep: ScenarioStep = {
+    const updatedStep: StepRequestType = {
       ...data,
-      type: StepType.CONNECT_AND_VERIFY,
-      requestOptions: {
-        ...data.requestOptions,
-        type: RequestType.OOB,
-        proofRequest: {
-          attributes: data.requestOptions.proofRequest.attributes,
-          predicates: data.requestOptions.proofRequest.predicates || {},
-        },
-      },
+      // type: StepType.CONNECT_AND_VERIFY,
+      // actions: {
+      //   ...data.actions[0],
+      //   type: RequestType.OOB,
+      //   proofRequest: {
+      //     attributes: data.actions[0].proofRequest.attributes,
+      //     predicates: data.actions[0].proofRequest.predicates || {},
+      //   },
+      // },
     }
 
-    updateStep(selectedScenario, selectedStep, updatedStep)
+    updateStep(selectedScenario, selectedStep, updatedStep as any)
     setStepState('none-selected')
   }
 
-  if (!currentStep) return null
+  // if (!currentStep) return null
 
   return (
     <>
@@ -195,23 +182,23 @@ export const ProofStepEdit = () => {
               <h4 className="text-xl font-bold">Request Options</h4>
               <hr />
 
-              <FormTextInput
+              {/* <FormTextInput
                 label="Title"
-                name="requestOptions.title"
+                name="actions.0.proofRequest.title"
                 register={form.register}
-                error={form.formState.errors.requestOptions?.title?.message}
+                error={form.formState.errors.actions?.title?.message}
                 placeholder="Enter request title"
                 control={form.control}
               />
 
               <FormTextArea
                 label="Text"
-                name="requestOptions.text"
+                name="actions.0.proofRequest.text"
                 register={form.register}
-                error={form.formState.errors.requestOptions?.text?.message}
+                error={form.formState.errors.actions?.text?.message}
                 placeholder="Enter request text"
                 control={form.control}
-              />
+              /> */}
 
               <div className="space-y-4">
                 <div>
@@ -234,8 +221,8 @@ export const ProofStepEdit = () => {
                   <DisplayStepCredentials
                     selectedCharacter={selectedCharacter}
                     showcaseJSON={showcaseJSON}
-                    localData={form.watch()}
                     selectedStep={selectedStep}
+                    localData={{}}
                     selectedScenario={selectedScenario}
                     removeCredential={removeCredential}
                   />

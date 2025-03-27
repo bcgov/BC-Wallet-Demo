@@ -12,7 +12,6 @@ export const usePresentationAdapter = () => {
     personaScenarios,
     activePersonaId,
     setActivePersonaId,
-    updatePersonaSteps,
     duplicateScenario,
     activeScenarioIndex,
     setActiveScenarioIndex,
@@ -22,16 +21,19 @@ export const usePresentationAdapter = () => {
     deleteStep,
     moveStep,
     duplicateStep,
+    setStepState,
+    stepState,
+    selectedScenario,
+    updateScenario,
+    removeScenario,
+    selectedStep,
+    setSelectedStep,
+    selectStep,
   } = usePresentationCreation()
 
   const { displayShowcase, setShowcase, showcase } = useShowcaseStore()
   const { selectedCredentialDefinitionIds } = useHelpersStore()
   const queryClient = useQueryClient()
-
-  const [selectedStep, setSelectedStep] = useState<number | null>(null)
-  const [stepState, setStepState] = useState<'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new'>(
-    'no-selection',
-  )
 
   const getCurrentSteps = useCallback(() => {
     if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
@@ -51,7 +53,7 @@ export const usePresentationAdapter = () => {
 
       addStep(activePersonaId, activeScenarioIndex, stepData)
       // Set the newly added step as selected
-      setSelectedStep(steps.length) // This will be the index of the new step
+      setSelectedStep({ stepIndex: steps.length, scenarioIndex: activeScenarioIndex })
       setStepState('editing-basic')
     },
     [activePersonaId, activeScenarioIndex, addStep, steps.length],
@@ -139,35 +141,44 @@ export const usePresentationAdapter = () => {
 
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
+  // const handleSelectStep = useCallback(
+  //   (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
+  //     console.log('handleSelectStep', { stepIndex, scenarioIndex })
+  //     if (scenarioIndex !== activeScenarioIndex) {
+  //       setActiveScenarioIndex(scenarioIndex)
+  //     }
+
+  //     setSelectedStep(stepIndex)
+
+  //     if (activePersonaId && personaScenarios.has(activePersonaId)) {
+  //       const scenarios = personaScenarios.get(activePersonaId)!
+
+  //       if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
+  //         const steps = scenarios[scenarioIndex].steps
+
+  //         if (stepIndex >= 0 && stepIndex < steps.length) {
+  //           const currentStep = steps[stepIndex]
+
+  //           if (currentStep.type === 'SERVICE') {
+  //             setStepState('editing-issue')
+  //           } else {
+  //             setStepState('editing-basic')
+  //           }
+  //         }
+  //       }
+  //     }
+  //   },
+  //   [activeScenarioIndex, setActiveScenarioIndex, setSelectedStep, activePersonaId, personaScenarios, setStepState],
+  // )
+
   const handleSelectStep = useCallback(
     (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
-      console.log('handleSelectStep', { stepIndex, scenarioIndex })
-      if (scenarioIndex !== activeScenarioIndex) {
-        setActiveScenarioIndex(scenarioIndex)
-      }
-
-      setSelectedStep(stepIndex)
-
-      if (activePersonaId && personaScenarios.has(activePersonaId)) {
-        const scenarios = personaScenarios.get(activePersonaId)!
-
-        if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
-          const steps = scenarios[scenarioIndex].steps
-
-          if (stepIndex >= 0 && stepIndex < steps.length) {
-            const currentStep = steps[stepIndex]
-
-            if (currentStep.type === 'SERVICE') {
-              setStepState('editing-issue')
-            } else {
-              setStepState('editing-basic')
-            }
-          }
-        }
-      }
+      console.log('handleSelectStep', { stepIndex, scenarioIndex });
+      
+      selectStep(stepIndex, scenarioIndex);
     },
-    [activeScenarioIndex, setActiveScenarioIndex, setSelectedStep, activePersonaId, personaScenarios, setStepState],
-  )
+    [selectStep],
+  );
 
   return {
     steps,
@@ -194,5 +205,8 @@ export const usePresentationAdapter = () => {
     activeScenarioIndex,
     setActiveScenarioIndex,
     deleteScenario,
+    selectedScenario,
+    updateScenario,
+    removeScenario,
   }
 }

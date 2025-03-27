@@ -5,9 +5,6 @@ import { useForm } from 'react-hook-form'
 
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import { Form } from '@/components/ui/form'
-import { useScenarios } from '@/hooks/use-scenarios'
-import type { BasicStepFormData } from '@/schemas/scenario'
-import { basicStepSchema } from '@/schemas/scenario'
 import { RequestType, StepType } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
@@ -16,58 +13,35 @@ import { useTranslations } from 'next-intl'
 import DeleteModal from '../delete-modal'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { StepRequest, StepRequestType } from '@/openapi-types'
 
 export const BasicStepEdit = () => {
   const t = useTranslations()
-  const { scenarios, selectedScenario, selectedStep, setStepState, updateStep } = useScenarios()
+  const { selectedScenario, setStepState, selectedStep } = usePresentationCreation()
 
   const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const currentScenario = selectedScenario !== null ? scenarios[selectedScenario] : null
-  const currentStep = currentScenario && selectedStep !== null ? currentScenario.steps[selectedStep] : null
+  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] : null
 
-  const form = useForm<BasicStepFormData>({
-    resolver: zodResolver(basicStepSchema),
+  const form = useForm<StepRequestType>({
+    resolver: zodResolver(StepRequest),
     mode: 'all',
     defaultValues: {
       type: StepType.HUMAN_TASK,
       title: '',
       description: '',
-      requestOptions: {
-        type: RequestType.BASIC,
-        title: '',
-        text: '',
-        proofRequest: {
-          attributes: {},
-          predicates: {},
-        },
-      },
     },
   })
 
   useEffect(() => {
     if (currentStep) {
-      const formData = {
-        id: currentStep.id,
-        type: StepType.HUMAN_TASK,
-        title: currentStep.title,
-        description: currentStep.description,
-        requestOptions: {
-          type: RequestType.BASIC,
-          title: currentStep.requestOptions?.title || '',
-          text: currentStep.requestOptions?.text || '',
-          proofRequest: {
-            attributes: currentStep.requestOptions?.proofRequest?.attributes || {},
-            predicates: currentStep.requestOptions?.proofRequest?.predicates || {},
-          },
-        },
-      }
-      form.reset(formData as BasicStepFormData)
+      form.reset(currentStep)
     }
   }, [currentStep, form.reset])
 
-  const onSubmit = (data: BasicStepFormData) => {
+  const onSubmit = (data: StepRequestType) => {
     console.log('data', data)
     if (selectedScenario === null || selectedStep === null) return
 
@@ -75,14 +49,14 @@ export const BasicStepEdit = () => {
     const stepData = {
       ...data,
       type: data.type.toUpperCase() as StepType,
-      requestOptions: {
-        ...data.requestOptions,
-        type: data.requestOptions.type.toUpperCase() as RequestType,
+      actions: {
+        ...data.actions,
+        type: data.actions[0].actionType.toUpperCase() as RequestType,
       },
     }
     console.log('StepData After Update', stepData)
-    updateStep(selectedScenario, selectedStep, stepData)
-    setStepState('none-selected')
+    // updateStep(selectedScenario, selectedStep, stepData)
+    setStepState('no-selection')
   }
   console.log('form.formState', form.formState)
   if (!currentStep) return null
@@ -136,7 +110,7 @@ export const BasicStepEdit = () => {
           </div>
 
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
-            <ButtonOutline onClick={() => setStepState('none-selected')}>{t('action.cancel_label')}</ButtonOutline>
+            <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
             {/* <Link href="/publish"> */}
             <ButtonOutline disabled={!form.formState.isDirty || !form.formState.isValid}>
               {t('action.next_label')}

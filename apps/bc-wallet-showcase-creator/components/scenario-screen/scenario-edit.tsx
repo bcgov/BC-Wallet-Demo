@@ -18,45 +18,33 @@ import { useTranslations } from 'next-intl'
 import DeleteModal from '../delete-modal'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { PresentationScenarioRequest, PresentationScenarioRequestType } from '@/openapi-types'
 export const ScenarioEdit = () => {
   const t = useTranslations()
-  const { scenarios, selectedScenario, updateScenario, setStepState, removeScenario } = useScenarios()
+  const { selectedScenario, updateScenario, setStepState, removeScenario } = usePresentationCreation()
   const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const currentScenario = selectedScenario !== null ? scenarios[selectedScenario] : null
 
-  const form = useForm<ScenarioFormData>({
-    resolver: zodResolver(scenarioSchema),
+  const form = useForm<PresentationScenarioRequestType>({
+    resolver: zodResolver(PresentationScenarioRequest),
     mode: 'onChange',
   })
 
   useEffect(() => {
-    if (currentScenario) {
-      const formData = scenarioToFormData(currentScenario)
-      form.reset(formData)
+    if (selectedScenario) {
+      form.reset(selectedScenario)
     }
-  }, [currentScenario, form.reset])
-  const onSubmit = (data: ScenarioFormData) => {
-    if (selectedScenario === null) return
-    const updatedScenario: Scenario = {
-      ...data,
-      overview: {
-        ...data.overview,
-        image: data.overview.image ?? '',
-      },
-      summary: {
-        ...data.summary,
-        image: data.summary.image ?? '',
-      },
-      steps: currentScenario?.steps || [],
-    }
+  }, [selectedScenario, form.reset])
 
-    updateScenario(selectedScenario, updatedScenario)
-    setStepState('none-selected')
+  const onSubmit = (data: PresentationScenarioRequestType) => {
+    if (selectedScenario === null) return
+
+    // updateScenario(selectedScenario, updatedScenario)
+    setStepState('no-selection')
   }
 
-  if (!currentScenario) return null
+  if (!selectedScenario) return null
 
   return (
     <>
@@ -106,9 +94,9 @@ export const ScenarioEdit = () => {
 
             <FormTextInput
               label={t('scenario.scenario_description')}
-              name="overview.title"
+              name="description"
               register={form.register}
-              error={form.formState.errors.overview?.title?.message}
+              error={form.formState.errors.description?.message}
               placeholder={t('scenario.edit_page_title_placeholder')}
               control={form.control}
             />
@@ -207,7 +195,7 @@ export const ScenarioEdit = () => {
           >
             {t('action.cancel_label')}
           </Button> */}
-            <ButtonOutline type="button" onClick={() => setStepState('none-selected')}>
+            <ButtonOutline type="button" onClick={() => setStepState('no-selection')}>
               {t('action.cancel_label')}
             </ButtonOutline>
             <ButtonOutline
@@ -229,7 +217,7 @@ export const ScenarioEdit = () => {
         onDelete={() => {
           console.log('Item Deleted')
           setIsModalOpen(false)
-          removeScenario(0)
+          removeScenario()
         }}
         header="Are you sure you want to delete this scenario?"
         description="Are you sure you want to delete this scenario?"

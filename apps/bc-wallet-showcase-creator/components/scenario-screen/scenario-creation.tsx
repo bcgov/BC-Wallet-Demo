@@ -18,7 +18,6 @@ import { Copy } from 'lucide-react'
 export const CreateScenariosScreen = () => {
   const t = useTranslations()
   const {
-    steps,
     selectedStep,
     moveStep,
     setStepState,
@@ -39,8 +38,8 @@ export const CreateScenariosScreen = () => {
     if (!over) return
 
     // Find the steps by their IDs
-    const activeStep = activeScenario?.steps.find((step) => step.id === active.id)
-    const overStep = activeScenario?.steps.find((step) => step.id === over.id)
+    const activeStep = activeScenario?.steps.find((step: any) => step.id === active.id)
+    const overStep = activeScenario?.steps.find((step: any) => step.id === over.id)
 
     if (!activeStep || !overStep) return
 
@@ -69,7 +68,6 @@ export const CreateScenariosScreen = () => {
 
   // Get the current active scenario's steps
   const activeScenario = scenarios[activeScenarioIndex]
-  const currentSteps = activeScenario?.steps || []
 
   return (
     <div className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text rounded-md border shadow-sm">
@@ -185,11 +183,11 @@ export const CreateScenariosScreen = () => {
                           )}
 
                           <DragOverlay>
-                            {selectedStep !== null && scenario.steps && scenario.steps[selectedStep] && (
+                            {selectedStep !== null && scenario.steps && scenario.steps[selectedStep.stepIndex] && (
                               <div className="top-1">
-                                <p>{scenario.steps[selectedStep].title}</p>
+                                <p>{scenario.steps[selectedStep.stepIndex].title}</p>
                                 <div className="highlight-container w-full flex flex-row justify-items-center items-center rounded p-3 unselected-item backdrop-blur">
-                                  <p className="text-sm">{scenario.steps[selectedStep].description}</p>
+                                  <p className="text-sm">{scenario.steps[selectedStep.stepIndex].description}</p>
                                 </div>
                               </div>
                             )}

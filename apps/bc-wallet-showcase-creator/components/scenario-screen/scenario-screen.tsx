@@ -15,7 +15,6 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
 import ButtonOutline from '../ui/button-outline'
-import { ScenarioStep } from './scenario-step'
 
 export const ScenarioScreen = () => {
   const t = useTranslations()
@@ -165,7 +164,7 @@ export const ScenarioScreen = () => {
   console.log('SelectedScenario ', SelectedScenario)
 
   // const Steps = SelectedScenario ? SelectedScenario.steps : []
-  const Steps = []
+  const Steps: any = []
 
   // console.log('Showcase JSON', showcaseJSON.personas[selectedCharacter].scenarios);
 
@@ -332,7 +331,7 @@ export const ScenarioScreen = () => {
 
                   <div className="flex-1">
                     <div onClick={() => setStepState('editing-scenario')} className="p-3 bg-light-bg dark:bg-dark-bg">
-                      <h3 className="text-xl font-bold">{SelectedScenario?.name}</h3>
+                      {/* <h3 className="text-xl font-bold">{SelectedScenario?.name}</h3> */}
                     </div>
 
                     {/* Steps Section */}
@@ -351,7 +350,7 @@ export const ScenarioScreen = () => {
                           {scenario.steps.map((step, stepIndex) => (
                             <div key={step.id}>
                               {/* {step.actions.map((action, actionIndex) => ( */}
-                              <ScenarioStep
+                              {/* <ScenarioStep
                                 key={step.id} // Ensure each action has a unique key
                                 step={step} // Pass action directly
                                 stepIndex={stepIndex}
@@ -359,12 +358,12 @@ export const ScenarioScreen = () => {
                                 actionIndex={stepIndex as unknown as number} // Optional if needed
                                 scenarioIndex={index}
                                 totalSteps={scenario.steps.length}
-                              />
+                              /> */}
                               {/* ))} */}
                             </div>
                           ))}
 
-                          <DragOverlay>
+                          {/* <DragOverlay>
                             {SelectedScenario !== null && (
                               <div className="top-1">
                                 <p>{Steps.map((item) => item.title)}</p>
@@ -373,7 +372,7 @@ export const ScenarioScreen = () => {
                                 </div>
                               </div>
                             )}
-                          </DragOverlay>
+                          </DragOverlay> */}
                         </SortableContext>
                       </DndContext>
 

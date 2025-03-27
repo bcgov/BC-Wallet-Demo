@@ -17,14 +17,14 @@ export const SortableStep = ({
   scenarioIndex,
   totalSteps,
 }: {
-  selectedStep: number | null
+  selectedStep: { stepIndex: number, scenarioIndex: number } | null
   myScreen: StepType
   stepIndex: number
   totalSteps: number
   scenarioIndex: number
 }) => {
   const t = useTranslations()
-  const { handleSelectStep, duplicateStep, activePersonaId } = usePresentationAdapter()
+  const { handleSelectStep, duplicateStep, activePersonaId, setSelectedStep, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
 
   const { selectedCredential } = useCredentials()
 
@@ -37,9 +37,23 @@ export const SortableStep = ({
     transition,
   }
 
-  const handleStepClick = () => {
-    handleSelectStep(stepIndex, scenarioIndex)
+const handleStepClick = () => {
+  console.log('Step clicked!', { 
+    stepIndex, 
+    scenarioIndex,
+    myScreen: {
+      type: myScreen.type,
+      title: myScreen.title
+    }
+  });
+    
+  handleSelectStep(stepIndex, scenarioIndex)
+  setStepState('editing-issue');
+  
+  if (activeScenarioIndex !== scenarioIndex) {
+    setActiveScenarioIndex(scenarioIndex);
   }
+};
 
   const handleCopyStep = (stepIndex: number, scenarioIndex: number) => {
     try {
@@ -50,10 +64,8 @@ export const SortableStep = ({
         return
       }
 
-      // Call duplicateStep with the correct scenarioIndex
       duplicateStep(stepIndex)
 
-      // Update to select the newly created step (index + 1) in the same scenario
       handleSelectStep(stepIndex + 1, scenarioIndex)
     } catch (error) {
       console.error('Error duplicating step:', error)
@@ -93,7 +105,7 @@ export const SortableStep = ({
             'min-h-28  w-full hover:bg-light-btn-hover dark:hover:bg-dark-btn-hover',
             'flex flex-col justify-center rounded p-3',
             'border-b-2 border-light-border dark:border-dark-border',
-            selectedStep === stepIndex - 1 ? 'border-foreground' : 'border-light-bg-secondary',
+            selectedStep?.stepIndex === stepIndex ? 'border-foreground' : 'border-light-bg-secondary',
           )}
         >
           <span className="font-semibold">{myScreen.title}</span>

@@ -170,7 +170,8 @@
     "search_credential_label": "Rechercher un justificatif:",
     "search_credential_placeholder": "ex. Carte d'étudiant",
     "no_credentials_added_message": "Aucun justificatif ajouté",
-    "go_back_to_select_personas": "Retour à la sélection des personnages"
+    "go_back_to_select_personas": "Retour à la sélection des personnages",
+    "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration."
   },
   "scenario": {
     "header_title": "Créer des Scénarios",

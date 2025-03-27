@@ -9,12 +9,18 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
 
 enableMapSet()
-// Define the interface structure for our scenarios
+
+type SelectedStep = {
+  stepIndex: number
+  scenarioIndex: number
+} | null
 interface PresentationCreationState {
-  // Instead of using a Map directly, we'll use a Record object for better compatibility
   personaScenariosMap: Record<string, PresentationScenarioRequestType[]>
   activePersonaId: string | null
   activeScenarioIndex: number
+  stepState: 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new' | 'editing-scenario'
+  selectedScenarioId: string | null
+  selectedStep: SelectedStep
 
   // Actions
   setActivePersonaId: (id: string | null) => void
@@ -29,14 +35,29 @@ interface PresentationCreationState {
   deleteStep: (personaId: string, scenarioIndex: number, stepIndex: number) => void
   moveStep: (personaId: string, scenarioIndex: number, oldIndex: number, newIndex: number) => void
   duplicateStep: (personaId: string, scenarioIndex: number, stepIndex: number) => void
+  setStepState: (
+    state: 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new' | 'editing-scenario',
+  ) => void
+  setSelectedScenarioId: (id: string | null) => void
+  updateScenario: (personaId: string, scenarioIndex: number, scenarioData: PresentationScenarioRequestType) => void
+  removeScenario: (personaId: string, scenarioIndex: number) => void
+  setSelectedStep: (selectedStep: SelectedStep) => void
+  selectStep: (stepIndex: number, scenarioIndex: number) => void
 }
 
-// Create the Zustand store with Immer middleware
 const usePresentationCreationStore = create<PresentationCreationState>()(
   immer((set) => ({
     personaScenariosMap: {},
-    activePersonaId: null,
+    activePersonaId: null as string | null,
     activeScenarioIndex: 0,
+    stepState: 'no-selection' as PresentationCreationState['stepState'],
+    selectedScenarioId: null as string | null,
+    selectedStep: null as SelectedStep | null,
+
+    setSelectedScenarioId: (id) =>
+      set((state) => {
+        state.selectedScenarioId = id
+      }),
 
     setActivePersonaId: (id) =>
       set((state) => {
@@ -182,27 +203,6 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         })
       }),
 
-    // moveStep: (personaId, scenarioIndex, oldIndex, newIndex) => set(state => {
-    //   if (!state.personaScenariosMap[personaId]) return;
-
-    //   const scenarios = state.personaScenariosMap[personaId];
-    //   if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return;
-
-    //   const steps = scenarios[scenarioIndex].steps;
-    //   if (oldIndex < 0 || oldIndex >= steps.length || newIndex < 0 || newIndex >= steps.length) return;
-
-    //   // Move the step
-    //   const [movedStep] = steps.splice(oldIndex, 1);
-    //   steps.splice(newIndex, 0, movedStep);
-
-    //   // Update orders
-    //   steps.forEach((step, idx) => {
-    //     step.order = idx;
-    //   });
-    // }),
-
-    // Inside usePresentationCreationStore
-
     moveStep: (personaId, scenarioIndex, oldIndex, newIndex) =>
       set((state) => {
         if (!state.personaScenariosMap[personaId]) return
@@ -213,25 +213,17 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         const steps = scenarios[scenarioIndex].steps
         if (oldIndex < 0 || oldIndex >= steps.length || newIndex < 0 || newIndex >= steps.length) return
 
-        // Make a copy of the steps array to avoid direct mutation
         const newSteps = [...steps]
 
-        // Remove the step from its old position
         const [movedStep] = newSteps.splice(oldIndex, 1)
 
-        // Insert it at the new position
         newSteps.splice(newIndex, 0, movedStep)
 
-        // Update the order property for each step
         newSteps.forEach((step, idx) => {
           step.order = idx
         })
 
-        // Update the steps in the scenario
         scenarios[scenarioIndex].steps = newSteps
-
-        // Log to verify the update
-        console.log('Steps after move:', scenarios[scenarioIndex].steps)
       }),
 
     duplicateStep: (personaId, scenarioIndex, stepIndex) =>
@@ -249,7 +241,6 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
           return
         }
 
-        // Ensure we're working with the correct scenario
         const scenario = scenarios[scenarioIndex]
         const steps = scenario.steps
 
@@ -258,9 +249,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
           return
         }
 
-        // Clone the step
         const stepToDuplicate = steps[stepIndex]
-        console.log('Step to duplicate:', stepToDuplicate)
 
         const duplicatedStep = {
           ...JSON.parse(JSON.stringify(stepToDuplicate)),
@@ -269,17 +258,11 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
           order: stepIndex + 1,
         }
 
-        console.log('Created duplicated step:', duplicatedStep)
-
-        // Insert after the original in the SAME scenario
         steps.splice(stepIndex + 1, 0, duplicatedStep)
 
-        // Update orders for all steps
         steps.forEach((step, idx) => {
           step.order = idx
         })
-
-        console.log('Updated steps after duplication:', steps)
       }),
 
     deleteScenario: (scenarioIndex) =>
@@ -292,16 +275,162 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
 
         scenarios.splice(scenarioIndex, 1)
       }),
+
+    setStepState: (stepState) =>
+      set((state) => {
+        state.stepState = stepState
+      }),
+
+    updateScenario: (personaId, scenarioIndex, scenarioData) =>
+      set((state) => {
+        if (!state.personaScenariosMap[personaId]) return
+
+        const scenarios = state.personaScenariosMap[personaId]
+        if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
+
+        scenarios[scenarioIndex] = {
+          ...scenarios[scenarioIndex],
+          ...scenarioData,
+        }
+      }),
+
+    removeScenario: (personaId, scenarioIndex) =>
+      set((state) => {
+        if (!state.personaScenariosMap[personaId]) return
+
+        const scenarios = state.personaScenariosMap[personaId]
+        if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
+
+        scenarios.splice(scenarioIndex, 1)
+
+        if (state.activeScenarioIndex === scenarioIndex) {
+          state.activeScenarioIndex = Math.max(0, scenarios.length - 1)
+        } else if (state.activeScenarioIndex > scenarioIndex) {
+          state.activeScenarioIndex--
+        }
+      }),
+
+    setSelectedStep: (selectedStep) =>
+      set((state) => {
+        state.selectedStep = selectedStep
+      }),
+
+    // selectStep: (stepIndex, scenarioIndex) =>
+    //   set((state) => {
+    //     state.selectedStep = { stepIndex, scenarioIndex }
+    //     state.activeScenarioIndex = scenarioIndex
+
+    //     if (state.activePersonaId && state.personaScenariosMap[state.activePersonaId]) {
+    //       const scenarios = state.personaScenariosMap[state.activePersonaId]
+
+    //       if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
+    //         const steps = scenarios[scenarioIndex].steps
+
+    //         if (stepIndex >= 0 && stepIndex < steps.length) {
+    //           const currentStep = steps[stepIndex]
+
+    //           state.stepState = currentStep.type === 'SERVICE' ? 'editing-issue' : 'editing-basic'
+    //         }
+    //       }
+    //     }
+    //   }),
+
+    selectStep: (stepIndex, scenarioIndex) =>
+      set((state) => {
+        state.selectedStep = { stepIndex, scenarioIndex }
+
+        if (state.activeScenarioIndex !== scenarioIndex) {
+          state.activeScenarioIndex = scenarioIndex
+        }
+
+        if (state.activePersonaId && state.personaScenariosMap[state.activePersonaId]) {
+          const scenarios = state.personaScenariosMap[state.activePersonaId]
+
+          if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
+            const steps = scenarios[scenarioIndex].steps
+
+            if (stepIndex >= 0 && stepIndex < steps.length) {
+              const currentStep = steps[stepIndex]
+
+              if (currentStep.type === 'SERVICE') {
+                state.stepState = 'editing-issue'
+              } else {
+                state.stepState = 'editing-basic'
+              }
+            }
+          }
+        }
+      }),
+
+    // addStep: (personaId, scenarioIndex, stepData) =>
+    //   set((state) => {
+    //     if (!state.personaScenariosMap[personaId]) return
+
+    //     const scenarios = state.personaScenariosMap[personaId]
+    //     if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
+
+    //     const currentSteps = scenarios[scenarioIndex].steps
+
+    //     const newStep = {
+    //       ...stepData,
+    //       id: `step-${scenarioIndex}-${currentSteps.length}-${Date.now()}`,
+    //       order: currentSteps.length,
+    //       type: stepData.type || 'HUMAN_TASK',
+    //       actions: stepData.actions || [],
+    //     }
+
+    //     scenarios[scenarioIndex].steps.push(newStep)
+
+    //     state.selectedStep = {
+    //       stepIndex: currentSteps.length,
+    //       scenarioIndex,
+    //     }
+    //   }),
+
+    // deleteStep: (personaId, scenarioIndex, stepIndex) =>
+    //   set((state) => {
+    //     if (!state.personaScenariosMap[personaId]) return
+
+    //     const scenarios = state.personaScenariosMap[personaId]
+    //     if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
+
+    //     const steps = scenarios[scenarioIndex].steps
+    //     if (stepIndex < 0 || stepIndex >= steps.length) return
+
+    //     steps.splice(stepIndex, 1)
+
+    //     steps.forEach((step, idx) => {
+    //       step.order = idx
+    //     })
+
+    //     if (
+    //       state.selectedStep &&
+    //       state.selectedStep.scenarioIndex === scenarioIndex &&
+    //       state.selectedStep.stepIndex === stepIndex
+    //     ) {
+
+    //       state.selectedStep = null
+    //       state.stepState = 'no-selection'
+    //     } else if (
+    //       state.selectedStep &&
+    //       state.selectedStep.scenarioIndex === scenarioIndex &&
+    //       state.selectedStep.stepIndex > stepIndex
+    //     ) {
+
+    //       state.selectedStep = {
+    //         ...state.selectedStep,
+    //         stepIndex: state.selectedStep.stepIndex - 1,
+    //       }
+    //     }
+    //   }),
   })),
 )
 
-// Create a custom hook to use the store
 export const usePresentationCreation = () => {
   const { selectedPersonaIds } = useShowcaseStore()
   const { relayerId, selectedCredentialDefinitionIds } = useHelpersStore()
   const { data: personasData } = usePersonas()
 
-  // Get store state and actions
   const {
     personaScenariosMap,
     activePersonaId,
@@ -318,22 +447,28 @@ export const usePresentationCreation = () => {
     deleteStep,
     moveStep,
     duplicateStep,
+    setStepState,
+    stepState,
+    updateScenario,
+    removeScenario,
+    selectedScenarioId,
+    setSelectedScenarioId,
+    selectedStep,
+    setSelectedStep,
+    selectStep,
   } = usePresentationCreationStore()
 
-  // Initialize the store when needed
   useEffect(() => {
     const personas = (personasData?.personas || []).filter((persona: Persona) =>
       selectedPersonaIds.includes(persona.id),
     )
 
-    // Initialize store with personas if needed
     personas.forEach((persona: Persona) => {
       if (!personaScenariosMap[persona.id]) {
         addPersonaScenario(persona, relayerId)
       }
     })
 
-    // Set initial active persona if not already set
     if (!activePersonaId && personas.length > 0) {
       setActivePersonaId(personas[0].id)
     }
@@ -351,8 +486,15 @@ export const usePresentationCreation = () => {
     selectedPersonaIds.includes(persona.id),
   )
 
-  // Convert the flat map to a Map object for API compatibility with the old hook
   const personaScenarios = new Map(Object.entries(personaScenariosMap))
+
+  const selectedScenario =
+    activePersonaId &&
+    personaScenarios.has(activePersonaId) &&
+    activeScenarioIndex >= 0 &&
+    activeScenarioIndex < personaScenarios.get(activePersonaId)!.length
+      ? personaScenarios.get(activePersonaId)![activeScenarioIndex]
+      : null
 
   return {
     selectedPersonas,
@@ -373,5 +515,14 @@ export const usePresentationCreation = () => {
     deleteStep,
     moveStep,
     duplicateStep,
+    setStepState,
+    stepState,
+    selectedScenario,
+    updateScenario: (scenarioData: PresentationScenarioRequestType) =>
+      activePersonaId && updateScenario(activePersonaId, activeScenarioIndex, scenarioData),
+    removeScenario: () => activePersonaId && removeScenario(activePersonaId, activeScenarioIndex),
+    selectedStep,
+    setSelectedStep,
+    selectStep,
   }
 }
