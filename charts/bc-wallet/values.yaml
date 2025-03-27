@@ -4,7 +4,7 @@ fullnameOverride: "bc-wallet"
 api_server:
   name: bc-wallet-api-server
   image:
-    repository: ghcr.io/getmoin/bc-wallet-api-server
+    repository: ghcr.io/4sure-tech/bc-wallet-api-server
     pullPolicy: IfNotPresent
     pullSecrets: []
     tag: ""
@@ -68,7 +68,7 @@ api_server:
 traction_adapter:
   name: bc-wallet-traction-adapter
   image:
-    repository: ghcr.io/getmoin/bc-wallet-traction-adapter
+    repository: ghcr.io/4sure-tech/bc-wallet-traction-adapter
     pullPolicy: IfNotPresent
     pullSecrets: []
     tag: ""
@@ -128,7 +128,7 @@ traction_adapter:
 showcase_creator:
   name: bc-wallet-showcase-creator
   image:
-    repository: ghcr.io/getmoin/bc-wallet-showcase-creator
+    repository: ghcr.io/4sure-tech/bc-wallet-showcase-creator
     pullPolicy: IfNotPresent
     pullSecrets: []
     tag: ""
@@ -184,7 +184,7 @@ showcase_creator:
 demo_web:
   name: bc-wallet-demo-web
   image:
-    repository: ghcr.io/getmoin/bc-wallet-demo-web
+    repository: ghcr.io/4sure-tech/bc-wallet-demo-web
     pullPolicy: IfNotPresent
     pullSecrets: []
     tag: ""
@@ -239,7 +239,7 @@ demo_web:
 demo_server:
   name: bc-wallet-demo-server
   image:
-    repository: ghcr.io/getmoin/bc-wallet-demo-server
+    repository: ghcr.io/4sure-tech/bc-wallet-demo-server
     pullPolicy: IfNotPresent
     pullSecrets: []
     tag: ""
