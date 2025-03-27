@@ -1,5 +1,6 @@
 # Build stage
 FROM node:20-bookworm AS builder
+RUN apt update && apt install -y maven openjdk-17-jdk
 SHELL ["/bin/bash", "-c"]
 ENV SHELL=bash
 ENV PNPM_HOME=/usr/local/share/pnpm
@@ -19,6 +20,7 @@ COPY packages/tsconfig* packages/
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib turbo
 RUN pnpm install
 RUN pnpm generate:models
+RUN pnpm --filter bc-wallet-openapi build:clean
 RUN cd packages/ && pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-traction-adapter --prod --no-optional
 RUN ls -la /
