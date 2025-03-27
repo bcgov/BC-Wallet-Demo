@@ -5,7 +5,7 @@ on:
     branches:
       # - main
       # - k3s-deployment
-      - random-branch # change this to main or your branch
+      - develop-4sure # change this to main or your branch
     paths:
       - "apps/**"
       - "packages/**"
@@ -178,214 +178,214 @@ jobs:
           scan-ref: 'ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-server:${{ needs.build_demo_server.outputs.image_tag }}'
           scan-title: 'Docker Image Scan Results for bc-wallet-demo-server'
   
-  deploy:
-    name: "Deploy PR Environment"
-    environment: development
-    runs-on: ubuntu-latest
-    needs:
-      - ready
-      - build_api_server
-      - build_traction_adapter
-      - build_showcase_creator
-      - build_demo_server
-      - build_demo_web
-    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
-    steps:
-      - uses: actions/checkout@v4
+  # deploy:
+  #   name: "Deploy PR Environment"
+  #   environment: development
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - ready
+  #     - build_api_server
+  #     - build_traction_adapter
+  #     - build_showcase_creator
+  #     - build_demo_server
+  #     - build_demo_web
+  #   if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
+  #   steps:
+  #     - uses: actions/checkout@v4
       
-      # Copy charts to K3s server
-      - name: Copy charts to K3s server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.K3S_HOST }}
-          username: ${{ secrets.K3S_USERNAME }}
-          key: ${{ secrets.K3S_SSH_KEY }}
-          source: "charts/"
-          target: "/home/ubuntu/pipeline"
-          overwrite: true
-          strip_components: 0
+  #     # Copy charts to K3s server
+  #     - name: Copy charts to K3s server
+  #       uses: appleboy/scp-action@v0.1.4
+  #       with:
+  #         host: ${{ secrets.K3S_HOST }}
+  #         username: ${{ secrets.K3S_USERNAME }}
+  #         key: ${{ secrets.K3S_SSH_KEY }}
+  #         source: "charts/"
+  #         target: "/home/ubuntu/pipeline"
+  #         overwrite: true
+  #         strip_components: 0
 
-      # Deploy using SSH to K3s instance
-      - name: Deploy to K3s via SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.K3S_HOST }}
-          username: ${{ secrets.K3S_USERNAME }}
-          key: ${{ secrets.K3S_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/pipeline/charts/bc-wallet
+  #     # Deploy using SSH to K3s instance
+  #     - name: Deploy to K3s via SSH
+  #       uses: appleboy/ssh-action@v0.1.10
+  #       with:
+  #         host: ${{ secrets.K3S_HOST }}
+  #         username: ${{ secrets.K3S_USERNAME }}
+  #         key: ${{ secrets.K3S_SSH_KEY }}
+  #         script: |
+  #           cd /home/ubuntu/pipeline/charts/bc-wallet
             
-            # Update dependencies and deploy with Helm
-            helm dependency update
+  #           # Update dependencies and deploy with Helm
+  #           helm dependency update
             
-            helm upgrade --install pr-${{ github.event.number }}-bc-wallet -f ./values.yaml \
-              --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
-              --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
-              --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
-              --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
-              --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
-              . --wait
+  #           helm upgrade --install pr-${{ github.event.number }}-bc-wallet -f ./values.yaml \
+  #             --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
+  #             --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
+  #             --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
+  #             --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
+  #             --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
+  #             . --wait
             
-            # Create Certificate for TLS
-            cat <<EOF | sudo kubectl apply -f -
-            apiVersion: cert-manager.io/v1
-            kind: Certificate
-            metadata:
-              name: bc-wallet-tls-pr-${{ github.event.number }}
-            spec:
-              secretName: bc-wallet-tls-pr-${{ github.event.number }}
-              issuerRef:
-                name: letsencrypt-prod
-                kind: ClusterIssuer
-              dnsNames:
-                - pr-${{ github.event.number }}-bcshowcase-api.dev.nborbit.ca
-                - pr-${{ github.event.number }}-bcshowcase-traction.dev.nborbit.ca
-                - pr-${{ github.event.number }}-bcshowcase-ui.dev.nborbit.ca
-                - pr-${{ github.event.number }}-bcshowcase-demo-web.dev.nborbit.ca
-                - pr-${{ github.event.number }}-bcshowcase-demo-server.dev.nborbit.ca
-            EOF
+  #           # Create Certificate for TLS
+  #           cat <<EOF | sudo kubectl apply -f -
+  #           apiVersion: cert-manager.io/v1
+  #           kind: Certificate
+  #           metadata:
+  #             name: bc-wallet-tls-pr-${{ github.event.number }}
+  #           spec:
+  #             secretName: bc-wallet-tls-pr-${{ github.event.number }}
+  #             issuerRef:
+  #               name: letsencrypt-prod
+  #               kind: ClusterIssuer
+  #             dnsNames:
+  #               - pr-${{ github.event.number }}-bcshowcase-api.dev.nborbit.ca
+  #               - pr-${{ github.event.number }}-bcshowcase-traction.dev.nborbit.ca
+  #               - pr-${{ github.event.number }}-bcshowcase-ui.dev.nborbit.ca
+  #               - pr-${{ github.event.number }}-bcshowcase-demo-web.dev.nborbit.ca
+  #               - pr-${{ github.event.number }}-bcshowcase-demo-server.dev.nborbit.ca
+  #           EOF
             
-            # Create Traefik IngressRoute for API Server
-            cat <<EOF | sudo kubectl apply -f -
-            apiVersion: traefik.containo.us/v1alpha1
-            kind: IngressRoute
-            metadata:
-              name: api-server-route-pr-${{ github.event.number }}
-            spec:
-              entryPoints:
-                - websecure
-              routes:
-                - match: Host(\`pr-${{ github.event.number }}-bcshowcase-api.dev.nborbit.ca\`)
-                  kind: Rule
-                  services:
-                    - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-api-server
-                      port: 3000
-              tls:
-                secretName: bc-wallet-tls-pr-${{ github.event.number }}
-            EOF
+  #           # Create Traefik IngressRoute for API Server
+  #           cat <<EOF | sudo kubectl apply -f -
+  #           apiVersion: traefik.containo.us/v1alpha1
+  #           kind: IngressRoute
+  #           metadata:
+  #             name: api-server-route-pr-${{ github.event.number }}
+  #           spec:
+  #             entryPoints:
+  #               - websecure
+  #             routes:
+  #               - match: Host(\`pr-${{ github.event.number }}-bcshowcase-api.dev.nborbit.ca\`)
+  #                 kind: Rule
+  #                 services:
+  #                   - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-api-server
+  #                     port: 3000
+  #             tls:
+  #               secretName: bc-wallet-tls-pr-${{ github.event.number }}
+  #           EOF
             
-            # Create Traefik IngressRoute for Traction Adapter
-            cat <<EOF | sudo kubectl apply -f -
-            apiVersion: traefik.containo.us/v1alpha1
-            kind: IngressRoute
-            metadata:
-              name: traction-adapter-route-pr-${{ github.event.number }}
-            spec:
-              entryPoints:
-                - websecure
-              routes:
-                - match: Host(\`pr-${{ github.event.number }}-bcshowcase-traction.dev.nborbit.ca\`)
-                  kind: Rule
-                  services:
-                    - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-traction-adapter
-                      port: 3000
-              tls:
-                secretName: bc-wallet-tls-pr-${{ github.event.number }}
-            EOF
+  #           # Create Traefik IngressRoute for Traction Adapter
+  #           cat <<EOF | sudo kubectl apply -f -
+  #           apiVersion: traefik.containo.us/v1alpha1
+  #           kind: IngressRoute
+  #           metadata:
+  #             name: traction-adapter-route-pr-${{ github.event.number }}
+  #           spec:
+  #             entryPoints:
+  #               - websecure
+  #             routes:
+  #               - match: Host(\`pr-${{ github.event.number }}-bcshowcase-traction.dev.nborbit.ca\`)
+  #                 kind: Rule
+  #                 services:
+  #                   - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-traction-adapter
+  #                     port: 3000
+  #             tls:
+  #               secretName: bc-wallet-tls-pr-${{ github.event.number }}
+  #           EOF
             
-            # Create Traefik IngressRoute for Showcase Creator
-            cat <<EOF | sudo kubectl apply -f -
-            apiVersion: traefik.containo.us/v1alpha1
-            kind: IngressRoute
-            metadata:
-              name: showcase-creator-route-pr-${{ github.event.number }}
-            spec:
-              entryPoints:
-                - websecure
-              routes:
-                - match: Host(\`pr-${{ github.event.number }}-bcshowcase-ui.dev.nborbit.ca\`)
-                  kind: Rule
-                  services:
-                    - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-showcase-creator
-                      port: 3050
-              tls:
-                secretName: bc-wallet-tls-pr-${{ github.event.number }}
-            EOF
+  #           # Create Traefik IngressRoute for Showcase Creator
+  #           cat <<EOF | sudo kubectl apply -f -
+  #           apiVersion: traefik.containo.us/v1alpha1
+  #           kind: IngressRoute
+  #           metadata:
+  #             name: showcase-creator-route-pr-${{ github.event.number }}
+  #           spec:
+  #             entryPoints:
+  #               - websecure
+  #             routes:
+  #               - match: Host(\`pr-${{ github.event.number }}-bcshowcase-ui.dev.nborbit.ca\`)
+  #                 kind: Rule
+  #                 services:
+  #                   - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-showcase-creator
+  #                     port: 3050
+  #             tls:
+  #               secretName: bc-wallet-tls-pr-${{ github.event.number }}
+  #           EOF
             
-            # Create Traefik IngressRoute for Demo Web
-            cat <<EOF | sudo kubectl apply -f -
-            apiVersion: traefik.containo.us/v1alpha1
-            kind: IngressRoute
-            metadata:
-              name: demo-web-route-pr-${{ github.event.number }}
-            spec:
-              entryPoints:
-                - websecure
-              routes:
-                - match: Host(\`pr-${{ github.event.number }}-bcshowcase-demo-web.dev.nborbit.ca\`)
-                  kind: Rule
-                  services:
-                    - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-demo-web
-                      port: 80
-              tls:
-                secretName: bc-wallet-tls-pr-${{ github.event.number }}
-            EOF
+  #           # Create Traefik IngressRoute for Demo Web
+  #           cat <<EOF | sudo kubectl apply -f -
+  #           apiVersion: traefik.containo.us/v1alpha1
+  #           kind: IngressRoute
+  #           metadata:
+  #             name: demo-web-route-pr-${{ github.event.number }}
+  #           spec:
+  #             entryPoints:
+  #               - websecure
+  #             routes:
+  #               - match: Host(\`pr-${{ github.event.number }}-bcshowcase-demo-web.dev.nborbit.ca\`)
+  #                 kind: Rule
+  #                 services:
+  #                   - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-demo-web
+  #                     port: 80
+  #             tls:
+  #               secretName: bc-wallet-tls-pr-${{ github.event.number }}
+  #           EOF
             
-            # Create Traefik IngressRoute for Demo Server
-            cat <<EOF | sudo kubectl apply -f -
-            apiVersion: traefik.containo.us/v1alpha1
-            kind: IngressRoute
-            metadata:
-              name: demo-server-route-pr-${{ github.event.number }}
-            spec:
-              entryPoints:
-                - websecure
-              routes:
-                - match: Host(\`pr-${{ github.event.number }}-bcshowcase-demo-server.dev.nborbit.ca\`)
-                  kind: Rule
-                  services:
-                    - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-demo-server
-                      port: 3000
-              tls:
-                secretName: bc-wallet-tls-pr-${{ github.event.number }}
-            EOF
+  #           # Create Traefik IngressRoute for Demo Server
+  #           cat <<EOF | sudo kubectl apply -f -
+  #           apiVersion: traefik.containo.us/v1alpha1
+  #           kind: IngressRoute
+  #           metadata:
+  #             name: demo-server-route-pr-${{ github.event.number }}
+  #           spec:
+  #             entryPoints:
+  #               - websecure
+  #             routes:
+  #               - match: Host(\`pr-${{ github.event.number }}-bcshowcase-demo-server.dev.nborbit.ca\`)
+  #                 kind: Rule
+  #                 services:
+  #                   - name: pr-${{ github.event.number }}-bc-wallet-bc-wallet-demo-server
+  #                     port: 3000
+  #             tls:
+  #               secretName: bc-wallet-tls-pr-${{ github.event.number }}
+  #           EOF
             
-            # Clean up
-            rm -rf /home/ubuntu/pipeline/charts
+  #           # Clean up
+  #           rm -rf /home/ubuntu/pipeline/charts
       
-      # Restart deployments to ensure they pick up any changes
-      - name: Restart Deployments
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.K3S_HOST }}
-          username: ${{ secrets.K3S_USERNAME }}
-          key: ${{ secrets.K3S_SSH_KEY }}
-          script: |
-            kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-api-server
-            kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-traction-adapter
-            kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-showcase-creator
-            kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-demo-web
-            kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-demo-server
+  #     # Restart deployments to ensure they pick up any changes
+  #     - name: Restart Deployments
+  #       uses: appleboy/ssh-action@v0.1.10
+  #       with:
+  #         host: ${{ secrets.K3S_HOST }}
+  #         username: ${{ secrets.K3S_USERNAME }}
+  #         key: ${{ secrets.K3S_SSH_KEY }}
+  #         script: |
+  #           kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-api-server
+  #           kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-traction-adapter
+  #           kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-showcase-creator
+  #           kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-demo-web
+  #           kubectl rollout restart deployment pr-${{ github.event.number }}-bc-wallet-bc-wallet-demo-server
 
-  deploymenturls:
-    name: PR Deployment URLs comment
-    runs-on: ubuntu-latest
-    needs:
-      - deploy
-    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
-    steps:
-      - uses: actions/checkout@v4
+  # deploymenturls:
+  #   name: PR Deployment URLs comment
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - deploy
+  #   if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Find Comment
-        uses: peter-evans/find-comment@v3
-        id: fc
-        with:
-          issue-number: ${{ github.event.number }}
-          comment-author: "github-actions[bot]"
-          body-includes: PR Deployment URLs ready for review.
+  #     - name: Find Comment
+  #       uses: peter-evans/find-comment@v3
+  #       id: fc
+  #       with:
+  #         issue-number: ${{ github.event.number }}
+  #         comment-author: "github-actions[bot]"
+  #         body-includes: PR Deployment URLs ready for review.
 
-      - name: Create comment
-        if: steps.fc.outputs.comment-id == ''
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          issue-number: ${{ github.event.number }}
-          body: |
-            | Deployment | Resource | Location |
-            | --- | --- | --- |
-            | API Server | | https://pr-${{ github.event.number }}-bcshowcase-api.dev.nborbit.ca/ |
-            | Traction Adapter | | https://pr-${{ github.event.number }}-bcshowcase-traction.dev.nborbit.ca/ |
-            | Showcase Creator | | https://pr-${{ github.event.number }}-bcshowcase-ui.dev.nborbit.ca/ |
-            | Demo Web | | https://pr-${{ github.event.number }}-bcshowcase-demo-web.dev.nborbit.ca/ |
-            | Demo Server | | https://pr-${{ github.event.number }}-bcshowcase-demo-server.dev.nborbit.ca/ |
+  #     - name: Create comment
+  #       if: steps.fc.outputs.comment-id == ''
+  #       uses: peter-evans/create-or-update-comment@v4
+  #       with:
+  #         issue-number: ${{ github.event.number }}
+  #         body: |
+  #           | Deployment | Resource | Location |
+  #           | --- | --- | --- |
+  #           | API Server | | https://pr-${{ github.event.number }}-bcshowcase-api.dev.nborbit.ca/ |
+  #           | Traction Adapter | | https://pr-${{ github.event.number }}-bcshowcase-traction.dev.nborbit.ca/ |
+  #           | Showcase Creator | | https://pr-${{ github.event.number }}-bcshowcase-ui.dev.nborbit.ca/ |
+  #           | Demo Web | | https://pr-${{ github.event.number }}-bcshowcase-demo-web.dev.nborbit.ca/ |
+  #           | Demo Server | | https://pr-${{ github.event.number }}-bcshowcase-demo-server.dev.nborbit.ca/ |
 
-            PR Deployment URLs ready for review.
+  #           PR Deployment URLs ready for review.
