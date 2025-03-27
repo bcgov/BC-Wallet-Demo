@@ -31,6 +31,13 @@ export const basicStepSchema = z.object({
   asset: z.string().optional(),
 })
 
+export const connectStepSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
+  description: z.string().min(1, 'Description is required').max(500, 'Description must be less than 500 characters'),
+  asset: z.string().optional(),
+  qrCodeTitle: z.string().optional()
+})
+
 export const walletStepSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
 
@@ -66,3 +73,4 @@ export const walletStepSchema = z.object({
 })
 export type WalletStepFormData = z.infer<typeof walletStepSchema>
 export type BasicStepFormData = z.infer<typeof basicStepSchema>
+export type ConnectStepFormData = z.infer<typeof connectStepSchema>

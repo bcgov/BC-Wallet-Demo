@@ -113,6 +113,7 @@ export const BasicStepAdd = () => {
           asset: screen.asset || undefined,
           type: screen.type || 'HUMAN_TASK',
           order: index,
+          screenId:'INFO',
           actions: screen.actions || [sampleAction],
         })),
       ]

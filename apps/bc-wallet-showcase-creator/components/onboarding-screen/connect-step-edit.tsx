@@ -12,8 +12,8 @@ import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
 import type { ScenarioRequestType, IssuanceScenarioResponseType } from '@/openapi-types'
-import type { BasicStepFormData } from '@/schemas/onboarding'
-import { basicStepSchema } from '@/schemas/onboarding'
+import type { BasicStepFormData, ConnectStepFormData } from '@/schemas/onboarding'
+import { basicStepSchema, connectStepSchema } from '@/schemas/onboarding'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Edit, Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -59,8 +59,8 @@ export const ConnectStepEdit = () => {
         qrCodeTitle: 'Scan the QR Code below with your digital wallet.',
       }
 
-  const form = useForm<BasicStepFormData>({
-    resolver: zodResolver(basicStepSchema),
+  const form = useForm<ConnectStepFormData>({
+    resolver: zodResolver(connectStepSchema),
     defaultValues,
     mode: 'all',
   })
@@ -232,6 +232,7 @@ export const ConnectStepEdit = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-6">
                 <FormTextInput
+                  control={form.control}
                   label={t('onboarding.page_title_label')}
                   name="title"
                   register={form.register}
@@ -241,6 +242,7 @@ export const ConnectStepEdit = () => {
 
                 <div className="space-y-2">
                   <FormTextArea
+                    control={form.control}
                     label={t('onboarding.page_description_label')}
                     name="description"
                     register={form.register}
@@ -273,6 +275,7 @@ export const ConnectStepEdit = () => {
                 </div>
                 <div className="space-y-2">
                   <FormTextInput
+                    control={form.control}
                     label={t('onboarding.qrCode_label')}
                     name="qrCodeTitle"
                     register={form.register}
