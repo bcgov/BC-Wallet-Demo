@@ -57,8 +57,11 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app.kubernetes.io/component: ui
+          app.kubernetes.io/component: creator
     ports:
     - protocol: TCP
       port: {{ .Values.api_server.service.port }}
+---
+{{- $context := dict "componentName" .Values.api_server.name "componentLabel" "api" "servicePort" .Values.api_server.service.port "Values" .Values "Release" .Release }}
+{{- include "bc-wallet.intra-release-network-policy" $context }}
 {{- end }}

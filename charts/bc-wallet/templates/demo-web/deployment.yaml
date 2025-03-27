@@ -1,0 +1,59 @@
+{{- if .Values.demo_web.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.demo_web.name }}
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.demo_web.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.demo_web.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.demo_web.name }}
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: bc-wallet
+        {{- include "bc-wallet.labels" . | nindent 8 }}
+      {{- with .Values.demo_web.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.demo_web.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Values.demo_web.name }}
+        image: "{{ .Values.demo_web.image.repository }}:{{ .Values.demo_web.image.tag }}"
+        imagePullPolicy: {{ .Values.demo_web.image.pullPolicy }}
+        {{- with .Values.demo_web.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.demo_web.port }}
+          name: http
+        env:
+        {{- range $key, $value := .Values.demo_web.env }}
+        {{- if kindIs "map" $value }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- toYaml $value | nindent 12 }}
+        {{- else }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        - name: API_URL
+          value: "http://{{ $.Release.Name }}-{{ $.Values.api_server.name }}:{{ $.Values.api_server.service.port }}"
+        resources:
+          {{- toYaml .Values.demo_web.resources | nindent 12 }}
+      serviceAccountName: {{ if .Values.demo_web.serviceAccount.create }}{{ if .Values.demo_web.serviceAccount.name }}{{ .Values.demo_web.serviceAccount.name }}{{ else }}{{ $.Release.Name }}-{{ .Values.demo_web.name }}{{ end }}{{ end }}
+{{- end }} 

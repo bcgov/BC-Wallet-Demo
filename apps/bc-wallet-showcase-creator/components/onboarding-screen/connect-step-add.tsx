@@ -3,50 +3,48 @@
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { zodResolver } from '@hookform/resolvers/zod'
+import { FormTextArea, FormTextInput } from '@/components/text-input'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
-import { FormTextArea, FormTextInput } from '@/components/text-input'
-import { Edit, Monitor } from 'lucide-react'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
-import { BasicStepFormData } from '@/schemas/onboarding'
-import { basicStepSchema } from '@/schemas/onboarding'
-import { LocalFileUpload } from './local-file-upload'
-import { useTranslations } from 'next-intl'
-import StepHeader from '../step-header';
-import ButtonOutline from '../ui/button-outline'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
-import { ErrorModal } from '../error-modal'
-import Loader from '../loader';
-import { IssuanceScenarioResponseType } from '@/openapi-types';
-import { useShowcaseStore } from '@/hooks/use-showcases-store';
-import { toast } from 'sonner';
 import { sampleAction } from '@/lib/steps'
+import type { IssuanceScenarioResponseType } from '@/openapi-types'
+import type { BasicStepFormData } from '@/schemas/onboarding'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { debounce } from 'lodash'
+import { Edit, Monitor } from 'lucide-react'
+import { basicStepSchema } from '@/schemas/onboarding'
+import { useTranslations } from 'next-intl'
+
+import { toast } from 'sonner'
+import { ErrorModal } from '../error-modal'
+import StepHeader from '../step-header'
+import { LocalFileUpload } from "./local-file-upload";
+import ButtonOutline from '../ui/button-outline'
+
+
+import Loader from '../loader'
+
 import { sampleScenario } from '@/lib/steps'
+
 import { NoSelection } from '../credentials/no-selection'
-import { debounce } from 'lodash';
-import { useHelpersStore } from '@/hooks/use-helpers-store';
-import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
-export const BasicStepAdd = () => {
+
+export const ConnectStepAdd = () => {
   const t = useTranslations()
 
-  const {
-    screens,
-    selectedStep,
-    setSelectedStep,
-    setStepState,
-    stepState,
-    updateStep,
-  } = useOnboarding();
+  const { screens, selectedStep, setSelectedStep, setStepState, stepState, updateStep } = useOnboarding()
 
-  const router = useRouter();
-  const { mutateAsync, isPending } = useCreateScenario();
-  const currentStep = selectedStep !== null ? screens[selectedStep] : null;
-  const { setScenarioIds } = useShowcaseStore();
-  const { issuerId } = useHelpersStore();
-  const { personas } = useOnboardingAdapter()
+  const router = useRouter()
+  const { mutateAsync, isPending } = useCreateScenario()
+  const currentStep = selectedStep !== null ? screens[selectedStep] : null
+  const { showcase, setScenarioIds } = useShowcaseStore()
+  const { issuerId } = useHelpersStore()
+  const personas = showcase.personas || []
 
-  const isEditMode = stepState === 'editing-basic'
+  const isEditMode = stepState === 'editing-connect'
   const [showErrorModal, setErrorModal] = useState(false)
 
   const defaultValues = {
@@ -103,7 +101,7 @@ export const BasicStepAdd = () => {
     const personaScenarios = personas.map((persona) => {
       const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario))
 
-      scenarioForPersona.personas = [persona.id]
+      scenarioForPersona.personas = [persona]
       scenarioForPersona.issuer = issuerId
 
       scenarioForPersona.steps = [
@@ -113,7 +111,6 @@ export const BasicStepAdd = () => {
           asset: screen.asset || undefined,
           type: screen.type || 'HUMAN_TASK',
           order: index,
-          screenId:'INFO',
           actions: screen.actions || [sampleAction],
         })),
       ]
@@ -244,29 +241,16 @@ export const BasicStepAdd = () => {
           </div>
 
           <div className="space-y-2">
-          <LocalFileUpload
-              text={t("onboarding.icon_label")}
+            <LocalFileUpload
+              text={t('onboarding.icon_label')}
               element="asset"
-              existingAssetId={form.watch("asset")}
-              handleLocalUpdate={(_, value) => {
-                console.log('Value',value);
-                if (!currentStep) return;
-
-                const updatedStep1 = {
-                  ...currentStep,
-                  title: currentStep.title,
-                  description: currentStep.description,
-                  asset: value || undefined,
-                  // credentials: data.credentials || [],
-                };
-                updateStep(selectedStep || 0, updatedStep1);
-
-                form.setValue("asset", value, {
+              handleLocalUpdate={(_, value) =>
+                form.setValue('asset', value, {
                   shouldDirty: true,
                   shouldTouch: true,
                   shouldValidate: true,
                 })
-              }}
+              }
             />
             {form.formState.errors.asset && (
               <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>

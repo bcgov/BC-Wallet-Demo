@@ -13,7 +13,24 @@ spec:
     matchLabels:
       app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
   ingress:
+  {{- if .Values.traction_adapter.networkPolicy.ingress.enabled }}
+  - from:
+    {{- if .Values.traction_adapter.networkPolicy.ingress.namespaceSelector }}
+    - namespaceSelector:
+        matchLabels:
+          {{- if kindIs "map" .Values.traction_adapter.networkPolicy.ingress.namespaceSelector }}
+          {{- toYaml .Values.traction_adapter.networkPolicy.ingress.namespaceSelector | nindent 10 }}
+          {{- end }}
+      {{- if .Values.traction_adapter.networkPolicy.ingress.podSelector }}
+      podSelector:
+        {{- toYaml .Values.traction_adapter.networkPolicy.ingress.podSelector | nindent 10 }}
+      {{- end }}
+    {{- else }}
+    - {}  # Allow all ingress traffic if no selector specified
+    {{- end }}
+  {{- else }}
   - {}  # Allow all ingress traffic
+  {{- end }}
 ---
 # Network policy for Traction Adapter to RabbitMQ
 apiVersion: networking.k8s.io/v1
@@ -38,4 +55,7 @@ spec:
     ports:
     - protocol: TCP
       port: {{ .Values.rabbitmq.service.ports.amqp }}
+---
+{{- $context := dict "componentName" .Values.traction_adapter.name "componentLabel" "adapter" "servicePort" .Values.traction_adapter.service.port "Values" .Values "Release" .Release }}
+{{- include "bc-wallet.intra-release-network-policy" $context }}
 {{- end }}

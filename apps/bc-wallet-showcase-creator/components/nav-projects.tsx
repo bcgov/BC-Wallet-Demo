@@ -3,7 +3,7 @@
 import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import { Link, usePathname } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
-import { CreditCard, Home, Map, User } from 'lucide-react'
+import { CreditCard, Home, Map } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 const projects = [
@@ -21,12 +21,7 @@ const projects = [
     name: 'credential_library_label',
     url: '/credentials',
     icon: CreditCard,
-  },
-  {
-    name: 'character_library_label',
-    url: '/characters',
-    icon: User,
-  },
+  }
 ]
 
 export function NavProjects() {
