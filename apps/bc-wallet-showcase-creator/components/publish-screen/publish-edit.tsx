@@ -124,6 +124,7 @@ export const PublishEdit = () => {
   const { showcase, reset } = useShowcaseStore()
   const router = useRouter()
   const { saveShowcase } = useOnboardingAdapter()
+  const { personas } = useOnboardingAdapter()
 
   const form = useForm<ShowcaseRequestType>({
     resolver: zodResolver(ShowcaseRequest),
@@ -145,7 +146,7 @@ export const PublishEdit = () => {
       name: showcase.name || '',
       description: showcase.description || '',
       credentialDefinitions: showcase.credentialDefinitions || ['86a96d6d-91c9-4357-984d-1f6b162fdfae'],
-      personas: showcase.personas || [],
+      personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
     })
   }, [form, showcase])
