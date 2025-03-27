@@ -18,8 +18,8 @@ COPY apps/tsconfig-base.json apps/
 COPY apps/bc-wallet-api-server apps/bc-wallet-api-server
 COPY packages/bc-wallet-openapi packages/bc-wallet-openapi
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib drizzle-kit
-RUN cd packages/bc-wallet-openapi && mvn -U clean install && cd ../..
 RUN pnpm install
+RUN pnpm generate:models
 RUN cd packages/bc-wallet-openapi && pnpm build && cd ../..
 RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-api-server --prod --no-optional

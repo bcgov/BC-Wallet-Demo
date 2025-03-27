@@ -10,6 +10,7 @@ COPY packages/ ./packages/
 COPY apps/bc-wallet-demo-web/ ./apps/bc-wallet-demo-web/
 RUN npm install -g pnpm typescript
 RUN pnpm install
+RUN pnpm generate:models
 RUN pnpm --filter bc-wallet-openapi build
 RUN pnpm --filter bc-wallet-demo-web build
 
