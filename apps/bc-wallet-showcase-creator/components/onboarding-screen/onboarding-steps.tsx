@@ -7,6 +7,8 @@ import { NoSelection } from '../credentials/no-selection'
 import { BasicStepAdd } from './basic-step-add'
 import { CreateNewStep } from './create-step'
 import { IssuanceStepAdd } from './issue-step-edit'
+import { WalletStepEdit } from './wallet-step-edit'
+import { ConnectStepEdit } from './connect-step-edit'
 
 export const OnboardingSteps = () => {
   const t = useTranslations()
@@ -35,6 +37,8 @@ export const OnboardingSteps = () => {
       )}
       {activePersonaId && stepState === 'creating-new' && <CreateNewStep />}
       {activePersonaId && stepState === 'editing-basic' && <BasicStepAdd />}
+      {activePersonaId && stepState === 'editing-connect' && <ConnectStepEdit />}
+      {activePersonaId && stepState === 'editing-wallet' && <WalletStepEdit />}
       {activePersonaId && stepState === 'editing-issue' && <IssuanceStepAdd />}
     </div>
   )
