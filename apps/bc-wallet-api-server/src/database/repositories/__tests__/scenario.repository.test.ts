@@ -120,7 +120,7 @@ describe('Database scenario repository tests', (): void => {
         description: 'example_revocation_description',
       },
     }
-    const credentialDefinition = await credentialDefinitionRepository.create(newCredentialDefinition)
+    credentialDefinition = await credentialDefinitionRepository.create(newCredentialDefinition)
     const newIssuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
