@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import { Form } from '@/components/ui/form'
 import { useScenarios } from '@/hooks/use-scenarios'
-import { useShowcaseStore } from '@/hooks/use-showcase-store'
+import { useShowcaseStore } from '@/hooks/use-showcase-store';
 import { StepType } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
@@ -17,16 +17,32 @@ import { DisplaySearchResults } from '../onboarding-screen/display-search-result
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { DisplayStepCredentials } from './display-step-credentials'
-import { StepRequest, StepRequestType } from '@/openapi-types'
+import { CredentialAttributeType, CredentialDefinition, StepRequest, StepRequestType } from '@/openapi-types'
+import { usePresentations } from '@/hooks/use-presentation'
+import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
+import { debounce } from 'lodash'
+import { toast } from 'sonner'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
+import { useCredentialDefinitions } from "@/hooks/use-credentials";
+interface StepWithCredentials extends StepRequestType {
+  credentials?: string[];
+}
+
 export const ProofStepEdit = () => {
   const t = useTranslations()
   const { showcaseJSON, selectedCharacter } = useShowcaseStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { scenarios, selectedScenario, selectedStep, setStepState, updateStep } = useScenarios()
-  const [searchResults, setSearchResults] = useState<string[]>([])
+  const { screens } = usePresentations()
+  const { relayerId } = useHelpersStore();
+  const {selectedScenario, updateStep,selectedStep, setStepState } = usePresentationAdapter()
+  const [searchResults, setSearchResults] = useState<typeof CredentialDefinition._type[]>([])
+  const { data: credentials } = useCredentialDefinitions();
+  
+  const { personas } = useOnboardingAdapter()
 
-  const currentScenario = selectedScenario !== null ? scenarios[selectedScenario] : null
-  const currentStep = currentScenario && selectedStep !== null ? currentScenario.steps[selectedStep] : null
+  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepWithCredentials : null
+
 
   const form = useForm<StepRequestType>({
     resolver: zodResolver(StepRequest),
@@ -34,27 +50,62 @@ export const ProofStepEdit = () => {
   })
 
   useEffect(() => {
-    if (currentStep && currentStep.type === StepType.CONNECT_AND_VERIFY) {
-      form.reset(currentStep as any)
+    if (currentStep) {
+      form.reset({
+        title: currentStep.title,
+        description: currentStep.description,
+        asset: undefined,
+        credentialDefinitionIdentifierType: currentStep.credentialDefinitionIdentifierType,
+        credentialDefinitionIdentifier: currentStep.credentialDefinitionIdentifier,
+        actions: currentStep.actions
+      });
     }
-  }, [currentStep, form.reset])
+  }, [currentStep, form]);
 
+    const autoSave = debounce((data: StepRequestType) => {
+      if (!currentStep || !form.formState.isDirty) return
+  
+      const updatedStep = {
+        ...currentStep,
+        title: data.title,
+        description: data.description,
+        asset: data.asset || undefined,
+      }
 
-  const searchCredential = (value: string) => {
-    setSearchResults([])
-    if (!value) return
+      updateStep(currentStep.order, updatedStep)
+  
+      setTimeout(() => {
+        toast.success('Changes saved', { duration: 1000 })
+      }, 500)
+    }, 800)
 
-    const credentials = showcaseJSON.personas[selectedCharacter].credentials
-    const search = value.toUpperCase()
+    useEffect(() => {
+      const subscription = form.watch((value) => {
+        if (form.formState.isDirty) {
+          autoSave(value as StepRequestType)
+        }
+      })
+  
+      return () => subscription.unsubscribe()
+    }, [form, autoSave])
 
-    const results = Object.keys(credentials).filter(
-      (credentialId) =>
-        credentials[credentialId].issuer_name.toUpperCase().includes(search) ||
-        credentials[credentialId].name.toUpperCase().includes(search)
-    )
+  const searchCredential = (searchText: string) => {
+    setSearchResults([]);
+    if (!searchText) return;
 
-    setSearchResults(results)
-  }
+    const searchUpper = searchText.toUpperCase();
+
+    if (!Array.isArray(credentials?.credentialDefinitions)) {
+      console.error("Invalid credential data format");
+      return;
+    }
+
+    const results = credentials.credentialDefinitions.filter((cred: any) =>
+      cred.name.toUpperCase().includes(searchUpper)
+    );
+
+    setSearchResults(results);
+  };
 
   const addCredential = (credentialId: string) => {
     setSearchResults([])
@@ -109,23 +160,12 @@ export const ProofStepEdit = () => {
   }
 
   const onSubmit = (data: StepRequestType) => {
+    autoSave.flush()
     if (selectedScenario === null || selectedStep === null) return
 
-    const updatedStep: StepRequestType = {
-      ...data,
-      // type: StepType.CONNECT_AND_VERIFY,
-      // actions: {
-      //   ...data.actions[0],
-      //   type: RequestType.OOB,
-      //   proofRequest: {
-      //     attributes: data.actions[0].proofRequest.attributes,
-      //     predicates: data.actions[0].proofRequest.predicates || {},
-      //   },
-      // },
-    }
 
-    updateStep(selectedScenario, selectedStep, updatedStep as any)
-    setStepState('none-selected')
+    // updateStep(selectedScenario, selectedStep, updatedStep as any)
+    setStepState('no-selection')
   }
 
   // if (!currentStep) return null
@@ -217,7 +257,7 @@ export const ProofStepEdit = () => {
 
                 <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
 
-                {currentScenario && (
+                {/* {currentScenario && (
                   <DisplayStepCredentials
                     selectedCharacter={selectedCharacter}
                     showcaseJSON={showcaseJSON}
@@ -226,12 +266,12 @@ export const ProofStepEdit = () => {
                     selectedScenario={selectedScenario}
                     removeCredential={removeCredential}
                   />
-                )}
+                )} */}
               </div>
             </div>
           </div>
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
-            <ButtonOutline onClick={() => setStepState('none-selected')}>{t('action.cancel_label')}</ButtonOutline>
+            <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
 
             <ButtonOutline disabled={!form.formState.isDirty}>{t('action.next_label')}</ButtonOutline>
           </div>
