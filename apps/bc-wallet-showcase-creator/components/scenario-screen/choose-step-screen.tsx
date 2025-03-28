@@ -49,7 +49,7 @@ export const CreateScenariosStepsScreen = () => {
         })
       )
       setStepState('editing-basic')
-    }else if(type == 'CONNET_AND_VERIFY'){
+    }else if(type == 'SERVICE'){
         createStep(
           createServiceStep({
             title: `Accept your student card`,

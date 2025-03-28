@@ -147,7 +147,7 @@ export const useScenarios = create<State & Actions>((set, get) => ({
     set({
       scenarios: newScenarios,
       selectedStep: newScenarios[scenarioIndex].steps.length - 1,
-      stepState: step.type === "CONNET_AND_VERIFY" ? "proof-step-edit" : "basic-step-edit"
+      stepState: step.type === "SERVICE" ? "proof-step-edit" : "basic-step-edit"
     });
     
     updateShowcaseStore(newScenarios);
@@ -225,7 +225,7 @@ export const createEmptyStep = (
   type: type,
   title: "",
   description: "",
-  requestOptions: type === StepType.CONNECT_AND_VERIFY
+  requestOptions: type === 'SERVICE'
     ? {
         type: RequestType.OOB,
         title: "",

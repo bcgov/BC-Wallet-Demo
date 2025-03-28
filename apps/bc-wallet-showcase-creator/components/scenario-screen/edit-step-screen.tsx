@@ -42,7 +42,7 @@ export const EditStepScreen = () => {
 
       {stepState === 'basic-step-edit' && currentStep?.type === 'HUMAN_TASK' && <BasicStepEdit />}
 
-      {stepState === 'proof-step-edit' && currentStep?.type === 'CONNET_AND_VERIFY' && <ProofStepEdit />}
+      {stepState === 'proof-step-edit' && currentStep?.type === 'SERVICE' && <ProofStepEdit />}
 
       {(stepState === 'none-selected' || stepState === null) && (
         <NoSelection text={t('scenario.no_scenario_selected_message')} />

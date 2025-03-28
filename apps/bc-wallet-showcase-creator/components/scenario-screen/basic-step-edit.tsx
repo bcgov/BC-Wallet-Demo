@@ -117,7 +117,6 @@ export const BasicStepEdit = () => {
         console.log('personaScenarios',personaScenarios);
   }
   if (!currentStep) return null
-
   return (
     <>
       <StepHeader
@@ -169,7 +168,11 @@ export const BasicStepEdit = () => {
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
             {/* <Link href="/publish"> */}
-            <ButtonOutline  onClick={form.handleSubmit(onSubmit)}>
+            <ButtonOutline  
+                type='submit'
+                disabled={!form.formState.isDirty || !form.formState.isValid}
+                onClick={form.handleSubmit(onSubmit)}
+              >
               {t('action.next_label')}
             </ButtonOutline>
             {/* </Link> */}
@@ -182,7 +185,6 @@ export const BasicStepEdit = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onDelete={() => {
-          console.log('Item Deleted')
           setIsModalOpen(false)
           deleteStep(selectedStep?.stepIndex as number)
         }}
