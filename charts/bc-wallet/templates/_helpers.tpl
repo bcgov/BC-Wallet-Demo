@@ -27,7 +27,11 @@ If release name contains chart name it will be used as a full name.
 Create chart name and version as used by the chart label.
 */}}
 {{- define "bc-wallet.chart" -}}
+{{- if .Chart }}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" "bc-wallet" "0.1.0" | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -35,9 +39,8 @@ Common labels
 */}}
 {{- define "bc-wallet.labels" -}}
 helm.sh/chart: {{ include "bc-wallet.chart" . }}
-{{ include "bc-wallet.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- if .Release }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
@@ -244,39 +247,3 @@ tls:
   termination: {{ .Values.demo_server.openshift.route.tls.termination }}
 {{- end -}}
 {{- end -}}
-
-{{/*
-Define a common template for allowing intra-release communication with namespace support
-*/}}
-{{- define "bc-wallet.intra-release-network-policy" -}}
-{{- $releaseName := .Release.Name -}}
-# Network policy to allow communication between services in the same release
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ $releaseName }}-{{ .componentName }}-allow-same-release
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
-  labels:
-    app.kubernetes.io/component: {{ .componentLabel }}
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-      app: {{ $releaseName }}-{{ .componentName }}
-  ingress:
-  - from:
-    - podSelector:
-        matchExpressions:
-        - key: app
-          operator: In
-          values:
-          - {{ $releaseName }}-{{ .Values.api_server.name }}
-          - {{ $releaseName }}-{{ .Values.traction_adapter.name }}
-          - {{ $releaseName }}-{{ .Values.demo_web.name }}
-          - {{ $releaseName }}-{{ .Values.showcase_creator.name }}
-          - {{ $releaseName }}-{{ .Values.demo_server.name }}
-    ports:
-    - protocol: TCP
-      port: {{ .servicePort }}
-{{- end -}} 

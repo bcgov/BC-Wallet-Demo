@@ -1,2 +1,0 @@
-# ditp-showcase-creator-ui
-

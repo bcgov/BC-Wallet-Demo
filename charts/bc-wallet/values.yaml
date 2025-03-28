@@ -1,13 +1,53 @@
 nameOverride: ""
 fullnameOverride: "bc-wallet"
 
+global:
+  namespaceOverride: ""
+
+# Add ingressSuffix for dynamic host generation
+ingressSuffix: "-dev.apps.silver.devops.gov.bc.ca"
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    kubernetes.io/ingress.class: openshift-default
+    route.openshift.io/termination: edge
+  hosts:
+    - host: ""  
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api-server
+    - host: ""  
+      paths:
+        - path: /
+          pathType: Prefix
+          service: traction-adapter
+    - host: ""  
+      paths:
+        - path: /
+          pathType: Prefix
+          service: demo-web
+    - host: "" 
+      paths:
+        - path: /
+          pathType: Prefix
+          service: showcase-creator
+    - host: "" 
+      paths:
+        - path: /
+          pathType: Prefix
+          service: demo-server
+  tls: []
+
 api_server:
   name: bc-wallet-api-server
   image:
-    repository: ghcr.io/4sure-tech/bc-wallet-api-server
+    repository: ghcr.io/bcgov/bc-wallet-api-server
     pullPolicy: IfNotPresent
     pullSecrets: []
-    tag: ""
+    tag: "latest"
   replicaCount: 1
   labelOverride: ""
   port: 3000
@@ -16,13 +56,13 @@ api_server:
     APP_NAME: bc-wallet-api
     LOG_LEVEL: debug
     DB_PORT: "5432"
-    DB_NAME: wallet-db
-    DB_USERNAME: wallet-user
-    CORS_DISABLED: false
-    ALLOW_ORIGINS: https://bcshowcase-ui.dev.nborbit.ca,http://localhost:3000,http://localhost:3003
-    ALLOW_METHODS: GET,POST,PUT,DELETE,OPTIONS
-    ALLOW_HEADERS: Content-Type,Authorization,X-Requested-With,Cache-Control,Pragma,Expires
-    ALLOW_CREDENTIALS: true
+    DB_NAME: showcase-db
+    DB_USERNAME: showcase-user
+    CORS_DISABLED: true
+    ALLOW_ORIGINS: "*"
+    ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
+    ALLOW_HEADERS: "Content-Type, Authorization"
+    ALLOW_CREDENTIALS: "true"
   resources:
     limits:
       cpu: 200m
@@ -40,11 +80,24 @@ api_server:
   nodeSelector: {}
   tolerations: []
   networkPolicy:
-    enabled: false
+    enabled: true
     ingress:
-      enabled: false
-      namespaceSelector: {}
+      enabled: true
+      namespaceSelector: 
+        network.openshift.io/policy-group: ingress
       podSelector: {}
+  openshift:
+    route:
+      enabled: false
+      path: "/"
+      targetPort: http
+      timeout: 2m
+      host: ""
+      tls:
+        enabled: true
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false
@@ -58,20 +111,14 @@ api_server:
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
     stabilizationWindowSeconds: 300
-  ingress:
-    enabled: true
-    annotations:
-      kubernetes.io/ingress.class: "traefik"
-      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
-      traefik.ingress.kubernetes.io/router.tls: "true"
 
 traction_adapter:
   name: bc-wallet-traction-adapter
   image:
-    repository: ghcr.io/4sure-tech/bc-wallet-traction-adapter
+    repository: ghcr.io/bcgov/bc-wallet-traction-adapter
     pullPolicy: IfNotPresent
     pullSecrets: []
-    tag: ""
+    tag: "latest"
   replicaCount: 1
   autoscaling:
     enabled: false
@@ -107,66 +154,39 @@ traction_adapter:
   nodeSelector: {}
   tolerations: []
   networkPolicy:
-    enabled: false
+    enabled: true
     ingress:
-      enabled: false
-      namespaceSelector: {}
+      enabled: true
+      namespaceSelector: 
+        network.openshift.io/policy-group: ingress
       podSelector: {}
+  openshift:
+    route:
+      enabled: false
+      path: "/"
+      targetPort: http
+      timeout: 2m
+      host: ""
+      tls:
+        enabled: true
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false
     annotations: {}
     automountServiceAccountToken: true
     name: ""
-  ingress:
-    enabled: true
-    annotations:
-      kubernetes.io/ingress.class: "traefik"
-      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
-      traefik.ingress.kubernetes.io/router.tls: "true"
 
-showcase_creator:
-  name: bc-wallet-showcase-creator
+demo_web:
+  name: bc-wallet-demo-web
   image:
-    repository: ghcr.io/4sure-tech/bc-wallet-showcase-creator
+    repository: ghcr.io/bcgov/bc-wallet-demo-web
     pullPolicy: IfNotPresent
     pullSecrets: []
-    tag: ""
+    tag: "latest"
   replicaCount: 1
-  labelOverride: ""
-  port: 3050
-  path: /
-  env:
-    APP_NAME: bc-wallet-showcase-creator
-    LOG_LEVEL: debug
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  podAnnotations: {}
-  podSecurityContext: {}
-  containerSecurityContext: {}
-  service:
-    type: ClusterIP
-    port: 3050
-  affinity: {}
-  nodeSelector: {}
-  tolerations: []
-  networkPolicy:
-    enabled: false
-    ingress:
-      enabled: false
-      namespaceSelector: {}
-      podSelector: {}
-  enabled: true
-  serviceAccount:
-    create: false
-    name: ""
-    annotations: {}
-    automountServiceAccountToken: true
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -174,26 +194,11 @@ showcase_creator:
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
     stabilizationWindowSeconds: 300
-  ingress:
-    enabled: true
-    annotations:
-      kubernetes.io/ingress.class: "traefik"
-      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
-      traefik.ingress.kubernetes.io/router.tls: "true"
-
-demo_web:
-  name: bc-wallet-demo-web
-  image:
-    repository: ghcr.io/4sure-tech/bc-wallet-demo-web
-    pullPolicy: IfNotPresent
-    pullSecrets: []
-    tag: ""
-  replicaCount: 1
   labelOverride: ""
   port: 80
   path: /
   env:
-    APP_NAME: bc-wallet-demo-web
+    NODE_ENV: production
   resources:
     limits:
       cpu: 200m
@@ -211,17 +216,39 @@ demo_web:
   nodeSelector: {}
   tolerations: []
   networkPolicy:
-    enabled: false
+    enabled: true
     ingress:
-      enabled: false
-      namespaceSelector: {}
+      enabled: true
+      namespaceSelector: 
+        network.openshift.io/policy-group: ingress
       podSelector: {}
+  openshift:
+    route:
+      enabled: false
+      path: "/"
+      targetPort: http
+      timeout: 2m
+      host: ""
+      tls:
+        enabled: true
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false
-    name: ""
     annotations: {}
     automountServiceAccountToken: true
+    name: ""
+
+showcase_creator:
+  name: bc-wallet-showcase-creator
+  image:
+    repository: ghcr.io/bcgov/bc-wallet-showcase-creator
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+    tag: "latest"
+  replicaCount: 1
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -229,38 +256,83 @@ demo_web:
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
     stabilizationWindowSeconds: 300
-  ingress:
+  labelOverride: ""
+  port: 3050
+  path: /
+  env:
+    APP_NAME: bc-wallet-showcase-creator
+    LOG_LEVEL: debug
+    DB_PORT: "5432"
+    DB_NAME: showcase-db
+    DB_USERNAME: showcase-user
+    CORS_DISABLED: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  podAnnotations: {}
+  podSecurityContext: {}
+  containerSecurityContext: {}
+  service:
+    type: ClusterIP
+    port: 3050
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  networkPolicy:
     enabled: true
-    annotations:
-      kubernetes.io/ingress.class: "traefik"
-      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
-      traefik.ingress.kubernetes.io/router.tls: "true"
+    ingress:
+      enabled: true
+      namespaceSelector: 
+        network.openshift.io/policy-group: ingress
+      podSelector: {}
+  openshift:
+    route:
+      enabled: false
+      path: "/"
+      targetPort: http
+      timeout: 2m
+      host: ""
+      tls:
+        enabled: true
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+      wildcardPolicy: None
+  enabled: true
+  serviceAccount:
+    create: false
+    annotations: {}
+    automountServiceAccountToken: true
+    name: ""
 
 demo_server:
   name: bc-wallet-demo-server
   image:
-    repository: ghcr.io/4sure-tech/bc-wallet-demo-server
+    repository: ghcr.io/bcgov/bc-wallet-demo-server
     pullPolicy: IfNotPresent
     pullSecrets: []
-    tag: ""
+    tag: "latest"
   replicaCount: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+    stabilizationWindowSeconds: 300
   labelOverride: ""
   port: 3000
   path: /
   env:
     APP_NAME: bc-wallet-demo-server
     LOG_LEVEL: debug
-    TENANT_ID: "xyz"
-    API_KEY: "xyz"
-    TRACTION_URL: "https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca"
-    TRACTION_DID: "xyz"
-    BASE_ROUTE: "/digital-trust/showcase"
-    WEBHOOK_SECRET: "xyz"
-    STUDENT_VERSION: "1.6"
-    LAWYER_VERSION: "1.54"
-    PERSON_VERSION: "1.3"
-    BUSINESS_VERSION: "1.0.0"
-    NODE_ENV: "production"
+    DB_PORT: "5432"
+    DB_NAME: showcase-db
+    DB_USERNAME: showcase-user
+    CORS_DISABLED: true
   resources:
     limits:
       cpu: 200m
@@ -278,80 +350,37 @@ demo_server:
   nodeSelector: {}
   tolerations: []
   networkPolicy:
-    enabled: false
+    enabled: true
     ingress:
-      enabled: false
-      namespaceSelector: {}
+      enabled: true
+      namespaceSelector: 
+        network.openshift.io/policy-group: ingress
       podSelector: {}
+  openshift:
+    route:
+      enabled: false
+      path: "/"
+      targetPort: http
+      timeout: 2m
+      host: ""
+      tls:
+        enabled: true
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false
-    name: ""
     annotations: {}
     automountServiceAccountToken: true
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 3
-    targetCPUUtilizationPercentage: 80
-    targetMemoryUtilizationPercentage: 80
-    stabilizationWindowSeconds: 300
-  ingress:
-    enabled: true
-    annotations:
-      kubernetes.io/ingress.class: "traefik"
-      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
-      traefik.ingress.kubernetes.io/router.tls: "true"
-
-# Global ingress settings
-ingress:
-  enabled: true
-  className: "traefik"
-  annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  hosts:
-    - host: bcshowcase-api.dev.nborbit.ca
-      paths:
-        - path: /
-          pathType: Prefix
-          service: api-server
-    - host: bcshowcase-traction.dev.nborbit.ca
-      paths:
-        - path: /
-          pathType: Prefix
-          service: traction-adapter
-    - host: bcshowcase-ui.dev.nborbit.ca
-      paths:
-        - path: /
-          pathType: Prefix
-          service: showcase-creator
-    - host: bcshowcase-demo-web.dev.nborbit.ca
-      paths:
-        - path: /
-          pathType: Prefix
-          service: demo-web
-    - host: bcshowcase-demo-server.dev.nborbit.ca
-      paths:
-        - path: /
-          pathType: Prefix
-          service: demo-server
-  tls:
-    - secretName: bc-wallet-tls
-      hosts:
-        - bcshowcase-api.dev.nborbit.ca
-        - bcshowcase-traction.dev.nborbit.ca
-        - bcshowcase-ui.dev.nborbit.ca
-        - bcshowcase-demo-web.dev.nborbit.ca
-        - bcshowcase-demo-server.dev.nborbit.ca
+    name: ""
 
 postgresql:
   enabled: true
   auth:
     enablePostgresUser: true
-    username: "wallet-user"
-    database: "wallet-db"
+    username: "showcase-user"
+    database: "showcase-db"
     secretKeys:
       adminPasswordKey: "postgres-password"
       userPasswordKey: "password"
@@ -369,6 +398,13 @@ postgresql:
       requests:
         cpu: 100m
         memory: 128Mi
+    podSecurityContext:
+      enabled: false
+    containerSecurityContext:
+      enabled: false
+  networkPolicy:
+    enabled: true
+  fullnameOverride: ""
 
 rabbitmq:
   enabled: true
@@ -408,8 +444,6 @@ rabbitmq:
   pdb:
     create: true
     minAvailable: 1
-
-global:
-  namespaceOverride: ""
-
-debug: true  # Enable debug mode to create the debug-helper ConfigMap
+  networkPolicy:
+    enabled: true
+  fullnameOverride: ""

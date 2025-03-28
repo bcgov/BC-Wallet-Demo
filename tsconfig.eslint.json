@@ -1,5 +1,0 @@
-{
-  "extends": "./tsconfig.build.json",
-  "include": ["apps/*", "packages/*", "./eslint.config.js", "apps/*/config/*", "apps/*/src/*"],
-  "exclude": ["node_modules", "build"]
-}
