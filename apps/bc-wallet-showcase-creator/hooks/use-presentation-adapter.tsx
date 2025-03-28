@@ -1,154 +1,212 @@
-// hooks/use-onboarding-adapter.tsx
-import { useEffect, useState, useCallback } from "react";
-import { usePresentations } from "@/hooks/use-presentation";
-import type { Persona, ShowcaseRequestType, StepRequestType } from "@/openapi-types";
-import { createDefaultStep } from "@/lib/steps";
-import { useShowcaseStore } from "@/hooks/use-showcases-store";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import apiClient from "@/lib/apiService";
-import { useHelpersStore } from "./use-helpers-store";
-import { usePresentationCreation } from "./use-presentation-creation";
+import { useState, useCallback } from 'react'
+import type { Persona, ShowcaseRequestType, StepRequestType } from '@/openapi-types'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import apiClient from '@/lib/apiService'
+import { useHelpersStore } from './use-helpers-store'
+import { usePresentationCreation } from './use-presentation-creation'
 
 export const usePresentationAdapter = () => {
-  const {
-    screens: steps,
-    selectedStep,
-    initializeScreens,
-    createStep,
-    updateStep,
-    // deleteStep,
-    moveStep,
-    setStepState,
-    stepState
-  } = usePresentations();
-  
   const {
     selectedPersonas,
     personaScenarios,
     activePersonaId,
     setActivePersonaId,
-    updatePersonaSteps,
-    // completeShowcaseCreation,
-    // isSaving: isSavingScenarios,
-  } = usePresentationCreation();
-  
-  const { 
-    displayShowcase, 
-    setShowcase,
-    showcase
-  } = useShowcaseStore();
-
-  const { selectedCredentialDefinitionIds, relayerId } = useHelpersStore();
-    
-  const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-
-  const loadPersonaSteps = useCallback((personaId: string) => {
-    if (personaId && personaScenarios.has(personaId)) {
-      const scenario = personaScenarios.get(personaId)!;
-      
-      const onboardingSteps = scenario.steps.map((step, index) => {
-        return {
-          ...createDefaultStep({
-            title: step.title,
-            description: step.description
-          }),
-          id: `step-${index}`,
-          order: index,
-          type: step.type,
-          actions: step.actions || []
-        };
-      });
-      
-      initializeScreens(onboardingSteps);
-      setLoadedPersonaId(personaId);
-    }
-  }, [personaScenarios, initializeScreens]);
-  
-  useEffect(() => {
-    if (activePersonaId !== loadedPersonaId) {
-      loadPersonaSteps(activePersonaId!);
-    }
-  }, [activePersonaId, loadedPersonaId, loadPersonaSteps]);
-  
-  useEffect(() => {
-    if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
-
-      const scenarioSteps: StepRequestType[] = steps.map((step, index) => ({
-        title: step.title,
-        description: step.description,
-        order: index,
-        type: step.type as 'HUMAN_TASK' | 'SERVICE' | 'SCENARIO',
-        actions: step.actions || [],
-        relyingParty: relayerId
-      }));
-      
-      updatePersonaSteps(activePersonaId, scenarioSteps);
-    }
-  }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps]);
-  
-  const updateShowcaseMutation = useMutation({
-    mutationFn: async (showcaseData: ShowcaseRequestType) => {
-      let response;
-      
-      if (displayShowcase.id) {
-        response = await apiClient.put(`/showcases/${displayShowcase.slug}`, showcaseData);
-      } else {
-        response = await apiClient.post('/showcases', showcaseData);
-      }
-      
-      return response;
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['showcases'] });
-    }
-  });
-  
-  const saveShowcase = useCallback(async (data: ShowcaseRequestType) => {
-    try {
-      const showcaseData = {
-        name: data.name,
-        description: data.description,
-        status: data.status || "ACTIVE",
-        hidden: data.hidden || false,
-        scenarios: showcase.scenarios,
-        credentialDefinitions: selectedCredentialDefinitionIds,
-        personas: selectedPersonas.map((p: Persona) => p.id),
-        bannerImage: data.bannerImage,
-      };
-      
-      const updatedShowcase = await updateShowcaseMutation.mutateAsync(showcaseData);      
-      setShowcase(showcaseData);
-      return updatedShowcase;
-    } catch (error) {
-      console.error("Error saving showcase:", error);
-      throw error;
-    }
-  }, [displayShowcase, selectedPersonas, updateShowcaseMutation, setShowcase]);
-  
-  const activePersona = activePersonaId 
-    ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null
-    : null;
-  
-  return {
-    // From onboarding
-    steps,
-    selectedStep,
-    createStep,
+    duplicateScenario,
+    activeScenarioIndex,
+    setActiveScenarioIndex,
+    deleteScenario,
+    addStep,
     updateStep,
-    // deleteStep,
+    deleteStep,
     moveStep,
+    duplicateStep,
     setStepState,
     stepState,
-    
-    // From showcase creation
+    selectedScenario,
+    updateScenario,
+    removeScenario,
+    selectedStep,
+    setSelectedStep,
+    selectStep,
+  } = usePresentationCreation()
+
+  const { displayShowcase, setShowcase, showcase } = useShowcaseStore()
+  const { selectedCredentialDefinitionIds } = useHelpersStore()
+  const queryClient = useQueryClient()
+
+  const getCurrentSteps = useCallback(() => {
+    if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
+
+    const scenarioList = personaScenarios.get(activePersonaId)!
+
+    if (activeScenarioIndex < 0 || activeScenarioIndex >= scenarioList.length) return []
+
+    return scenarioList[activeScenarioIndex].steps
+  }, [activePersonaId, personaScenarios, activeScenarioIndex])
+
+  const steps = getCurrentSteps()
+
+  const createStep = useCallback(
+    (stepData: StepRequestType) => {
+      if (!activePersonaId) return
+
+      addStep(activePersonaId, activeScenarioIndex, stepData)
+      // Set the newly added step as selected
+      setSelectedStep({ stepIndex: steps.length, scenarioIndex: activeScenarioIndex })
+      setStepState('editing-basic')
+    },
+    [activePersonaId, activeScenarioIndex, addStep, steps.length],
+  )
+
+  // Update step wrapper
+  const handleUpdateStep = useCallback(
+    (index: number, stepData: StepRequestType) => {
+      if (!activePersonaId) return
+
+      updateStep(activePersonaId, activeScenarioIndex, index, stepData)
+    },
+    [activePersonaId, activeScenarioIndex, updateStep],
+  )
+
+  const handleDuplicateStep = useCallback(
+    (stepIndex: number) => {
+      if (!activePersonaId) {
+        console.error('Cannot duplicate - no active persona')
+        return
+      }
+
+      duplicateStep(activePersonaId, activeScenarioIndex, stepIndex)
+    },
+    [activePersonaId, activeScenarioIndex, duplicateStep],
+  )
+
+  const handleMoveStep = useCallback(
+    (oldIndex: number, newIndex: number) => {
+      if (!activePersonaId) return
+
+      moveStep(activePersonaId, activeScenarioIndex, oldIndex, newIndex)
+    },
+    [activePersonaId, activeScenarioIndex, moveStep],
+  )
+
+  const updateShowcaseMutation = useMutation({
+    mutationFn: async (showcaseData: ShowcaseRequestType) => {
+      let response
+
+      if (displayShowcase.id) {
+        response = await apiClient.put(`/showcases/${displayShowcase.slug}`, showcaseData)
+      } else {
+        response = await apiClient.post('/showcases', showcaseData)
+      }
+
+      return response
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['showcases'] })
+    },
+  })
+
+  const saveShowcase = useCallback(
+    async (data: ShowcaseRequestType) => {
+      try {
+        const showcaseData = {
+          name: data.name,
+          description: data.description,
+          status: data.status || 'ACTIVE',
+          hidden: data.hidden || false,
+          scenarios: showcase.scenarios,
+          credentialDefinitions: selectedCredentialDefinitionIds,
+          personas: selectedPersonas.map((p: Persona) => p.id),
+          bannerImage: data.bannerImage,
+        }
+
+        const updatedShowcase = await updateShowcaseMutation.mutateAsync(showcaseData)
+        setShowcase(showcaseData)
+        return updatedShowcase
+      } catch (error) {
+        console.error('Error saving showcase:', error)
+        throw error
+      }
+    },
+    [
+      displayShowcase,
+      selectedPersonas,
+      updateShowcaseMutation,
+      setShowcase,
+      showcase.scenarios,
+      selectedCredentialDefinitionIds,
+    ],
+  )
+
+  const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
+
+  // const handleSelectStep = useCallback(
+  //   (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
+  //     console.log('handleSelectStep', { stepIndex, scenarioIndex })
+  //     if (scenarioIndex !== activeScenarioIndex) {
+  //       setActiveScenarioIndex(scenarioIndex)
+  //     }
+
+  //     setSelectedStep(stepIndex)
+
+  //     if (activePersonaId && personaScenarios.has(activePersonaId)) {
+  //       const scenarios = personaScenarios.get(activePersonaId)!
+
+  //       if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
+  //         const steps = scenarios[scenarioIndex].steps
+
+  //         if (stepIndex >= 0 && stepIndex < steps.length) {
+  //           const currentStep = steps[stepIndex]
+
+  //           if (currentStep.type === 'SERVICE') {
+  //             setStepState('editing-issue')
+  //           } else {
+  //             setStepState('editing-basic')
+  //           }
+  //         }
+  //       }
+  //     }
+  //   },
+  //   [activeScenarioIndex, setActiveScenarioIndex, setSelectedStep, activePersonaId, personaScenarios, setStepState],
+  // )
+
+  const handleSelectStep = useCallback(
+    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
+      console.log('handleSelectStep', { stepIndex, scenarioIndex });
+      
+      selectStep(stepIndex, scenarioIndex);
+    },
+    [selectStep],
+  );
+
+  return {
+    steps,
+    selectedStep,
+    setSelectedStep,
+    handleSelectStep,
+    createStep,
+    updateStep: handleUpdateStep,
+    moveStep: handleMoveStep,
+    deleteStep: (index: number) => activePersonaId && deleteStep(activePersonaId, activeScenarioIndex, index),
+    duplicateStep: handleDuplicateStep,
+    setStepState,
+    stepState,
     personas: selectedPersonas,
     activePersonaId,
     setActivePersonaId,
     activePersona,
-    
-    // Combined functionality
+    scenarios:
+      activePersonaId && personaScenarios.has(activePersonaId) ? personaScenarios.get(activePersonaId) || [] : [],
+    personaScenarios,
     saveShowcase,
-    isSaving:  updateShowcaseMutation.isPending
-  };
-};
+    isSaving: updateShowcaseMutation.isPending,
+    duplicateScenario,
+    activeScenarioIndex,
+    setActiveScenarioIndex,
+    deleteScenario,
+    selectedScenario,
+    updateScenario,
+    removeScenario,
+  }
+}

@@ -22,8 +22,7 @@ export const OnboardingSteps = () => {
       {!activePersonaId && (
         <NoSelection
           text={
-            // t("onboarding.select_persona_message") ||
-            'Please select a persona from the left to edit their onboarding steps.'
+            t("onboarding.select_persona_message")
           }
         />
       )}
