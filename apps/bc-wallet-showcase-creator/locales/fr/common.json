@@ -170,7 +170,8 @@
     "search_credential_label": "Rechercher un justificatif:",
     "search_credential_placeholder": "ex. Carte d'étudiant",
     "no_credentials_added_message": "Aucun justificatif ajouté",
-    "go_back_to_select_personas": "Retour à la sélection des personnages"
+    "go_back_to_select_personas": "Retour à la sélection des personnages",
+    "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration."
   },
   "scenario": {
     "header_title": "Créer des Scénarios",
@@ -196,9 +197,10 @@
     "edit_image_label": "Image",
     "edit_summary_label": "Résumé",
     "proof_attribute_placeholder": "Sélectionner un attribut",
-    "basic_label": "Basique",
-    "proof_request_label": "Demande de preuve",
-    "scenario_description": "Scenario Description"
+    "basic_label":"Basique",
+    "proof_request_label":"Demande de preuve",
+    "scenario_description" : "Scenario Description",
+    "remove_scenario_label": "Supprimer le Scénario"
   },
   "action": {
     "cancel_label": "ANNULER",
