@@ -2317,7 +2317,6 @@ describe('Database scenario repository tests', (): void => {
       id: expect.any(String),
       order: 2,
       scenario: expect.any(String),
-      screenId: null,
       subScenario: null,
       title: 'example_title',
       type: 'HUMAN_TASK',
@@ -2892,7 +2891,6 @@ describe('Database scenario repository tests', (): void => {
       id: expect.any(String),
       order: 1,
       scenario: expect.any(String),
-      screenId: null,
       subScenario: null,
       title: 'example_title',
       type: 'HUMAN_TASK',
@@ -3582,7 +3580,7 @@ describe('Database scenario repository tests', (): void => {
     expect(updatedStepResult.actions!.length).toEqual(3)
 
     // Check button action
-    const buttonAction = updatedStepResult.actions.find((a) => a.actionType === StepActionType.BUTTON) as ButtonAction
+    const buttonAction = updatedStepResult.actions!.find((a) => a.actionType === StepActionType.BUTTON) as ButtonAction
     expect(buttonAction).toBeDefined()
     expect(buttonAction?.title).toEqual('button_title')
     expect(buttonAction?.text).toEqual('button_text')
