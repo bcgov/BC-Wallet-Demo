@@ -1,5 +1,7 @@
 # Build stage
 FROM node:20-bookworm AS builder
+RUN apt update && apt install -y maven openjdk-17-jdk
+
 SHELL ["/bin/bash", "-c"]
 ENV SHELL=bash
 ENV PNPM_HOME=/usr/local/share/pnpm
@@ -17,10 +19,11 @@ COPY packages/tsconfig-base.json packages/
 COPY apps/tsconfig-base.json apps/
 COPY apps/bc-wallet-api-server apps/bc-wallet-api-server
 COPY packages/bc-wallet-openapi packages/bc-wallet-openapi
+
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib drizzle-kit
-RUN cd packages/bc-wallet-openapi && mvn -U clean install && cd ../..
 RUN pnpm install
-RUN cd packages/bc-wallet-openapi && pnpm build && cd ../..
+RUN pnpm generate:models
+RUN pnpm --filter bc-wallet-openapi build:clean
 RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-api-server --prod --no-optional
 
