@@ -60,7 +60,7 @@ export class AdapterClientApi {
   }
 
   public async publishIssuer(issuer: Issuer, authHeader: string): Promise<void> {
-    return this.send('publish-issuer', issuer, authHeader)
+    return this.send('publish-issuer-assets', issuer, authHeader)
   }
 
   public async close(): Promise<void> {

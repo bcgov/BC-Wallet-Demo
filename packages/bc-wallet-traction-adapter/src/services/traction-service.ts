@@ -184,7 +184,7 @@ export class TractionService {
     }
   }
 
-  private async getIssuerDID() {
+  public  async getIssuerDID() {
       const result = await this.walletApi.walletDidPublicGet()
       if (!result.result) {
         return Promise.reject(Error(`Public issuer DID not present. Tenant ${this.tenantId} is not registered as an issuer.`))

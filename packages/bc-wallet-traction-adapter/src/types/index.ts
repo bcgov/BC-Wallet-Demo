@@ -3,4 +3,4 @@ export enum Topic {
   SHOWCASE_CMD_TESTING = 'SHOWCASE_CMD_TESTING',
 }
 
-export type Action = 'publish-issuer'
+export type Action = 'publish-issuer-assets'

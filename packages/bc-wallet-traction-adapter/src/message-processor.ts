@@ -109,7 +109,7 @@ export class MessageProcessor {
 
   private async processMessage(action: Action, jsonData: any, service: TractionService, context: any, headers: MessageHeaders): Promise<void> {
     switch (action) {
-      case 'publish-issuer': {
+      case 'publish-issuer-assets': {
         await this.handlePublishIssuerAssets(jsonData, service, context, headers)
         break
       }

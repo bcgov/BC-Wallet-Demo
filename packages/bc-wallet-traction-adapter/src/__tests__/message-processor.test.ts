@@ -1,6 +1,6 @@
 import { RabbitMQContainer, StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
 import { Connection, Sender, SenderOptions } from 'rhea-promise'
-import { CredentialAttributeType, CredentialDefinition, CredentialType } from 'bc-wallet-openapi'
+import { CredentialAttributeType, CredentialDefinition, CredentialType, IssuerType } from 'bc-wallet-openapi'
 import { v4 as uuidv4 } from 'uuid'
 import { MessageProcessor } from '../message-processor'
 import { Action, Topic } from '../types'
@@ -66,10 +66,17 @@ describe('MessageProcessor Integration Test', () => {
     jest.clearAllMocks()
   })
 
-  test('should process store-credentialdef message successfully', async () => {
-    // Create a sample credential definition
-    const credDef: CredentialDefinition = {
-      id: 'test-id',
+  test('should process publish-issuer-assets message successfully', async () => {
+  // Create a sample issuer with credential definitions and schemas
+  const issuer = {
+    id: 'test-issuer-id',
+    name: 'Test Issuer',
+    description: 'Test Issuer Description',
+    type: IssuerType.Aries,
+    organization: 'Test Organization',
+    credentialDefinitions: [
+      {
+        id: 'test-cred-def-id',
       name: 'Test Credential',
       version: '1.0',
       type: CredentialType.Anoncred,
@@ -109,30 +116,59 @@ describe('MessageProcessor Integration Test', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     }
+    ],
+    credentialSchemas: [
+      {
+        id: 'schema-id',
+        name: 'Test Schema',
+        version: '1.0',
+        attributes: [
+          {
+            id: 'attr1',
+            name: 'firstName',
+            type: 'STRING' as CredentialAttributeType,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            id: 'attr2',
+            name: 'lastName',
+            type: 'STRING' as CredentialAttributeType,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
 
     // Spy on console.debug to detect when the message is processed
     const consoleSpy = jest.spyOn(console, 'debug')
 
-    // Send a message with the credential definition
+  // Send a message with the issuer
     const messageId = uuidv4()
     const { encrypted, nonce } = encryptBuffer(Buffer.from('test-token', 'utf8'))
     void sender.send({
       message_id: messageId,
-      body: JSON.stringify(credDef),
+    body: JSON.stringify(issuer),
       application_properties: {
-        action: 'store-credentialdef' as Action,
+        action: 'publish-issuer-assets' as Action,
         tenantId: 'test-tenant',
         apiUrlBase: 'http://localhost:8080',
         walletId: 'test-wallet',
         accessTokenEnc: encrypted,
-        accessTokenNonceEnc: nonce,
+        accessTokenNonce: nonce,
       },
     })
 
     // Wait for the message to be processed
     await new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-        if (consoleSpy.mock.calls.some((call) => call[0] === 'Received credential definition' && call[1]?.id === 'test-id')) {
+      if (consoleSpy.mock.calls.some((call) => call[0] === 'Received issuer' && call[1]?.id === 'test-issuer-id')) {
           clearInterval(checkInterval)
           resolve()
         }
@@ -146,42 +182,20 @@ describe('MessageProcessor Integration Test', () => {
     })
 
     // Verify that the getTractionService was called with the correct parameters
-    expect(getTractionService).toHaveBeenCalledWith('test-tenant', 'http://localhost:8080', 'test-wallet', 'test-token')
+  expect(getTractionService).toHaveBeenCalledWith('test-tenant', 'http://localhost:8080', 'test-wallet', encrypted, nonce)
 
     consoleSpy.mockRestore()
   })
 
   test('should reject message with missing action', async () => {
-    // Create a sample credential definition
-    const credDef: CredentialDefinition = {
-      id: 'test-id',
-      name: 'Test Credential',
-      version: '1.0',
-      type: CredentialType.Anoncred,
-      credentialSchema: {
-        id: 'schema-id',
-        name: 'Test Schema',
-        version: '1.0',
-        attributes: [
-          {
-            id: 'attr1',
-            name: 'firstName',
-            type: 'STRING' as CredentialAttributeType,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      representations: [],
-      icon: {
-        id: 'icon1',
-        mediaType: 'image/png',
-        content: 'base64content',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+  // Create a sample issuer
+  const issuer = {
+    id: 'test-issuer-id',
+    name: 'Test Issuer',
+    description: 'Test Issuer Description',
+    type: IssuerType.Aries,
+    credentialDefinitions: [],
+    credentialSchemas: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -193,7 +207,7 @@ describe('MessageProcessor Integration Test', () => {
     const messageId = uuidv4()
     void (await sender.send({
       message_id: messageId,
-      body: JSON.stringify(credDef),
+    body: JSON.stringify(issuer),
       application_properties: {
         tenantId: 'test-tenant',
       },
@@ -220,6 +234,92 @@ describe('MessageProcessor Integration Test', () => {
 
     consoleSpy.mockRestore()
   })
+
+test('should reject message with missing tenant ID', async () => {
+  // Create a sample issuer
+  const issuer = {
+    id: 'test-issuer-id',
+    name: 'Test Issuer',
+    description: 'Test Issuer Description',
+    type: IssuerType.Aries,
+    credentialDefinitions: [],
+    credentialSchemas: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  // Spy on console.error to detect when the message is rejected
+  const consoleSpy = jest.spyOn(console, 'error')
+
+  // Send a message without a tenant ID
+  const messageId = uuidv4()
+  void (await sender.send({
+    message_id: messageId,
+    body: JSON.stringify(issuer),
+    application_properties: {
+      action: 'publish-issuer-assets' as Action,
+    },
+  }))
+
+  // Wait for the message to be processed
+  await new Promise<void>((resolve) => {
+    const checkInterval = setInterval(() => {
+      if (consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))) {
+        clearInterval(checkInterval)
+        resolve()
+      }
+    }, 100)
+
+    // Timeout after 5 seconds
+    setTimeout(() => {
+      clearInterval(checkInterval)
+      resolve()
+    }, 5000)
+  })
+
+  // Verify the error was logged
+  expect(consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))).toBeTruthy()
+
+  consoleSpy.mockRestore()
+})
+
+test('should reject message with invalid JSON', async () => {
+  // Spy on console.error to detect when the message is rejected
+  const consoleSpy = jest.spyOn(console, 'error')
+
+  // Send a message with invalid JSON
+  const messageId = uuidv4()
+  void (await sender.send({
+    message_id: messageId,
+    body: '{invalid json}',
+    application_properties: {
+      action: 'publish-issuer-assets' as Action,
+      tenantId: 'test-tenant',
+      apiUrlBase: 'http://localhost:8080',
+    },
+  }))
+
+  // Wait for the message to be processed
+  await new Promise<void>((resolve) => {
+    const checkInterval = setInterval(() => {
+      if (consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))) {
+        clearInterval(checkInterval)
+        resolve()
+      }
+    }, 100)
+
+    // Timeout after 5 seconds
+    setTimeout(() => {
+      clearInterval(checkInterval)
+      resolve()
+    }, 5000)
+  })
+
+  // Verify the error was logged
+  expect(consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))).toBeTruthy()
+
+  consoleSpy.mockRestore()
+})
 
   test('should reject message with missing tenant ID', async () => {
     // Create a sample credential definition
@@ -265,7 +365,7 @@ describe('MessageProcessor Integration Test', () => {
       message_id: messageId,
       body: JSON.stringify(credDef),
       application_properties: {
-        action: 'store-credentialdef' as Action,
+        action: 'publish-issuer-assets' as Action,
       },
     }))
 
@@ -301,7 +401,7 @@ describe('MessageProcessor Integration Test', () => {
       message_id: messageId,
       body: '{invalid json}',
       application_properties: {
-        action: 'store-credentialdef' as Action,
+        action: 'publish-issuer-assets' as Action,
         tenantId: 'test-tenant',
         apiUrlBase: 'http://localhost:8080',
       },
@@ -330,36 +430,14 @@ describe('MessageProcessor Integration Test', () => {
   })
 
   test('should reject message with unsupported action', async () => {
-    // Create a sample credential definition
-    const credDef: CredentialDefinition = {
-      id: 'test-id',
-      name: 'Test Credential',
-      version: '1.0',
-      type: CredentialType.Anoncred,
-      credentialSchema: {
-        id: 'schema-id',
-        name: 'Test Schema',
-        version: '1.0',
-        attributes: [
-          {
-            id: 'attr1',
-            name: 'firstName',
-            type: 'STRING' as CredentialAttributeType,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      representations: [],
-      icon: {
-        id: 'icon1',
-        mediaType: 'image/png',
-        content: 'base64content',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+  // Create a sample issuer
+  const issuer = {
+    id: 'test-issuer-id',
+    name: 'Test Issuer',
+    description: 'Test Issuer Description',
+    type: IssuerType.Aries,
+    credentialDefinitions: [],
+    credentialSchemas: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -371,7 +449,7 @@ describe('MessageProcessor Integration Test', () => {
     const messageId = uuidv4()
     void (await sender.send({
       message_id: messageId,
-      body: JSON.stringify(credDef),
+    body: JSON.stringify(issuer),
       application_properties: {
         action: 'unsupported-action' as Action,
         tenantId: 'test-tenant',
