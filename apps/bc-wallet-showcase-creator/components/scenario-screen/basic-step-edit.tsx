@@ -47,11 +47,7 @@ export const BasicStepEdit = () => {
   
   useEffect(() => {
     if (currentStep) {
-      form.reset({
-        title: currentStep.title,
-        description: currentStep.description,
-        asset: currentStep.asset || '',
-      })
+      form.reset(defaultValues)
     }
   }, [currentStep, form])
 
