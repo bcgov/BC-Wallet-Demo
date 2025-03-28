@@ -258,7 +258,7 @@ export default function NewCharacterPage() {
                             src={
                               persona.headshotImage?.content
                                 ? ensureBase64HasPrefix(persona.headshotImage.content)
-                                : '/assets/NavBar/Joyce.png'
+                                : '/assets/no-image.jpg'
                             }
                             alt={persona.name}
                             width={selectedPersonaId === persona.id ? 100 : 50}
@@ -415,11 +415,11 @@ export default function NewCharacterPage() {
                           <ButtonOutline disabled={selectedPersonaIds.length === 0} onClick={handleProceed}>
                             {t('action.next_label')}
                           </ButtonOutline>
-                          {process.env.NODE_ENV === 'development' && (
+                          {/* {process.env.NODE_ENV === 'development' && (
                             <ButtonOutline className="bg-red-500" onClick={() => setSelectedPersonaIds([])}>
                               Clear storage
                             </ButtonOutline>
-                          )}
+                          )} */}
                         </div>
                       </div>
                     </form>

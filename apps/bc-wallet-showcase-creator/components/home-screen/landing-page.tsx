@@ -121,7 +121,7 @@ export const LandingPage = () => {
                           className="border-[1px] border-dark-border dark:border-light-border flex items-center gap-3 p-3 rounded-md"
                         >
                           <Image
-                            src={ensureBase64HasPrefix(persona.headshotImage?.content) || '/assets/NavBar/Joyce.png'}
+                            src={ensureBase64HasPrefix(persona.headshotImage?.content) || '/assets/no-image.jpg'}
                             alt={persona.name}
                             width={44}
                             height={44}
