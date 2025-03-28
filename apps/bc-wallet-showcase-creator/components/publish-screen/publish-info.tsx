@@ -20,7 +20,7 @@ export const PublishInfo = ({
             {/* Character Header */}
             <div className="flex items-center gap-4">
               <Image
-                src={ensureBase64HasPrefix(char.headshotImage?.content) || '/assets/NavBar/Joyce.png'}
+                src={ensureBase64HasPrefix(char.headshotImage?.content) || '/assets/no-image.jpg'}
                 alt={char.name || 'Character'}
                 width={50}
                 height={50}
@@ -40,7 +40,7 @@ export const PublishInfo = ({
                 {credentials?.map((cred, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <Image
-                      src={ensureBase64HasPrefix(cred.icon?.content) || '/assets/NavBar/Joyce.png'}
+                      src={ensureBase64HasPrefix(cred.icon?.content) || '/assets/no-image.jpg'}
                       alt={cred.icon?.description || 'Credential'}
                       width={40}
                       height={40}
