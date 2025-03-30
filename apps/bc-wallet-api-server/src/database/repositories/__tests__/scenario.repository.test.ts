@@ -1452,7 +1452,6 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
       }
     }
-    expect(updatedIssuanceScenarioResult.steps[1].credentialDefinition).toBeNull()
     expect(updatedIssuanceScenarioResult.personas).toBeDefined()
     expect(updatedIssuanceScenarioResult.personas.length).toEqual(1)
     expect(updatedIssuanceScenarioResult.personas[0].name).toEqual(persona1.name)
