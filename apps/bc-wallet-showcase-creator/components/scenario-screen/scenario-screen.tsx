@@ -282,8 +282,7 @@ export const ScenarioScreen = () => {
                 {/* Character Avatar Placeholder */}
                 <div className="w-12 h-12 bg-gray-300 rounded-full mb-2">
                   <Image
-                    // src={char.headshotImage.content}
-                    src={char.headshotImage || '/assets/NavBar/Joyce.png'}
+                    src={char.headshotImage || '/assets/no-image.jpg'}
                     alt={char.name}
                     width={50}
                     height={50}

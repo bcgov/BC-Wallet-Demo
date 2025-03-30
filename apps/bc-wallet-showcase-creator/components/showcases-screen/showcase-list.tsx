@@ -179,7 +179,7 @@ export const ShowcaseList = () => {
                             >
                               <Image
                                 src={
-                                  ensureBase64HasPrefix(persona.headshotImage?.content) || '/assets/NavBar/Joyce.png'
+                                  ensureBase64HasPrefix(persona.headshotImage?.content) || '/assets/no-image.jpg'
                                 }
                                 alt={persona.name}
                                 width={44}

@@ -88,7 +88,7 @@ export default function EditScenarioCharacterPage({ slug }: { slug: string }) {
                             src={
                               persona.headshotImage?.content
                                 ? ensureBase64HasPrefix(persona.headshotImage.content)
-                                : '/assets/NavBar/Joyce.png'
+                                : '/assets/no-image.jpg'
                             }
                             alt={persona.name}
                             width={96}
