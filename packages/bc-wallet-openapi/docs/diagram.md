@@ -42,6 +42,7 @@ classDiagram
         +description : String
         +order : int
         +type : StepType
+        +credentialDefinition : CredentialDefinition
         +createdAt : DateTime
         +updatedAt : DateTime
         subFlow: Scenario
@@ -256,6 +257,7 @@ classDiagram
     RelyingParty o-- "1" RelyingPartyType: of
     RevocationInfo <|-- AnonCredRevocation : specialization
     Step "1" -- "0..*" Asset : references
+    Step o-- "1" CredentialDefinition: references
     Persona -- "0..*" Asset : references
     Issuer -- "0..*" Asset : references
     Issuer o-- "1" IssuerType: of
