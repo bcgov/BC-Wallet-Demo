@@ -71,7 +71,7 @@ export const CreateOnboardingScreen = () => {
                       src={
                         persona.headshotImage?.content
                           ? ensureBase64HasPrefix(persona.headshotImage.content)
-                          : '/assets/NavBar/Joyce.png'
+                          : '/assets/no-image.jpg'
                       }
                       alt={`${persona.name} Headshot`}
                       width={50}

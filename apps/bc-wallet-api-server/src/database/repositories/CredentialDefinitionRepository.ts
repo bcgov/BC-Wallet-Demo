@@ -1,11 +1,11 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { Service } from 'typedi'
 import DatabaseService from '../../services/DatabaseService'
 import AssetRepository from './AssetRepository'
 import { NotFoundError } from '../../errors'
 import { credentialDefinitions, credentialRepresentations, revocationInfo } from '../schema'
 import CredentialSchemaRepository from './CredentialSchemaRepository'
-import { CredentialDefinition, NewCredentialDefinition, RepositoryDefinition } from '../../types'
+import { CredentialDefinition, IdentifierType, NewCredentialDefinition, RepositoryDefinition } from '../../types'
 
 @Service()
 class CredentialDefinitionRepository implements RepositoryDefinition<CredentialDefinition, NewCredentialDefinition> {
@@ -148,6 +148,20 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
       ...item,
       credentialSchema: item.cs,
     }))
+  }
+
+  async findIdByIdentifier(identifier: string, identifierType: IdentifierType): Promise<string> {
+    const result = await (
+      await this.databaseService.getConnection()
+    ).query.credentialDefinitions.findFirst({
+      where: and(eq(credentialDefinitions.identifier, identifier), eq(credentialDefinitions.identifierType, identifierType)),
+    })
+
+    if (!result) {
+      return Promise.reject(new NotFoundError(`No credential definition found for identifier: ${identifier}`))
+    }
+
+    return result.id
   }
 }
 

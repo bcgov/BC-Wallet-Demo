@@ -84,7 +84,7 @@ export const OnboardingScreen = ({ slug }: { slug: string }) => {
                     <div className="w-12 h-12 bg-gray-300 rounded-full mb-2">
                       <Image
                         // src={char.headshotImage.content}
-                        src={ensureBase64HasPrefix(char.headshotImage?.content) || '/assets/NavBar/Joyce.png'}
+                        src={ensureBase64HasPrefix(char.headshotImage?.content) || '/assets/no-image.jpg'}
                         alt={char.name}
                         width={50}
                         height={50}
