@@ -40,3 +40,5 @@ export function ensureBase64HasPrefix(base64String: string) {
   // Default fallback (if format is unknown)
   return `data:image/png;base64,${base64String}`
 }
+
+
