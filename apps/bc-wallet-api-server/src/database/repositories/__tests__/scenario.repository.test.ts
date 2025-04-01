@@ -268,9 +268,9 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].credentialDefinition).not.toBeNull()
     expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
     expect(savedIssuanceScenario.steps[0].actions![0].id).toBeDefined()
-    expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(issuanceScenario.steps[0].actions[0].actionType)
-    expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(issuanceScenario.steps[0].actions![0].actionType)
+    expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
     if (savedIssuanceScenario.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
       const action = savedIssuanceScenario.steps[0].actions![0] as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
@@ -431,9 +431,9 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].credentialDefinition).not.toBeNull()
     expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
     expect(savedIssuanceScenario.steps[0].actions![0].id).toBeDefined()
-    expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(issuanceScenario.steps[0].actions[0].actionType)
-    expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(issuanceScenario.steps[0].actions![0].actionType)
+    expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
 
     if (savedIssuanceScenario.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
       const action = savedIssuanceScenario.steps[0].actions![0] as AriesOOBAction
@@ -2329,6 +2329,7 @@ describe('Database scenario repository tests', (): void => {
         updatedAt: expect.any(Date),
       },
       createdAt: expect.any(Date),
+      credentialDefinition: null,
       description: 'example_description',
       id: expect.any(String),
       order: 2,
@@ -2810,7 +2811,7 @@ describe('Database scenario repository tests', (): void => {
     expect(updatedStepResult.order).toEqual(updatedStep.order)
     expect(updatedStepResult.type).toEqual(updatedStep.type)
     expect(updatedStepResult.credentialDefinition).not.toBeNull()
-    expect(updatedStepResult.actions!.length).toEqual(2)
+              expect(updatedStepResult.actions!.length).toEqual(2)
     expect(updatedStepResult.actions![0].id).toBeDefined()
     expect(updatedStepResult.actions![0].title).toEqual(updatedStep.actions![0].title)
     expect(updatedStepResult.actions![0].actionType).toEqual(updatedStep.actions![0].actionType)
@@ -2908,6 +2909,7 @@ describe('Database scenario repository tests', (): void => {
         updatedAt: expect.any(Date),
       },
       createdAt: expect.any(Date),
+      credentialDefinition: null,
       description: 'example_description',
       id: expect.any(String),
       order: 1,
