@@ -2325,6 +2325,7 @@ describe('Database scenario repository tests', (): void => {
         updatedAt: expect.any(Date),
       },
       createdAt: expect.any(Date),
+      credentialDefinition: null,
       description: 'example_description',
       id: expect.any(String),
       order: 2,
@@ -2805,7 +2806,8 @@ describe('Database scenario repository tests', (): void => {
     expect(updatedStepResult.title).toEqual(updatedStep.title)
     expect(updatedStepResult.order).toEqual(updatedStep.order)
     expect(updatedStepResult.type).toEqual(updatedStep.type)
-    expect(updatedStepResult.actions!.length).toEqual(2)
+    expect(updatedStepResult.credentialDefinition).not.toBeNull()
+              expect(updatedStepResult.actions!.length).toEqual(2)
     expect(updatedStepResult.actions![0].id).toBeDefined()
     expect(updatedStepResult.actions![0].title).toEqual(updatedStep.actions![0].title)
     expect(updatedStepResult.actions![0].actionType).toEqual(updatedStep.actions![0].actionType)
@@ -2903,6 +2905,7 @@ describe('Database scenario repository tests', (): void => {
         updatedAt: expect.any(Date),
       },
       createdAt: expect.any(Date),
+      credentialDefinition: null,
       description: 'example_description',
       id: expect.any(String),
       order: 1,
