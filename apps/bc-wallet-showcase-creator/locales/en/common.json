@@ -257,5 +257,18 @@
   },
   "footer": {
     "copyright_label": "British Columbia Digital Identity and Trust Program. All rights reserved."
+  },
+  "login": {
+    "email_label": "Email",
+    "password_label": "Password",
+    "login_label": "Login",
+    "forgot_password_label": "Forgot Password?",
+    "sign_up_label": "Sign Up",
+    "continue_label": "Continue",
+    "terms_of_service_label": "Terms of Service",
+    "privacy_policy_label": "Privacy Policy",
+    "dont_have_account_label": "Don't have an account?",
+    "welcome_message": "Welcome to Acme Inc.",
+    "app_name": "Acme Inc."
   }
 }
