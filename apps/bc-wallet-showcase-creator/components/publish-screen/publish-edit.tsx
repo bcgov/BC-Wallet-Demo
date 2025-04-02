@@ -121,7 +121,7 @@ const BannerImageUpload = ({
 export const PublishEdit = () => {
   const t = useTranslations()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { showcase, reset } = useShowcaseStore()
+  const { showcase, reset, setScenarioIds } = useShowcaseStore()
   const router = useRouter()
   const { saveShowcase } = useOnboardingAdapter()
   const { personas } = useOnboardingAdapter()
@@ -157,6 +157,7 @@ export const PublishEdit = () => {
     toast.success('Showcase created successfully')
     reset()
     setIsModalOpen(false)
+    setScenarioIds([])
     router.push('/showcases')
   }
 

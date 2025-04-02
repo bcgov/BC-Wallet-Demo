@@ -104,7 +104,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
 
         const defaultScenario: PresentationScenarioRequestType = {
           name: "You're done!",
-          description: `Onboarding scenario for ${persona.name}`,
+          description: `Presentation scenario for ${persona.name}`,
           type: 'PRESENTATION',
           steps: [
             {
