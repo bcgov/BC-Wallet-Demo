@@ -15,6 +15,7 @@ import {
   RelyingParty as RelyingPartyDTO,
   SetupConnectionAction as SetupConnectionActionDTO,
   ShareCredentialAction as ShareCredentialActionDTO,
+  Tenant as TenantDTO,
   Showcase as ShowcaseDTO,
   Step as StepDTO,
   StepAction as StepActionDTO,
@@ -40,8 +41,8 @@ import {
   Showcase,
   Step,
   StepActionType,
-  StepActionTypes,
-  User,
+  StepActionTypes, Tenant,
+  User
 } from '../types'
 
 export const newAssetFrom = (asset: AssetRequestDTO): NewAsset => {
@@ -217,6 +218,14 @@ export const personaDTOFrom = (persona: Persona): PersonaDTO => {
     headshotImage: persona.headshotImage ? assetDTOFrom(persona.headshotImage) : undefined,
     bodyImage: persona.bodyImage ? assetDTOFrom(persona.bodyImage) : undefined,
     hidden: persona.hidden,
+  }
+}
+
+export const tenantDTOFrom = (tenant: Tenant): TenantDTO => {
+  return {
+    id: tenant.id,
+    createdAt: tenant.createdAt,
+    deletedAt: tenant.deletedAt || undefined
   }
 }
 
