@@ -12,7 +12,6 @@ import * as schema from '../../database/schema'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import DatabaseService from '../../services/DatabaseService'
-import supertest = require('supertest')
 import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
 import ShowcaseService from '../../services/ShowcaseService'
 import {
@@ -22,9 +21,10 @@ import {
   createTestIssuer,
   createTestPersona,
   createTestScenario,
-  createTestTenant
+  createTestTenant,
 } from './dbTestData'
 import { ShowcaseStatus } from '../../types'
+import supertest = require('supertest')
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
@@ -108,7 +108,6 @@ describe('TenantController Integration Tests', () => {
     await request.post('/tenants').send(invalidTenantRequest).expect(400)
   })
 
-
   it('should cascade delete showcases when a tenant is deleted', async () => {
     // Register the required services
     Container.get(ShowcaseRepository)
@@ -134,16 +133,16 @@ describe('TenantController Integration Tests', () => {
       hidden: false,
       scenarios: [scenario.id],
       personas: [persona.id],
-    credentialDefinitions: [definition.id],
+      credentialDefinitions: [definition.id],
       bannerImage: asset.id,
-      tenantId: tenant.id
+      tenantId: tenant.id,
     })
 
     // Verify showcase was created
     const showcaseRepository = Container.get(ShowcaseRepository)
-  // Get the showcase ID first, then use it to verify showcase exists
-  const showcaseId = await showcaseRepository.findIdBySlug(showcase.slug)
-  const showcaseBeforeDelete = await showcaseRepository.findById(showcaseId)
+    // Get the showcase ID first, then use it to verify showcase exists
+    const showcaseId = await showcaseRepository.findIdBySlug(showcase.slug)
+    const showcaseBeforeDelete = await showcaseRepository.findById(showcaseId)
     expect(showcaseBeforeDelete).toBeDefined()
 
     // Delete the tenant
@@ -154,7 +153,7 @@ describe('TenantController Integration Tests', () => {
 
     // Verify showcase was also deleted (cascade)
     try {
-    await showcaseRepository.findIdBySlug(showcase.slug)
+      await showcaseRepository.findIdBySlug(showcase.slug)
       // Should not reach here
       fail('Showcase should have been deleted')
     } catch (error) {
