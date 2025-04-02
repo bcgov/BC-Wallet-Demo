@@ -64,6 +64,13 @@
       "when": 1743185345747,
       "tag": "0008_bc-wallet-api",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1743596931543,
+      "tag": "0009_bc-wallet-api",
+      "breakpoints": true
     }
   ]
 }
