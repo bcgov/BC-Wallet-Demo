@@ -3,7 +3,7 @@ import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { cn, ensureBase64HasPrefix } from "@/lib/utils";
+import { cn, baseUrl } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import ButtonOutline from "../ui/button-outline";
@@ -45,7 +45,7 @@ export const DisplayAddedCredentials = ({
           if (!credential.credentialSchema || !credential.credentialSchema.attributes) {
             return credential;
           }
-  
+
           return {
             ...credential,
             credentialSchema: {
@@ -65,18 +65,18 @@ export const DisplayAddedCredentials = ({
 
   const handleSaveAttributes = (credentialId: string) => {
     if (!updateCredentials) return;
-  
+
     const updatedCredentials = credentials.map((cred: CredentialDefinitionType) => {
       if (cred.id === credentialId) {
         if (!cred.credentialSchema || !cred.credentialSchema.attributes) {
           return cred;
         }
-  
+
         return {
           ...cred,
           credentialSchema: {
             ...cred.credentialSchema,
-            attributes: cred.credentialSchema.attributes.map(attr => ({
+            attributes: cred.credentialSchema.attributes.map((attr) => ({
               id: attr.id,
               name: attr.name,
               type: attr.type,
@@ -89,7 +89,7 @@ export const DisplayAddedCredentials = ({
       }
       return cred;
     });
-  
+
     updateCredentials(updatedCredentials);
     setIsEditing(false);
   };
@@ -118,14 +118,8 @@ export const DisplayAddedCredentials = ({
                 {/* Left Section - Image and User Info */}
                 <div className="flex items-center flex-1">
                   <Image
-                    src={
-                      credential.icon?.content
-                        ? ensureBase64HasPrefix(
-                            credential.icon.content
-                          )
-                        : "/assets/no-image.jpg"
-                    }
-                    alt={"Bob"}
+                    src={credential.icon?.id ? `${baseUrl}/assets/${credential.icon.id}/file` : '/assets/no-image.jpg'}
+                    alt="Credential Icon"
                     width={50}
                     height={50}
                     className="rounded-full"
@@ -150,8 +144,8 @@ export const DisplayAddedCredentials = ({
                     variant="ghost"
                     size="icon"
                     onClick={(e) => {
-                      e.preventDefault();
-                      removeCredential(credential);
+                      e.preventDefault()
+                      removeCredential(credential)
                     }}
                     className="hover:text-destructive hover:bg-destructive/10"
                   >
@@ -173,37 +167,37 @@ export const DisplayAddedCredentials = ({
                 <>
                   <div className="p-3 rounded-b-lg bg-white dark:bg-dark-bg">
                     {credential.credentialSchema?.attributes?.map((attr:CredentialAttributeType, attrIndex: number) => (
-                      <div key={attr.id || attrIndex} className="grid grid-cols-2 gap-4">
-                        {/* Attribute Column */}
-                        <div className="space-y-2 flex flex-col justify-center p-4">
-                          <label className="text-sm font-bold">{t('credentials.attribute_label')}</label>
-                          <Input
-                            className="text-light-text dark:text-dark-text border border-dark-border dark:border-light-border"
-                            value={attr.name}
-                            disabled
-                          />
-                        </div>
+                        <div key={attr.id || attrIndex} className="grid grid-cols-2 gap-4">
+                          {/* Attribute Column */}
+                          <div className="space-y-2 flex flex-col justify-center p-4">
+                            <label className="text-sm font-bold">{t('credentials.attribute_label')}</label>
+                            <Input
+                              className="text-light-text dark:text-dark-text border border-dark-border dark:border-light-border"
+                              value={attr.name}
+                              disabled
+                            />
+                          </div>
 
-                        <div className="space-y-2 flex flex-col justify-center p-4">
-                          <label className="text-sm font-bold">{t('credentials.attribute_value_placeholder')}</label>
-                          <Controller
+                          <div className="space-y-2 flex flex-col justify-center p-4">
+                            <label className="text-sm font-bold">{t('credentials.attribute_value_placeholder')}</label>
+                            <Controller
                             name={`credentials.${index}.credentialSchema.attributes.${attrIndex}.value` as unknown as Path<IssueStepFormData>} // TODO: fix type issue here
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl>
-                                <Input
-                                  className="border border-dark-border dark:border-light-border"
-                                  {...field}
-                                  onChange={(e) => {
+                              control={control}
+                              render={({ field }) => (
+                                <FormControl>
+                                  <Input
+                                    className="border border-dark-border dark:border-light-border"
+                                    {...field}
+                                    onChange={(e) => {
                                     field.onChange(e);
                                     handleAttributeChange(credential.id, attrIndex, e.target.value);
-                                  }}
-                                />
-                              </FormControl>
-                            )}
-                          />
+                                    }}
+                                  />
+                                </FormControl>
+                              )}
+                            />
+                          </div>
                         </div>
-                      </div>
                     ))}
                   </div>
 

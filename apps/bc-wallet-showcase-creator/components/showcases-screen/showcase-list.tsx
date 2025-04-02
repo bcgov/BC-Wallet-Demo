@@ -6,7 +6,7 @@ import ButtonOutline from '@/components/ui/button-outline'
 import { Card } from '@/components/ui/card'
 import { useCreateShowcase, useDeleteShowcase, useShowcases } from '@/hooks/use-showcases'
 import { Link } from '@/i18n/routing'
-import { ensureBase64HasPrefix } from '@/lib/utils'
+import { baseUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { Persona, Showcase } from '@/openapi-types'
 import { Share2 } from 'lucide-react'
@@ -179,7 +179,9 @@ export const ShowcaseList = () => {
                             >
                               <Image
                                 src={
-                                  ensureBase64HasPrefix(persona.headshotImage?.content) || '/assets/no-image.jpg'
+                                  persona.headshotImage?.id
+                                    ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                    : '/assets/no-image.jpg'
                                 }
                                 alt={persona.name}
                                 width={44}

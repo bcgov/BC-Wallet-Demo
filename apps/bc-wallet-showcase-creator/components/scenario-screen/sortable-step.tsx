@@ -1,7 +1,6 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
-import { useScenarios } from '@/hooks/use-scenarios'
-import { cn, ensureBase64HasPrefix } from '@/lib/utils'
+import { cn, baseUrl } from '@/lib/utils'
 import type { StepType } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -139,8 +138,12 @@ const handleStepClick = () => {
                   {selectedCredential && (
                     <div className="bg-white dark:bg-dark-bg-secondary p-2 flex">
                       <Image
-                        src={ensureBase64HasPrefix(selectedCredential.icon?.content)}
-                        alt={'Bob'}
+                        src={
+                          selectedCredential.icon?.id
+                            ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
+                            : '/assets/no-image.jpg'
+                        }
+                        alt={selectedCredential.icon?.description || 'Credential'}
                         width={50}
                         height={50}
                         className="rounded-full"

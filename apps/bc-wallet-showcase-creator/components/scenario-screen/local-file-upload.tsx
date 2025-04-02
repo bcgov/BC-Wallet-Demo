@@ -4,7 +4,9 @@ import { useAssetById, useCreateAsset } from '@/hooks/use-asset'
 import { convertBase64 } from '@/lib/utils'
 import type { AssetResponseType } from '@/openapi-types'
 import { Trash2 } from 'lucide-react'
+import { ensureBase64HasPrefix, baseUrl } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
+import { asset } from '@/schemas/credential'
 
 interface LocalFileUploadProps {
   text: string
@@ -23,14 +25,11 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
     isLoading: boolean 
   };
 
-  // Clear and reset preview when existingAssetId changes
   useEffect(() => {
-    // Clear preview when existingAssetId is removed
     if (!existingAssetId) {
-      setPreview(null);
+      setPreview(null)
     }
-  }, [existingAssetId]);
-
+  }, [existingAssetId])
   // Set preview when response changes
   useEffect(() => {
     if (response?.asset?.content) {
@@ -43,22 +42,27 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {
+          // Remove the prefix directly
+          const rawBase64 = base64.replace('data:image/png;base64,', '')
+
           await createAsset(
             {
-              content: base64,
+              content: rawBase64,
               mediaType: newValue.type,
             },
             {
               onSuccess: (data: unknown) => {
-                console.log('onSuccess', data)
                 const response = data as AssetResponseType
-                setPreview(base64)
+
+                const previewImage = ensureBase64HasPrefix(base64)
+
+                setPreview(previewImage)
                 handleLocalUpdate(element, response.asset.id)
               },
               onError: (error) => {
                 console.error('Error creating asset:', error)
               },
-            }
+            },
           )
         }
       } catch (error) {
@@ -75,7 +79,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
     setPreview(null)
     handleLocalUpdate(element, '')
   }
-
+  console.log('existingAssetId', existingAssetId)
   return (
     <div className="flex items-center flex-col justify-center w-full">
       <p className="w-full text-start text-foreground font-bold mb-2">{text}</p>
@@ -101,7 +105,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
             <img
               alt={`${text} preview`}
               className="right-auto top-auto p-3 w-3/4"
-              src={preview}
+              src={`${baseUrl}/assets/${preview}/file`}
             />
           ):(
           <p className="text-center text-xs text-foreground/50 lowercase">

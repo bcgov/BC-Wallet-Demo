@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
-import { ensureBase64HasPrefix } from '@/lib/utils'
+import { baseUrl } from '@/lib/utils'
 import type { Credential, CredentialAttributeType } from '@/openapi-types'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -65,9 +65,9 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
               {openId === item.id ? (
                 <div className="p-3 bg-light-bg flex flex-col dark:bg-dark-bg items-center text-center">
                   <div className="flex flex-col py-2 w-full items-center">
-                    <Image
+                    <img
                       alt="Credential Icon"
-                      src={ensureBase64HasPrefix(item?.icon?.content) || '/assets/no-image.jpg'}
+                      src={`${baseUrl}/assets/${item.icon.id}/file` || '/assets/no-image.jpg'}
                       width={100}
                       height={100}
                       className="rounded-full aspect-square object-cover"
@@ -99,7 +99,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                 >
                   <div className="flex items-center gap-3 w-full">
                     <Image
-                      src={ensureBase64HasPrefix(item?.icon?.content) || '/assets/no-image.jpg'}
+                      src={`${baseUrl}/assets/${item.icon.id}/file` || '/assets/no-image.jpg'}
                       alt="Credential Icon"
                       width={50}
                       height={50}

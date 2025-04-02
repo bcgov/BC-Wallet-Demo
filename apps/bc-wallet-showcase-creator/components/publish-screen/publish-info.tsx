@@ -1,6 +1,6 @@
 'use client'
 
-import { ensureBase64HasPrefix } from '@/lib/utils'
+import { baseUrl } from '@/lib/utils'
 import type { Persona, Credential } from '@/openapi-types'
 
 import Image from 'next/image'
@@ -20,7 +20,9 @@ export const PublishInfo = ({
             {/* Character Header */}
             <div className="flex items-center gap-4">
               <Image
-                src={ensureBase64HasPrefix(char.headshotImage?.content) || '/assets/no-image.jpg'}
+                src={
+                  char.headshotImage?.id ? `${baseUrl}/assets/${char.headshotImage.id}/file` : '/assets/no-image.jpg'
+                }
                 alt={char.name || 'Character'}
                 width={50}
                 height={50}
@@ -40,7 +42,7 @@ export const PublishInfo = ({
                 {credentials?.map((cred, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <Image
-                      src={ensureBase64HasPrefix(cred.icon?.content) || '/assets/no-image.jpg'}
+                      src={cred.icon?.id ? `${baseUrl}/assets/${cred.icon.id}/file` : '/assets/no-image.jpg'}
                       alt={cred.icon?.description || 'Credential'}
                       width={40}
                       height={40}
