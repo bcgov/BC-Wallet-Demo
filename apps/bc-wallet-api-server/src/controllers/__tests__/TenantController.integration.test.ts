@@ -13,6 +13,18 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import DatabaseService from '../../services/DatabaseService'
 import supertest = require('supertest')
+import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
+import ShowcaseService from '../../services/ShowcaseService'
+import {
+  createTestAsset,
+  createTestCredentialDefinition,
+  createTestCredentialSchema,
+  createTestIssuer,
+  createTestPersona,
+  createTestScenario,
+  createTestTenant
+} from './dbTestData'
+import { ShowcaseStatus } from '../../types'
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
@@ -98,14 +110,6 @@ describe('TenantController Integration Tests', () => {
 
 
   it('should cascade delete showcases when a tenant is deleted', async () => {
-    // Import directly in the test to avoid circular dependencies
-    const ShowcaseRepository = (await import('../../database/repositories/ShowcaseRepository')).default
-    const ShowcaseService = (await import('../../services/ShowcaseService')).default
-    const { ShowcaseStatus } = await import('../../types')
-    const { createTestAsset, createTestPersona, createTestCredentialSchema,
-      createTestCredentialDefinition, createTestIssuer,
-      createTestScenario, createTestTenant } = await import('./dbTestData')
-
     // Register the required services
     Container.get(ShowcaseRepository)
     Container.get(ShowcaseService)
