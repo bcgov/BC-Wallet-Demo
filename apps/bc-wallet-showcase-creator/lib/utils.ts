@@ -17,16 +17,15 @@ export const convertBase64 = (file: File) => {
     }
   })
 }
+export const baseUrl = process.env.SHOWCASE_BACKEND ?? 'https://bcshowcase-api.dev.nborbit.ca'
 
 export function ensureBase64HasPrefix(base64String: string) {
-  if (!base64String) return '' // Return empty if it's undefined or null
+  if (!base64String) return ''
 
-  // Check if it already contains the data URI prefix
   if (base64String.startsWith('data:image/')) {
     return base64String
   }
 
-  // Detect if it's a valid Base64-encoded image (PNG, JPEG, GIF, etc.)
   if (base64String.startsWith('iVBORw0KGgoAAAANSUhEU')) {
     return `data:image/png;base64,${base64String}`
   } else if (base64String.startsWith('/9j/')) {
@@ -37,6 +36,5 @@ export function ensureBase64HasPrefix(base64String: string) {
     return `data:image/webp;base64,${base64String}`
   }
 
-  // Default fallback (if format is unknown)
   return `data:image/png;base64,${base64String}`
 }
