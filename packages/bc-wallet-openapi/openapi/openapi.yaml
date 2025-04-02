@@ -6,7 +6,7 @@ info:
 servers:
   - url: https://virtserver.swaggerhub.com/SphereonInt/showcase/0.1.0/v1
     description: SwaggerHub API Auto Mocking
-  - url: https://bcshowcase-api-dev.nborbit.ca/
+  - url: https://bcshowcase-api.dev.nborbit.ca
 
 tags:
   - name: Showcases

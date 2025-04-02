@@ -9,36 +9,21 @@ This application provides a showcase for the BC Wallet to illustrate the use cas
 
 ## Running 
 ### Copy env files
-Copy the files server/.env.example  and client/.env.example to server/.env  and client/.env  
-Edit the .env files to match your project needs  
+TBD
   
 
 ### Option 1 - Native
-Please make sure you have a recent version of node, npm, and yarn installed
+Please make sure you have a recent version of node, npm, and pnpm installed
 These steps are executed from the root folder of the project:
   
-> yarn install  
+> pnpm install  
   
-> yarn dev  
+> pnpm dev  
   
 The application will now be running at http://localhost:3000
 
 ### Option 2 - Docker
-These steps assume that you have docker installed  
-  
-These steps are executed from the root folder of the project: 
-  
-Build the client: 
-> docker build -t bc-wallet-demo-client . -f DockerfileClient  
-  
-Build the server:
-> docker build -t bc-wallet-demo-server . -f DockerfileServer  
-  
-Start the server:
-> docker run --name bc-wallet-demo-server -p5000:5000 --rm --env-file server/.env bc-wallet-demo-server  
-  
-Start the client:
-> docker run --name bc-wallet-demo-client -p3000:3000 -v \`pwd\`/Caddyfile:/etc/caddy/Caddyfile --rm --env-file client/.env bc-wallet-demo-client
+TBD
 
 The application will now be running at http://localhost:3000
 
@@ -48,7 +33,7 @@ The application will now be running at http://localhost:3000
 
 Please see the [Contributions Guide](CONTRIBUTING.md) for the repo.
 
-Before contributing please run `yarn lint --fix` and fix any linter warnings in your code contribution.
+Before contributing please run `pnpm lint --fix` and fix any linter warnings in your code contribution.
 
 You may also create an issue if you would like to suggest additional resources to include in this repository.
 
