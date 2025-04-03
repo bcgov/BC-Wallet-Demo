@@ -13,7 +13,7 @@ import {
 import { Service } from 'typedi'
 import TenantService from '../services/TenantService'
 import {
-  instanceOfTenant,
+  instanceOfTenantRequest,
   TenantRequest,
   TenantResponse,
   TenantResponseFromJSONTyped,
@@ -57,7 +57,7 @@ class TenantController {
   @Post('/')
   public async post(@Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
     try {
-      if (!instanceOfTenant(tenantRequest)) {
+      if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
       const result = await this.tenantService.createTenant(TenantToJSONTyped(tenantRequest))
@@ -73,7 +73,7 @@ class TenantController {
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
     try {
-      if (!instanceOfTenant(tenantRequest)) {
+      if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
       const result = await this.tenantService.updateTenant(id, TenantToJSONTyped(tenantRequest))
