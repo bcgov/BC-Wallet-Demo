@@ -90,7 +90,7 @@ export default function EditScenarioCharacterPage({ slug }: { slug: string }) {
                                 ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
                                 : '/assets/no-image.jpg'
                             }
-                            alt={persona.name}
+                            alt={persona.headshotImage?.description || 'Character headshot'}
                             width={96}
                             height={96}
                             className="object-cover w-full h-full"

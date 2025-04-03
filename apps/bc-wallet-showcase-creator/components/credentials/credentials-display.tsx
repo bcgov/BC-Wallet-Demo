@@ -23,7 +23,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
 
   const filteredCredentials =
     credentials?.credentialDefinitions?.filter((credential: Credential) =>
-      credential.name?.toLowerCase().includes(sanitizedSearchTerm)
+      credential.name?.toLowerCase().includes(sanitizedSearchTerm),
     ) || []
 
   const handleSelectCredential = (credential: Credential) => {
@@ -66,11 +66,13 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                 <div className="p-3 bg-light-bg flex flex-col dark:bg-dark-bg items-center text-center">
                   <div className="flex flex-col py-2 w-full items-center">
                     <Image
-                      alt="Credential Icon display"
                       src={`${baseUrl}/assets/${item.icon.id}/file` || '/assets/no-image.jpg'}
-                      width={100}
-                      height={100}
-                      className="rounded-full aspect-square object-cover"
+                      alt={item.icon?.description || 'Credential icon'}
+                      width={openId === item.id ? 100 : 50}
+                      height={openId === item.id ? 100 : 50}
+                      className={`rounded-full aspect-square object-cover transition-all duration-300 ${
+                        openId === item.id ? 'scale-110' : 'scale-100'
+                      }`}
                     />
                     <span className="text-lg font-semibold mt-2">{item.name}</span>
                     <span className="text-sm text-gray-600 dark:text-gray-400">Version {item.version}</span>
@@ -100,17 +102,18 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   <div className="flex items-center gap-3 w-full">
                     <Image
                       src={`${baseUrl}/assets/${item.icon.id}/file` || '/assets/no-image.jpg'}
-                      alt="Credential Icon"
-                      width={50}
-                      height={50}
-                      className="rounded-full aspect-square object-cover"
+                      alt={item.icon?.description || 'Credential icon'}
+                      width={openId === item.id ? 100 : 50}
+                      height={openId === item.id ? 100 : 50}
+                      className={`rounded-full aspect-square object-cover transition-all duration-300 ${
+                        openId === item.id ? 'scale-110' : 'scale-100'
+                      }`}
                     />
                     <div className="flex flex-col w-full">
                       <span className="text-lg font-semibold mt-2">{item.name}</span>
                       <span className="text-sm text-foreground/80 ">Version {item.version}</span>
                     </div>
                   </div>
-
                   <div>
                     <p className="text-sm text-foreground font-semibold mt-2">{t('credentials.attributes_label')}</p>
                     <p className="text-sm text-foreground/80 ">{item.credentialSchema?.attributes?.length || 0}</p>

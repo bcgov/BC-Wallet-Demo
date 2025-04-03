@@ -2,55 +2,60 @@
 
 import { baseUrl } from '@/lib/utils'
 import type { Persona, Credential } from '@/openapi-types'
-
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
 export const PublishInfo = ({
+  
   characters,
   credentials,
 }: {
-  characters: Partial<Persona>[]
+    characters: Partial<Persona>[]
   credentials: Partial<Credential>[]
-}) => {
+  }) => {
+    const t = useTranslations()
   return (
-    <div className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text">
+    <div className=" border rounded-md p-4">
       <div className="flex flex-col gap-4">
         {(characters || []).map((char, index) => (
-          <div key={index} className="bg-white dark:bg-gray-800 border rounded-lg shadow-lg p-6 flex flex-col">
+          <div
+            key={index}
+            className="bg-white dark:bg-dark-bg border-foreground/10 border rounded-lg shadow-lg p-6 flex flex-col"
+          >
             {/* Character Header */}
             <div className="flex items-center gap-4">
               <Image
                 src={
                   char.headshotImage?.id ? `${baseUrl}/assets/${char.headshotImage.id}/file` : '/assets/no-image.jpg'
                 }
-                alt={char.name || 'Character'}
-                width={50}
-                height={50}
+                alt={char.headshotImage?.description || 'Character headshot'}
+                width={60}
+                height={60}
                 className="rounded-full"
               />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{char.name}</h3>
-                <p className="text-gray-500 text-sm">{char.role}</p>
+                <h3 className="text-lg font-semibold text-foreground">{char.name}</h3>
+                <p className="text-foreground/60 text-sm">{char.role}</p>
               </div>
             </div>
 
             {/* Credential Section */}
-            <div className="mt-4 border-l-[16px] border  border-border-light border-l-light-yellow bg-gray-50 dark:bg-gray-700 p-4">
-              <p className="font-semibold text-gray-900 dark:text-white">Will receive the following credential(s):</p>
+            <div className="mt-4 border-l-[10px] border  border-border-light border-l-light-yellow bg-foreground/10 rounded-md p-4">
+              <p className="font-semibold text-sm text-foreground">{t('showcases.publish_info_credentials')}</p>
 
               <div className="mt-3 space-y-3">
                 {credentials?.map((cred, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <Image
                       src={cred.icon?.id ? `${baseUrl}/assets/${cred.icon.id}/file` : '/assets/no-image.jpg'}
-                      alt={cred.icon?.description || 'Credential'}
+                      alt={cred.icon?.description || 'Credential icon'}
                       width={40}
                       height={40}
                       className="rounded-full"
                     />
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">{cred.name}</p>
-                      <p className="text-gray-500 text-sm">{'Test college'}</p>
+                      <p className="font-semibold text-foreground">{cred.name}</p>
+                      <p className="text-foreground/60 text-sm">{'Test college'}</p>
                     </div>
                   </div>
                 ))}

@@ -4,7 +4,7 @@ import { convertBase64, baseUrl } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { AssetResponseType } from '@/openapi-types'
 import { useAssetById, useCreateAsset } from '@/hooks/use-asset'
-
+import Image from 'next/image'
 interface LocalFileUploadProps {
   text: string
   element: string
@@ -43,6 +43,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
             {
               content: base64,
               mediaType: newValue.type,
+              fileName: newValue.name,
             },
             {
               onSuccess: (data: unknown) => {
@@ -92,7 +93,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
       >
         <div className="flex flex-col items-center h-full justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
           {preview ? (
-            <img
+            <Image
               alt={`${text} preview`}
               className="right-auto top-auto p-3 w-3/4"
               src={`${baseUrl}/assets/${existingAssetId}/file`}

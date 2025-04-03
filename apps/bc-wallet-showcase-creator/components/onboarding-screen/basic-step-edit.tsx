@@ -13,6 +13,7 @@ import { basicStepSchema } from "@/schemas/onboarding";
 import { LocalFileUpload } from "./local-file-upload";
 import { useTranslations } from "next-intl";
 import StepHeader from "../step-header";
+import Image from "next/image";
 import ButtonOutline from "../ui/button-outline";
 import DeleteModal
    from "../delete-modal";
@@ -213,9 +214,9 @@ export const BasicStepEdit = () => {
                 {t("onboarding.icon_label")}
               </h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <img
+                <Image
                   src={currentStep.image}
-                  alt="Step icon"
+                  alt={currentStep.title}
                   className="w-full object-cover"
                 />
               </div>

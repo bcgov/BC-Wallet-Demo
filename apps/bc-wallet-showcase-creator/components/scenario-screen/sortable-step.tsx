@@ -143,7 +143,7 @@ const handleStepClick = () => {
                             ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
                             : '/assets/no-image.jpg'
                         }
-                        alt={selectedCredential.icon?.description || 'Credential'}
+                        alt={selectedCredential.icon?.description || 'Credential icon'}
                         width={50}
                         height={50}
                         className="rounded-full"

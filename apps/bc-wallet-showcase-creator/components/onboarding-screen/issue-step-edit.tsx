@@ -24,7 +24,7 @@ import { NoSelection } from "../credentials/no-selection";
 import { debounce } from "lodash";
 import { useHelpersStore } from "@/hooks/use-helpers-store";
 import { DisplaySearchResults } from "./display-search-results";
-import apiClient from "@/lib/apiService";
+import Image from 'next/image'
 import { DisplayAddedCredentials } from "./display-added-credentials";
 import { useCredentialDefinitions } from "@/hooks/use-credentials";
 import { useCredentials } from "@/hooks/use-credentials-store";
@@ -291,7 +291,7 @@ export const IssuanceStepAdd = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <img src={currentStep.asset} alt="Step icon" className="w-full object-cover" />
+                <Image src={currentStep.asset} alt={currentStep.title} className="w-full object-cover" />
               </div>
             </div>
           )}

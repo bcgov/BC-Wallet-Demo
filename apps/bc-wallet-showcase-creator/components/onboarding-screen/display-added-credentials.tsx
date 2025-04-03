@@ -119,7 +119,7 @@ export const DisplayAddedCredentials = ({
                 <div className="flex items-center flex-1">
                   <Image
                     src={credential.icon?.id ? `${baseUrl}/assets/${credential.icon.id}/file` : '/assets/no-image.jpg'}
-                    alt="Credential Icon Details"
+                    alt={credential.icon.description || 'default credential icon'}
                     width={50}
                     height={50}
                     className="rounded-full"

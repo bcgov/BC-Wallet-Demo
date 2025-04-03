@@ -183,7 +183,7 @@ export const ShowcaseList = () => {
                                     ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
                                     : '/assets/no-image.jpg'
                                 }
-                                alt={persona.name}
+                                alt={persona.headshotImage?.description || 'Character headshot'}
                                 width={44}
                                 height={44}
                                 className="rounded-full w-[44px] h-[44px]"

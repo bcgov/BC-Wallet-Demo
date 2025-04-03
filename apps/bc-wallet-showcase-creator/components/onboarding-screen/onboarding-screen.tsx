@@ -88,7 +88,7 @@ export const OnboardingScreen = ({ slug }: { slug: string }) => {
                             ? `${baseUrl}/assets/${char.headshotImage.id}/file`
                             : '/assets/no-image.jpg'
                         }
-                        alt={char.name}
+                        alt={char.headshotImage?.description || 'Character'}
                         width={50}
                         height={50}
                         className="rounded-full aspect-square object-cover"
