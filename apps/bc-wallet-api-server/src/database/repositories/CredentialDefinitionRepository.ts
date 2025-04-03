@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { Service } from 'typedi'
 import DatabaseService from '../../services/DatabaseService'
 import AssetRepository from './AssetRepository'
@@ -47,6 +47,8 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
         icon: iconResult ? iconResult : undefined,
         representations: [], //credentialRepresentationsResult, TODO SHOWCASE-81 enable
         revocation: revocationResult,
+        approvedBy: null,
+        approvedAt: null,
       }
     })
   }
@@ -59,17 +61,12 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
   async update(id: string, credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> {
     await this.findById(id)
 
-    const iconResult = credentialDefinition.icon && (await this.assetRepository.findById(credentialDefinition.icon))
-    const credentialSchemaResult = await this.credentialSchemaRepository.findById(credentialDefinition.credentialSchema)
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<CredentialDefinition> => {
-      const [credentialDefinitionResult] = await tx
+      await tx
         .update(credentialDefinitions)
         .set(credentialDefinition)
         .where(eq(credentialDefinitions.id, id))
         .returning()
-
-      await tx.delete(credentialRepresentations).where(eq(credentialRepresentations.credentialDefinition, id))
-      await tx.delete(revocationInfo).where(eq(revocationInfo.credentialDefinition, id))
 
       // TODO SHOWCASE-81 enable
       // const credentialRepresentationsResult = await tx.insert(credentialRepresentations)
@@ -90,10 +87,17 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
       //         .returning();
       // }
 
+      const updatedRecord = await this.findById(id)
+      if (!updatedRecord) {
+        // Should not happen, but makes ts happy
+        return Promise.reject(new Error(`Failed to re-fetch credential definition after update: ${id}`))
+      }
+
+      await tx.delete(credentialRepresentations).where(eq(credentialRepresentations.credentialDefinition, id))
+      await tx.delete(revocationInfo).where(eq(revocationInfo.credentialDefinition, id))
+
       return {
-        ...credentialDefinitionResult,
-        credentialSchema: credentialSchemaResult,
-        icon: iconResult || undefined,
+        ...updatedRecord,
         representations: [], //credentialRepresentationsResult, TODO SHOWCASE-81 enable
         revocation: revocationResult,
       }
@@ -114,6 +118,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
         },
         representations: true,
         revocation: true,
+        approver: true,
       },
     })
 
@@ -125,6 +130,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
       ...result,
       icon: result.icon ? result.icon : undefined,
       credentialSchema: result.cs,
+      approvedBy: result.approver
     }
   }
 
@@ -141,12 +147,14 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
         },
         representations: true,
         revocation: true,
+        approver: true,
       },
     })
 
     return result.map((item: any) => ({
       ...item,
       credentialSchema: item.cs,
+      approvedBy: item.approver
     }))
   }
 
@@ -162,6 +170,52 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     }
 
     return result.id
+  }
+
+  async findUnapproved(): Promise<CredentialDefinition[]> {
+    const result = await (
+      await this.databaseService.getConnection()
+    ).query.credentialDefinitions.findMany({
+      where: isNull(credentialDefinitions.approvedAt),
+      with: {
+        icon: true,
+        cs: {
+          with: {
+            attributes: true,
+          },
+        },
+        representations: true,
+        revocation: true,
+        approver: true,
+      },
+    })
+
+    return result.map((item): CredentialDefinition => ({
+      ...item,
+      credentialSchema: {
+        ...item.cs,
+        attributes: item.cs.attributes ?? [],
+      },
+      icon: item.icon ?? undefined,
+      representations: item.representations ?? [],
+      revocation: item.revocation ?? undefined,
+      approvedBy: null,
+      approvedAt: null,
+    }))
+  }
+
+  async approve(id: string, userId: string): Promise<CredentialDefinition> {
+    const now = new Date()
+    await (await this.databaseService.getConnection())
+      .update(credentialDefinitions)
+      .set({
+        approvedBy: userId,
+        approvedAt: now,
+        updatedAt: now, // Also update updatedAt timestamp
+      })
+      .where(eq(credentialDefinitions.id, id))
+
+    return this.findById(id)
   }
 }
 

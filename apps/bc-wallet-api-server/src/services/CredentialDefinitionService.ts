@@ -14,6 +14,10 @@ class CredentialDefinitionService {
     return this.credentialDefinitionRepository.findById(id)
   }
 
+  public getUnapproved = async (): Promise<CredentialDefinition[]> => {
+    return this.credentialDefinitionRepository.findUnapproved()
+  }
+
   public createCredentialDefinition = async (credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> => {
     return this.credentialDefinitionRepository.create(credentialDefinition)
   }
@@ -24,6 +28,24 @@ class CredentialDefinitionService {
 
   public deleteCredentialDefinition = async (id: string): Promise<void> => {
     return this.credentialDefinitionRepository.delete(id)
+  }
+
+  /**
+   * Approves a credential definition.
+   * @param id The ID of the credential definition to approve.
+   * @returns The updated CredentialDefinition.
+   * @throws NotFoundError if the definition doesn't exist.
+   * @throws Error if the current user cannot be determined (implementation specific).
+   */
+  public approveCredentialDefinition = async (id: string): Promise<CredentialDefinition> => {
+    const currentUserId = 'PLACEHOLDER_USER_ID' // <<< REPLACE THIS with actual user ID when authentication is ready
+    if (!currentUserId) {
+      return Promise.reject(new Error('Could not determine the approving user.'))
+    }
+
+    await this.credentialDefinitionRepository.findById(id)
+
+    return this.credentialDefinitionRepository.approve(id, currentUserId)
   }
 }
 

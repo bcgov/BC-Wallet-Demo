@@ -78,6 +78,8 @@ export const credentialDefinitionDTOFrom = (credentialDefinition: CredentialDefi
     representations: credentialDefinition.representations,
     revocation: credentialDefinition.revocation || undefined,
     icon: credentialDefinition.icon ? assetDTOFrom(credentialDefinition.icon) : undefined,
+    approvedBy: credentialDefinition.approvedBy ? userDTOFrom(credentialDefinition.approvedBy) : undefined,
+    approvedAt: credentialDefinition.approvedAt ?? undefined,
   }
 }
 
@@ -228,6 +230,8 @@ export const showcaseDTOFrom = (showcase: Showcase): ShowcaseDTO => {
     bannerImage: showcase.bannerImage ? assetDTOFrom(showcase.bannerImage) : undefined,
     completionMessage: showcase.completionMessage || undefined,
     createdBy: showcase.createdBy ? userDTOFrom(showcase.createdBy) : undefined,
+    approvedBy: undefined, // TODO SHOWCASE-243
+    approvedAt: undefined // TODO SHOWCASE-243
   }
 }
 
@@ -236,6 +240,8 @@ export const userDTOFrom = (user: User): UserDTO => {
     ...user,
     identifierType: user.identifierType ?? undefined,
     identifier: user.identifier ?? undefined,
+    createdAt: user.createdAt ?? undefined,
+    updatedAt: user.updatedAt ?? undefined,
   }
 }
 
