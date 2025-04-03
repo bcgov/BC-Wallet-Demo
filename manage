@@ -1,0 +1,22 @@
+#!/bin/bash
+
+command=$1
+if [ -z $command ]; then
+    echo "please specify a command (build | start | dev | down)"
+fi
+
+if [ $command = "build" ];then
+    docker compose build
+fi
+
+if [ $command = "start" ];then
+    docker compose up frontend
+fi
+
+if [ $command = "dev" ];then
+    docker compose up dev
+fi
+
+if [ $command = "down" ];then
+    docker compose down
+fi
