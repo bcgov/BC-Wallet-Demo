@@ -1,10 +1,14 @@
-```mermaid
 ---
 config:
   theme: neo
   layout: elk
 ---
 classDiagram
+    class Tenant {
+        +id : String
+        +createdAt : DateTime
+        +deletedAt : DateTime
+    }
     class Showcase {
         +name : String
         +slug : String
@@ -15,6 +19,7 @@ classDiagram
         +hidden : Boolean
         +createdAt : DateTime
         +updatedAt : DateTime
+        +tenantId : String
         bannerImage: Asset
         completionMessage : String
         createdBy: User
@@ -235,6 +240,7 @@ classDiagram
     Showcase "1..*" o-- "1..*" Persona
     Showcase "1" -- "0..*" Asset : references
     Showcase "1" -- "1" User : created by
+    Showcase "many" -- "1" Tenant : belongs to
     Scenario <|-- IssuanceScenario : specialization (onboarding)
     Scenario <|-- PresentationScenario : specialization (scenario)
     Scenario "1" *-- "1..*" Step : contains
@@ -277,5 +283,3 @@ classDiagram
     Scenario "0..*" o-- "1..*" Persona : involves
     IssuanceScenario "0..*" o-- "1" Issuer : includes
     PresentationScenario "0..*" o-- "1" RelyingParty : includes
-
-```

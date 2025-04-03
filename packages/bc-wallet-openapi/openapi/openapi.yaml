@@ -1914,6 +1914,11 @@ components:
           description: Date and time the tenant was created
           format: date-time
           example: 2025-03-06T11:30:16.573Z
+        updatedAt:
+          type: string
+          description: Date and time the asset was created
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
         deletedAt:
           type: string
           description: Date and time the tenant was deleted (if applicable)
@@ -1944,21 +1949,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tenant'
-
-    PendingApprovalsResponse:
-      type: object
-      description: Contains lists of showcases and credential definitions pending approval.
-      properties:
-        showcases:
-          type: array
-          description: List of showcases pending approval.
-          items:
-            $ref: '#/components/schemas/Showcase'
-        credentialDefinitions:
-          type: array
-          description: List of credential definitions pending approval.
-          items:
-            $ref: '#/components/schemas/CredentialDefinition'
 
     User:
       type: object
@@ -3338,6 +3328,7 @@ components:
       type: object
       required:
         - id
+        - tenantId
         - name
         - slug
         - description
@@ -3353,6 +3344,10 @@ components:
           type: string
           description: Unique identifier for the showcase
           example: 123e4567-e89b-12d3-a456-426614174456
+        tenantId:
+          type: string
+          description: ID of the tenant that created this showcase
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         name:
           type: string
           description: Name of the showcase
@@ -3429,6 +3424,7 @@ components:
     ShowcaseRequest:
       required:
         - name
+        - tenantId
         - description
         - status
         - scenarios
@@ -3440,6 +3436,10 @@ components:
           type: string
           description: Name of the showcase
           example: Credential Showcase BCGov
+        tenantId:
+          type: string
+          description: ID of the tenant that created this showcase
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         description:
           type: string
           description: Description of the showcase
