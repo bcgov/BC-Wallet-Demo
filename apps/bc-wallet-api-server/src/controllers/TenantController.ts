@@ -20,7 +20,6 @@ import {
   TenantResponseFromJSONTyped,
   TenantsResponse,
   TenantsResponseFromJSONTyped,
-  TenantToJSONTyped,
 } from 'bc-wallet-openapi'
 
 @JsonController('/tenants')
@@ -32,7 +31,7 @@ class TenantController {
   public async getAll(): Promise<TenantsResponse> {
     try {
       const result = await this.tenantService.getTenants()
-      return TenantsResponseFromJSONTyped({ result }, false)
+      return TenantsResponseFromJSONTyped(result, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Get all tenants failed:`, e)
@@ -45,7 +44,7 @@ class TenantController {
   public async getOne(@Param('id') id: string): Promise<TenantResponse> {
     try {
       const result = await this.tenantService.getTenant(id)
-      return TenantResponseFromJSONTyped({ result }, false)
+      return TenantResponseFromJSONTyped(result, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Get tenant id=${id} failed:`, e)
@@ -62,7 +61,7 @@ class TenantController {
         return Promise.reject(new BadRequestError())
       }
       const result = await this.tenantService.createTenant(TenantRequestToJSONTyped(tenantRequest))
-      return TenantResponseFromJSONTyped({ result }, false)
+      return TenantResponseFromJSONTyped(result, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Create tenant failed:`, e)
@@ -78,7 +77,7 @@ class TenantController {
         return Promise.reject(new BadRequestError())
       }
       const result = await this.tenantService.updateTenant(id, TenantRequestToJSONTyped(tenantRequest))
-      return TenantResponseFromJSONTyped({ result }, false)
+      return TenantResponseFromJSONTyped(result, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Update tenant id=${id} failed:`, e)
