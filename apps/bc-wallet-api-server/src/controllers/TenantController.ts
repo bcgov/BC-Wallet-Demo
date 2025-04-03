@@ -15,6 +15,7 @@ import TenantService from '../services/TenantService'
 import {
   instanceOfTenantRequest,
   TenantRequest,
+  TenantRequestToJSONTyped,
   TenantResponse,
   TenantResponseFromJSONTyped,
   TenantsResponse,
@@ -60,7 +61,7 @@ class TenantController {
       if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.tenantService.createTenant(TenantToJSONTyped(tenantRequest))
+      const result = await this.tenantService.createTenant(TenantRequestToJSONTyped(tenantRequest))
       return TenantResponseFromJSONTyped({ result }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -76,7 +77,7 @@ class TenantController {
       if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.tenantService.updateTenant(id, TenantToJSONTyped(tenantRequest))
+      const result = await this.tenantService.updateTenant(id, TenantRequestToJSONTyped(tenantRequest))
       return TenantResponseFromJSONTyped({ result }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
