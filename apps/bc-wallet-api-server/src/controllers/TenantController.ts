@@ -30,8 +30,8 @@ class TenantController {
   @Get('/')
   public async getAll(): Promise<TenantsResponse> {
     try {
-      const result = await this.tenantService.getTenants()
-      return TenantsResponseFromJSONTyped(result, false)
+      const tenants = await this.tenantService.getTenants()
+      return TenantsResponseFromJSONTyped({ tenants }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Get all tenants failed:`, e)
@@ -43,8 +43,8 @@ class TenantController {
   @Get('/:id')
   public async getOne(@Param('id') id: string): Promise<TenantResponse> {
     try {
-      const result = await this.tenantService.getTenant(id)
-      return TenantResponseFromJSONTyped(result, false)
+      const tenant = await this.tenantService.getTenant(id)
+      return TenantResponseFromJSONTyped({ tenant }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Get tenant id=${id} failed:`, e)
@@ -60,8 +60,8 @@ class TenantController {
       if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.tenantService.createTenant(TenantRequestToJSONTyped(tenantRequest))
-      return TenantResponseFromJSONTyped(result, false)
+      const tenant = await this.tenantService.createTenant(TenantRequestToJSONTyped(tenantRequest))
+      return TenantResponseFromJSONTyped({ tenant }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Create tenant failed:`, e)
@@ -76,8 +76,8 @@ class TenantController {
       if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.tenantService.updateTenant(id, TenantRequestToJSONTyped(tenantRequest))
-      return TenantResponseFromJSONTyped(result, false)
+      const tenant = await this.tenantService.updateTenant(id, TenantRequestToJSONTyped(tenantRequest))
+      return TenantResponseFromJSONTyped({ tenant }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Update tenant id=${id} failed:`, e)
