@@ -1,8 +1,26 @@
-import { BadRequestError, Body, Delete, Get, HttpCode, JsonController, OnUndefined, Param, Post, Put } from 'routing-controllers'
+import {
+  BadRequestError,
+  Body,
+  Delete,
+  Get,
+  HttpCode,
+  JsonController,
+  OnUndefined,
+  Param,
+  Post,
+  Put,
+} from 'routing-controllers'
 import { Service } from 'typedi'
 import TenantService from '../services/TenantService'
-import { TenantRequest, TenantResponse, TenantsResponse } from 'bc-wallet-openapi'
-import { tenantDTOFrom } from '../utils/mappers'
+import {
+  instanceOfTenantRequest,
+  TenantRequest,
+  TenantRequestToJSONTyped,
+  TenantResponse,
+  TenantResponseFromJSONTyped,
+  TenantsResponse,
+  TenantsResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
 
 @JsonController('/tenants')
 @Service()
@@ -13,8 +31,7 @@ class TenantController {
   public async getAll(): Promise<TenantsResponse> {
     try {
       const result = await this.tenantService.getTenants()
-     const tenants = result.map(tenantDTOFrom)
-      return { tenants }
+      return TenantsResponseFromJSONTyped(result, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Get all tenants failed:`, e)
@@ -27,7 +44,7 @@ class TenantController {
   public async getOne(@Param('id') id: string): Promise<TenantResponse> {
     try {
       const result = await this.tenantService.getTenant(id)
-     return { tenant: tenantDTOFrom(result) }
+      return TenantResponseFromJSONTyped(result, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Get tenant id=${id} failed:`, e)
@@ -40,11 +57,11 @@ class TenantController {
   @Post('/')
   public async post(@Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
     try {
-      if (!tenantRequest.id) {
+      if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.tenantService.createTenant({ id: tenantRequest.id })
-     return { tenant: tenantDTOFrom(result) }
+      const result = await this.tenantService.createTenant(TenantRequestToJSONTyped(tenantRequest))
+      return TenantResponseFromJSONTyped(result, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Create tenant failed:`, e)
@@ -56,11 +73,11 @@ class TenantController {
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
     try {
-      if (!tenantRequest.id) {
+      if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.tenantService.updateTenant(id, { id: tenantRequest.id })
-     return { tenant: tenantDTOFrom(result) }
+      const result = await this.tenantService.updateTenant(id, TenantRequestToJSONTyped(tenantRequest))
+      return TenantResponseFromJSONTyped(result, false)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Update tenant id=${id} failed:`, e)
