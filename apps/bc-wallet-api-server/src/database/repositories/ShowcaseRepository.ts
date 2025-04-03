@@ -15,7 +15,7 @@ import {
   showcasesToPersonas,
   showcasesToScenarios,
 } from '../schema'
-import { NewShowcase, Persona, RepositoryDefinition, Scenario, Showcase } from '../../types'
+import { NewShowcase, Persona, RepositoryDefinition, Scenario, Showcase, Step } from '../../types'
 import UserRepository from './UserRepository'
 
 @Service()
@@ -154,7 +154,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
           createdAt: scenario.createdAt,
           updatedAt: scenario.updatedAt,
           bannerImage: scenario.bannerImage,
-          steps: scenario.steps,
+          steps: sortSteps(scenario.steps as Step[]),
           personas: scenario.personas.map(p => p.persona),
           relyingParty: scenario.relyingParty ? {
             id: scenario.relyingParty.id,
@@ -207,7 +207,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         personasResult = await tx.query.personas.findMany({
           where: inArray(
             personas.id,
-            showcasesToPersonasResult.map((item) => item.persona),
+            showcasesToPersonasResult.map((item) => item.persona).filter((id): id is string => id !== null),
           ),
           with: {
             headshotImage: true,
@@ -364,7 +364,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
           createdAt: scenario.createdAt,
           updatedAt: scenario.updatedAt,
           bannerImage: scenario.bannerImage,
-          steps: scenario.steps,
+          steps: sortSteps(scenario.steps as Step[]),
           personas: scenario.personas.map(p => p.persona),
           relyingParty: scenario.relyingParty ? {
             id: scenario.relyingParty.id,
@@ -417,7 +417,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         personasResult = await tx.query.personas.findMany({
           where: inArray(
             personas.id,
-            showcasesToPersonasResult.map((item) => item.persona),
+            showcasesToPersonasResult.map((item) => item.persona).filter((id): id is string => id !== null),
           ),
           with: {
             headshotImage: true,
