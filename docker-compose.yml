@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  frontend:
+    image: bc-wallet-demo-web
+    build: 
+      context: ./
+      dockerfile: ./client/Dockerfile
+    volumes:
+      - type: bind
+        source: ./client/Caddyfile
+        target: /etc/caddy/Caddyfile
+    ports:
+      - "3000:3000"
+    depends_on: 
+      - backend
+    env_file:
+      - ./client/.env
+  backend:
+    image: bc-wallet-demo-server
+    build: 
+      context: ./
+      dockerfile: ./server/Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/.env
+  dev:
+    image: bc-wallet-demo-dev
+    build:
+      context: ./
+      dockerfile: ./dev.dockerfile
+    ports:
+      - "3000:3000"
+      - "5000:5000"
+    volumes:
+      - ./:/app
+  

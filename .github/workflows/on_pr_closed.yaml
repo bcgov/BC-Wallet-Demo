@@ -84,7 +84,7 @@ jobs:
           image-names: bc-wallet-api-server
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Delete Traction Adapter Image
         uses: snok/container-retention-policy@v3.0.0
@@ -93,7 +93,7 @@ jobs:
           image-names: bc-wallet-traction-adapter
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Showcase Creator Image
         uses: snok/container-retention-policy@v3.0.0
@@ -102,7 +102,7 @@ jobs:
           image-names: bc-wallet-showcase-creator 
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Demo Server Image
         uses: snok/container-retention-policy@v3.0.0
@@ -111,7 +111,7 @@ jobs:
           image-names: bc-wallet-demo-server 
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Demo Web Image
         uses: snok/container-retention-policy@v3.0.0
@@ -120,4 +120,4 @@ jobs:
           image-names: bc-wallet-demo-web 
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
