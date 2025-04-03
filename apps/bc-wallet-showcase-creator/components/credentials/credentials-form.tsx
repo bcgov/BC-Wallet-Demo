@@ -223,7 +223,7 @@ export const CredentialsForm = () => {
                   }
                   width={80}
                   height={80}
-                  alt="Credential Icon"
+                  alt="Credential Icon form"
                   className="rounded-full shadow object-cover"
                   style={{ aspectRatio: '1/1' }}
                 />

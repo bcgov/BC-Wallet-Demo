@@ -65,8 +65,8 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
               {openId === item.id ? (
                 <div className="p-3 bg-light-bg flex flex-col dark:bg-dark-bg items-center text-center">
                   <div className="flex flex-col py-2 w-full items-center">
-                    <img
-                      alt="Credential Icon"
+                    <Image
+                      alt="Credential Icon display"
                       src={`${baseUrl}/assets/${item.icon.id}/file` || '/assets/no-image.jpg'}
                       width={100}
                       height={100}

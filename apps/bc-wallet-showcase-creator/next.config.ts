@@ -9,9 +9,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: '*.picsum.photos',
+        hostname: '*.dev.nborbit.ca',
+      },
+      {
+        hostname: 'localhost',
       },
     ],
+    dangerouslyAllowSVG: true,
   },
 };
 
