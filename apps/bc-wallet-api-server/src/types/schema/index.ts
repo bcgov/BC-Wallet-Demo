@@ -39,7 +39,10 @@ export type NewPersona = Omit<typeof personas.$inferInsert, 'slug'> & {
   hidden: boolean
 }
 
-export type CredentialDefinition = Omit<typeof credentialDefinitions.$inferSelect, 'icon' | 'type' | 'credentialSchema' | 'approvedBy'> & {
+export type CredentialDefinition = Omit<
+  typeof credentialDefinitions.$inferSelect,
+  'icon' | 'type' | 'credentialSchema' | 'approvedBy'
+> & {
   type: CredentialType
   icon?: Asset
   credentialSchema: CredentialSchema
