@@ -2708,6 +2708,16 @@ components:
           description: Date and time the credential definition was last updated
           format: date-time
           example: 2025-03-06T11:30:16.573Z
+        approvedBy:
+          type: string
+          description: Reference to the associated user who approved this definition
+          example: 456e4567-e89b-12d3-a456-426614174789
+        approvedAt:
+          type: string
+          description: Date and time the credential definition was last approved
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
+
     CredentialDefinitionRequest:
       type: object
       required:
@@ -2758,6 +2768,11 @@ components:
         icon:
           type: string
           example: 123e4567-e89b-12d3-a456-426614174469
+        approvedBy:
+          type: string
+          description: Reference to the associated user who approved this definition
+          example: 456e4567-e89b-12d3-a456-426614174789
+
     CredentialDefinitionsResponse:
       type: object
       properties:
