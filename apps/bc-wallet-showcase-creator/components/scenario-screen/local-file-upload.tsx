@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
 
 import { useAssetById, useCreateAsset } from '@/hooks/use-asset'
-import { convertBase64 } from '@/lib/utils'
+import { convertBase64, baseUrl } from '@/lib/utils'
 import type { AssetResponseType } from '@/openapi-types'
 import { Trash2 } from 'lucide-react'
-import { ensureBase64HasPrefix, baseUrl } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
-import { asset } from '@/schemas/credential'
 
 interface LocalFileUploadProps {
   text: string
@@ -20,7 +18,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
   const [preview, setPreview] = useState<string | null>(null)
   const { mutateAsync: createAsset } = useCreateAsset()
 
-  const { data: response, isLoading } = useAssetById(existingAssetId || "") as { 
+  const { data: response } = useAssetById(existingAssetId || "") as { 
     data?: AssetResponseType; 
     isLoading: boolean 
   };
@@ -42,21 +40,16 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {
-          // Remove the prefix directly
-          const rawBase64 = base64.replace('data:image/png;base64,', '')
-
           await createAsset(
             {
-              content: rawBase64,
+              content: base64,
               mediaType: newValue.type,
             },
             {
               onSuccess: (data: unknown) => {
                 const response = data as AssetResponseType
 
-                const previewImage = ensureBase64HasPrefix(base64)
-
-                setPreview(previewImage)
+                setPreview(base64)
                 handleLocalUpdate(element, response.asset.id)
               },
               onError: (error) => {
