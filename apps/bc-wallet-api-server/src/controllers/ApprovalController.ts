@@ -5,16 +5,19 @@ import {
   CredentialDefinitionResponseFromJSONTyped,
   PendingApprovalsResponse,
   PendingApprovalsResponseFromJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
 } from 'bc-wallet-openapi'
 import CredentialDefinitionService from '../services/CredentialDefinitionService'
-import { credentialDefinitionDTOFrom } from '../utils/mappers'
+import { credentialDefinitionDTOFrom, showcaseDTOFrom } from '../utils/mappers'
 import { NotFoundError } from '../errors'
+import ShowcaseService from '../services/ShowcaseService'
 
 @JsonController()
 @Service()
 export class ApprovalController {
   constructor(
-    // private showcaseService: ShowcaseService,
+    private showcaseService: ShowcaseService,
     private credentialDefinitionService: CredentialDefinitionService,
   ) {}
 
@@ -37,24 +40,37 @@ export class ApprovalController {
     }
   }
 
+  @Post('/showcases/:slug/approve')
+  public async approveShowcase(@Param('slug') slug: string): Promise<ShowcaseResponse> {
+    try {
+      const updatedShowcase = await this.showcaseService.approveShowcaseBySlug(slug)
+      if (!updatedShowcase) {
+        return Promise.reject(new NotFoundError(`Showcase with slug ${slug} not found`))
+      }
+      return ShowcaseResponseFromJSONTyped({ showcase: showcaseDTOFrom(updatedShowcase) }, false)
+    } catch (e) {
+      console.error(`Approve showcase slug=${slug} failed:`, e)
+      return Promise.reject(e)
+    }
+  }
+
   @Get('/approvals/pending')
   public async getPendingApprovals(): Promise<PendingApprovalsResponse> {
     try {
-      /*
       const [pendingShowcases, pendingDefinitions] = await Promise.all([
         this.showcaseService.getUnapproved(),
         this.credentialDefinitionService.getUnapproved(),
       ])
-*/
-      const pendingDefinitions = await this.credentialDefinitionService.getUnapproved()
 
-      //const showcases = pendingShowcases.map(showcaseDTOFrom)
+      const showcases = pendingShowcases.map(showcaseDTOFrom)
       const credentialDefinitions = pendingDefinitions.map(credentialDefinitionDTOFrom)
 
-      return PendingApprovalsResponseFromJSONTyped({ /*showcases,*/ credentialDefinitions }, false)
+      return PendingApprovalsResponseFromJSONTyped({ showcases, credentialDefinitions }, false)
     } catch (e) {
       console.error('Get pending approvals failed:', e)
       return Promise.reject(e)
     }
   }
 }
+
+export default ApprovalController

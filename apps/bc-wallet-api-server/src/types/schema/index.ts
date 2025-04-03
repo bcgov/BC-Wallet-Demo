@@ -301,12 +301,15 @@ export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 
 export type Tenant = typeof tenant.$inferSelect
 export type NewTenant = typeof tenant.$inferInsert
 
-export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage'> & {
+export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage' | 'createdBy' | 'approvedBy'> & {
   scenarios: Scenario[]
   personas: Persona[]
   bannerImage?: Asset | null
   createdBy?: User | null
+  approvedBy?: User | null
+  approvedAt?: Date | null
 }
+
 export type NewShowcase = Omit<typeof showcases.$inferInsert, 'slug'> & {
   scenarios: string[]
   credentialDefinitions: string[]

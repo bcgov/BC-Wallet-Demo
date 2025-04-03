@@ -15,11 +15,17 @@ import {
   IdentifierType,
   Issuer,
   IssuerType,
+  NewCredentialDefinition,
+  NewShowcase,
+  NewUser,
   Persona,
   Scenario,
+  Showcase,
+  ShowcaseStatus,
   StepActionType,
   StepType,
   Tenant,
+  User,
 } from '../../types'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { PGlite } from '@electric-sql/pglite'
@@ -27,9 +33,12 @@ import { drizzle } from 'drizzle-orm/pglite'
 import DatabaseService from '../../services/DatabaseService'
 import * as schema from '../../database/schema'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import UserRepository from '../../database/repositories/UserRepository'
+import ShowcaseService from '../../services/ShowcaseService'
+import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
+import CredentialDefinitionService from '../../services/CredentialDefinitionService'
 
-
-export async function setupTestDatabase(): Promise<{ client: PGlite, database: NodePgDatabase }> {
+export async function setupTestDatabase(): Promise<{ client: PGlite; database: NodePgDatabase }> {
   const client = new PGlite()
   const database = drizzle(client, { schema }) as unknown as NodePgDatabase
   await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
@@ -145,7 +154,7 @@ export async function createTestTenant(id = 'test-tenant'): Promise<Tenant> {
 
 export async function createTestCredentialDefinition(
   asset: Asset,
-  schema: CredentialSchema
+  schema: CredentialSchema,
 ): Promise<CredentialDefinition> {
   const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
   return credentialDefinitionRepository.create({
@@ -155,14 +164,14 @@ export async function createTestCredentialDefinition(
     identifier: 'did:test:123',
     icon: asset.id,
     type: CredentialType.ANONCRED,
-    credentialSchema: schema.id
+    credentialSchema: schema.id,
   })
 }
 
 export async function createTestIssuer(
   asset: Asset,
   definition: CredentialDefinition,
-  schema: CredentialSchema
+  schema: CredentialSchema,
 ): Promise<Issuer> {
   const issuerRepository = Container.get(IssuerRepository)
   return issuerRepository.create({
@@ -172,6 +181,77 @@ export async function createTestIssuer(
     credentialSchemas: [schema.id],
     description: 'Test issuer description',
     organization: 'Test Organization',
-    logo: asset.id
+    logo: asset.id,
   })
+}
+
+export async function createTestUser(
+  identifier: string,
+  identifierType: IdentifierType = IdentifierType.DID,
+): Promise<User> {
+  const userRepository = Container.get(UserRepository)
+  const newUser: NewUser = {
+    identifier: identifier,
+    identifierType: identifierType,
+  }
+  return await userRepository.create(newUser)
+}
+
+export async function createTestShowcase(
+  tenantId: string,
+  name: string,
+  status: ShowcaseStatus = ShowcaseStatus.PENDING,
+  creatorUserId?: string, // Optional creator ID
+): Promise<Showcase> {
+  // Returning internal Showcase type after creation
+  // Create necessary dependencies using db helpers first
+  const asset = await createTestAsset()
+  const persona = await createTestPersona(asset)
+  const schema = await createTestCredentialSchema()
+  // Use renamed db helper
+  const definition = await createTestCredentialDefinition(asset, schema)
+  const issuer = await createTestIssuer(asset, definition, schema)
+  const scenario = await createTestScenario(asset, persona, issuer)
+
+  // Use the ShowcaseService to create the showcase
+  const showcaseService = Container.get(ShowcaseService)
+  const newShowcase: NewShowcase = {
+    name: name,
+    description: `${name} description`,
+    tenantId: tenantId,
+    status: status,
+    hidden: false,
+    scenarios: [scenario.id],
+    personas: [persona.id],
+    credentialDefinitions: [definition.id], // Make sure this matches NewShowcase type
+    bannerImage: asset.id,
+    createdBy: creatorUserId,
+  }
+  const created = await showcaseService.createShowcase(newShowcase)
+
+  // Re-fetch using repository to ensure relations are populated for return
+  // (Service create might not return fully populated relations)
+  const showcaseRepository = Container.get(ShowcaseRepository)
+  return await showcaseRepository.findById(created.id)
+}
+
+// Helper to create a Credential Definition via the service for API testing
+export async function createUnapprovedCredDef(name: string): Promise<CredentialDefinition> {
+  const asset = await createTestAsset()
+  const schema = await createTestCredentialSchema()
+
+  // Use the CredentialDefinitionService
+  const credDefService = Container.get(CredentialDefinitionService)
+  const newCredDef: NewCredentialDefinition = {
+    name: name,
+    version: '1.0',
+    type: CredentialType.ANONCRED,
+    credentialSchema: schema.id,
+    icon: asset.id,
+  }
+  const created = await credDefService.createCredentialDefinition(newCredDef)
+
+  // Re-fetch using repository to ensure relations are populated
+  const credentialDefinitionRepo = Container.get(CredentialDefinitionRepository)
+  return await credentialDefinitionRepo.findById(created.id)
 }

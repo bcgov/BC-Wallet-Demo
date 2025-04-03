@@ -2,16 +2,24 @@ import {
   AriesOOBActionRequest,
   ButtonActionRequest,
   ChooseWalletActionRequest,
-  IssuanceScenarioRequest, IssuerRequest,
+  IssuanceScenarioRequest,
+  IssuerRequest,
   PresentationScenarioRequest,
   SetupConnectionActionRequest,
   ShowcaseRequest,
   ShowcaseStatus,
   StepActionType,
   StepRequest,
-  StepType
+  StepType,
 } from 'bc-wallet-openapi'
-import { createTestAsset, createTestCredentialDefinition, createTestCredentialSchema, createTestIssuer, createTestPersona, createTestScenario } from './dbTestData'
+import {
+  createTestAsset,
+  createTestCredentialDefinition,
+  createTestCredentialSchema,
+  createTestIssuer,
+  createTestPersona,
+  createTestScenario,
+} from './dbTestData'
 import Container from 'typedi'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import PersonaRepository from '../../database/repositories/PersonaRepository'
@@ -138,7 +146,7 @@ export function createApiShowcaseRequest(
 export function createApiIssuerRequest(
   assetId: string,
   credentialDefinitions: string[],
-  credentialSchemas: string[]
+  credentialSchemas: string[],
 ): IssuerRequest {
   return {
     name: 'Test Issuer',
@@ -147,7 +155,7 @@ export function createApiIssuerRequest(
     organization: 'Test Organization',
     logo: assetId,
     credentialDefinitions: credentialDefinitions,
-    credentialSchemas: credentialSchemas
+    credentialSchemas: credentialSchemas,
   }
 }
 

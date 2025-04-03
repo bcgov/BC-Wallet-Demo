@@ -38,7 +38,7 @@ class CredentialDefinitionService {
    * @throws Error if the current user cannot be determined (implementation specific).
    */
   public approveCredentialDefinition = async (id: string): Promise<CredentialDefinition> => {
-    const currentUserId = 'PLACEHOLDER_USER_ID' // <<< REPLACE THIS with actual user ID when authentication is ready
+    const currentUserId = '00000000-0000-0000-0000-000000000001' // <<< REPLACE THIS with actual user ID when authentication is ready
     if (!currentUserId) {
       return Promise.reject(new Error('Could not determine the approving user.'))
     }

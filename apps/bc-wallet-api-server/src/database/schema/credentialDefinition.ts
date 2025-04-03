@@ -47,7 +47,7 @@ export const credentialDefinitionRelations = relations(credentialDefinitions, ({
     fields: [credentialDefinitions.icon],
     references: [assets.id],
   }),
-  approver: one(users, { // Added relation for approver
+  approver: one(users, {
     fields: [credentialDefinitions.approvedBy],
     references: [users.id],
   }),

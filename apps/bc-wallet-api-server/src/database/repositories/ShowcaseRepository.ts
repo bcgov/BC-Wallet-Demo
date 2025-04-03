@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, isNull } from 'drizzle-orm'
 import { Service } from 'typedi'
 import { BadRequestError } from 'routing-controllers'
 import DatabaseService from '../../services/DatabaseService'
@@ -36,7 +36,8 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     if (showcase.scenarios.length === 0) {
       return Promise.reject(new BadRequestError('At least one scenario is required'))
     }
-    const userResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
+    const createdByResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
+    const approvedByResult = showcase?.approvedBy ? await this.userRepository.findById(showcase.approvedBy) : null
     const bannerImageResult = showcase.bannerImage ? await this.assetRepository.findById(showcase.bannerImage) : null
     const personaPromises = showcase.personas.map(async (persona) => await this.personaRepository.findById(persona))
     await Promise.all(personaPromises)
@@ -172,38 +173,12 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       })
 
       return {
-        ...(showcaseResult as any), // TODO check this typing issue at a later point in time
-        scenarios: scenariosResult.map((scenario) => ({
-          ...scenario,
-          steps: sortSteps(scenario.steps),
-          relyingParty: scenario.relyingParty ? {
-            id: scenario.relyingParty.id,
-            name: scenario.relyingParty.name,
-            type: scenario.relyingParty.type,
-            description: scenario.relyingParty.description,
-            organization: scenario.relyingParty.organization,
-            logo: scenario.relyingParty.logo,
-            credentialDefinitions: scenario.relyingParty!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            createdAt: scenario.relyingParty.createdAt,
-            updatedAt: scenario.relyingParty.updatedAt,
-          } : undefined,
-          issuer: scenario.issuer ? {
-            id: scenario.issuer.id,
-            name: scenario.issuer.name,
-            type: scenario.issuer.type,
-            description: scenario.issuer.description,
-            organization: scenario.issuer.organization,
-            logo: scenario.issuer.logo,
-            credentialDefinitions: scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            credentialSchemas: scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
-            createdAt: scenario.issuer.createdAt,
-            updatedAt: scenario.issuer.updatedAt,
-          } : undefined,
-          personas: scenario.personas.map((item: any) => item.persona),
-        })),
+        ...showcaseResult,
+        scenarios: (scenariosResult || []).map(scenario => this.mapScenarioRelations(scenario)),
         personas: personasResult,
         bannerImage: bannerImageResult,
-        createdBy: userResult,
+        approvedBy: approvedByResult,
+        createdBy: createdByResult,
       }
     })
   }
@@ -222,7 +197,8 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       return Promise.reject(new BadRequestError('At least one scenario is required'))
     }
 
-    const userResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
+    const createdByResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
+    const approvedByResult = showcase?.approvedBy ? await this.userRepository.findById(showcase.approvedBy) : null
     const bannerImageResult = showcase.bannerImage ? await this.assetRepository.findById(showcase.bannerImage) : null
 
     const personaPromises = showcase.personas.map(async (persona) => await this.personaRepository.findById(persona))
@@ -365,37 +341,11 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
 
       return {
         ...(showcaseResult as any), // TODO check this typing issue at a later point in time
-        scenarios: scenariosResult.map((scenario) => ({
-          ...scenario,
-          steps: sortSteps(scenario.steps),
-          relyingParty: scenario.relyingParty ? {
-            id: scenario.relyingParty.id,
-            name: scenario.relyingParty.name,
-            type: scenario.relyingParty.type,
-            description: scenario.relyingParty.description,
-            organization: scenario.relyingParty.organization,
-            logo: scenario.relyingParty.logo,
-            credentialDefinitions: scenario.relyingParty!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            createdAt: scenario.relyingParty.createdAt,
-            updatedAt: scenario.relyingParty.updatedAt,
-          } : undefined,
-          issuer: scenario.issuer ? {
-            id: scenario.issuer.id,
-            name: scenario.issuer.name,
-            type: scenario.issuer.type,
-            description: scenario.issuer.description,
-            organization: scenario.issuer.organization,
-            logo: scenario.issuer.logo,
-            credentialDefinitions: scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            credentialSchemas: scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
-            createdAt: scenario.issuer.createdAt,
-            updatedAt: scenario.issuer.updatedAt,
-          } : undefined,
-          personas: scenario.personas.map((item: any) => item.persona),
-        })),
+        scenarios: (scenariosResult || []).map(scenario => this.mapScenarioRelations(scenario)),
         personas: personasResult,
         bannerImage: bannerImageResult,
-        createdBy: userResult,
+        createdBy: createdByResult,
+        approvedBy: approvedByResult,
       }
     })
   }
@@ -508,38 +458,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
 
     return {
       ...(result as any), // TODO check this typing issue at a later point in time
-      scenarios: result.scenarios.map((scenario: any) => ({
-        ...(scenario.scenario as any),
-        steps: sortSteps(scenario.scenario.steps),
-        ...(scenario.scenario.relyingParty && {
-          relyingParty: {
-            id: scenario.scenario.relyingParty.id,
-            name: scenario.scenario.relyingParty.name,
-            type: scenario.scenario.relyingParty.type,
-            description: scenario.scenario.relyingParty.description,
-            organization: scenario.scenario.relyingParty.organization,
-            logo: scenario.scenario.relyingParty.logo,
-            credentialDefinitions: scenario.scenario.relyingParty!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            createdAt: scenario.scenario.relyingParty.createdAt,
-            updatedAt: scenario.scenario.relyingParty.updatedAt,
-          },
-        }),
-        ...(scenario.scenario.issuer && {
-          issuer: {
-            id: scenario.scenario.issuer.id,
-            name: scenario.scenario.issuer.name,
-            type: scenario.scenario.issuer.type,
-            description: scenario.scenario.issuer.description,
-            organization: scenario.scenario.issuer.organization,
-            logo: scenario.scenario.issuer.logo,
-            credentialDefinitions: scenario.scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-            credentialSchemas: scenario.scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
-            createdAt: scenario.scenario.issuer.createdAt,
-            updatedAt: scenario.scenario.issuer.updatedAt,
-          },
-        }),
-        personas: scenario.scenario.personas.map((item: any) => item.persona),
-      })),
+      scenarios: (result.scenarios || []).map(scenario => this.mapScenarioRelations(scenario)),
       personas: result.personas.map((item: any) => item.persona),
     }
   }
@@ -565,6 +484,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
               },
               representations: true,
               revocation: true,
+              approver: true,
             },
           },
         },
@@ -598,6 +518,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
                           },
                           representations: true,
                           revocation: true,
+                          approver: true,
                         },
                       },
                     },
@@ -628,6 +549,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
                           },
                           representations: true,
                           revocation: true,
+                          approver: true,
                         },
                       },
                     },
@@ -693,26 +615,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     return showcases.map((showcase: any) => {
       return {
         ...showcase,
-        scenarios: (scenariosMap.get(showcase.id) || []).map((s: any) => {
-          const scenarioData = { ...s.scenario }
-          scenarioData.steps = sortSteps(s.scenario.steps)
-          if (s.scenario.relyingParty) {
-            scenarioData.relyingParty = {
-              ...s.scenario.relyingParty,
-              credentialDefinitions: s.scenario.relyingParty.cds.map((item: any) => item.cd),
-            }
-          }
-          if (s.scenario.issuer) {
-            scenarioData.issuer = {
-              ...s.scenario.issuer,
-              credentialDefinitions: s.scenario.issuer.cds.map((item: any) => item.cd),
-              credentialSchemas: s.scenario.issuer.css.map((item: any) => item.cs),
-            }
-          }
-          // TODO check this typing issue at a later point in time
-          scenarioData.personas = s.scenario.personas.map((p: any) => p.persona)
-          return scenarioData
-        }),
+        scenarios: (scenariosMap.get(showcase.id) || []).map(scenario => this.mapScenarioRelations(scenario)),
         credentialDefinitions: (credDefMap.get(showcase.id) || []).map((item: any) => {
           return {
             ...item.credentialDefinition,
@@ -737,6 +640,145 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     }
 
     return result.id
+  }
+
+
+  async findUnapproved(): Promise<Showcase[]> {
+    const results = await (
+      await this.databaseService.getConnection()
+    ).query.showcases.findMany({
+      where: isNull(showcases.approvedAt),
+      with: {
+        scenarios: {
+          with: {
+            scenario: {
+              with: {
+                steps: { with: { actions: { with: { proofRequest: true } }, asset: true } },
+                issuer: {
+                  with: {
+                    cds: {
+                      with: {
+                        cd: {
+                          with: {
+                            icon: true,
+                            cs: { with: { attributes: true } },
+                            representations: true,
+                            revocation: true,
+                            approver: true,
+                          },
+                        },
+                      },
+                    },
+                    css: { with: { cs: { with: { attributes: true } } } },
+                    logo: true,
+                  },
+                },
+                relyingParty: {
+                  with: {
+                    cds: {
+                      with: {
+                        cd: {
+                          with: {
+                            icon: true,
+                            cs: { with: { attributes: true } },
+                            representations: true,
+                            revocation: true,
+                            approver: true,
+                          },
+                        },
+                      },
+                    },
+                    logo: true,
+                  },
+                },
+                personas: { with: { persona: { with: { headshotImage: true, bodyImage: true } } } },
+              },
+            },
+          },
+        },
+        personas: { with: { persona: { with: { headshotImage: true, bodyImage: true } } } },
+        bannerImage: true,
+        createdBy: true,
+        approver: true,
+      },
+    })
+
+    // Map results using the same logic as findById
+    return results.map(result => ({
+      ...result,
+
+      // Map relations
+      scenarios: (result.scenarios || []).map(s => this.mapScenarioRelations(s.scenario)),
+      personas: (result.personas || []).map(p => p.persona),
+      bannerImage: result.bannerImage ?? undefined,
+      createdBy: result.createdBy ?? undefined,
+      approvedBy: result.approver
+    }))
+  }
+
+  async approve(id: string, userId: string): Promise<Showcase> {
+    const now = new Date()
+    await (await this.databaseService.getConnection())
+      .update(showcases)
+      .set({
+        approvedBy: userId,
+        approvedAt: now,
+        updatedAt: now // Also update updatedAt timestamp
+      })
+      .where(eq(showcases.id, id))
+
+    // Re-fetch the updated record with all relations to return it
+    return this.findById(id)
+  }
+
+  private mapScenarioRelations(scenarioData: any): any {
+    const mappedScenario = {
+      ...scenarioData,
+      steps: sortSteps(scenarioData.steps),
+      personas: (scenarioData.personas || []).map((p: any) => p.persona),
+    }
+
+    if (scenarioData.relyingParty) {
+      mappedScenario.relyingParty = {
+        ...scenarioData.relyingParty,
+        credentialDefinitions: (scenarioData.relyingParty.cds || []).map((cdJoin: any) => ({
+          ...cdJoin.cd,
+          credentialSchema: cdJoin.cd.cs,
+          icon: cdJoin.cd.icon ?? undefined,
+          representations: cdJoin.cd.representations ?? [],
+          revocation: cdJoin.cd.revocation ?? undefined,
+          approvedBy: cdJoin.cd.approver ?? undefined,
+          approvedAt: cdJoin.cd.approvedAt ?? undefined,
+        })),
+        logo: scenarioData.relyingParty.logo ?? undefined,
+      }
+    } else {
+      delete mappedScenario.relyingParty
+    }
+
+    if (scenarioData.issuer) {
+      mappedScenario.issuer = {
+        ...scenarioData.issuer,
+        credentialDefinitions: (scenarioData.issuer.cds || []).map((cdJoin: any) => ({
+          ...cdJoin.cd,
+          credentialSchema: cdJoin.cd.cs, // Map nested schema
+          icon: cdJoin.cd.icon ?? undefined,
+          representations: cdJoin.cd.representations ?? [],
+          revocation: cdJoin.cd.revocation ?? undefined,
+          approvedBy: cdJoin.cd.approver ?? undefined,
+          approvedAt: cdJoin.cd.approvedAt ?? undefined,
+        })),
+        credentialSchemas: (scenarioData.issuer.css || []).map((csJoin: any) => ({
+          ...csJoin.cs,
+          attributes: csJoin.cs.attributes ?? [],
+        })),
+        logo: scenarioData.issuer.logo ?? undefined,
+      }
+    } else {
+      delete mappedScenario.issuer
+    }
+
+    return mappedScenario
   }
 }
 

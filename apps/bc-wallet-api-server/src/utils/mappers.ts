@@ -230,8 +230,8 @@ export const showcaseDTOFrom = (showcase: Showcase): ShowcaseDTO => {
     bannerImage: showcase.bannerImage ? assetDTOFrom(showcase.bannerImage) : undefined,
     completionMessage: showcase.completionMessage || undefined,
     createdBy: showcase.createdBy ? userDTOFrom(showcase.createdBy) : undefined,
-    approvedBy: undefined, // TODO SHOWCASE-243
-    approvedAt: undefined // TODO SHOWCASE-243
+    approvedBy: showcase.approvedBy ? userDTOFrom(showcase.approvedBy) : undefined,
+    approvedAt: showcase.approvedAt || undefined
   }
 }
 
