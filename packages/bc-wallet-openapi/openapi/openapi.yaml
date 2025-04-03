@@ -1832,6 +1832,11 @@ components:
           description: Date and time the tenant was created
           format: date-time
           example: 2025-03-06T11:30:16.573Z
+        updatedAt:
+          type: string
+          description: Date and time the asset was created
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
         deletedAt:
           type: string
           description: Date and time the tenant was deleted (if applicable)
