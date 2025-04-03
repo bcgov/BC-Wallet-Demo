@@ -3139,7 +3139,7 @@ components:
       type: object
       required:
         - id
-        - namen
+        - name
         - version
         - attrNames
         - createdAt
