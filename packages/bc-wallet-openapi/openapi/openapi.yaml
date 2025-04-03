@@ -3085,9 +3085,6 @@ components:
         - name
         - description
         - status
-        - scenarios
-        - personas
-        - credentialDefinitions
         - hidden
       properties:
         name:
