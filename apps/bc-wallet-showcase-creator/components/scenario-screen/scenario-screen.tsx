@@ -283,7 +283,7 @@ export const ScenarioScreen = () => {
                 <div className="w-12 h-12 bg-gray-300 rounded-full mb-2">
                   <Image
                     src={char.headshotImage || '/assets/no-image.jpg'}
-                    alt={char.name}
+                    alt={char.headshotImage?.description || 'Character headshot'}
                     width={50}
                     height={50}
                     className="rounded-full"

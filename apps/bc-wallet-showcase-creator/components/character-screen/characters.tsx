@@ -260,7 +260,7 @@ export default function NewCharacterPage() {
                                 ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
                                 : '/assets/no-image.jpg'
                             }
-                            alt={persona.name}
+                            alt={persona.headshotImage?.description || 'Character headshot'}
                             width={selectedPersonaId === persona.id ? 100 : 50}
                             height={selectedPersonaId === persona.id ? 100 : 50}
                             className="rounded-full aspect-square object-cover"

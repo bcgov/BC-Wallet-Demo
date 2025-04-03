@@ -18,7 +18,7 @@ import { debounce } from 'lodash'
 import { Edit, Monitor } from 'lucide-react'
 import { basicStepSchema } from '@/schemas/onboarding'
 import { useTranslations } from 'next-intl'
-
+import Image from 'next/image'
 import { ErrorModal } from '../error-modal'
 import StepHeader from '../step-header'
 import { LocalFileUpload } from "./local-file-upload";
@@ -193,7 +193,7 @@ export const BasicStepAdd = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <img src={currentStep.asset} alt="Step icon" className="w-full object-cover" />
+                <Image src={currentStep.asset} alt={currentStep.title} className="w-full object-cover" />
               </div>
             </div>
           )}

@@ -71,7 +71,7 @@ export const CreateOnboardingScreen = () => {
                           ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
                           : '/assets/no-image.jpg'
                       }
-                      alt={`${persona.name} Headshot`}
+                      alt={`${persona.headshotImage.description} || 'Character Headshot'`}
                       width={50}
                       height={50}
                       className="rounded-full aspect-square object-cover"

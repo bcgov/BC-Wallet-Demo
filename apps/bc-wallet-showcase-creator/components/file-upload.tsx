@@ -12,9 +12,9 @@ export const FileUploadFull = ({
   handleJSONUpdate,
 }: {
   text: string
-  element: 'headshot_image' | 'body_image'
+  element: string
   initialValue?: string
-  handleJSONUpdate: (imageType: 'headshot_image' | 'body_image', imageData: string) => void
+  handleJSONUpdate: (imageType: string, imageData: string) => void
 }) => {
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(initialValue || null)
@@ -67,7 +67,7 @@ export const FileUploadFull = ({
         <div className="flex flex-col items-center h-[240px] justify-center border rounded-lg border-dashed dark:border-dark-border p-2 w-full">
           {preview ? (
             <Image
-              alt="preview"
+              alt={text}
               className="p-3 max-w-full max-h-full object-contain"
               src={`data:image/${preview}`}
               width={300}
