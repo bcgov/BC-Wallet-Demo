@@ -25,6 +25,8 @@ tags:
     description: Endpoints for creating and managing credential definitions
   - name: Assets
     description: Endpoints related to media or static assets
+  - name: Tenants
+    description: Endpoints related to tenants
 
 security:
   - OAuth2: [ ]
