@@ -6,7 +6,7 @@ export const Wallets: Wallet[] = [
     name: 'BC Wallet',
     organization: 'The Province of British Columbia',
     recommended: true,
-    icon: '/public/wallets/icon-bc-wallet.png',
+    icon: '/public/wallets/icon-bc-wallet-showcase-builder.png',
     url: '/#',
     apple: '/#',
     android: '/#',

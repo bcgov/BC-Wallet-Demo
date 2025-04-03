@@ -1,5 +1,5 @@
 nameOverride: ""
-fullnameOverride: "bc-wallet"
+fullnameOverride: ""
 
 global:
   namespaceOverride: ""

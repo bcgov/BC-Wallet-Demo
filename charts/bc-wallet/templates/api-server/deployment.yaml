@@ -6,8 +6,8 @@ metadata:
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet-showcase-builder
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.api_server.replicaCount }}
   selector:
@@ -18,8 +18,8 @@ spec:
       labels:
         app: {{ .Release.Name }}-{{ .Values.api_server.name }}
         app.kubernetes.io/component: api
-        app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: bc-wallet-showcase-builder
+        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
       {{- with .Values.api_server.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -56,12 +56,12 @@ spec:
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet.database.secret.name" . }}
-              key: {{ include "bc-wallet.database.userPasswordKey" . }}
+              name: {{ include "bc-wallet-showcase-builder.database.secret.name" . }}
+              key: {{ include "bc-wallet-showcase-builder.database.userPasswordKey" . }}
         - name: AUTH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet.authtoken.secret.name" . }}
+              name: {{ include "bc-wallet-showcase-builder.authtoken.secret.name" . }}
               key: token
         resources:
           {{- toYaml .Values.api_server.resources | nindent 12 }}

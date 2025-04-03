@@ -2,7 +2,7 @@
 {{/*
 Define a common template for allowing intra-release communication with namespace support
 */}}
-{{- define "bc-wallet.intra-release-network-policy" -}}
+{{- define "bc-wallet-showcase-builder.intra-release-network-policy" -}}
 {{- $releaseName := .Release.Name -}}
 # Network policy to allow communication between services in the same release
 apiVersion: networking.k8s.io/v1
@@ -12,8 +12,8 @@ metadata:
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: {{ .componentLabel }}
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet-showcase-builder
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:

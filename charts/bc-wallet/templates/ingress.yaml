@@ -5,8 +5,8 @@ metadata:
   name: {{ .Release.Name }}-ingress
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet-showcase-builder
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
   annotations:
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
@@ -16,7 +16,7 @@ spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
   rules:
-  - host: {{ include "bc-wallet.api-server.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.api-server.host" . | quote }}
     http:
       paths:
       - path: /
@@ -26,7 +26,7 @@ spec:
             name: {{ $.Release.Name }}-{{ $.Values.api_server.name }}
             port:
               number: {{ $.Values.api_server.service.port }}
-  - host: {{ include "bc-wallet.traction-adapter.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.traction-adapter.host" . | quote }}
     http:
       paths:
       - path: /
@@ -36,7 +36,7 @@ spec:
             name: {{ $.Release.Name }}-{{ $.Values.traction_adapter.name }}
             port:
               number: {{ $.Values.traction_adapter.service.port }}
-  - host: {{ include "bc-wallet.demo-web.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.demo-web.host" . | quote }}
     http:
       paths:
       - path: /
@@ -46,7 +46,7 @@ spec:
             name: {{ $.Release.Name }}-{{ $.Values.demo_web.name }}
             port:
               number: {{ $.Values.demo_web.service.port }}
-  - host: {{ include "bc-wallet.showcase-creator.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.showcase-creator.host" . | quote }}
     http:
       paths:
       - path: /
@@ -56,7 +56,7 @@ spec:
             name: {{ $.Release.Name }}-{{ $.Values.showcase_creator.name }}
             port:
               number: {{ $.Values.showcase_creator.service.port }}
-  - host: {{ include "bc-wallet.demo-server.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.demo-server.host" . | quote }}
     http:
       paths:
       - path: /

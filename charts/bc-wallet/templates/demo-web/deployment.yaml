@@ -6,8 +6,8 @@ metadata:
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: web
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet-showcase-builder
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.demo_web.replicaCount }}
   selector:
@@ -18,8 +18,8 @@ spec:
       labels:
         app: {{ .Release.Name }}-{{ .Values.demo_web.name }}
         app.kubernetes.io/component: web
-        app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: bc-wallet-showcase-builder
+        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
       {{- with .Values.demo_web.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}

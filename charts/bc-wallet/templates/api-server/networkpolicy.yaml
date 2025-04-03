@@ -6,8 +6,8 @@ metadata:
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet-showcase-builder
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
@@ -23,8 +23,8 @@ metadata:
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet-showcase-builder
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
@@ -47,8 +47,8 @@ metadata:
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet-showcase-builder
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
@@ -63,5 +63,5 @@ spec:
       port: {{ .Values.api_server.service.port }}
 ---
 {{- $context := dict "componentName" .Values.api_server.name "componentLabel" "api" "servicePort" .Values.api_server.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet.intra-release-network-policy" $context }}
+{{- include "bc-wallet-showcase-builder.intra-release-network-policy" $context }}
 {{- end }}

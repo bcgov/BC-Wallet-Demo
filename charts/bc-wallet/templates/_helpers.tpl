@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "bc-wallet.name" -}}
+{{- define "bc-wallet-showcase-builder.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "bc-wallet.fullname" -}}
+{{- define "bc-wallet-showcase-builder.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,19 +26,19 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "bc-wallet.chart" -}}
+{{- define "bc-wallet-showcase-builder.chart" -}}
 {{- if .Chart }}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- printf "%s-%s" "bc-wallet" "0.1.0" | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- printf "%s-%s" "bc-wallet-showcase-builder" "0.1.0" | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "bc-wallet.labels" -}}
-helm.sh/chart: {{ include "bc-wallet.chart" . }}
+{{- define "bc-wallet-showcase-builder.labels" -}}
+helm.sh/chart: {{ include "bc-wallet-showcase-builder.chart" . }}
 {{- if .Release }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
@@ -48,8 +48,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "bc-wallet.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "bc-wallet.name" . }}
+{{- define "bc-wallet-showcase-builder.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "bc-wallet-showcase-builder.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
@@ -72,7 +72,7 @@ it randomly.
 {{/*
 Define database secret name - used to reference PostgreSQL generated secret
 */}}
-{{- define "bc-wallet.database.secret.name" -}}
+{{- define "bc-wallet-showcase-builder.database.secret.name" -}}
 {{- if .Values.postgresql.auth.existingSecret -}}
     {{- .Values.postgresql.auth.existingSecret -}}
 {{- else -}}
@@ -83,7 +83,7 @@ Define database secret name - used to reference PostgreSQL generated secret
 {{/*
 Get the admin-password key.
 */}}
-{{- define "bc-wallet.database.adminPasswordKey" -}}
+{{- define "bc-wallet-showcase-builder.database.adminPasswordKey" -}}
 {{- if .Values.postgresql.auth.secretKeys.adminPasswordKey -}}
     {{- printf "%s" (tpl .Values.postgresql.auth.secretKeys.adminPasswordKey $) -}}
 {{- else -}}
@@ -94,7 +94,7 @@ Get the admin-password key.
 {{/*
 Get the user-password key.
 */}}
-{{- define "bc-wallet.database.userPasswordKey" -}}
+{{- define "bc-wallet-showcase-builder.database.userPasswordKey" -}}
 {{- if .Values.postgresql.auth.secretKeys.userPasswordKey -}}
     {{- printf "%s" (tpl .Values.postgresql.auth.secretKeys.userPasswordKey $) -}}
 {{- else -}}
@@ -105,14 +105,14 @@ Get the user-password key.
 {{/*
 Create a default fully qualified rabbitmq name.
 */}}
-{{- define "bc-wallet.rabbitmq.secret.name" -}}
+{{- define "bc-wallet-showcase-builder.rabbitmq.secret.name" -}}
 {{- printf "%s-rabbitmq" .Release.Name -}}
 {{- end -}}
 
 {{/*
 Get the rabbitmq password key.
 */}}
-{{- define "bc-wallet.rabbitmq.passwordKey" -}}
+{{- define "bc-wallet-showcase-builder.rabbitmq.passwordKey" -}}
 {{- if .Values.rabbitmq.auth.secretKeys.passwordKey -}}
 {{- printf "%s" .Values.rabbitmq.auth.secretKeys.passwordKey -}}
 {{- else -}}
@@ -123,7 +123,7 @@ rabbitmq-password
 {{/*
 Get the rabbitmq erlang cookie key.
 */}}
-{{- define "bc-wallet.rabbitmq.erlangCookieKey" -}}
+{{- define "bc-wallet-showcase-builder.rabbitmq.erlangCookieKey" -}}
 {{- if .Values.rabbitmq.auth.secretKeys.erlangCookieKey -}}
 {{- printf "%s" .Values.rabbitmq.auth.secretKeys.erlangCookieKey -}}
 {{- else -}}
@@ -134,14 +134,14 @@ rabbitmq-erlang-cookie
 {{/*
 Define a FIXED auth token secret name that can be shared between frontend and backend
 */}}
-{{- define "bc-wallet.authtoken.secret.name" -}}
+{{- define "bc-wallet-showcase-builder.authtoken.secret.name" -}}
 bc-wallet-authtoken
 {{- end -}}
 
 {{/* 
 Generate api-server openshift route tls config
 */}}
-{{- define "bc-wallet.api-server.openshift.route.tls" -}}
+{{- define "bc-wallet-showcase-builder.api-server.openshift.route.tls" -}}
 {{- if (.Values.api_server.openshift.route.tls.enabled) -}}
 tls:
   insecureEdgeTerminationPolicy: {{ .Values.api_server.openshift.route.tls.insecureEdgeTerminationPolicy }}
@@ -152,7 +152,7 @@ tls:
 {{/*
 Generate traction-adapter openshift route tls config
 */}}
-{{- define "bc-wallet.traction-adapter.openshift.route.tls" -}}
+{{- define "bc-wallet-showcase-builder.traction-adapter.openshift.route.tls" -}}
 {{- if (.Values.traction_adapter.openshift.route.tls.enabled) -}}
 tls:
   insecureEdgeTerminationPolicy: {{ .Values.traction_adapter.openshift.route.tls.insecureEdgeTerminationPolicy }}
@@ -163,7 +163,7 @@ tls:
 {{/*
 Generate API Server host if not overridden
 */}}
-{{- define "bc-wallet.api-server.host" -}}
+{{- define "bc-wallet-showcase-builder.api-server.host" -}}
 {{- if .Values.api_server.openshift.route.host -}}
 {{- .Values.api_server.openshift.route.host -}}
 {{- else -}}
@@ -174,7 +174,7 @@ Generate API Server host if not overridden
 {{/*
 Generate Traction Adapter host if not overridden
 */}}
-{{- define "bc-wallet.traction-adapter.host" -}}
+{{- define "bc-wallet-showcase-builder.traction-adapter.host" -}}
 {{- if .Values.traction_adapter.openshift.route.host -}}
 {{- .Values.traction_adapter.openshift.route.host -}}
 {{- else -}}
@@ -185,7 +185,7 @@ Generate Traction Adapter host if not overridden
 {{/*
 Generate Demo Web host if not overridden
 */}}
-{{- define "bc-wallet.demo-web.host" -}}
+{{- define "bc-wallet-showcase-builder.demo-web.host" -}}
 {{- if .Values.demo_web.openshift.route.host -}}
 {{- .Values.demo_web.openshift.route.host -}}
 {{- else -}}
@@ -196,7 +196,7 @@ Generate Demo Web host if not overridden
 {{/*
 Generate Showcase Creator host if not overridden
 */}}
-{{- define "bc-wallet.showcase-creator.host" -}}
+{{- define "bc-wallet-showcase-builder.showcase-creator.host" -}}
 {{- if .Values.showcase_creator.openshift.route.host -}}
 {{- .Values.showcase_creator.openshift.route.host -}}
 {{- else -}}
@@ -207,7 +207,7 @@ Generate Showcase Creator host if not overridden
 {{/*
 Generate Demo Server host if not overridden
 */}}
-{{- define "bc-wallet.demo-server.host" -}}
+{{- define "bc-wallet-showcase-builder.demo-server.host" -}}
 {{- if .Values.demo_server.openshift.route.host -}}
 {{- .Values.demo_server.openshift.route.host -}}
 {{- else -}}
@@ -218,7 +218,7 @@ Generate Demo Server host if not overridden
 {{/*
 Generate demo-web openshift route tls config
 */}}
-{{- define "bc-wallet.demo-web.openshift.route.tls" -}}
+{{- define "bc-wallet-showcase-builder.demo-web.openshift.route.tls" -}}
 {{- if (.Values.demo_web.openshift.route.tls.enabled) -}}
 tls:
   insecureEdgeTerminationPolicy: {{ .Values.demo_web.openshift.route.tls.insecureEdgeTerminationPolicy }}
@@ -229,7 +229,7 @@ tls:
 {{/*
 Generate showcase-creator openshift route tls config
 */}}
-{{- define "bc-wallet.showcase-creator.openshift.route.tls" -}}
+{{- define "bc-wallet-showcase-builder.showcase-creator.openshift.route.tls" -}}
 {{- if (.Values.showcase_creator.openshift.route.tls.enabled) -}}
 tls:
   insecureEdgeTerminationPolicy: {{ .Values.showcase_creator.openshift.route.tls.insecureEdgeTerminationPolicy }}
@@ -240,7 +240,7 @@ tls:
 {{/*
 Generate demo-server openshift route tls config
 */}}
-{{- define "bc-wallet.demo-server.openshift.route.tls" -}}
+{{- define "bc-wallet-showcase-builder.demo-server.openshift.route.tls" -}}
 {{- if (.Values.demo_server.openshift.route.tls.enabled) -}}
 tls:
   insecureEdgeTerminationPolicy: {{ .Values.demo_server.openshift.route.tls.insecureEdgeTerminationPolicy }}

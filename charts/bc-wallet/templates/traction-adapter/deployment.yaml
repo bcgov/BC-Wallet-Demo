@@ -6,8 +6,8 @@ metadata:
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: adapter
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet-showcase-builder
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.traction_adapter.replicaCount }}
   selector:
@@ -18,8 +18,8 @@ spec:
       labels:
         app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
         app.kubernetes.io/component: adapter
-        app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: bc-wallet-showcase-builder
+        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
       {{- with .Values.traction_adapter.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -56,8 +56,8 @@ spec:
         - name: RABBITMQ_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
-              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+              name: {{ include "bc-wallet-showcase-builder.rabbitmq.secret.name" . }}
+              key: {{ include "bc-wallet-showcase-builder.rabbitmq.passwordKey" . }}
         resources:
           {{- toYaml .Values.traction_adapter.resources | nindent 12 }}
       serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ $.Release.Name }}-{{ .Values.traction_adapter.name }}{{ end }}{{ end }}
