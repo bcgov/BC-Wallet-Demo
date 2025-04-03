@@ -1949,6 +1949,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tenant'
+    PendingApprovalsResponse:
+      type: object
+      description: Contains lists of showcases and credential definitions pending approval.
+      properties:
+        showcases:
+          type: array
+          description: List of showcases pending approval.
+          items:
+            $ref: '#/components/schemas/Showcase'
+        credentialDefinitions:
+          type: array
+          description: List of credential definitions pending approval.
+          items:
+            $ref: '#/components/schemas/CredentialDefinition'
 
     User:
       type: object
