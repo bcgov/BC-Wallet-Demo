@@ -45,6 +45,7 @@ describe('IssuerController Integration Tests', () => {
     // Create Express server using routing-controllers
     app = createExpressServer({
       controllers: [IssuerController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })

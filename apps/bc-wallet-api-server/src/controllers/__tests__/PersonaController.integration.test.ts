@@ -34,6 +34,7 @@ describe('PersonaController Integration Tests', () => {
     Container.get(PersonaService)
     app = createExpressServer({
       controllers: [PersonaController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })

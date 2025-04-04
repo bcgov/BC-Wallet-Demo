@@ -39,6 +39,7 @@ describe('RelyingPartyController Integration Tests', () => {
     Container.get(RelyingPartyService)
     app = createExpressServer({
       controllers: [RelyingPartyController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })

@@ -37,6 +37,7 @@ describe('CredentialDefinitionController Integration Tests', () => {
     Container.get(CredentialDefinitionService)
     app = createExpressServer({
       controllers: [CredentialDefinitionController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })
