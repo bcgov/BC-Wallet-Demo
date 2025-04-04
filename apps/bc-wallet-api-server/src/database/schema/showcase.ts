@@ -6,11 +6,13 @@ import { ShowcaseStatus } from '../../types'
 import { showcasesToScenarios } from './showcasesToScenarios'
 import { assets } from './asset'
 import { users } from './user'
+import { tenant } from './tenant'
 
 export const showcases = pgTable(
   'showcase',
   {
     id: uuid('id').notNull().primaryKey().defaultRandom(),
+    tenantId: text('tenant_id').references(() => tenant.id, { onDelete: 'cascade' }).notNull(),
     name: text().notNull(),
     slug: text().notNull().unique(),
     description: text().notNull(),
@@ -25,12 +27,19 @@ export const showcases = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (t) => [index('idx_bannerImage').on(t.bannerImage)],
+  (t) => [
+    index('idx_bannerImage').on(t.bannerImage),
+    index('idx_tenant_id').on(t.tenantId)
+  ],
 )
 
 export const showcaseRelations = relations(showcases, ({ many, one }) => ({
   scenarios: many(showcasesToScenarios),
   personas: many(showcasesToPersonas),
+  tenant: one(tenant, {
+    fields: [showcases.tenantId],
+    references: [tenant.id],
+  }),
   bannerImage: one(assets, {
     fields: [showcases.bannerImage],
     references: [assets.id],
