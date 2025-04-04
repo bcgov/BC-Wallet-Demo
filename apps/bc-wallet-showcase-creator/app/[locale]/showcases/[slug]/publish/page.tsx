@@ -1,42 +1,38 @@
-import React from 'react'
+'use client'
 
 import { PublishEdit } from '@/components/publish-screen/publish-edit'
 import { PublishInfo } from '@/components/publish-screen/publish-info'
 import TabsComponent from '@/components/Tabs-component'
-import type { PageParams } from '@/types'
-import { Pencil } from 'lucide-react'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { usePersonas } from '@/hooks/use-personas'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { Persona } from '@/openapi-types'
+import { useTranslations } from 'next-intl'
 
-export default async function PublishPage({ params }: { params: PageParams }) {
-  const { locale } = await params
-  setRequestLocale(locale)
-  const t = await getTranslations()
+export default function CreateOnboardingPage() {
+  const t = useTranslations()
+  const { displayShowcase } = useShowcaseStore()
+  const { selectedPersonaIds } = useShowcaseStore()
+  const { data: personas } = usePersonas()
+
+  const personasToDisplay = personas?.personas.filter((persona) => selectedPersonaIds.includes(persona.id))
 
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col">
         <div className="flex justify-between items-center px-6 py-2 mt-4">
-          {/* Left Header Section */}
-          <div className="flex items-center space-x-4">
-            <span className="text-light-text dark:text-dark-text font-medium text-sm">Showcase1 </span>
-            <Pencil size={16} />
-            <span className="rounded-[5px] bg-gray-500 px-3 py-1 min-w-24 text-center min-h-4 text-sm text-white">
-              {t('showcases.header_tab_draft')}
-            </span>
-          </div>
-          {/* Tabs Section */}
+          <div className="flex items-center space-x-4"></div>
           <div className="flex space-x-1 text-lg font-semibold justify-start">
-            <TabsComponent slug="example-name" />
+            <TabsComponent slug={'create'} />
           </div>
-          <button className="text-gray-500 hover:text-gray-700"></button>
         </div>
+
         <div className="flex gap-4 p-4 h-fit-content">
           <div className="w-1/3 bg-[white] dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
             <div className="p-4 border-b shadow">
-              <h2 className="text-base font-bold text-foreground">{'Review and Publish Showcase'}</h2>
-              <p className="w-full text-xs">{'Select the character and review their showcase'}</p>
+              <h2 className="text-base font-bold text-foreground">{t('showcases.publish_info_title')}</h2>
+              <p className="w-full text-xs text-foreground/80">{t('showcases.publish_info_subtitle')}</p>
             </div>
-            <PublishInfo characters={[]} credentials={[]} />
+            <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={displayShowcase.credentialDefinitions} />
           </div>
           <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
             <PublishEdit />

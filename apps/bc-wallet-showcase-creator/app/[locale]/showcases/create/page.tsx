@@ -1,7 +1,13 @@
-import TabsComponent from '@/components/Tabs-component'
-import CharactersPage from '@/components/character-screen/characters'
+'use client'
 
-export default function CharacterPageMain() {
+
+import { ShowcaseCreate } from '@/components/publish-screen/showcase-create'
+import TabsComponent from '@/components/Tabs-component'
+import { useTranslations } from 'next-intl'
+
+export default function CreateOnboardingPage() {
+  const t = useTranslations()
+
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
       <div className="flex flex-col">
@@ -12,7 +18,18 @@ export default function CharacterPageMain() {
           </div>
         </div>
 
-        <CharactersPage />
+        <div className="flex gap-4 p-4 h-fit-content">
+          <div className="w-1/3 bg-[white] dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
+            <div className="p-4 border-b shadow">
+              <h2 className="text-base font-bold text-foreground">{t('showcases.publish_info_title')}</h2>
+              <p className="w-full text-xs text-foreground/80">{t('showcases.publish_info_subtitle')}</p>
+            </div>
+            {/* <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={displayShowcase.credentialDefinitions} /> */}
+          </div>
+          <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
+            <ShowcaseCreate />
+          </div>
+        </div>
       </div>
     </div>
   )

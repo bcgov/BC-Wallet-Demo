@@ -224,8 +224,8 @@ export default function NewCharacterPage() {
             {/* Left panel - Character list */}
             <div className="w-1/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
               <div className="p-4">
-                <h2 className="text-lg font-bold">{t('character.select_your_character_title')}</h2>
-                <p className="text-sm">{t('character.select_your_character_subtitle')}</p>
+                <h2 className="text-lg font-bold">{t('character.create_your_character_title')}</h2>
+                <p className="text-sm">{t('character.create_your_character_subtitle')}</p>
               </div>
 
               {isLoading ? (
