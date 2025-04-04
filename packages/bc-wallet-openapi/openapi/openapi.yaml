@@ -2071,7 +2071,6 @@ components:
         - description
         - order
         - type
-        - actions
         - createdAt
         - updatedAt
       properties:
