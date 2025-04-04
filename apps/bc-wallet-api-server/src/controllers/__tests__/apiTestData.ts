@@ -1,6 +1,5 @@
 import {
   AcceptCredentialActionRequest,
-  AriesOOBActionRequest,
   ButtonActionRequest,
   ChooseWalletActionRequest,
   IssuanceScenarioRequest,
@@ -11,7 +10,7 @@ import {
   ShowcaseStatus,
   StepActionType,
   StepRequest,
-  StepType
+  StepType,
 } from 'bc-wallet-openapi'
 import {
   createTestAsset,
@@ -26,14 +25,13 @@ import AssetRepository from '../../database/repositories/AssetRepository'
 import PersonaRepository from '../../database/repositories/PersonaRepository'
 import IssuerRepository from '../../database/repositories/IssuerRepository'
 
-
 // Step Actions
 export function createApiAcceptAction(credentialDefinitionId: string): AcceptCredentialActionRequest {
   return {
     title: 'Test Action',
-    actionType: StepActionType.AriesOob,
+    actionType: StepActionType.AcceptCredential,
     text: 'Test action text',
-    credentialDefinitionId
+    credentialDefinitionId,
   }
 }
 
@@ -63,7 +61,7 @@ export function createApiChooseWalletAction(): ChooseWalletActionRequest {
 }
 
 // Step Request
-export function createApiStepRequest(assetId: string, credentialDefinitionId:string, order: number = 1): StepRequest {
+export function createApiStepRequest(assetId: string, credentialDefinitionId: string, order: number = 1): StepRequest {
   return {
     title: 'Test Step',
     description: 'Test step description',
@@ -79,11 +77,12 @@ export function createApiPresentationScenarioRequest(
   relyingPartyId: string,
   personaId: string,
   assetId: string,
+  credentialDefinitionId: string,
 ): PresentationScenarioRequest {
   return {
     name: 'Test Presentation Scenario',
     description: 'Test scenario description',
-    steps: [createApiStepRequest(assetId)],
+    steps: [createApiStepRequest(assetId, credentialDefinitionId)],
     personas: [personaId],
     relyingParty: relyingPartyId,
     hidden: false,
@@ -94,11 +93,12 @@ export function createApiIssuanceScenarioRequest(
   issuerId: string,
   personaId: string,
   assetId: string,
+  credentialDefinitionId: string,
 ): IssuanceScenarioRequest {
   return {
     name: 'Test Issuance Scenario',
     description: 'Test scenario description',
-    steps: [createApiStepRequest(assetId)],
+    steps: [createApiStepRequest(assetId, credentialDefinitionId)],
     personas: [personaId],
     issuer: issuerId,
     hidden: false,
@@ -167,7 +167,7 @@ export async function createApiTestScenario(
   const issuer = await issuerRepository.findById(issuerId)
 
   const scenario = await createTestScenario(asset, persona, issuer, credentialDefinitionId)
-  const scenarioRequest = createApiIssuanceScenarioRequest(issuerId, personaId, assetId)
+  const scenarioRequest = createApiIssuanceScenarioRequest(issuerId, personaId, assetId, credentialDefinitionId)
 
   return { id: scenario.id, ...scenarioRequest }
 }

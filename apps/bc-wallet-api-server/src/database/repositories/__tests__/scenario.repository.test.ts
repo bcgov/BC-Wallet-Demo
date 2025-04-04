@@ -265,7 +265,6 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].title).toEqual(issuanceScenario.steps[0].title)
     expect(savedIssuanceScenario.steps[0].order).toEqual(issuanceScenario.steps[0].order)
     expect(savedIssuanceScenario.steps[0].type).toEqual(issuanceScenario.steps[0].type)
-    expect(savedIssuanceScenario.steps[0].credentialDefinition).not.toBeNull()
     expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
     expect(savedIssuanceScenario.steps[0].actions![0].id).toBeDefined()
     expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
@@ -291,10 +290,8 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].asset!.fileName).toEqual(asset.fileName)
     expect(savedIssuanceScenario.steps[0].asset!.description).toEqual(asset.description)
     expect(savedIssuanceScenario.steps[0].asset!.content).toStrictEqual(asset.content)
-    expect(savedIssuanceScenario.steps[1].credentialDefinition).toBeNull()
     expect((<IssuanceScenario>savedIssuanceScenario).issuer).not.toBeNull()
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.name).toEqual(issuer.name)
-    expect((<IssuanceScenario>savedIssuanceScenario).issuer!.credentialDefinitions.length).toEqual(1)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.description).toEqual(issuer.description)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.organization).toEqual(issuer.organization)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.logo).not.toBeNull()
@@ -428,7 +425,6 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].title).toEqual(issuanceScenario.steps[0].title)
     expect(savedIssuanceScenario.steps[0].order).toEqual(issuanceScenario.steps[0].order)
     expect(savedIssuanceScenario.steps[0].type).toEqual(issuanceScenario.steps[0].type)
-    expect(savedIssuanceScenario.steps[0].credentialDefinition).not.toBeNull()
     expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
     expect(savedIssuanceScenario.steps[0].actions![0].id).toBeDefined()
     expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
@@ -459,10 +455,8 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].asset!.fileName).toEqual(asset.fileName)
     expect(savedIssuanceScenario.steps[0].asset!.description).toEqual(asset.description)
     expect(savedIssuanceScenario.steps[0].asset!.content).toStrictEqual(asset.content)
-    expect(savedIssuanceScenario.steps[1].credentialDefinition).toBeNull()
     expect((<IssuanceScenario>savedIssuanceScenario).issuer).not.toBeNull()
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.name).toEqual(issuer.name)
-    expect((<IssuanceScenario>savedIssuanceScenario).issuer!.credentialDefinitions.length).toEqual(1)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.description).toEqual(issuer.description)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.organization).toEqual(issuer.organization)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.logo).not.toBeNull()
@@ -1426,7 +1420,6 @@ describe('Database scenario repository tests', (): void => {
     expect(updatedIssuanceScenarioResult.steps[0].title).toEqual(updatedIssuanceScenario.steps[0].title)
     expect(updatedIssuanceScenarioResult.steps[0].order).toEqual(updatedIssuanceScenario.steps[0].order)
     expect(updatedIssuanceScenarioResult.steps[0].type).toEqual(updatedIssuanceScenario.steps[0].type)
-    expect(updatedIssuanceScenarioResult.steps[0].credentialDefinition).not.toBeNull()
     expect(updatedIssuanceScenarioResult.steps[0].actions!.length).toEqual(2)
     expect(updatedIssuanceScenarioResult.steps[0].actions![0].id).toBeDefined()
     expect(updatedIssuanceScenarioResult.steps[0].actions![0].title).toEqual(updatedIssuanceScenario.steps[0].actions![0].title)
@@ -2227,7 +2220,6 @@ describe('Database scenario repository tests', (): void => {
     expect(fromDb.steps[1].title).toEqual(step.title)
     expect(fromDb.steps[1].order).toEqual(step.order)
     expect(fromDb.steps[1].type).toEqual(step.type)
-    expect(fromDb.steps[1].credentialDefinition).not.toBeNull()
     expect(fromDb.steps[1].actions!.length).toEqual(2)
     expect(fromDb.steps[1].actions![0].id).toBeDefined()
     expect(fromDb.steps[1].actions![0].title).toEqual(step.actions![0].title)
@@ -2329,7 +2321,6 @@ describe('Database scenario repository tests', (): void => {
         updatedAt: expect.any(Date),
       },
       createdAt: expect.any(Date),
-      credentialDefinition: null,
       description: 'example_description',
       id: expect.any(String),
       order: 2,
@@ -2810,8 +2801,7 @@ describe('Database scenario repository tests', (): void => {
     expect(updatedStepResult.title).toEqual(updatedStep.title)
     expect(updatedStepResult.order).toEqual(updatedStep.order)
     expect(updatedStepResult.type).toEqual(updatedStep.type)
-    expect(updatedStepResult.credentialDefinition).not.toBeNull()
-              expect(updatedStepResult.actions!.length).toEqual(2)
+    expect(updatedStepResult.actions!.length).toEqual(2)
     expect(updatedStepResult.actions![0].id).toBeDefined()
     expect(updatedStepResult.actions![0].title).toEqual(updatedStep.actions![0].title)
     expect(updatedStepResult.actions![0].actionType).toEqual(updatedStep.actions![0].actionType)
@@ -2909,7 +2899,6 @@ describe('Database scenario repository tests', (): void => {
         updatedAt: expect.any(Date),
       },
       createdAt: expect.any(Date),
-      credentialDefinition: null,
       description: 'example_description',
       id: expect.any(String),
       order: 1,

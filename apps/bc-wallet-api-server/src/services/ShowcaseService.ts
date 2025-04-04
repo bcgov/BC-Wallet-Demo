@@ -3,6 +3,7 @@ import ShowcaseRepository from '../database/repositories/ShowcaseRepository'
 import { NewShowcase, Showcase } from '../types'
 import { ISessionService } from '../types/services/session'
 import CredentialDefinitionService from './CredentialDefinitionService'
+import { BadRequestError } from 'routing-controllers'
 
 @Service()
 class ShowcaseService {
@@ -75,15 +76,18 @@ class ShowcaseService {
 
     for (const scenario of showCase.scenarios || []) {
       for (const step of scenario.steps || []) {
-        if (
-          step.credentialDefinition &&
-          !(await this.credentialDefinitionService.isApproved(step.credentialDefinition))
-        ) {
-          return Promise.reject(
-            Error(
-              `Credential definition id ${step.credentialDefinition} used by step ${step.id} / ${step.title} in showcase ${slug} is not approved yet.`,
-            ),
-          )
+        for (const stepAction of step.actions || []) {
+          if (
+            'credentialDefinitionId' in stepAction &&
+            stepAction.credentialDefinitionId &&
+            !(await this.credentialDefinitionService.isApproved(stepAction.credentialDefinitionId))
+          ) {
+            return Promise.reject(
+              new BadRequestError(
+                `Credential definition id ${stepAction.credentialDefinitionId} used by step ${step.id} / ${step.title} in showcase ${slug} is not approved yet.`,
+              ),
+            )
+          }
         }
       }
     }

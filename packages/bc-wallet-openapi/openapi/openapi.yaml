@@ -2146,7 +2146,7 @@ components:
           description: List of actions associated with this step
           items:
             oneOf:
-              - $ref: '#/components/schemas/AriesOOBActionRequest'
+              - $ref: '#/components/schemas/StepActionRequest'
         asset:
           type: string
           description: Asset referenced by this step
