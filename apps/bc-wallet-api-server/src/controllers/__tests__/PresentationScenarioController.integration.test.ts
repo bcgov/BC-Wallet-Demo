@@ -3,28 +3,32 @@ import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 import PresentationScenarioController from '../PresentationScenarioController'
 import { Application } from 'express'
-import {
-  AriesOOBActionRequest,
-  IssuanceScenarioRequest,
-  PresentationScenarioRequest,
-  StepAction,
-  StepRequest,
-  StepType,
-} from 'bc-wallet-openapi'
+import { StepAction } from 'bc-wallet-openapi'
 import { PGlite } from '@electric-sql/pglite'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
 import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepository'
-import PersonaRepository from '../../database/repositories/PersonaRepository'
 import ScenarioRepository from '../../database/repositories/ScenarioRepository'
 import ScenarioService from '../../services/ScenarioService'
-import { CredentialAttributeType, CredentialType, IdentifierType, NewPersona, RelyingPartyType, ScenarioType, StepActionType } from '../../types'
-import { drizzle } from 'drizzle-orm/pglite'
-import * as schema from '../../database/schema'
-import { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { RelyingPartyType, ScenarioType, StepActionType } from '../../types'
 import DatabaseService from '../../services/DatabaseService'
+import {
+  createMockDatabaseService,
+  createTestAsset,
+  createTestCredentialDefinition,
+  createTestCredentialSchema,
+  createTestPersona,
+  setupTestDatabase,
+} from './dbTestData'
+import {
+  createApiAriesOOBAction,
+  createApiButtonAction,
+  createApiIssuanceScenarioRequest,
+  createApiPresentationScenarioRequest,
+  createApiSetupConnectionAction,
+  createApiStepRequest,
+} from './apiTestData'
 import supertest = require('supertest')
 
 describe('PresentationScenarioController Integration Tests', () => {
@@ -33,12 +37,9 @@ describe('PresentationScenarioController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
-    client = new PGlite()
-    const database = drizzle(client, { schema }) as unknown as NodePgDatabase
-    await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
-    const mockDatabaseService = {
-      getConnection: jest.fn().mockResolvedValue(database),
-    }
+    const { client: pgClient, database } = await setupTestDatabase()
+    client = pgClient
+    const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
     Container.get(AssetRepository)
@@ -59,37 +60,12 @@ describe('PresentationScenarioController Integration Tests', () => {
   })
 
   it('should create, retrieve, update, and delete a presentation scenario with steps and actions', async () => {
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
+    // Create prerequisites using test utilities
+    const asset = await createTestAsset()
+    const credentialSchema = await createTestCredentialSchema()
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
 
-    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const credentialSchema = await credentialSchemaRepository.create({
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        { name: 'example_attribute_name1', value: 'example_attribute_value1', type: CredentialAttributeType.STRING },
-        { name: 'example_attribute_name2', value: 'example_attribute_value2', type: CredentialAttributeType.STRING },
-      ],
-    })
-
-    const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
-    const credentialDefinition = await credentialDefinitionRepository.create({
-      name: 'Test Definition',
-      version: '1.0',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:test:123',
-      icon: asset.id,
-      type: CredentialType.ANONCRED,
-      credentialSchema: credentialSchema.id,
-    })
-
+    // Create relying party
     const relyingPartyRepository = Container.get(RelyingPartyRepository)
     const relyingParty = await relyingPartyRepository.create({
       name: 'Test Relying Party',
@@ -100,68 +76,10 @@ describe('PresentationScenarioController Integration Tests', () => {
       logo: asset.id,
     })
 
-    // 1. Create a persona for the scenario
-    const personaRepository = Container.get(PersonaRepository)
-    const newPersona = {
-      name: 'John Doe',
-      role: 'Software Engineer',
-      description: 'Experienced developer',
-      headshotImage: asset.id,
-      bodyImage: asset.id,
-      hidden: false,
-    }
-    const persona = await personaRepository.create(newPersona)
+    // Create persona
+    const persona = await createTestPersona(asset)
 
-    // 2. Create an issuance scenario - must include at least one step according to the error
-    const scenarioRequest: PresentationScenarioRequest = {
-      name: 'Test Presentation Scenario',
-      description: 'Test scenario description',
-      steps: [
-        {
-          title: 'Initial Step',
-          description: 'Initial step description',
-          order: 1,
-          type: StepType.HumanTask,
-          asset: asset.id,
-          actions: [
-            {
-              title: 'Initial Action',
-              actionType: StepActionType.ARIES_OOB,
-              text: 'Initial action text',
-              proofRequest: {
-                attributes: {
-                  attribute1: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  attribute2: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-                predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: 'example_type',
-                    value: 'example_value',
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: 'example_type',
-                    value: 'example_value',
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-              },
-            },
-          ],
-        },
-      ],
-      personas: [persona.id],
-      relyingParty: relyingParty.id,
-      hidden: false,
-    }
+    const scenarioRequest = createApiPresentationScenarioRequest(relyingParty.id, persona.id, asset.id)
 
     const createResponse = await request.post('/scenarios/presentations').send(scenarioRequest).expect(201)
 
@@ -192,48 +110,11 @@ describe('PresentationScenarioController Integration Tests', () => {
     const updatedScenario = updateResponse.body.presentationScenario
 
     // 6. Create a step for the scenario
-    const stepRequest: StepRequest = {
-      title: 'Test Step',
-      description: 'Test step description',
-      order: 2,
-      type: StepType.HumanTask,
-      asset: asset.id,
-      actions: [
-        {
-          title: 'Test Action',
-          actionType: StepActionType.ARIES_OOB,
-          text: 'Test action text',
-          proofRequest: {
-            attributes: {
-              attribute1: {
-                attributes: ['attribute1', 'attribute2'],
-                restrictions: ['restriction1', 'restriction2'],
-              },
-              attribute2: {
-                attributes: ['attribute1', 'attribute2'],
-                restrictions: ['restriction1', 'restriction2'],
-              },
-            },
-            predicates: {
-              predicate1: {
-                name: 'example_name',
-                type: 'example_type',
-                value: 'example_value',
-                restrictions: ['restriction1', 'restriction2'],
-              },
-              predicate2: {
-                name: 'example_name',
-                type: 'example_type',
-                value: 'example_value',
-                restrictions: ['restriction1', 'restriction2'],
-              },
-            },
-          },
-        },
-      ],
-    }
-
-    const createStepResponse = await request.post(`/scenarios/presentations/${updatedScenario.slug}/steps`).send(stepRequest).expect(201)
+    const stepRequest = createApiStepRequest(asset.id, 2)
+    const createStepResponse = await request
+      .post(`/scenarios/presentations/${updatedScenario.slug}/steps`)
+      .send(stepRequest)
+      .expect(201)
 
     const createdStep = createStepResponse.body.step
     expect(createdStep).toHaveProperty('id')
@@ -245,7 +126,9 @@ describe('PresentationScenarioController Integration Tests', () => {
     expect(getAllStepsResponse.body.steps.length).toBe(2)
 
     // 8. Retrieve the created step
-    const getStepResponse = await request.get(`/scenarios/presentations/${updatedScenario.slug}/steps/${createdStep.id}`).expect(200)
+    const getStepResponse = await request
+      .get(`/scenarios/presentations/${updatedScenario.slug}/steps/${createdStep.id}`)
+      .expect(200)
     expect(getStepResponse.body.step.title).toEqual('Test Step')
 
     // 9. Update the step
@@ -259,37 +142,9 @@ describe('PresentationScenarioController Integration Tests', () => {
     expect(updateStepResponse.body.step.title).toEqual('Updated Test Step')
 
     // 10. Create an additional action for the step
-    const actionRequest: AriesOOBActionRequest = {
-      title: 'Additional Action',
-      actionType: StepActionType.ARIES_OOB,
-      text: 'Additional action text',
-      proofRequest: {
-        attributes: {
-          attribute1: {
-            attributes: ['attribute1', 'attribute2'],
-            restrictions: ['restriction1', 'restriction2'],
-          },
-          attribute2: {
-            attributes: ['attribute1', 'attribute2'],
-            restrictions: ['restriction1', 'restriction2'],
-          },
-        },
-        predicates: {
-          predicate1: {
-            name: 'example_name',
-            type: 'example_type',
-            value: 'example_value',
-            restrictions: ['restriction1', 'restriction2'],
-          },
-          predicate2: {
-            name: 'example_name',
-            type: 'example_type',
-            value: 'example_value',
-            restrictions: ['restriction1', 'restriction2'],
-          },
-        },
-      },
-    }
+    const actionRequest = createApiAriesOOBAction()
+    actionRequest.title = 'Additional Action'
+    actionRequest.text = 'Additional action text'
 
     const createActionResponse = await request
       .post(`/scenarios/presentations/${updatedScenario.slug}/steps/${createdStep.id}/actions`)
@@ -302,7 +157,9 @@ describe('PresentationScenarioController Integration Tests', () => {
     expect(createdAction.actionType).toEqual(StepActionType.ARIES_OOB)
 
     // 11. Retrieve all actions for the step
-    const getAllActionsResponse = await request.get(`/scenarios/presentations/${updatedScenario.slug}/steps/${createdStep.id}/actions`).expect(200)
+    const getAllActionsResponse = await request
+      .get(`/scenarios/presentations/${updatedScenario.slug}/steps/${createdStep.id}/actions`)
+      .expect(200)
 
     expect(getAllActionsResponse.body.actions).toBeInstanceOf(Array)
     expect(getAllActionsResponse.body.actions.length).toBe(2) // Original action from step creation plus the new one
@@ -326,7 +183,9 @@ describe('PresentationScenarioController Integration Tests', () => {
     expect(updateActionResponse.body.action.title).toEqual('Updated Action Title')
 
     // 14. Delete the action
-    await request.delete(`/scenarios/presentations/${updatedScenario.slug}/steps/${createdStep.id}/actions/${createdAction.id}`).expect(204)
+    await request
+      .delete(`/scenarios/presentations/${updatedScenario.slug}/steps/${createdStep.id}/actions/${createdAction.id}`)
+      .expect(204)
 
     // 15. Delete the step
     await request.delete(`/scenarios/presentations/${updatedScenario.slug}/steps/${createdStep.id}`).expect(204)
@@ -348,55 +207,9 @@ describe('PresentationScenarioController Integration Tests', () => {
     await request.get(`/scenarios/presentations/${nonExistentSlug}/steps`).expect(404)
 
     // Try to create a step for a non-existent scenario
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
+    const asset = await createTestAsset()
 
-    const stepRequest: StepRequest = {
-      title: 'Test Step',
-      description: 'Test step description',
-      order: 1,
-      type: StepType.HumanTask,
-      asset: asset.id,
-      actions: [
-        {
-          title: 'Test Action',
-          actionType: StepActionType.ARIES_OOB,
-          text: 'Test action text',
-          proofRequest: {
-            attributes: {
-              attribute1: {
-                attributes: ['attribute1', 'attribute2'],
-                restrictions: ['restriction1', 'restriction2'],
-              },
-              attribute2: {
-                attributes: ['attribute1', 'attribute2'],
-                restrictions: ['restriction1', 'restriction2'],
-              },
-            },
-            predicates: {
-              predicate1: {
-                name: 'example_name',
-                type: 'example_type',
-                value: 'example_value',
-                restrictions: ['restriction1', 'restriction2'],
-              },
-              predicate2: {
-                name: 'example_name',
-                type: 'example_type',
-                value: 'example_value',
-                restrictions: ['restriction1', 'restriction2'],
-              },
-            },
-          },
-        },
-      ],
-    }
-
+    const stepRequest = createApiStepRequest(asset.id)
     await request.post(`/scenarios/presentations/${nonExistentSlug}/steps`).send(stepRequest).expect(404)
   })
 
@@ -409,111 +222,21 @@ describe('PresentationScenarioController Integration Tests', () => {
     await request.post('/scenarios/presentations').send(invalidScenarioRequest).expect(400)
 
     // Set up assets and personas for testing
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
-
-    const personaRepository = Container.get(PersonaRepository)
-    const newPersona: NewPersona = {
-      name: 'Test Person',
-      role: 'Tester',
-      description: 'Test persona',
-      headshotImage: asset.id,
-      bodyImage: asset.id,
-      hidden: false,
-    }
-    const persona = await personaRepository.create(newPersona)
+    const asset = await createTestAsset()
+    const persona = await createTestPersona(asset)
 
     // Attempt to create a scenario with a non-existent issuer
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
-    const invalidScenarioRequest2: IssuanceScenarioRequest = {
-      name: 'Invalid Scenario',
-      description: 'Test description',
-      steps: [
-        {
-          title: 'Test Step',
-          description: 'Test step description',
-          order: 1,
-          type: StepType.HumanTask,
-          asset: asset.id,
-          actions: [
-            {
-              title: 'Test Action',
-              actionType: StepActionType.ARIES_OOB,
-              text: 'Test action text',
-              proofRequest: {
-                attributes: {
-                  attribute1: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  attribute2: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-                predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: 'example_type',
-                    value: 'example_value',
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: 'example_type',
-                    value: 'example_value',
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-              },
-            },
-          ],
-        },
-      ],
-      personas: [persona.id],
-      issuer: nonExistentId,
-    }
+    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(nonExistentId, persona.id, asset.id)
 
     await request.post('/scenarios/issuances').send(invalidScenarioRequest2).expect(404)
   })
 
   it('should create, update, and verify different step action types', async () => {
     // Set up assets and dependencies
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
-
-    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const credentialSchema = await credentialSchemaRepository.create({
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        { name: 'example_attribute_name1', value: 'example_attribute_value1', type: CredentialAttributeType.STRING },
-        { name: 'example_attribute_name2', value: 'example_attribute_value2', type: CredentialAttributeType.STRING },
-      ],
-    })
-
-    const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
-    const credentialDefinition = await credentialDefinitionRepository.create({
-      name: 'Test Definition',
-      version: '1.0',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:test:123',
-      icon: asset.id,
-      type: CredentialType.ANONCRED,
-      credentialSchema: credentialSchema.id,
-    })
+    const asset = await createTestAsset()
+    const credentialSchema = await createTestCredentialSchema()
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
 
     const relyingPartyRepository = Container.get(RelyingPartyRepository)
     const relyingParty = await relyingPartyRepository.create({
@@ -525,56 +248,19 @@ describe('PresentationScenarioController Integration Tests', () => {
       logo: asset.id,
     })
 
-    const personaRepository = Container.get(PersonaRepository)
-    const persona = await personaRepository.create({
-      name: 'Action Test Person',
-      role: 'Tester',
-      description: 'Test persona for actions',
-      headshotImage: asset.id,
-      bodyImage: asset.id,
-      hidden: false,
-    })
+    const persona = await createTestPersona(asset)
 
     // Create a scenario with initial step
-    const scenarioRequest = {
-      name: 'Action Types Test Scenario',
-      description: 'Testing different action types',
-      steps: [
-        {
-          title: 'Initial Step',
-          description: 'Initial step for action tests',
-          order: 1,
-          type: StepType.HumanTask,
-          asset: asset.id,
-          actions: [
-            {
-              title: 'Initial Action',
-              actionType: StepActionType.ARIES_OOB,
-              text: 'Initial action',
-              proofRequest: {
-                attributes: {},
-                predicates: {},
-              },
-            },
-          ],
-        },
-      ],
-      personas: [persona.id],
-      relyingParty: relyingParty.id,
-      hidden: false,
-    }
+    const scenarioRequest = createApiPresentationScenarioRequest(relyingParty.id, persona.id, asset.id)
+    scenarioRequest.name = 'Action Types Test Scenario'
+    scenarioRequest.description = 'Testing different action types'
 
     const createResponse = await request.post('/scenarios/presentations').send(scenarioRequest).expect(201)
     const createdScenario = createResponse.body.presentationScenario
     expect(createdScenario).toHaveProperty('id')
 
     // Test ButtonAction
-    const buttonActionRequest = {
-      title: 'Button Action',
-      actionType: StepActionType.BUTTON,
-      text: 'Click this button',
-      goToStep: 'step2',
-    }
+    const buttonActionRequest = createApiButtonAction()
 
     const buttonActionResponse = await request
       .post(`/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions`)
@@ -587,11 +273,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     expect(buttonAction.goToStep).toEqual('step2')
 
     // Test SetupConnectionAction
-    const setupConnectionActionRequest = {
-      title: 'Setup Connection',
-      actionType: StepActionType.SETUP_CONNECTION,
-      text: 'Set up a connection',
-    }
+    const setupConnectionActionRequest = createApiSetupConnectionAction()
 
     const setupConnectionResponse = await request
       .post(`/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions`)
@@ -642,7 +324,9 @@ describe('PresentationScenarioController Integration Tests', () => {
     }
 
     const updateResponse = await request
-      .put(`/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions/${buttonAction.id}`)
+      .put(
+        `/scenarios/presentations/${createdScenario.slug}/steps/${createdScenario.steps[0].id}/actions/${buttonAction.id}`,
+      )
       .send(updateButtonRequest)
       .expect(200)
 

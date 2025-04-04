@@ -3,20 +3,23 @@ import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 import RelyingPartyController from '../RelyingPartyController'
 import { Application } from 'express'
-import { CredentialAttributeType, CredentialType, IdentifierType, RelyingPartyType } from '../../types'
+import { CredentialType, IdentifierType, RelyingPartyType } from '../../types'
 import { RelyingPartyRequest } from 'bc-wallet-openapi'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
 import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepository'
 import RelyingPartyService from '../../services/RelyingPartyService'
-import supertest = require('supertest')
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import * as schema from '../../database/schema'
-import { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import DatabaseService from '../../services/DatabaseService'
+import {
+  createMockDatabaseService,
+  createTestAsset,
+  createTestCredentialDefinition,
+  createTestCredentialSchema,
+  setupTestDatabase,
+} from './dbTestData'
+import supertest = require('supertest')
 
 describe('RelyingPartyController Integration Tests', () => {
   let client: PGlite
@@ -24,12 +27,9 @@ describe('RelyingPartyController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
-    client = new PGlite()
-    const database = drizzle(client, { schema }) as unknown as NodePgDatabase
-    await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
-    const mockDatabaseService = {
-      getConnection: jest.fn().mockResolvedValue(database),
-    }
+    const { client: pgClient, database } = await setupTestDatabase()
+    client = pgClient
+    const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
     Container.get(AssetRepository)
@@ -49,45 +49,10 @@ describe('RelyingPartyController Integration Tests', () => {
   })
 
   it('should create, retrieve, update, and delete a relying party', async () => {
-    // Create prerequisites: asset, credential schema, credential definition
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
-
-    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const credentialSchema = await credentialSchemaRepository.create({
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        {
-          name: 'example_attribute_name1',
-          value: 'example_attribute_value1',
-          type: CredentialAttributeType.STRING,
-        },
-        {
-          name: 'example_attribute_name2',
-          value: 'example_attribute_value2',
-          type: CredentialAttributeType.STRING,
-        },
-      ],
-    })
-
-    const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
-    const credentialDefinition = await credentialDefinitionRepository.create({
-      name: 'Test Definition',
-      version: '1.0',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:test:123',
-      icon: asset.id,
-      type: CredentialType.ANONCRED,
-      credentialSchema: credentialSchema.id,
-    })
+    // Create prerequisites using test utilities
+    const asset = await createTestAsset()
+    const credentialSchema = await createTestCredentialSchema()
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
 
     // 1. Create a relying party
     const relyingPartyRequest: RelyingPartyRequest = {
@@ -176,28 +141,8 @@ describe('RelyingPartyController Integration Tests', () => {
   })
 
   it('should handle creating a relying party with multiple credential definitions', async () => {
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
-
-    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const credentialSchema = await credentialSchemaRepository.create({
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        {
-          name: 'example_attribute_name1',
-          value: 'example_attribute_value1',
-          type: CredentialAttributeType.STRING,
-        },
-      ],
-    })
+    const asset = await createTestAsset()
+    const credentialSchema = await createTestCredentialSchema()
 
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     const credentialDefinition1 = await credentialDefinitionRepository.create({
