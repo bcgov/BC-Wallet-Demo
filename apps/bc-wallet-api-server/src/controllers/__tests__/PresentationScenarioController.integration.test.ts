@@ -22,7 +22,7 @@ import {
   setupTestDatabase,
 } from './dbTestData'
 import {
-  createApiAriesOOBAction,
+  createApiAcceptAction,
   createApiButtonAction,
   createApiIssuanceScenarioRequest,
   createApiPresentationScenarioRequest,
@@ -142,7 +142,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     expect(updateStepResponse.body.step.title).toEqual('Updated Test Step')
 
     // 10. Create an additional action for the step
-    const actionRequest = createApiAriesOOBAction()
+    const actionRequest = createApiAcceptAction()
     actionRequest.title = 'Additional Action'
     actionRequest.text = 'Additional action text'
 

@@ -22,6 +22,7 @@ import {
 } from 'bc-wallet-openapi'
 import ShowcaseService from '../services/ShowcaseService'
 import { showcaseDTOFrom } from '../utils/mappers'
+import { NotFoundError } from '../errors'
 
 @JsonController('/showcases')
 @Service()
@@ -100,6 +101,20 @@ class ShowcaseController {
       if (e.httpCode !== 404) {
         console.error(`Delete showcase id=${id} failed:`, e)
       }
+      return Promise.reject(e)
+    }
+  }
+
+  @Post('/showcases/:slug/approve')
+  public async approveShowcase(@Param('slug') slug: string): Promise<ShowcaseResponse> {
+    try {
+      const updatedShowcase = await this.showcaseService.approveShowcaseBySlug(slug)
+      if (!updatedShowcase) {
+        return Promise.reject(new NotFoundError(`Showcase with slug ${slug} not found`))
+      }
+      return ShowcaseResponseFromJSONTyped({ showcase: showcaseDTOFrom(updatedShowcase) }, false)
+    } catch (e) {
+      console.error(`Approve showcase slug=${slug} failed:`, e)
       return Promise.reject(e)
     }
   }

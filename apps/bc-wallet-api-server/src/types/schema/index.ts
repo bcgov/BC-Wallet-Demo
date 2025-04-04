@@ -312,7 +312,7 @@ export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage' | 'crea
 
 export type NewShowcase = Omit<typeof showcases.$inferInsert, 'slug'> & {
   scenarios: string[]
-  credentialDefinitions: string[]
+  credentialDefinitions?: string[] // No longer in use
   personas: string[]
   bannerImage?: string | null
   hidden: boolean

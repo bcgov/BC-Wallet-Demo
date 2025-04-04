@@ -25,17 +25,27 @@ import {
   createUnapprovedCredDef,
   setupTestDatabase,
 } from './dbTestData'
-import { CredentialDefinitionResponse, PendingApprovalsResponse, ShowcaseResponse } from 'bc-wallet-openapi'
+import {
+  CredentialDefinitionResponse,
+  CredentialDefinitionResponseFromJSONTyped,
+  PendingApprovalsResponse,
+  PendingApprovalsResponseFromJSONTyped, ShowcaseFromJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped
+} from 'bc-wallet-openapi'
 import TenantRepository from '../../database/repositories/TenantRepository'
 import TenantService from '../../services/TenantService'
 import { ShowcaseStatus } from '../../types'
+import { MockSessionService } from './MockSessionService'
 import supertest = require('supertest')
+import { createApiFullTestData } from './apiTestData'
+import ShowcaseController from '../ShowcaseController'
+import { CredentialDefinitionController } from '../CredentialDefinitionController'
 
-const isRecentDate = (dateString: string | null | undefined, seconds = 5): boolean => {
-  if (!dateString) return false
-  const date = new Date(dateString)
+const isRecentDate = (inputDate: Date | null | undefined, seconds = 5): boolean => {
+  if (!inputDate) return false
   const now = new Date()
-  const diff = now.getTime() - date.getTime()
+  const diff = now.getTime() - inputDate.getTime()
   return diff >= 0 && diff < seconds * 1000
 }
 
@@ -43,7 +53,7 @@ describe('ApprovalController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
-  let testTenantId = 'approval-test-tenant' // Define tenant ID for tests
+  let sessionService: MockSessionService
 
   beforeAll(async () => {
     // Setup Database
@@ -54,6 +64,8 @@ describe('ApprovalController Integration Tests', () => {
 
     // Register all necessary repositories and services
     useContainer(Container)
+    sessionService = Container.get(MockSessionService)
+    Container.set('ISessionService', sessionService)
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)
     Container.get(CredentialDefinitionRepository)
@@ -68,16 +80,14 @@ describe('ApprovalController Integration Tests', () => {
     Container.get(CredentialDefinitionService)
     Container.get(ShowcaseService)
 
-    await createTestUser('approver-user-api')
+    sessionService.setCurrentUser(await createTestUser('approver-user-api'))
 
     // Create a test tenant
-    await createTestTenant(testTenantId)
+    sessionService.setCurrentTenant(await createTestTenant())
 
     // Setup Express Server with the controller
     app = createExpressServer({
-      controllers: [ApprovalController],
-      // Add other necessary configurations like defaultErrorHandler if used elsewhere
-      // defaultErrorHandler: false // Example if you have custom error handling
+      controllers: [ApprovalController, ShowcaseController, CredentialDefinitionController],
     })
     request = supertest(app)
   })
@@ -95,7 +105,7 @@ describe('ApprovalController Integration Tests', () => {
     const response = await request.post(`/credentials/definitions/${definition.id}/approve`).expect(200)
 
     // 3. Assertions: Check the API response body (OpenAPI type)
-    const responseBody: CredentialDefinitionResponse = response.body
+    const responseBody: CredentialDefinitionResponse = CredentialDefinitionResponseFromJSONTyped(response.body, false)
     expect(responseBody).toHaveProperty('credentialDefinition')
     const approvedDefResp = responseBody.credentialDefinition
     if (!approvedDefResp) {
@@ -103,31 +113,31 @@ describe('ApprovalController Integration Tests', () => {
     }
     expect(approvedDefResp.id).toEqual(definition.id)
     expect(approvedDefResp.name).toEqual(definition.name)
-    expect(approvedDefResp.approvedBy).toBeDefined() // Should be the placeholder ID string from service
-    // expect(approvedDefResp.approvedBy).toEqual(testUserId); // <<< Use when auth passes real ID
+    expect(approvedDefResp.approvedBy).toBeDefined()
+    expect(approvedDefResp.approvedBy?.id).toEqual((await sessionService.getCurrentUser())?.id)
     expect(approvedDefResp.approvedAt).toBeDefined()
-    expect(isRecentDate(approvedDefResp.approvedAt?.toISOString())).toBe(true)
-    expect(approvedDefResp.icon).toBeDefined() // Check other fields returned
+    expect(isRecentDate(approvedDefResp.approvedAt)).toBe(true)
+    expect(approvedDefResp.icon).toBeDefined()
     expect(approvedDefResp.credentialSchema).toBeDefined()
   })
 
   it('should return 404 when approving a non-existent credential definition', async () => {
-    const nonExistentId = '00000000-0000-0000-0000-000000000000'
+    const nonExistentId = (await sessionService.getCurrentUser())?.id
     await request.post(`/credentials/definitions/${nonExistentId}/approve`).expect(404)
   })
 
   it('should approve a specific showcase', async () => {
     // 1. Setup: Create an unapproved showcase using the API helper
-    const showcase = await createTestShowcase(testTenantId, 'showcase-api-approve', ShowcaseStatus.PENDING)
+    const showcase = await createTestShowcase(await getTenantId(), 'showcase-api-approve', ShowcaseStatus.PENDING)
 
     // 2. Action: Call the API endpoint
     const response = await request.post(`/showcases/${showcase.slug}/approve`).expect(200)
 
     // 3. Assertions: Check the API response body (OpenAPI type)
-    const responseBody: ShowcaseResponse = response.body
+    const responseBody: ShowcaseResponse = ShowcaseResponseFromJSONTyped(response.body, false)
     expect(responseBody).toHaveProperty('showcase')
     const approvedShowcaseResp = responseBody.showcase
-    if(!approvedShowcaseResp) {
+    if (!approvedShowcaseResp) {
       throw Error(`approvedShowcaseResp is undefined`)
     }
     expect(approvedShowcaseResp.id).toEqual(showcase.id)
@@ -136,11 +146,11 @@ describe('ApprovalController Integration Tests', () => {
     expect(approvedShowcaseResp.approvedBy).toBeDefined() // Placeholder ID string from service
     // expect(approvedShowcaseResp.approvedBy).toEqual(testUserId); // <<< Use when auth passes real ID
     expect(approvedShowcaseResp.approvedAt).toBeDefined()
-    expect(isRecentDate(approvedShowcaseResp.approvedAt?.toISOString())).toBe(true)
+    expect(isRecentDate(approvedShowcaseResp.approvedAt)).toBe(true)
     expect(approvedShowcaseResp.bannerImage).toBeDefined()
     expect(approvedShowcaseResp.scenarios).toBeInstanceOf(Array)
     expect(approvedShowcaseResp.personas).toBeInstanceOf(Array)
-    // expect(approvedShowcaseResp.tenantId).toEqual(testTenantId) // Verify tenantId if present in Showcase DTO
+    expect(approvedShowcaseResp.tenantId).toEqual(await getTenantId())
   })
 
   it('should return 404 when approving a non-existent showcase', async () => {
@@ -151,14 +161,14 @@ describe('ApprovalController Integration Tests', () => {
   it('should get all unapproved showcases and credential definitions', async () => {
     // 1. Setup: Create a mix of approved and unapproved items using API helpers
     const unapprovedDef = await createUnapprovedCredDef('pending-def-api')
-    const unapprovedShowcase = await createTestShowcase(testTenantId, 'pending-showcase-api')
+    const unapprovedShowcase = await createTestShowcase(await getTenantId(), 'pending-showcase-api')
 
     const approvedDef = await createUnapprovedCredDef('approved-def-api')
     // Approve directly using service (simulating prior approval)
     const credDefService = Container.get(CredentialDefinitionService)
     await credDefService.approveCredentialDefinition(approvedDef.id) // Assumes service uses placeholder user
 
-    const approvedShowcase = await createTestShowcase(testTenantId, 'approved-showcase-api')
+    const approvedShowcase = await createTestShowcase(await getTenantId(), 'approved-showcase-api')
     // Approve directly using service (simulating prior approval)
     const showcaseService = Container.get(ShowcaseService)
     await showcaseService.approveShowcase(approvedShowcase.id) // Assumes service uses placeholder user
@@ -167,7 +177,7 @@ describe('ApprovalController Integration Tests', () => {
     const response = await request.get('/approvals/pending').expect(200)
 
     // 3. Assertions: Check the API response body (OpenAPI type)
-    const responseBody: PendingApprovalsResponse = response.body
+    const responseBody: PendingApprovalsResponse = PendingApprovalsResponseFromJSONTyped(response.body, false)
     expect(responseBody).toHaveProperty('credentialDefinitions')
     expect(responseBody).toHaveProperty('showcases')
     expect(responseBody.credentialDefinitions).toBeInstanceOf(Array)
@@ -199,26 +209,59 @@ describe('ApprovalController Integration Tests', () => {
   })
 
   it('should return empty arrays when no items are pending approval', async () => {
-    // 1. Setup: Create only approved items using API helpers and service approval
+    // 1. Setup: Create only approved items using API helpers
     const approvedDef = await createUnapprovedCredDef('approved-def-api-2')
-    const credDefService = Container.get(CredentialDefinitionService)
-    await credDefService.approveCredentialDefinition(approvedDef.id)
 
-    const approvedShowcase = await createTestShowcase(testTenantId, 'approved-showcase-api-2')
-    const showcaseService = Container.get(ShowcaseService)
-    await showcaseService.approveShowcase(approvedShowcase.id)
+    // Approve using the controller instead of service
+    await request.post(`/credentials/definitions/${approvedDef.id}/approve`).expect(200)
+
+    const approvedShowcase = await createTestShowcase(await getTenantId(), 'approved-showcase-api-2')
+
+    // Approve using the controller instead of service
+    await request.post(`/showcases/${approvedShowcase.slug}/approve`).expect(200)
 
     // 2. Action: Call API endpoint
     const response = await request.get('/approvals/pending').expect(200)
 
     // 3. Assertions: Check response body for empty arrays
-    const responseBody: PendingApprovalsResponse = response.body
+    const responseBody: PendingApprovalsResponse = PendingApprovalsResponseFromJSONTyped(response.body, false)
     expect(responseBody).toHaveProperty('credentialDefinitions')
     expect(responseBody).toHaveProperty('showcases')
     expect(responseBody.credentialDefinitions).toBeInstanceOf(Array)
     expect(responseBody.showcases).toBeInstanceOf(Array)
-    // Check specifically for emptiness, assuming test isolation
+
+    // Check that the arrays are empty
     expect(responseBody.credentialDefinitions?.length).toBe(0)
     expect(responseBody.showcases?.length).toBe(0)
+  })
+
+  async function getTenantId() {
+    const tenant = await sessionService.getCurrentTenant()
+    if(!tenant) {
+      return Promise.reject('No tenant was created that was registered in sessionService')
+    }
+    return tenant.id
+  }
+
+  it('should reject approval of a showcase with unapproved credential definitions', async () => {
+    // 1. Setup: full showcase
+    const testShowcaseReq = await createApiFullTestData(await getTenantId())
+    const testShowcaseResponse = await request.post('/showcases').send(testShowcaseReq.showcaseRequest).expect(201)
+    const testShowcase = ShowcaseFromJSONTyped(testShowcaseResponse.body.showcase, false)
+
+    // 2. Action: Attempt to approve the showcase without approving the credential definition
+    const response = await request.post(`/showcases/${testShowcase.slug}/approve`).expect(400)
+
+    // 3. Assertions: Check for the expected error message
+    expect(response.body.message).toContain(`used by step`)
+    expect(response.body.message).toContain(`is not approved yet`)
+
+    // Verify the showcase remains unapproved
+    const pendingResponse = await request.get('/approvals/pending').expect(200)
+    const pendingBody: PendingApprovalsResponse = PendingApprovalsResponseFromJSONTyped(pendingResponse.body, false)
+
+    // The showcase should still be in the pending list
+    const stillPendingShowcase = pendingBody.showcases?.find((s) => s.id === testShowcase.id)
+    expect(stillPendingShowcase).toBeDefined()
   })
 })

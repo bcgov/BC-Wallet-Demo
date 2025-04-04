@@ -1,10 +1,14 @@
-import { Service } from 'typedi'
+import { Inject, Service } from 'typedi'
 import CredentialDefinitionRepository from '../database/repositories/CredentialDefinitionRepository'
 import { CredentialDefinition, NewCredentialDefinition } from '../types'
+import { ISessionService } from '../types/services/session'
 
 @Service()
 class CredentialDefinitionService {
-  constructor(private readonly credentialDefinitionRepository: CredentialDefinitionRepository) {}
+  constructor(
+    private readonly credentialDefinitionRepository: CredentialDefinitionRepository,
+    @Inject('ISessionService') private readonly sessionService: ISessionService,
+  ) {}
 
   public getCredentialDefinitions = async (): Promise<CredentialDefinition[]> => {
     return this.credentialDefinitionRepository.findAll()
@@ -18,11 +22,16 @@ class CredentialDefinitionService {
     return this.credentialDefinitionRepository.findUnapproved()
   }
 
-  public createCredentialDefinition = async (credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> => {
+  public createCredentialDefinition = async (
+    credentialDefinition: NewCredentialDefinition,
+  ): Promise<CredentialDefinition> => {
     return this.credentialDefinitionRepository.create(credentialDefinition)
   }
 
-  public updateCredentialDefinition = async (id: string, credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> => {
+  public updateCredentialDefinition = async (
+    id: string,
+    credentialDefinition: NewCredentialDefinition,
+  ): Promise<CredentialDefinition> => {
     return this.credentialDefinitionRepository.update(id, credentialDefinition)
   }
 
@@ -38,14 +47,19 @@ class CredentialDefinitionService {
    * @throws Error if the current user cannot be determined (implementation specific).
    */
   public approveCredentialDefinition = async (id: string): Promise<CredentialDefinition> => {
-    const currentUserId = '00000000-0000-0000-0000-000000000001' // <<< REPLACE THIS with actual user ID when authentication is ready
-    if (!currentUserId) {
+    const currentUser = await this.sessionService.getCurrentUser()
+    if (!currentUser) {
       return Promise.reject(new Error('Could not determine the approving user.'))
     }
 
     await this.credentialDefinitionRepository.findById(id)
 
-    return this.credentialDefinitionRepository.approve(id, currentUserId)
+    return this.credentialDefinitionRepository.approve(id, currentUser.id)
+  }
+
+  public isApproved = async (id: string) : Promise<boolean> => {
+    const credentialDef = await this.credentialDefinitionRepository.findById(id)
+    return credentialDef.approvedBy !== undefined && credentialDef.approvedBy !== null
   }
 }
 

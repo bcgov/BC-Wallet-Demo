@@ -1,4 +1,5 @@
 import {
+  AcceptCredentialActionRequest,
   AriesOOBActionRequest,
   ButtonActionRequest,
   ChooseWalletActionRequest,
@@ -10,7 +11,7 @@ import {
   ShowcaseStatus,
   StepActionType,
   StepRequest,
-  StepType,
+  StepType
 } from 'bc-wallet-openapi'
 import {
   createTestAsset,
@@ -25,33 +26,14 @@ import AssetRepository from '../../database/repositories/AssetRepository'
 import PersonaRepository from '../../database/repositories/PersonaRepository'
 import IssuerRepository from '../../database/repositories/IssuerRepository'
 
-// Proof Request structure
-export function createApiProofRequest() {
-  return {
-    attributes: {
-      attribute1: {
-        attributes: ['attribute1', 'attribute2'],
-        restrictions: ['restriction1', 'restriction2'],
-      },
-    },
-    predicates: {
-      predicate1: {
-        name: 'example_name',
-        type: 'example_type',
-        value: 'example_value',
-        restrictions: ['restriction1', 'restriction2'],
-      },
-    },
-  }
-}
 
 // Step Actions
-export function createApiAriesOOBAction(): AriesOOBActionRequest {
+export function createApiAcceptAction(credentialDefinitionId: string): AcceptCredentialActionRequest {
   return {
     title: 'Test Action',
     actionType: StepActionType.AriesOob,
     text: 'Test action text',
-    proofRequest: createApiProofRequest(),
+    credentialDefinitionId
   }
 }
 
@@ -81,14 +63,14 @@ export function createApiChooseWalletAction(): ChooseWalletActionRequest {
 }
 
 // Step Request
-export function createApiStepRequest(assetId: string, order: number = 1): StepRequest {
+export function createApiStepRequest(assetId: string, credentialDefinitionId:string, order: number = 1): StepRequest {
   return {
     title: 'Test Step',
     description: 'Test step description',
     order,
     type: StepType.HumanTask,
     asset: assetId,
-    actions: [createApiAriesOOBAction()],
+    actions: [createApiAcceptAction(credentialDefinitionId)],
   }
 }
 
@@ -165,7 +147,7 @@ export async function createApiFullTestData(tenantId: string): Promise<{ showcas
   const credentialSchema = await createTestCredentialSchema()
   const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
   const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema)
-  const scenario = await createTestScenario(asset, persona, issuer)
+  const scenario = await createTestScenario(asset, persona, issuer, credentialDefinition.id)
   const showcaseRequest = createApiShowcaseRequest(scenario.id, persona.id, asset.id, tenantId)
   return { showcaseRequest }
 }
@@ -174,6 +156,7 @@ export async function createApiTestScenario(
   assetId: string,
   personaId: string,
   issuerId: string,
+  credentialDefinitionId: string,
 ): Promise<{ id: string } & IssuanceScenarioRequest> {
   const assetRepository = Container.get(AssetRepository)
   const personaRepository = Container.get(PersonaRepository)
@@ -183,7 +166,7 @@ export async function createApiTestScenario(
   const persona = await personaRepository.findById(personaId)
   const issuer = await issuerRepository.findById(issuerId)
 
-  const scenario = await createTestScenario(asset, persona, issuer)
+  const scenario = await createTestScenario(asset, persona, issuer, credentialDefinitionId)
   const scenarioRequest = createApiIssuanceScenarioRequest(issuerId, personaId, assetId)
 
   return { id: scenario.id, ...scenarioRequest }

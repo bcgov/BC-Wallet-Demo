@@ -110,8 +110,12 @@ export async function createTestPersona(asset?: Asset): Promise<Persona> {
     hidden: false,
   })
 }
-
-export async function createTestScenario(asset: Asset, persona: Persona, issuer: Issuer): Promise<Scenario> {
+export async function createTestScenario(
+  asset: Asset,
+  persona: Persona,
+  issuer: Issuer,
+  credentialDefinitionId: string
+): Promise<Scenario> {
   const scenarioRepository = Container.get(ScenarioRepository)
   return scenarioRepository.create({
     name: 'Test Scenario',
@@ -127,17 +131,9 @@ export async function createTestScenario(asset: Asset, persona: Persona, issuer:
         actions: [
           {
             title: 'Test Action',
-            actionType: StepActionType.ARIES_OOB,
+            actionType: StepActionType.ACCEPT_CREDENTIAL,
             text: 'Test action text',
-            proofRequest: {
-              attributes: {
-                attribute1: {
-                  attributes: ['attribute1', 'attribute2'],
-                  restrictions: ['restriction1', 'restriction2'],
-                },
-              },
-              predicates: {},
-            },
+            credentialDefinitionId: credentialDefinitionId,
           },
         ],
       },
@@ -201,7 +197,7 @@ export async function createTestShowcase(
   tenantId: string,
   name: string,
   status: ShowcaseStatus = ShowcaseStatus.PENDING,
-  creatorUserId?: string, // Optional creator ID
+  creatorUserId?: string,
 ): Promise<Showcase> {
   // Returning internal Showcase type after creation
   // Create necessary dependencies using db helpers first
@@ -211,7 +207,7 @@ export async function createTestShowcase(
   // Use renamed db helper
   const definition = await createTestCredentialDefinition(asset, schema)
   const issuer = await createTestIssuer(asset, definition, schema)
-  const scenario = await createTestScenario(asset, persona, issuer)
+  const scenario = await createTestScenario(asset, persona, issuer, definition.id)
 
   // Use the ShowcaseService to create the showcase
   const showcaseService = Container.get(ShowcaseService)
@@ -223,7 +219,7 @@ export async function createTestShowcase(
     hidden: false,
     scenarios: [scenario.id],
     personas: [persona.id],
-    credentialDefinitions: [definition.id], // Make sure this matches NewShowcase type
+    credentialDefinitions: [definition.id],
     bannerImage: asset.id,
     createdBy: creatorUserId,
   }
