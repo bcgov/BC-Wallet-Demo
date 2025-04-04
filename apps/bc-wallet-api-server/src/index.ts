@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { createExpressServer, useContainer } from 'routing-controllers'
+import { Action, createExpressServer, useContainer } from 'routing-controllers'
 import Container from 'typedi'
 
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
@@ -14,10 +14,20 @@ import { CredentialDefinitionController } from './controllers/CredentialDefiniti
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import { corsOptions } from './utils/cors'
 import * as process from 'node:process'
-import { authorizationChecker } from './utils/auth'
+import KeycloakConnect, { Token } from 'keycloak-connect'
+import { checkRoles } from './utils/auth'
 
 require('dotenv-flow').config()
 useContainer(Container)
+
+const keycloak = new KeycloakConnect({}, {
+  realm: 'BC',
+  'auth-server-url': 'http://localhost:8080',
+  resource: 'showcase-tentantA',
+  'bearer-only': false,
+  'ssl-required': 'false',
+  'confidential-port': 0
+})
 
 async function bootstrap() {
   try {
@@ -34,11 +44,27 @@ async function bootstrap() {
         PresentationScenarioController,
         ShowcaseController,
       ],
-      middlewares: [ExpressErrorHandler],
+      authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
+        try {
+          // getGrant() must be called to correctly populate the Token object
+          const grant = await keycloak.getGrant(action.request, action.response)
+          if (!grant.access_token) {
+            return false
+          }
+          // Throws error if the token is invalid. it validates claims and signature
+          await keycloak.grantManager.validateToken(grant.access_token as Token, 'Bearer')
+          return checkRoles(grant.access_token, roles)
+          //console.log(grant.access_token?.hasRole('showcase-tenantA:SHOWCASE_ADMIN'))
+        } catch (e: any) {
+          return false
+        }
+      },
+      middlewares: [keycloak.middleware, ExpressErrorHandler],
       defaultErrorHandler: false,
       cors: corsOptions,
-      authorizationChecker
     })
+
+    app.use(keycloak.middleware())
     // Start the server
     const port = Number(process.env.PORT)
 
