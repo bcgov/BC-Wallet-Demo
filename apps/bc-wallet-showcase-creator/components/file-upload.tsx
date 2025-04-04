@@ -31,7 +31,7 @@ export const FileUploadFull = ({
           const mimeType = newValue.type
           const base64WithoutPrefix = base64.replace(/^data:image\/[a-zA-Z+\-]+;base64,/, '')
 
-          setPreview(`${mimeType};base64,${base64WithoutPrefix}`)
+          setPreview(`data:${mimeType};base64,${base64WithoutPrefix}`)
           handleJSONUpdate(element, base64WithoutPrefix)
         }
       } catch (error) {
@@ -69,7 +69,7 @@ export const FileUploadFull = ({
             <Image
               alt={text}
               className="p-3 max-w-full max-h-full object-contain"
-              src={`data:image/${preview}`}
+              src={`${preview}`}
               width={300}
               height={100}
               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
@@ -84,7 +84,7 @@ export const FileUploadFull = ({
         <input
           id={element}
           type="file"
-          accept="image/*"
+          accept="image/png, image/jpeg"
           className="hidden"
           onChange={(e) => handleChange(e.target.files?.[0] ?? null)}
         />
