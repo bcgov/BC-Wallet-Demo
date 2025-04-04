@@ -13,6 +13,8 @@ import ShowcaseController from './controllers/ShowcaseController'
 import { CredentialDefinitionController } from './controllers/CredentialDefinitionController'
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import { corsOptions } from './utils/cors'
+import * as process from 'node:process'
+import { authorizationChecker } from './utils/auth'
 
 require('dotenv-flow').config()
 useContainer(Container)
@@ -35,6 +37,7 @@ async function bootstrap() {
       middlewares: [ExpressErrorHandler],
       defaultErrorHandler: false,
       cors: corsOptions,
+      authorizationChecker
     })
     // Start the server
     const port = Number(process.env.PORT)
