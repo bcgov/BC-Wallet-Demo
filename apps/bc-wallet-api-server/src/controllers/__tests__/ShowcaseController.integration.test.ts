@@ -3,7 +3,6 @@ import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 import ShowcaseController from '../ShowcaseController'
 import { Application } from 'express'
-import { CredentialAttributeType, CredentialType, IdentifierType, IssuerType, ShowcaseStatus, StepActionType, StepType } from '../../types'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -11,6 +10,7 @@ import IssuerRepository from '../../database/repositories/IssuerRepository'
 import PersonaRepository from '../../database/repositories/PersonaRepository'
 import ScenarioRepository from '../../database/repositories/ScenarioRepository'
 import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
+import TenantRepository from '../../database/repositories/TenantRepository'
 import ShowcaseService from '../../services/ShowcaseService'
 import { ShowcaseRequest } from 'bc-wallet-openapi'
 import supertest = require('supertest')
@@ -20,6 +20,15 @@ import * as schema from '../../database/schema'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import DatabaseService from '../../services/DatabaseService'
+import {
+  CredentialAttributeType,
+  CredentialType,
+  IdentifierType,
+  IssuerType,
+  ShowcaseStatus,
+  StepActionType,
+  StepType
+} from '../../types'
 
 describe('ShowcaseController Integration Tests', () => {
   let client: PGlite
@@ -35,6 +44,7 @@ describe('ShowcaseController Integration Tests', () => {
     }
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
+    Container.get(TenantRepository)
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)
     Container.get(CredentialDefinitionRepository)
@@ -55,7 +65,12 @@ describe('ShowcaseController Integration Tests', () => {
   })
 
   it('should create, retrieve, update, and delete a showcase', async () => {
-    // Create prerequisites: asset, credential schema, credential definition, issuer, persona, and scenario
+    // Create prerequisites: asset, credential schema, credential definition, issuer, persona, scenario and tenant
+    const tenantRepository = Container.get(TenantRepository)
+    const tenant = await tenantRepository.create({
+      id: '79a56be5-89bd-40dc-a6a7-fc035487e437'
+    })
+
     const assetRepository = Container.get(AssetRepository)
     const asset = await assetRepository.create({
       mediaType: 'image/png',
@@ -158,6 +173,7 @@ describe('ShowcaseController Integration Tests', () => {
       description: 'Test showcase description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [scenario.id],
       personas: [persona.id],
       bannerImage: asset.id,
@@ -228,6 +244,7 @@ describe('ShowcaseController Integration Tests', () => {
       description: 'Test description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: '79a56be5-89bd-40dc-a6a7-fc035487e437',
       scenarios: [nonExistentId],
       personas: [nonExistentId],
     }
