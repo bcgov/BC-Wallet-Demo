@@ -12,11 +12,12 @@
     "migration:generate": "npx drizzle-kit generate --config=drizzle.config.ts --name=bc-wallet-api"
   },
   "dependencies": {
-    "cors": "^2.8.5",
     "bc-wallet-openapi": "workspace:*",
+    "cors": "^2.8.5",
     "dotenv-flow": "^4.1.0",
     "drizzle-orm": "^0.39.3",
     "express": "^4.21.2",
+    "keycloak-connect": "^26.1.1",
     "nanoid": "3.3.6",
     "pg": "8.14.0",
     "reflect-metadata": "^0.2.2",
