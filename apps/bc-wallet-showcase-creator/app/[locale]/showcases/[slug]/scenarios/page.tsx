@@ -1,10 +1,11 @@
 import { CreateScenariosStepsScreen } from '@/components/scenario-screen/choose-step-screen'
 import { CreateScenariosScreen } from '@/components/scenario-screen/scenario-creation'
 import TabsComponent from '@/components/Tabs-component'
-import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
 
-export default function CreateScenariosPage() {
-  const t = useTranslations()
+export default async function CreateScenariosPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const t = await getTranslations()
 
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
@@ -12,7 +13,7 @@ export default function CreateScenariosPage() {
         <div className="flex justify-between items-center px-6 py-2 mt-4">
           <div className="flex items-center space-x-4"></div>
           <div className="flex space-x-1 text-lg font-semibold justify-start">
-            <TabsComponent slug={'create'} />
+            <TabsComponent slug={slug} />
           </div>
         </div>
 

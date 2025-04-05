@@ -54,7 +54,10 @@
     "hide_character_placeholder": "L’activation de ce paramètre masquera ce personnage et tous les scénarios associés.",
     "no_character_selected_label": "Aucun personnage sélectionné",
     "character_delete_title": "Êtes-vous sûr de vouloir supprimer ce personnage ?",
-    "character_delete_description": "Cette action ne peut pas être annulée."
+    "character_delete_description": "Cette action ne peut pas être annulée.",
+    "success_characters_selected_label": "Personnages ajoutés avec succès",
+    "error_no_characters_selected_label": "Veuillez sélectionner au moins un personnage pour continuer",
+    "error_character_creation_label": "Erreur lors de la création du personnage"
   },
   "credentials": {
     "credential_title": "Selectionnez un Justificatif",

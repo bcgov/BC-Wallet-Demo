@@ -4,11 +4,9 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useCreateAsset } from '@/hooks/use-asset'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
 import { convertBase64 } from '@/lib/utils'
 import type { AssetResponseType, ShowcaseRequestType } from '@/openapi-types'
-import { ShowcaseRequest } from '@/openapi-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor, X } from 'lucide-react'
 import { Trash2 } from 'lucide-react'
@@ -17,12 +15,14 @@ import { FormTextArea, FormTextInput } from '../text-input'
 import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-import { ShowcaseResponse } from 'bc-wallet-openapi'
+import { ShowcaseRequest, ShowcaseResponse, ShowcaseStatus } from 'bc-wallet-openapi'
 
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { useUiStore } from '@/hooks/use-ui-store'
 import { useCreateShowcase } from '@/hooks/use-showcases'
+import { z } from 'zod'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
 
 const BannerImageUpload = ({
   text,
@@ -49,8 +49,8 @@ const BannerImageUpload = ({
             },
             {
               onSuccess: (data: unknown) => {
-                const response = data as AssetResponseType
-                setPreview(base64)
+                const response = data as AssetResponseType                
+                setPreview(`data:${newValue.type};base64,${base64}`)
                 onChange(response.asset.id)
               },
               onError: (error) => {
@@ -109,7 +109,7 @@ const BannerImageUpload = ({
         <input
           id="bannerImage"
           type="file"
-          accept="image/*"
+          accept="image/png, image/jpeg"
           className="hidden"
           onChange={(e) => handleChange(e.target.files?.[0] ?? null)}
         />
@@ -118,24 +118,26 @@ const BannerImageUpload = ({
   )
 }
 
-// {
-//   "name": "example_name",
-//   "description": "example_description",
-//   "status": "ACTIVE",
-//   "hidden": false,
-//   "scenarios": [],
-//   "credentialDefinitions": [],
-//   "personas": []
-// }
+const showcaseRequestFormData = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+  status: z.nativeEnum(ShowcaseStatus),
+  hidden: z.boolean().optional(),
+  scenarios: z.array(z.string()).optional(),
+  credentialDefinitions: z.array(z.string()).optional(),
+  personas: z.array(z.string()).optional(),
+  tenantId: z.string(),
+})
 
 export const ShowcaseCreate = () => {
   const t = useTranslations()
   const { setCurrentShowcaseSlug } = useUiStore()
   const router = useRouter()
   const { mutateAsync: createShowcase } = useCreateShowcase()
+  const { setShowcase } = useShowcaseStore()
 
   const form = useForm<ShowcaseRequestType>({
-    resolver: zodResolver(ShowcaseRequest),
+    resolver: zodResolver(showcaseRequestFormData),
     mode: 'all',
     defaultValues: {
       name: '',
@@ -145,20 +147,21 @@ export const ShowcaseCreate = () => {
       scenarios: [],
       credentialDefinitions: [],
       personas: [],
+      tenantId: 'test-tenant-1',
     },
   })
 
-  const onSubmit = async (data: ShowcaseRequestType) => {
-    console.log('data', data)
-    createShowcase(data, {
+  const onSubmit = async (formData: ShowcaseRequestType) => {
+    createShowcase(formData as ShowcaseRequest, {
       onSuccess: (data: unknown) => {
         const response = data as ShowcaseResponse
-        console.log('Showcase created successfully', response)
         if (response.showcase?.slug) {
           setCurrentShowcaseSlug(response.showcase.slug)
+          setShowcase({ ...formData, tenantId: formData.tenantId || 'test-tenant-1' })
           toast.success('Showcase created successfully')
-          router.push(`/showcases/${response.showcase.slug}/characters`)
-          // router.push(`/showcases/create/characters`)
+          // TODO: when dynamic URL is implemented
+          // router.push(`/showcases/${response.showcase.slug}/characters`)
+          router.push(`/showcases/create/characters`)
         } else {
           toast.error('Error creating showcase')
         }

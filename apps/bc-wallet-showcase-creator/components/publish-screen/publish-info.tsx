@@ -1,7 +1,7 @@
 'use client'
 
 import { baseUrl } from '@/lib/utils'
-import type { Persona, Credential } from '@/openapi-types'
+import type { Persona, CredentialDefinition } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
@@ -11,7 +11,7 @@ export const PublishInfo = ({
   credentials,
 }: {
     characters: Partial<Persona>[]
-  credentials: Partial<Credential>[]
+    credentials: Partial<CredentialDefinition>[]
   }) => {
     const t = useTranslations()
   return (

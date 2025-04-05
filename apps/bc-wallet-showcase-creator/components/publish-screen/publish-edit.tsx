@@ -7,7 +7,7 @@ import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { Link, useRouter } from '@/i18n/routing'
 import { convertBase64 } from '@/lib/utils'
-import type { AssetResponseType, ShowcaseRequestType } from '@/openapi-types'
+import type { ShowcaseRequestType } from '@/openapi-types'
 import { ShowcaseRequest } from '@/openapi-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor, X } from 'lucide-react'
@@ -22,7 +22,6 @@ import { toast } from 'sonner'
 import Image from 'next/image'
 
 import { Button } from '../ui/button'
-import { on } from 'events'
 
 const BannerImageUpload = ({
   text,
@@ -34,7 +33,7 @@ const BannerImageUpload = ({
   onChange: (value: string) => void
 }) => {
   const t = useTranslations()
-  const [preview, setPreview] = useState<string | null>(value || null)
+  const [ preview, setPreview ] = useState<string | null>(value || null)
   const { mutateAsync: createAsset } = useCreateAsset()
 
   const handleChange = async (newValue: File | null) => {
@@ -122,6 +121,7 @@ export const PublishEdit = () => {
       description: '',
       status: 'PENDING',
       hidden: false,
+      tenantId: 'test-tenant-1',
       scenarios: [],
       credentialDefinitions: [],
       personas: [],
@@ -133,9 +133,10 @@ export const PublishEdit = () => {
       ...showcase,
       name: showcase.name || '',
       description: showcase.description || '',
-      credentialDefinitions: showcase.credentialDefinitions || ['86a96d6d-91c9-4357-984d-1f6b162fdfae'],
+      credentialDefinitions: showcase.credentialDefinitions || [],
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
+      tenantId: 'test-tenant-1',
     })
   }, [form, showcase])
 

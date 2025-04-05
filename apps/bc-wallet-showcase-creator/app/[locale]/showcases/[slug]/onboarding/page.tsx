@@ -3,6 +3,7 @@ import { OnboardingSteps } from '@/components/onboarding-screen/onboarding-steps
 import TabsComponent from '@/components/Tabs-component'
 import { Pencil } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
 
 export default async function CreateOnboardingPage({
   params,
@@ -10,7 +11,7 @@ export default async function CreateOnboardingPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const t = useTranslations()
+  const t = await getTranslations()
 
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">

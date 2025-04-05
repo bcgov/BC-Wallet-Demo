@@ -49,11 +49,11 @@ class ApiService {
     return this.request<T>('GET', `${url}${queryString}`)
   }
 
-  public post<T>(url: string, data?: Record<string, unknown>): Promise<T | void> {
+  public post<T>(url: string, data?: any): Promise<T | void> {
     return this.request<T>('POST', url, data)
   }
 
-  public put<T>(url: string, data?: Record<string, unknown>): Promise<T | void> {
+  public put<T>(url: string, data?: any): Promise<T | void> {
     return this.request<T>('PUT', url, data)
   }
 

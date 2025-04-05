@@ -54,7 +54,10 @@
     "hide_character_placeholder": "Turning this setting on will hide this character and any attached scenarios.",
     "no_character_selected_label": "No Persona Selected",
     "character_delete_title": "Are you sure you want to delete this character?",
-    "character_delete_description": "This action cannot be undone."
+    "character_delete_description": "This action cannot be undone.",
+    "success_characters_selected_label": "Characters added successfully",
+    "error_no_characters_selected_label": "Please select at least one character to proceed",
+    "error_character_creation_label": "Error creating character"
   },
   "credentials": {
     "header_title": "Add your Credentials",

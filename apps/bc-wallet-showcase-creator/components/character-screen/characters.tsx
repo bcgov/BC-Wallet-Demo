@@ -1,18 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-
+import { usePersonaAdapter } from '@/hooks/use-persona-adapter'
 import StepHeader from '@/components/step-header'
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import ButtonOutline from '@/components/ui/button-outline'
 import { Form } from '@/components/ui/form'
-import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas'
-import { useShowcaseStore as usePersonaUIStore } from '@/hooks/use-showcase-store'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { baseUrl } from '@/lib/utils'
-import apiClient from '@/lib/apiService'
-import type { Persona } from '@/openapi-types'
 import { characterSchema } from '@/schemas/character'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CircleAlert, EyeOff, Monitor } from 'lucide-react'
@@ -20,32 +15,46 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import type { z } from 'zod'
-
+import { useState } from 'react'
 import DeleteModal from '../delete-modal'
 import { FileUploadFull } from '../file-upload'
 import { useRouter } from '@/i18n/routing'
+import type { Persona } from 'bc-wallet-openapi'
+
 type CharacterFormData = z.infer<typeof characterSchema>
 
 export default function NewCharacterPage() {
   const t = useTranslations()
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [headshotImage, setHeadshotImage] = useState<string | null>(null)
-  const [isHeadShotImageEdited, setHeadShotImageEdited] = useState<boolean>(false)
-  const [bodyImage, setBodyImage] = useState<string | null>(null)
-  const [isBodyImageEdited, setIsBodyImageEdited] = useState<boolean>(false)
   const router = useRouter()
-  // Track the selected persona by ID for UI stability
-  const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const { setEditMode, personaState, setStepState } = usePersonaUIStore()
-  const { selectedPersonaIds, setSelectedPersonaIds } = useShowcaseStore()
-
-  const { data: personasData, isLoading } = usePersonas()
-  const { mutateAsync: createPersona } = useCreatePersona()
-  const { mutateAsync: updatePersona } = useUpdatePersona()
-  const { mutateAsync: deletePersona } = useDeletePersona()
-
-  const selectedPersona = personasData?.personas?.find((p: Persona) => p.id === selectedPersonaId) || null
+  const {
+    // State
+    selectedPersonaId,
+    selectedPersona,
+    headshotImage,
+    setHeadshotImage,
+    setIsHeadshotImageEdited,
+    bodyImage,
+    setBodyImage,
+    setIsBodyImageEdited,
+    personasData,
+    isLoading,
+    
+    // Actions
+    savePersona,
+    deleteCurrentPersona,
+    handlePersonaSelect,
+    handleCreateNew,
+    handleCancel,
+    
+    // UI state
+    personaState,
+    
+    // Derived data
+    selectedPersonaIds,
+    setSelectedPersonaIds,
+  } = usePersonaAdapter();
 
   const form = useForm<CharacterFormData>({
     resolver: zodResolver(characterSchema),
@@ -70,17 +79,6 @@ export default function NewCharacterPage() {
         },
         { keepDefaultValues: false },
       )
-
-      // Reset image states
-      setHeadShotImageEdited(false)
-      setIsBodyImageEdited(false)
-
-      // Load existing images
-      setHeadshotImage(
-        selectedPersona.headshotImage?.id ? `${baseUrl}/assets/${selectedPersona.headshotImage.id}/file` : null,
-      )
-
-      setBodyImage(selectedPersona.bodyImage?.id ? `${baseUrl}/assets/${selectedPersona.bodyImage.id}/file` : null)
     } else if (!selectedPersonaId) {
       // Reset form when creating new
       form.reset(
@@ -92,130 +90,44 @@ export default function NewCharacterPage() {
         },
         { keepDefaultValues: false },
       )
-
-      setHeadShotImageEdited(false)
-      setIsBodyImageEdited(false)
-      setHeadshotImage(null)
-      setBodyImage(null)
     }
-  }, [selectedPersona, form])
+  }, [selectedPersona, selectedPersonaId, form])
 
   const handleFormSubmit = async (data: CharacterFormData) => {
     try {
-      let headshotAssetId = selectedPersona?.headshotImage?.id
-      let bodyAssetId = selectedPersona?.bodyImage?.id
-
-      // Process headshot image if edited
-      if (isHeadShotImageEdited && headshotImage) {
-        const headshotPayload = {
-          mediaType: 'image/jpeg',
-          content: headshotImage,
-          fileName: 'Headshot.jpg',
-          description: 'A headshot image',
-        }
-        const headshotResponse: any = await apiClient.post('/assets', headshotPayload)
-        headshotAssetId = headshotResponse.asset.id
-      } else if (isHeadShotImageEdited && !headshotImage) {
-        // If edited to remove image
-        headshotAssetId = null
-      }
-
-      // Process body image if edited
-      if (isBodyImageEdited && bodyImage) {
-        const bodyPayload = {
-          mediaType: 'image/jpeg',
-          content: bodyImage,
-          fileName: 'Body.jpg',
-          description: 'A full-body image',
-        }
-        const bodyResponse: any = await apiClient.post('/assets', bodyPayload)
-        bodyAssetId = bodyResponse.asset.id
-      } else if (isBodyImageEdited && !bodyImage) {
-        // If edited to remove image
-        bodyAssetId = null
-      }
-
-      const personaData = {
+      await savePersona({
         name: data.name,
         role: data.role,
         description: data.description,
         hidden: data.hidden,
-        headshotImage: headshotAssetId,
-        bodyImage: bodyAssetId,
-      }
-
-      // Update or create persona based on whether we're editing
-      if (selectedPersonaId && selectedPersona) {
-        // Use the proper React Query mutation with slug and data
-        await updatePersona({
-          slug: selectedPersona.slug,
-          data: personaData,
-        })
-
-        toast.success('Persona has been updated.')
-        setStepState('no-selection')
-        setEditMode(false)
-      } else {
-        await createPersona(personaData, {
-          onSuccess: (data: unknown) => {
-            setSelectedPersonaId((data as { persona: Persona }).persona.id)
-            setSelectedPersonaIds([...selectedPersonaIds, (data as { persona: Persona }).persona.id])
-            toast.success('Persona has been created.')
-          },
-        })
-      }
-
-      // Reset image editing states but don't reset the form
-      setHeadShotImageEdited(false)
-      setIsBodyImageEdited(false)
+        headshotImage: headshotImage || undefined,
+        bodyImage: bodyImage || undefined,
+      });
     } catch (error) {
-      toast.error('Error saving persona.')
+      toast.error(t('character.error_character_creation_label'))
     }
   }
 
-  const handleCancel = () => {
-    form.reset()
-    setHeadshotImage(null)
-    setBodyImage(null)
-    setSelectedPersonaId(null)
-    setEditMode(false)
-    setStepState('no-selection')
+  const handleDelete = async () => {
+    setIsModalOpen(false)
+    await deleteCurrentPersona()
   }
 
-  const handlePersonaSelect = (persona: any) => {
-    setSelectedPersonaId(persona.id)
-    setStepState('editing-persona')
-  }
-
-  const handleCreateNew = () => {
-    setSelectedPersonaId(null)
-    form.reset()
-    setStepState('creating-new')
-  }
-
-  const handleDeletePersona = async () => {
-    if (selectedPersonaId && selectedPersona) {
-      // Use slug for the API call with the React Query mutation
-      await deletePersona(selectedPersona.slug)
-      // No need to manually invalidate as it's handled in the mutation's onSettled
-      setSelectedPersonaId(null)
-      setStepState('no-selection')
+  const handleProceed = () => {
+    // save personas to showcase
+    if (selectedPersonaIds.length === 0) {
+      toast.error(t('character.error_no_characters_selected_label'))
+      return
     }
+
+    toast.success(t('character.success_characters_selected_label'))
+    router.push('/showcases/create/onboarding')
   }
 
   const onlyRecentlyCreated = (persona: Persona) => {
     return selectedPersonaIds.find((id: string) => id === persona.id)
   }
 
-  const handleProceed = () => {
-    if (selectedPersonaIds.length === 0) {
-      toast.error('Please select at least one character to proceed')
-      return
-    }
-
-    toast.success('Characters selected successfully')
-    router.push('/showcases/create/onboarding')
-  }
   return (
     <>
       <div className="flex dark:text-dark-text text-light-text flex-col h-full w-full">
@@ -313,7 +225,7 @@ export default function NewCharacterPage() {
                           if (selectedPersonaId) {
                             setIsModalOpen(true)
                           } else {
-                            setEditMode(false)
+                            handleCancel()
                           }
                           break
                         default:
@@ -384,8 +296,8 @@ export default function NewCharacterPage() {
                                     : undefined
                                 }
                                 handleJSONUpdate={(imageType, imageData) => {
-                                  setHeadshotImage(imageData)
-                                  setHeadShotImageEdited(true)
+                                  setHeadshotImage(imageData);
+                                  setIsHeadshotImageEdited(true);
                                 }}
                               />
                             </div>
@@ -399,8 +311,8 @@ export default function NewCharacterPage() {
                                     : undefined
                                 }
                                 handleJSONUpdate={(imageType, imageData) => {
-                                  setBodyImage(imageData)
-                                  setIsBodyImageEdited(true)
+                                  setBodyImage(imageData);
+                                  setIsBodyImageEdited(true);
                                 }}
                               />
                             </div>
@@ -415,11 +327,9 @@ export default function NewCharacterPage() {
                           <ButtonOutline disabled={selectedPersonaIds.length === 0} onClick={handleProceed}>
                             {t('action.next_label')}
                           </ButtonOutline>
-                          {/* {process.env.NODE_ENV === 'development' && (
-                            <ButtonOutline className="bg-red-500" onClick={() => setSelectedPersonaIds([])}>
-                              Clear storage
-                            </ButtonOutline>
-                          )} */}
+                          <ButtonOutline disabled={selectedPersonaIds.length === 0} onClick={() => setSelectedPersonaIds([])}>
+                            Clear state
+                          </ButtonOutline>
                         </div>
                       </div>
                     </form>
@@ -436,10 +346,7 @@ export default function NewCharacterPage() {
         isOpen={isModalOpen}
         isLoading={false}
         onClose={() => setIsModalOpen(false)}
-        onDelete={() => {
-          setIsModalOpen(false)
-          handleDeletePersona()
-        }}
+        onDelete={handleDelete}
         header={t('character.character_delete_title')}
         description={t('character.character_delete_title')}
         subDescription={t('character.character_delete_description')}

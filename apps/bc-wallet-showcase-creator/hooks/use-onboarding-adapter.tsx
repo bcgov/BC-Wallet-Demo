@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useShowcaseCreation } from "@/hooks/use-showcase-creation";
-import { Persona, ShowcaseRequestType, StepRequestType } from "@/openapi-types";
+import { ShowcaseRequestType, StepRequestType } from "@/openapi-types";
 import { createDefaultStep, createServiceStep, StepWithCredentials } from "@/lib/steps";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
 import { useHelpersStore } from "./use-helpers-store";
+import type { Persona } from "bc-wallet-openapi";
 
 export const useOnboardingAdapter = () => {
   const {
@@ -132,18 +133,22 @@ export const useOnboardingAdapter = () => {
       queryClient.invalidateQueries({ queryKey: ['showcases'] });
     }
   });
-  
+
+  // TODO: create persona adapter for the persona logic 
+  // TODO: move this to use-showcase-adapter.ts
+  // TODO: create addPersonaToShowcase mutation
   const saveShowcase = useCallback(async (data: ShowcaseRequestType) => {
     try {
       const showcaseData = {
         name: data.name,
         description: data.description,
-        status: data.status || "ACTIVE",
+        status: data.status || "PENDING",
         hidden: data.hidden || false,
         scenarios: showcase.scenarios,
         credentialDefinitions: selectedCredentialDefinitionIds,
         personas: selectedPersonas.map((p: Persona) => p.id),
         bannerImage: data.bannerImage,
+        tenantId: 'test-tenant-1',
       };
       
       const updatedShowcase = await updateShowcaseMutation.mutateAsync(showcaseData);      

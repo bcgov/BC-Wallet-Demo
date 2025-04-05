@@ -422,6 +422,7 @@ export const ShowcaseRequest = z.object({
   personas: z.array(z.string()).optional(),
   bannerImage: z.string().optional(),
   completionMessage: z.string().optional(),
+  tenantId: z.string().optional(),
 });
 
 export const ShowcasesResponse = z.object({
