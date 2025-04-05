@@ -10,9 +10,8 @@ import { Form } from '@/components/ui/form'
 import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas'
 import { useShowcaseStore as usePersonaUIStore } from '@/hooks/use-showcase-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-
+import { baseUrl } from '@/lib/utils'
 import apiClient from '@/lib/apiService'
-import { ensureBase64HasPrefix } from '@/lib/utils'
 import type { Persona } from '@/openapi-types'
 import { characterSchema } from '@/schemas/character'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -69,7 +68,7 @@ export default function NewCharacterPage() {
           description: selectedPersona.description || '',
           hidden: selectedPersona.hidden || false,
         },
-        { keepDefaultValues: false }
+        { keepDefaultValues: false },
       )
 
       // Reset image states
@@ -78,9 +77,10 @@ export default function NewCharacterPage() {
 
       // Load existing images
       setHeadshotImage(
-        selectedPersona.headshotImage?.content ? ensureBase64HasPrefix(selectedPersona.headshotImage.content) : null
+        selectedPersona.headshotImage?.id ? `${baseUrl}/assets/${selectedPersona.headshotImage.id}/file` : null,
       )
-      setBodyImage(selectedPersona.bodyImage?.content ? ensureBase64HasPrefix(selectedPersona.bodyImage.content) : null)
+
+      setBodyImage(selectedPersona.bodyImage?.id ? `${baseUrl}/assets/${selectedPersona.bodyImage.id}/file` : null)
     } else if (!selectedPersonaId) {
       // Reset form when creating new
       form.reset(
@@ -90,7 +90,7 @@ export default function NewCharacterPage() {
           description: '',
           hidden: false,
         },
-        { keepDefaultValues: false }
+        { keepDefaultValues: false },
       )
 
       setHeadShotImageEdited(false)
@@ -256,11 +256,11 @@ export default function NewCharacterPage() {
                         <div className={`shrink-0 ${selectedPersonaId === persona.id ? 'mb-4 mt-12' : 'mr-4'}`}>
                           <Image
                             src={
-                              persona.headshotImage?.content
-                                ? ensureBase64HasPrefix(persona.headshotImage.content)
+                              persona.headshotImage?.id
+                                ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
                                 : '/assets/no-image.jpg'
                             }
-                            alt={persona.name}
+                            alt={persona.headshotImage?.description || 'Character headshot'}
                             width={selectedPersonaId === persona.id ? 100 : 50}
                             height={selectedPersonaId === persona.id ? 100 : 50}
                             className="rounded-full aspect-square object-cover"
@@ -379,9 +379,9 @@ export default function NewCharacterPage() {
                                 text={t('character.headshot_image_label')}
                                 element={'headshot_image'}
                                 initialValue={
-                                  selectedPersona?.headshotImage?.content
-                                    ? ensureBase64HasPrefix(selectedPersona.headshotImage.content)
-                                    : ''
+                                  selectedPersona?.headshotImage?.id
+                                    ? `${baseUrl}/assets/${selectedPersona.headshotImage.id}/file`
+                                    : undefined
                                 }
                                 handleJSONUpdate={(imageType, imageData) => {
                                   setHeadshotImage(imageData)
@@ -394,9 +394,9 @@ export default function NewCharacterPage() {
                                 text={t('character.full_body_image_label')}
                                 element={'body_image'}
                                 initialValue={
-                                  selectedPersona?.bodyImage?.content
-                                    ? ensureBase64HasPrefix(selectedPersona.bodyImage.content)
-                                    : ''
+                                  selectedPersona?.bodyImage?.id
+                                    ? `${baseUrl}/assets/${selectedPersona.bodyImage.id}/file`
+                                    : undefined
                                 }
                                 handleJSONUpdate={(imageType, imageData) => {
                                   setBodyImage(imageData)

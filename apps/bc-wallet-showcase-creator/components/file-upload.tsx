@@ -12,14 +12,13 @@ export const FileUploadFull = ({
   handleJSONUpdate,
 }: {
   text: string
-  element: 'headshot_image' | 'body_image'
+  element: string
   initialValue?: string
-  handleJSONUpdate: (imageType: 'headshot_image' | 'body_image', imageData: string) => void
+  handleJSONUpdate: (imageType: string, imageData: string) => void
 }) => {
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(initialValue || null)
 
-  // Update preview when initialValue changes
   useEffect(() => {
     setPreview(initialValue || null)
   }, [initialValue])
@@ -29,8 +28,11 @@ export const FileUploadFull = ({
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {
-          setPreview(base64)
-          handleJSONUpdate(element, base64)
+          const mimeType = newValue.type
+          const base64WithoutPrefix = base64.replace(/^data:image\/[a-zA-Z+\-]+;base64,/, '')
+
+          setPreview(`data:${mimeType};base64,${base64WithoutPrefix}`)
+          handleJSONUpdate(element, base64WithoutPrefix)
         }
       } catch (error) {
         console.error('Error converting file:', error)
@@ -59,15 +61,15 @@ export const FileUploadFull = ({
         </div>
       )}
       <label
-        htmlFor={`${element}`}
+        htmlFor={element}
         className="p-3 flex flex-col items-center justify-center w-full h-full bg-light-bg dark:bg-dark-input dark:hover:bg-dark-input-hover rounded-lg cursor-pointer border dark:border-dark-border hover:bg-light-bg"
       >
         <div className="flex flex-col items-center h-[240px] justify-center border rounded-lg border-dashed dark:border-dark-border p-2 w-full">
           {preview ? (
             <Image
-              alt="preview"
+              alt={text}
               className="p-3 max-w-full max-h-full object-contain"
-              src={preview}
+              src={`${preview}`}
               width={300}
               height={100}
               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
@@ -80,9 +82,9 @@ export const FileUploadFull = ({
           )}
         </div>
         <input
-          id={`${element}`}
+          id={element}
           type="file"
-          accept="image/*"
+          accept="image/png, image/jpeg"
           className="hidden"
           onChange={(e) => handleChange(e.target.files?.[0] ?? null)}
         />
