@@ -232,20 +232,26 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
   }
 
   async update(id: string, showcase: NewShowcase): Promise<Showcase> {
-    await this.findById(id)
+    const showcaseResult = await this.findById(id)
     let scenariosResult: Scenario[] = []
     let personasResult: Persona[] = []
+    let slug: string | undefined
 
     const userResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
     const bannerImageResult = showcase.bannerImage ? await this.assetRepository.findById(showcase.bannerImage) : null
 
     const connection = await this.databaseService.getConnection()
-    const slug = await generateSlug({
-      value: showcase.name,
-      id,
-      connection,
-      schema: showcases,
-    })
+    
+    if (showcase.name !== showcaseResult.name) {
+      slug = await generateSlug({
+        value: showcase.name,
+        id,
+        connection,
+        schema: showcases,
+      })
+    } else {
+      slug = showcaseResult.slug
+    }
 
     return connection.transaction(async (tx): Promise<Showcase> => {
       const [showcaseResult] = await tx
