@@ -134,7 +134,13 @@ jobs:
 
   image-scan:
     name: "Image Scan"
-    needs: [build_api_server, build_traction_adapter, build_showcase_creator, build_demo_server, build_demo_web, ready]
+    needs:
+      - build_api_server
+      - build_traction_adapter
+      - build_showcase_creator
+      - build_demo_server
+      - build_demo_web
+      - ready
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
     steps:
@@ -185,8 +191,11 @@ jobs:
 
       - name: Restart PR Deployments
         run: |
-          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-bc-wallet-api-server
-          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-bc-wallet-traction-adapter
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-api-server
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-traction-adapter
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-showcase-creator
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-demo-server
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-demo-web
 
   deploymenturls:
     name: PR Deployment URLs comment

@@ -139,8 +139,11 @@ jobs:
       
       - name: Restart Deployments
         run: |
-          oc rollout restart deployment/bc-wallet-bc-wallet-api-server
-          oc rollout restart deployment/bc-wallet-bc-wallet-traction-adapter
+          oc rollout restart deployment/bc-wallet-api-server
+          oc rollout restart deployment/bc-wallet-traction-adapter
+          oc rollout restart deployment/bc-wallet-showcase-creator
+          oc rollout restart deployment/bc-wallet-demo-server
+          oc rollout restart deployment/bc-wallet-demo-web
 
   deploy_uat:
     name: Deploy to UAT
@@ -172,8 +175,11 @@ jobs:
       
       - name: Restart Deployments
         run: |
-          oc rollout restart deployment/bc-wallet-bc-wallet-api-server
-          oc rollout restart deployment/bc-wallet-bc-wallet-traction-adapter
+          oc rollout restart deployment/bc-wallet-api-server
+          oc rollout restart deployment/bc-wallet-traction-adapter
+          oc rollout restart deployment/bc-wallet-showcase-creator
+          oc rollout restart deployment/bc-wallet-demo-server
+          oc rollout restart deployment/bc-wallet-demo-web
 
   deploy_prod:
     name: Deploy to Production
@@ -206,12 +212,20 @@ jobs:
       
       - name: Restart Deployments
         run: |
-          oc rollout restart deployment/bc-wallet-bc-wallet-api-server
-          oc rollout restart deployment/bc-wallet-bc-wallet-traction-adapter
+          oc rollout restart deployment/bc-wallet-api-server
+          oc rollout restart deployment/bc-wallet-traction-adapter
+          oc rollout restart deployment/bc-wallet-showcase-creator
+          oc rollout restart deployment/bc-wallet-demo-server
+          oc rollout restart deployment/bc-wallet-demo-web
 
   image-scan:
     name: "Image Scan"
-    needs: [build_api_server, build_traction_adapter, build_showcase_creator, build_demo_server, build_demo_web]
+    needs:
+      - build_api_server
+      - build_traction_adapter
+      - build_showcase_creator
+      - build_demo_server
+      - build_demo_web
     runs-on: ubuntu-latest
     steps:
       - name: Run Trivy Image Scan
