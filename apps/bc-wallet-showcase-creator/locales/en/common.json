@@ -22,7 +22,8 @@
     "description_version": "Version",
     "loading_label": "Loading...",
     "publish_info_title": "Review and Publish Showcase",
-    "publish_info_subtitle": "Select the character and review their showcase."
+"publish_info_subtitle": "Enter and review the showcase details.",
+    "publish_info_credentials": "Will receive the following credential(s):"
   },
   "character": {
     "header_title": "Create your Character",
@@ -238,7 +239,11 @@
   "showcase": {
     "header_title": "Save Showcase",
     "title": "Enter the name for this showcase below.",
-    "subtitle": "Today's date will be appended to the filename for versioning.\nex. MyShowcase_v3_(mm-dd-yyyy)"
+    "button_label": "PUBLISH FOR REVIEW",
+    "subtitle": "Today's date will be appended to the filename for versioning.\nex. MyShowcase_v3_(mm-dd-yyyy)",
+    "modal_description": "Once submitted, you won't be able to make further edits until the review is complete.",
+    "modal_button": "CONFIRM & SUBMIT FOR REVIEW",
+    "modal_description2": "Do you want to proceed?"
   },
   "navigation": {
     "character_label": "Character",

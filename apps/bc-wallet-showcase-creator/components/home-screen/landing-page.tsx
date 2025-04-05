@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 
 import { useShowcases } from '@/hooks/use-showcases'
-import { ensureBase64HasPrefix } from '@/lib/utils'
+import { baseUrl } from '@/lib/utils'
 import type { Showcase } from '@/openapi-types'
 import { Share2 } from 'lucide-react'
 import { Search } from 'lucide-react'
@@ -121,8 +121,12 @@ export const LandingPage = () => {
                           className="border-[1px] border-dark-border dark:border-light-border flex items-center gap-3 p-3 rounded-md"
                         >
                           <Image
-                            src={ensureBase64HasPrefix(persona.headshotImage?.content) || '/assets/no-image.jpg'}
-                            alt={persona.name}
+                            src={
+                              persona.headshotImage?.id
+                                ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                : '/assets/no-image.jpg'
+                            }
+                            alt={persona.headshotImage?.description || 'Character headshot'}
                             width={44}
                             height={44}
                             className="rounded-full w-[44px] h-[44px]"

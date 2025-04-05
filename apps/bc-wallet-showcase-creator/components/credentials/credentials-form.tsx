@@ -12,7 +12,7 @@ import {
 } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
-import { ensureBase64HasPrefix } from '@/lib/utils'
+import { baseUrl } from '@/lib/utils'
 import type {
   AssetRequest,
   AssetResponse,
@@ -24,16 +24,15 @@ import type {
   RelyingPartyResponse,
 } from '@/openapi-types'
 import { CredentialSchemaRequest } from '@/openapi-types'
-import { schema } from '@/schemas/credential'
+import { credentialDefinition, schema } from '@/schemas/credential'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
-import { useTranslations } from "next-intl";
-import type { z } from "zod";
+import { useTranslations } from 'next-intl'
+import type { z } from 'zod'
 import { FileUploadFull } from '../file-upload'
 import StepHeaderCredential from '../showcases-screen/step-header-credential'
-import { FormTextInput } from "../text-input";
+import { FormTextInput } from '../text-input'
 import { CredentialAttributes } from './components/credential-attribute'
-
 
 import DeleteModal from '../delete-modal'
 
@@ -112,7 +111,7 @@ export const CredentialsForm = () => {
       }
 
       const credentialDefinition = (await createCredentialDefinition(
-        credentialDefinitionPayload
+        credentialDefinitionPayload,
       )) as typeof CredentialDefinitionResponse._type
       const credentialId = credentialDefinition?.credentialDefinition?.id
 
@@ -174,6 +173,7 @@ export const CredentialsForm = () => {
       form.reset()
     }
   }
+
   const handleCancel = () => {
     form.reset()
     setCredentialLogo(undefined)
@@ -216,10 +216,14 @@ export const CredentialsForm = () => {
             {credentialDefinition.icon && (
               <div className="px-2 py-2">
                 <Image
-                  src={ensureBase64HasPrefix(credentialDefinition?.icon?.content) || '/assets/no-image.jpg'}
+                  src={
+                    credentialDefinition?.icon?.id
+                      ? `${baseUrl}/assets/${credentialDefinition.icon.id}/file`
+                      : '/assets/no-image.jpg'
+                  }
                   width={80}
                   height={80}
-                  alt="Credential Icon"
+                  alt={credentialDefinition?.icon?.description || 'Credential icon'}
                   className="rounded-full shadow object-cover"
                   style={{ aspectRatio: '1/1' }}
                 />

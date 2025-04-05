@@ -20,9 +20,10 @@
     "description_label": "Description",
     "character_label": "Personnage(s)",
     "description_version": "Version",
+    "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine.",
+        "publish_info_credentials": "Recevera les attestations suivantes:",
     "loading_label": "Chargement...",
-    "publish_info_title": "Vitrine de révision et de publication",
-    "publish_info_subtitle": "Sélectionnez le personnage et examinez la vitrine."
+    "publish_info_title": "Réviser et publier la vitrine"
   },
   "character": {
     "header_title": "Créez votre Personnage",
@@ -197,9 +198,9 @@
     "edit_image_label": "Image",
     "edit_summary_label": "Résumé",
     "proof_attribute_placeholder": "Sélectionner un attribut",
-    "basic_label":"Basique",
-    "proof_request_label":"Demande de preuve",
-    "scenario_description" : "Scenario Description",
+    "basic_label": "Basique",
+    "proof_request_label": "Demande de preuve",
+    "scenario_description": "Scenario Description",
     "remove_scenario_label": "Supprimer le Scénario"
   },
   "action": {
@@ -232,7 +233,13 @@
   "showcase": {
     "header_title": "Enregistrer la vitrine",
     "title": "Entrez le nom de cette vitrine ci-dessous.",
-    "subtitle": "La date d'aujourd'hui sera ajoutée au nom du fichier pour la gestion des versions.\nex. MaVitrine_v3_(jj-mm-aaaa)"
+    "subtitle": "La date d'aujourd'hui sera ajoutée au nom du fichier pour la gestion des versions.\nex. MaVitrine_v3_(jj-mm-aaaa)",
+    "button_label": "PUBLIER ET SOUMETTRE A LA REVISION",
+    "modal_description": "Une fois soumis, vous ne pourrez plus apporter de modifications avant la fin de la révision.",
+    "modal_button": "CONFIMER ET ENVOYER POUR LA REVISION",
+    "modal_description2": "Voulez-vous continuer?",
+    "publish_info_credentials": "Recevera les attestations suivantes:",
+    "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine."
   },
   "navigation": {
     "character_label": "Personnage",

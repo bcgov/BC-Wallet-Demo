@@ -13,6 +13,8 @@ import CredentialSchemaRepository from '../CredentialSchemaRepository'
 import AssetRepository from '../AssetRepository'
 import PersonaRepository from '../PersonaRepository'
 import ScenarioRepository from '../ScenarioRepository'
+import TenantRepository from '../TenantRepository'
+import UserRepository from '../UserRepository'
 import {
   Asset,
   CredentialAttributeType,
@@ -28,14 +30,15 @@ import {
   NewIssuer,
   NewPersona,
   NewShowcase,
+  NewTenant,
   NewUser,
   Persona,
   ShowcaseStatus,
   StepActionType,
   StepType,
+  Tenant,
   User,
 } from '../../../types'
-import UserRepository from '../UserRepository'
 
 describe('Database showcase repository tests', (): void => {
   let client: PGlite
@@ -48,6 +51,7 @@ describe('Database showcase repository tests', (): void => {
   let credentialDefinition2: CredentialDefinition
   let asset: Asset
   let user: User
+  let tenant: Tenant
 
   beforeEach(async (): Promise<void> => {
     client = new PGlite()
@@ -67,9 +71,7 @@ describe('Database showcase repository tests', (): void => {
       identifierType: IdentifierType.DID,
       identifier: 'did:example.org',
     }
-
     user = await userRepository.create(newUser)
-
     const newAsset: NewAsset = {
       mediaType: 'image/png',
       fileName: 'image.png',
@@ -77,7 +79,6 @@ describe('Database showcase repository tests', (): void => {
       content: Buffer.from('some binary data'),
     }
     asset = await assetRepository.create(newAsset)
-
     const newCredentialSchema: NewCredentialSchema = {
       name: 'example_name',
       version: 'example_version',
@@ -97,7 +98,6 @@ describe('Database showcase repository tests', (): void => {
       ],
     }
     const credentialSchema = await credentialSchemaRepository.create(newCredentialSchema)
-
     const newCredentialDefinition: NewCredentialDefinition = {
       name: 'example_name',
       version: 'example_version',
@@ -235,6 +235,11 @@ describe('Database showcase repository tests', (): void => {
     }
     issuanceScenario1 = await scenarioRepository.create(newIssuanceScenario)
     issuanceScenario2 = await scenarioRepository.create(newIssuanceScenario)
+    const tenantRepository = Container.get(TenantRepository)
+    const newTenant: NewTenant = {
+      id: '79a56be5-89bd-40dc-a6a7-fc035487e437'
+    }
+    tenant = await tenantRepository.create(newTenant)
   })
 
   afterEach(async (): Promise<void> => {
@@ -249,6 +254,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -286,6 +292,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [],
@@ -300,6 +307,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -315,6 +323,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [unknownPersonaId],
@@ -330,6 +339,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -346,6 +356,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [unknownScenarioId],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -360,6 +371,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -385,6 +397,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -408,6 +421,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -427,6 +441,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -463,6 +478,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -487,6 +503,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -512,6 +529,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -538,6 +556,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
@@ -563,6 +582,7 @@ describe('Database showcase repository tests', (): void => {
       description: 'example_description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenant.id,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],

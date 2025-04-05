@@ -7,15 +7,11 @@ import CredentialDefinitionRepository from '../../database/repositories/Credenti
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import { Application } from 'express'
-import { CredentialAttributeType, NewCredentialSchema, IdentifierType as DomainIdentifierType } from '../../types'
-import { CredentialDefinitionRequest, IdentifierType, CredentialType } from 'bc-wallet-openapi'
-import supertest = require('supertest')
+import { CredentialDefinitionRequest, CredentialType, IdentifierType } from 'bc-wallet-openapi'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import * as schema from '../../database/schema'
-import { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import DatabaseService from '../../services/DatabaseService'
+import supertest = require('supertest')
+import { createMockDatabaseService, createTestAsset, createTestCredentialSchema, setupTestDatabase } from './dbTestData'
 
 describe('CredentialDefinitionController Integration Tests', () => {
   let client: PGlite
@@ -23,12 +19,9 @@ describe('CredentialDefinitionController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
-    client = new PGlite()
-    const database = drizzle(client, { schema }) as unknown as NodePgDatabase
-    await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
-    const mockDatabaseService = {
-      getConnection: jest.fn().mockResolvedValue(database),
-    }
+    const { client: pgClient, database } = await setupTestDatabase()
+    client = pgClient
+    const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
     Container.get(AssetRepository)
@@ -48,34 +41,8 @@ describe('CredentialDefinitionController Integration Tests', () => {
 
   it('should create, retrieve, update, and delete a credential definition', async () => {
     // Create prerequisite: an asset and a credential schema
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
-
-    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const newCredentialSchema: NewCredentialSchema = {
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: DomainIdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        {
-          name: 'example_attribute_name1',
-          value: 'example_attribute_value1',
-          type: CredentialAttributeType.STRING,
-        },
-        {
-          name: 'example_attribute_name2',
-          value: 'example_attribute_value2',
-          type: CredentialAttributeType.STRING,
-        },
-      ],
-    }
-    const credentialSchema = await credentialSchemaRepository.create(newCredentialSchema)
+    const asset = await createTestAsset()
+    const credentialSchema = await createTestCredentialSchema()
 
     // Create a credential definition
     const createResponse = await request
