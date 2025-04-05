@@ -24,7 +24,6 @@ import StepHeader from '../step-header'
 import { LocalFileUpload } from "./local-file-upload";
 import ButtonOutline from '../ui/button-outline'
 
-
 import Loader from '../loader'
 
 import { toast } from 'sonner'
@@ -193,7 +192,7 @@ export const BasicStepAdd = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <Image src={currentStep.asset} alt={currentStep.title} className="w-full object-cover" />
+                <Image src={currentStep.asset} alt={currentStep.title} className="w-full object-cover" width={128} height={128} />
               </div>
             </div>
           )}
@@ -248,7 +247,6 @@ export const BasicStepAdd = () => {
               element="asset"
               existingAssetId={form.watch("asset")}
               handleLocalUpdate={(_, value) => {
-                console.log('Value',value);
                 if (!currentStep) return;
 
                 const updatedStep1 = {
@@ -256,7 +254,6 @@ export const BasicStepAdd = () => {
                   title: currentStep.title,
                   description: currentStep.description,
                   asset: value || undefined,
-                  // credentials: data.credentials || [],
                 };
                 updateStep(selectedStep || 0, updatedStep1);
 
@@ -267,17 +264,6 @@ export const BasicStepAdd = () => {
                 })
               }}
             />
-            {/* <LocalFileUpload
-              text={t('onboarding.icon_label')}
-              element="asset"
-              handleLocalUpdate={(_, value) =>
-                form.setValue('asset', value, {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                })
-              }
-            /> */}
             {form.formState.errors.asset && (
               <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
             )}
