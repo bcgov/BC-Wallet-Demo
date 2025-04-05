@@ -86,18 +86,6 @@ api_server:
       namespaceSelector: 
         network.openshift.io/policy-group: ingress
       podSelector: {}
-  openshift:
-    route:
-      enabled: false
-      path: "/"
-      targetPort: http
-      timeout: 2m
-      host: ""
-      tls:
-        enabled: true
-        insecureEdgeTerminationPolicy: Redirect
-        termination: edge
-      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false
@@ -160,18 +148,6 @@ traction_adapter:
       namespaceSelector: 
         network.openshift.io/policy-group: ingress
       podSelector: {}
-  openshift:
-    route:
-      enabled: false
-      path: "/"
-      targetPort: http
-      timeout: 2m
-      host: ""
-      tls:
-        enabled: true
-        insecureEdgeTerminationPolicy: Redirect
-        termination: edge
-      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false
@@ -222,18 +198,6 @@ demo_web:
       namespaceSelector: 
         network.openshift.io/policy-group: ingress
       podSelector: {}
-  openshift:
-    route:
-      enabled: false
-      path: "/"
-      targetPort: http
-      timeout: 2m
-      host: ""
-      tls:
-        enabled: true
-        insecureEdgeTerminationPolicy: Redirect
-        termination: edge
-      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false
@@ -289,18 +253,6 @@ showcase_creator:
       namespaceSelector: 
         network.openshift.io/policy-group: ingress
       podSelector: {}
-  openshift:
-    route:
-      enabled: false
-      path: "/"
-      targetPort: http
-      timeout: 2m
-      host: ""
-      tls:
-        enabled: true
-        insecureEdgeTerminationPolicy: Redirect
-        termination: edge
-      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false
@@ -356,18 +308,6 @@ demo_server:
       namespaceSelector: 
         network.openshift.io/policy-group: ingress
       podSelector: {}
-  openshift:
-    route:
-      enabled: false
-      path: "/"
-      targetPort: http
-      timeout: 2m
-      host: ""
-      tls:
-        enabled: true
-        insecureEdgeTerminationPolicy: Redirect
-        termination: edge
-      wildcardPolicy: None
   enabled: true
   serviceAccount:
     create: false

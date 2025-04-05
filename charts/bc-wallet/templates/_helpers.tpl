@@ -138,28 +138,6 @@ Define a FIXED auth token secret name that can be shared between frontend and ba
 bc-wallet-authtoken
 {{- end -}}
 
-{{/* 
-Generate api-server openshift route tls config
-*/}}
-{{- define "bc-wallet-showcase-builder.api-server.openshift.route.tls" -}}
-{{- if (.Values.api_server.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.api_server.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.api_server.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate traction-adapter openshift route tls config
-*/}}
-{{- define "bc-wallet-showcase-builder.traction-adapter.openshift.route.tls" -}}
-{{- if (.Values.traction_adapter.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.traction_adapter.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.traction_adapter.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
 {{/*
 Generate API Server host if not overridden
 */}}
@@ -212,38 +190,5 @@ Generate Demo Server host if not overridden
 {{- .Values.demo_server.openshift.route.host -}}
 {{- else -}}
 {{- printf "%s-%s%s" .Release.Name "demo-server" .Values.ingressSuffix -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate demo-web openshift route tls config
-*/}}
-{{- define "bc-wallet-showcase-builder.demo-web.openshift.route.tls" -}}
-{{- if (.Values.demo_web.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.demo_web.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.demo_web.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate showcase-creator openshift route tls config
-*/}}
-{{- define "bc-wallet-showcase-builder.showcase-creator.openshift.route.tls" -}}
-{{- if (.Values.showcase_creator.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.showcase_creator.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.showcase_creator.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate demo-server openshift route tls config
-*/}}
-{{- define "bc-wallet-showcase-builder.demo-server.openshift.route.tls" -}}
-{{- if (.Values.demo_server.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.demo_server.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.demo_server.openshift.route.tls.termination }}
 {{- end -}}
 {{- end -}}
