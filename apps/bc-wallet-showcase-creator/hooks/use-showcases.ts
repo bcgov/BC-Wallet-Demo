@@ -28,7 +28,6 @@ export const useShowcase = (slug  : string) => {
 
 export const useUpdateShowcase = (slug: string) => {
   const queryClient = useQueryClient();
-  console.log('useUpdateShowcase', slug);
   return useMutation({
     mutationFn: async (data: ShowcaseRequest) => {
       if (!slug) {

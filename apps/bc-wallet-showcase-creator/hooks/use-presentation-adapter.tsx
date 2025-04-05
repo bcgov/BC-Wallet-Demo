@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react'
-import type { Persona, ShowcaseRequestType, StepRequestType } from '@/openapi-types'
+import { useCallback } from 'react'
+import type { ShowcaseRequestType, StepRequestType } from '@/openapi-types'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/lib/apiService'
-import { useHelpersStore } from './use-helpers-store'
 import { usePresentationCreation } from './use-presentation-creation'
+import type {  Persona } from 'bc-wallet-openapi'
 
 export const usePresentationAdapter = () => {
   const {
@@ -31,8 +31,7 @@ export const usePresentationAdapter = () => {
     selectStep,
   } = usePresentationCreation()
 
-  const { displayShowcase, setShowcase, showcase } = useShowcaseStore()
-  const { selectedCredentialDefinitionIds } = useHelpersStore()
+  const { displayShowcase } = useShowcaseStore()
   const queryClient = useQueryClient()
 
   const getCurrentSteps = useCallback(() => {
@@ -107,38 +106,6 @@ export const usePresentationAdapter = () => {
     },
   })
 
-  const saveShowcase = useCallback(
-    async (data: ShowcaseRequestType) => {
-      try {
-        const showcaseData = {
-          name: data.name,
-          description: data.description,
-          status: data.status || 'ACTIVE',
-          hidden: data.hidden || false,
-          scenarios: showcase.scenarios,
-          credentialDefinitions: selectedCredentialDefinitionIds,
-          personas: selectedPersonas.map((p: Persona) => p.id),
-          bannerImage: data.bannerImage,
-        }
-
-        const updatedShowcase = await updateShowcaseMutation.mutateAsync(showcaseData)
-        setShowcase(showcaseData)
-        return updatedShowcase
-      } catch (error) {
-        console.error('Error saving showcase:', error)
-        throw error
-      }
-    },
-    [
-      displayShowcase,
-      selectedPersonas,
-      updateShowcaseMutation,
-      setShowcase,
-      showcase.scenarios,
-      selectedCredentialDefinitionIds,
-    ],
-  )
-
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
   // const handleSelectStep = useCallback(
@@ -199,7 +166,6 @@ export const usePresentationAdapter = () => {
     scenarios:
       activePersonaId && personaScenarios.has(activePersonaId) ? personaScenarios.get(activePersonaId) || [] : [],
     personaScenarios,
-    saveShowcase,
     isSaving: updateShowcaseMutation.isPending,
     duplicateScenario,
     activeScenarioIndex,

@@ -24,7 +24,7 @@ export const SortableStep = ({
   scenarioIndex: number
 }) => {
   const t = useTranslations()
-  const { handleSelectStep, duplicateStep, activePersonaId, setSelectedStep, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
+  const { handleSelectStep, duplicateStep, activePersonaId, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
 
   const { selectedCredential } = useCredentials()
 

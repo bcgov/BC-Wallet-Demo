@@ -5,8 +5,8 @@ import { PublishInfo } from '@/components/publish-screen/publish-info'
 import TabsComponent from '@/components/Tabs-component'
 import { usePersonas } from '@/hooks/use-personas'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { Persona } from '@/openapi-types'
 import { useTranslations } from 'next-intl'
+import { Persona } from 'bc-wallet-openapi'
 
 export default function CreateOnboardingPage() {
   const t = useTranslations()
@@ -14,7 +14,7 @@ export default function CreateOnboardingPage() {
   const { selectedPersonaIds } = useShowcaseStore()
   const { data: personas } = usePersonas()
 
-  const personasToDisplay = personas?.personas.filter((persona) => selectedPersonaIds.includes(persona.id))
+  const personasToDisplay = (personas?.personas || []).filter((persona) => selectedPersonaIds.includes(persona.id))
 
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">

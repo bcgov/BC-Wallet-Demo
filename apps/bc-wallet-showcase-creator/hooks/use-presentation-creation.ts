@@ -2,11 +2,12 @@ import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
 import { useEffect } from 'react'
-import type { Persona, StepRequestType, AriesOOBActionRequest, PresentationScenarioRequestType } from '@/openapi-types'
+import type { StepRequestType, AriesOOBActionRequest, PresentationScenarioRequestType } from '@/openapi-types'
 import { sampleAction } from '@/lib/steps'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
+import type { Persona } from 'bc-wallet-openapi'
 
 enableMapSet()
 

@@ -6,6 +6,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node -r dotenv/config src/index.ts dotenv_config_path=.env",
+    "dev": "tsnd -r dotenv/config --respawn src/index.ts dotenv_config_path=.env",
     "build": "rimraf build && tsc && copyfiles -u 1 src/public/**/* build",
     "build:clean": "tsc --build --clean && tsc --build",
     "test": "echo \"Error: no test specified\" && exit 1"

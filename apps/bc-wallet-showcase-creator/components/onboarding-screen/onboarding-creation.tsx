@@ -1,26 +1,23 @@
 'use client'
 
-import { SortableStep } from '@/components/onboarding-screen/sortable-step'
-import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
-import { cn, baseUrl } from '@/lib/utils'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { useRouter } from '@/i18n/routing'
 import type { Persona } from 'bc-wallet-openapi'
-
-import { Button } from '../ui/button'
-import { usePersonas } from '@/hooks/use-personas'
+import { Button } from '@/components/ui/button'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { useRouter } from '@/i18n/routing'
+import { SortableStep } from '@/components/onboarding-screen/sortable-step'
+import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
+import { cn, baseUrl } from '@/lib/utils'
 
 export const CreateOnboardingScreen = () => {
   const t = useTranslations()
   const { steps, selectedStep, moveStep, setStepState, personas, activePersonaId, setActivePersonaId, activePersona } =
     useOnboardingAdapter()
   const { selectedPersonaIds } = useShowcaseStore()
-  const { data: personasData } = usePersonas()
   const router = useRouter()
 
   const handleDragEnd = (event: DragEndEvent) => {

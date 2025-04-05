@@ -4,9 +4,7 @@ import React, { useState } from 'react'
 
 import { useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
-import type { Showcase } from '@/openapi-types'
-import { Share2 } from 'lucide-react'
-import { Search } from 'lucide-react'
+import type { Showcase } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
@@ -16,8 +14,6 @@ import { Card } from '../ui/card'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
-import { Input } from '../ui/input'
-import { SidebarTrigger } from '../ui/sidebar'
 
 export const LandingPage = () => {
   const t = useTranslations()
@@ -66,7 +62,7 @@ export const LandingPage = () => {
       )}
       <section className="mx-auto p-4">
         <div className="grid md:grid-cols-3 gap-6 mt-6 pb-4">
-          {data?.showcases.filter(searchFilter).map((showcase: Showcase) => (
+          {(data?.showcases || []).filter(searchFilter).map((showcase: Showcase) => (
             <Card key={showcase.id}>
               <div
                 key={showcase.id}

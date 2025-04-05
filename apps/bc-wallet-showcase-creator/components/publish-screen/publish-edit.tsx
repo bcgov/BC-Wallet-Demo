@@ -2,26 +2,23 @@
 
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useCreateAsset } from '@/hooks/use-asset'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { Link, useRouter } from '@/i18n/routing'
+import { useRouter } from '@/i18n/routing'
 import { convertBase64 } from '@/lib/utils'
-import type { ShowcaseRequestType } from '@/openapi-types'
-import { ShowcaseRequest } from '@/openapi-types'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Monitor, X } from 'lucide-react'
-import { Trash2 } from 'lucide-react'
+import { Monitor, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { FormTextArea, FormTextInput } from '../text-input'
 import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-
 import { toast } from 'sonner'
 import Image from 'next/image'
+import { ShowcaseRequest, ShowcaseStatus } from 'bc-wallet-openapi'
+import { z } from 'zod'
 
-import { Button } from '../ui/button'
+import { ConfirmationDialog } from '@/components/confirmation-dialog'
 
 const BannerImageUpload = ({
   text,
@@ -33,8 +30,7 @@ const BannerImageUpload = ({
   onChange: (value: string) => void
 }) => {
   const t = useTranslations()
-  const [ preview, setPreview ] = useState<string | null>(value || null)
-  const { mutateAsync: createAsset } = useCreateAsset()
+  const [preview, setPreview] = useState<string | null>(value || null)
 
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
@@ -105,16 +101,23 @@ const BannerImageUpload = ({
   )
 }
 
+const ShowcaseRequestSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  status: z.nativeEnum(ShowcaseStatus),
+  hidden: z.boolean(),
+  tenantId: z.string().min(1),
+})
+
 export const PublishEdit = () => {
   const t = useTranslations()
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const { showcase, reset } = useShowcaseStore()
   const router = useRouter()
   const { saveShowcase } = useOnboardingAdapter()
   const { personas } = useOnboardingAdapter()
 
-  const form = useForm<ShowcaseRequestType>({
-    resolver: zodResolver(ShowcaseRequest),
+  const form = useForm<ShowcaseRequest>({
+    resolver: zodResolver(ShowcaseRequestSchema),
     mode: 'all',
     defaultValues: {
       name: '',
@@ -123,7 +126,6 @@ export const PublishEdit = () => {
       hidden: false,
       tenantId: 'test-tenant-1',
       scenarios: [],
-      credentialDefinitions: [],
       personas: [],
     },
   })
@@ -133,7 +135,6 @@ export const PublishEdit = () => {
       ...showcase,
       name: showcase.name || '',
       description: showcase.description || '',
-      credentialDefinitions: showcase.credentialDefinitions || [],
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
       tenantId: 'test-tenant-1',
@@ -145,7 +146,6 @@ export const PublishEdit = () => {
     await saveShowcase(data)
     toast.success('Showcase created successfully')
     reset()
-    setIsModalOpen(false)
     router.push('/showcases')
   }
 
@@ -205,53 +205,22 @@ export const PublishEdit = () => {
               <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline>
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                size="lg"
+              <ConfirmationDialog
+                title="Submit for Review?"
+                content={<>
+                  {t('showcase.modal_description')}
+                  <br />
+                  {t('showcase.modal_description2')}
+                </>
+                }
+                buttonLabel={t('showcase.button_label')}
+                onSubmit={onSubmit}
                 disabled={!form.formState.isValid || !form.formState.isDirty}
-                onClick={(e) => {
-                  e.preventDefault()
-                  setIsModalOpen(true)
-                }}
-                className="px-6 bg-yellow-500 py-2 rounded text-gray-700 font-bold hover:bg-yellow-400 dark:bg-yellow-500 dark:hover:bg-yellow-600"
-              >
-                {t('showcase.button_label')}
-              </Button>
+              />
             </div>
           </div>
         </form>
       </Form>
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className=" flex flex-col justify-between bg-white p-4 rounded shadow-lg max-w-[40%] text-center">
-            <div>
-              <div className="flex items-center justify-between border-b border-gray-300 pb-4">
-                <h3 className="text-lg font-semibold flex gap-2 items-center">{'Submit for Review?'}</h3>
-                <X onClick={() => setIsModalOpen(false)} size={22} className="cursor-pointer ml-4" />
-              </div>
-              <div className="py-4">
-                <p className="mt-2 text-gray-600 text-start">{t('showcase.modal_description')}</p>
-                <p className="text-start font-base font-bold">{t('showcase.modal_description2')}</p>
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end gap-2 border-t pt-3 border-gray-300">
-              <button onClick={() => setIsModalOpen(false)} type="button" className="px-4 py-2 text-gray-700 rounded">
-                {t('action.cancel_label')}
-              </button>
-
-              <ButtonOutline
-                type="submit"
-                className="bg-yellow-500 border-light-yellow hover:bg-yellow-500"
-                onClick={() => {
-                  onSubmit()
-                }}
-              >
-                {t('showcase.modal_button')}
-              </ButtonOutline>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
