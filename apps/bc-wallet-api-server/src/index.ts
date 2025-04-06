@@ -53,8 +53,9 @@ async function bootstrap() {
           }
           // Throws error if the token is invalid. it validates claims and signature
           await keycloak.grantManager.validateToken(grant.access_token as Token, 'Bearer')
+          // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
+          // User roles which at the moment we are not using, do not need any prefix.
           return checkRoles(grant.access_token, roles)
-          //console.log(grant.access_token?.hasRole('showcase-tenantA:SHOWCASE_ADMIN'))
         } catch (e: any) {
           return false
         }
