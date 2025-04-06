@@ -111,9 +111,6 @@ importers:
       express:
         specifier: ^4.21.2
         version: 4.21.2
-      jwt-decode:
-        specifier: ^4.0.0
-        version: 4.0.0
       keycloak-connect:
         specifier: ^26.1.1
         version: 26.1.1
@@ -6530,10 +6527,6 @@ packages:
 
   jwk-to-pem@2.0.7:
     resolution: {integrity: sha512-cSVphrmWr6reVchuKQZdfSs4U9c5Y4hwZggPoz6cbVnTpAVgGRpEuQng86IyqLeGZlhTh+c4MAreB6KbdQDKHQ==}
-
-  jwt-decode@4.0.0:
-    resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
-    engines: {node: '>=18'}
 
   kbar@0.1.0-beta.45:
     resolution: {integrity: sha512-kXvjthqPLoWZXlxLJPrFKioskNdQv1O3Ukg5mqq2ExK3Ix1qvYT3W/ACDRIv/e/CHxPWZoTriB4oFbQ6UCSX5g==}
@@ -17230,8 +17223,6 @@ snapshots:
       asn1.js: 5.4.1
       elliptic: 6.6.1
       safe-buffer: 5.2.1
-
-  jwt-decode@4.0.0: {}
 
   kbar@0.1.0-beta.45(@types/react-dom@18.3.0)(@types/react@18.3.12)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:

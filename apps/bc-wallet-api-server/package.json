@@ -17,7 +17,6 @@
     "dotenv-flow": "^4.1.0",
     "drizzle-orm": "^0.39.3",
     "express": "^4.21.2",
-    "jwt-decode": "^4.0.0",
     "keycloak-connect": "^26.1.1",
     "nanoid": "3.3.6",
     "pg": "8.14.0",
