@@ -13,6 +13,7 @@ import { Card } from '../ui/card'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
+import { env } from '@/env'
 
 export const LandingPage = () => {
   const t = useTranslations()
@@ -27,12 +28,12 @@ export const LandingPage = () => {
   }
 
   const handlePreview = (slug: string) => {
-  const previewUrl = `${process.env.NEXT_PUBLIC_WALLET_URL}/${slug}`
+  const previewUrl = `${env.WALLET_URL}/${slug}`
     window.open(previewUrl, '_blank')
   }
 
   const handleOpen = (slug: string) => {
-    const openUrl = `${process.env.NEXT_PUBLIC_WALLET_URL}/${slug}`
+    const openUrl = `${env.WALLET_URL}/${slug}`
     window.open(openUrl, '_blank')
   }
 
@@ -77,8 +78,8 @@ export const LandingPage = () => {
                             console.log('delete', showcase.id)
                           }}
                         />
-                        <CopyButton value={`${process.env.NEXT_PUBLIC_WALLET_URL}/${showcase.slug}`} />
-                        <OpenButton value={`${process.env.NEXT_PUBLIC_WALLET_URL}/${showcase.slug}`} />
+                        <CopyButton value={`${env.WALLET_URL}/${showcase.slug}`} />
+                        <OpenButton value={`${env.WALLET_URL}/${showcase.slug}`} />
                       </div>
                     </div>
                   </div>

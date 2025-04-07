@@ -14,6 +14,7 @@ import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import { env } from '@/env'
 
 import Header from '../header'
 export const ShowcaseList = () => {
@@ -153,8 +154,8 @@ export const ShowcaseList = () => {
                                 console.log('delete', showcase.id)
                               }}
                             />
-                            <CopyButton value={`${process.env.NEXT_PUBLIC_WALLET_URL}/${showcase.slug}`} />
-                            <OpenButton value={`${process.env.NEXT_PUBLIC_WALLET_URL}/${showcase.slug}`} />
+                            <CopyButton value={`${env.WALLET_URL}/${showcase.slug}`} />
+                            <OpenButton value={`${env.WALLET_URL}/${showcase.slug}`} />
                           </div>
                         </div>
                       </div>
