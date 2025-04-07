@@ -139,7 +139,7 @@ describe('ShowcaseController Integration Tests', () => {
       description: 'Test description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
-      tenantId: '79a56be5-89bd-40dc-a6a7-fc035487e437',
+      tenantId: tenantId,
       scenarios: [nonExistentId],
       personas: [nonExistentId],
     }
