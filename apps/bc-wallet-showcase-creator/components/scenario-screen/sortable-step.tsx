@@ -1,5 +1,6 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
+import { useScenarios } from '@/hooks/use-scenarios'
 import { cn, baseUrl } from '@/lib/utils'
 import type { StepType } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
