@@ -137,10 +137,12 @@ showcase_creator:
   port: 3050
   path: /
   env:
-    APP_NAME: bc-wallet-showcase-creator
-    LOG_LEVEL: debug
     NEXT_PUBLIC_WALLET_URL: https://digital.gov.bc.ca/digital-trust/showcase
     NEXT_PUBLIC_SHOWCASE_BACKEND: https://bcshowcase-api.dev.nborbit.ca
+    AUTH_SECRET: ""
+    AUTH_KEYCLOAK_ID: "showcase-tenantA"
+    AUTH_KEYCLOAK_SECRET: ""
+    AUTH_KEYCLOAK_ISSUER="https://auth01.test.sphereon.com/auth/realms/BC"
   resources:
     limits:
       cpu: 200m
