@@ -1,12 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
-
 import { useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
 import type { Showcase } from '@/openapi-types'
-import { Share2 } from 'lucide-react'
-import { Search } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
@@ -29,15 +26,27 @@ export const LandingPage = () => {
     return showcase.name.toLowerCase().includes(searchTerm.toLowerCase())
   }
 
+  const handlePreview = (slug: string) => {
+  const previewUrl = `${process.env.NEXT_PUBLIC_WALLET_URL}/${slug}`
+    window.open(previewUrl, '_blank')
+  }
+
+  const handleOpen = (slug: string) => {
+    const openUrl = `${process.env.NEXT_PUBLIC_WALLET_URL}/${slug}`
+    window.open(openUrl, '_blank')
+  }
+
   return (
     <>
       <Header title={t('home.header_title')} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
       {isLoading && (
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
           {t('showcases.loading_label')}
         </div>
       )}
+
       <section className="mx-auto p-4">
         <div className="grid md:grid-cols-3 gap-6 mt-6 pb-4">
           {data?.showcases.filter(searchFilter).map((showcase: Showcase) => (
@@ -68,8 +77,8 @@ export const LandingPage = () => {
                             console.log('delete', showcase.id)
                           }}
                         />
-                        <CopyButton value={'http://localhost:3000/digital-trust/showcase/' + showcase.slug} />
-                        <OpenButton value={'http://localhost:3000/digital-trust/showcase/' + showcase.slug} />
+                        <CopyButton value={`${process.env.NEXT_PUBLIC_WALLET_URL}/${showcase.slug}`} />
+                        <OpenButton value={`${process.env.NEXT_PUBLIC_WALLET_URL}/${showcase.slug}`} />
                       </div>
                     </div>
                   </div>
@@ -115,8 +124,12 @@ export const LandingPage = () => {
                   </div>
 
                   <div className="flex gap-4 mt-auto">
-                    <ButtonOutline className="w-1/2">{t('action.preview_label')}</ButtonOutline>
-                    <ButtonOutline className="w-1/2">{t('action.create_copy_label')}</ButtonOutline>
+                    <ButtonOutline className="w-1/2" onClick={() => handlePreview(showcase.slug)}>
+                      {t('action.preview_label')}
+                    </ButtonOutline>
+                    <ButtonOutline className="w-1/2" onClick={() => handleOpen(showcase.slug)}>
+                      {t('action.create_copy_label')}
+                    </ButtonOutline>
                   </div>
                 </div>
               </div>

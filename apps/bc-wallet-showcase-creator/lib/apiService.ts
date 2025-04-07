@@ -62,7 +62,9 @@ class ApiService {
   }
 }
 
-// Create an instance with the actual API base URL
-const apiClient = new ApiService(process.env.SHOWCASE_BACKEND ?? 'https://bcshowcase-api.dev.nborbit.ca')
+if (!process.env.NEXT_PUBLIC_SHOWCASE_BACKEND) {
+  throw new Error('SHOWCASE_BACKEND environment variable is not defined')
+}
+const apiClient = new ApiService(process.env.NEXT_PUBLIC_SHOWCASE_BACKEND)
 
 export default apiClient
