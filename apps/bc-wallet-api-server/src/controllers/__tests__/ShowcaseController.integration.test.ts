@@ -142,7 +142,6 @@ describe('ShowcaseController Integration Tests', () => {
       tenantId: '79a56be5-89bd-40dc-a6a7-fc035487e437',
       scenarios: [nonExistentId],
       personas: [nonExistentId],
-      tenantId: tenantId,
     }
 
     await request.post('/showcases').send(invalidShowcaseRequest2).expect(404)
