@@ -139,8 +139,8 @@ showcase_creator:
   env:
     APP_NAME: bc-wallet-showcase-creator
     LOG_LEVEL: debug
-    NEXT_PUBLIC_WALLET_URL: 'https://digital.gov.bc.ca/digital-trust/showcase'
-    NEXT_PUBLIC_SHOWCASE_BACKEND: 'https://bcshowcase-api.dev.nborbit.ca'
+    NEXT_PUBLIC_WALLET_URL: https://digital.gov.bc.ca/digital-trust/showcase
+    NEXT_PUBLIC_SHOWCASE_BACKEND: https://bcshowcase-api.dev.nborbit.ca
   resources:
     limits:
       cpu: 200m

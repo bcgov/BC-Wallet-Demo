@@ -21,4 +21,3 @@ export const convertBase64 = (file: File): Promise<string> => {
 }
 
 export const baseUrl = process.env.NEXT_PUBLIC_SHOWCASE_BACKEND
-export const WALLET_URL = process.env.NEXT_PUBLIC_WALLET_URL
