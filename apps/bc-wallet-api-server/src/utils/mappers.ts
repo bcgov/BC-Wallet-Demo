@@ -41,7 +41,7 @@ import {
   Step,
   StepActionType,
   StepActionTypes,
-  User,
+  User
 } from '../types'
 
 export const newAssetFrom = (asset: AssetRequestDTO): NewAsset => {

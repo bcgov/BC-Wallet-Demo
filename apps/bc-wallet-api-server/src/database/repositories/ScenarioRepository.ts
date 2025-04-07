@@ -610,6 +610,13 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
   async createStep(scenarioId: string, step: NewStep): Promise<Step> {
     await this.findById(scenarioId)
 
+
+    const credentialDefinitionIdResult =
+      step.credentialDefinitionIdentifier && step.credentialDefinitionIdentifierType
+        ? await this.credentialDefinitionRepository.findIdByIdentifier(step.credentialDefinitionIdentifier, step.credentialDefinitionIdentifierType)
+        : null
+
+
     const assetResult = step.asset ? await this.assetRepository.findById(step.asset) : null
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<Step> => {
       const [stepResult] = await tx
@@ -656,6 +663,11 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
 
   async updateStep(scenarioId: string, stepId: string, step: NewStep): Promise<Step> {
     await this.findById(scenarioId)
+
+    const credentialDefinitionIdResult =
+      step?.credentialDefinitionIdentifier && step?.credentialDefinitionIdentifierType
+        ? await this.credentialDefinitionRepository.findIdByIdentifier(step.credentialDefinitionIdentifier, step.credentialDefinitionIdentifierType)
+        : null
 
     const assetResult = step.asset ? await this.assetRepository.findById(step.asset) : null
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<Step> => {

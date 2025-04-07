@@ -13,6 +13,7 @@ import {
   showcases,
   stepActions,
   steps,
+  tenant,
   users,
 } from '../../database/schema'
 import { tenant } from '../../database/schema/tenant'
