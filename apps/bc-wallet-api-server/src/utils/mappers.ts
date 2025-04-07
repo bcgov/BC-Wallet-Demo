@@ -41,7 +41,7 @@ import {
   Step,
   StepActionType,
   StepActionTypes,
-  User,
+  User
 } from '../types'
 
 export const newAssetFrom = (asset: AssetRequestDTO): NewAsset => {
@@ -205,9 +205,9 @@ export const stepActionDTOFrom = (stepAction: StepActionTypes): StepActionDTO =>
 export const stepDTOFrom = (step: Step): StepDTO => {
   return {
     ...step,
-    actions: step.actions.map(stepActionDTOFrom),
+    actions: step.actions?.map(stepActionDTOFrom),
     asset: step.asset ? assetDTOFrom(step.asset) : undefined,
-    subScenario: step.subScenario || undefined
+    subScenario: step.subScenario || undefined,
   }
 }
 

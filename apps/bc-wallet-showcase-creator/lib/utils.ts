@@ -5,12 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const convertBase64 = (file: File) => {
+export const convertBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const fileReader = new FileReader()
     fileReader.readAsDataURL(file)
     fileReader.onload = () => {
-      resolve(fileReader.result)
+      // Cast result to string and remove the prefix
+      const base64WithPrefix = fileReader.result as string
+      const base64 = base64WithPrefix.split('base64,')[1]
+      resolve(base64)
     }
     fileReader.onerror = (error) => {
       reject(error)
@@ -18,27 +21,4 @@ export const convertBase64 = (file: File) => {
   })
 }
 
-export function ensureBase64HasPrefix(base64String: string) {
-  if (!base64String) return '' // Return empty if it's undefined or null
-
-  // Check if it already contains the data URI prefix
-  if (base64String.startsWith('data:image/')) {
-    return base64String
-  }
-
-  // Detect if it's a valid Base64-encoded image (PNG, JPEG, GIF, etc.)
-  if (base64String.startsWith('iVBORw0KGgoAAAANSUhEU')) {
-    return `data:image/png;base64,${base64String}`
-  } else if (base64String.startsWith('/9j/')) {
-    return `data:image/jpeg;base64,${base64String}`
-  } else if (base64String.startsWith('R0lGOD')) {
-    return `data:image/gif;base64,${base64String}`
-  } else if (base64String.startsWith('UklGR')) {
-    return `data:image/webp;base64,${base64String}`
-  }
-
-  // Default fallback (if format is unknown)
-  return `data:image/png;base64,${base64String}`
-}
-
-
+export const baseUrl = process.env.SHOWCASE_BACKEND ?? 'https://bcshowcase-api.dev.nborbit.ca'
