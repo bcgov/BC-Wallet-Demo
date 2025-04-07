@@ -1,4 +1,5 @@
 import { env } from "@/env";
+
 class ApiService {
   private baseUrl: string
 
@@ -63,6 +64,6 @@ class ApiService {
   }
 }
 
-const apiClient = new ApiService(env.SHOWCASE_BACKEND)
+const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_BACKEND)
 
 export default apiClient

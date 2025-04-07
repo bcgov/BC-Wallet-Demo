@@ -7,8 +7,13 @@ export const env = createEnv({
     AUTH_KEYCLOAK_ID: z.string().min(1),
     AUTH_KEYCLOAK_SECRET: z.string().min(1),
     AUTH_KEYCLOAK_ISSUER: z.string().url(),
-    SHOWCASE_BACKEND: z.string().url(),
-    WALLET_URL: z.string().url(),
   },
-  experimental__runtimeEnv: process.env,
+  client: {
+    NEXT_PUBLIC_WALLET_URL: z.string().url(),
+    NEXT_PUBLIC_SHOWCASE_BACKEND: z.string().url(),
+  },
+  experimental__runtimeEnv: {
+    NEXT_PUBLIC_WALLET_URL: process.env.NEXT_PUBLIC_WALLET_URL,
+    NEXT_PUBLIC_SHOWCASE_BACKEND: process.env.NEXT_PUBLIC_SHOWCASE_BACKEND,
+  },
 });

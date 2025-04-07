@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { env } from "@/env";
+import { env } from '@/env'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -21,4 +21,4 @@ export const convertBase64 = (file: File): Promise<string> => {
   })
 }
 
-export const baseUrl = env.SHOWCASE_BACKEND
+export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_BACKEND || 'https://bcshowcase-api.dev.nborbit.ca'
