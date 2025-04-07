@@ -10,7 +10,6 @@ export const convertBase64 = (file: File): Promise<string> => {
     const fileReader = new FileReader()
     fileReader.readAsDataURL(file)
     fileReader.onload = () => {
-      // Cast result to string and remove the prefix
       const base64WithPrefix = fileReader.result as string
       const base64 = base64WithPrefix.split('base64,')[1]
       resolve(base64)
@@ -21,4 +20,5 @@ export const convertBase64 = (file: File): Promise<string> => {
   })
 }
 
-export const baseUrl = process.env.SHOWCASE_BACKEND ?? 'https://bcshowcase-api.dev.nborbit.ca'
+export const baseUrl = process.env.NEXT_PUBLIC_SHOWCASE_BACKEND
+export const WALLET_URL = process.env.NEXT_PUBLIC_WALLET_URL
