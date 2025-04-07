@@ -1,11 +1,9 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
-import { usePresentations } from '@/hooks/use-presentation'
-import { useShowcaseStore } from '@/hooks/use-showcase-store'
-import { cn, ensureBase64HasPrefix } from '@/lib/utils'
-import type { Step } from '@/openapi-types'
+import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
+import { cn, baseUrl } from '@/lib/utils'
+import type { StepType } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { produce } from 'immer'
 import { Copy, GripVertical } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -16,19 +14,22 @@ export const SortableStep = ({
   selectedStep,
   myScreen,
   stepIndex,
+  scenarioIndex,
+  totalSteps,
 }: {
-  selectedStep: number | null
-  myScreen: typeof Step._type
+  selectedStep: { stepIndex: number, scenarioIndex: number } | null
+  myScreen: StepType
   stepIndex: number
   totalSteps: number
+  scenarioIndex: number
 }) => {
   const t = useTranslations()
-  const { setSelectedStep, setStepState } = usePresentations()
-  const { selectedCharacter } = useShowcaseStore()
+  const { handleSelectStep, duplicateStep, activePersonaId, setSelectedStep, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
 
   const { selectedCredential } = useCredentials()
+
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: myScreen.id,
+    id: myScreen.id || `step-${scenarioIndex}-${stepIndex}`,
   })
 
   const style = {
@@ -37,37 +38,40 @@ export const SortableStep = ({
   }
 
   const handleStepClick = () => {
-    setSelectedStep(stepIndex - 1)
-    const ScreenType = myScreen.type
-    setStepState(ScreenType == 'SERVICE' ? 'editing-issue' : 'editing-basic')
+    console.log('Step clicked!', {
+      stepIndex,
+      scenarioIndex,
+      myScreen: {
+        type: myScreen.type,
+      title: myScreen.title
+    }
+  });
+
+    handleSelectStep(stepIndex, scenarioIndex)
+  setStepState('editing-issue');
+
+    if (activeScenarioIndex !== scenarioIndex) {
+    setActiveScenarioIndex(scenarioIndex);
   }
+};
 
-  const handleCopyStep = (index: number) => {
+  const handleCopyStep = (stepIndex: number, scenarioIndex: number) => {
     try {
-      const { screens } = usePresentations.getState()
+      console.log('Duplicating step:', { stepIndex, scenarioIndex })
 
-      if (!screens[index]) return
+      if (!activePersonaId) {
+        console.error('Cannot duplicate - no active persona')
+        return
+      }
 
-      const stepToCopy = screens[index]
+      duplicateStep(stepIndex)
 
-      const newStep = JSON.parse(JSON.stringify(stepToCopy))
-      newStep.id = `${Date.now()}` // Ensure a unique ID
-
-      usePresentations.setState(
-        produce((state) => {
-          state.screens.splice(index + 1, 0, newStep)
-          state.selectedStep = index + 1
-
-          useShowcaseStore.setState((draft) => {
-            draft.showcaseJSON.personas[selectedCharacter].onboarding = JSON.parse(JSON.stringify(state.screens))
-          })
-        })
-      )
+      handleSelectStep(stepIndex + 1, scenarioIndex)
     } catch (error) {
-      console.log('Error ', error)
+      console.error('Error duplicating step:', error)
     }
   }
-  // console.log('myScreenmyScreen',myScreen);
+
   return (
     <div
       ref={setNodeRef}
@@ -84,11 +88,10 @@ export const SortableStep = ({
             <GripVertical />
           </div>
 
-          {/* Copy Step on Click */}
           <div
             onClick={(e) => {
-              e.stopPropagation() // Prevent drag interference
-              handleCopyStep(stepIndex - 1)
+              e.stopPropagation()
+              handleCopyStep(stepIndex, scenarioIndex)
             }}
             className="text-white text-2xl flex flex-col gap-2 cursor-pointer"
           >
@@ -102,7 +105,7 @@ export const SortableStep = ({
             'min-h-28  w-full hover:bg-light-btn-hover dark:hover:bg-dark-btn-hover',
             'flex flex-col justify-center rounded p-3',
             'border-b-2 border-light-border dark:border-dark-border',
-            selectedStep === stepIndex - 1 ? 'border-foreground' : 'border-light-bg-secondary'
+            selectedStep?.stepIndex === stepIndex ? 'border-foreground' : 'border-light-bg-secondary',
           )}
         >
           <span className="font-semibold">{myScreen.title}</span>
@@ -119,19 +122,18 @@ export const SortableStep = ({
           {myScreen.type == 'SERVICE' && (
             <>
               {!selectedCredential ? (
-                <>
-                  {/* <div className="bg-[#FFE6AB] mt-2 font-bold rounded gap-2 flex flex-row items-center justify-center">
-               <TriangleAlert fill={'#FFCB00'} size={22}/>
-               Select Credential to Proceed
-             </div> */}
-                </>
+                <>{/* Optional warning message could go here */}</>
               ) : (
                 <>
                   {selectedCredential && (
                     <div className="bg-white dark:bg-dark-bg-secondary p-2 flex">
                       <Image
-                        src={ensureBase64HasPrefix(selectedCredential.icon?.content)}
-                        alt={'Bob'}
+                        src={
+                          selectedCredential.icon?.id
+                            ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
+                            : '/assets/no-image.jpg'
+                        }
+                        alt={selectedCredential.icon?.description || 'Credential icon'}
                         width={50}
                         height={50}
                         className="rounded-full"

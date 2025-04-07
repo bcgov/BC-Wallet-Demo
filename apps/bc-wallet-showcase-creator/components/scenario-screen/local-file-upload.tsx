@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 
 import { useAssetById, useCreateAsset } from '@/hooks/use-asset'
-import { convertBase64 } from '@/lib/utils'
+import { convertBase64, baseUrl } from '@/lib/utils'
 import type { AssetResponseType } from '@/openapi-types'
 import { Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-
+import Image from 'next/image'
 interface LocalFileUploadProps {
   text: string
   element: string
@@ -18,20 +18,17 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
   const [preview, setPreview] = useState<string | null>(null)
   const { mutateAsync: createAsset } = useCreateAsset()
 
-  const { data: response, isLoading } = useAssetById(existingAssetId || "") as { 
+  const { data: response } = useAssetById(existingAssetId || "") as { 
     data?: AssetResponseType; 
     isLoading: boolean 
   };
 
-  // Clear and reset preview when existingAssetId changes
   useEffect(() => {
-    // Clear preview when existingAssetId is removed
     if (!existingAssetId) {
-      setPreview(null);
+      setPreview(null)
     }
-  }, [existingAssetId]);
+  }, [existingAssetId])
 
-  // Set preview when response changes
   useEffect(() => {
     if (response?.asset?.content) {
       setPreview(response.asset.content);
@@ -47,18 +44,19 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
             {
               content: base64,
               mediaType: newValue.type,
+              fileName: newValue.name,
             },
             {
               onSuccess: (data: unknown) => {
-                console.log('onSuccess', data)
                 const response = data as AssetResponseType
+
                 setPreview(base64)
                 handleLocalUpdate(element, response.asset.id)
               },
               onError: (error) => {
                 console.error('Error creating asset:', error)
               },
-            }
+            },
           )
         }
       } catch (error) {
@@ -98,10 +96,10 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
       >
         <div className="flex flex-col items-center h-full justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
           {preview ? (
-            <img
+            <Image
               alt={`${text} preview`}
               className="right-auto top-auto p-3 w-3/4"
-              src={preview}
+              src={`${baseUrl}/assets/${preview}/file`}
             />
           ):(
           <p className="text-center text-xs text-foreground/50 lowercase">

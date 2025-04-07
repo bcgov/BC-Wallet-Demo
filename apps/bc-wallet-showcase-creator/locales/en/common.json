@@ -22,7 +22,8 @@
     "description_version": "Version",
     "loading_label": "Loading...",
     "publish_info_title": "Review and Publish Showcase",
-    "publish_info_subtitle": "Select the character and review their showcase."
+"publish_info_subtitle": "Enter and review the showcase details.",
+    "publish_info_credentials": "Will receive the following credential(s):"
   },
   "character": {
     "header_title": "Create your Character",
@@ -175,7 +176,8 @@
     "search_credential_label": "Search for a Credential:",
     "search_credential_placeholder": "ex. Student Card",
     "no_credentials_added_message": "No Credentials Added",
-    "go_back_to_select_personas": "Go Back to Select Personas"
+    "go_back_to_select_personas": "Go Back to Select Personas",
+    "select_persona_message": "Please select a persona from the left to edit their onboarding steps."
   },
   "scenario": {
     "header_title": "Create Scenarios",
@@ -204,7 +206,8 @@
     "confirm_information_to_send_label": "Confirm the information to send",
     "basic_label": "Basic",
     "proof_request_label": "Proof Request",
-    "scenario_description": "Scenario Description"
+    "scenario_description": "Scenario Description",
+    "remove_scenario_label": "Remove Scenario"
   },
   "action": {
     "cancel_label": "CANCEL",
@@ -236,7 +239,11 @@
   "showcase": {
     "header_title": "Save Showcase",
     "title": "Enter the name for this showcase below.",
-    "subtitle": "Today's date will be appended to the filename for versioning.\nex. MyShowcase_v3_(mm-dd-yyyy)"
+    "button_label": "PUBLISH FOR REVIEW",
+    "subtitle": "Today's date will be appended to the filename for versioning.\nex. MyShowcase_v3_(mm-dd-yyyy)",
+    "modal_description": "Once submitted, you won't be able to make further edits until the review is complete.",
+    "modal_button": "CONFIRM & SUBMIT FOR REVIEW",
+    "modal_description2": "Do you want to proceed?"
   },
   "navigation": {
     "character_label": "Character",

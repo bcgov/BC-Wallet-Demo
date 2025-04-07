@@ -28,7 +28,7 @@ export const CredentialsPage = () => {
         setSearchTerm={setSearchTerm}
         buttonLabel={t('credentials.import_header')}
         buttonLink={handleImport}
-        buttonBgColor="border-2 border-dark-border dark:border-dark-border cursor-pointer uppercase dark:bg-dark-tertiary text-light-text dark:text-dark-text hover:bg-light-btn dark:hover:bg-dark-btn-hover font-bold py-2 px-2 transition"
+        buttonBgColor="border-2 border-dark-border dark:border-dark-border cursor-pointer uppercase bg-background dark:bg-dark-tertiary text-light-text dark:text-dark-text hover:bg-light-btn dark:hover:bg-dark-btn-hover font-bold py-2 px-2 transition"
         buttonTextColor="text-black"
         showIcon={false}
       />

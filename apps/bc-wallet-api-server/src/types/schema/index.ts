@@ -13,6 +13,7 @@ import {
   showcases,
   stepActions,
   steps,
+  tenant,
   users,
 } from '../../database/schema'
 
@@ -38,7 +39,10 @@ export type NewPersona = Omit<typeof personas.$inferInsert, 'slug'> & {
   hidden: boolean
 }
 
-export type CredentialDefinition = Omit<typeof credentialDefinitions.$inferSelect, 'icon' | 'type' | 'credentialSchema'> & {
+export type CredentialDefinition = Omit<
+  typeof credentialDefinitions.$inferSelect,
+  'icon' | 'type' | 'credentialSchema'
+> & {
   type: CredentialType
   icon?: Asset
   credentialSchema: CredentialSchema
@@ -195,15 +199,16 @@ export type NewStepActionTypes =
   | NewChooseWalletAction
 
 export type Step = Omit<typeof steps.$inferSelect, 'asset'> & {
-  actions: StepActionTypes[]
+  actions?: StepActionTypes[]
   asset?: Asset | null
 }
 export type NewStep = Omit<typeof steps.$inferInsert, 'scenario'> & {
   asset?: string | null
-  actions: NewStepActionTypes[]
+  actions?: NewStepActionTypes[]
   subScenario?: string | null
+  credentialDefinitionIdentifierType?: IdentifierType | null
+  credentialDefinitionIdentifier?: string | null
 }
-
 export type StepAction = typeof stepActions.$inferSelect
 export type NewStepAction = Omit<typeof stepActions.$inferInsert, 'step'>
 
@@ -233,7 +238,10 @@ export type ButtonAction = Omit<typeof stepActions.$inferSelect, 'credentialDefi
   actionType: StepActionType.BUTTON
   goToStep?: string | null
 }
-export type NewButtonAction = Omit<typeof stepActions.$inferInsert, 'step' | 'credentialDefinitionId' | 'connectionId'> & {
+export type NewButtonAction = Omit<
+  typeof stepActions.$inferInsert,
+  'step' | 'credentialDefinitionId' | 'connectionId'
+> & {
   actionType: StepActionType.BUTTON
   goToStep?: string | null
 }
@@ -247,17 +255,29 @@ export type NewAriesOOBAction = Omit<typeof stepActions.$inferInsert, 'step' | '
   proofRequest: NewAriesProofRequest
 }
 
-export type SetupConnectionAction = Omit<typeof stepActions.$inferSelect, 'credentialDefinitionId' | 'connectionId' | 'goToStep'> & {
+export type SetupConnectionAction = Omit<
+  typeof stepActions.$inferSelect,
+  'credentialDefinitionId' | 'connectionId' | 'goToStep'
+> & {
   actionType: StepActionType.SETUP_CONNECTION
 }
-export type NewSetupConnectionAction = Omit<typeof stepActions.$inferInsert, 'step' | 'credentialDefinitionId' | 'connectionId' | 'goToStep'> & {
+export type NewSetupConnectionAction = Omit<
+  typeof stepActions.$inferInsert,
+  'step' | 'credentialDefinitionId' | 'connectionId' | 'goToStep'
+> & {
   actionType: StepActionType.SETUP_CONNECTION
 }
 
-export type ChooseWalletAction = Omit<typeof stepActions.$inferSelect, 'credentialDefinitionId' | 'connectionId' | 'goToStep'> & {
+export type ChooseWalletAction = Omit<
+  typeof stepActions.$inferSelect,
+  'credentialDefinitionId' | 'connectionId' | 'goToStep'
+> & {
   actionType: StepActionType.CHOOSE_WALLET
 }
-export type NewChooseWalletAction = Omit<typeof stepActions.$inferInsert, 'step' | 'credentialDefinitionId' | 'connectionId' | 'goToStep'> & {
+export type NewChooseWalletAction = Omit<
+  typeof stepActions.$inferInsert,
+  'step' | 'credentialDefinitionId' | 'connectionId' | 'goToStep'
+> & {
   actionType: StepActionType.CHOOSE_WALLET
 }
 
@@ -275,6 +295,9 @@ export type AriesRequestCredentialPredicate = {
 
 export type AriesProofRequest = typeof ariesProofRequests.$inferSelect
 export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 'stepAction'>
+
+export type Tenant = typeof tenant.$inferSelect
+export type NewTenant = typeof tenant.$inferInsert
 
 export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage'> & {
   scenarios: Scenario[]

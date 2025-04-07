@@ -18,12 +18,11 @@ import { debounce } from 'lodash'
 import { Edit, Monitor } from 'lucide-react'
 import { basicStepSchema } from '@/schemas/onboarding'
 import { useTranslations } from 'next-intl'
-
+import Image from 'next/image'
 import { ErrorModal } from '../error-modal'
 import StepHeader from '../step-header'
 import { LocalFileUpload } from "./local-file-upload";
 import ButtonOutline from '../ui/button-outline'
-
 
 import Loader from '../loader'
 
@@ -31,6 +30,7 @@ import { toast } from 'sonner'
 import { sampleScenario } from '@/lib/steps'
 
 import { NoSelection } from '../credentials/no-selection'
+import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 
 export const BasicStepAdd = () => {
   const t = useTranslations()
@@ -40,9 +40,9 @@ export const BasicStepAdd = () => {
   const router = useRouter()
   const { mutateAsync, isPending } = useCreatePresentation()
   const currentStep = selectedStep !== null ? screens[selectedStep] : null
-  const { showcase, setScenarioIds } = useShowcaseStore()
+  const { setScenarioIds } = useShowcaseStore()
+  const { personas } = useOnboardingAdapter()
   const { relayerId } = useHelpersStore()
-  const personas = showcase.personas || []
 
   const isEditMode = stepState === 'editing-basic'
   const [showErrorModal, setErrorModal] = useState(false)
@@ -96,44 +96,12 @@ export const BasicStepAdd = () => {
     return () => subscription.unsubscribe()
   }, [form, autoSave])
 
-  // const onSubmit = async (data: BasicStepFormData) => {
-  //   autoSave.flush();
-
-  //   sampleScenario.personas = personas;
-  //   sampleScenario.issuer = issuerId;
-
-  //   sampleScenario.steps.push({
-  //     title: data.title,
-  //     description: data.description,
-  //     asset: data.asset || undefined,
-  //     type: "HUMAN_TASK",
-  //     order: currentStep?.order || 0,
-  //     actions: [...new Set([sampleAction])],
-  //   });
-
-  //   await mutateAsync(sampleScenario, {
-  //     onSuccess: (data: unknown) => {
-  //       toast.success("Scenario Created");
-
-  //       setScenarioIds([
-  //         (data as PresentationScenarioResponseType).issuanceScenario.id,
-  //       ]);
-
-  //       router.push(`/showcases/create/publish`);
-  //     },
-  //     onError: (error) => {
-  //       console.error("Error creating scenario:", error);
-  //       setErrorModal(true);
-  //     },
-  //   });
-  // };
-
   const onSubmit = async (data: BasicStepFormData) => {
     autoSave.flush()
     const personaScenarios = personas.map((persona) => {
       const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario))
 
-      scenarioForPersona.personas = [persona]
+      scenarioForPersona.personas = [persona.id]
       scenarioForPersona.relyingParty = relayerId
 
       scenarioForPersona.steps = [
@@ -144,6 +112,7 @@ export const BasicStepAdd = () => {
           type: screen.type || 'HUMAN_TASK',
           order: index,
           actions: screen.actions || [sampleAction],
+          screenId: "INFO",
         })),
       ]
 
@@ -223,7 +192,7 @@ export const BasicStepAdd = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <img src={currentStep.asset} alt="Step icon" className="w-full object-cover" />
+                <Image src={currentStep.asset} alt={currentStep.title} className="w-full object-cover" width={128} height={128} />
               </div>
             </div>
           )}
@@ -278,7 +247,6 @@ export const BasicStepAdd = () => {
               element="asset"
               existingAssetId={form.watch("asset")}
               handleLocalUpdate={(_, value) => {
-                console.log('Value',value);
                 if (!currentStep) return;
 
                 const updatedStep1 = {
@@ -286,7 +254,6 @@ export const BasicStepAdd = () => {
                   title: currentStep.title,
                   description: currentStep.description,
                   asset: value || undefined,
-                  // credentials: data.credentials || [],
                 };
                 updateStep(selectedStep || 0, updatedStep1);
 
@@ -297,17 +264,6 @@ export const BasicStepAdd = () => {
                 })
               }}
             />
-            {/* <LocalFileUpload
-              text={t('onboarding.icon_label')}
-              element="asset"
-              handleLocalUpdate={(_, value) =>
-                form.setValue('asset', value, {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                })
-              }
-            /> */}
             {form.formState.errors.asset && (
               <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
             )}

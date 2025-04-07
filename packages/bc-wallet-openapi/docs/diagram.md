@@ -1,10 +1,14 @@
-```mermaid
 ---
 config:
   theme: neo
   layout: elk
 ---
 classDiagram
+    class Tenant {
+        +id : String
+        +createdAt : DateTime
+        +deletedAt : DateTime
+    }
     class Showcase {
         +name : String
         +slug : String
@@ -15,6 +19,7 @@ classDiagram
         +hidden : Boolean
         +createdAt : DateTime
         +updatedAt : DateTime
+        +tenantId : String
         bannerImage: Asset
         completionMessage : String
         createdBy: User
@@ -42,6 +47,7 @@ classDiagram
         +description : String
         +order : int
         +type : StepType
+        +credentialDefinition : CredentialDefinition
         +createdAt : DateTime
         +updatedAt : DateTime
         subFlow: Scenario
@@ -234,6 +240,7 @@ classDiagram
     Showcase "1..*" o-- "1..*" Persona
     Showcase "1" -- "0..*" Asset : references
     Showcase "1" -- "1" User : created by
+    Showcase "many" -- "1" Tenant : belongs to
     Scenario <|-- IssuanceScenario : specialization (onboarding)
     Scenario <|-- PresentationScenario : specialization (scenario)
     Scenario "1" *-- "1..*" Step : contains
@@ -256,6 +263,7 @@ classDiagram
     RelyingParty o-- "1" RelyingPartyType: of
     RevocationInfo <|-- AnonCredRevocation : specialization
     Step "1" -- "0..*" Asset : references
+    Step o-- "1" CredentialDefinition: references
     Persona -- "0..*" Asset : references
     Issuer -- "0..*" Asset : references
     Issuer o-- "1" IssuerType: of
@@ -275,5 +283,3 @@ classDiagram
     Scenario "0..*" o-- "1..*" Persona : involves
     IssuanceScenario "0..*" o-- "1" Issuer : includes
     PresentationScenario "0..*" o-- "1" RelyingParty : includes
-
-```

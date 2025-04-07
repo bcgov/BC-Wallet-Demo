@@ -16,7 +16,7 @@ import {
   showcasesToPersonas,
   showcasesToScenarios,
 } from '../schema'
-import { NewShowcase, RepositoryDefinition, Showcase } from '../../types'
+import { NewShowcase, RepositoryDefinition, Showcase, Step } from '../../types'
 import UserRepository from './UserRepository'
 
 @Service()
@@ -175,7 +175,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         ...(showcaseResult as any), // TODO check this typing issue at a later point in time
         scenarios: scenariosResult.map((scenario) => ({
           ...scenario,
-          steps: sortSteps(scenario.steps),
+          steps: sortSteps(scenario.steps as Step[]),
           relyingParty: scenario.relyingParty ? {
             id: scenario.relyingParty.id,
             name: scenario.relyingParty.name,
@@ -367,7 +367,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         ...(showcaseResult as any), // TODO check this typing issue at a later point in time
         scenarios: scenariosResult.map((scenario) => ({
           ...scenario,
-          steps: sortSteps(scenario.steps),
+          steps: sortSteps(scenario.steps as Step[]),
           relyingParty: scenario.relyingParty ? {
             id: scenario.relyingParty.id,
             name: scenario.relyingParty.name,
@@ -511,7 +511,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       scenarios: result.scenarios.map((scenario: any) => ({
         ...(scenario.scenario as any),
         steps: sortSteps(scenario.scenario.steps),
-        relyingParty: scenario.relyingParty ? {
+        ...(scenario.scenario.relyingParty && {
           relyingParty: {
             id: scenario.scenario.relyingParty.id,
             name: scenario.scenario.relyingParty.name,
@@ -523,19 +523,21 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
             createdAt: scenario.scenario.relyingParty.createdAt,
             updatedAt: scenario.scenario.relyingParty.updatedAt,
           },
-        } : undefined,
-        issuer: scenario.issuer ? {
-          id: scenario.scenario.issuer.id,
-          name: scenario.scenario.issuer.name,
-          type: scenario.scenario.issuer.type,
-          description: scenario.scenario.issuer.description,
-          organization: scenario.scenario.issuer.organization,
-          logo: scenario.scenario.issuer.logo,
-          credentialDefinitions: scenario.scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
-          credentialSchemas: scenario.scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
-          createdAt: scenario.scenario.issuer.createdAt,
-          updatedAt: scenario.scenario.issuer.updatedAt,
-        } : undefined,
+        }),
+        ...(scenario.scenario.issuer && {
+          issuer: {
+            id: scenario.scenario.issuer.id,
+            name: scenario.scenario.issuer.name,
+            type: scenario.scenario.issuer.type,
+            description: scenario.scenario.issuer.description,
+            organization: scenario.scenario.issuer.organization,
+            logo: scenario.scenario.issuer.logo,
+            credentialDefinitions: scenario.scenario.issuer!.cds.map((credentialDefinition: any) => credentialDefinition.cd),
+            credentialSchemas: scenario.scenario.issuer!.css.map((credentialSchema: any) => credentialSchema.cs),
+            createdAt: scenario.scenario.issuer.createdAt,
+            updatedAt: scenario.scenario.issuer.updatedAt,
+          },
+        }),
         personas: scenario.scenario.personas.map((item: any) => item.persona),
       })),
       personas: result.personas.map((item: any) => item.persona),

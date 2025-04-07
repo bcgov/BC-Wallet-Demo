@@ -90,7 +90,7 @@ export const DisplayStepCredentials = ({
                   <div>
                     <Image
                       src={require(`../../public/assets/NavBar/${'Joyce'}.png`)}
-                      alt={'Bob'}
+                      alt={credentialData.name}
                       width={50}
                       height={50}
                       className="rounded-full"
