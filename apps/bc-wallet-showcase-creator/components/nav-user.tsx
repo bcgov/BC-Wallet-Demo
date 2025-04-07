@@ -1,12 +1,12 @@
 'use client'
 
-import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
-import { cn } from '@/lib/utils'
-import { Link, LogOut } from 'lucide-react'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
+import { LogOut } from 'lucide-react'
+
+import { signOut } from "next-auth/react"
 
 import { DarkModeToggle } from './dark-mode-toggle'
 import { LanguageSelector } from './language-selector'
-import { Button } from './ui/button'
 import { Separator } from './ui/separator'
 
 export function NavUser() {
@@ -23,7 +23,7 @@ export function NavUser() {
         <SidebarMenuButton asChild>
           <p>
             <LogOut />
-            <span>Log Out</span>
+            <span className="ml-2" onClick={() => signOut()}>Log Out</span>
           </p>
         </SidebarMenuButton>
       </SidebarMenuItem>

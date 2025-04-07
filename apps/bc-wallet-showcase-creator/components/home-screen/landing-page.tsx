@@ -16,8 +16,6 @@ import { Card } from '../ui/card'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
-import { Input } from '../ui/input'
-import { SidebarTrigger } from '../ui/sidebar'
 
 export const LandingPage = () => {
   const t = useTranslations()
@@ -34,30 +32,6 @@ export const LandingPage = () => {
   return (
     <>
       <Header title={t('home.header_title')} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-
-      {/* {!isLoading && (
-        <div className="container mx-auto px-5 mt-2">
-          <div className="flex gap-4 text-sm font-medium">
-            {tabs.map((tab, index) => (
-              <button
-                key={index}
-                className={`flex items-center gap-1 px-2 py-1 ${
-                  activeTab === tab
-                    ? "border-b-2 border-light-blue dark:border-white dark:text-dark-text text-light-blue font-bold cursor-pointer"
-                    : "text-gray-800/50 dark:text-gray-200/50"
-                }`}
-                onClick={() => setActiveTab(tab)}
-              >
-                <div className="font-bold text-base">{tab}</div>
-                <span className="bg-light-bg-secondary dark:dark-bg-secondary text-gray-600 text-xs px-2 py-0.5 rounded-full">
-                  {index === 0 ? data?.showcases.length : index === 1 ? 1 : 2}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )} */}
-
       {isLoading && (
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
