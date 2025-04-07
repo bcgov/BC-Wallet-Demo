@@ -27,12 +27,12 @@ export const LandingPage = () => {
   }
 
   const handlePreview = (slug: string) => {
-    const previewUrl = `${WALLET_URL}${slug}`
+    const previewUrl = `${WALLET_URL}/${slug}`
     window.open(previewUrl, '_blank')
   }
 
   const handleOpen = (slug: string) => {
-    const openUrl = `${WALLET_URL}${slug}`
+    const openUrl = `${WALLET_URL}/${slug}`
     window.open(openUrl, '_blank')
   }
 
@@ -77,8 +77,8 @@ export const LandingPage = () => {
                             console.log('delete', showcase.id)
                           }}
                         />
-                        <CopyButton value={`${process.env.WALLET_URL}${showcase.slug}`} />
-                        <OpenButton value={`${process.env.WALLET_URL}${showcase.slug}`} />
+                        <CopyButton value={`${process.env.WALLET_URL}/${showcase.slug}`} />
+                        <OpenButton value={`${process.env.WALLET_URL}/${showcase.slug}`} />
                       </div>
                     </div>
                   </div>

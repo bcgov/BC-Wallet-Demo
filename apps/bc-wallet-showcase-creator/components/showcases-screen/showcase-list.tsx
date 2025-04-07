@@ -153,8 +153,8 @@ export const ShowcaseList = () => {
                                 console.log('delete', showcase.id)
                               }}
                             />
-                            <CopyButton value={`${process.env.WALLET_URL}${showcase.slug}`} />
-                            <OpenButton value={`${process.env.WALLET_URL}${showcase.slug}`} />
+                            <CopyButton value={`${process.env.WALLET_URL}/${showcase.slug}`} />
+                            <OpenButton value={`${process.env.WALLET_URL}/${showcase.slug}`} />
                           </div>
                         </div>
                       </div>
