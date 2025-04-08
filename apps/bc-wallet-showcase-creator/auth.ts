@@ -21,7 +21,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token
     },
     redirect: async ({ url, baseUrl }) => {
-      return Promise.resolve(url)
+      // clean the base url and add the redirect proxy url
+      const cleanedBaseUrl = baseUrl.replace(/\/$/, '')
+      return Promise.resolve(`${cleanedBaseUrl}${env.AUTH_REDIRECT_PROXY_URL}`)
     },
   },
   session: {
