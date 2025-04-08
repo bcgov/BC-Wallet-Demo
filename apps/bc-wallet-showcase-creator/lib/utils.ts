@@ -21,6 +21,5 @@ export const convertBase64 = (file: File): Promise<string> => {
   })
 }
 
-
-export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_BACKEND || 'https://bcshowcase-api.dev.nborbit.ca'
+export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_BACKEND;
 

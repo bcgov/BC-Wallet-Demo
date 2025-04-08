@@ -935,6 +935,36 @@ paths:
       responses:
         '204':
           description: Deleted
+  /credentials/definitions/{definitionId}/approve:
+    parameters:
+      - name: definitionId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The ID of the credential definition to approve.
+    post:
+      tags:
+        - Approval
+        - Showcases
+      summary: Approve a specific credential definition
+      description: Marks a specific credential definition as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
+      operationId: approveCredentialDefinition
+      responses:
+        '200':
+          description: Credential definition approved successfully. Returns the updated definition.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialDefinitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /credentials/schemas:
     get:
@@ -1800,6 +1830,58 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /showcases/{slug}/approve:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The slug of the showcase to approve.
+    post:
+      tags:
+        - Approval
+        - Showcases
+      summary: Approve a specific showcase
+      description: Marks a specific showcase as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
+      operationId: approveShowcase
+      responses:
+        '200':
+          description: Showcase approved successfully. Returns the updated showcase.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowcaseResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /approvals/pending:
+    get:
+      tags:
+        - Approval
+      summary: Get all unapproved showcases and credential definitions
+      description: Retrieves lists of showcases and credential definitions that are awaiting approval (i.e., where 'approvedAt' is null).
+      operationId: getPendingApprovals
+      responses:
+        '200':
+          description: A list of unapproved items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingApprovalsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   securitySchemes:
     OAuth2:
@@ -1867,6 +1949,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tenant'
+    PendingApprovalsResponse:
+      type: object
+      description: Contains lists of showcases and credential definitions pending approval.
+      properties:
+        showcases:
+          type: array
+          description: List of showcases pending approval.
+          items:
+            $ref: '#/components/schemas/Showcase'
+        credentialDefinitions:
+          type: array
+          description: List of credential definitions pending approval.
+          items:
+            $ref: '#/components/schemas/CredentialDefinition'
 
     User:
       type: object
@@ -2050,7 +2146,7 @@ components:
           description: List of actions associated with this step
           items:
             oneOf:
-              - $ref: '#/components/schemas/AriesOOBActionRequest'
+              - $ref: '#/components/schemas/StepActionRequest'
         asset:
           type: string
           description: Asset referenced by this step
@@ -2937,6 +3033,14 @@ components:
           description: Date and time the credential definition was last updated
           format: date-time
           example: 2025-03-06T11:30:16.573Z
+        approvedBy:
+          $ref: '#/components/schemas/User'
+        approvedAt:
+          type: string
+          description: Date and time the credential definition was last approved
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
+
     CredentialDefinitionRequest:
       type: object
       required:
@@ -2987,6 +3091,15 @@ components:
         icon:
           type: string
           example: 123e4567-e89b-12d3-a456-426614174469
+        approvedBy:
+          type: string
+          description: Reference to the associated user who approved this definition
+          example: 456e4567-e89b-12d3-a456-426614174789
+        approvedAt:
+          type: string
+          description: Date and time the credential definition was last approved
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
     CredentialDefinitionsResponse:
       type: object
       properties:
@@ -3299,6 +3412,13 @@ components:
         updatedAt:
           type: string
           description: Date and time the showcase was last updated
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
+        approvedBy:
+          $ref: '#/components/schemas/User'
+        approvedAt:
+          type: string
+          description: Date and time this showcase was last approved
           format: date-time
           example: 2025-03-06T11:30:16.573Z
     ShowcasesResponse:

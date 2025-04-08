@@ -78,6 +78,8 @@ export const credentialDefinitionDTOFrom = (credentialDefinition: CredentialDefi
     representations: credentialDefinition.representations,
     revocation: credentialDefinition.revocation || undefined,
     icon: credentialDefinition.icon ? assetDTOFrom(credentialDefinition.icon) : undefined,
+    approvedBy: credentialDefinition.approvedBy ? userDTOFrom(credentialDefinition.approvedBy) : undefined,
+    approvedAt: credentialDefinition.approvedAt ?? undefined,
   }
 }
 
@@ -205,7 +207,7 @@ export const stepActionDTOFrom = (stepAction: StepActionTypes): StepActionDTO =>
 export const stepDTOFrom = (step: Step): StepDTO => {
   return {
     ...step,
-    actions: step.actions?.map(stepActionDTOFrom),
+    actions: step.actions ? step.actions.map(stepActionDTOFrom) : [],
     asset: step.asset ? assetDTOFrom(step.asset) : undefined,
     subScenario: step.subScenario || undefined,
   }
@@ -228,6 +230,8 @@ export const showcaseDTOFrom = (showcase: Showcase): ShowcaseDTO => {
     bannerImage: showcase.bannerImage ? assetDTOFrom(showcase.bannerImage) : undefined,
     completionMessage: showcase.completionMessage || undefined,
     createdBy: showcase.createdBy ? userDTOFrom(showcase.createdBy) : undefined,
+    approvedBy: showcase.approvedBy ? userDTOFrom(showcase.approvedBy) : undefined,
+    approvedAt: showcase.approvedAt || undefined
   }
 }
 
@@ -236,6 +240,8 @@ export const userDTOFrom = (user: User): UserDTO => {
     ...user,
     identifierType: user.identifierType ?? undefined,
     identifier: user.identifier ?? undefined,
+    createdAt: user.createdAt ?? undefined,
+    updatedAt: user.updatedAt ?? undefined,
   }
 }
 

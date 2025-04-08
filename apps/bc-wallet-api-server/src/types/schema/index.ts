@@ -41,13 +41,15 @@ export type NewPersona = Omit<typeof personas.$inferInsert, 'slug'> & {
 
 export type CredentialDefinition = Omit<
   typeof credentialDefinitions.$inferSelect,
-  'icon' | 'type' | 'credentialSchema'
+  'icon' | 'type' | 'credentialSchema' | 'approvedBy'
 > & {
   type: CredentialType
   icon?: Asset
   credentialSchema: CredentialSchema
   representations: CredentialRepresentation[]
   revocation?: RevocationInfo | null
+  approvedBy?: User | null
+  approvedAt?: Date | null
 }
 
 export type NewCredentialDefinition = Omit<typeof credentialDefinitions.$inferInsert, 'type'> & {
@@ -299,15 +301,18 @@ export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 
 export type Tenant = typeof tenant.$inferSelect
 export type NewTenant = typeof tenant.$inferInsert
 
-export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage'> & {
+export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage' | 'createdBy' | 'approvedBy'> & {
   scenarios: Scenario[]
   personas: Persona[]
   bannerImage?: Asset | null
   createdBy?: User | null
+  approvedBy?: User | null
+  approvedAt?: Date | null
 }
+
 export type NewShowcase = Omit<typeof showcases.$inferInsert, 'slug'> & {
   scenarios: string[]
-  credentialDefinitions: string[]
+  credentialDefinitions?: string[] // No longer in use
   personas: string[]
   bannerImage?: string | null
   hidden: boolean

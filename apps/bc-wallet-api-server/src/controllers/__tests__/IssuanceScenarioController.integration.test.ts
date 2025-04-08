@@ -64,7 +64,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
     const persona = await createTestPersona(asset)
 
     // 2. Create an issuance scenario - must include at least one step according to the error
-    const scenarioRequest = createApiIssuanceScenarioRequest(issuer.id, persona.id, asset.id)
+    const scenarioRequest = createApiIssuanceScenarioRequest(issuer.id, persona.id, asset.id, credentialDefinition.id)
 
     const createResponse = await request.post('/scenarios/issuances').send(scenarioRequest).expect(201)
 
@@ -97,7 +97,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
     const updatedScenario = updateResponse.body.issuanceScenario
 
     // 6. Create an additional step for the scenario
-    const stepRequest = createApiStepRequest(asset.id)
+    const stepRequest = createApiStepRequest(asset.id, credentialDefinition.id)
     stepRequest.title = 'Additional Step'
     stepRequest.description = 'Additional step description'
     stepRequest.order = 2
@@ -228,7 +228,10 @@ describe('IssuanceScenarioController Integration Tests', () => {
 
     // Try to create a step for a non-existent scenario
     const asset = await createTestAsset()
-    const stepRequest = createApiStepRequest(asset.id)
+    const credentialSchema = await createTestCredentialSchema()
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+
+    const stepRequest = createApiStepRequest(asset.id, credentialDefinition.id)
 
     await request.post(`/scenarios/issuances/${nonExistentSlug}/steps`).send(stepRequest).expect(404)
   })
@@ -244,10 +247,12 @@ describe('IssuanceScenarioController Integration Tests', () => {
     // Set up assets and personas for testing
     const asset = await createTestAsset()
     const persona = await createTestPersona(asset)
+    const credentialSchema = await createTestCredentialSchema()
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
 
     // Attempt to create a scenario with a non-existent issuer
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
-    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(nonExistentId, persona.id, asset.id)
+    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(nonExistentId, persona.id, asset.id, credentialDefinition.id)
 
     await request.post('/scenarios/issuances').send(invalidScenarioRequest2).expect(404)
   })

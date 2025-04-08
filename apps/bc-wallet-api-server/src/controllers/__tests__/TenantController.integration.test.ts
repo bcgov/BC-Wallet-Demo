@@ -25,6 +25,7 @@ import {
 } from './dbTestData'
 import { ShowcaseStatus } from '../../types'
 import supertest = require('supertest')
+import { MockSessionService } from './MockSessionService'
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
@@ -40,6 +41,7 @@ describe('TenantController Integration Tests', () => {
     }
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
+    Container.set('ISessionService', Container.get(MockSessionService))
     Container.get(TenantRepository)
     Container.get(TenantService)
     app = createExpressServer({
@@ -122,7 +124,7 @@ describe('TenantController Integration Tests', () => {
     const schema = await createTestCredentialSchema()
     const definition = await createTestCredentialDefinition(asset, schema)
     const issuer = await createTestIssuer(asset, definition, schema)
-    const scenario = await createTestScenario(asset, persona, issuer)
+    const scenario = await createTestScenario(asset, persona, issuer, definition.id)
 
     // Create a showcase associated with the tenant
     const showcaseService = Container.get(ShowcaseService)
