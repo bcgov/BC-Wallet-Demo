@@ -74,7 +74,7 @@ class ShowcaseController {
   }
 
   @Put('/:slug')
-  public async put(@Param('slug') slug: string, @Body() showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
+  public async put(@Param('slug') slug: string, @Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
     const id = await this.showcaseService.getIdBySlug(slug)
     try {
       if (!instanceOfShowcaseRequest(showcaseRequest)) {

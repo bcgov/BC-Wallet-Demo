@@ -14,6 +14,7 @@ import { CredentialDefinitionController } from './controllers/CredentialDefiniti
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import { corsOptions } from './utils/cors'
 import { registerServicesByInterface } from './services/RegisterServicesByInterface'
+import TenantController from './controllers/TenantController'
 
 require('dotenv-flow').config()
 useContainer(Container)
@@ -34,6 +35,7 @@ async function bootstrap() {
         IssuanceScenarioController,
         PresentationScenarioController,
         ShowcaseController,
+        TenantController,
       ],
       middlewares: [ExpressErrorHandler],
       defaultErrorHandler: false,

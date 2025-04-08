@@ -125,7 +125,7 @@ export const PublishEdit = () => {
       scenarios: [],
       credentialDefinitions: [],
       personas: [],
-      tenantId: ''
+      tenantId: 'test-tenant-id'
     },
   })
 
@@ -137,7 +137,7 @@ export const PublishEdit = () => {
       credentialDefinitions: showcase.credentialDefinitions || ['86a96d6d-91c9-4357-984d-1f6b162fdfae'],
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
-      tenantId: ''
+       tenantId: 'test-tenant-id'
     })
   }, [form, showcase])
 
