@@ -7,6 +7,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     clientId: env.AUTH_KEYCLOAK_ID!,
     clientSecret: env.AUTH_KEYCLOAK_SECRET!,
     issuer: env.AUTH_KEYCLOAK_ISSUER!,
+    redirectProxyUrl: "https://bcshowcase-api.dev.nborbit.ca/api/auth"
   })],
   callbacks: {
     jwt: async ({ token, user, account }) => {
