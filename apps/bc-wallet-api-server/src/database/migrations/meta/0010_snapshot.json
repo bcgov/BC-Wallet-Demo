@@ -1,6 +1,6 @@
 {
-  "id": "57f9ec68-1864-4648-98fe-f7aeb9ff382b",
-  "prevId": "782f2bfa-bc82-466c-9420-b0590ea408f7",
+  "id": "2c50e466-dbad-44cd-8e54-9cbefd08f817",
+  "prevId": "57f9ec68-1864-4648-98fe-f7aeb9ff382b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -280,6 +280,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "approved_by": {
+          "name": "approved_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -296,8 +308,8 @@
         }
       },
       "indexes": {
-        "idx_icon": {
-          "name": "idx_icon",
+        "idx_cd_icon": {
+          "name": "idx_cd_icon",
           "columns": [
             {
               "expression": "icon",
@@ -311,11 +323,26 @@
           "method": "btree",
           "with": {}
         },
-        "idx_credentialSchema": {
-          "name": "idx_credentialSchema",
+        "idx_cd_credentialSchema": {
+          "name": "idx_cd_credentialSchema",
           "columns": [
             {
               "expression": "credential_schema",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_cd_approvedBy": {
+          "name": "idx_cd_approvedBy",
+          "columns": [
+            {
+              "expression": "approved_by",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -347,6 +374,19 @@
           "tableTo": "asset",
           "columnsFrom": [
             "icon"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "credentialDefinition_approved_by_user_id_fk": {
+          "name": "credentialDefinition_approved_by_user_id_fk",
+          "tableFrom": "credentialDefinition",
+          "tableTo": "user",
+          "columnsFrom": [
+            "approved_by"
           ],
           "columnsTo": [
             "id"
@@ -980,12 +1020,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "credential_definition_id": {
-          "name": "credential_definition_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "sub_scenario": {
           "name": "sub_scenario",
           "type": "uuid",
@@ -1052,19 +1086,6 @@
         }
       },
       "foreignKeys": {
-        "step_credential_definition_id_credentialDefinition_id_fk": {
-          "name": "step_credential_definition_id_credentialDefinition_id_fk",
-          "tableFrom": "step",
-          "tableTo": "credentialDefinition",
-          "columnsFrom": [
-            "credential_definition_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
         "step_sub_scenario_scenario_id_fk": {
           "name": "step_sub_scenario_scenario_id_fk",
           "tableFrom": "step",
@@ -1153,7 +1174,7 @@
           "name": "step",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "credential_definition_id": {
           "name": "credential_definition_id",
@@ -1832,6 +1853,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "approved_by": {
+          "name": "approved_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_by": {
           "name": "created_by",
           "type": "uuid",
@@ -1883,6 +1916,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "idx_sc_approvedBy": {
+          "name": "idx_sc_approvedBy",
+          "columns": [
+            {
+              "expression": "approved_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -1905,6 +1953,19 @@
           "tableTo": "asset",
           "columnsFrom": [
             "banner_image"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "showcase_approved_by_user_id_fk": {
+          "name": "showcase_approved_by_user_id_fk",
+          "tableFrom": "showcase",
+          "tableTo": "user",
+          "columnsFrom": [
+            "approved_by"
           ],
           "columnsTo": [
             "id"
