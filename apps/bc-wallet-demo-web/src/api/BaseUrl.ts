@@ -13,7 +13,7 @@ const cacheOptions: CacheOptions = {
 export const demoBackendBaseRoute = process.env.REACT_APP_BASE_ROUTE ?? '/digital-trust/showcase'
 export const demoBackendBaseWsUrl = process.env.REACT_APP_HOST_BACKEND ?? 'http://127.0.0.1:5000'
 export const demoBackendBaseUrl = demoBackendBaseWsUrl + demoBackendBaseRoute
-export const demoBackendSocketPath = `${demoBackendBaseRoute}/demo/socket/`
+export const demoBackendSocketPath = `${demoBackendBaseRoute}/socket/`
 export const demoBackendApi = setupCache(
   axios.create({
     baseURL: demoBackendBaseUrl,

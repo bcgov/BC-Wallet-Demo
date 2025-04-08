@@ -1,21 +1,21 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-
-import * as Api from '../../api/ShowcaseApi'
-import type { IssuanceScenario, ShowcaseScenariosInner, Step } from 'bc-wallet-openapi'
-import { ScenarioType } from 'bc-wallet-openapi'
+import { getShowcaseBySlug } from '../../api/ShowcaseApi';
+import { getCredentialDefinitionById } from '../../api/credentialDefinitionApi';
+import { ScenarioType, StepActionType } from 'bc-wallet-openapi'
+import type {AcceptCredentialAction, IssuanceScenario, ShowcaseScenariosInner, Step} from 'bc-wallet-openapi'
 import type { Showcase } from '../types'
 
 export const fetchShowcaseBySlug = createAsyncThunk(
     'showcases/fetchById',
     async (slug: string): Promise<Showcase | null> => {
       try {
-        const response = await Api.getShowcaseBySlug(slug)
+        const response = await getShowcaseBySlug(slug)
 
         if (!response.data.showcase) {
           return Promise.reject(Error('No showcase found in response'))
         }
 
-        const scenarios = response.data.showcase.scenarios.map((scenario: ShowcaseScenariosInner) => {
+        const scenarioPromises = response.data.showcase.scenarios.map(async (scenario: ShowcaseScenariosInner) => {
           if (scenario.personas === undefined || scenario.personas?.length === 0) {
             throw new Error('No personas found in scenario')
           }
@@ -24,10 +24,32 @@ export const fetchShowcaseBySlug = createAsyncThunk(
             throw new Error('No steps found in scenario')
           }
 
-          const steps = scenario.steps.map((step: Step) => {
-            const actions = step.actions.map((action) => ({
-              actionType: action.actionType,
-            }))
+          const stepPromises = scenario.steps.map(async (step: Step, index) => {
+            const actionPromises = step.actions.map(async (action) => {
+              const credentialDefinition = action.actionType === StepActionType.AcceptCredential ? (await getCredentialDefinitionById((<AcceptCredentialAction>action).credentialDefinitionId)).data.credentialDefinition : undefined
+
+              if (credentialDefinition && !credentialDefinition.identifier) {
+                throw new Error('No identifier found in credential definition')
+              }
+
+              return {
+                actionType: action.actionType,
+                ...(credentialDefinition && { credentialDefinitions: [
+                  {
+                    id: credentialDefinition.id,
+                    name: credentialDefinition.name,
+                    version: credentialDefinition.version,
+                    icon: credentialDefinition.icon?.id,
+                    attributes: credentialDefinition.credentialSchema.attributes?.map(attribute => ({
+                      name: attribute.name,
+                      value: attribute.value
+                    })) ?? [],
+                    identifier: credentialDefinition.identifier!
+                  }
+                ] })
+              }
+            })
+            const actions = await Promise.all(actionPromises)
 
             return {
               title: step.title,
@@ -37,6 +59,8 @@ export const fetchShowcaseBySlug = createAsyncThunk(
               actions,
             }
           })
+
+          const steps = await Promise.all(stepPromises)
 
           return {
             persona: {
@@ -54,6 +78,8 @@ export const fetchShowcaseBySlug = createAsyncThunk(
             steps,
           }
         })
+
+        const scenarios = await Promise.all(scenarioPromises)
 
         return {
           id: response.data.showcase.id,
