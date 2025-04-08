@@ -55,7 +55,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
             return {
               title: step.title,
               description: step.description,
-              order: step.order,
+              order: step.order + 1,
               ...(step.asset && { asset: step.asset.id }),
               actions,
             }
