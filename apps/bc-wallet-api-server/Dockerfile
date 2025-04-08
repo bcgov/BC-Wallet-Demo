@@ -15,10 +15,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /build
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json tsconfig.build.json tsconfig.eslint.json ./
-COPY packages/tsconfig-base.json packages/
+COPY packages packages
 COPY apps/tsconfig-base.json apps/
 COPY apps/bc-wallet-api-server apps/bc-wallet-api-server
-COPY packages packages
+
 
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib drizzle-kit
 RUN pnpm install
