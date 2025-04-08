@@ -1,13 +1,24 @@
-import { BadRequestError, Body, Delete, Get, HttpCode, JsonController, OnUndefined, Param, Post, Put } from 'routing-controllers'
+import {
+  BadRequestError,
+  Body,
+  Delete,
+  Get,
+  HttpCode,
+  JsonController,
+  OnUndefined,
+  Param,
+  Post,
+  Put,
+} from 'routing-controllers'
 import { Service } from 'typedi'
 import {
-  ShowcaseResponse,
-  ShowcaseResponseFromJSONTyped,
+  instanceOfShowcaseRequest,
   ShowcaseRequest,
   ShowcaseRequestToJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
   ShowcasesResponse,
   ShowcasesResponseFromJSONTyped,
-  instanceOfShowcaseRequest,
 } from 'bc-wallet-openapi'
 import ShowcaseService from '../services/ShowcaseService'
 import { showcaseDTOFrom } from '../utils/mappers'

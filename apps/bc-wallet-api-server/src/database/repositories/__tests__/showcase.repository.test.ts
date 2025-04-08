@@ -452,13 +452,15 @@ describe('Database showcase repository tests', (): void => {
     const newName = 'new_name'
     const completionMessage = 'showcase completed'
     const updatedShowcase = await repository.update(savedShowcase.id, {
-      ...savedShowcase,
       name: newName,
+      description: savedShowcase.description,
+      status: savedShowcase.status,
+      hidden: savedShowcase.hidden,
+      tenantId: savedShowcase.tenantId,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
       bannerImage: null,
-      completionMessage,
+      completionMessage
     })
 
     expect(updatedShowcase).toBeDefined()
@@ -487,11 +489,15 @@ describe('Database showcase repository tests', (): void => {
     const savedShowcase = await repository.create(showcase)
 
     const updatedShowcase: NewShowcase = {
-      ...savedShowcase,
+      name: savedShowcase.name,
+      description: savedShowcase.description,
+      status: savedShowcase.status,
+      hidden: savedShowcase.hidden,
+      tenantId: savedShowcase.tenantId,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [],
-      bannerImage: null,
+      bannerImage: null
     }
 
     await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`At least one persona is required`)
@@ -512,11 +518,15 @@ describe('Database showcase repository tests', (): void => {
     const savedShowcase = await repository.create(showcase)
 
     const updatedShowcase: NewShowcase = {
-      ...savedShowcase,
+      name: savedShowcase.name,
+      description: savedShowcase.description,
+      status: savedShowcase.status,
+      hidden: savedShowcase.hidden,
+      tenantId: savedShowcase.tenantId,
       scenarios: [],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
-      bannerImage: null,
+      bannerImage: null
     }
 
     await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`At least one scenario is required`)
@@ -538,11 +548,15 @@ describe('Database showcase repository tests', (): void => {
     const savedShowcase = await repository.create(showcase)
 
     const updatedShowcase: NewShowcase = {
-      ...savedShowcase,
+      name: savedShowcase.name,
+      description: savedShowcase.description,
+      status: savedShowcase.status,
+      hidden: savedShowcase.hidden,
+      tenantId: savedShowcase.tenantId,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [unknownPersonaId],
-      bannerImage: null,
+      bannerImage: null
     }
 
     await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`No persona found for id: ${unknownPersonaId}`)
@@ -565,11 +579,15 @@ describe('Database showcase repository tests', (): void => {
     const savedShowcase = await repository.create(showcase)
 
     const updatedShowcase: NewShowcase = {
-      ...savedShowcase,
+      name: savedShowcase.name,
+      description: savedShowcase.description,
+      status: savedShowcase.status,
+      hidden: savedShowcase.hidden,
+      tenantId: savedShowcase.tenantId,
       scenarios: [unknownScenarioId],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
-      bannerImage: null,
+      bannerImage: null
     }
 
     await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`No scenario found for id: ${unknownScenarioId}`)
@@ -591,13 +609,16 @@ describe('Database showcase repository tests', (): void => {
     const savedShowcase = await repository.create(showcase)
 
     const updatedShowcase: NewShowcase = {
-      ...savedShowcase,
+      name: savedShowcase.name,
+      description: savedShowcase.description,
+      status: savedShowcase.status,
+      hidden: savedShowcase.hidden,
+      tenantId: savedShowcase.tenantId,
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
-      bannerImage: unknownBannerImageId,
+      bannerImage: unknownBannerImageId
     }
-
     await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`No asset found for id: ${unknownBannerImageId}`)
   })
 })
