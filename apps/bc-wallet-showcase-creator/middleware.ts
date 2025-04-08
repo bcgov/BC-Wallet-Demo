@@ -25,10 +25,8 @@ export default async function middleware(request: NextRequest) {
   if (!session) {
     const locale = request.nextUrl.pathname.split('/')[1] || routing.defaultLocale;
     const validLocale = routing.locales.includes(locale as 'en' | 'fr') ? locale : routing.defaultLocale;
-    
+    console.log("validLocale", validLocale)
     const loginUrl = new URL(`/${validLocale}/login`, request.url);
-    
-    loginUrl.searchParams.set('callbackUrl', request.url);
     
     return NextResponse.redirect(loginUrl);
   }

@@ -25,6 +25,7 @@ export const env = createEnv({
     AUTH_KEYCLOAK_ISSUER: z.string().min(1),
     AUTH_TRUST_HOST: z.string().default("true"),
     AUTH_REDIRECT_PROXY_URL: z.string().min(1),
+    AUTH_URL: z.string().min(1),
   },
   client: runtimeClientSchema,
   runtimeEnv: {
@@ -34,6 +35,7 @@ export const env = createEnv({
     AUTH_KEYCLOAK_ISSUER: process.env.AUTH_KEYCLOAK_ISSUER,
     AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,
     AUTH_REDIRECT_PROXY_URL: process.env.AUTH_REDIRECT_PROXY_URL,
+    AUTH_URL: process.env.AUTH_URL,
     NEXT_PUBLIC_WALLET_URL: runtimeClientProcess.NEXT_PUBLIC_WALLET_URL,
     NEXT_PUBLIC_SHOWCASE_BACKEND: runtimeClientProcess.NEXT_PUBLIC_SHOWCASE_BACKEND,
   },
