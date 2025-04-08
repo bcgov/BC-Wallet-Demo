@@ -1,8 +1,6 @@
 import 'reflect-metadata'
 import { Action, createExpressServer, useContainer } from 'routing-controllers'
 import Container from 'typedi'
-
-import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 import AssetController from './controllers/AssetController'
 import PersonaController from './controllers/PersonaController'
 import RelyingPartyController from './controllers/RelyingPartyController'
@@ -14,20 +12,13 @@ import { CredentialDefinitionController } from './controllers/CredentialDefiniti
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import { corsOptions } from './utils/cors'
 import * as process from 'node:process'
-import KeycloakConnect, { Token } from 'keycloak-connect'
-import { checkRoles } from './utils/auth'
+import { checkRoles, isAccessTokenAudienceValid, isAccessTokenValid, Token } from './utils/auth'
+import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 
 require('dotenv-flow').config()
 useContainer(Container)
 
-const keycloak = new KeycloakConnect({}, {
-  realm: 'BC',
-  'auth-server-url': 'http://localhost:8080',
-  resource: 'showcase-tentantA',
-  'bearer-only': false,
-  'ssl-required': 'false',
-  'confidential-port': 0
-})
+
 
 async function bootstrap() {
   try {
@@ -45,27 +36,25 @@ async function bootstrap() {
         ShowcaseController,
       ],
       authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
-        try {
-          // getGrant() must be called to correctly populate the Token object
-          const grant = await keycloak.getGrant(action.request, action.response)
-          if (!grant.access_token) {
+          const accessToken: string = action.request.headers['authorization'].split(' ')[1]
+          // Introspect the access token
+          if(!await isAccessTokenValid(accessToken)) {
             return false
           }
-          // Throws error if the token is invalid. it validates claims and signature
-          await keycloak.grantManager.validateToken(grant.access_token as Token, 'Bearer')
+          const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
+          // Check if the audience is valid.
+          if (!isAccessTokenAudienceValid(token)) {
+            return false
+          }
           // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
           // User roles which at the moment we are not using, do not need any prefix.
-          return checkRoles(grant.access_token, roles)
-        } catch (e: any) {
-          return false
-        }
+          return checkRoles(token, roles)
       },
-      middlewares: [keycloak.middleware, ExpressErrorHandler],
+      middlewares: [ExpressErrorHandler],
       defaultErrorHandler: false,
       cors: corsOptions,
     })
 
-    app.use(keycloak.middleware())
     // Start the server
     const port = Number(process.env.PORT)
 
