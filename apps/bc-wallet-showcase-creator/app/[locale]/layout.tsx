@@ -2,10 +2,6 @@ import type { PropsWithChildren } from 'react'
 import React from 'react'
 import Script from 'next/script'
 
-import { AppSidebar } from '@/components/app-sidebar'
-import { Footer } from '@/components/footer'
-import { SidebarInset } from '@/components/ui/sidebar'
-import { SidebarProvider } from '@/components/ui/sidebar'
 import { Toaster } from '@/components/ui/sonner'
 import i18nConfig from '@/i18n.config'
 import { routing } from '@/i18n/routing'
@@ -72,14 +68,8 @@ export default async function RootLayout({ children, params }: Params) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <QueryProviders>
             <NextIntlClientProvider messages={messages}>
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>
-                  <main className="flex-1 overflow-auto">{children}</main>
-                  <Toaster />
-                  <Footer />
-                </SidebarInset>
-              </SidebarProvider>
+              {children}
+              <Toaster />
             </NextIntlClientProvider>
           </QueryProviders>
         </ThemeProvider>
