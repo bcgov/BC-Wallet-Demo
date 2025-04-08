@@ -1,6 +1,7 @@
 import Container from 'typedi'
 import { OidcSessionService } from './OidcSessionService'
 
-export function registerServicesByInterface() {
-  Container.set('ISessionService', new OidcSessionService())
+export async function registerServicesByInterface() {
+  const oidcSessionService = Container.get(OidcSessionService)
+  Container.set('ISessionService', oidcSessionService)
 }
