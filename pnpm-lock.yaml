@@ -99,6 +99,9 @@ importers:
 
   apps/bc-wallet-api-server:
     dependencies:
+      bc-wallet-adapter-client-api:
+        specifier: workspace:*
+        version: link:../../packages/bc-wallet-adapter-client-api
       bc-wallet-openapi:
         specifier: workspace:*
         version: link:../../packages/bc-wallet-openapi

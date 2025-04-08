@@ -30,14 +30,7 @@ export class MessageProcessor {
     }
 
     // Setup AMQ broker connection
-    this.connection = new Connection({
-      hostname: environment.messageBroker.AMQ_HOST,
-      port: environment.messageBroker.AMQ_PORT,
-      transport: 'tcp',
-      reconnect: true,
-      username: environment.messageBroker.AMQ_USER,
-      password: environment.messageBroker.AMQ_PASSWORD,
-    })
+    this.connection = new Connection(environment.messageBroker.getConnectionOptions())
   }
 
   public async start(): Promise<void> {

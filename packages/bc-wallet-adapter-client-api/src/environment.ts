@@ -1,4 +1,33 @@
+import type { ConnectionOptions } from 'rhea-promise'
+
 import { Topic } from './types/adapter-backend'
+
+const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
+  // Default to 'tls' if not provided or invalid
+  const validTransport = transport === 'tcp' || transport === 'tls' || transport === 'ssl' ? transport : 'tls'
+
+  // Base connection options
+  const options = {
+    hostname: process.env.AMQ_HOST || 'localhost',
+    port: parseInt(process.env.AMQ_PORT || '5672', 10),
+    reconnect: true,
+    username: process.env.AMQ_USER || 'guest',
+    password: process.env.AMQ_PASSWORD || 'guest',
+  }
+
+  // Add transport property with correct type
+  if (validTransport === 'tcp') {
+    return {
+      ...options,
+      transport: 'tcp',
+    }
+  } else {
+    return {
+      ...options,
+      transport: validTransport as 'tls' | 'ssl',
+    }
+  }
+}
 
 const validateTopic = (topic?: string): Topic | undefined => {
   if (!topic) {
@@ -30,6 +59,11 @@ export const environment = {
     AMQ_PORT: parseInt(process.env.AMQ_PORT || '5672', 10),
     AMQ_USER: process.env.AMQ_USER || 'guest',
     AMQ_PASSWORD: process.env.AMQ_PASSWORD || 'guest',
+    AMQ_TRANSPORT:
+      process.env.AMQ_TRANSPORT === 'tcp' || process.env.AMQ_TRANSPORT === 'tls' || process.env.AMQ_TRANSPORT === 'ssl'
+        ? process.env.AMQ_TRANSPORT
+        : 'tls',
+    getConnectionOptions: () => createAmqConnectionOptions(process.env.AMQ_TRANSPORT),
     MESSAGE_PROCESSOR_TOPIC: validateTopic(process.env.MESSAGE_PROCESSOR_TOPIC) ?? Topic.SHOWCASE_CMD,
   },
   encryption: {

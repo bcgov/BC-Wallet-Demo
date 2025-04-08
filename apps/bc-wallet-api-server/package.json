@@ -14,6 +14,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "bc-wallet-openapi": "workspace:*",
+    "bc-wallet-adapter-client-api": "workspace:*",
     "dotenv-flow": "^4.1.0",
     "drizzle-orm": "^0.39.3",
     "express": "^4.21.2",

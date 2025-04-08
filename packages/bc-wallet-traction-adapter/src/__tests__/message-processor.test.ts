@@ -35,6 +35,7 @@ describe('MessageProcessor Integration Test', () => {
     process.env.AMQ_PORT = environment.messageBroker.AMQ_PORT.toString()
     process.env.AMQ_USER = environment.messageBroker.AMQ_USER = 'guest'
     process.env.AMQ_PASSWORD = environment.messageBroker.AMQ_PASSWORD = 'guest'
+    process.env.AMQ_TRANSPORT = environment.messageBroker.AMQ_TRANSPORT = 'tcp'
     process.env.DEFAULT_API_BASE_PATH = environment.traction.DEFAULT_API_BASE_PATH = 'http://localhost:8080'
 
     // Establish an AMQP connection for sending test messages

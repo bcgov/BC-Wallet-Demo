@@ -14,15 +14,7 @@ export class AdapterClientApi {
   private sender!: Sender
 
   public constructor() {
-    this.connection = new Connection({
-      hostname: environment.messageBroker.AMQ_HOST,
-      port: environment.messageBroker.AMQ_PORT,
-      transport: 'tcp', // TODO add tls support?
-      reconnect: true,
-      username: environment.messageBroker.AMQ_USER,
-      password: environment.messageBroker.AMQ_PASSWORD,
-    })
-
+    this.connection = new Connection(environment.messageBroker.getConnectionOptions())
     this.isReady = this.init() // concurrency protection
   }
 
