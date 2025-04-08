@@ -1,3 +1,5 @@
+import { env } from "@/env";
+
 class ApiService {
   private baseUrl: string
 
@@ -62,9 +64,7 @@ class ApiService {
   }
 }
 
-if (!process.env.NEXT_PUBLIC_SHOWCASE_BACKEND) {
-  throw new Error('SHOWCASE_BACKEND environment variable is not defined')
-}
-const apiClient = new ApiService(process.env.NEXT_PUBLIC_SHOWCASE_BACKEND)
+
+const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_BACKEND)
 
 export default apiClient
