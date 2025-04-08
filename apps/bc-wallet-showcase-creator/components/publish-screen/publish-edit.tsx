@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form'
 import { useCreateAsset } from '@/hooks/use-asset'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { Link, useRouter } from '@/i18n/routing'
+import { useRouter } from '@/i18n/routing'
 import { convertBase64 } from '@/lib/utils'
-import type { AssetResponseType, ShowcaseRequestType } from '@/openapi-types'
+import type {  ShowcaseRequestType } from '@/openapi-types'
 import { ShowcaseRequest } from '@/openapi-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor, X } from 'lucide-react'
@@ -22,7 +22,7 @@ import { toast } from 'sonner'
 import Image from 'next/image'
 
 import { Button } from '../ui/button'
-import { on } from 'events'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
 
 const BannerImageUpload = ({
   text,
@@ -113,6 +113,7 @@ export const PublishEdit = () => {
   const router = useRouter()
   const { saveShowcase } = useOnboardingAdapter()
   const { personas } = useOnboardingAdapter()
+  const { tenantId } = useHelpersStore()
 
   const form = useForm<ShowcaseRequestType>({
     resolver: zodResolver(ShowcaseRequest),
@@ -125,7 +126,7 @@ export const PublishEdit = () => {
       scenarios: [],
       credentialDefinitions: [],
       personas: [],
-      tenantId: 'test-tenant-id'
+      tenantId,
     },
   })
 
@@ -137,7 +138,7 @@ export const PublishEdit = () => {
       credentialDefinitions: showcase.credentialDefinitions || ['86a96d6d-91c9-4357-984d-1f6b162fdfae'],
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
-       tenantId: 'test-tenant-id'
+      tenantId,
     })
   }, [form, showcase])
 
