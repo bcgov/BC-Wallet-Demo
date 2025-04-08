@@ -1,10 +1,14 @@
-import { Connection, Receiver, ReceiverEvents, ReceiverOptions } from 'rhea-promise'
+import type { Issuer } from 'bc-wallet-openapi'
+import { IssuerFromJSONTyped } from 'bc-wallet-openapi'
+import type { Buffer } from 'buffer'
+import type { Receiver, ReceiverOptions } from 'rhea-promise'
+import { Connection, ReceiverEvents } from 'rhea-promise'
+
 import { environment } from './environment'
-import { Issuer, IssuerFromJSONTyped } from 'bc-wallet-openapi'
-import { TractionService } from './services/traction-service'
 import { getTractionService } from './services/service-manager'
-import { Action, Topic } from './types'
-import { Buffer } from 'buffer'
+import type { TractionService } from './services/traction-service'
+import type { Action } from './types'
+import { Topic } from './types'
 
 interface MessageHeaders {
   action?: Action
@@ -19,7 +23,7 @@ export class MessageProcessor {
   private readonly connection: Connection
   private receiver!: Receiver
 
-  constructor(private topic: Topic) {
+  public constructor(private topic: Topic) {
     // Validate that topic is a valid enum value
     if (!Object.values(Topic).includes(topic)) {
       throw new Error(`Invalid topic: ${topic}. Valid topics are: ${Object.values(Topic).join(', ')}`)
@@ -75,7 +79,13 @@ export class MessageProcessor {
         return
       }
 
-      const service = getTractionService(headers.tenantId, headers.apiUrlBase, headers.walletId, headers.accessTokenEnc, headers.accessTokenNonce)
+      const service = getTractionService(
+        headers.tenantId,
+        headers.apiUrlBase,
+        headers.walletId,
+        headers.accessTokenEnc,
+        headers.accessTokenNonce,
+      )
 
       try {
         const jsonData = JSON.parse(message.body as string)
@@ -107,7 +117,13 @@ export class MessageProcessor {
     }
   }
 
-  private async processMessage(action: Action, jsonData: any, service: TractionService, context: any, headers: MessageHeaders): Promise<void> {
+  private async processMessage(
+    action: Action,
+    jsonData: any,
+    service: TractionService,
+    context: any,
+    headers: MessageHeaders,
+  ): Promise<void> {
     switch (action) {
       case 'publish-issuer-assets': {
         await this.handlePublishIssuerAssets(jsonData, service, context, headers)
@@ -120,7 +136,12 @@ export class MessageProcessor {
     }
   }
 
-  private async handlePublishIssuerAssets(jsonData: any, service: TractionService, context: any, headers: MessageHeaders): Promise<void> {
+  private async handlePublishIssuerAssets(
+    jsonData: any,
+    service: TractionService,
+    context: any,
+    headers: MessageHeaders,
+  ): Promise<void> {
     const issuer: Issuer = IssuerFromJSONTyped(jsonData, false)
     try {
       console.debug('Received issuer', issuer)

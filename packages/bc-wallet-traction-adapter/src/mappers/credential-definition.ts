@@ -1,20 +1,13 @@
-import { CredentialDefinition, CredentialSchema } from 'bc-wallet-openapi'
-import {
-  CredDefResult,
-  CredDefState,
-  type CredentialDefinitionSendRequest,
-  GetCredDefResult,
-  type SchemaSendRequest,
-} from 'bc-wallet-traction-openapi'
+import type { CredentialDefinition, CredentialSchema } from 'bc-wallet-openapi'
+import type { CredDefResult, CredDefState, GetCredDefResult } from 'bc-wallet-traction-openapi'
+import { type CredentialDefinitionSendRequest, type SchemaSendRequest } from 'bc-wallet-traction-openapi'
 
 /**
  * Converts a CredentialSchema to a SchemaPostRequest
  * @param credentialSchema The credential definition to convert
  * @returns A SchemaPostRequest object
  */
-export function credentialSchemaToSchemaPostRequest(
-  credentialSchema: CredentialSchema,
-): SchemaSendRequest {
+export function credentialSchemaToSchemaPostRequest(credentialSchema: CredentialSchema): SchemaSendRequest {
   if (!credentialSchema.attributes) {
     throw new Error(
       `The credential schema ${credentialSchema.id} / ${credentialSchema.name} must at least contain one attribute`,

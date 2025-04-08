@@ -1,4 +1,4 @@
-import { Topic } from './types'
+import type { Topic } from './types'
 
 export const environment = {
   messageBroker: {

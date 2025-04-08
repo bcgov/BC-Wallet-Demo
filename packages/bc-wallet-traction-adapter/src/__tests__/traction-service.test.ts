@@ -1,7 +1,9 @@
-import { TractionService } from '../services/traction-service'
-import { CredentialAttributeType, CredentialSchema, CredentialType, Issuer, IssuerType } from 'bc-wallet-openapi'
-import short from 'short-uuid'
+import type { CredentialAttributeType, CredentialSchema, Issuer } from 'bc-wallet-openapi'
+import { CredentialType, IssuerType } from 'bc-wallet-openapi'
 import * as process from 'node:process'
+import short from 'short-uuid'
+
+import { TractionService } from '../services/traction-service'
 
 const isTractionAvailable = () => {
   const tractionAvailable = process.env.TRACTION_AVAILABLE

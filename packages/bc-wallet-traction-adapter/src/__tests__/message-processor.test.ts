@@ -1,11 +1,16 @@
-import { RabbitMQContainer, StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
-import { Connection, Sender, SenderOptions } from 'rhea-promise'
-import { CredentialAttributeType, CredentialDefinition, CredentialType, IssuerType } from 'bc-wallet-openapi'
+import type { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
+import { RabbitMQContainer } from '@testcontainers/rabbitmq'
+import type { CredentialAttributeType, CredentialDefinition } from 'bc-wallet-openapi'
+import { CredentialType, IssuerType } from 'bc-wallet-openapi'
+import type { Sender, SenderOptions } from 'rhea-promise'
+import { Connection } from 'rhea-promise'
 import { v4 as uuidv4 } from 'uuid'
-import { MessageProcessor } from '../message-processor'
-import { Action, Topic } from '../types'
-import { getTractionService } from '../services/service-manager'
+
 import { environment } from '../environment'
+import { MessageProcessor } from '../message-processor'
+import { getTractionService } from '../services/service-manager'
+import type { Action } from '../types'
+import { Topic } from '../types'
 import { encryptBuffer } from '../util/CypherUtil'
 
 // Create a spy on getTractionService to monitor calls
@@ -67,94 +72,94 @@ describe('MessageProcessor Integration Test', () => {
   })
 
   test('should process publish-issuer-assets message successfully', async () => {
-  // Create a sample issuer with credential definitions and schemas
-  const issuer = {
-    id: 'test-issuer-id',
-    name: 'Test Issuer',
-    description: 'Test Issuer Description',
-    type: IssuerType.Aries,
-    organization: 'Test Organization',
-    credentialDefinitions: [
-      {
-        id: 'test-cred-def-id',
-      name: 'Test Credential',
-      version: '1.0',
-      type: CredentialType.Anoncred,
-      credentialSchema: {
-        id: 'schema-id',
-        name: 'Test Schema',
-        version: '1.0',
-        attributes: [
-          {
-            id: 'attr1',
-            name: 'firstName',
-            type: 'STRING' as CredentialAttributeType,
-            value: 'John',
+    // Create a sample issuer with credential definitions and schemas
+    const issuer = {
+      id: 'test-issuer-id',
+      name: 'Test Issuer',
+      description: 'Test Issuer Description',
+      type: IssuerType.Aries,
+      organization: 'Test Organization',
+      credentialDefinitions: [
+        {
+          id: 'test-cred-def-id',
+          name: 'Test Credential',
+          version: '1.0',
+          type: CredentialType.Anoncred,
+          credentialSchema: {
+            id: 'schema-id',
+            name: 'Test Schema',
+            version: '1.0',
+            attributes: [
+              {
+                id: 'attr1',
+                name: 'firstName',
+                type: 'STRING' as CredentialAttributeType,
+                value: 'John',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+              {
+                id: 'attr2',
+                name: 'lastName',
+                type: 'STRING' as CredentialAttributeType,
+                value: 'Doe',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+            ],
             createdAt: new Date(),
             updatedAt: new Date(),
           },
-          {
-            id: 'attr2',
-            name: 'lastName',
-            type: 'STRING' as CredentialAttributeType,
-            value: 'Doe',
+          representations: [],
+          icon: {
+            id: 'icon1',
+            mediaType: 'image/png',
+            content: 'base64content',
             createdAt: new Date(),
             updatedAt: new Date(),
           },
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      representations: [],
-      icon: {
-        id: 'icon1',
-        mediaType: 'image/png',
-        content: 'base64content',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      credentialSchemas: [
+        {
+          id: 'schema-id',
+          name: 'Test Schema',
+          version: '1.0',
+          attributes: [
+            {
+              id: 'attr1',
+              name: 'firstName',
+              type: 'STRING' as CredentialAttributeType,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            {
+              id: 'attr2',
+              name: 'lastName',
+              type: 'STRING' as CredentialAttributeType,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
       createdAt: new Date(),
       updatedAt: new Date(),
     }
-    ],
-    credentialSchemas: [
-      {
-        id: 'schema-id',
-        name: 'Test Schema',
-        version: '1.0',
-        attributes: [
-          {
-            id: 'attr1',
-            name: 'firstName',
-            type: 'STRING' as CredentialAttributeType,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          {
-            id: 'attr2',
-            name: 'lastName',
-            type: 'STRING' as CredentialAttributeType,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    ],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
 
     // Spy on console.debug to detect when the message is processed
     const consoleSpy = jest.spyOn(console, 'debug')
 
-  // Send a message with the issuer
+    // Send a message with the issuer
     const messageId = uuidv4()
     const { encrypted, nonce } = encryptBuffer(Buffer.from('test-token', 'utf8'))
     void sender.send({
       message_id: messageId,
-    body: JSON.stringify(issuer),
+      body: JSON.stringify(issuer),
       application_properties: {
         action: 'publish-issuer-assets' as Action,
         tenantId: 'test-tenant',
@@ -168,7 +173,7 @@ describe('MessageProcessor Integration Test', () => {
     // Wait for the message to be processed
     await new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-      if (consoleSpy.mock.calls.some((call) => call[0] === 'Received issuer' && call[1]?.id === 'test-issuer-id')) {
+        if (consoleSpy.mock.calls.some((call) => call[0] === 'Received issuer' && call[1]?.id === 'test-issuer-id')) {
           clearInterval(checkInterval)
           resolve()
         }
@@ -182,20 +187,26 @@ describe('MessageProcessor Integration Test', () => {
     })
 
     // Verify that the getTractionService was called with the correct parameters
-  expect(getTractionService).toHaveBeenCalledWith('test-tenant', 'http://localhost:8080', 'test-wallet', encrypted, nonce)
+    expect(getTractionService).toHaveBeenCalledWith(
+      'test-tenant',
+      'http://localhost:8080',
+      'test-wallet',
+      encrypted,
+      nonce,
+    )
 
     consoleSpy.mockRestore()
   })
 
   test('should reject message with missing action', async () => {
-  // Create a sample issuer
-  const issuer = {
-    id: 'test-issuer-id',
-    name: 'Test Issuer',
-    description: 'Test Issuer Description',
-    type: IssuerType.Aries,
-    credentialDefinitions: [],
-    credentialSchemas: [],
+    // Create a sample issuer
+    const issuer = {
+      id: 'test-issuer-id',
+      name: 'Test Issuer',
+      description: 'Test Issuer Description',
+      type: IssuerType.Aries,
+      credentialDefinitions: [],
+      credentialSchemas: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -207,7 +218,7 @@ describe('MessageProcessor Integration Test', () => {
     const messageId = uuidv4()
     void (await sender.send({
       message_id: messageId,
-    body: JSON.stringify(issuer),
+      body: JSON.stringify(issuer),
       application_properties: {
         tenantId: 'test-tenant',
       },
@@ -235,91 +246,91 @@ describe('MessageProcessor Integration Test', () => {
     consoleSpy.mockRestore()
   })
 
-test('should reject message with missing tenant ID', async () => {
-  // Create a sample issuer
-  const issuer = {
-    id: 'test-issuer-id',
-    name: 'Test Issuer',
-    description: 'Test Issuer Description',
-    type: IssuerType.Aries,
-    credentialDefinitions: [],
-    credentialSchemas: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
+  test('should reject message with missing tenant ID', async () => {
+    // Create a sample issuer
+    const issuer = {
+      id: 'test-issuer-id',
+      name: 'Test Issuer',
+      description: 'Test Issuer Description',
+      type: IssuerType.Aries,
+      credentialDefinitions: [],
+      credentialSchemas: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
 
-  // Spy on console.error to detect when the message is rejected
-  const consoleSpy = jest.spyOn(console, 'error')
+    // Spy on console.error to detect when the message is rejected
+    const consoleSpy = jest.spyOn(console, 'error')
 
-  // Send a message without a tenant ID
-  const messageId = uuidv4()
-  void (await sender.send({
-    message_id: messageId,
-    body: JSON.stringify(issuer),
-    application_properties: {
-      action: 'publish-issuer-assets' as Action,
-    },
-  }))
+    // Send a message without a tenant ID
+    const messageId = uuidv4()
+    void (await sender.send({
+      message_id: messageId,
+      body: JSON.stringify(issuer),
+      application_properties: {
+        action: 'publish-issuer-assets' as Action,
+      },
+    }))
 
-  // Wait for the message to be processed
-  await new Promise<void>((resolve) => {
-    const checkInterval = setInterval(() => {
-      if (consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))) {
+    // Wait for the message to be processed
+    await new Promise<void>((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))) {
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100)
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
         clearInterval(checkInterval)
         resolve()
-      }
-    }, 100)
+      }, 5000)
+    })
 
-    // Timeout after 5 seconds
-    setTimeout(() => {
-      clearInterval(checkInterval)
-      resolve()
-    }, 5000)
+    // Verify the error was logged
+    expect(consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))).toBeTruthy()
+
+    consoleSpy.mockRestore()
   })
 
-  // Verify the error was logged
-  expect(consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))).toBeTruthy()
+  test('should reject message with invalid JSON', async () => {
+    // Spy on console.error to detect when the message is rejected
+    const consoleSpy = jest.spyOn(console, 'error')
 
-  consoleSpy.mockRestore()
-})
+    // Send a message with invalid JSON
+    const messageId = uuidv4()
+    void (await sender.send({
+      message_id: messageId,
+      body: '{invalid json}',
+      application_properties: {
+        action: 'publish-issuer-assets' as Action,
+        tenantId: 'test-tenant',
+        apiUrlBase: 'http://localhost:8080',
+      },
+    }))
 
-test('should reject message with invalid JSON', async () => {
-  // Spy on console.error to detect when the message is rejected
-  const consoleSpy = jest.spyOn(console, 'error')
+    // Wait for the message to be processed
+    await new Promise<void>((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))) {
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100)
 
-  // Send a message with invalid JSON
-  const messageId = uuidv4()
-  void (await sender.send({
-    message_id: messageId,
-    body: '{invalid json}',
-    application_properties: {
-      action: 'publish-issuer-assets' as Action,
-      tenantId: 'test-tenant',
-      apiUrlBase: 'http://localhost:8080',
-    },
-  }))
-
-  // Wait for the message to be processed
-  await new Promise<void>((resolve) => {
-    const checkInterval = setInterval(() => {
-      if (consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))) {
+      // Timeout after 5 seconds
+      setTimeout(() => {
         clearInterval(checkInterval)
         resolve()
-      }
-    }, 100)
+      }, 5000)
+    })
 
-    // Timeout after 5 seconds
-    setTimeout(() => {
-      clearInterval(checkInterval)
-      resolve()
-    }, 5000)
+    // Verify the error was logged
+    expect(consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))).toBeTruthy()
+
+    consoleSpy.mockRestore()
   })
-
-  // Verify the error was logged
-  expect(consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))).toBeTruthy()
-
-  consoleSpy.mockRestore()
-})
 
   test('should reject message with missing tenant ID', async () => {
     // Create a sample credential definition
@@ -430,14 +441,14 @@ test('should reject message with invalid JSON', async () => {
   })
 
   test('should reject message with unsupported action', async () => {
-  // Create a sample issuer
-  const issuer = {
-    id: 'test-issuer-id',
-    name: 'Test Issuer',
-    description: 'Test Issuer Description',
-    type: IssuerType.Aries,
-    credentialDefinitions: [],
-    credentialSchemas: [],
+    // Create a sample issuer
+    const issuer = {
+      id: 'test-issuer-id',
+      name: 'Test Issuer',
+      description: 'Test Issuer Description',
+      type: IssuerType.Aries,
+      credentialDefinitions: [],
+      credentialSchemas: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -449,7 +460,7 @@ test('should reject message with invalid JSON', async () => {
     const messageId = uuidv4()
     void (await sender.send({
       message_id: messageId,
-    body: JSON.stringify(issuer),
+      body: JSON.stringify(issuer),
       application_properties: {
         action: 'unsupported-action' as Action,
         tenantId: 'test-tenant',

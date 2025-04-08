@@ -1,8 +1,9 @@
-import { TractionService } from './traction-service'
-import { environment } from '../environment'
+import type { Buffer } from 'buffer'
 import { LRUCache } from 'lru-cache'
+
+import { environment } from '../environment'
 import { decryptBufferAsString } from '../util/CypherUtil'
-import { Buffer } from 'buffer'
+import { TractionService } from './traction-service'
 
 class ServiceManager {
   private readonly services = new LRUCache<string, TractionService>({
@@ -50,7 +51,11 @@ class ServiceManager {
     return decodedToken
   }
 
-  private buildKey(apiUrlBase: string = environment.traction.DEFAULT_API_BASE_PATH, tenantId: string, walletId?: string): string {
+  private buildKey(
+    apiUrlBase: string = environment.traction.DEFAULT_API_BASE_PATH,
+    tenantId: string,
+    walletId?: string,
+  ): string {
     return walletId ? `${apiUrlBase}:${tenantId}:${walletId}` : `${apiUrlBase}:${tenantId}`
   }
 }

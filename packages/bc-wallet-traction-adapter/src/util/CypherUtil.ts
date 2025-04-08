@@ -1,6 +1,7 @@
-import crypto from 'crypto'
-import { Buffer } from 'buffer'
 import bs58 from 'bs58'
+import { Buffer } from 'buffer'
+import crypto from 'crypto'
+
 import { environment } from '../environment'
 
 // TODO move to common package to dedup
@@ -144,7 +145,10 @@ export function decryptBuffer(encryptedData: Buffer, nonce: Buffer): Buffer {
  * @param nonceSize Size of the nonce in bytes (default from environment)
  * @returns Object containing base64 encoded encrypted data and nonce
  */
-export function encryptString(text: string, nonceSize: number = env.NONCE_SIZE): { encryptedBase64: string; nonceBase64: string } {
+export function encryptString(
+  text: string,
+  nonceSize: number = env.NONCE_SIZE,
+): { encryptedBase64: string; nonceBase64: string } {
   const result = encryptBuffer(Buffer.from(text, 'utf8'), nonceSize)
   return {
     encryptedBase64: result.encrypted.toString('base64'),
@@ -185,7 +189,10 @@ export function decryptBufferAsString(encryptedData: Buffer, nonce: Buffer): str
  * @param nonceSize Size of the nonce in bytes (default from environment)
  * @returns Object containing encrypted data and nonce as Uint8Arrays
  */
-export function encryptBytes(data: Uint8Array, nonceSize: number = env.NONCE_SIZE): { encrypted: Uint8Array; nonce: Uint8Array } {
+export function encryptBytes(
+  data: Uint8Array,
+  nonceSize: number = env.NONCE_SIZE,
+): { encrypted: Uint8Array; nonce: Uint8Array } {
   const result = encryptBuffer(Buffer.from(data), nonceSize)
   return {
     encrypted: new Uint8Array(result.encrypted),

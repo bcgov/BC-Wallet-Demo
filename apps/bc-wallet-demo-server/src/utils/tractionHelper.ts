@@ -16,21 +16,20 @@ export const tractionApiKeyUpdaterInit = async () => {
   try {
     // Check if required environment variables are defined
     if (!tractionBaseUrl) {
-      return Promise.reject(new Error("TRACTION_URL environment variable is not defined"))
+      return Promise.reject(new Error('TRACTION_URL environment variable is not defined'))
     }
     if (!tenantId) {
-      return Promise.reject(new Error("TENANT_ID environment variable is not defined"))
+      return Promise.reject(new Error('TENANT_ID environment variable is not defined'))
     }
     if (!apiKey && !walletKey) {
-      return Promise.reject(new Error("Both API_KEY and WALLET_KEY environment variables are undefined"))
+      return Promise.reject(new Error('Both API_KEY and WALLET_KEY environment variables are undefined'))
     }
 
     // Use apiKey if defined, otherwise use walletKey
     const payload = apiKey ? { api_key: apiKey } : { wallet_key: walletKey }
 
     agentKey =
-      (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, payload)).data?.token ??
-      agentKey
+      (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, payload)).data?.token ?? agentKey
 
     // refresh agent key every hour
     setInterval(async () => {
@@ -39,12 +38,13 @@ export const tractionApiKeyUpdaterInit = async () => {
           (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, payload)).data?.token ??
           agentKey
       } catch (error) {
-        console.error("Failed to refresh agent key:", error)
+        console.error('Failed to refresh agent key:', error)
       }
     }, 3600000)
   } catch (error) {
     return Promise.reject(new Error(`Failed to initialize agent key: ${(error as Error).message}`))
-  }}
+  }
+}
 
 export const tractionRequest = {
   get: (url: string, config?: AxiosRequestConfig) => {
@@ -103,9 +103,12 @@ export const tractionGarbageCollection = async () => {
   cleanupConnections()
   cleanupExchangeRecords()
   cleanupProofRecords()
-  setInterval(async () => {
-    cleanupConnections()
-    cleanupExchangeRecords()
-    cleanupProofRecords()
-  }, 6 * 60 * 60 * 1000)
+  setInterval(
+    async () => {
+      cleanupConnections()
+      cleanupExchangeRecords()
+      cleanupProofRecords()
+    },
+    6 * 60 * 60 * 1000,
+  )
 }

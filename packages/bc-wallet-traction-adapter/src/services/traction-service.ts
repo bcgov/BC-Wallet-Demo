@@ -1,30 +1,34 @@
-import { type CredentialDefinition, CredentialSchema, Issuer } from 'bc-wallet-openapi'
-import {
+import type { CredentialSchema, Issuer } from 'bc-wallet-openapi'
+import { type CredentialDefinition } from 'bc-wallet-openapi'
+import type {
   ApiResponse,
-  Configuration,
   ConfigurationParameters,
   CreateWalletTokenRequest,
   CreateWalletTokenResponse,
+  DIDResult,
+  TransactionRecord,
+  TxnOrCredentialDefinitionSendResult,
+  TxnOrSchemaSendResult,
+} from 'bc-wallet-traction-openapi'
+import {
+  Configuration,
   CredentialDefinitionApi,
   CredentialDefinitionStorageApi,
   type CustomCreateWalletTokenRequest,
-  DIDResult,
   EndorseTransactionApi,
   MultitenancyApi,
   ResponseError,
   SchemaApi,
   SchemaStorageApi,
-  TransactionRecord,
-  TxnOrCredentialDefinitionSendResult,
-  TxnOrSchemaSendResult,
   WalletApi,
 } from 'bc-wallet-traction-openapi'
+
+import { environment } from '../environment'
 import {
   credentialDefinitionToCredentialDefinitionSendRequest,
   credentialSchemaToSchemaPostRequest,
 } from '../mappers/credential-definition'
-import { environment } from '../environment'
-import { CreateSchemaResult, PublishCredentialDefinitionResult } from '../types'
+import type { CreateSchemaResult, PublishCredentialDefinitionResult } from '../types'
 
 const TRANSACTION_TERMINAL_STATES = new Set([
   'transaction_acked',
@@ -46,7 +50,7 @@ export class TractionService {
   private walletApi: WalletApi
   private endorseTransactionApi: EndorseTransactionApi
 
-  constructor(
+  public constructor(
     private tenantId: string,
     private basePath: string = environment.traction.DEFAULT_API_BASE_PATH,
     private walletId?: string,

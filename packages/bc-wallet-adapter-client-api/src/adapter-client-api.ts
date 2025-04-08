@@ -1,7 +1,9 @@
+import type { Issuer } from 'bc-wallet-openapi'
+import type { Sender } from 'rhea-promise'
+import { Connection } from 'rhea-promise'
 import { Service } from 'typedi'
-import { Connection, Sender } from 'rhea-promise'
+
 import { environment } from './environment'
-import { Issuer } from 'bc-wallet-openapi'
 import { encryptBuffer } from './util/CypherUtil'
 
 @Service()
@@ -11,7 +13,7 @@ export class AdapterClientApi {
   private connection: Connection
   private sender!: Sender
 
-  constructor() {
+  public constructor() {
     this.connection = new Connection({
       hostname: environment.messageBroker.AMQ_HOST,
       port: environment.messageBroker.AMQ_PORT,
@@ -32,7 +34,9 @@ export class AdapterClientApi {
       return
     }
     await this.connection.open()
-    this.sender = await this.connection.createSender({ target: { address: environment.messageBroker.MESSAGE_PROCESSOR_TOPIC } })
+    this.sender = await this.connection.createSender({
+      target: { address: environment.messageBroker.MESSAGE_PROCESSOR_TOPIC },
+    })
     this.isConnected = true
   }
 

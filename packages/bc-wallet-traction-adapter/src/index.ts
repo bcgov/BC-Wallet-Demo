@@ -1,5 +1,5 @@
-import { MessageProcessor } from './message-processor'
 import { environment } from './environment'
+import { MessageProcessor } from './message-processor'
 
 async function main() {
   const processor = new MessageProcessor(environment.messageBroker.MESSAGE_PROCESSOR_TOPIC)
