@@ -13,12 +13,16 @@ import ShowcaseController from './controllers/ShowcaseController'
 import { CredentialDefinitionController } from './controllers/CredentialDefinitionController'
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import { corsOptions } from './utils/cors'
+import { registerServicesByInterface } from './services/RegisterServicesByInterface'
+import TenantController from './controllers/TenantController'
 
 require('dotenv-flow').config()
 useContainer(Container)
 
 async function bootstrap() {
   try {
+    registerServicesByInterface()
+
     // Create and configure Express server
     const app = createExpressServer({
       controllers: [
@@ -31,6 +35,7 @@ async function bootstrap() {
         IssuanceScenarioController,
         PresentationScenarioController,
         ShowcaseController,
+        TenantController,
       ],
       middlewares: [ExpressErrorHandler],
       defaultErrorHandler: false,
