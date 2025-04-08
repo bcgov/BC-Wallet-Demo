@@ -1,3 +1,5 @@
+import { env } from "@/env";
+
 class ApiService {
   private baseUrl: string
 
@@ -62,7 +64,7 @@ class ApiService {
   }
 }
 
-// Create an instance with the actual API base URL
-const apiClient = new ApiService(process.env.SHOWCASE_BACKEND ?? 'https://bcshowcase-api.dev.nborbit.ca')
+
+const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_BACKEND)
 
 export default apiClient

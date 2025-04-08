@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Edit, Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-
+import Image from 'next/image'
 import DeleteModal from '../delete-modal'
 import { ErrorModal } from '../error-modal'
 import Loader from '../loader'
@@ -188,7 +188,7 @@ export const ConnectStepEdit = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <img src={currentStep.image} alt="Step icon" className="w-full object-cover" />
+                <Image src={currentStep.image} alt={currentStep.title} className="w-full object-cover" />
               </div>
             </div>
           )}
