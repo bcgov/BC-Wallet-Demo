@@ -1,14 +1,14 @@
 import React from 'react'
 
 import { PublishEdit } from '@/components/publish-screen/publish-edit'
-import { PublishInfo } from '@/components/publish-screen/publish-info'
 import TabsComponent from '@/components/Tabs-component'
-import type { PageParams } from '@/types'
 import { Pencil } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
-export default async function PublishPage({ params }: { params: PageParams }) {
-  const { locale } = await params
+export default async function PublishPage({ params }: { 
+  params: Promise<{ slug: string, locale: string }>
+}) {
+  const { slug, locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations()
 
@@ -26,7 +26,7 @@ export default async function PublishPage({ params }: { params: PageParams }) {
           </div>
           {/* Tabs Section */}
           <div className="flex space-x-1 text-lg font-semibold justify-start">
-            <TabsComponent slug="example-name" />
+            <TabsComponent slug={slug} />
           </div>
           <button className="text-gray-500 hover:text-gray-700"></button>
         </div>

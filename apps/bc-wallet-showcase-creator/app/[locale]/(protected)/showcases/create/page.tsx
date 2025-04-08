@@ -29,16 +29,32 @@ export default function CreateOnboardingPage() {
             <div className="p-4">
               <ul className="flex flex-col gap-4">
                 <li className="flex flex-col gap-2">
-                  <h3 className="text-sm font-bold">Step 1: Create a showcase</h3>
+                  <h3 className="text-sm font-bold">Step 1: Give a name to your showcase</h3>
                   <p className="text-xs text-foreground/80">This is the first step to create a showcase.</p>
                 </li>
                 <li className="flex flex-col gap-2">
-                  <h3 className="text-sm font-bold">Step 2: Create a showcase</h3>
+                  <h3 className="text-sm font-bold">Step 2: Create a persona</h3>
                   <p className="text-xs text-foreground/80">This is the first step to create a showcase.</p>
                 </li>
                 <li className="flex flex-col gap-2">
-                  <h3 className="text-sm font-bold">Step 3: Create a showcase</h3>
+                  <h3 className="text-sm font-bold">Step 3: Create the onboarding</h3>
                   <p className="text-xs text-foreground/80">This is the first step to create a showcase.</p>
+                </li>
+                <li className="flex flex-col gap-2">
+                  <h3 className="text-sm font-bold">Step 4: Add steps to the onboarding</h3>
+                  <p className="text-xs text-foreground/80">This is the first step to create a showcase.</p>
+                </li>
+                <li className="flex flex-col gap-2">
+                  <h3 className="text-sm font-bold">Step 5: Create a scenario</h3>
+                  <p className="text-xs text-foreground/80">This is the first step to create a showcase.</p>
+                </li>
+                <li className="flex flex-col gap-2">
+                  <h3 className="text-sm font-bold">Step 6: Add steps to the scenario</h3>
+                  <p className="text-xs text-foreground/80">This is the first step to create a showcase.</p>
+                </li>
+                <li className="flex flex-col gap-2">  
+                  <h3 className="text-sm font-bold">Step 7: Submit your showcase</h3>
+                  <p className="text-xs text-foreground/80">Submit your showcase for review.</p>
                 </li>
               </ul>
             </div>

@@ -53,7 +53,6 @@ export default function NewCharacterPage() {
     
     // Derived data
     selectedPersonaIds,
-    setSelectedPersonaIds,
   } = usePersonaAdapter();
 
   const form = useForm<CharacterFormData>({
@@ -326,9 +325,6 @@ export default function NewCharacterPage() {
                           </ButtonOutline>
                           <ButtonOutline disabled={selectedPersonaIds.length === 0} onClick={handleProceed}>
                             {t('action.next_label')}
-                          </ButtonOutline>
-                          <ButtonOutline disabled={selectedPersonaIds.length === 0} onClick={() => setSelectedPersonaIds([])}>
-                            Clear state
                           </ButtonOutline>
                         </div>
                       </div>
