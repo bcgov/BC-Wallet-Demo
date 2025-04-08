@@ -48,7 +48,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
                   }
                 ] })
               }
-            })
+            }) ?? []
             const actions = await Promise.all(actionPromises)
 
             return {
