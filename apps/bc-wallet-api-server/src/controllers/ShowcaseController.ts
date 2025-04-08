@@ -22,7 +22,6 @@ import {
 } from 'bc-wallet-openapi'
 import ShowcaseService from '../services/ShowcaseService'
 import { showcaseDTOFrom } from '../utils/mappers'
-import { NotFoundError } from '../errors'
 
 @JsonController('/showcases')
 @Service()
