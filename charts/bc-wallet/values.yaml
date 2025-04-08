@@ -142,7 +142,8 @@ showcase_creator:
     AUTH_SECRET: ""
     AUTH_KEYCLOAK_ID: "showcase-tenantA"
     AUTH_KEYCLOAK_SECRET: ""
-    AUTH_KEYCLOAK_ISSUER="https://auth01.test.sphereon.com/auth/realms/BC"
+    AUTH_KEYCLOAK_ISSUER: "https://auth01.test.sphereon.com/auth/realms/BC"
+
   resources:
     limits:
       cpu: 200m

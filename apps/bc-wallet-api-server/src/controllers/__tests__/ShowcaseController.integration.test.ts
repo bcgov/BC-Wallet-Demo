@@ -42,6 +42,7 @@ describe('ShowcaseController Integration Tests', () => {
     const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
+    Container.get(TenantRepository)
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)
     Container.get(CredentialDefinitionRepository)
@@ -138,9 +139,9 @@ describe('ShowcaseController Integration Tests', () => {
       description: 'Test description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenantId,
       scenarios: [nonExistentId],
       personas: [nonExistentId],
-      tenantId: tenantId,
     }
 
     await request.post('/showcases').send(invalidShowcaseRequest2).expect(404)

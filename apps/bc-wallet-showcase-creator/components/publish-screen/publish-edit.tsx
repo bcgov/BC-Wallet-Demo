@@ -109,7 +109,7 @@ const BannerImageUpload = ({
 export const PublishEdit = () => {
   const t = useTranslations()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { showcase, reset } = useShowcaseStore()
+  const { showcase, reset, setScenarioIds } = useShowcaseStore()
   const router = useRouter()
   const { saveShowcase } = useOnboardingAdapter()
   const { personas } = useOnboardingAdapter()
@@ -125,6 +125,7 @@ export const PublishEdit = () => {
       scenarios: [],
       credentialDefinitions: [],
       personas: [],
+      tenantId: ''
     },
   })
 
@@ -136,6 +137,7 @@ export const PublishEdit = () => {
       credentialDefinitions: showcase.credentialDefinitions || ['86a96d6d-91c9-4357-984d-1f6b162fdfae'],
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
+      tenantId: ''
     })
   }, [form, showcase])
 
@@ -145,6 +147,7 @@ export const PublishEdit = () => {
     toast.success('Showcase created successfully')
     reset()
     setIsModalOpen(false)
+    setScenarioIds([])
     router.push('/showcases')
   }
 
