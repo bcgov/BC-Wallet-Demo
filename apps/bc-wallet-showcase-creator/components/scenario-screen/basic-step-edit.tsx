@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form'
 
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import { Form } from '@/components/ui/form'
-import { RequestType, StepType } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -13,52 +12,110 @@ import { useTranslations } from 'next-intl'
 import DeleteModal from '../delete-modal'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { StepRequest, StepRequestType } from '@/openapi-types'
+import { debounce } from 'lodash'
+import { toast } from 'sonner'
+import { usePresentations } from '@/hooks/use-presentation'
+import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
+import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
+import { sampleAction, sampleScenario } from '@/lib/steps'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { BasicStepFormData, basicStepSchema } from '@/schemas/onboarding'
 
 export const BasicStepEdit = () => {
   const t = useTranslations()
-  const { selectedScenario, setStepState, selectedStep } = usePresentationCreation()
+  const { personas } = useOnboardingAdapter()
+  const { relayerId } = useHelpersStore()
+  const { screens} = usePresentations()
+  const {selectedScenario, updateStep, selectedStep, setStepState, deleteStep } = usePresentationAdapter()
 
   const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] : null
 
-  const form = useForm<StepRequestType>({
-    resolver: zodResolver(StepRequest),
-    mode: 'all',
-    defaultValues: {
-      type: StepType.HUMAN_TASK,
-      title: '',
-      description: '',
-    },
-  })
+  const defaultValues = {
+    title: currentStep?.title || '',
+    description: currentStep?.description || '',
+    asset: currentStep?.asset || undefined,
+  }
 
+  const form = useForm<BasicStepFormData>({
+    resolver: zodResolver(basicStepSchema),
+    defaultValues,
+    mode: 'all',
+  })
+  
   useEffect(() => {
     if (currentStep) {
-      form.reset(currentStep)
+      form.reset(defaultValues)
     }
-  }, [currentStep, form.reset])
+  }, [currentStep, form])
 
-  const onSubmit = (data: StepRequestType) => {
-    console.log('data', data)
-    if (selectedScenario === null || selectedStep === null) return
+    const autoSave = debounce((data: BasicStepFormData) => {
+      if (!currentStep || !form.formState.isDirty) return
+  
+      const updatedStep = {
+        ...currentStep,
+        title: data.title,
+        description: data.description,
+        asset: data.asset || undefined,
+      }
 
-    // Transform the form data back to the expected format
-    const stepData = {
-      ...data,
-      type: data.type.toUpperCase() as StepType,
-      actions: {
-        ...data.actions,
-        type: data.actions[0].actionType.toUpperCase() as RequestType,
-      },
-    }
-    console.log('StepData After Update', stepData)
-    // updateStep(selectedScenario, selectedStep, stepData)
-    setStepState('no-selection')
+      updateStep(currentStep.order, updatedStep)
+  
+      setTimeout(() => {
+        toast.success('Changes saved', { duration: 1000 })
+      }, 500)
+    }, 800)
+
+      useEffect(() => {
+        const subscription = form.watch((value) => {
+          if (form.formState.isDirty) {
+            autoSave(value as BasicStepFormData)
+          }
+        })
+    
+        return () => subscription.unsubscribe()
+      }, [form, autoSave])
+
+  const onSubmit = (data: BasicStepFormData) => {
+    autoSave.flush()
+    const personaScenarios = personas.map((persona) => {
+          const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario))
+          scenarioForPersona.personas = [persona.id]
+          scenarioForPersona.relyingParty = relayerId
+    
+          scenarioForPersona.steps = [
+            ...screens.map((screen, index) => ({
+              title: screen.title,
+              description: screen.description,
+              asset: screen.asset || undefined,
+              type: screen.type || 'HUMAN_TASK',
+              order: index,
+              actions: screen.actions || [sampleAction],
+              screenId: "INFO",
+            })),
+          ]
+    
+          const currentStepExists = scenarioForPersona.steps.some(
+            (step: any) => step.title === data.title && step.description === data.description
+          )
+    
+          if (!currentStepExists) {
+            scenarioForPersona.steps.push({
+              title: data.title,
+              description: data.description,
+              asset: data.asset || undefined,
+              type: 'HUMAN_TASK',
+              order: currentStep?.order || scenarioForPersona.steps.length,
+              actions: [sampleAction],
+            })
+          }
+    
+          return scenarioForPersona
+        })
+        console.log('personaScenarios',personaScenarios);
   }
-  console.log('form.formState', form.formState)
   if (!currentStep) return null
 
   return (
@@ -112,7 +169,7 @@ export const BasicStepEdit = () => {
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
             {/* <Link href="/publish"> */}
-            <ButtonOutline disabled={!form.formState.isDirty || !form.formState.isValid}>
+            <ButtonOutline  onClick={form.handleSubmit(onSubmit)}>
               {t('action.next_label')}
             </ButtonOutline>
             {/* </Link> */}
@@ -127,6 +184,7 @@ export const BasicStepEdit = () => {
         onDelete={() => {
           console.log('Item Deleted')
           setIsModalOpen(false)
+          deleteStep(selectedStep?.stepIndex as number)
         }}
         header="Are you sure you want to delete this page?"
         description="Are you sure you want to delete this page?"

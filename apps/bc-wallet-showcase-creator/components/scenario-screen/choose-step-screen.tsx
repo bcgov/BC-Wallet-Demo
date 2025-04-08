@@ -11,10 +11,11 @@ import { NoSelection } from '../credentials/no-selection'
 import { BasicStepAdd } from './basic-step-add'
 import { StepType } from '@/types'
 import { useEffect } from 'react'
+import { createDefaultStep, createServiceStep } from '@/lib/steps'
 
 export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
-  const { stepState, activePersonaId, selectedStep, steps, setStepState, setSelectedStep } = usePresentationAdapter()
+  const { stepState, activePersonaId, selectedStep, steps, setStepState, setSelectedStep, createStep } = usePresentationAdapter()
 
   // Get the current step if available
   const currentStep = selectedStep !== null && steps.length > selectedStep.stepIndex ? steps[selectedStep.stepIndex] : null
@@ -40,6 +41,23 @@ export const CreateScenariosStepsScreen = () => {
   }, [stepState])
 
   const handleAddStep = (type: StepType) => {
+    if(type == 'HUMAN_TASK'){
+      createStep(
+        createDefaultStep({
+          title: 'Basic Step',
+          description: 'This is a basic step in the onboarding journey.',
+        })
+      )
+      setStepState('editing-basic')
+    }else if(type == 'CONNET_AND_VERIFY'){
+        createStep(
+          createServiceStep({
+            title: `Accept your student card`,
+            description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
+          })
+        )
+        setStepState('editing-issue')
+    }
     // Implement this if needed
   }
 
