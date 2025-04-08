@@ -412,7 +412,6 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
               },
             },
             asset: true,
-            credentialDefinition: true,
           },
         },
         relyingParty: {
@@ -519,7 +518,6 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
               },
             },
             asset: true,
-            credentialDefinition: true,
           },
         },
         relyingParty: {
@@ -610,20 +608,12 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
   async createStep(scenarioId: string, step: NewStep): Promise<Step> {
     await this.findById(scenarioId)
 
-
-    const credentialDefinitionIdResult =
-      step.credentialDefinitionIdentifier && step.credentialDefinitionIdentifierType
-        ? await this.credentialDefinitionRepository.findIdByIdentifier(step.credentialDefinitionIdentifier, step.credentialDefinitionIdentifierType)
-        : null
-
-
     const assetResult = step.asset ? await this.assetRepository.findById(step.asset) : null
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<Step> => {
       const [stepResult] = await tx
         .insert(steps)
         .values({
           ...step,
-          credentialDefinition: credentialDefinitionIdResult,
           scenario: scenarioId,
         })
         .returning()
@@ -664,18 +654,12 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
   async updateStep(scenarioId: string, stepId: string, step: NewStep): Promise<Step> {
     await this.findById(scenarioId)
 
-    const credentialDefinitionIdResult =
-      step?.credentialDefinitionIdentifier && step?.credentialDefinitionIdentifierType
-        ? await this.credentialDefinitionRepository.findIdByIdentifier(step.credentialDefinitionIdentifier, step.credentialDefinitionIdentifierType)
-        : null
-
     const assetResult = step.asset ? await this.assetRepository.findById(step.asset) : null
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<Step> => {
       const [stepResult] = await tx
         .update(steps)
         .set({
           ...step,
-          credentialDefinition: credentialDefinitionIdResult,
           scenario: scenarioId,
         })
         .where(eq(steps.id, stepId))
@@ -725,7 +709,6 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
           },
         },
         asset: true,
-        credentialDefinition: true,
       },
     })
 
@@ -746,7 +729,6 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
       where: eq(steps.scenario, scenarioId),
       with: {
         asset: true,
-        credentialDefinition: true,
         actions: {
           with: {
             proofRequest: true,

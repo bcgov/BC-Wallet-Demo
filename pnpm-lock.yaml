@@ -12,6 +12,9 @@ importers:
 
   .:
     devDependencies:
+      '@t3-oss/env-nextjs':
+        specifier: ^0.12.0
+        version: 0.12.0(typescript@5.8.2)(zod@3.24.2)
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14

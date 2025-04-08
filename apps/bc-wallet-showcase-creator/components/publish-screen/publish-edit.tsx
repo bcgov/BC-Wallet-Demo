@@ -19,6 +19,7 @@ import { ShowcaseRequest, ShowcaseStatus } from 'bc-wallet-openapi'
 import { z } from 'zod'
 
 import { ConfirmationDialog } from '@/components/confirmation-dialog'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
 
 const BannerImageUpload = ({
   text,
@@ -115,6 +116,7 @@ export const PublishEdit = () => {
   const router = useRouter()
   const { saveShowcase } = useOnboardingAdapter()
   const { personas } = useOnboardingAdapter()
+  const { tenantId } = useHelpersStore()
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(ShowcaseRequestSchema),
@@ -124,9 +126,9 @@ export const PublishEdit = () => {
       description: '',
       status: 'PENDING',
       hidden: false,
-      tenantId: 'test-tenant-1',
       scenarios: [],
       personas: [],
+      tenantId,
     },
   })
 
@@ -137,7 +139,7 @@ export const PublishEdit = () => {
       description: showcase.description || '',
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
-      tenantId: 'test-tenant-1',
+      tenantId,
     })
   }, [form, showcase])
 

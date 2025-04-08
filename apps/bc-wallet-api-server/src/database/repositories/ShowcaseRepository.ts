@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, isNull } from 'drizzle-orm'
 import { Service } from 'typedi'
 import DatabaseService from '../../services/DatabaseService'
 import PersonaRepository from './PersonaRepository'
@@ -28,11 +28,12 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     private readonly userRepository: UserRepository,
   ) {}
 
-  async create(showcase: NewShowcase): Promise<Showcase> {
-    let scenariosResult: Scenario[] | undefined = []
-    let personasResult: Persona[] | undefined = []
+  async create(showcase: NewShowcase): Promise<Showcase> {    
+    let scenariosResult: Scenario[] = []
+    let personasResult: Persona[] = []
 
-    const userResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
+    const createdByResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
+    const approvedByResult = showcase?.approvedBy ? await this.userRepository.findById(showcase.approvedBy) : null
     const bannerImageResult = showcase.bannerImage ? await this.assetRepository.findById(showcase.bannerImage) : null
 
     const connection = await this.databaseService.getConnection()
@@ -221,7 +222,8 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         scenarios: scenariosResult,
         personas: personasResult,
         bannerImage: bannerImageResult,
-        createdBy: userResult,
+        createdBy: createdByResult,
+        approvedBy: approvedByResult,
       }
     })
   }
@@ -232,17 +234,23 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
   }
 
   async update(id: string, showcase: NewShowcase): Promise<Showcase> {
-    const showcaseResult = await this.findById(id)
+    const existingShowcase = await this.findById(id)
+
+    if (existingShowcase.approvedBy) {
+      throw new Error('Showcase is already approved and cannot be updated')
+    }
+    
     let scenariosResult: Scenario[] = []
     let personasResult: Persona[] = []
     let slug: string | undefined
 
-    const userResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
+    const createdByResult = showcase?.createdBy ? await this.userRepository.findById(showcase.createdBy) : null
+    const approvedByResult = showcase?.approvedBy ? await this.userRepository.findById(showcase.approvedBy) : null
     const bannerImageResult = showcase.bannerImage ? await this.assetRepository.findById(showcase.bannerImage) : null
 
     const connection = await this.databaseService.getConnection()
     
-    if (showcase.name !== showcaseResult.name) {
+    if (showcase.name !== (await this.findById(id)).name) {
       slug = await generateSlug({
         value: showcase.name,
         id,
@@ -250,7 +258,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         schema: showcases,
       })
     } else {
-      slug = showcaseResult.slug
+      slug = (await this.findById(id)).slug
     }
 
     return connection.transaction(async (tx): Promise<Showcase> => {
@@ -437,7 +445,8 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         scenarios: scenariosResult,
         personas: personasResult,
         bannerImage: bannerImageResult,
-        createdBy: userResult,
+        createdBy: createdByResult,
+        approvedBy: approvedByResult,
       }
     })
   }
@@ -538,6 +547,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
           },
           bannerImage: true,
           createdBy: true,
+          approver: true,
         },
       })
       .prepare('statement_name')
@@ -549,9 +559,9 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     }
 
     return {
-      ...(result as any), // TODO check this typing issue at a later point in time
+      ...result,
       scenarios: result.scenarios.map((scenario: any) => ({
-        ...(scenario.scenario as any),
+        ...scenario.scenario,
         steps: sortSteps(scenario.scenario.steps),
         ...(scenario.scenario.relyingParty && {
           relyingParty: {
@@ -561,11 +571,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
             description: scenario.scenario.relyingParty.description,
             organization: scenario.scenario.relyingParty.organization,
             logo: scenario.scenario.relyingParty.logo,
-            credentialDefinitions: scenario.scenario.relyingParty.cds.map((cd: any) => ({
-              ...cd.cd,
-              icon: cd.cd.icon || undefined,
-              credentialSchema: cd.cd.cs
-            })),
+            credentialDefinitions: scenario.scenario.relyingParty.cds.map((cd: any) => cd.cd),
             createdAt: scenario.scenario.relyingParty.createdAt,
             updatedAt: scenario.scenario.relyingParty.updatedAt,
           },
@@ -578,11 +584,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
             description: scenario.scenario.issuer.description,
             organization: scenario.scenario.issuer.organization,
             logo: scenario.scenario.issuer.logo,
-            credentialDefinitions: scenario.scenario.issuer.cds.map((cd: any) => ({
-              ...cd.cd,
-              icon: cd.cd.icon || undefined,
-              credentialSchema: cd.cd.cs
-            })),
+            credentialDefinitions: scenario.scenario.issuer.cds.map((cd: any) => cd.cd),
             credentialSchemas: scenario.scenario.issuer.css.map((cs: any) => cs.cs),
             createdAt: scenario.scenario.issuer.createdAt,
             updatedAt: scenario.scenario.issuer.updatedAt,
@@ -591,6 +593,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         personas: scenario.scenario.personas.map((item: any) => item.persona),
       })),
       personas: result.personas.map((item: any) => item.persona),
+      approvedBy: result.approver,
     }
   }
 
@@ -615,6 +618,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
               },
               representations: true,
               revocation: true,
+              approver: true,
             },
           },
         },
@@ -648,6 +652,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
                           },
                           representations: true,
                           revocation: true,
+                          approver: true,
                         },
                       },
                     },
@@ -678,6 +683,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
                           },
                           representations: true,
                           revocation: true,
+                          approver: true,
                         },
                       },
                     },
@@ -748,36 +754,38 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
           scenarioData.steps = sortSteps(s.scenario.steps)
           if (s.scenario.relyingParty) {
             scenarioData.relyingParty = {
-              ...s.scenario.relyingParty,
-              credentialDefinitions: s.scenario.relyingParty.cds.map((item: any) => ({
-                ...item.cd,
-                icon: item.cd.icon || undefined,
-                credentialSchema: item.cd.cs
-              })),
+              id: s.scenario.relyingParty.id,
+              name: s.scenario.relyingParty.name,
+              type: s.scenario.relyingParty.type,
+              description: s.scenario.relyingParty.description,
+              organization: s.scenario.relyingParty.organization,
+              logo: s.scenario.relyingParty.logo,
+              credentialDefinitions: s.scenario.relyingParty.cds.map((item: any) => item.cd),
+              createdAt: s.scenario.relyingParty.createdAt,
+              updatedAt: s.scenario.relyingParty.updatedAt,
             }
           }
           if (s.scenario.issuer) {
             scenarioData.issuer = {
-              ...s.scenario.issuer,
-              credentialDefinitions: s.scenario.issuer.cds.map((item: any) => ({
-                ...item.cd,
-                icon: item.cd.icon || undefined,
-                credentialSchema: item.cd.cs
-              })),
+              id: s.scenario.issuer.id,
+              name: s.scenario.issuer.name,
+              type: s.scenario.issuer.type,
+              description: s.scenario.issuer.description,
+              organization: s.scenario.issuer.organization,
+              logo: s.scenario.issuer.logo,
+              credentialDefinitions: s.scenario.issuer.cds.map((item: any) => item.cd),
               credentialSchemas: s.scenario.issuer.css.map((item: any) => item.cs),
+              createdAt: s.scenario.issuer.createdAt,
+              updatedAt: s.scenario.issuer.updatedAt,
             }
           }
-          // TODO check this typing issue at a later point in time
           scenarioData.personas = s.scenario.personas.map((p: any) => p.persona)
           return scenarioData
         }),
-        credentialDefinitions: (credDefMap.get(showcase.id) || []).map((item: any) => {
-          return {
-            ...item.credentialDefinition,
-            credentialSchema: item.credentialDefinition.cs,
-          }
-          // TODO check this typing issue at a later point in time
-        }),
+        credentialDefinitions: (credDefMap.get(showcase.id) || []).map((item: any) => ({
+          ...item.credentialDefinition,
+          credentialSchema: item.credentialDefinition.cs,
+        })),
         personas: (personasMap.get(showcase.id) || []).map((item: any) => item.persona),
       }
     })
@@ -795,6 +803,124 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     }
 
     return result.id
+  }
+
+  async findUnapproved(): Promise<Showcase[]> {
+    const results = await (
+      await this.databaseService.getConnection()
+    ).query.showcases.findMany({
+      where: isNull(showcases.approvedAt),
+      with: {
+        scenarios: {
+          with: {
+            scenario: {
+              with: {
+                steps: { with: { actions: { with: { proofRequest: true } }, asset: true } },
+                issuer: {
+                  with: {
+                    cds: {
+                      with: {
+                        cd: {
+                          with: {
+                            icon: true,
+                            cs: { with: { attributes: true } },
+                            representations: true,
+                            revocation: true,
+                            approver: true,
+                          },
+                        },
+                      },
+                    },
+                    css: { with: { cs: { with: { attributes: true } } } },
+                    logo: true,
+                  },
+                },
+                relyingParty: {
+                  with: {
+                    cds: {
+                      with: {
+                        cd: {
+                          with: {
+                            icon: true,
+                            cs: { with: { attributes: true } },
+                            representations: true,
+                            revocation: true,
+                            approver: true,
+                          },
+                        },
+                      },
+                    },
+                    logo: true,
+                  },
+                },
+                personas: { with: { persona: { with: { headshotImage: true, bodyImage: true } } } },
+              },
+            },
+          },
+        },
+        personas: { with: { persona: { with: { headshotImage: true, bodyImage: true } } } },
+        bannerImage: true,
+        createdBy: true,
+        approver: true,
+      },
+    })
+
+    // Map results using the same logic as findById
+    return results.map((result) => ({
+      ...result,
+      scenarios: (result.scenarios || []).map((scenario: any) => ({
+        ...scenario.scenario,
+        steps: sortSteps(scenario.scenario.steps),
+        ...(scenario.scenario.relyingParty && {
+          relyingParty: {
+            id: scenario.scenario.relyingParty.id,
+            name: scenario.scenario.relyingParty.name,
+            type: scenario.scenario.relyingParty.type,
+            description: scenario.scenario.relyingParty.description,
+            organization: scenario.scenario.relyingParty.organization,
+            logo: scenario.scenario.relyingParty.logo,
+            credentialDefinitions: scenario.scenario.relyingParty.cds.map((cd: any) => cd.cd),
+            createdAt: scenario.scenario.relyingParty.createdAt,
+            updatedAt: scenario.scenario.relyingParty.updatedAt,
+          },
+        }),
+        ...(scenario.scenario.issuer && {
+          issuer: {
+            id: scenario.scenario.issuer.id,
+            name: scenario.scenario.issuer.name,
+            type: scenario.scenario.issuer.type,
+            description: scenario.scenario.issuer.description,
+            organization: scenario.scenario.issuer.organization,
+            logo: scenario.scenario.issuer.logo,
+            credentialDefinitions: scenario.scenario.issuer.cds.map((cd: any) => cd.cd),
+            credentialSchemas: scenario.scenario.issuer.css.map((cs: any) => cs.cs),
+            createdAt: scenario.scenario.issuer.createdAt,
+            updatedAt: scenario.scenario.issuer.updatedAt,
+          },
+        }),
+        personas: scenario.scenario.personas.map((item: any) => item.persona),
+      })),
+      personas: result.personas.map((p: any) => p.persona),
+      bannerImage: result.bannerImage ?? undefined,
+      createdBy: result.createdBy ?? undefined,
+      approvedBy: result.approver,
+    }))
+  }
+
+  async approve(id: string, userId: string): Promise<Showcase> {
+    const now = new Date()
+    await (
+      await this.databaseService.getConnection()
+    )
+      .update(showcases)
+      .set({
+        approvedBy: userId,
+        approvedAt: now,
+        updatedAt: now,
+      })
+      .where(eq(showcases.id, id))
+
+    return await this.findById(id)
   }
 }
 
