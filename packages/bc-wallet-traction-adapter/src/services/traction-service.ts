@@ -26,9 +26,14 @@ import {
 import { environment } from '../environment'
 import { CreateSchemaResult, PublishCredentialDefinitionResult } from '../types'
 
-const TRANSACTION_TERMINAL_STATES = new Set(['transaction_acked', 'transaction_completed', 'transaction_refused', 'transaction_cancelled'])
+const TRANSACTION_TERMINAL_STATES = new Set([
+  'transaction_acked',
+  'transaction_completed',
+  'transaction_refused',
+  'transaction_cancelled',
+])
 const TRANSACTION_ERROR_STATES = new Set(['transaction_refused', 'transaction_cancelled'])
-const TX_DELAY_MS = 1500
+const TX_DELAY_MS = 2000
 
 export class TractionService {
   private readonly config: Configuration
@@ -220,6 +225,7 @@ export class TractionService {
 
   /**
    * Publishes schemas and credential definitions for an issuer if they don't already exist.
+   * Only publishes approved credential definitions and their referenced schemas.
    * @param issuer The issuer object containing schemas and definitions.
    * @returns A promise resolving to an array of transaction IDs created during the process.
    */
@@ -227,10 +233,11 @@ export class TractionService {
     const transactionIds: string[] = []
     const issuerId = await this.getIssuerDID() // Throws if not issuer
     const schemaIdMap = new Map<string, string>() // Maps internal schema ID to ledger schema ID
+    const { schemas, credentialDefs } = this.filterApprovedIssuerAssets(issuer)
 
-    // 1. Publish Schemas
-    if (issuer.credentialSchemas) {
-      for (const credentialSchema of issuer.credentialSchemas) {
+    // 1. Publish Schemas that were in approved
+    if (schemas.length > 0) {
+      for (const credentialSchema of schemas) {
         let schemaId: string | undefined =
           credentialSchema.identifier ??
           (await this.findExistingSchema(credentialSchema.name, credentialSchema.version))
@@ -258,15 +265,11 @@ export class TractionService {
     }
 
     // 2. Publish Credential Definitions
-    if (issuer.credentialDefinitions) {
+    if (credentialDefs.length > 0) {
       if (transactionIds.length > 0) {
         await this.waitForTransactionsToComplete(transactionIds)
       }
-      for (const credentialDef of issuer.credentialDefinitions) {
-        if(!credentialDef.approvedBy) {
-          continue
-        }
-
+      for (const credentialDef of credentialDefs) {
         let credDefId = await this.findExistingCredentialDefinition(credentialDef)
 
         if (!credDefId) {
@@ -308,6 +311,38 @@ export class TractionService {
       }
     }
     return transactionIds
+  }
+
+  /**
+   * Filters issuer assets to only include approved credential definitions
+   * and their referenced schemas
+   * @param issuer The issuer object containing schemas and definitions
+   * @returns Object containing filtered schemas and definitions
+   */
+  private filterApprovedIssuerAssets(issuer: Issuer): {
+    schemas: CredentialSchema[]
+    credentialDefs: CredentialDefinition[]
+  } {
+    // Filter credential definitions that are approved
+    const approvedDefinitions = issuer.credentialDefinitions?.filter((def) => def.approvedBy) || []
+
+    const approvedSchemaIds = new Set<string>()
+    approvedDefinitions.forEach((def) => {
+      const schemaRef = def.credentialSchema.id || `${def.credentialSchema.name}::${def.credentialSchema.version}`
+      approvedSchemaIds.add(schemaRef)
+    })
+
+    // Filter schemas to only include those referenced by approved definitions
+    const referencedSchemas =
+      issuer.credentialSchemas?.filter((schema) => {
+        const schemaRef = schema.id || `${schema.name}::${schema.version}`
+        return approvedSchemaIds.has(schemaRef)
+      }) || []
+
+    return {
+      schemas: referencedSchemas,
+      credentialDefs: approvedDefinitions,
+    }
   }
 
   public async getIssuerDID(): Promise<string> {
@@ -414,14 +449,15 @@ export class TractionService {
               const now = new Date()
               const timeSinceUpdate = now.getTime() - updatedAtDate.getTime()
 
-              if (timeSinceUpdate < TX_DELAY_MS) { // TODO after the transaction is acked, it's not available immediately. I do not know how long this could take in real life
+              if (timeSinceUpdate < TX_DELAY_MS) {
+                // TODO after the transaction is acked, it's not available immediately. I do not know how long this could take in real life
                 console.debug(`Transaction ${tranId} was updated less than ${TX_DELAY_MS}ms ago. Skipping this cycle.`)
                 continue
               }
             }
 
             pendingTransactionIds.delete(tranId)
-            if(TRANSACTION_ERROR_STATES.has(state)) {
+            if (TRANSACTION_ERROR_STATES.has(state)) {
               console.warn(`Transaction ${tranId} reached failure state: ${state}`)
               return Promise.reject(Error(`Transaction ${tranId} failed with state: ${state}`))
             }

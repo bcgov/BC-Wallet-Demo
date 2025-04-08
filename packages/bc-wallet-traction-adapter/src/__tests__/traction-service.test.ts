@@ -1,8 +1,16 @@
 import { TractionService } from '../services/traction-service'
 import { CredentialAttributeType, CredentialSchema, CredentialType, Issuer, IssuerType } from 'bc-wallet-openapi'
 import short from 'short-uuid'
+import * as process from 'node:process'
 
-describe('TractionService Integration Test', () => {
+const isTractionAvailable = () => {
+  const tractionAvailable = process.env.TRACTION_AVAILABLE
+  return tractionAvailable && tractionAvailable !== 'false' && tractionAvailable !== '0'
+}
+
+const describeIfTractionAvailable = isTractionAvailable() ? describe : describe.skip
+
+describeIfTractionAvailable('TractionService Integration Test', () => {
   let tractionService: TractionService
   const apiBasePath = 'http://localhost:8031'
 
@@ -219,11 +227,11 @@ describe('TractionService Integration Test', () => {
     const uniqueSuffix = short.generate()
     const schemaName = 'ExistingSchemaTest_' + uniqueSuffix
 
-    // Create an issuer with only the schema
-    const schemaOnlyIssuer: Issuer = {
-      id: 'schema-only-publisher',
-      name: 'Schema Only Publisher_' + uniqueSuffix,
-      description: 'Test Schema Only Publisher',
+    // Create an issuer with an approved credential definition
+    const issuer: Issuer = {
+      id: 'complete-publisher',
+      name: 'Complete Publisher_' + uniqueSuffix,
+      description: 'Test Complete Publisher',
       type: IssuerType.Aries,
       organization: 'Test Organization',
       credentialSchemas: [
@@ -251,64 +259,146 @@ describe('TractionService Integration Test', () => {
           updatedAt: currentDate,
         },
       ],
-      credentialDefinitions: [],
+      credentialDefinitions: [
+        {
+          id: 'test-publish-cred-def-1',
+          name: 'SchemaCredDef_' + uniqueSuffix,
+          version: '1.0',
+          type: CredentialType.Anoncred,
+          credentialSchema: {
+            id: 'test-existing-schema',
+            name: schemaName,
+            version: '1.0',
+            attributes: [
+              {
+                id: 'attr1',
+                name: 'firstName',
+                type: 'STRING' as CredentialAttributeType,
+                createdAt: currentDate,
+                updatedAt: currentDate,
+              },
+              {
+                id: 'attr2',
+                name: 'lastName',
+                type: 'STRING' as CredentialAttributeType,
+                createdAt: currentDate,
+                updatedAt: currentDate,
+              },
+            ],
+            createdAt: currentDate,
+            updatedAt: currentDate,
+          },
+          representations: [],
+          createdAt: currentDate,
+          updatedAt: currentDate,
+          approvedBy: { id: '123' },
+        },
+      ],
       createdAt: currentDate,
       updatedAt: currentDate,
     }
 
-    // First publish only the schema
-    const firstPublishResults = await tractionService.publishIssuerAssets(schemaOnlyIssuer)
+    // First publish approved credential definition and schema
+    const firstPublishResults = await tractionService.publishIssuerAssets(issuer)
     expect(firstPublishResults).toBeTruthy()
-    expect(firstPublishResults.length).toBe(1) // Should only have one transaction for the schema
+    expect(firstPublishResults.length).toBe(2) // Schema + first cred def
 
     await tractionService.waitForTransactionsToComplete(firstPublishResults)
 
     // Verify schema exists
     const foundSchemaId = await tractionService.findExistingSchema(schemaName, '1.0')
     expect(foundSchemaId).toBeTruthy()
-    expect(schemaOnlyIssuer.credentialSchemas[0].identifier).toBe(foundSchemaId)
 
-    // Now create an issuer with both schema and cred def
-    const completeIssuer: Issuer = {
-      id: 'complete-publisher',
-      name: 'Complete Publisher_' + uniqueSuffix,
-      description: 'Test Complete Publisher',
-      type: IssuerType.Aries,
-      organization: 'Test Organization',
-      credentialSchemas: [
-        {
-          ...schemaOnlyIssuer.credentialSchemas[0], // Reuse same schema (should be detected as existing)
-        },
-      ],
-      credentialDefinitions: [
-        {
-          id: 'test-publish-cred-def',
-          name: 'ExistingSchemaCredDef_' + uniqueSuffix,
-          version: '1.0',
-          type: CredentialType.Anoncred,
-          credentialSchema: {
-            ...schemaOnlyIssuer.credentialSchemas[0], // Reference the same schema
+    // Add another credential definition that references the same schema
+    const unapprovedCredDef = {
+      id: 'test-publish-cred-def-2',
+      name: 'UnapprovedCredDef_' + uniqueSuffix,
+      version: '1.1',
+      type: CredentialType.Anoncred,
+      credentialSchema: {
+        id: 'test-existing-schema',
+        name: schemaName,
+        version: '1.0',
+        attributes: [
+          {
+            id: 'attr1',
+            name: 'firstName',
+            type: 'STRING' as CredentialAttributeType,
+            createdAt: currentDate,
+            updatedAt: currentDate,
           },
-          representations: [],
-          createdAt: currentDate,
-          updatedAt: currentDate,
-          approvedBy: { id: '123' }
-        },
-      ],
+          {
+            id: 'attr2',
+            name: 'lastName',
+            type: 'STRING' as CredentialAttributeType,
+            createdAt: currentDate,
+            updatedAt: currentDate,
+          },
+        ],
+        createdAt: currentDate,
+        updatedAt: currentDate,
+      },
+      representations: [],
       createdAt: currentDate,
-      updatedAt: currentDate
+      updatedAt: currentDate,
+      // No approvedBy - should be skipped
     }
 
-    // Second publish with both schema and cred def
-    const secondPublishResults = await tractionService.publishIssuerAssets(completeIssuer)
+    // Add another approved credential definition that references the same schema
+    const approvedCredDef = {
+      id: 'test-publish-cred-def-3',
+      name: 'ApprovedCredDef_' + uniqueSuffix,
+      version: '2.0',
+      type: CredentialType.Anoncred,
+      credentialSchema: {
+        id: 'test-existing-schema',
+        name: schemaName,
+        version: '1.0',
+        attributes: [
+          {
+            id: 'attr1',
+            name: 'firstName',
+            type: 'STRING' as CredentialAttributeType,
+            createdAt: currentDate,
+            updatedAt: currentDate,
+          },
+          {
+            id: 'attr2',
+            name: 'lastName',
+            type: 'STRING' as CredentialAttributeType,
+            createdAt: currentDate,
+            updatedAt: currentDate,
+          },
+        ],
+        createdAt: currentDate,
+        updatedAt: currentDate,
+      },
+      representations: [],
+      createdAt: currentDate,
+      updatedAt: currentDate,
+      approvedBy: { id: '123' },
+    }
+
+    // Add the new credential definitions to the issuer
+    issuer.credentialDefinitions.push(unapprovedCredDef, approvedCredDef)
+
+    // Second publish with all three cred defs
+    const secondPublishResults = await tractionService.publishIssuerAssets(issuer)
     expect(secondPublishResults).toBeTruthy()
-    expect(secondPublishResults.length).toBe(1) // Should only have one transaction for the cred def
+    expect(secondPublishResults.length).toBe(1) // Should only publish the new approved cred def
 
     await tractionService.waitForTransactionsToComplete(secondPublishResults)
 
-    // Verify cred def was created
-    const credDef = await tractionService.findExistingCredentialDefinition(completeIssuer.credentialDefinitions[0])
-    expect(credDef).toBeTruthy()
-    expect(completeIssuer.credentialDefinitions[0].identifier).toBe(credDef)
+    // Verify approved cred def was created
+    const credDef1 = await tractionService.findExistingCredentialDefinition(issuer.credentialDefinitions[0])
+    expect(credDef1).toBeTruthy()
+
+    // Verify second approved cred def was created
+    const credDef3 = await tractionService.findExistingCredentialDefinition(issuer.credentialDefinitions[2])
+    expect(credDef3).toBeTruthy()
+
+    // Verify unapproved cred def was NOT created
+    const credDef2 = await tractionService.findExistingCredentialDefinition(issuer.credentialDefinitions[1])
+    expect(credDef2).toBeUndefined()
   })
 })
