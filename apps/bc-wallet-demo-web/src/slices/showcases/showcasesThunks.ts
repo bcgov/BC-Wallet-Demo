@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { getShowcaseBySlug } from '../../api/ShowcaseApi';
 import { getCredentialDefinitionById } from '../../api/credentialDefinitionApi';
 import { ScenarioType, StepActionType } from 'bc-wallet-openapi'
-import type {AcceptCredentialAction, IssuanceScenario, ShowcaseScenariosInner, Step} from 'bc-wallet-openapi'
+import type { AcceptCredentialAction, CredentialAttribute, IssuanceScenario, ShowcaseScenariosInner, Step } from 'bc-wallet-openapi'
 import type { Showcase } from '../types'
 
 export const fetchShowcaseBySlug = createAsyncThunk(
@@ -25,7 +25,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
           }
 
           const stepPromises = scenario.steps.map(async (step: Step, index) => {
-            const actionPromises = step.actions.map(async (action) => {
+            const actionPromises = step?.actions?.map(async (action) => {
               const credentialDefinition = action.actionType === StepActionType.AcceptCredential ? (await getCredentialDefinitionById((<AcceptCredentialAction>action).credentialDefinitionId)).data.credentialDefinition : undefined
 
               if (credentialDefinition && !credentialDefinition.identifier) {
@@ -40,7 +40,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
                     name: credentialDefinition.name,
                     version: credentialDefinition.version,
                     icon: credentialDefinition.icon?.id,
-                    attributes: credentialDefinition.credentialSchema.attributes?.map(attribute => ({
+                    attributes: credentialDefinition.credentialSchema.attributes?.map((attribute: CredentialAttribute) => ({
                       name: attribute.name,
                       value: attribute.value
                     })) ?? [],

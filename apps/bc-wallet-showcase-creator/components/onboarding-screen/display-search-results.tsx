@@ -1,10 +1,10 @@
-import { ShowcaseJSON } from "@/types";
-import Image from "next/image";
-import { Label } from "../ui/label";
-import { useTranslations } from "next-intl";
-import { useCredentials } from "@/hooks/use-credentials-store";
-import { ensureBase64HasPrefix } from "@/lib/utils";
-import { CredentialDefinition } from "@/openapi-types";
+import { ShowcaseJSON } from '@/types'
+import Image from 'next/image'
+import { Label } from '../ui/label'
+import { useTranslations } from 'next-intl'
+import { useCredentials } from '@/hooks/use-credentials-store'
+import { baseUrl } from '@/lib/utils'
+import { CredentialDefinition } from '@/openapi-types'
 
 interface DisplaySearchResultsProps {
   searchResults: any;
@@ -20,7 +20,7 @@ export const DisplaySearchResults = ({
   const MAX_SEARCH_CREDENTIALS = 8;
   const visibleResults = searchResults.slice(0, MAX_SEARCH_CREDENTIALS);
   const { setSelectedCredential } = useCredentials();
-  
+
   return (
     <div className="mb-6">
       {visibleResults.length > 0 && (
@@ -38,21 +38,15 @@ export const DisplaySearchResults = ({
             onClick={(e) => {
               e.preventDefault();
               addCredential(result);
-              setSelectedCredential(result) 
+              setSelectedCredential(result)
             }}
           >
             <div className="grid grid-cols-3 w-full py-3 bg-light-bg hover:bg-light-btn-hover dark:bg-dark-bg dark:hover:bg-dark-btn-hover text-light-text dark:text-dark-text p-2">
               {/* Left Section - Image and User Info */}
               <div className="flex items-center flex-1">
                 <Image
-                  src={
-                    result.icon?.content
-                      ? ensureBase64HasPrefix(
-                        result.icon.content
-                      )
-                      : "/assets/no-image.jpg"
-                  }
-                  alt={result.name}
+                  src={result.icon?.id ? `${baseUrl}/assets/${result.icon.id}/file` : '/assets/no-image.jpg'}
+                  alt={result.icon.description || 'default credential icon'}
                   width={50}
                   height={50}
                   className="rounded-full"

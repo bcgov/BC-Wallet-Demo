@@ -16,7 +16,7 @@ import {
   showcasesToPersonas,
   showcasesToScenarios,
 } from '../schema'
-import { NewShowcase, RepositoryDefinition, Showcase } from '../../types'
+import { NewShowcase, RepositoryDefinition, Showcase, Step } from '../../types'
 import UserRepository from './UserRepository'
 
 @Service()
@@ -175,7 +175,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         ...(showcaseResult as any), // TODO check this typing issue at a later point in time
         scenarios: scenariosResult.map((scenario) => ({
           ...scenario,
-          steps: sortSteps(scenario.steps),
+          steps: sortSteps(scenario.steps as Step[]),
           relyingParty: scenario.relyingParty ? {
             id: scenario.relyingParty.id,
             name: scenario.relyingParty.name,
@@ -367,7 +367,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         ...(showcaseResult as any), // TODO check this typing issue at a later point in time
         scenarios: scenariosResult.map((scenario) => ({
           ...scenario,
-          steps: sortSteps(scenario.steps),
+          steps: sortSteps(scenario.steps as Step[]),
           relyingParty: scenario.relyingParty ? {
             id: scenario.relyingParty.id,
             name: scenario.relyingParty.name,
