@@ -23,6 +23,7 @@ export const env = createEnv({
     AUTH_KEYCLOAK_ID: z.string().min(1),
     AUTH_KEYCLOAK_SECRET: z.string().min(1),
     AUTH_KEYCLOAK_ISSUER: z.string().min(1),
+    AUTH_TRUST_HOST: z.boolean().default(true),
   },
   client: runtimeClientSchema,
   runtimeEnv: {
@@ -30,6 +31,7 @@ export const env = createEnv({
     AUTH_KEYCLOAK_ID: process.env.AUTH_KEYCLOAK_ID,
     AUTH_KEYCLOAK_SECRET: process.env.AUTH_KEYCLOAK_SECRET,
     AUTH_KEYCLOAK_ISSUER: process.env.AUTH_KEYCLOAK_ISSUER,
+    AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,
     NEXT_PUBLIC_WALLET_URL: runtimeClientProcess.NEXT_PUBLIC_WALLET_URL,
     NEXT_PUBLIC_SHOWCASE_BACKEND: runtimeClientProcess.NEXT_PUBLIC_SHOWCASE_BACKEND,
   },

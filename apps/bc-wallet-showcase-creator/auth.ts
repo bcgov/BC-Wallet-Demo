@@ -22,5 +22,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     redirect: async ({ url, baseUrl }) => {
       return Promise.resolve(url)
     },
-  }
+  },
+  session: {
+    strategy: 'jwt',
+  },
+  trustHost: true,
 })

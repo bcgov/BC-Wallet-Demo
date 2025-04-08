@@ -143,6 +143,7 @@ showcase_creator:
     AUTH_KEYCLOAK_ID: "showcase-tenantA"
     AUTH_KEYCLOAK_SECRET: ""
     AUTH_KEYCLOAK_ISSUER: "https://auth01.test.sphereon.com/auth/realms/BC"
+    AUTH_TRUST_HOST: "true"
 
   resources:
     limits:
