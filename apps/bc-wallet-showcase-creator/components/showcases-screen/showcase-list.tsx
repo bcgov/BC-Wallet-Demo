@@ -156,6 +156,7 @@ export const ShowcaseList = () => {
                                 console.log('delete', showcase.id)
                               }}
                             />
+
                             <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />
                             <OpenButton value={`${WALLET_URL}/${showcase.slug}`} />
                           </div>

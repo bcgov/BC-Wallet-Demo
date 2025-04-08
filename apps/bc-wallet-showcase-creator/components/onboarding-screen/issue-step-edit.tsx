@@ -28,6 +28,7 @@ import Image from 'next/image'
 import { DisplayAddedCredentials } from "./display-added-credentials";
 import { useCredentialDefinitions } from "@/hooks/use-credentials";
 import { useCredentials } from "@/hooks/use-credentials-store";
+import { useOnboardingAdapter } from "@/hooks/use-onboarding-adapter";
 
 interface StepWithCredentials extends StepRequestType {
   credentials?: string[];
@@ -52,7 +53,7 @@ export const IssuanceStepAdd = () => {
   const { showcase, setScenarioIds } = useShowcaseStore();
   const { setSelectedCredential } = useCredentials()
   const { issuerId } = useHelpersStore();
-  const personas = showcase.personas || [];
+  const { personas } = useOnboardingAdapter()
 
   const isEditMode = stepState === "editing-issue";
   const [showErrorModal, setErrorModal] = useState(false);
@@ -173,7 +174,7 @@ export const IssuanceStepAdd = () => {
     const personaScenarios = personas.map((persona) => {
       const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario))
 
-      scenarioForPersona.personas = [persona]
+      scenarioForPersona.personas = [persona.id]
       scenarioForPersona.issuer = issuerId
 
       scenarioForPersona.steps = [

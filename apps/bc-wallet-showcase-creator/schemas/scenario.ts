@@ -48,7 +48,7 @@ const proofRequestOptionsSchema = z.object({
 
 export const proofStepSchema = z.object({
   id: z.string(),
-  type: z.literal(StepType.CONNECT_AND_VERIFY),
+  type: z.literal(StepType.SERVICE),
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
   requestOptions: proofRequestOptionsSchema,

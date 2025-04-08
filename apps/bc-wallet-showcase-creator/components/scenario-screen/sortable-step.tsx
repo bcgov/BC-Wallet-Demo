@@ -1,5 +1,6 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
+import { useScenarios } from '@/hooks/use-scenarios'
 import { cn, baseUrl } from '@/lib/utils'
 import type { StepType } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
@@ -25,7 +26,7 @@ export const SortableStep = ({
 }) => {
   const t = useTranslations()
   const { handleSelectStep, duplicateStep, activePersonaId, setSelectedStep, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
-
+  const {setSelectedScenario} = useScenarios()
   const { selectedCredential } = useCredentials()
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
@@ -37,22 +38,32 @@ export const SortableStep = ({
     transition,
   }
 
-  const handleStepClick = () => {
-    console.log('Step clicked!', {
-      stepIndex,
-      scenarioIndex,
-      myScreen: {
-        type: myScreen.type,
+const handleStepClick = () => {
+  const ScreenType = myScreen.type;
+
+  console.log('Step clicked!', { 
+    stepIndex, 
+    scenarioIndex,
+    myScreen: {
+      type: myScreen.type,
       title: myScreen.title
     }
   });
+  
+  switch (ScreenType) {
+    case 'HUMAN_TASK':
+      setStepState('editing-basic')
+      break;
+    case 'SERVICE':
+      setStepState('editing-issue')
+  }
+  handleSelectStep(stepIndex, scenarioIndex)
+  // setStepState('editing-issue');
 
-    handleSelectStep(stepIndex, scenarioIndex)
-  setStepState('editing-issue');
-
-    if (activeScenarioIndex !== scenarioIndex) {
+  if (activeScenarioIndex !== scenarioIndex) {
     setActiveScenarioIndex(scenarioIndex);
   }
+  // setSelectedScenario(stepIndex);
 };
 
   const handleCopyStep = (stepIndex: number, scenarioIndex: number) => {

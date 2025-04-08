@@ -7,6 +7,7 @@ import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
 import { useHelpersStore } from "./use-helpers-store";
+import { StepType } from "@/types";
 
 export const useOnboardingAdapter = () => {
   const {
@@ -55,7 +56,7 @@ export const useOnboardingAdapter = () => {
           asset: step.asset || ""
         };
 
-        if (step.type === 'SERVICE') {
+        if (step.type === StepType.SERVICE) {
           return {
             ...createServiceStep({
               title: step.title,
@@ -101,7 +102,7 @@ export const useOnboardingAdapter = () => {
           asset: step.asset || ""
         };
 
-        if (step.type === 'SERVICE') {
+        if (step.type === StepType.SERVICE) {
           const serviceStep = step as StepWithCredentials;
           return {
             ...baseStep,
@@ -144,6 +145,7 @@ export const useOnboardingAdapter = () => {
         credentialDefinitions: selectedCredentialDefinitionIds,
         personas: selectedPersonas.map((p: Persona) => p.id),
         bannerImage: data.bannerImage,
+        tenantId: ''
       };
       
       const updatedShowcase = await updateShowcaseMutation.mutateAsync(showcaseData);      
