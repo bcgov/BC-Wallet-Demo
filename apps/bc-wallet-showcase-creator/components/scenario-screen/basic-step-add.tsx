@@ -154,7 +154,7 @@ export const BasicStepAdd = () => {
 
   const handleCancel = () => {
     form.reset()
-    setStepState('no-selection')
+    // setStepState('no-selection')
     setSelectedStep(null)
   }
 
@@ -170,7 +170,7 @@ export const BasicStepAdd = () => {
             <p className="text-foreground text-sm">{t('onboarding.section_title')}</p>
             <h3 className="text-2xl font-bold text-foreground">{t('onboarding.details_step_header_title')}</h3>
           </div>
-          <Button variant="outline" onClick={() => setStepState('editing-basic')} className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => {}} className="flex items-center gap-2">
             <Edit className="h-4 w-4" />
             {t('action.edit_label')}
           </Button>

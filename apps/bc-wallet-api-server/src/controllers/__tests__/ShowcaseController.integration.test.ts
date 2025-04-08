@@ -29,6 +29,7 @@ import {
 } from './dbTestData'
 import { createApiFullTestData, createApiTestScenario } from './apiTestData'
 import supertest = require('supertest')
+import { MockSessionService } from './MockSessionService'
 
 describe('ShowcaseController Integration Tests', () => {
   let client: PGlite
@@ -42,6 +43,8 @@ describe('ShowcaseController Integration Tests', () => {
     const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
+    Container.set('ISessionService', Container.get(MockSessionService))
+    Container.get(TenantRepository)
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)
     Container.get(CredentialDefinitionRepository)
@@ -138,9 +141,9 @@ describe('ShowcaseController Integration Tests', () => {
       description: 'Test description',
       status: ShowcaseStatus.ACTIVE,
       hidden: false,
+      tenantId: tenantId,
       scenarios: [nonExistentId],
       personas: [nonExistentId],
-      tenantId: tenantId,
     }
 
     await request.post('/showcases').send(invalidShowcaseRequest2).expect(404)
@@ -153,7 +156,7 @@ describe('ShowcaseController Integration Tests', () => {
     const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
     const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema)
 
-    const scenario = await createApiTestScenario(asset.id, persona.id, issuer.id)
+    const scenario = await createApiTestScenario(asset.id, persona.id, issuer.id, credentialDefinition.id)
 
     // Attempt to create a showcase with non-existent tenant
     const invalidTenantShowcaseRequest: ShowcaseRequest = {
