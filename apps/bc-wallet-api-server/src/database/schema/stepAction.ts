@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { pgTable, uuid, timestamp, text, index } from 'drizzle-orm/pg-core'
+import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { steps } from './step'
 import { ariesProofRequests } from './ariesProofRequest'
 import { StepActionType } from '../../types'
@@ -11,9 +11,7 @@ export const stepActions = pgTable(
     actionType: text('action_type').notNull().$type<StepActionType>(),
     title: text().notNull(),
     text: text().notNull(),
-    step: uuid()
-      .references(() => steps.id, { onDelete: 'cascade' })
-      .notNull(),
+    step: uuid().references(() => steps.id, { onDelete: 'cascade' }),
     credentialDefinitionId: text('credential_definition_id'), // TODO redesign when we get more properties
     connectionId: text('connection_id'), // TODO redesign when we get more properties
     goToStep: text('go_to_step'), // TODO redesign when we get more properties

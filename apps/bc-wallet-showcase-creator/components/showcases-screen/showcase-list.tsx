@@ -6,14 +6,19 @@ import ButtonOutline from '@/components/ui/button-outline'
 import { Card } from '@/components/ui/card'
 import { useCreateShowcase, useDeleteShowcase, useShowcases } from '@/hooks/use-showcases'
 import { Link } from '@/i18n/routing'
-import { ensureBase64HasPrefix } from '@/lib/utils'
+import { baseUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { Persona, Showcase } from '@/openapi-types'
-import { Share2 } from 'lucide-react'
+import { CopyButton } from '../ui/copy-button'
+import { DeleteButton } from '../ui/delete-button'
+import { OpenButton } from '../ui/external-open-button'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-
 import Header from '../header'
+import { env } from '@/env'
+
+const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
+
 export const ShowcaseList = () => {
   const t = useTranslations()
   const { data, isLoading } = useShowcases()
@@ -51,7 +56,7 @@ export const ShowcaseList = () => {
         onSuccess: (data: unknown) => {
           console.log('Showcase Created:', data)
         },
-      }
+      },
     )
 
     return response
@@ -129,29 +134,31 @@ export const ShowcaseList = () => {
                       <div
                         className={cn(
                           'left-4 right-0 top-4 py-2 rounded w-1/4 absolute',
-                          showcase.status == 'ACTIVE' ? 'bg-yellow-500' : 'bg-dark-grey'
+                          showcase.status == 'ACTIVE' ? 'bg-yellow-500' : 'bg-dark-grey',
                         )}
                       >
                         <p className={cn('text-center', showcase.status == 'ACTIVE' ? 'text-black' : 'text-white')}>
                           {showcase.status}
                         </p>
                       </div>
+                      <div className="absolute bg-black bottom-0 left-0 right-0 bg-opacity-70 p-3"></div>
                       <div className="absolute bg-black bottom-0 left-0 right-0 bg-opacity-70 p-3">
+                        <p className="text-xs text-gray-300 break-words">
+                          {t('showcases.created_by_label', {
+                            name: 'Test college',
+                          })}
+                        </p>
                         <div className="flex justify-between">
-                          <div className="flex-1">
-                            {' '}
-                            <p className="text-xs text-gray-300 break-words">
-                              {t('showcases.created_by_label', {
-                                name: 'Test college',
-                              })}
-                            </p>
-                            <h2 className="text-lg font-bold text-white break-words">{showcase.name}</h2>
-                          </div>
-                          <div className="flex-shrink-0 self-center">
-                            {' '}
-                            <button className="border rounded px-3 py-1 hover:bg-gray-400 dark:hover:bg-gray-700">
-                              <Share2 size={18} className="cursor-pointer text-white" />
-                            </button>
+                          <h2 className="text-lg font-bold text-white break-words">{showcase?.name}</h2>
+                          <div className="flex-shrink-0">
+                            <DeleteButton
+                              onClick={() => {
+                                console.log('delete', showcase.id)
+                              }}
+                            />
+
+                            <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />
+                            <OpenButton value={`${WALLET_URL}/${showcase.slug}`} />
                           </div>
                         </div>
                       </div>
@@ -179,9 +186,11 @@ export const ShowcaseList = () => {
                             >
                               <Image
                                 src={
-                                  ensureBase64HasPrefix(persona.headshotImage?.content) || '/assets/no-image.jpg'
+                                  persona.headshotImage?.id
+                                    ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                    : '/assets/no-image.jpg'
                                 }
-                                alt={persona.name}
+                                alt={persona.headshotImage?.description || 'Character headshot'}
                                 width={44}
                                 height={44}
                                 className="rounded-full w-[44px] h-[44px]"

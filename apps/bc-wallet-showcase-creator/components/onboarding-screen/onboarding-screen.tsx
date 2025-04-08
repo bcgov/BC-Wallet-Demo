@@ -8,7 +8,7 @@ import { SortableStep } from '@/components/onboarding-screen/sortable-step'
 import ButtonOutline from '@/components/ui/button-outline'
 import { useIssuanceStep, useOnboarding } from '@/hooks/use-onboarding'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { ensureBase64HasPrefix } from '@/lib/utils'
+import { baseUrl } from '@/lib/utils'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -83,9 +83,12 @@ export const OnboardingScreen = ({ slug }: { slug: string }) => {
                   <div className="flex flex-col items-center">
                     <div className="w-12 h-12 bg-gray-300 rounded-full mb-2">
                       <Image
-                        // src={char.headshotImage.content}
-                        src={ensureBase64HasPrefix(char.headshotImage?.content) || '/assets/no-image.jpg'}
-                        alt={char.name}
+                        src={
+                          char.headshotImage?.id
+                            ? `${baseUrl}/assets/${char.headshotImage.id}/file`
+                            : '/assets/no-image.jpg'
+                        }
+                        alt={char.headshotImage?.description || 'Character'}
                         width={50}
                         height={50}
                         className="rounded-full aspect-square object-cover"

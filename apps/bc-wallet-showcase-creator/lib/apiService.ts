@@ -1,8 +1,10 @@
+import { env } from "@/env";
+
 class ApiService {
   private baseUrl: string
 
   public constructor(baseUrl: string) {
-    this.baseUrl = baseUrl
+    this.baseUrl = baseUrl;
   }
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
@@ -62,7 +64,6 @@ class ApiService {
   }
 }
 
-// Create an instance with the actual API base URL
-const apiClient = new ApiService(process.env.SHOWCASE_BACKEND ?? 'https://bcshowcase-api.dev.nborbit.ca')
+const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_BACKEND)
 
 export default apiClient

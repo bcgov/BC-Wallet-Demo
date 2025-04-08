@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl'
 import StepHeader from '../step-header'
 
 interface StepTypeOption {
-  type: StepType.BASIC | StepType.CONNECT_AND_VERIFY | StepType.HUMAN_TASK
+  type: StepType.BASIC | StepType.SERVICE | StepType.HUMAN_TASK
   title: string
   subtitle: string
   features: string[]
@@ -30,7 +30,7 @@ export const ChooseStepType = ({ addNewStep }: { addNewStep: (type: StepType) =>
       ],
     },
     {
-      type: StepType.CONNECT_AND_VERIFY,
+      type: StepType.SERVICE,
       title: t('scenario.proof_request_label'),
       subtitle: 'A step that includes verification',
       features: [

@@ -15,6 +15,7 @@ import { LocalFileUpload } from './local-file-upload'
 import { useTranslations } from 'next-intl'
 import StepHeader from '../step-header';
 import ButtonOutline from '../ui/button-outline'
+import Image from 'next/image'
 import { useRouter } from '@/i18n/routing'
 import { ErrorModal } from '../error-modal'
 import Loader from '../loader';
@@ -194,7 +195,7 @@ export const BasicStepAdd = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <img src={currentStep.asset} alt="Step icon" className="w-full object-cover" />
+                <Image src={currentStep.asset} alt="Step icon" className="w-full object-cover" width={128} height={128} />
               </div>
             </div>
           )}
@@ -249,7 +250,6 @@ export const BasicStepAdd = () => {
               element="asset"
               existingAssetId={form.watch("asset")}
               handleLocalUpdate={(_, value) => {
-                console.log('Value',value);
                 if (!currentStep) return;
 
                 const updatedStep1 = {

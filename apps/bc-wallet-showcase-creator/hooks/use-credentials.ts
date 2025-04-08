@@ -77,10 +77,8 @@ export const useIssuerQuery = (issuerId: string) => {
 export const useCreateCredentialSchema = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (data: typeof CredentialSchemaRequest._type) => {
-			console.log("data", data);
+		mutationFn: async (data: typeof CredentialSchemaRequest._type) => { 
 			const response = await apiClient.post(`/credentials/schemas`, data);
-			console.log("response", response);
 			return response;
 		},
 		onSettled: () => {

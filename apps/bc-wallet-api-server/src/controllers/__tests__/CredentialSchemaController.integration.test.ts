@@ -4,13 +4,10 @@ import { Container } from 'typedi'
 import { CredentialSchemaController } from '../CredentialSchemaController'
 import { Application } from 'express'
 import { CredentialAttributeType, CredentialSchemaRequest, IdentifierType, Source } from 'bc-wallet-openapi'
-import supertest = require('supertest')
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import * as schema from '../../database/schema'
-import { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import DatabaseService from '../../services/DatabaseService'
+import { createMockDatabaseService, setupTestDatabase } from './dbTestData'
+import supertest = require('supertest')
 
 describe('CredentialSchemaController Integration Tests', () => {
   let client: PGlite
@@ -18,12 +15,9 @@ describe('CredentialSchemaController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
-    client = new PGlite()
-    const database = drizzle(client, { schema }) as unknown as NodePgDatabase
-    await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
-    const mockDatabaseService = {
-      getConnection: jest.fn().mockResolvedValue(database),
-    }
+    const { client: pgClient, database } = await setupTestDatabase()
+    client = pgClient
+    const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
     app = createExpressServer({

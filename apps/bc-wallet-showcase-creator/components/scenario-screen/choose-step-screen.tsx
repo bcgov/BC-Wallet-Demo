@@ -11,10 +11,11 @@ import { NoSelection } from '../credentials/no-selection'
 import { BasicStepAdd } from './basic-step-add'
 import { StepType } from '@/types'
 import { useEffect } from 'react'
+import { createDefaultStep, createServiceStep } from '@/lib/steps'
 
 export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
-  const { stepState, activePersonaId, selectedStep, steps, setStepState, setSelectedStep } = usePresentationAdapter()
+  const { stepState, activePersonaId, selectedStep, steps, setStepState, setSelectedStep, createStep } = usePresentationAdapter()
 
   // Get the current step if available
   const currentStep = selectedStep !== null && steps.length > selectedStep.stepIndex ? steps[selectedStep.stepIndex] : null
@@ -40,6 +41,23 @@ export const CreateScenariosStepsScreen = () => {
   }, [stepState])
 
   const handleAddStep = (type: StepType) => {
+    if(type == 'HUMAN_TASK'){
+      createStep(
+        createDefaultStep({
+          title: 'Basic Step',
+          description: 'This is a basic step in the onboarding journey.',
+        })
+      )
+      setStepState('editing-basic')
+    }else if(type == 'SERVICE'){
+        createStep(
+          createServiceStep({
+            title: `Accept your student card`,
+            description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
+          })
+        )
+        setStepState('editing-issue')
+    }
     // Implement this if needed
   }
 
@@ -68,42 +86,6 @@ export const CreateScenariosStepsScreen = () => {
 
       {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit />}
 
-      {/* Debug output - remove in production */}
-      <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded text-xs">
-        <div>Step State: {JSON.stringify(stepState)}</div>
-        <div>Selected Step: {JSON.stringify(selectedStep)}</div>
-        <div>Active Persona: {JSON.stringify(activePersonaId)}</div>
-      </div>
-
-      {/* <div className="mt-4">
-        <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={() => setStepState('editing-basic')}>
-          Test: Set to Editing Basic
-        </button>
-      </div> */}
-
-      <div className="mt-4 flex space-x-2">
-        <button
-          className="bg-green-500 text-white px-4 py-2 rounded"
-          onClick={() => {
-            console.log('Test select step 0')
-            setSelectedStep({ stepIndex: 0, scenarioIndex: 0 })
-            setStepState('editing-basic')
-          }}
-        >
-          Test: Select Step 0
-        </button>
-
-        <button
-          className="bg-yellow-500 text-white px-4 py-2 rounded"
-          onClick={() => {
-            console.log('Test select step 1')
-            setSelectedStep({ stepIndex: 1, scenarioIndex: 0 })
-            setStepState('editing-issue')
-          }}
-        >
-          Test: Select Step 1
-        </button>
-      </div>
     </div>
   )
 }

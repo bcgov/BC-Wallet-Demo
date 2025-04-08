@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-
 import { useCreateAsset } from '@/hooks/use-asset'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
@@ -13,9 +12,9 @@ import { ShowcaseRequest } from '@/openapi-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor, X } from 'lucide-react'
 import { Trash2 } from 'lucide-react'
-import { useTranslations } from "next-intl";
-import { FormTextArea, FormTextInput } from "../text-input";
-import { Form } from "../ui/form";
+import { useTranslations } from 'next-intl'
+import { FormTextArea, FormTextInput } from '../text-input'
+import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 
@@ -23,6 +22,7 @@ import { toast } from 'sonner'
 import Image from 'next/image'
 
 import { Button } from '../ui/button'
+import { on } from 'events'
 
 const BannerImageUpload = ({
   text,
@@ -42,22 +42,11 @@ const BannerImageUpload = ({
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {
-          await createAsset(
-            {
-              content: base64,
-              mediaType: newValue.type,
-            },
-            {
-              onSuccess: (data: unknown) => {
-                const response = data as AssetResponseType
-                setPreview(base64)
-                onChange(response.asset.id)
-              },
-              onError: (error) => {
-                console.error('Error creating asset:', error)
-              },
-            }
-          )
+          const mimeType = newValue.type
+          const base64WithoutPrefix = base64.replace(/^data:image\/[a-zA-Z+\-]+;base64,/, '')
+
+          setPreview(`${mimeType};base64,${base64WithoutPrefix}`)
+          onChange(base64WithoutPrefix)
         }
       } catch (error) {
         console.error('Error converting file:', error)
@@ -67,7 +56,6 @@ const BannerImageUpload = ({
       onChange('')
     }
   }
-
   return (
     <div className="flex items-center flex-col justify-center">
       <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}</p>
@@ -92,12 +80,12 @@ const BannerImageUpload = ({
         <div className="flex flex-col items-center h-[240px] justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
           {preview ? (
             <Image
-              alt="preview"
+              alt={'preview'}
               className="p-3 w-3/4"
-              src={preview}
+              src={`data:image/${preview}`}
               width={300}
               height={100}
-              style={{ width: '90%', height: '90%' }}
+              style={{ width: '100%', height: '100%' }}
             />
           ) : (
             <p className="text-center text-xs lowercase">
@@ -121,7 +109,7 @@ const BannerImageUpload = ({
 export const PublishEdit = () => {
   const t = useTranslations()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { showcase, reset } = useShowcaseStore()
+  const { showcase, reset, setScenarioIds } = useShowcaseStore()
   const router = useRouter()
   const { saveShowcase } = useOnboardingAdapter()
   const { personas } = useOnboardingAdapter()
@@ -137,6 +125,7 @@ export const PublishEdit = () => {
       scenarios: [],
       credentialDefinitions: [],
       personas: [],
+      tenantId: ''
     },
   })
 
@@ -148,6 +137,7 @@ export const PublishEdit = () => {
       credentialDefinitions: showcase.credentialDefinitions || ['86a96d6d-91c9-4357-984d-1f6b162fdfae'],
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
+      tenantId: ''
     })
   }, [form, showcase])
 
@@ -157,6 +147,7 @@ export const PublishEdit = () => {
     toast.success('Showcase created successfully')
     reset()
     setIsModalOpen(false)
+    setScenarioIds([])
     router.push('/showcases')
   }
 
@@ -226,7 +217,7 @@ export const PublishEdit = () => {
                 }}
                 className="px-6 bg-yellow-500 py-2 rounded text-gray-700 font-bold hover:bg-yellow-400 dark:bg-yellow-500 dark:hover:bg-yellow-600"
               >
-                {'PUBLISH FOR REVIEW'}
+                {t('showcase.button_label')}
               </Button>
             </div>
           </div>
@@ -241,11 +232,8 @@ export const PublishEdit = () => {
                 <X onClick={() => setIsModalOpen(false)} size={22} className="cursor-pointer ml-4" />
               </div>
               <div className="py-4">
-                <p className="mt-2 text-gray-600 text-start">
-                  {"Once submitted, you won't be able to make further edits until the review is complete."}
-                </p>
-
-                <p className="text-start font-base font-bold">{'Do you want to proceed?'}</p>
+                <p className="mt-2 text-gray-600 text-start">{t('showcase.modal_description')}</p>
+                <p className="text-start font-base font-bold">{t('showcase.modal_description2')}</p>
               </div>
             </div>
             <div className="mt-4 flex justify-end gap-2 border-t pt-3 border-gray-300">
@@ -260,7 +248,7 @@ export const PublishEdit = () => {
                   onSubmit()
                 }}
               >
-                {'CONFIRM & SUBMIT FOR REVIEW'}
+                {t('showcase.modal_button')}
               </ButtonOutline>
             </div>
           </div>
