@@ -4,7 +4,7 @@ class ApiService {
   private baseUrl: string
 
   public constructor(baseUrl: string) {
-    this.baseUrl = baseUrl
+    this.baseUrl = baseUrl;
   }
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
@@ -63,7 +63,6 @@ class ApiService {
     return this.request<T>('DELETE', url)
   }
 }
-
 
 const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_BACKEND)
 
