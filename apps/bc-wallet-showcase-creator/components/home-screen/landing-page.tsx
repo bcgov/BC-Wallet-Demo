@@ -15,7 +15,9 @@ import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
 
+
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
+
 
 export const LandingPage = () => {
   const t = useTranslations()
@@ -30,6 +32,7 @@ export const LandingPage = () => {
   }
 
   const handlePreview = (slug: string) => {
+
     const previewUrl = `${WALLET_URL}/${slug}`
     window.open(previewUrl, '_blank')
   }

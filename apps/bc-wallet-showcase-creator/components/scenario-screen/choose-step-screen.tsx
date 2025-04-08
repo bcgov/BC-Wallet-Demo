@@ -49,7 +49,7 @@ export const CreateScenariosStepsScreen = () => {
         })
       )
       setStepState('editing-basic')
-    }else if(type == 'CONNET_AND_VERIFY'){
+    }else if(type == 'SERVICE'){
         createStep(
           createServiceStep({
             title: `Accept your student card`,
@@ -86,42 +86,6 @@ export const CreateScenariosStepsScreen = () => {
 
       {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit />}
 
-      {/* Debug output - remove in production */}
-      <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded text-xs">
-        <div>Step State: {JSON.stringify(stepState)}</div>
-        <div>Selected Step: {JSON.stringify(selectedStep)}</div>
-        <div>Active Persona: {JSON.stringify(activePersonaId)}</div>
-      </div>
-
-      {/* <div className="mt-4">
-        <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={() => setStepState('editing-basic')}>
-          Test: Set to Editing Basic
-        </button>
-      </div> */}
-
-      <div className="mt-4 flex space-x-2">
-        <button
-          className="bg-green-500 text-white px-4 py-2 rounded"
-          onClick={() => {
-            console.log('Test select step 0')
-            setSelectedStep({ stepIndex: 0, scenarioIndex: 0 })
-            setStepState('editing-basic')
-          }}
-        >
-          Test: Select Step 0
-        </button>
-
-        <button
-          className="bg-yellow-500 text-white px-4 py-2 rounded"
-          onClick={() => {
-            console.log('Test select step 1')
-            setSelectedStep({ stepIndex: 1, scenarioIndex: 0 })
-            setStepState('editing-issue')
-          }}
-        >
-          Test: Select Step 1
-        </button>
-      </div>
     </div>
   )
 }

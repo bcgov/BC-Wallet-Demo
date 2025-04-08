@@ -2,7 +2,7 @@ import { ReactNode} from "react";
 
 export enum StepType {
   BASIC = "BASIC",
-  CONNECT_AND_VERIFY = "CONNET_AND_VERIFY",
+  SERVICE = "SERVICE",
   HUMAN_TASK = "HUMAN_TASK"
 }
 
@@ -82,7 +82,7 @@ export interface RequestOptions {
 
 export interface ScenarioStep {
   id: string;
-  type: StepType.BASIC | StepType.CONNECT_AND_VERIFY | StepType.HUMAN_TASK
+  type: StepType.BASIC | StepType.SERVICE | StepType.HUMAN_TASK
   title: string;
   description: string;
   requestOptions: RequestOptions;

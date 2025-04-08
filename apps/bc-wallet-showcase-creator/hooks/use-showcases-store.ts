@@ -122,7 +122,7 @@ export const useShowcaseStore = create<ShowcaseStore>()(
       })),
       
       setScenarioIds: (scenarioIds) => set((state) => ({
-        showcase: { ...state.showcase, scenarios: scenarioIds }
+        showcase: { ...state.showcase, scenarios:  scenarioIds.length === 0 ? [] : [...state.showcase.scenarios, ...scenarioIds] }
       })),
       
       // Persona selection functions

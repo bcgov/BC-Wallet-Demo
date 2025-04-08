@@ -43,9 +43,15 @@ export const ProofStepEdit = () => {
 
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepWithCredentials : null
 
+  const defaultValues = {
+    title: currentStep?.title || '',
+    description: currentStep?.description || '',
+    asset: currentStep?.asset || undefined,
+  }
 
   const form = useForm<StepRequestType>({
     resolver: zodResolver(StepRequest),
+    defaultValues,
     mode: 'onChange',
   })
 
