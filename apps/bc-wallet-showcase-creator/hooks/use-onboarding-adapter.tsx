@@ -34,7 +34,7 @@ export const useOnboardingAdapter = () => {
 
   const { displayShowcase, setShowcase, showcase } = useShowcaseStore()
 
-  const { selectedCredentialDefinitionIds, issuerId } = useHelpersStore()
+  const { selectedCredentialDefinitionIds, issuerId, tenantId } = useHelpersStore()
 
   const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null)
   const queryClient = useQueryClient()
@@ -145,7 +145,7 @@ export const useOnboardingAdapter = () => {
           credentialDefinitions: selectedCredentialDefinitionIds,
           personas: selectedPersonas.map((p: Persona) => p.id),
           bannerImage: data.bannerImage,
-          tenantId: 'test-tenant-id',
+          tenantId: tenantId,
         }
 
         const updatedShowcase = await updateShowcaseMutation.mutateAsync(showcaseData)

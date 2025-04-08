@@ -9,9 +9,11 @@ interface HelpersStore {
   selectedCredentialDefinitionIds: string[];
   issuerId: string;
   relayerId: string;
+  tenantId: string;
   setSelectedCredentialDefinitionIds: (ids: string[]) => void;
   setIssuerId: (issuerId: string) => void;
   setRelayerId: (relayerId: string) => void;
+  setTenantId: (tenantId: string) => void;
   reset: () => void;
 }
 
@@ -19,6 +21,7 @@ const initialState = {
   issuerId: "",
   relayerId: "",
   selectedCredentialDefinitionIds: [] as string[],
+  tenantId: "",
 };
 
 export const useHelpersStore = create<HelpersStore>()(
@@ -28,6 +31,7 @@ export const useHelpersStore = create<HelpersStore>()(
       setSelectedCredentialDefinitionIds: (selectedCredentialDefinitionIds) => set({ selectedCredentialDefinitionIds }),
       setIssuerId: (issuerId: string) => set({ issuerId }),
       setRelayerId: (relayerId: string) => set({ relayerId }),
+      setTenantId: (tenantId: string) => set({ tenantId }),
       reset: () => set(initialState),
     }),
     {

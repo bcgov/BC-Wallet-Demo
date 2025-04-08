@@ -21,7 +21,7 @@ useContainer(Container)
 
 async function bootstrap() {
   try {
-    registerServicesByInterface()
+    await registerServicesByInterface()
 
     // Create and configure Express server
     const app = createExpressServer({
