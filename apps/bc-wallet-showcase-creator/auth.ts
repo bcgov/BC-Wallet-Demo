@@ -7,7 +7,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     clientId: env.AUTH_KEYCLOAK_ID!,
     clientSecret: env.AUTH_KEYCLOAK_SECRET!,
     issuer: env.AUTH_KEYCLOAK_ISSUER!,
-    redirectProxyUrl: "https://bcshowcase-api.dev.nborbit.ca/api/auth"
+    redirectProxyUrl: env.AUTH_REDIRECT_PROXY_URL!,
   })],
   callbacks: {
     jwt: async ({ token, user, account }) => {
@@ -21,13 +21,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token
     },
     redirect: async ({ url, baseUrl }) => {
-      // clean the base url and add the redirect proxy url
-      const cleanedBaseUrl = baseUrl.replace(/\/$/, '')
-      return Promise.resolve(`${cleanedBaseUrl}${env.AUTH_REDIRECT_PROXY_URL}`)
+      console.log("redirect", url, baseUrl)
+       // Allows relative callback URLs
+       if (url.startsWith("/")) return `${baseUrl}${url}`
+       // Allows callback URLs on the same origin
+       if (new URL(url).origin === baseUrl) return url
+      return Promise.resolve(url)
     },
   },
   session: {
     strategy: 'jwt',
-  },
-  trustHost: true,
+  }
 })
