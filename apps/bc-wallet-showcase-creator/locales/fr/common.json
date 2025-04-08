@@ -261,5 +261,18 @@
   },
   "footer": {
     "copyright_label": "Programme d'Identité Numérique et de Confiance de la Colombie-Britannique. Tous droits réservés."
+  },
+  "login": {
+    "email_label": "Email",
+    "password_label": "Mot de passe",
+    "login_label": "Connexion avec Keycloak",
+    "forgot_password_label": "Mot de passe oublié?",
+    "sign_up_label": "Créer un compte",
+    "continue_label": "Continuer",
+    "terms_of_service_label": "Conditions d'utilisation",
+    "privacy_policy_label": "Politique de confidentialité",
+    "dont_have_account_label": "Pas de compte?",
+    "welcome_message": "Bienvenue à BC Showcase Creator.",
+    "app_name": "BC Showcase Creator."
   }
 }
