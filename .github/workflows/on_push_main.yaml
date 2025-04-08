@@ -178,6 +178,8 @@ jobs:
               --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
               --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
               --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
+              --set showcase_creator.env.AUTH_SECRET=${{secrets.AUTH_SECRET}} \
+              --set showcase_creator.env.AUTH_KEYCLOAK_SECRET=${{secrets.AUTH_KEYCLOAK_SECRET}} \
               . --wait
             
             # Create Certificate for TLS
