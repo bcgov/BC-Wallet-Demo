@@ -1,4 +1,4 @@
-devARG build_image=node:20-alpine
+ARG build_image=node:20-alpine
 ARG runtime_image=caddy:alpine
 
 # build stage
