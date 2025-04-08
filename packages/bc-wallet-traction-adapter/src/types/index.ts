@@ -4,3 +4,13 @@ export enum Topic {
 }
 
 export type Action = 'publish-issuer-assets'
+
+export type CreateSchemaResult = {
+  schemaId: string
+  transactionId?: string
+}
+
+export type PublishCredentialDefinitionResult = {
+  credentialDefinitionId?: string
+  transactionId?: string
+}

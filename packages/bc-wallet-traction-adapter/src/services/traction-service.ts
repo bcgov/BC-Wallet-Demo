@@ -8,32 +8,27 @@ import {
   CredentialDefinitionApi,
   CredentialDefinitionStorageApi,
   type CustomCreateWalletTokenRequest,
+  DIDResult,
   EndorseTransactionApi,
   MultitenancyApi,
   ResponseError,
   SchemaApi,
   SchemaStorageApi,
-  TransactionRecord, TxnOrCredentialDefinitionSendResult,
+  TransactionRecord,
+  TxnOrCredentialDefinitionSendResult,
   TxnOrSchemaSendResult,
-  WalletApi
+  WalletApi,
 } from 'bc-wallet-traction-openapi'
 import {
   credentialDefinitionToCredentialDefinitionSendRequest,
   credentialSchemaToSchemaPostRequest,
 } from '../mappers/credential-definition'
 import { environment } from '../environment'
+import { CreateSchemaResult, PublishCredentialDefinitionResult } from '../types'
 
-interface CreateSchemaResult {
-  schemaId: string
-  transactionId?: string
-}
-
-interface PublishCredentialDefinitionResult {
-  credentialDefinitionId?: string
-  transactionId?: string
-}
-
-const TRANSACTION_TERMINAL_STATES = new Set(['transaction_completed', 'transaction_refused', 'transaction_cancelled'])
+const TRANSACTION_TERMINAL_STATES = new Set(['transaction_acked', 'transaction_completed', 'transaction_refused', 'transaction_cancelled'])
+const TRANSACTION_ERROR_STATES = new Set(['transaction_refused', 'transaction_cancelled'])
+const TX_DELAY_MS = 1500
 
 export class TractionService {
   private readonly config: Configuration
@@ -101,12 +96,7 @@ export class TractionService {
       }
       return undefined
     } catch (error) {
-      console.error('Error checking if schema exists:', error)
-      // Propagate the error for better handling upstream
-      if (error instanceof Error) {
-        return Promise.reject(error)
-      }
-      return Promise.reject(Error('Unknown error checking if schema exists'))
+      return this.handleServiceError(error, 'checking if schema exists')
     }
   }
 
@@ -125,11 +115,7 @@ export class TractionService {
         createTransactionForEndorser: true, // Assuming endorsement is potentially needed
       })
     } catch (error) {
-      console.error('Error posting schema:', error)
-      if (error instanceof Error) {
-        return Promise.reject(error)
-      }
-      return Promise.reject(Error('Unknown error posting schema'))
+      return this.handleServiceError(error, 'posting schema')
     }
 
     const result = await this.handleApiResponse<TxnOrSchemaSendResult>(apiResponse)
@@ -167,11 +153,7 @@ export class TractionService {
         createTransactionForEndorser: true, // Assuming endorsement is potentially needed
       })
     } catch (error) {
-      console.error('Error posting credential definition:', error)
-      if (error instanceof Error) {
-        return Promise.reject(error)
-      }
-      return Promise.reject(Error('Unknown error posting credential definition'))
+      return this.handleServiceError(error, 'posting credential definition')
     }
 
     const result = await this.handleApiResponse<TxnOrCredentialDefinitionSendResult>(apiResponse)
@@ -209,11 +191,7 @@ export class TractionService {
           dbCredentialDef.credentialSchema.version,
         )
       } catch (error) {
-        console.error(`Error finding schema for credential definition ${dbCredentialDef.name}:`, error)
-        if (error instanceof Error) {
-          return Promise.reject(error)
-        }
-        return Promise.reject(Error('Unknown error finding schema for credential definition'))
+        return this.handleServiceError(error, `finding schema for credential definition ${dbCredentialDef.name}`)
       }
       if (!schemaId) {
         console.warn(
@@ -236,12 +214,7 @@ export class TractionService {
 
       return undefined
     } catch (error) {
-      console.error('Error checking if credential definition exists:', error)
-      // Propagate the error
-      if (error instanceof Error) {
-        return Promise.reject(error)
-      }
-      return Promise.reject(Error('Unknown error checking if credential definition exists'))
+      return this.handleServiceError(error, 'checking if credential definition exists')
     }
   }
 
@@ -258,7 +231,9 @@ export class TractionService {
     // 1. Publish Schemas
     if (issuer.credentialSchemas) {
       for (const credentialSchema of issuer.credentialSchemas) {
-        let schemaId: string | undefined = credentialSchema.identifier ?? await this.findExistingSchema(credentialSchema.name, credentialSchema.version)
+        let schemaId: string | undefined =
+          credentialSchema.identifier ??
+          (await this.findExistingSchema(credentialSchema.name, credentialSchema.version))
         if (!schemaId) {
           console.log(`Schema ${credentialSchema.name} v${credentialSchema.version} not found, creating...`)
           const createResult = await this.createSchema(credentialSchema)
@@ -284,7 +259,14 @@ export class TractionService {
 
     // 2. Publish Credential Definitions
     if (issuer.credentialDefinitions) {
+      if (transactionIds.length > 0) {
+        await this.waitForTransactionsToComplete(transactionIds)
+      }
       for (const credentialDef of issuer.credentialDefinitions) {
+        if(!credentialDef.approvedBy) {
+          continue
+        }
+
         let credDefId = await this.findExistingCredentialDefinition(credentialDef)
 
         if (!credDefId) {
@@ -296,15 +278,12 @@ export class TractionService {
               credentialDef.credentialSchema.id ??
                 `${credentialDef.credentialSchema.name}::${credentialDef.credentialSchema.version}`,
             )
-
           if (!cdSchemaId) {
-            // This should ideally not happen if schema creation/finding logic is correct
-            console.error(
-              `Could not determine the schema ID for credential definition ${credentialDef.id} / ${credentialDef.name} version ${credentialDef.version}. Skipping creation.`,
+            return Promise.reject(
+              Error(
+                `Failed to find schema ID for cred def ${credentialDef.id} / ${credentialDef.name} version ${credentialDef.version}`,
+              ),
             )
-            // Optionally throw an error here if this is critical
-            // return Promise.reject(Error(`Failed to find schema ID for cred def ${credentialDef.name}`))
-            continue // Skip this cred def
           }
 
           // Create new credential definition
@@ -332,28 +311,18 @@ export class TractionService {
   }
 
   public async getIssuerDID(): Promise<string> {
-    try {
-      const result = await this.walletApi.walletDidPublicGet()
-      if (!result.result?.did) {
-        return Promise.reject(
-          Error(
-            `Public issuer DID not present. Tenant ${this.tenantId} may not be registered as an issuer or has no public DID.`,
-          ),
-        )
-      }
+    const apiResponse = await this.walletApi.walletDidPublicGetRaw()
+    const result = await this.handleApiResponse<DIDResult>(apiResponse)
 
-      return result.result.did
-    } catch (error) {
-      console.error('Error getting public DID:', error)
-      if (error instanceof ResponseError) {
-        const errorText = await error.response.text().catch(() => 'No error details available')
-        return Promise.reject(Error(`Failed to get public DID: ${error.response.status} - ${errorText}`))
-      }
-      if (error instanceof Error) {
-        return Promise.reject(error)
-      }
-      return Promise.reject(Error('Unknown error getting public DID'))
+    if (!result.result?.did) {
+      return Promise.reject(
+        Error(
+          `Public issuer DID not present. Tenant ${this.tenantId} may not be registered as an issuer or has no public DID.`,
+        ),
+      )
     }
+
+    return result.result.did
   }
 
   public async getTenantToken(apiKey: string, walletKey?: string): Promise<string> {
@@ -366,23 +335,14 @@ export class TractionService {
       walletKey, // Only required for unmanaged wallets
     }
 
-    let apiResponse: ApiResponse<CreateWalletTokenResponse>
-    try {
-      apiResponse = await this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw({
-        tenantId: this.tenantId,
-        body: request as any, // Cast if type mismatch between Custom and expected
-      })
-    } catch (error) {
-      console.error(`Error getting tenant token for tenant ${this.tenantId}:`, error)
-      if (error instanceof Error) {
-        return Promise.reject(error)
-      }
-      return Promise.reject(Error('Unknown error getting tenant token'))
-    }
+    const apiResponse = await this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw({
+      tenantId: this.tenantId,
+      body: request,
+    })
 
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
     if (!tokenResponse?.token) {
-      return Promise.reject(Error('No token was returned for tenant'))
+      return Promise.reject(Error('no token was returned'))
     }
     return tokenResponse.token
   }
@@ -395,23 +355,14 @@ export class TractionService {
       walletKey,
     }
 
-    let apiResponse: ApiResponse<CreateWalletTokenResponse>
-    try {
-      apiResponse = await this.multitenancyApi.multitenancyWalletWalletIdTokenPostRaw({
-        walletId: this.walletId,
-        body: request,
-      })
-    } catch (error) {
-      console.error(`Error getting sub-wallet token for wallet ${this.walletId}:`, error)
-      if (error instanceof Error) {
-        return Promise.reject(error)
-      }
-      return Promise.reject(Error('Unknown error getting sub-wallet token'))
-    }
+    const apiResponse = await this.multitenancyApi.multitenancyWalletWalletIdTokenPostRaw({
+      walletId: this.walletId,
+      body: request,
+    })
 
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
     if (!tokenResponse?.token) {
-      return Promise.reject(Error('No token was returned for sub-wallet'))
+      return Promise.reject(Error('no token was returned'))
     }
     return tokenResponse.token
   }
@@ -426,83 +377,77 @@ export class TractionService {
    */
   public async waitForTransactionsToComplete(
     transactionIds: string[],
-    pollIntervalMs = 3000,
+    pollIntervalMs = TX_DELAY_MS,
     timeoutMs = 120000, // 2 minutes timeout
   ): Promise<Map<string, string>> {
-    return new Promise((resolve, reject) => {
-      if (!transactionIds || transactionIds.length === 0) {
-        resolve(new Map<string, string>()) // Nothing to wait for
-        return
+    if (!transactionIds?.length) {
+      return new Map<string, string>()
+    }
+
+    const transactionStates = new Map<string, string>()
+    const pendingTransactionIds = new Set<string>(transactionIds)
+    const startTime = Date.now()
+
+    while (pendingTransactionIds.size > 0) {
+      // Check for timeout
+      if (Date.now() - startTime > timeoutMs) {
+        return Promise.reject(
+          Error(
+            `Timeout waiting for transactions after ${timeoutMs}ms. Pending: ${Array.from(pendingTransactionIds).join(', ')}`,
+          ),
+        )
       }
 
-      const transactionStates = new Map<string, string>() // Stores final states
-      const pendingTransactionIds = new Set<string>(transactionIds)
-      const startTime = Date.now()
+      for (const tranId of Array.from(pendingTransactionIds)) {
+        try {
+          const apiResponse = await this.endorseTransactionApi.transactionsTranIdGetRaw({ tranId })
+          const transactionRecord = await this.handleApiResponse<TransactionRecord>(apiResponse)
 
-      const checkStatus = async () => {
-        if (Date.now() - startTime > timeoutMs) {
-          reject(
-            Error(
-              `Timeout waiting for transactions after ${timeoutMs}ms. Pending: ${Array.from(pendingTransactionIds).join(', ')}`,
-            ),
-          )
-          return
-        }
+          const state = transactionRecord.state
+          console.log(`Transaction ${tranId} state: ${state}`)
 
-        let errorsOccurred = false
-        for (const tranId of Array.from(pendingTransactionIds)) {
-          // Iterate over a copy for safe removal
-          try {
-            const apiResponse = await this.endorseTransactionApi.transactionsTranIdGetRaw({ tranId })
-            const transactionRecord = await this.handleApiResponse<TransactionRecord>(apiResponse)
+          if (state && TRANSACTION_TERMINAL_STATES.has(state)) {
+            transactionStates.set(tranId, state)
 
-            const state = transactionRecord.state
-            console.log(`Transaction ${tranId} state: ${state}`)
+            if (transactionRecord.updatedAt) {
+              const updatedAtDate = new Date(transactionRecord.updatedAt)
+              const now = new Date()
+              const timeSinceUpdate = now.getTime() - updatedAtDate.getTime()
 
-            if (state && TRANSACTION_TERMINAL_STATES.has(state)) {
-              transactionStates.set(tranId, state)
-              pendingTransactionIds.delete(tranId)
-              // Optional: Check for failure states immediately
-              if (state === 'transaction_refused' || state === 'transaction_cancelled') {
-                console.warn(`Transaction ${tranId} reached failure state: ${state}`)
-                // Depending on requirements, could reject immediately here
-                // reject(Error(`Transaction ${tranId} failed with state: ${state}`))
-                // return
+              if (timeSinceUpdate < TX_DELAY_MS) { // TODO after the transaction is acked, it's not available immediately. I do not know how long this could take in real life
+                console.debug(`Transaction ${tranId} was updated less than ${TX_DELAY_MS}ms ago. Skipping this cycle.`)
+                continue
               }
-            } else if (!state) {
-              console.warn(`Transaction ${tranId} has no state information. Assuming pending.`)
             }
-          } catch (error) {
-            console.error(`Error fetching status for transaction ${tranId}:`, error)
-            // Decide how to handle errors: retry, mark as failed, or reject all
-            // For now, let's log and continue, assuming it might be temporary
-            // If it's a 404, the transaction might not exist or was deleted.
-            if (error instanceof ResponseError && error.response.status === 404) {
-              console.error(`Transaction ${tranId} not found. Removing from pending list.`)
-              transactionStates.set(tranId, 'not_found') // Mark as not found
-              pendingTransactionIds.delete(tranId)
-            } else {
-              errorsOccurred = true // Mark that an error happened, maybe retry later or reject
-            }
-          }
-        } // End of for loop
 
-        if (pendingTransactionIds.size === 0) {
-          console.log('All transactions reached a terminal state.')
-          resolve(transactionStates) // All done
-        } else if (errorsOccurred) {
-          // Optional: Implement retry logic or fail fast
-          console.warn('Errors occurred during status check. Retrying...')
-          setTimeout(checkStatus, pollIntervalMs) // Retry after interval
-        } else {
-          // Not all finished, schedule next check
-          setTimeout(checkStatus, pollIntervalMs)
+            pendingTransactionIds.delete(tranId)
+            if(TRANSACTION_ERROR_STATES.has(state)) {
+              console.warn(`Transaction ${tranId} reached failure state: ${state}`)
+              return Promise.reject(Error(`Transaction ${tranId} failed with state: ${state}`))
+            }
+          } else if (!state) {
+            console.debug(`Transaction ${tranId} has no state information. Assuming pending.`)
+          }
+        } catch (error) {
+          console.error(`Error fetching status for transaction ${tranId}:`, error)
+          if (error instanceof ResponseError && error.response.status === 404) {
+            console.error(`Transaction ${tranId} not found. Removing from pending list.`)
+            transactionStates.set(tranId, 'not_found')
+            pendingTransactionIds.delete(tranId)
+          }
         }
       }
 
-      // Start the first check
-      void checkStatus()
-    })
+      if (pendingTransactionIds.size === 0) {
+        console.log('All transactions reached a terminal state.')
+        return transactionStates
+      }
+
+      // Wait before next polling iteration
+      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs))
+    }
+
+    return transactionStates
   }
 
   private async handleApiResponse<T>(response: ApiResponse<T>): Promise<T> {
@@ -523,6 +468,14 @@ export class TractionService {
       console.error('Error parsing response value:', e)
       throw new Error(`Failed to parse response body: ${e instanceof Error ? e.message : String(e)}`)
     }
+  }
+
+  private handleServiceError(error: unknown, operation: string): Promise<never> {
+    console.error(`Error ${operation}:`, error)
+    if (error instanceof Error) {
+      return Promise.reject(error)
+    }
+    return Promise.reject(new Error(`Unknown error ${operation}`))
   }
 }
 
