@@ -1,45 +1,40 @@
-import React from 'react'
+import React, { FC } from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import { motion } from 'framer-motion'
-
 import { dashboardTitle, rowContainer } from '../../../FramerAnimations'
-import type { CustomCharacter } from '../../../slices/types'
+import type {Persona, Scenario} from '../../../slices/types'
 import { basePath } from '../../../utils/BasePath'
 import { UseCaseItem } from './UseCaseItem'
+import { StepActionType } from 'bc-wallet-openapi';
 
 export interface Props {
-  currentCharacter: CustomCharacter
+  currentPersona: Persona
   completedUseCaseSlugs: string[]
+  scenarios: Scenario[]
 }
 
-export const UseCaseContainer: React.FC<Props> = ({ currentCharacter, completedUseCaseSlugs }) => {
+export const UseCaseContainer: FC<Props> = ({ currentPersona, completedUseCaseSlugs, scenarios }) => {
   const navigate = useNavigate()
 
   const startUseCase = (slug: string) => {
     navigate(`${basePath}/uc/${slug}`)
   }
 
-  const renderUseCases = currentCharacter.useCases.map((item) => {
-    const requiredCredentials: string[] = []
-    // item.screens.forEach(screen => requiredCredentials.push(...(screen.requestOptions?.requestedCredentials.map(item => item.name) ?? [])))
-    item.screens.forEach((screen) =>
-      screen.requestOptions?.requestedCredentials.forEach((cred) => {
-        if (!requiredCredentials.includes(cred.name)) {
-          requiredCredentials.push(cred.name)
-        }
-      })
-    )
-
-    const isCompleted = completedUseCaseSlugs.includes(item.id)
+  const renderUseCases = scenarios.map(scenario => {
+    const isCompleted = false // FIXME we need to implement this later. completedUseCaseSlugs.includes(item.id)
+    const credentialDefinitions = scenario.steps.flatMap(step =>
+        step.actions?.filter(action => action.actionType === StepActionType.ShareCredential)?.flatMap(action =>
+            action.credentialDefinitions ?? []
+        ) ?? []
+    );
 
     return (
       <UseCaseItem
-        key={item.id}
-        slug={item.id}
-        title={item.name}
-        requiredCredentials={requiredCredentials}
-        currentCharacter={currentCharacter}
+        key={scenario.id}
+        slug={scenario.slug}
+        title={scenario.name}
+        requiredCredentials={credentialDefinitions}
+        currentPersona={currentPersona}
         start={startUseCase}
         isLocked={false}
         isCompleted={isCompleted}
