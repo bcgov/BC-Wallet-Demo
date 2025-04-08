@@ -18,7 +18,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json ts
 COPY packages/tsconfig-base.json packages/
 COPY apps/tsconfig-base.json apps/
 COPY apps/bc-wallet-api-server apps/bc-wallet-api-server
-COPY packages/bc-wallet-openapi packages/bc-wallet-openapi
+COPY packages packages
 
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib drizzle-kit
 RUN pnpm install
