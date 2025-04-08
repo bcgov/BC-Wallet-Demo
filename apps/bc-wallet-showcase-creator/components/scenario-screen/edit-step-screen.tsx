@@ -10,7 +10,7 @@ import { ScenarioEdit } from '@/components/scenario-screen/scenario-edit'
 import { useScenarios } from '@/hooks/use-scenarios'
 import { createEmptyStep } from '@/hooks/use-scenarios'
 import { useShowcaseStore } from '@/hooks/use-showcase-store'
-import type { StepType } from '@/types'
+import { StepType } from '@/types'
 import { useTranslations } from 'next-intl'
 
 export const EditStepScreen = () => {
@@ -40,9 +40,9 @@ export const EditStepScreen = () => {
 
       {stepState === 'editing-scenario' && <ScenarioEdit />}
 
-      {stepState === 'basic-step-edit' && currentStep?.type === 'HUMAN_TASK' && <BasicStepEdit />}
+      {stepState === 'basic-step-edit' && currentStep?.type === StepType.HUMAN_TASK && <BasicStepEdit />}
 
-      {stepState === 'proof-step-edit' && currentStep?.type === 'SERVICE' && <ProofStepEdit />}
+      {stepState === 'proof-step-edit' && currentStep?.type === StepType.SERVICE && <ProofStepEdit />}
 
       {(stepState === 'none-selected' || stepState === null) && (
         <NoSelection text={t('scenario.no_scenario_selected_message')} />

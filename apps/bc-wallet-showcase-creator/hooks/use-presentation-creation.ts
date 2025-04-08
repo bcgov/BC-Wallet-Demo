@@ -7,6 +7,7 @@ import { sampleAction } from '@/lib/steps'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
+import { StepType } from '@/types'
 
 enableMapSet()
 
@@ -352,7 +353,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
             if (stepIndex >= 0 && stepIndex < steps.length) {
               const currentStep = steps[stepIndex]
 
-              if (currentStep.type === 'SERVICE') {
+              if (currentStep.type === StepType.SERVICE) {
                 state.stepState = 'editing-issue'
               } else {
                 state.stepState = 'editing-basic'
