@@ -2,16 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}-allow-external
+  name: {{ include "bc-wallet.fullname" . }}-showcase-creator-allow-external
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: creator
-    app.kubernetes.io/part-of: bc-wallet-showcase-builder
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+      app: {{ include "bc-wallet.fullname" . }}-showcase-creator
   ingress:
   {{- if .Values.showcase_creator.networkPolicy.ingress.enabled }}
   - from:
@@ -40,8 +40,8 @@ metadata:
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: bc-wallet-showcase-builder
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
@@ -51,11 +51,11 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+          app: {{ include "bc-wallet.fullname" . }}-showcase-creator
     ports:
     - protocol: TCP
       port: {{ .Values.postgresql.primary.service.ports.postgresql }}
 ---
-{{- $context := dict "componentName" .Values.showcase_creator.name "componentLabel" "creator" "servicePort" .Values.showcase_creator.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet-showcase-builder.intra-release-network-policy" $context }}
+{{- $context := dict "componentName" "showcase-creator" "componentLabel" "creator" "servicePort" .Values.showcase_creator.service.port "Values" .Values "Release" .Release }}
+{{- include "bc-wallet.intra-release-network-policy" $context }}
 {{- end }} 

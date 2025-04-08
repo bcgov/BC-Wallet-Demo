@@ -2,16 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.demo_web.name }}-allow-external
+  name: {{ include "bc-wallet.fullname" . }}-demo-web-allow-external
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: web
-    app.kubernetes.io/part-of: bc-wallet-showcase-builder
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Values.demo_web.name }}
+      app: {{ include "bc-wallet.fullname" . }}-demo-web
   ingress:
   {{- if .Values.demo_web.networkPolicy.ingress.enabled }}
   - from:
@@ -36,25 +36,25 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-api-allow-web
+  name: {{ include "bc-wallet.fullname" . }}-api-allow-web
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet-showcase-builder
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Values.api_server.name }}
+      app: {{ include "bc-wallet.fullname" . }}-api-server
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ .Release.Name }}-{{ .Values.demo_web.name }}
+          app: {{ include "bc-wallet.fullname" . }}-demo-web
     ports:
     - protocol: TCP
       port: {{ .Values.api_server.service.port }}
 ---
-{{- $context := dict "componentName" .Values.demo_web.name "componentLabel" "web" "servicePort" .Values.demo_web.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet-showcase-builder.intra-release-network-policy" $context }}
+{{- $context := dict "componentName" "demo-web" "componentLabel" "web" "servicePort" .Values.demo_web.service.port "Values" .Values "Release" .Release }}
+{{- include "bc-wallet.intra-release-network-policy" $context }}
 {{- end }} 

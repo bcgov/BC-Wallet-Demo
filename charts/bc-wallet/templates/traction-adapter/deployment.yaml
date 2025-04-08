@@ -2,24 +2,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+  name: {{ include "bc-wallet.fullname" . }}-traction-adapter
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: adapter
-    app.kubernetes.io/part-of: bc-wallet-showcase-builder
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.traction_adapter.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+      app: {{ include "bc-wallet.fullname" . }}-traction-adapter
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+        app: {{ include "bc-wallet.fullname" . }}-traction-adapter
         app.kubernetes.io/component: adapter
-        app.kubernetes.io/part-of: bc-wallet-showcase-builder
-        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: bc-wallet
+        {{- include "bc-wallet.labels" . | nindent 8 }}
       {{- with .Values.traction_adapter.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -30,7 +30,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: {{ .Values.traction_adapter.name }}
+      - name: traction-adapter
         image: "{{ .Values.traction_adapter.image.repository }}:{{ .Values.traction_adapter.image.tag }}"
         imagePullPolicy: {{ .Values.traction_adapter.image.pullPolicy }}
         {{- with .Values.traction_adapter.containerSecurityContext }}
@@ -56,9 +56,9 @@ spec:
         - name: RABBITMQ_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet-showcase-builder.rabbitmq.secret.name" . }}
-              key: {{ include "bc-wallet-showcase-builder.rabbitmq.passwordKey" . }}
+              name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
+              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
         resources:
           {{- toYaml .Values.traction_adapter.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ $.Release.Name }}-{{ .Values.traction_adapter.name }}{{ end }}{{ end }}
+      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-traction-adapter{{ end }}{{ end }}
 {{- end }}

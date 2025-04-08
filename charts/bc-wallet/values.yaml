@@ -42,7 +42,6 @@ ingress:
   tls: []
 
 api_server:
-  name: bc-wallet-api-server
   image:
     repository: ghcr.io/bcgov/bc-wallet-api-server
     pullPolicy: IfNotPresent
@@ -101,7 +100,6 @@ api_server:
     stabilizationWindowSeconds: 300
 
 traction_adapter:
-  name: bc-wallet-traction-adapter
   image:
     repository: ghcr.io/bcgov/bc-wallet-traction-adapter
     pullPolicy: IfNotPresent
@@ -156,7 +154,6 @@ traction_adapter:
     name: ""
 
 demo_web:
-  name: bc-wallet-demo-web
   image:
     repository: ghcr.io/bcgov/bc-wallet-demo-web
     pullPolicy: IfNotPresent
@@ -206,7 +203,6 @@ demo_web:
     name: ""
 
 showcase_creator:
-  name: bc-wallet-showcase-creator
   image:
     repository: ghcr.io/bcgov/bc-wallet-showcase-creator
     pullPolicy: IfNotPresent
@@ -261,7 +257,6 @@ showcase_creator:
     name: ""
 
 demo_server:
-  name: bc-wallet-demo-server
   image:
     repository: ghcr.io/bcgov/bc-wallet-demo-server
     pullPolicy: IfNotPresent
