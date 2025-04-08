@@ -127,7 +127,7 @@ export const ShowcaseList = () => {
                       className="relative min-h-[15rem] h-auto flex items-center justify-center bg-cover bg-center"
                       style={{
                         backgroundImage: `url('${
-                          showcase?.bannerImage?.content ? showcase.bannerImage.content : '/assets/NavBar/Showcase.jpeg'
+                          showcase?.bannerImage?.id ? `${baseUrl}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
                         }')`,
                       }}
                     >

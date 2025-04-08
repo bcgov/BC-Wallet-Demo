@@ -162,7 +162,7 @@ export const ShowcaseCreate = () => {
         if (response.showcase?.slug) {
           setCurrentShowcaseSlug(response.showcase.slug)
           // @ts-expect-error: tenantId is not required
-          setShowcase({ ...formData, tenantId })
+          setShowcase({ ...formData, tenantId, bannerImage: formData.bannerImage })
           toast.success('Showcase created successfully')
           // TODO: when dynamic URL is implemented
           // router.push(`/showcases/${response.showcase.slug}/characters`)

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
-import { convertBase64 } from '@/lib/utils'
+import { baseUrl, convertBase64 } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -33,9 +33,8 @@ const BannerImageUpload = ({
   onChange: (value: string) => void
 }) => {
   const t = useTranslations()
-  const [preview, setPreview] = useState<string | null>(value || null)
   const { mutateAsync: createAsset } = useCreateAsset()
-
+  
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
       try {
@@ -48,11 +47,10 @@ const BannerImageUpload = ({
             },
             {
               onSuccess: (data: unknown) => {
-                const response = data as AssetResponseType                
-                setPreview(`data:${newValue.type};base64,${base64}`)
+                const response = data as AssetResponseType
                 onChange(response.asset.id)
               },
-              onError: (error: any) => {
+              onError: (error) => {
                 console.error('Error creating asset:', error)
               },
             },
@@ -62,49 +60,54 @@ const BannerImageUpload = ({
         console.error('Error converting file:', error)
       }
     } else {
-      setPreview(null)
       onChange('')
     }
   }
 
+  // Simply render the component with minimal logic
   return (
     <div className="flex items-center flex-col justify-center">
       <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}</p>
 
-      {preview && (
-        <div className="relative w-full">
-          <button
-            className="bg-red-500 rounded p-1 m-2 absolute text-black right-0 top-0 text-sm hover:bg-red-400"
-            onClick={(e) => {
-              e.preventDefault()
-              void handleChange(null)
-            }}
+      <div className="w-full">
+        {value && (
+          <div className="relative mb-4 flex justify-center">
+            <div className="relative w-60 h-60">
+              <button
+                className="bg-red-500 rounded p-1 absolute z-10 text-white right-0 top-0 text-sm hover:bg-red-400"
+                onClick={(e) => {
+                  e.preventDefault()
+                  onChange('')
+                }}
+              >
+                <Trash2 size={16} />
+              </button>
+              <Image
+                alt="banner preview"
+                src={`${baseUrl}/assets/${value}/file`}
+                width={240}
+                height={240}
+                className="rounded-lg shadow object-cover"
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {!value && (
+          <label
+            htmlFor="bannerImage"
+            className="p-3 flex flex-col items-center justify-center w-full h-60 bg-light-bg dark:bg-dark-input dark:hover:bg-dark-input-hover rounded-lg cursor-pointer border dark:border-dark-border hover:bg-light-bg"
           >
-            <Trash2 />
-          </button>
-        </div>
-      )}
-      <label
-        htmlFor="bannerImage"
-        className="p-3 flex flex-col items-center justify-center w-full h-full bg-light-bg dark:bg-dark-input dark:hover:bg-dark-input-hover rounded-lg cursor-pointer border dark:border-dark-border hover:bg-light-bg"
-      >
-        <div className="flex flex-col items-center h-[240px] justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
-          {preview ? (
-            <Image
-              alt="preview"
-              className="p-3 w-3/4"
-              src={preview}
-              width={300}
-              height={100}
-              style={{ width: '90%', height: '90%' }}
-            />
-          ) : (
-            <p className="text-center text-xs lowercase">
-              <span className="font-bold">{t('file_upload.click_to_upload_label')}</span>{' '}
-              {t('file_upload.drag_to_upload_label')}
-            </p>
-          )}
-        </div>
+            <div className="flex flex-col items-center h-full justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
+              <p className="text-center text-xs lowercase">
+                <span className="font-bold">{t('file_upload.click_to_upload_label')}</span>{' '}
+                {t('file_upload.drag_to_upload_label')}
+              </p>
+            </div>
+          </label>
+        )}
+        
         <input
           id="bannerImage"
           type="file"
@@ -112,7 +115,7 @@ const BannerImageUpload = ({
           className="hidden"
           onChange={(e) => handleChange(e.target.files?.[0] ?? null)}
         />
-      </label>
+      </div>
     </div>
   )
 }
@@ -135,7 +138,6 @@ export const PublishEdit = () => {
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(ShowcaseRequestSchema),
-    mode: 'all',
     defaultValues: {
       name: '',
       description: '',
@@ -144,7 +146,6 @@ export const PublishEdit = () => {
       scenarios: [],
       personas: [],
       tenantId,
-      bannerImage: '',
     },
   })
 
@@ -156,7 +157,6 @@ export const PublishEdit = () => {
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
       tenantId,
-      bannerImage: showcase.bannerImage || '',
     })
   }, [form, showcase])
 
@@ -235,7 +235,6 @@ export const PublishEdit = () => {
                 }
                 buttonLabel={t('showcase.button_label')}
                 onSubmit={onSubmit}
-                disabled={!form.formState.isValid || !form.formState.isDirty}
               />
             </div>
           </div>
