@@ -120,6 +120,12 @@ export const BasicStepAdd = () => {
         (step: any) => step.title === data.title && step.description === data.description
       )
 
+      scenarioForPersona.steps = scenarioForPersona.steps.map((step: any) => {
+        delete step.id
+        return step
+      })
+
+      console.log('scenarioForPersona.steps', scenarioForPersona.steps)
       if (!currentStepExists) {
         scenarioForPersona.steps.push({
           title: data.title,

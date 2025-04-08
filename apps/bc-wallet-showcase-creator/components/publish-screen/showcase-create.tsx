@@ -23,6 +23,7 @@ import { useUiStore } from '@/hooks/use-ui-store'
 import { useCreateShowcase } from '@/hooks/use-showcases'
 import { z } from 'zod'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
 
 const BannerImageUpload = ({
   text,
@@ -127,6 +128,7 @@ const showcaseRequestFormData = z.object({
   credentialDefinitions: z.array(z.string()).optional(),
   personas: z.array(z.string()).optional(),
   tenantId: z.string(),
+  bannerImage: z.string().optional(),
 })
 
 export const ShowcaseCreate = () => {
@@ -135,6 +137,7 @@ export const ShowcaseCreate = () => {
   const router = useRouter()
   const { mutateAsync: createShowcase } = useCreateShowcase()
   const { setShowcase } = useShowcaseStore()
+  const { tenantId } = useHelpersStore()
 
   const form = useForm<ShowcaseRequestType>({
     resolver: zodResolver(showcaseRequestFormData),
@@ -148,6 +151,7 @@ export const ShowcaseCreate = () => {
       credentialDefinitions: [],
       personas: [],
       tenantId: 'test-tenant-1',
+      bannerImage: '',
     },
   })
 
@@ -157,7 +161,8 @@ export const ShowcaseCreate = () => {
         const response = data as ShowcaseResponse
         if (response.showcase?.slug) {
           setCurrentShowcaseSlug(response.showcase.slug)
-          setShowcase({ ...formData, tenantId: formData.tenantId || 'test-tenant-1' })
+          // @ts-expect-error: tenantId is not required
+          setShowcase({ ...formData, tenantId })
           toast.success('Showcase created successfully')
           // TODO: when dynamic URL is implemented
           // router.push(`/showcases/${response.showcase.slug}/characters`)

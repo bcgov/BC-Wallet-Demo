@@ -108,36 +108,6 @@ export const usePresentationAdapter = () => {
 
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
-  // const handleSelectStep = useCallback(
-  //   (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
-  //     console.log('handleSelectStep', { stepIndex, scenarioIndex })
-  //     if (scenarioIndex !== activeScenarioIndex) {
-  //       setActiveScenarioIndex(scenarioIndex)
-  //     }
-
-  //     setSelectedStep(stepIndex)
-
-  //     if (activePersonaId && personaScenarios.has(activePersonaId)) {
-  //       const scenarios = personaScenarios.get(activePersonaId)!
-
-  //       if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
-  //         const steps = scenarios[scenarioIndex].steps
-
-  //         if (stepIndex >= 0 && stepIndex < steps.length) {
-  //           const currentStep = steps[stepIndex]
-
-  //           if (currentStep.type === 'SERVICE') {
-  //             setStepState('editing-issue')
-  //           } else {
-  //             setStepState('editing-basic')
-  //           }
-  //         }
-  //       }
-  //     }
-  //   },
-  //   [activeScenarioIndex, setActiveScenarioIndex, setSelectedStep, activePersonaId, personaScenarios, setStepState],
-  // )
-
   const handleSelectStep = useCallback(
     (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
       console.log('handleSelectStep', { stepIndex, scenarioIndex });

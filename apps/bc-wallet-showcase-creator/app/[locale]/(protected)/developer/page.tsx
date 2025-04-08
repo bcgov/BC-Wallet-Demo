@@ -5,6 +5,7 @@ import { IssuanceState } from './components/issuance-state'
 import { PresentationState } from './components/presentation-state'
 import { Helpers } from './components/helpers-state'
 import { Tenant } from './components/tenant'
+import { ShowcaseDev } from './components/showcase'
 
 export default async function Credentials({ params }: { params: PageParams }) {
   const { locale } = await params
@@ -18,6 +19,7 @@ export default async function Credentials({ params }: { params: PageParams }) {
         <Helpers />
         <IssuanceState />
         <PresentationState />
+        <ShowcaseDev />
       </div>
     </div>
   )

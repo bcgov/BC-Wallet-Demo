@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
 export const PublishInfo = ({
-  
   characters,
   credentials,
 }: {

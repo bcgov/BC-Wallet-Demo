@@ -20,6 +20,8 @@ import { z } from 'zod'
 
 import { ConfirmationDialog } from '@/components/confirmation-dialog'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { useCreateAsset } from '@/hooks/use-asset' 
+import { AssetResponseType } from '@/openapi-types'
 
 const BannerImageUpload = ({
   text,
@@ -32,17 +34,29 @@ const BannerImageUpload = ({
 }) => {
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(value || null)
+  const { mutateAsync: createAsset } = useCreateAsset()
 
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {
-          const mimeType = newValue.type
-          const base64WithoutPrefix = base64.replace(/^data:image\/[a-zA-Z+\-]+;base64,/, '')
-
-          setPreview(`${mimeType};base64,${base64WithoutPrefix}`)
-          onChange(base64WithoutPrefix)
+          await createAsset(
+            {
+              content: base64,
+              mediaType: newValue.type,
+            },
+            {
+              onSuccess: (data: unknown) => {
+                const response = data as AssetResponseType                
+                setPreview(`data:${newValue.type};base64,${base64}`)
+                onChange(response.asset.id)
+              },
+              onError: (error: any) => {
+                console.error('Error creating asset:', error)
+              },
+            },
+          )
         }
       } catch (error) {
         console.error('Error converting file:', error)
@@ -52,6 +66,7 @@ const BannerImageUpload = ({
       onChange('')
     }
   }
+
   return (
     <div className="flex items-center flex-col justify-center">
       <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}</p>
@@ -76,12 +91,12 @@ const BannerImageUpload = ({
         <div className="flex flex-col items-center h-[240px] justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
           {preview ? (
             <Image
-              alt={'preview'}
+              alt="preview"
               className="p-3 w-3/4"
-              src={`data:image/${preview}`}
+              src={preview}
               width={300}
               height={100}
-              style={{ width: '100%', height: '100%' }}
+              style={{ width: '90%', height: '90%' }}
             />
           ) : (
             <p className="text-center text-xs lowercase">
@@ -93,7 +108,7 @@ const BannerImageUpload = ({
         <input
           id="bannerImage"
           type="file"
-          accept="image/*"
+          accept="image/png, image/jpeg"
           className="hidden"
           onChange={(e) => handleChange(e.target.files?.[0] ?? null)}
         />
@@ -129,6 +144,7 @@ export const PublishEdit = () => {
       scenarios: [],
       personas: [],
       tenantId,
+      bannerImage: '',
     },
   })
 
@@ -140,6 +156,7 @@ export const PublishEdit = () => {
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
       tenantId,
+      bannerImage: showcase.bannerImage || '',
     })
   }, [form, showcase])
 
