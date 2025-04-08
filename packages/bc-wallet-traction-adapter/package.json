@@ -11,9 +11,9 @@
     "generate-key": "ts-node src/util/CypherUtil.ts generate-key"
   },
   "dependencies": {
-    "bs58": "^6.0.0",
     "bc-wallet-openapi": "workspace:*",
     "bc-wallet-traction-openapi": "workspace:*",
+    "bs58": "^6.0.0",
     "express": "^4.21.2",
     "lru-cache": "^11.0.2",
     "rhea": "^3.0.3",
@@ -24,8 +24,10 @@
   "devDependencies": {
     "@testcontainers/rabbitmq": "^10.18.0",
     "@types/express": "^5.0.0",
+    "shortid": "^2.2.17",
     "testcontainers": "^10.18.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "short-uuid": "^5.2.0"
   },
   "files": [
     "dist/**/*",
