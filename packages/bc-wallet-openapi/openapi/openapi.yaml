@@ -3440,9 +3440,6 @@ components:
         - tenantId
         - description
         - status
-        - scenarios
-        - personas
-        - credentialDefinitions
         - hidden
       properties:
         name:

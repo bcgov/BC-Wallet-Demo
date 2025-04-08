@@ -4,6 +4,8 @@ import { User } from './components/user'
 import { IssuanceState } from './components/issuance-state'
 import { PresentationState } from './components/presentation-state'
 import { Helpers } from './components/helpers-state'
+import { Tenant } from './components/tenant'
+import { ShowcaseDev } from './components/showcase'
 
 export default async function Credentials({ params }: { params: PageParams }) {
   const { locale } = await params
@@ -13,9 +15,11 @@ export default async function Credentials({ params }: { params: PageParams }) {
     <div className="flex text-light-text dark:bg-dark-bg dark:text-dark-text flex-col h-full w-full">
       <div className="flex flex-col gap-4 p-4">
         <User />
+        <Tenant />
         <Helpers />
         <IssuanceState />
         <PresentationState />
+        <ShowcaseDev />
       </div>
     </div>
   )

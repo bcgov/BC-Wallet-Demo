@@ -11,8 +11,7 @@ export const showcasesToPersonas = pgTable(
       .references(() => showcases.id, { onDelete: 'cascade' })
       .notNull(),
     persona: uuid()
-      .references(() => personas.id, { onDelete: 'cascade' })
-      .notNull(),
+      .references(() => personas.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
