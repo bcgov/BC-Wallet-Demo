@@ -16,6 +16,7 @@ import TenantController from './controllers/TenantController'
 import * as process from 'node:process'
 import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
+import UserService from './services/UserService'
 
 require('dotenv-flow').config()
 useContainer(Container)
@@ -50,6 +51,9 @@ async function bootstrap() {
               return false
             }
             const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
+
+            const userService = Container.get(UserService)
+            await userService.insertIfNotExists({ id: token.payload.sub })
             // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
             // User roles which at the moment we are not using, do not need any prefix.
             return checkRoles(token, roles)
