@@ -65,32 +65,25 @@ export const DisplayAddedCredentials = ({
 
   const handleSaveAttributes = (credentialId: string) => {
     if (!updateCredentials) return;
-
-    const updatedCredentials = credentials.map((cred: CredentialDefinitionType) => {
-      if (cred.id === credentialId) {
-        if (!cred.credentialSchema || !cred.credentialSchema.attributes) {
-          return cred;
-        }
-
-        return {
-          ...cred,
-          credentialSchema: {
-            ...cred.credentialSchema,
-            attributes: cred.credentialSchema.attributes.map((attr) => ({
-              id: attr.id,
-              name: attr.name,
-              type: attr.type,
-              createdAt: attr.createdAt,
-              updatedAt: attr.updatedAt,
-              value: attr.value,
-            })),
-          },
-        };
-      }
-      return cred;
+  
+    const updated = credentials.map((cred: CredentialDefinitionType) => {
+      if (cred.id !== credentialId) return cred;
+  
+      const updatedAttrs = cred.credentialSchema?.attributes?.map(attr => ({
+        ...attr,
+        value: attr.value || '',
+      })) || [];
+  
+      return {
+        ...cred,
+        credentialSchema: {
+          ...cred.credentialSchema,
+          attributes: updatedAttrs,
+        },
+      };
     });
-
-    updateCredentials(updatedCredentials);
+  
+    updateCredentials(updated);
     setIsEditing(false);
   };
   
@@ -119,7 +112,7 @@ export const DisplayAddedCredentials = ({
                 <div className="flex items-center flex-1">
                   <Image
                     src={credential.icon?.id ? `${baseUrl}/assets/${credential.icon.id}/file` : '/assets/no-image.jpg'}
-                    alt={credential.icon.description || 'default credential icon'}
+                    alt={credential?.icon?.description || 'default credential icon'}
                     width={50}
                     height={50}
                     className="rounded-full"
@@ -156,6 +149,7 @@ export const DisplayAddedCredentials = ({
               <div className="p-2">
                 <Button
                   variant="ghost"
+                  type="button"
                   className="text-xs font-semibold hover:bg-transparent hover:underline p-1"
                   onClick={() => setIsEditing(true)}
                 >
@@ -180,21 +174,9 @@ export const DisplayAddedCredentials = ({
 
                           <div className="space-y-2 flex flex-col justify-center p-4">
                             <label className="text-sm font-bold">{t('credentials.attribute_value_placeholder')}</label>
-                            <Controller
-                            name={`credentials.${index}.credentialSchema.attributes.${attrIndex}.value` as unknown as Path<IssueStepFormData>} // TODO: fix type issue here
-                              control={control}
-                              render={({ field }) => (
-                                <FormControl>
-                                  <Input
-                                    className="border border-dark-border dark:border-light-border"
-                                    {...field}
-                                    onChange={(e) => {
-                                    field.onChange(e);
-                                    handleAttributeChange(credential.id, attrIndex, e.target.value);
-                                    }}
-                                  />
-                                </FormControl>
-                              )}
+                            <Input
+                              value={attr.value || ''}
+                              onChange={(e) => handleAttributeChange(credential.id, attrIndex, e.target.value)}
                             />
                           </div>
                         </div>

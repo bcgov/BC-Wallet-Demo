@@ -109,7 +109,6 @@ export const usePresentations = create<State & Actions>()(
         // @ts-expect-error: credentials is not present in the step
         state.screens = newScreens
         state.selectedStep = newScreens.length - 1
-        // @ts-expect-error: credentials is not present in the step
         state.stepState = step.credentials ? 'editing-issue' : 'editing-basic'
       }),
 
