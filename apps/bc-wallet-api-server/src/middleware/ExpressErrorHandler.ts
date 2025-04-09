@@ -10,8 +10,12 @@ export class ExpressErrorHandler implements ExpressErrorMiddlewareInterface {
     if (error instanceof NotFoundError) {
       response.status(404).json({
         message: error.message ?? 'Not Found',
+      })  
+    } else if (error instanceof UnauthorizedError) {
+      response.status(401).json({
+        message: error.message ?? 'Unauthorized',
       })
-    } else {
+    }else {
       response.status(500).json({
         message: error.message ?? 'Internal server error',
       })
