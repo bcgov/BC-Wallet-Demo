@@ -48,7 +48,7 @@ class ShowcaseController {
   @Authorized()
   @HttpCode(201)
   @Post('/')
-  public async post(@Body() showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
+  public async post(@Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
     try {
       if (!instanceOfShowcaseRequest(showcaseRequest)) {
         return Promise.reject(new BadRequestError())
@@ -65,7 +65,7 @@ class ShowcaseController {
 
   @Authorized()
   @Put('/:slug')
-  public async put(@Param('slug') slug: string, @Body() showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
+  public async put(@Param('slug') slug: string, @Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
     const id = await this.showcaseService.getIdBySlug(slug)
     try {
       if (!instanceOfShowcaseRequest(showcaseRequest)) {

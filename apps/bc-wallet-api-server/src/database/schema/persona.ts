@@ -26,9 +26,11 @@ export const personaRelations = relations(personas, ({ one }) => ({
   headshotImage: one(assets, {
     fields: [personas.headshotImage],
     references: [assets.id],
+    relationName: 'headshotImage',
   }),
   bodyImage: one(assets, {
     fields: [personas.bodyImage],
     references: [assets.id],
-  }),
+    relationName: 'bodyImage',
+  },),
 }))

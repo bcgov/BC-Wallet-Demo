@@ -1,13 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useShowcaseCreation } from "@/hooks/use-showcase-creation";
-import { Persona, ShowcaseRequestType, StepRequestType } from "@/openapi-types";
+import { StepRequestType } from "@/openapi-types";
 import { createDefaultStep, createServiceStep, StepWithCredentials } from "@/lib/steps";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import apiClient from "@/lib/apiService";
 import { useHelpersStore } from "./use-helpers-store";
+import { useUiStore } from "./use-ui-store";
+import { useUpdateShowcase } from "./use-showcases";
 import { StepType } from "@/types";
+import { Persona, ShowcaseRequest } from "bc-wallet-openapi";
+import { useQueryClient } from '@tanstack/react-query'
 
 export const useOnboardingAdapter = () => {
   const {
@@ -16,20 +18,18 @@ export const useOnboardingAdapter = () => {
     initializeScreens,
     createStep,
     updateStep,
-    // deleteStep,
+    removeStep,
     moveStep,
     setStepState,
-    stepState
-  } = useOnboarding();
-  
+    stepState,
+  } = useOnboarding()
+
   const {
     selectedPersonas,
     personaScenarios,
     activePersonaId,
     setActivePersonaId,
     updatePersonaSteps,
-    // completeShowcaseCreation,
-    // isSaving: isSavingScenarios,
   } = useShowcaseCreation();
   
   const { 
@@ -37,58 +37,63 @@ export const useOnboardingAdapter = () => {
     setShowcase,
     showcase
   } = useShowcaseStore();
+  const { currentShowcaseSlug } = useUiStore();
+  const { mutateAsync: updateShowcase, isPending: isSaving } = useUpdateShowcase(currentShowcaseSlug);
 
-  const { selectedCredentialDefinitionIds, issuerId } = useHelpersStore();
-    
-  const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null);
-  const queryClient = useQueryClient();
+  const { selectedCredentialDefinitionIds, issuerId, tenantId } = useHelpersStore()
 
-  const loadPersonaSteps = useCallback((personaId: string) => {
-    if (personaId && personaScenarios.has(personaId)) {
-      const scenario = personaScenarios.get(personaId)!;
-      
-      const onboardingSteps = scenario.steps.map((step, index) => {
-        const baseStep = {
-          id: `step-${index}`,
-          order: index,
-          type: step.type,
-          actions: step.actions || [],
-          asset: step.asset || ""
-        };
+  const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-        if (step.type === StepType.SERVICE) {
-          return {
-            ...createServiceStep({
-              title: step.title,
-              description: step.description,
-              asset: step.asset || "",
-              credentials: (step as StepWithCredentials).credentials || []
-            }),
-            ...baseStep
-          };
-        } else {
-          return {
-            ...createDefaultStep({
-              title: step.title,
-              description: step.description,
-              asset: step.asset || ""
-            }),
-            ...baseStep
-          };
-        }
-      });
-      
-      initializeScreens(onboardingSteps);
-      setLoadedPersonaId(personaId);
-    }
-  }, [personaScenarios, initializeScreens]);
-  
+  const loadPersonaSteps = useCallback(
+    (personaId: string) => {
+      if (personaId && personaScenarios.has(personaId)) {
+        const scenario = personaScenarios.get(personaId)!
+
+        const onboardingSteps = scenario.steps.map((step, index) => {
+          const baseStep = {
+            id: `step-${index}`,
+            order: index,
+            type: step.type,
+            actions: step.actions || [],
+            asset: step.asset || '',
+          }
+
+          if (step.type === StepType.SERVICE) {
+            return {
+              ...createServiceStep({
+                title: step.title,
+                description: step.description,
+                asset: step.asset || '',
+                credentials: (step as StepWithCredentials).credentials || [],
+              }),
+              ...baseStep,
+            }
+          } else {
+            return {
+              ...createDefaultStep({
+                title: step.title,
+                description: step.description,
+                asset: step.asset || '',
+              }),
+              ...baseStep,
+            }
+          }
+        })
+
+        initializeScreens(onboardingSteps)
+        setLoadedPersonaId(personaId)
+      }
+    },
+    [personaScenarios, initializeScreens],
+  )
+
   useEffect(() => {
     if (activePersonaId !== loadedPersonaId) {
-      loadPersonaSteps(activePersonaId!);
+      loadPersonaSteps(activePersonaId!)
     }
-  }, [activePersonaId, loadedPersonaId, loadPersonaSteps]);
-  
+  }, [activePersonaId, loadedPersonaId, loadPersonaSteps])
+
   useEffect(() => {
     if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
       const scenarioSteps: StepRequestType[] = steps.map((step, index) => {
@@ -99,87 +104,74 @@ export const useOnboardingAdapter = () => {
           type: step.type as 'HUMAN_TASK' | 'SERVICE' | 'SCENARIO',
           actions: step.actions || [],
           issuer: issuerId,
-          asset: step.asset || ""
-        };
-
-        if (step.type === StepType.SERVICE) {
-          const serviceStep = step as StepWithCredentials;
-          return {
-            ...baseStep,
-            credentials: serviceStep.credentials || []
-          };
+          asset: step.asset || '',
         }
 
-        return baseStep;
-      });
-      
-      updatePersonaSteps(activePersonaId, scenarioSteps);
+        if (step.type === StepType.SERVICE) {
+          const serviceStep = step as StepWithCredentials
+          return {
+            ...baseStep,
+            credentials: serviceStep.credentials || [],
+          }
+        }
+
+        return baseStep
+      })
+
+      updatePersonaSteps(activePersonaId, scenarioSteps)
     }
   }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId]);
   
-  const updateShowcaseMutation = useMutation({
-    mutationFn: async (showcaseData: ShowcaseRequestType) => {
-      let response;
-      
-      if (displayShowcase.id) {
-        response = await apiClient.put(`/showcases/${displayShowcase.slug}`, showcaseData);
-      } else {
-        response = await apiClient.post('/showcases', showcaseData);
-      }
-      
-      return response;
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['showcases'] });
-    }
-  });
-  
-  const saveShowcase = useCallback(async (data: ShowcaseRequestType) => {
+  // TODO: create persona adapter for the persona logic 
+  // TODO: move this to use-showcase-adapter.ts
+  // TODO: create addPersonaToShowcase mutation
+  const saveShowcase = useCallback(async (data: ShowcaseRequest) => {
     try {
       const showcaseData = {
         name: data.name,
         description: data.description,
-        status: data.status || "ACTIVE",
+        status: data.status || "PENDING",
         hidden: data.hidden || false,
         scenarios: showcase.scenarios,
         credentialDefinitions: selectedCredentialDefinitionIds,
         personas: selectedPersonas.map((p: Persona) => p.id),
         bannerImage: data.bannerImage,
-        tenantId: ''
+        tenantId,
       };
+      // Maybe create a addIssuanceScenarioToShowcase mutation
+      // that retrieves the showcase and adds the issuance scenario to it
+      // and then updates the showcase
       
-      const updatedShowcase = await updateShowcaseMutation.mutateAsync(showcaseData);      
+      const updatedShowcase = await updateShowcase(showcaseData);      
       setShowcase(showcaseData);
       return updatedShowcase;
     } catch (error) {
       console.error("Error saving showcase:", error);
       throw error;
     }
-  }, [displayShowcase, selectedPersonas, updateShowcaseMutation, setShowcase, showcase, selectedCredentialDefinitionIds]);
-  
-  const activePersona = activePersonaId 
-    ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null
-    : null;
-  
+  }, [displayShowcase, selectedPersonas, setShowcase, showcase, selectedCredentialDefinitionIds]);
+
+  const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
+
   return {
     // From onboarding
     steps,
     selectedStep,
     createStep,
     updateStep,
-    // deleteStep,
+    removeStep,
     moveStep,
     setStepState,
     stepState,
-    
+
     // From showcase creation
     personas: selectedPersonas,
     activePersonaId,
     setActivePersonaId,
     activePersona,
-    
+
     // Combined functionality
     saveShowcase,
-    isSaving:  updateShowcaseMutation.isPending
+    isSaving
   };
 };

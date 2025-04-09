@@ -95,8 +95,9 @@ export const BasicStepEdit = () => {
       const mappedScenarios = Array.from(personaScenarios.values()).flatMap(scenarios =>
         scenarios.map(scenario => ({
           ...scenario,
-          steps: scenario.steps.map(step => ({
+          steps: scenario.steps.map((step, index) => ({
             ...step,
+            order: index,
             asset: step.asset || undefined
           }))
         }))

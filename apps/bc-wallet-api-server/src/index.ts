@@ -11,6 +11,8 @@ import ShowcaseController from './controllers/ShowcaseController'
 import { CredentialDefinitionController } from './controllers/CredentialDefinitionController'
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import { corsOptions } from './utils/cors'
+import { registerServicesByInterface } from './services/RegisterServicesByInterface'
+import TenantController from './controllers/TenantController'
 import * as process from 'node:process'
 import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
@@ -20,6 +22,8 @@ useContainer(Container)
 
 async function bootstrap() {
   try {
+    await registerServicesByInterface()
+
     // Create and configure Express server
     const app = createExpressServer({
       controllers: [
@@ -32,6 +36,7 @@ async function bootstrap() {
         IssuanceScenarioController,
         PresentationScenarioController,
         ShowcaseController,
+        TenantController,
       ],
       authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
           const accessToken: string = action.request.headers['authorization'].split(' ')[1]
@@ -48,7 +53,6 @@ async function bootstrap() {
       defaultErrorHandler: false,
       cors: corsOptions,
     })
-
     // Start the server
     const port = Number(process.env.PORT)
 

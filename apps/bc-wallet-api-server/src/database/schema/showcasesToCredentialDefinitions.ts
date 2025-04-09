@@ -10,8 +10,7 @@ export const showcasesToCredentialDefinitions = pgTable(
       .references(() => showcases.id, { onDelete: 'cascade' })
       .notNull(),
     credentialDefinition: uuid('credential_definition')
-      .references(() => credentialDefinitions.id, { onDelete: 'cascade' })
-      .notNull(),
+      .references(() => credentialDefinitions.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()

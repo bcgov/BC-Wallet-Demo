@@ -133,27 +133,27 @@ export const useOnboarding = create<State & Actions>()(
         })
       ),
 
-      createStep: (step) =>
-        set((state) => {
-          const newScreens = [...state.screens, step];
-          state.screens = newScreens;
-          state.selectedStep = newScreens.length - 1;
-       
-          if (step.actions?.includes("connect")) {
-            state.stepState = "editing-connect";
-          } else if (step.actions?.includes("wallet")) {
-            state.stepState = "editing-wallet";
-          } else if (step.credentials) {
-            state.stepState = "editing-issue";
-          } else {
-            state.stepState = "editing-basic";
-          }
+    createStep: (step) =>
+      set((state) => {
+        const newScreens = [...state.screens, step];
+        state.screens = newScreens;
+        state.selectedStep = newScreens.length - 1;
       
-          const { selectedCharacter } = useShowcaseStore.getState();
-          useShowcaseStore.setState((showcaseState) => {
-            showcaseState.showcaseJSON.personas[selectedCharacter].onboarding = newScreens;
-          });
-        }),
+        if (step.actions?.includes("connect")) {
+          state.stepState = "editing-connect";
+        } else if (step.actions?.includes("wallet")) {
+          state.stepState = "editing-wallet";
+        } else if (step.credentials) {
+          state.stepState = "editing-issue";
+        } else {
+          state.stepState = "editing-basic";
+        }
+    
+        const { selectedCharacter } = useShowcaseStore.getState();
+        useShowcaseStore.setState((showcaseState) => {
+          showcaseState.showcaseJSON.personas[selectedCharacter].onboarding = newScreens;
+        });
+      }),
 
     updateStep: (index, step) =>
       set(

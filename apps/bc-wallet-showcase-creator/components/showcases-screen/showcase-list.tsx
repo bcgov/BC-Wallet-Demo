@@ -8,7 +8,7 @@ import { useCreateShowcase, useDeleteShowcase, useShowcases } from '@/hooks/use-
 import { Link } from '@/i18n/routing'
 import { baseUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import type { Persona, Showcase } from '@/openapi-types'
+import type { Persona, Showcase } from 'bc-wallet-openapi'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
@@ -48,8 +48,8 @@ export const ShowcaseList = () => {
         description: 'Collection of credential usage scenarios',
         status: 'ACTIVE',
         hidden: false,
+        tenantId: 'test-tenant-1',
         scenarios: ['8a9d9619-7522-453c-b068-3408ef4eca62', 'fee9c14d-b39b-460e-b4c7-20fb5ddc5c46'],
-        credentialDefinitions: ['c9178012-725b-4f61-b1e8-8b51da517128'],
         personas: ['b3f83345-4448-4d21-a3d3-5d7b719c45d8'],
       },
       {
@@ -127,7 +127,7 @@ export const ShowcaseList = () => {
                       className="relative min-h-[15rem] h-auto flex items-center justify-center bg-cover bg-center"
                       style={{
                         backgroundImage: `url('${
-                          showcase?.bannerImage?.content ? showcase.bannerImage.content : '/assets/NavBar/Showcase.jpeg'
+                          showcase?.bannerImage?.id ? `${baseUrl}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
                         }')`,
                       }}
                     >

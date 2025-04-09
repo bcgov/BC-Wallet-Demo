@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
-import type { Showcase } from '@/openapi-types'
+import type { Showcase } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { env } from '@/env'
@@ -55,7 +55,7 @@ export const LandingPage = () => {
 
       <section className="mx-auto p-4">
         <div className="grid md:grid-cols-3 gap-6 mt-6 pb-4">
-          {data?.showcases.filter(searchFilter).map((showcase: Showcase) => (
+          {(data?.showcases || []).filter(searchFilter).map((showcase: Showcase) => (
             <Card key={showcase.id}>
               <div
                 key={showcase.id}
@@ -65,7 +65,7 @@ export const LandingPage = () => {
                   className="relative min-h-[15rem] h-auto flex items-center justify-center bg-cover bg-center"
                   style={{
                     backgroundImage: `url('${
-                      showcase?.bannerImage?.content ? showcase.bannerImage.content : '/assets/NavBar/Showcase.jpeg'
+                      showcase?.bannerImage?.id ? `${baseUrl}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
                     }')`,
                   }}
                 >
