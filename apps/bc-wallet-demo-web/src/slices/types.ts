@@ -29,10 +29,12 @@ export interface Credential {
   name: string
   icon: string
   version: string
-  attributes: {
-    name: string
-    value: string
-  }[]
+  attributes: CredentialAttribute[]
+}
+
+export interface CredentialAttribute {
+  name: string
+  value: string
 }
 
 export interface OnboardingStep {
@@ -197,8 +199,23 @@ export interface Step {
 
 export interface StepAction {
   actionType: StepActionType
+  credentialDefinitions?: CredentialDefinition[]
 }
 
 export interface Issuer {
   name: string
+}
+
+export interface CredentialDefinition {
+  id: string
+  version: string
+  name: string
+  icon?: string
+  attributes: CredentialDefinitionAttribute[]
+  identifier: string
+}
+
+export interface CredentialDefinitionAttribute {
+  name: string
+  value?: string
 }

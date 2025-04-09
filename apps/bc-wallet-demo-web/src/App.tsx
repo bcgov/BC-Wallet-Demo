@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-
 import { AnimatePresence } from 'framer-motion'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
-
 import { demoBackendBaseWsUrl, demoBackendSocketPath } from './api/BaseUrl'
 import { useAppDispatch } from './hooks/hooks'
 import { useAnalytics } from './hooks/useAnalytics'
