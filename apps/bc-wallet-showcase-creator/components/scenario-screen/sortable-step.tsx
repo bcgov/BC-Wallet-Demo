@@ -1,6 +1,5 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
-import { useScenarios } from '@/hooks/use-scenarios'
 import { cn, baseUrl } from '@/lib/utils'
 import type { StepType } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
@@ -26,7 +25,6 @@ export const SortableStep = ({
 }) => {
   const t = useTranslations()
   const { handleSelectStep, duplicateStep, activePersonaId, setSelectedStep, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
-  const {setSelectedScenario} = useScenarios()
   const { selectedCredential } = useCredentials()
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({

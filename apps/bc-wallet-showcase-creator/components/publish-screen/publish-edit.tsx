@@ -2,27 +2,26 @@
 
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useCreateAsset } from '@/hooks/use-asset'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { Link, useRouter } from '@/i18n/routing'
-import { convertBase64 } from '@/lib/utils'
-import type { AssetResponseType, ShowcaseRequestType } from '@/openapi-types'
-import { ShowcaseRequest } from '@/openapi-types'
+import { useRouter } from '@/i18n/routing'
+import { baseUrl, convertBase64 } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Monitor, X } from 'lucide-react'
-import { Trash2 } from 'lucide-react'
+import { Monitor, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { FormTextArea, FormTextInput } from '../text-input'
 import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-
 import { toast } from 'sonner'
 import Image from 'next/image'
+import { ShowcaseRequest, ShowcaseStatus } from 'bc-wallet-openapi'
+import { z } from 'zod'
 
-import { Button } from '../ui/button'
-import { on } from 'events'
+import { ConfirmationDialog } from '@/components/confirmation-dialog'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { useCreateAsset } from '@/hooks/use-asset' 
+import { AssetResponseType } from '@/openapi-types'
 
 const BannerImageUpload = ({
   text,
@@ -34,98 +33,119 @@ const BannerImageUpload = ({
   onChange: (value: string) => void
 }) => {
   const t = useTranslations()
-  const [preview, setPreview] = useState<string | null>(value || null)
   const { mutateAsync: createAsset } = useCreateAsset()
-
+  
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {
-          const mimeType = newValue.type
-          const base64WithoutPrefix = base64.replace(/^data:image\/[a-zA-Z+\-]+;base64,/, '')
-
-          setPreview(`${mimeType};base64,${base64WithoutPrefix}`)
-          onChange(base64WithoutPrefix)
+          await createAsset(
+            {
+              content: base64,
+              mediaType: newValue.type,
+            },
+            {
+              onSuccess: (data: unknown) => {
+                const response = data as AssetResponseType
+                onChange(response.asset.id)
+              },
+              onError: (error) => {
+                console.error('Error creating asset:', error)
+              },
+            },
+          )
         }
       } catch (error) {
         console.error('Error converting file:', error)
       }
     } else {
-      setPreview(null)
       onChange('')
     }
   }
+
+  // Simply render the component with minimal logic
   return (
     <div className="flex items-center flex-col justify-center">
       <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}</p>
 
-      {preview && (
-        <div className="relative w-full">
-          <button
-            className="bg-red-500 rounded p-1 m-2 absolute text-black right-0 top-0 text-sm hover:bg-red-400"
-            onClick={(e) => {
-              e.preventDefault()
-              void handleChange(null)
-            }}
+      <div className="w-full">
+        {value && (
+          <div className="relative mb-4 flex justify-center">
+            <div className="relative w-60 h-60">
+              <button
+                className="bg-red-500 rounded p-1 absolute z-10 text-white right-0 top-0 text-sm hover:bg-red-400"
+                onClick={(e) => {
+                  e.preventDefault()
+                  onChange('')
+                }}
+              >
+                <Trash2 size={16} />
+              </button>
+              <Image
+                alt="banner preview"
+                src={`${baseUrl}/assets/${value}/file`}
+                width={240}
+                height={240}
+                className="rounded-lg shadow object-cover"
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {!value && (
+          <label
+            htmlFor="bannerImage"
+            className="p-3 flex flex-col items-center justify-center w-full h-60 bg-light-bg dark:bg-dark-input dark:hover:bg-dark-input-hover rounded-lg cursor-pointer border dark:border-dark-border hover:bg-light-bg"
           >
-            <Trash2 />
-          </button>
-        </div>
-      )}
-      <label
-        htmlFor="bannerImage"
-        className="p-3 flex flex-col items-center justify-center w-full h-full bg-light-bg dark:bg-dark-input dark:hover:bg-dark-input-hover rounded-lg cursor-pointer border dark:border-dark-border hover:bg-light-bg"
-      >
-        <div className="flex flex-col items-center h-[240px] justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
-          {preview ? (
-            <Image
-              alt={'preview'}
-              className="p-3 w-3/4"
-              src={`data:image/${preview}`}
-              width={300}
-              height={100}
-              style={{ width: '100%', height: '100%' }}
-            />
-          ) : (
-            <p className="text-center text-xs lowercase">
-              <span className="font-bold">{t('file_upload.click_to_upload_label')}</span>{' '}
-              {t('file_upload.drag_to_upload_label')}
-            </p>
-          )}
-        </div>
+            <div className="flex flex-col items-center h-full justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
+              <p className="text-center text-xs lowercase">
+                <span className="font-bold">{t('file_upload.click_to_upload_label')}</span>{' '}
+                {t('file_upload.drag_to_upload_label')}
+              </p>
+            </div>
+          </label>
+        )}
+        
         <input
           id="bannerImage"
           type="file"
-          accept="image/*"
+          accept="image/png, image/jpeg"
           className="hidden"
           onChange={(e) => handleChange(e.target.files?.[0] ?? null)}
         />
-      </label>
+      </div>
     </div>
   )
 }
 
+const ShowcaseRequestSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  status: z.nativeEnum(ShowcaseStatus),
+  hidden: z.boolean(),
+  tenantId: z.string().min(1),
+})
+
 export const PublishEdit = () => {
   const t = useTranslations()
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const { showcase, reset, setScenarioIds } = useShowcaseStore()
   const router = useRouter()
   const { saveShowcase } = useOnboardingAdapter()
   const { personas } = useOnboardingAdapter()
+  const { tenantId } = useHelpersStore()
 
-  const form = useForm<ShowcaseRequestType>({
-    resolver: zodResolver(ShowcaseRequest),
-    mode: 'all',
+  const form = useForm<ShowcaseRequest>({
+    resolver: zodResolver(ShowcaseRequestSchema),
     defaultValues: {
       name: '',
       description: '',
       status: 'PENDING',
       hidden: false,
       scenarios: [],
-      credentialDefinitions: [],
       personas: [],
-      tenantId: ''
+      tenantId,
     },
   })
 
@@ -134,10 +154,9 @@ export const PublishEdit = () => {
       ...showcase,
       name: showcase.name || '',
       description: showcase.description || '',
-      credentialDefinitions: showcase.credentialDefinitions || ['86a96d6d-91c9-4357-984d-1f6b162fdfae'],
       personas: personas.map((persona) => persona.id) || [],
       status: 'PENDING',
-      tenantId: ''
+      tenantId,
     })
   }, [form, showcase])
 
@@ -146,7 +165,6 @@ export const PublishEdit = () => {
     await saveShowcase(data)
     toast.success('Showcase created successfully')
     reset()
-    setIsModalOpen(false)
     setScenarioIds([])
     router.push('/showcases')
   }
@@ -207,53 +225,21 @@ export const PublishEdit = () => {
               <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline>
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                size="lg"
-                disabled={!form.formState.isValid || !form.formState.isDirty}
-                onClick={(e) => {
-                  e.preventDefault()
-                  setIsModalOpen(true)
-                }}
-                className="px-6 bg-yellow-500 py-2 rounded text-gray-700 font-bold hover:bg-yellow-400 dark:bg-yellow-500 dark:hover:bg-yellow-600"
-              >
-                {t('showcase.button_label')}
-              </Button>
+              <ConfirmationDialog
+                title="Submit for Review?"
+                content={<>
+                  {t('showcase.modal_description')}
+                  <br />
+                  {t('showcase.modal_description2')}
+                </>
+                }
+                buttonLabel={t('showcase.button_label')}
+                onSubmit={onSubmit}
+              />
             </div>
           </div>
         </form>
       </Form>
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className=" flex flex-col justify-between bg-white p-4 rounded shadow-lg max-w-[40%] text-center">
-            <div>
-              <div className="flex items-center justify-between border-b border-gray-300 pb-4">
-                <h3 className="text-lg font-semibold flex gap-2 items-center">{'Submit for Review?'}</h3>
-                <X onClick={() => setIsModalOpen(false)} size={22} className="cursor-pointer ml-4" />
-              </div>
-              <div className="py-4">
-                <p className="mt-2 text-gray-600 text-start">{t('showcase.modal_description')}</p>
-                <p className="text-start font-base font-bold">{t('showcase.modal_description2')}</p>
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end gap-2 border-t pt-3 border-gray-300">
-              <button onClick={() => setIsModalOpen(false)} type="button" className="px-4 py-2 text-gray-700 rounded">
-                {t('action.cancel_label')}
-              </button>
-
-              <ButtonOutline
-                type="submit"
-                className="bg-yellow-500 border-light-yellow hover:bg-yellow-500"
-                onClick={() => {
-                  onSubmit()
-                }}
-              >
-                {t('showcase.modal_button')}
-              </ButtonOutline>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

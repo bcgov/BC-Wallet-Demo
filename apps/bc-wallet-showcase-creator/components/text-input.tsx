@@ -28,6 +28,7 @@ export const FormTextInput = <T extends FieldValues>({
   placeholder,
   className,
   control,
+  ...props
 }: FormInputProps<T>) => {
   return (
     <FormField
@@ -64,24 +65,33 @@ export const FormTextArea = <T extends FieldValues>({
   className,
   readOnly,
   disabled,
+  control
 }: FormInputProps<T>) => {
   return (
-    <div className={cn('space-y-2', className)}>
-      <Label className="text-md font-bold text-foreground/80" htmlFor={name}>
-        {label}
-      </Label>
-      <Textarea
-        className="rounded w-full dark:text-dark-text dark:bg-dark-input bg-light-bg resize-none mt-3 p-2 border dark:border-dark-border"
-        rows={3}
-        id={name}
-        placeholder={placeholder}
-        {...register(name)}
-        readOnly={readOnly}
-        disabled={disabled}
-        style={{ pointerEvents: disabled ? 'none' : 'auto' }} // Block pointer events when disabled
-      />
-      {error && <FormMessage className="text-red-500 text-sm">{error}</FormMessage>}
-    </div>
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <div className={cn('space-y-2', className)}>
+            <Label className="text-md font-bold text-foreground/80" htmlFor={name}>
+              {label}
+            </Label>
+            <Textarea
+              className="rounded w-full dark:text-dark-text dark:bg-dark-input bg-light-bg resize-none mt-3 p-2 border dark:border-dark-border"
+              rows={3}
+              id={name}
+              placeholder={placeholder}
+              readOnly={readOnly}
+              disabled={disabled}
+              style={{ pointerEvents: disabled ? 'none' : 'auto' }}
+              {...register(name)}
+              {...field}
+            />
+            {error && <FormMessage className="text-red-500 text-sm">{error}</FormMessage>}
+          </div>
+        </FormItem>
+      )}
+    />
   )
 }
-

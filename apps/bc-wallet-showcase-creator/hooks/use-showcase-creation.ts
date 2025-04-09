@@ -1,15 +1,16 @@
 import { useState, useCallback } from "react";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import type { 
-  Persona, 
   ScenarioRequestType, 
   StepRequestType,
   AriesOOBActionRequest,
   IssuanceScenarioRequestType,
 } from "@/openapi-types";
+import type { Persona } from "bc-wallet-openapi";
 import { sampleAction } from "@/lib/steps";
 import { useHelpersStore } from "@/hooks/use-helpers-store";
 import { usePersonas } from "@/hooks/use-personas";
+
 export const useShowcaseCreation = () => {
   const { 
     selectedPersonaIds,
@@ -17,6 +18,7 @@ export const useShowcaseCreation = () => {
   const { data: personasData } = usePersonas();
 
   const { issuerId, selectedCredentialDefinitionIds } = useHelpersStore();
+  
   const [personaScenarios, setPersonaScenarios] = useState(() => {
     const initialScenarios = new Map<string, IssuanceScenarioRequestType>();
     

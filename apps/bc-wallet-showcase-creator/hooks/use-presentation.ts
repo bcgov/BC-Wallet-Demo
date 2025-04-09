@@ -1,24 +1,20 @@
-// @ts-nocheck
-
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { useShowcaseStore } from './use-showcase-store'
 import { produce } from 'immer'
 import { useForm } from 'react-hook-form'
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
-  PresentationScenarioResponse,
   ScenarioRequestType,
   ScenarioTypeEnum,
   StepRequestType,
   StepResponse,
-  StepTypeEnum,
   StepType,
 } from '@/openapi-types'
 import { ScenarioRequest, StepRequest } from '@/openapi-types'
 import apiClient from '@/lib/apiService'
+import { PresentationScenarioRequest, PresentationScenarioResponse } from 'bc-wallet-openapi'
 
 type StepState = 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new'
 
@@ -110,8 +106,10 @@ export const usePresentations = create<State & Actions>()(
     createStep: (step) =>
       set((state) => {
         const newScreens = [...state.screens, step]
+        // @ts-expect-error: credentials is not present in the step
         state.screens = newScreens
         state.selectedStep = newScreens.length - 1
+        // @ts-expect-error: credentials is not present in the step
         state.stepState = step.credentials ? 'editing-issue' : 'editing-basic'
       }),
 
@@ -146,88 +144,15 @@ export const usePresentations = create<State & Actions>()(
   })),
 )
 
-export const useCreateStep = () => {
-  const [stepType, setStepType] = useState<typeof StepTypeEnum._type | null>(null)
-
-  const stepForm = useForm<typeof StepRequest._type>({
-    resolver: zodResolver(StepRequest),
-  })
-
-  const handleTypeSelection = (type: typeof StepTypeEnum._type) => {
-    setStepType(type)
-    stepForm.reset({
-      title: '',
-      description: '',
-      type: type,
-      asset: '',
-      ...(type === 'HUMAN_TASK' && { credentials: [] }),
-    })
-  }
-
-  const onSubmit = (data: typeof StepRequest._type) => {
-    const newStep = {
-      id: `${Date.now()}`,
-      title: data.title,
-      description: data.description,
-      type: data.type,
-      asset: data.asset || '',
-      // ...(data.type === "HUMAN_TASK" && { credentials: data.credentials || [] }),
-    }
-
-    createStep(newStep)
-    setStepState('no-selection')
-  }
-
-  return {
-    stepType,
-    handleTypeSelection,
-    stepForm,
-    onSubmit,
-  }
-}
-
-// forms
-export const useCreatePresentationForm = () => {
-  const [stepType, setStepType] = useState<typeof ScenarioTypeEnum._type | null>(null)
-
-  const form = useForm<ScenarioRequestType>({
-    resolver: zodResolver(ScenarioRequest),
-  })
-
-  const handleTypeSelection = (type: typeof ScenarioTypeEnum._type) => {
-    setStepType(type)
-    form.reset({
-      name: '',
-      description: '',
-      type: type,
-      steps: [],
-      personas: [],
-      hidden: false,
-      issuer: '',
-    })
-  }
-
-  const onSubmit = (data: ScenarioRequestType) => {
-    console.log(data)
-  }
-
-  return {
-    stepType,
-    handleTypeSelection,
-    form,
-    onSubmit,
-  }
-}
-
 const staleTime = 1000 * 60 * 5
 
 export const useCreatePresentation = () => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (data: ScenarioRequestType) => {
+  return useMutation<PresentationScenarioResponse, Error, PresentationScenarioRequest>({
+    mutationFn: async (data: PresentationScenarioRequest) => {
       const response = await apiClient.post('/scenarios/presentations', data)
-      return response
+      return response as PresentationScenarioResponse
     },
     onSettled: (data) => {
       queryClient.invalidateQueries({ queryKey: ['presentationScenario'] })
@@ -241,7 +166,7 @@ export const usePresentation = (slug: string) => {
     queryFn: async () => {
       const response = (await apiClient.get(
         `/scenarios/presentations/${slug}`,
-      )) as typeof PresentationScenarioResponse._type
+      )) as PresentationScenarioResponse
       return response
     },
     staleTime,
@@ -268,7 +193,7 @@ export const useCreatePresentationStep = () => {
       const response = await apiClient.post(`/scenarios/presentations/${slug}/steps`, data)
       return response
     },
-    onSettled: (data) => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['presentationStep'] })
     },
   })

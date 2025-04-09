@@ -2,7 +2,8 @@
 
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { cn, baseUrl } from '@/lib/utils'
-import type { Persona, ScenarioRequestType, StepRequestType } from '@/openapi-types'
+import type {  ScenarioRequestType, StepRequestType } from '@/openapi-types'
+import type { Persona } from 'bc-wallet-openapi'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -82,7 +83,7 @@ export const CreateScenariosScreen = () => {
       ) : (
         <>
           <div className="flex bg-gray-100 rounded-t-md border-b">
-            {personas.map((persona: Persona) => (
+            {(personas || []).map((persona: Persona) => (
               <div
                 key={persona.id}
                 onClick={() => setActivePersonaId(persona.id)}

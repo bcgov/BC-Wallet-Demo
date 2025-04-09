@@ -9,7 +9,9 @@ export default function TabsComponent({ slug }: { slug: string }) {
   const pathname = usePathname()
 
   const tabs = [
-    { label: t('navigation.character_label'), path: `/showcases/${slug}` },
+    { label: 'General', path: `/showcases/${slug}` },
+    // { label: t('navigation.character_label'), path: `/showcases/${slug}` },
+    { label: t('navigation.character_label'), path: `/showcases/${slug}/characters` },
     { label: t('navigation.onboarding_label'), path: `/showcases/${slug}/onboarding` },
     { label: t('navigation.scenario_label'), path: `/showcases/${slug}/scenarios` },
     { label: t('navigation.publish_label'), path: `/showcases/${slug}/publish` },

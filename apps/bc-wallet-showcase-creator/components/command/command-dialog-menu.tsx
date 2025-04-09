@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Calculator, Calendar, Key, LogOut, Plus, Smile, Sun, User } from 'lucide-react'
+import { Calculator, Calendar, Eraser, Key, LogOut, Plus, Smile, Sun, User } from 'lucide-react'
 
 import {
   CommandDialog,
@@ -15,6 +15,7 @@ import {
 import { signOut } from 'next-auth/react'
 import { useRouter } from '@/i18n/routing'
 import { useTheme } from 'next-themes'
+import { usePersonaAdapter } from '@/hooks/use-persona-adapter'
 
 const menuItems = [
   {
@@ -38,8 +39,9 @@ export function CommandDialogMenu() {
   const [open, setOpen] = React.useState(false)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
-
- const toggleDarkMode = () => {
+  const { setSelectedPersonaIds } = usePersonaAdapter()
+  
+  const toggleDarkMode = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark')
     setOpen((open) => !open)
   }
@@ -61,6 +63,11 @@ export function CommandDialogMenu() {
     setOpen(false)
   }
 
+  const clearPersonaState = () => {
+    setSelectedPersonaIds([])
+    setOpen(false)
+  }
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput placeholder="Type a command or search..." />
@@ -79,6 +86,14 @@ export function CommandDialogMenu() {
             <Calculator />
             <span>Create credential schema</span>
           </CommandItem>
+
+          <div onClick={() => clearPersonaState()}>
+            <CommandItem>
+              <Eraser />
+              <span>Clear personas state</span>
+            </CommandItem>
+          </div>
+
           <div onClick={() => toggleDarkMode()}>
             <CommandItem>
               <Sun />

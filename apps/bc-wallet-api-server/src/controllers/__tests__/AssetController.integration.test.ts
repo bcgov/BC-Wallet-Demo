@@ -25,6 +25,7 @@ describe('AssetController Integration Tests', () => {
     Container.get(AssetService)
     app = createExpressServer({
       controllers: [AssetController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })

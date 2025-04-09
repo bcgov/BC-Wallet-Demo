@@ -1,19 +1,17 @@
 import React from 'react'
-
 import { motion } from 'framer-motion'
 import { startCase } from 'lodash'
-
 import { StateIndicator } from '../../../components/StateIndicator'
 import { fadeX } from '../../../FramerAnimations'
 import { useCredentials } from '../../../slices/credentials/credentialsSelectors'
-import type { Credential } from '../../../slices/types'
-import { prependApiUrl } from '../../../utils/Url'
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
+import type { CredentialDefinition } from '../../../slices/types';
 
 export interface Props {
-  credentials: Credential[]
+  credentialDefinitions: CredentialDefinition[]
 }
 
-export const StarterCredentials: React.FC<Props> = ({ credentials }) => {
+export const StarterCredentials: React.FC<Props> = ({ credentialDefinitions }) => {
   const { issuedCredentials } = useCredentials()
   const issuedCredentialsStartCase = issuedCredentials.map((name) => startCase(name))
   return (
@@ -27,16 +25,17 @@ export const StarterCredentials: React.FC<Props> = ({ credentials }) => {
         <h1 className="font-semibold dark:text-white">Starter credentials</h1>
         <hr className="text-bcgov-lightgrey" />
       </div>
-      {credentials.map((item) => {
-        const completed = issuedCredentials.includes(item.name) || issuedCredentialsStartCase.includes(item.name)
-
+      { credentialDefinitions.map(credentialDefinition => {
+        const completed = issuedCredentials.includes(credentialDefinition.name) || issuedCredentialsStartCase.includes(credentialDefinition.name)
         return (
-          <div key={item.name} className="flex-1 flex flex-row items-center justify-between my-2">
-            <div className="bg-bcgov-lightgrey rounded-lg p-2 w-12">
-              <img className="h-8 m-auto" src={prependApiUrl(item.icon)} alt="icon" />
-            </div>
+          <div key={credentialDefinition.name} className="flex-1 flex flex-row items-center justify-between my-2">
+            { credentialDefinition.icon &&
+                <div className="bg-bcgov-lightgrey rounded-lg p-2 w-12">
+                  <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${credentialDefinition.icon}/file`} alt="icon" />
+                </div>
+            }
             <div className="flex-1 px-4 justify-self-start dark:text-white text-sm sm:text-base">
-              <p>{startCase(item.name)}</p>
+              <p>{startCase(credentialDefinition.name)}</p>
             </div>
             <StateIndicator completed={completed} />
           </div>

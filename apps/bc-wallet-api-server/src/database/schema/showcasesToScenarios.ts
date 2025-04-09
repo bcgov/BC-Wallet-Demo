@@ -10,8 +10,7 @@ export const showcasesToScenarios = pgTable(
       .references(() => showcases.id, { onDelete: 'cascade' })
       .notNull(),
     scenario: uuid()
-      .references(() => scenarios.id, { onDelete: 'cascade' })
-      .notNull(),
+      .references(() => scenarios.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
