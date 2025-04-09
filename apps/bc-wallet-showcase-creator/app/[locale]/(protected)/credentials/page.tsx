@@ -1,6 +1,6 @@
 import { CredentialsPage } from '@/components/credentials/credentials-page'
-import type { PageParams } from '@/types'
 import { setRequestLocale } from 'next-intl/server'
+import type { PageParams } from '@/types'
 
 export default async function Credentials({ params }: { params: PageParams }) {
   const { locale } = await params

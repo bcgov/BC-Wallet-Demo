@@ -58,7 +58,7 @@ class ShowcaseController {
 
   @HttpCode(201)
   @Post('/')
-  public async post(@Body() showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
+  public async post(@Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
     try {
       if (!instanceOfShowcaseRequest(showcaseRequest)) {
         return Promise.reject(new BadRequestError())

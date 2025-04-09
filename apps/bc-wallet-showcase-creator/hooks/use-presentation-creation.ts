@@ -2,11 +2,12 @@ import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
 import { useEffect } from 'react'
-import type { Persona, StepRequestType, AriesOOBActionRequest, PresentationScenarioRequestType } from '@/openapi-types'
+import type { StepRequestType, AriesOOBActionRequest, PresentationScenarioRequestType } from '@/openapi-types'
 import { sampleAction } from '@/lib/steps'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
+import type { Persona } from 'bc-wallet-openapi'
 import { StepType } from '@/types'
 
 enableMapSet()
@@ -104,12 +105,26 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         if (state.personaScenariosMap[persona.id]) return
 
         const defaultScenario: PresentationScenarioRequestType = {
-          name: "You're done!",
+          name: "BC University Student Card",
           description: `Presentation scenario for ${persona.name}`,
           type: 'PRESENTATION',
           steps: [
             {
-              title: `Scan the QR Code to start sharing`,
+              title: `Start proving you are a student`,
+              description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
+              order: 0,
+              type: 'HUMAN_TASK',
+              actions: [sampleAction],
+            },
+            {
+              title: `Confirm the information to send`,
+              description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
+              order: 0,
+              type: 'HUMAN_TASK',
+              actions: [sampleAction],
+            },
+            {
+              title: `You are done!`,
               description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
               order: 0,
               type: 'HUMAN_TASK',

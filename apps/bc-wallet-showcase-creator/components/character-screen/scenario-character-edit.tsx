@@ -43,8 +43,8 @@ export default function EditScenarioCharacterPage({ slug }: { slug: string }) {
     <div className="flex flex-col h-full w-full bg-light-bg dark:bg-dark-bg dark:text-dark-text text-light-text p-4">
       <div className="bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col h-full w-full">
         <div className="p-4 border-b flex-shrink-0">
-          <StepHeader icon={<Monitor strokeWidth={3} />} title={t('character.select_your_character_title')} />
-          <p className="text-sm mt-2">{t('character.select_your_character_subtitle')}</p>
+          <StepHeader icon={<Monitor strokeWidth={3} />} title={t('character.create_your_character_title')} />
+          <p className="text-sm mt-2">{t('character.create_your_character_subtitle')}</p>
         </div>
 
         {isLoading ? (

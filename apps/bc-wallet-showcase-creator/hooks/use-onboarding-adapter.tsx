@@ -1,13 +1,15 @@
-import { useEffect, useState, useCallback } from 'react'
-import { useOnboarding } from '@/hooks/use-onboarding'
-import { useShowcaseCreation } from '@/hooks/use-showcase-creation'
-import { Persona, ShowcaseRequestType, StepRequestType } from '@/openapi-types'
-import { createDefaultStep, createServiceStep, StepWithCredentials } from '@/lib/steps'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import apiClient from '@/lib/apiService'
-import { useHelpersStore } from './use-helpers-store'
-import { StepType } from '@/types'
+import { useEffect, useState, useCallback } from "react";
+import { useOnboarding } from "@/hooks/use-onboarding";
+import { useShowcaseCreation } from "@/hooks/use-showcase-creation";
+import { StepRequestType } from "@/openapi-types";
+import { createDefaultStep, createServiceStep, StepWithCredentials } from "@/lib/steps";
+import { useShowcaseStore } from "@/hooks/use-showcases-store";
+import { useHelpersStore } from "./use-helpers-store";
+import { useUiStore } from "./use-ui-store";
+import { useUpdateShowcase } from "./use-showcases";
+import { StepType } from "@/types";
+import { Persona, ShowcaseRequest } from "bc-wallet-openapi";
+import { useQueryClient } from '@tanstack/react-query'
 
 export const useOnboardingAdapter = () => {
   const {
@@ -16,7 +18,7 @@ export const useOnboardingAdapter = () => {
     initializeScreens,
     createStep,
     updateStep,
-    // deleteStep,
+    removeStep,
     moveStep,
     setStepState,
     stepState,
@@ -28,11 +30,15 @@ export const useOnboardingAdapter = () => {
     activePersonaId,
     setActivePersonaId,
     updatePersonaSteps,
-    // completeShowcaseCreation,
-    // isSaving: isSavingScenarios,
-  } = useShowcaseCreation()
-
-  const { displayShowcase, setShowcase, showcase } = useShowcaseStore()
+  } = useShowcaseCreation();
+  
+  const { 
+    displayShowcase, 
+    setShowcase,
+    showcase
+  } = useShowcaseStore();
+  const { currentShowcaseSlug } = useUiStore();
+  const { mutateAsync: updateShowcase, isPending: isSaving } = useUpdateShowcase(currentShowcaseSlug);
 
   const { selectedCredentialDefinitionIds, issuerId, tenantId } = useHelpersStore()
 
@@ -114,50 +120,36 @@ export const useOnboardingAdapter = () => {
 
       updatePersonaSteps(activePersonaId, scenarioSteps)
     }
-  }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId])
-
-  const updateShowcaseMutation = useMutation({
-    mutationFn: async (showcaseData: ShowcaseRequestType) => {
-      let response
-
-      if (displayShowcase.id) {
-        response = await apiClient.put(`/showcases/${displayShowcase.slug}`, showcaseData)
-      } else {
-        response = await apiClient.post('/showcases', showcaseData)
-      }
-
-      return response
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['showcases'] })
-    },
-  })
-
-  const saveShowcase = useCallback(
-    async (data: ShowcaseRequestType) => {
-      try {
-        const showcaseData = {
-          name: data.name,
-          description: data.description,
-          status: data.status || 'ACTIVE',
-          hidden: data.hidden || false,
-          scenarios: showcase.scenarios,
-          credentialDefinitions: selectedCredentialDefinitionIds,
-          personas: selectedPersonas.map((p: Persona) => p.id),
-          bannerImage: data.bannerImage,
-          tenantId: tenantId,
-        }
-
-        const updatedShowcase = await updateShowcaseMutation.mutateAsync(showcaseData)
-        setShowcase(showcaseData)
-        return updatedShowcase
-      } catch (error) {
-        console.error('Error saving showcase:', error)
-        throw error
-      }
-    },
-    [displayShowcase, selectedPersonas, updateShowcaseMutation, setShowcase, showcase, selectedCredentialDefinitionIds],
-  )
+  }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId]);
+  
+  // TODO: create persona adapter for the persona logic 
+  // TODO: move this to use-showcase-adapter.ts
+  // TODO: create addPersonaToShowcase mutation
+  const saveShowcase = useCallback(async (data: ShowcaseRequest) => {
+    try {
+      const showcaseData = {
+        name: data.name,
+        description: data.description,
+        status: data.status || "PENDING",
+        hidden: data.hidden || false,
+        scenarios: showcase.scenarios,
+        credentialDefinitions: selectedCredentialDefinitionIds,
+        personas: selectedPersonas.map((p: Persona) => p.id),
+        bannerImage: data.bannerImage,
+        tenantId,
+      };
+      // Maybe create a addIssuanceScenarioToShowcase mutation
+      // that retrieves the showcase and adds the issuance scenario to it
+      // and then updates the showcase
+      
+      const updatedShowcase = await updateShowcase(showcaseData);      
+      setShowcase(showcaseData);
+      return updatedShowcase;
+    } catch (error) {
+      console.error("Error saving showcase:", error);
+      throw error;
+    }
+  }, [displayShowcase, selectedPersonas, setShowcase, showcase, selectedCredentialDefinitionIds]);
 
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
@@ -167,7 +159,7 @@ export const useOnboardingAdapter = () => {
     selectedStep,
     createStep,
     updateStep,
-    // deleteStep,
+    removeStep,
     moveStep,
     setStepState,
     stepState,
@@ -180,6 +172,6 @@ export const useOnboardingAdapter = () => {
 
     // Combined functionality
     saveShowcase,
-    isSaving: updateShowcaseMutation.isPending,
-  }
-}
+    isSaving
+  };
+};

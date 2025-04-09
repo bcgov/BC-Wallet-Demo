@@ -413,13 +413,13 @@ export const ShowcaseSchema = z.object({
 });
 
 export const ShowcaseRequest = z.object({
-  name: z.string(),
-  description: z.string(),
+  name: z.string().min(3),
+  description: z.string().min(10),
   status: ShowcaseStatusEnum,
   hidden: z.boolean().default(false),
-  scenarios: z.array(z.string()),
-  credentialDefinitions: z.array(z.string()),
-  personas: z.array(z.string()),
+  scenarios: z.array(z.string()).optional(),
+  credentialDefinitions: z.array(z.string()).optional(),
+  personas: z.array(z.string()).optional(),
   bannerImage: z.string().optional(),
   completionMessage: z.string().optional(),
   tenantId: z.string().optional(),
