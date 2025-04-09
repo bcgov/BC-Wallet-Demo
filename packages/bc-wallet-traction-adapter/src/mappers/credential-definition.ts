@@ -41,16 +41,16 @@ export function credentialDefinitionToCredentialDefinitionSendRequest(
     revocationRegistrySize: 1000,
   }
 }
-/*
-/!**
+
+/**
  * Converts a GetCredDefResult to a CredDefResult
  * @param result The GetCredDefResult to convert
  * @returns A CredDefResult object
- *!/
-export function getCredDefResultToCredDefResult(result: GetCredDefResult): CredDefResult {
+ */
+/*export function getCredDefResultToCredDefResult(result: GetCredDefResult): CredDefResult {
   if (!result) {
     return {}
-  }*/
+  }
 
   // Create a CredDefState from the credential definition
   const credentialDefinitionState: CredDefState = {
@@ -65,7 +65,7 @@ export function getCredDefResultToCredDefResult(result: GetCredDefResult): CredD
     registrationMetadata: result.resolutionMetadata || {},
     // jobId is left undefined as it doesn't exist in GetCredDefResult
   }
-}
+}*/
 
 /*
 
