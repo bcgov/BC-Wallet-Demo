@@ -8,9 +8,7 @@ export function checkRoles(token: Token, roles: string[]) {
 
 export async function isAccessTokenValid(token: string): Promise<boolean> {
   const authorization = 'Basic ' + Buffer.from(`${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`).toString('base64')
-  return (
-    await (
-      await fetch(
+  return fetch(
         `${process.env.AUTH_SERVER_URL}/realms/${process.env.REALM}/protocol/openid-connect/token/introspect`,
         {
           method: 'POST',
@@ -24,9 +22,31 @@ export async function isAccessTokenValid(token: string): Promise<boolean> {
             client_secret: `${process.env.CLIENT_SECRET}`,
           }),
         },
-      )
-    ).json()
-  ).active
+      ).then(checkResponse).then(response => response.json().then(data => data.active))
+}
+
+async function checkResponse(response: Response) {
+  if(response.status < 400) {
+    return response
+  }
+
+  let errorMessage = `HTTP error! Status: ${response.status} (${response.statusText})`
+
+  try {
+    const contentType = response.headers.get('content-type')
+    if (contentType && contentType.includes('application/json')) {
+      const errorData = await response.json()
+      errorMessage += `\nDetails: ${JSON.stringify(errorData)}`
+    } else {
+      const textContent = await response.text()
+      if (textContent) {
+        errorMessage += `\nResponse: ${textContent}`
+      }
+    }
+  } catch (e) {
+    errorMessage += `\nNo error details available`
+  }
+  throw new Error(errorMessage)
 }
 
 // TODO Check if this is correct, or even necessary
@@ -44,6 +64,9 @@ export class Token {
   ) {
     if (this.token) {
       const parts = token.split('.')
+      if (parts.length !== 3) {
+        throw new Error('Invalid token string')
+      }
       this._payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
     } else {
       throw Error('token is required')
