@@ -4,8 +4,7 @@ import { z } from "zod";
 export const schemaAttribute = z.object({
   id: z.string().min(1, "Attribute ID is required"), // Unique ID for the attribute
   name: z.string().min(1, "Attribute name is required"), // Name of the attribute
-  value: z.string().min(1, "Attribute value is required"), // Value of the attribute
-  type: z.enum(["string", "int", "float", "bool", "date"]).default("string"), // Type of the attribute
+	type: z.enum(["STRING", "DATE"]).default("STRING"),// Type of the attribute
   createdAt: z.string().min(1, "Creation timestamp is required"), // Date the attribute was created
   updatedAt: z.string().min(1, "Update timestamp is required"), // Date the attribute was last updated
 });
@@ -16,8 +15,19 @@ export const schema = z.object({
   attributes: z.array(
     z.object({
       name: z.string().min(1, "Attribute name is required"),
-      value: z.string().min(1, "Attribute value is required"),
-      type: z.enum(["STRING", "NUMBER", "BOOLEAN"]).default("STRING"),
+			type: z.enum(["STRING", "DATE"]).default("STRING"),
+
+    }).superRefine((data, ctx) => {
+      if (data.type === 'DATE') {
+        const dateRegex = /^\d{8}$/;
+        if (!dateRegex.test(data.name)) {
+          ctx.addIssue({
+            path: ['name'],
+            message: "Invalid date format. Please use YYYYMMDD.",
+            code: z.ZodIssueCode.custom,
+          });
+				}
+			}	
     })
   ),
 });
