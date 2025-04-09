@@ -144,39 +144,6 @@ export const usePresentations = create<State & Actions>()(
   })),
 )
 
-// forms
-export const useCreatePresentationForm = () => {
-  const [stepType, setStepType] = useState<typeof ScenarioTypeEnum._type | null>(null)
-
-  const form = useForm<ScenarioRequestType>({
-    resolver: zodResolver(ScenarioRequest),
-  })
-
-  const handleTypeSelection = (type: typeof ScenarioTypeEnum._type) => {
-    setStepType(type)
-    form.reset({
-      name: '',
-      description: '',
-      type: type,
-      steps: [],
-      personas: [],
-      hidden: false,
-      issuer: '',
-    })
-  }
-
-  const onSubmit = (data: ScenarioRequestType) => {
-    console.log(data)
-  }
-
-  return {
-    stepType,
-    handleTypeSelection,
-    form,
-    onSubmit,
-  }
-}
-
 const staleTime = 1000 * 60 * 5
 
 export const useCreatePresentation = () => {
@@ -226,7 +193,7 @@ export const useCreatePresentationStep = () => {
       const response = await apiClient.post(`/scenarios/presentations/${slug}/steps`, data)
       return response
     },
-    onSettled: (data) => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['presentationStep'] })
     },
   })
