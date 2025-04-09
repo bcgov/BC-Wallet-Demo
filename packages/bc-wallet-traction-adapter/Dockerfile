@@ -19,7 +19,11 @@ COPY packages packages
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib turbo
 RUN pnpm install
 RUN pnpm generate:models
-RUN cd packages/ && pnpm build
+RUN pnpm --filter bc-wallet-openapi build:clean
+RUN pnpm --filter bc-wallet-traction-openapi build:clean
+RUN ls -la packages/bc-wallet-traction-openapi/dist
+RUN ls -la packages/bc-wallet-traction-openapi/node_modules
+RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-traction-adapter --prod --no-optional
 RUN ls -la /
 RUN pwd
