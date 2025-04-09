@@ -23,6 +23,7 @@ COPY apps/bc-wallet-api-server apps/bc-wallet-api-server
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib drizzle-kit
 RUN pnpm install
 RUN pnpm generate:models
+RUN pnpm --filter bc-wallet-openapi build:clean
 RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-api-server --prod --no-optional
 
