@@ -102,13 +102,5 @@ module.exports = [
         afterAll: 'readonly',
       },
     },
-    rules: {
-      'import/no-extraneous-dependencies': [
-        'error',
-        {
-          devDependencies: true,
-        },
-      ],
-    },
   },
 ]
