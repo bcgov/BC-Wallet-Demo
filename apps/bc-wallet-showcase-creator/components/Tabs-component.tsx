@@ -1,6 +1,5 @@
 'use client'
 
-// import { useRouter } from "next/navigation";
 import { Link, usePathname } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 
@@ -9,8 +8,7 @@ export default function TabsComponent({ slug }: { slug: string }) {
   const pathname = usePathname()
 
   const tabs = [
-    { label: 'General', path: `/showcases/${slug}` },
-    // { label: t('navigation.character_label'), path: `/showcases/${slug}` },
+    { label: t('navigation.general_label'), path: `/showcases/${slug}` },
     { label: t('navigation.character_label'), path: `/showcases/${slug}/characters` },
     { label: t('navigation.onboarding_label'), path: `/showcases/${slug}/onboarding` },
     { label: t('navigation.scenario_label'), path: `/showcases/${slug}/scenarios` },
