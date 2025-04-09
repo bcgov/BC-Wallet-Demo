@@ -1,4 +1,4 @@
-import { StepActionType } from 'bc-wallet-openapi'
+import { ScenarioType, StepActionType } from 'bc-wallet-openapi'
 
 export interface RevocationRecord {
   connectionId: string
@@ -176,6 +176,10 @@ export interface Showcase {
 }
 
 export interface Scenario {
+  id: string
+  slug: string
+  name: string
+  type: ScenarioType
   persona: Persona
   steps: Step[]
   issuer?: Issuer
@@ -183,6 +187,7 @@ export interface Scenario {
 
 export interface Persona {
   id: string
+  slug: string
   name: string
   role: string
   headshotImage?: string

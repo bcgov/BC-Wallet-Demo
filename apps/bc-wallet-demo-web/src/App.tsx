@@ -77,14 +77,7 @@ function App() {
             {basePath !== '/' && <Route path="/" element={<Navigate to={basePath} />}></Route>}
             <Route path={`${basePath}/`} element={<LandingPage />} />
             <Route path={`${basePath}/:slug`} element={<OnboardingPage />} />
-            <Route
-              path={`${basePath}/dashboard`}
-              element={
-                <PrivateRoute>
-                  <DashboardPage />
-                </PrivateRoute>
-              }
-            />
+            <Route path={`${basePath}/:slug/:personaSlug/presentations`} element={<DashboardPage />}/>
             <Route
               path={`${basePath}/uc/:slug`}
               element={

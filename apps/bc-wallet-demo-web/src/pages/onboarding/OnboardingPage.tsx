@@ -23,6 +23,7 @@ import { useSlug } from '../../utils/SlugUtils'
 import { PageNotFound } from '../PageNotFound'
 import { Stepper } from './components/Stepper'
 import { OnboardingContainer } from './OnboardingContainer'
+import { ScenarioType } from 'bc-wallet-openapi'
 
 export const OnboardingPage: React.FC = () => {
   useTitle('Get Started | BC Wallet Self-Sovereign Identity Demo')
@@ -36,12 +37,12 @@ export const OnboardingPage: React.FC = () => {
   const { characterUploadEnabled } = usePreferences()
 
   useEffect(() => {
-    if (isCompleted && showcase) {
+    if (isCompleted && showcase && currentPersona) {
       dispatch(completeOnboarding())
       dispatch(clearCredentials())
       dispatch(clearConnection())
-      navigate(`${basePath}/dashboard`)
-    } else {
+      navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
+    } else if (!isCompleted && !showcase) {
       dispatch(clearShowcase())
       dispatch(fetchWallets())
       dispatch(fetchShowcaseBySlug(slug))
@@ -76,7 +77,7 @@ export const OnboardingPage: React.FC = () => {
           {showcase && (
               <AnimatePresence mode="wait">
                 <OnboardingContainer
-                    scenarios={showcase.scenarios}
+                    scenarios={showcase.scenarios.filter(scenario => scenario.type === ScenarioType.Issuance)}
                     currentPersona={currentPersona}
                     currentStep={currentStep}
                     connectionId={id}

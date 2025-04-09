@@ -26,7 +26,7 @@ import type { CredentialDefinition, Persona, Scenario, Step } from '../../slices
 
 export interface Props {
   scenarios: Scenario[]
-  currentPersona?: Persona
+  currentPersona?: Persona | null
   connectionId?: string
   connectionState?: string
   invitationUrl?: string
@@ -169,7 +169,6 @@ export const OnboardingContainer: FC<Props> = ({
   const navigate = useNavigate()
   const onboardingCompleted = () => {
     if (connectionId && currentPersona) {
-      navigate(`${basePath}/dashboard`)
       dispatch(clearCredentials())
       dispatch(clearConnection())
       dispatch(completeOnboarding())
