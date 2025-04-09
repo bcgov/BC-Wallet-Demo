@@ -66,7 +66,12 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                 <div className="p-3 bg-light-bg flex flex-col dark:bg-dark-bg items-center text-center">
                   <div className="flex flex-col py-2 w-full items-center">
                     <Image
-                      src={`${baseUrl}/assets/${item.icon.id}/file` || '/assets/no-image.jpg'}
+                      src={item.icon?.id?.trim() ? `${baseUrl}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement
+                        target.src = '/assets/no-image.jpg'
+                      }}
                       alt={item.icon?.description || 'Credential icon'}
                       width={openId === item.id ? 100 : 50}
                       height={openId === item.id ? 100 : 50}
@@ -101,7 +106,12 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                 >
                   <div className="flex items-center gap-3 w-full">
                     <Image
-                      src={`${baseUrl}/assets/${item.icon.id}/file` || '/assets/no-image.jpg'}
+                      src={item.icon?.id?.trim() ? `${baseUrl}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement
+                        target.src = '/assets/no-image.jpg'
+                      }}
                       alt={item.icon?.description || 'Credential icon'}
                       width={openId === item.id ? 100 : 50}
                       height={openId === item.id ? 100 : 50}
@@ -133,3 +143,4 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
     </div>
   )
 }
+
