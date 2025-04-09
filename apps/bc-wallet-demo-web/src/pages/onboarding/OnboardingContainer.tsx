@@ -1,13 +1,11 @@
-import type { ReactElement } from 'react'
+import type { FC, ReactElement } from 'react'
 import React, { useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
 import { FiLogOut } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { StepActionType } from 'bc-wallet-openapi'
-
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
-
 import { showcaseServerBaseUrl } from '../../api/BaseUrl'
 import { Modal } from '../../components/Modal'
 import { fadeDelay, fadeExit } from '../../FramerAnimations'
@@ -16,7 +14,6 @@ import { clearConnection } from '../../slices/connection/connectionSlice'
 import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
 import { completeOnboarding, setScenario } from '../../slices/onboarding/onboardingSlice'
-import type { Credential, Persona, Scenario, Step } from '../../slices/types'
 import { basePath } from '../../utils/BasePath'
 import { isConnected } from '../../utils/Helpers'
 import { setOnboardingProgress } from '../../utils/OnboardingUtils'
@@ -25,17 +22,18 @@ import { PersonaContent } from './components/PersonaContent'
 import { PickPersona } from './steps/PickPersona'
 import { SetupCompleted } from './steps/SetupCompleted'
 import { StepView } from './steps/StepView'
+import type { CredentialDefinition, Persona, Scenario, Step } from '../../slices/types'
 
 export interface Props {
   scenarios: Scenario[]
-  currentPersona?: Persona
+  currentPersona?: Persona | null
   connectionId?: string
   connectionState?: string
   invitationUrl?: string
   currentStep?: Step
 }
 
-export const OnboardingContainer: React.FC<Props> = ({
+export const OnboardingContainer: FC<Props> = ({
   scenarios,
   currentPersona,
   currentStep,
@@ -44,8 +42,11 @@ export const OnboardingContainer: React.FC<Props> = ({
   invitationUrl,
 }) => {
   const dispatch = useAppDispatch()
-  const [currentScenario, setCurrentScenario] = useState<Scenario | undefined>()
   const { issuedCredentials } = useCredentials()
+  const [currentScenario, setCurrentScenario] = useState<Scenario | undefined>()
+  const [credentialDefinitions, setCredentialDefinitions] = useState<CredentialDefinition[]>([])
+  const [credentialsAccepted, setCredentialsAccepted] = useState<boolean>(false)
+  const [connectionCompleted, setConnectionCompleted] = useState<boolean>(false)
 
   useEffect((): void => {
     setCurrentScenario(scenarios.find((scenario) => scenario.persona?.id === currentPersona?.id))
@@ -58,33 +59,31 @@ export const OnboardingContainer: React.FC<Props> = ({
     }
   }, [currentScenario])
 
-  const connectionCompleted = isConnected(connectionState as string)
-  const credentials: Credential[] = [ // FIXME we need to retrieve these credentials from the API once we have the support for it
-    {
-      name: 'student_card',
-      version: '1.0',
-      icon: '/public/student/icon-student.svg',
-      attributes: [
-        {
-          name: 'student_first_name',
-          value: 'Alice',
-        },
-        {
-          name: 'student_last_name',
-          value: 'Smith',
-        },
-        {
-          name: 'expiry_date',
-          value: `${Date.now() + 126144000}`, // 4 years
-        },
-      ],
-    },
-  ]
-  const credentialsAccepted = credentials?.every((cred: any) => issuedCredentials.includes(cred.name))
+  useEffect((): void => {
+    if (!currentStep?.actions?.some((action) => action.actionType === StepActionType.AcceptCredential)) {
+      return
+    }
+
+    const credDefs = currentStep.actions.flatMap(action => action.credentialDefinitions ?? []);
+    setCredentialDefinitions(credDefs);
+  }, [currentStep])
+
+  useEffect((): void => {
+    setCredentialsAccepted(credentialDefinitions?.every((credentialDefinition: CredentialDefinition) => issuedCredentials.includes(credentialDefinition.name)))
+  }, [credentialDefinitions, issuedCredentials])
+
+  useEffect((): void => {
+    if (!connectionState) {
+      setConnectionCompleted(false)
+    } else {
+      setConnectionCompleted(isConnected(connectionState))
+    }
+  }, [connectionState])
+
   const isBackDisabled: boolean = !currentStep || currentStep.order === 1
-  const isForwardDisabled: boolean = !currentStep || currentScenario?.steps.length === currentStep.order
+  const isForwardDisabled: boolean = !currentStep //|| currentScenario?.steps.length === currentStep.order
       || (!!currentStep?.actions?.some((action) => action.actionType === StepActionType.SetupConnection) && !connectionCompleted)
-      || (!!currentStep?.actions?.some((action) => action.actionType === StepActionType.AcceptCredential) && (!credentialsAccepted || credentials?.length === 0))
+      || (!!currentStep?.actions?.some((action) => action.actionType === StepActionType.AcceptCredential) && (!credentialsAccepted || credentialDefinitions.length === 0))
 
   const nextOnboardingPage = async (): Promise<void> => {
     const nextStep = currentScenario?.steps[currentStep !== undefined ? currentStep.order : 0]
@@ -145,7 +144,6 @@ export const OnboardingContainer: React.FC<Props> = ({
               invitationUrl={invitationUrl}
               connectionId={connectionId}
               issuerName={currentScenario?.issuer?.name}
-              credentials={credentials}
           />
       )
     }
@@ -171,7 +169,6 @@ export const OnboardingContainer: React.FC<Props> = ({
   const navigate = useNavigate()
   const onboardingCompleted = () => {
     if (connectionId && currentPersona) {
-      navigate(`${basePath}/dashboard`)
       dispatch(clearCredentials())
       dispatch(clearConnection())
       dispatch(completeOnboarding())

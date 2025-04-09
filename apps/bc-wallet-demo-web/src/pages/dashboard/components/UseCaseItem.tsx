@@ -1,38 +1,20 @@
 import React from 'react'
-
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
 import { startCase } from 'lodash'
-
 import { rowFadeX } from '../../../FramerAnimations'
-import type { CustomCharacter } from '../../../slices/types'
-import { prependApiUrl } from '../../../utils/Url'
 import { StartButton } from './StartButton'
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl';
+import type { CredentialDefinition, Persona } from '../../../slices/types'
 
 export interface Props {
   slug: string
   title: string
-  currentCharacter: CustomCharacter
-  requiredCredentials: string[]
+  currentPersona: Persona
+  requiredCredentials: CredentialDefinition[]
   isCompleted: boolean
   isLocked: boolean
   start(slug: string): void
-}
-
-const getCredIcon = (currChar: CustomCharacter, credName: string) => {
-  let icon = ''
-  currChar.useCases.forEach((useCase) => {
-    useCase.screens.forEach((screen) => {
-      if (screen) {
-        screen.requestOptions?.requestedCredentials.forEach((cred) => {
-          if (cred.name === credName) {
-            icon = cred.icon ?? ''
-          }
-        })
-      }
-    })
-  })
-  return icon
 }
 
 export const UseCaseItem: React.FC<Props> = ({
@@ -42,7 +24,7 @@ export const UseCaseItem: React.FC<Props> = ({
   requiredCredentials,
   isLocked,
   start,
-  currentCharacter,
+  currentPersona,
 }) => {
   return (
     <motion.div variants={rowFadeX} key={slug}>
@@ -55,15 +37,15 @@ export const UseCaseItem: React.FC<Props> = ({
 
           <div className="w-2/3 xl:w-1/3 flex flex-col">
             <h2 className="text-sm xl:text-base font-semibold mb-2">You'll be asked to share</h2>
-            {requiredCredentials.map((item) => {
+            {requiredCredentials.map((requiredCredential) => {
               return (
-                <div key={item} className={`flex flex-row mb-2`}>
+                <div key={requiredCredential.id} className={`flex flex-row mb-2`}>
                   <img
                     className="w-4 h-4 lg:w-6 lg:h-6 mx-2"
-                    src={prependApiUrl(getCredIcon(currentCharacter, item))}
+                    src={`${showcaseServerBaseUrl}/assets/${requiredCredential.icon}/file`}
                     alt="credential icon"
                   />
-                  <p className="text-xs sxl:text-sm">{startCase(item)}&nbsp;</p>
+                  <p className="text-xs sxl:text-sm">{startCase(requiredCredential.name)}&nbsp;</p>
                 </div>
               )
             })}
@@ -75,7 +57,7 @@ export const UseCaseItem: React.FC<Props> = ({
                       schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
                       data: {
                         action: 'start',
-                        path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+                        path: `${currentPersona.role.toLowerCase()}_${slug}`,
                         step: 'usecase_start',
                       },
                     },

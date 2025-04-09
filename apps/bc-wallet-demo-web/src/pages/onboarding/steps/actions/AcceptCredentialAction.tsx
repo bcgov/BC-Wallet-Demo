@@ -1,14 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion, AnimatePresence } from 'framer-motion'
 import { track } from 'insights-js'
 import { startCase } from 'lodash'
-
-import { getOrCreateCredDefId } from '../../../../api/CredentialApi'
 import { ActionCTA } from '../../../../components/ActionCTA'
-import { Loader } from '../../../../components/Loader'
 import { Modal } from '../../../../components/Modal'
 import { fade, fadeX } from '../../../../FramerAnimations'
 import { useAppDispatch } from '../../../../hooks/hooks'
@@ -17,57 +13,50 @@ import { useCredentials } from '../../../../slices/credentials/credentialsSelect
 import { setCredential } from '../../../../slices/credentials/credentialsSlice'
 import { issueCredential, issueDeepCredential } from '../../../../slices/credentials/credentialsThunks'
 import { useSocket } from '../../../../slices/socket/socketSelector'
-import type { Credential } from '../../../../slices/types'
 import { basePath } from '../../../../utils/BasePath'
 import { FailedRequestModal } from '../../components/FailedRequestModal'
 import { StarterCredentials } from '../../components/StarterCredentials'
+import { CredentialDefinition } from '../../../../slices/types'
 
 export interface Props {
   connectionId: string
-  credentials: Credential[]
+  credentialDefinitions: CredentialDefinition[]
 }
 
 export const AcceptCredentialAction: React.FC<Props> = (props: Props) => {
-  const { connectionId, credentials } = props
+  const { connectionId, credentialDefinitions } = props
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-
   const [isRejectedModalOpen, setIsRejectedModalOpen] = useState(false)
   const [isFailedRequestModalOpen, setIsFailedRequestModalOpen] = useState(false)
-  const [credentialsIssued, setCredentialsIssued] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-
   const { isIssueCredentialLoading, error, issuedCredentials } = useCredentials()
-
   const { isDeepLink } = useConnection()
-
   const { message } = useSocket()
+  const credentialsIssued = useRef(false);
 
   const showFailedRequestModal = () => setIsFailedRequestModalOpen(true)
   const closeFailedRequestModal = () => setIsFailedRequestModalOpen(false)
 
   const issuedCredentialsStartCase = issuedCredentials.map((name) => startCase(name))
-  const credentialsAccepted = credentials.every(
-    (cred) => issuedCredentials.includes(cred.name) || issuedCredentialsStartCase.includes(cred.name)
-  )
+  const credentialsAccepted = credentialDefinitions.every(credentialDefinition => issuedCredentials.includes(credentialDefinition.name) || issuedCredentialsStartCase.includes(credentialDefinition.name))
 
   useEffect(() => {
-    if (credentials.length > 0) {
-      credentials.forEach(async (item) => {
-        const credDefId = (await getOrCreateCredDefId(item)).data
-        if (item !== undefined) {
-          if (isDeepLink) {
-            dispatch(issueDeepCredential({ connectionId, cred: item, credDefId }))
-          } else {
-            dispatch(issueCredential({ connectionId, cred: item, credDefId }))
-          }
-          track({
-            id: 'credential_issued',
-          })
-        }
-      })
-      setCredentialsIssued(true)
+    if (credentialsIssued.current) {
+      return;
     }
+
+    credentialDefinitions.forEach(credentialDefinition => {
+      if (isDeepLink) {
+        dispatch(issueDeepCredential({ connectionId, credentialDefinition }))
+      } else {
+        dispatch(issueCredential({ connectionId, credentialDefinition }))
+      }
+      track({
+        id: 'credential_issued',
+      })
+    })
+    credentialsIssued.current = true;
   }, [connectionId])
 
   const handleCredentialTimeout = () => {
@@ -79,7 +68,7 @@ export const AcceptCredentialAction: React.FC<Props> = (props: Props) => {
   }
 
   useEffect(() => {
-    if (credentialsIssued) {
+    if (credentialsIssued.current) {
       setTimeout(() => {
         handleCredentialTimeout()
       }, 10000)
@@ -118,17 +107,11 @@ export const AcceptCredentialAction: React.FC<Props> = (props: Props) => {
   return (
     <motion.div className="flex flex-col" variants={fadeX} initial="hidden" animate="show" exit="exit">
       <div className="flex flex-row m-auto content-center">
-        {credentials.length ? (
-          <AnimatePresence mode="wait">
-            <motion.div className={`flex flex-1 flex-col m-auto`} variants={fade} animate="show" exit="exit">
-              <StarterCredentials credentials={credentials} />
-            </motion.div>
-          </AnimatePresence>
-        ) : (
-          <motion.div className="flex flex-col h-full m-auto">
-            <Loader />
+        <AnimatePresence mode="wait">
+          <motion.div className={`flex flex-1 flex-col m-auto`} variants={fade} animate="show" exit="exit">
+            <StarterCredentials credentialDefinitions={credentialDefinitions} />
           </motion.div>
-        )}
+        </AnimatePresence>
         {isFailedRequestModalOpen && (
           <FailedRequestModal key="credentialModal" action={sendNewCredentials} close={closeFailedRequestModal} />
         )}
@@ -137,7 +120,7 @@ export const AcceptCredentialAction: React.FC<Props> = (props: Props) => {
         )}
       </div>
       <ActionCTA
-        isCompleted={credentialsAccepted && credentials.length > 0}
+        isCompleted={credentialsAccepted}
         onFail={() => {
           trackSelfDescribingEvent({
             event: {

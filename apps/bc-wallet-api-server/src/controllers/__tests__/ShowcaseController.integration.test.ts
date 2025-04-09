@@ -62,6 +62,7 @@ describe('ShowcaseController Integration Tests', () => {
 
     app = createExpressServer({
       controllers: [ShowcaseController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })

@@ -23,8 +23,7 @@ import type {
   IssuerResponse,
   RelyingPartyResponse,
 } from '@/openapi-types'
-import { CredentialSchemaRequest } from '@/openapi-types'
-import { credentialDefinition, schema } from '@/schemas/credential'
+import { schema } from '@/schemas/credential'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -167,10 +166,18 @@ export const CredentialsForm = () => {
 
   const handleDeleteCredential = async () => {
     if (selectedCredential) {
-      await deleteCredentialDefinition(selectedCredential.id)
-      setSelectedCredential(null)
-      toast.success('Credential deleted successfully!')
-      form.reset()
+      try {
+        await deleteCredentialDefinition(selectedCredential.id)
+        setSelectedCredential(null) 
+        toast.success('Credential deleted successfully!')
+  
+        setIsModalOpen(false)
+  
+        form.reset()
+      } catch (error) {
+        console.error('Error deleting credential:', error)
+        toast.error('Failed to delete credential')
+      }
     }
   }
 
@@ -226,6 +233,11 @@ export const CredentialsForm = () => {
                   alt={credentialDefinition?.icon?.description || 'Credential icon'}
                   className="rounded-full shadow object-cover"
                   style={{ aspectRatio: '1/1' }}
+                  unoptimized
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement
+                    target.src = '/assets/no-image.jpg'
+                  }}
                 />
               </div>
             )}
@@ -396,3 +408,4 @@ export const CredentialsForm = () => {
     </Form>
   )
 }
+
