@@ -1,11 +1,12 @@
 import type { Issuer } from 'bc-wallet-openapi'
+import { instanceOfIssuer, IssuerToJSONTyped } from 'bc-wallet-openapi'
 import type { Sender } from 'rhea-promise'
 import { Connection } from 'rhea-promise'
 import { Service } from 'typedi'
 
 import { environment } from './environment'
+import type { Action } from './types/adapter-backend'
 import { encryptBuffer } from './util/CypherUtil'
-import { Action } from './types/adapter-backend'
 
 @Service()
 export class AdapterClientApi {
@@ -40,7 +41,7 @@ export class AdapterClientApi {
       const { accessTokenEnc, accessTokenNonce } = this.encryptAuthHeader(authHeader)
 
       const delivery = this.sender.send({
-        body: JSON.stringify(payload),
+        body: this.payloadToJson(payload),
         application_properties: { action, accessTokenEnc, accessTokenNonce },
       })
 
@@ -54,6 +55,13 @@ export class AdapterClientApi {
     } catch (error) {
       return Promise.reject(error)
     }
+  }
+
+  private payloadToJson(payload: object) {
+    if (instanceOfIssuer(payload)) {
+      return IssuerToJSONTyped(payload, false)
+    }
+    return JSON.stringify(payload)
   }
 
   public async publishIssuer(issuer: Issuer, authHeader: string): Promise<void> {
