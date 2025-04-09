@@ -56,7 +56,7 @@ export class CredentialDefinitionController {
     }
   }
 
-  @Authorized()
+//  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() credentialDefinitionRequest: CredentialDefinitionRequest): Promise<CredentialDefinitionResponse> {
@@ -74,7 +74,7 @@ export class CredentialDefinitionController {
     }
   }
 
-  @Authorized()
+//  @Authorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() credentialDefinitionRequest: CredentialDefinitionRequest): Promise<CredentialDefinitionResponse> {
     try {
@@ -94,7 +94,7 @@ export class CredentialDefinitionController {
     }
   }
 
-  @Authorized()
+//  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {
