@@ -1,5 +1,4 @@
 import {
-  Authorized,
   BadRequestError,
   Body,
   Delete,
