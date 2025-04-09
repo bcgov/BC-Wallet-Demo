@@ -12,13 +12,11 @@ import { CredentialDefinitionController } from './controllers/CredentialDefiniti
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import { corsOptions } from './utils/cors'
 import * as process from 'node:process'
-import { checkRoles, isAccessTokenAudienceValid, isAccessTokenValid, Token } from './utils/auth'
+import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 
 require('dotenv-flow').config()
 useContainer(Container)
-
-
 
 async function bootstrap() {
   try {
@@ -42,10 +40,6 @@ async function bootstrap() {
             return false
           }
           const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
-          // Check if the audience is valid.
-          if (!isAccessTokenAudienceValid(token)) {
-            return false
-          }
           // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
           // User roles which at the moment we are not using, do not need any prefix.
           return checkRoles(token, roles)

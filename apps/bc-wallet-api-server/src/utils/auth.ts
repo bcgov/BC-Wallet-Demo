@@ -29,6 +29,7 @@ export async function isAccessTokenValid(token: string): Promise<boolean> {
   ).active
 }
 
+// TODO Check if this is correct, or even necessary
 export function isAccessTokenAudienceValid(token: Token): boolean {
   const audienceData = Array.isArray(token.payload.aud) ? token.payload.aud : [token.payload.aud]
   return audienceData.includes(process.env.CLIENT_ID)
