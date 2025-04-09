@@ -1,7 +1,6 @@
 import type { Issuer } from 'bc-wallet-openapi'
 import { instanceOfIssuer, IssuerToJSONTyped } from 'bc-wallet-openapi'
-import type { Sender } from 'rhea-promise'
-import { Connection } from 'rhea-promise'
+import { Connection, Sender } from 'rhea-promise'
 import { Service } from 'typedi'
 
 import { environment } from './environment'

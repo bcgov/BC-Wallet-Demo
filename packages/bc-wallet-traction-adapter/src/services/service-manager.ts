@@ -11,13 +11,13 @@ class ServiceManager {
     ttl: environment.traction.TENANT_SESSION_TTL_MINS * 60,
   })
 
-  public getTractionService(
+  public async getTractionService(
     tenantId: string,
     apiUrlBase?: string,
     walletId?: string,
     accessTokenEnc?: Buffer,
     accessTokenNonce?: Buffer,
-  ): TractionService {
+  ): Promise<TractionService> {
     const key = this.buildKey(apiUrlBase, tenantId, walletId)
     const decodedToken = this.decodeToken(accessTokenEnc, accessTokenNonce)
 
@@ -28,8 +28,9 @@ class ServiceManager {
       // Update token if provided
       if (decodedToken) {
         service.updateBearerToken(decodedToken)
+      } else if (!service.hasBearerToken() && environment.traction.FIXED_API_KEY) {
+        service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY))
       }
-
       return service
     }
 
@@ -41,8 +42,8 @@ class ServiceManager {
 
   private decodeToken(accessTokenEnc?: Buffer, accessTokenNonce?: Buffer) {
     let decodedToken: string | undefined
-    if (accessTokenEnc) {
-      if (accessTokenNonce) {
+    if (accessTokenEnc && accessTokenEnc.length > 0) {
+      if (accessTokenNonce && accessTokenNonce.length > 0) {
         decodedToken = decryptBufferAsString(accessTokenEnc, accessTokenNonce)
       } else {
         throw Error('An access token was provided without a nonce')
@@ -63,16 +64,16 @@ class ServiceManager {
 // Singleton instance
 const serviceRegistry = new ServiceManager()
 
-export function getTractionService(
+export async function getTractionService(
   tenantId: string,
   apiUrlBase?: string,
   walletId?: string,
   accessTokenEnc?: Buffer,
   accessTokenNonce?: Buffer,
-): TractionService {
+): Promise<TractionService> {
   if (!tenantId) {
     throw new Error('tenantId is required')
   }
 
-  return serviceRegistry.getTractionService(tenantId, apiUrlBase, walletId, accessTokenEnc, accessTokenNonce)
+  return await serviceRegistry.getTractionService(tenantId, apiUrlBase, walletId, accessTokenEnc, accessTokenNonce)
 }

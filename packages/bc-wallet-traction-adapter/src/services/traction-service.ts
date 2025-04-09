@@ -73,6 +73,10 @@ export class TractionService {
     this.endorseTransactionApi = new EndorseTransactionApi(this.config)
   }
 
+  public hasBearerToken(): boolean {
+    return this.configOptions.apiKey !== undefined
+  }
+
   public updateBearerToken(token: string): void {
     this.configOptions.apiKey = this.tokenCallback(token)
   }

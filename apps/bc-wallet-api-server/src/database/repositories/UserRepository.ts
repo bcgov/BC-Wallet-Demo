@@ -1,12 +1,13 @@
 import { eq } from 'drizzle-orm'
 import { Service } from 'typedi'
-import DatabaseService from '../../services/DatabaseService'
+
 import { NotFoundError } from '../../errors'
+import { DatabaseService } from '../../services/DatabaseService'
+import type { NewUser, RepositoryDefinition, User } from '../../types'
 import { users } from '../schema'
-import { User, NewUser, RepositoryDefinition } from '../../types'
 
 @Service()
-class UserRepository implements RepositoryDefinition<User, NewUser> {
+export class UserRepository implements RepositoryDefinition<User, NewUser> {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async create(user: NewUser): Promise<User> {
@@ -22,7 +23,11 @@ class UserRepository implements RepositoryDefinition<User, NewUser> {
 
   async update(id: string, user: NewUser): Promise<User> {
     await this.findById(id)
-    const [result] = await (await this.databaseService.getConnection()).update(users).set(user).where(eq(users.id, id)).returning()
+    const [result] = await (await this.databaseService.getConnection())
+      .update(users)
+      .set(user)
+      .where(eq(users.id, id))
+      .returning()
 
     return result
   }
@@ -37,9 +42,20 @@ class UserRepository implements RepositoryDefinition<User, NewUser> {
     return result
   }
 
+  async findByUserName(userName: string): Promise<User> {
+    const [result] = await (await this.databaseService.getConnection())
+      .select()
+      .from(users)
+      .where(eq(users.userName, userName))
+
+    if (!result) {
+      return Promise.reject(new NotFoundError(`No user found for userName: ${userName}`))
+    }
+
+    return result
+  }
+
   async findAll(): Promise<User[]> {
     return (await this.databaseService.getConnection()).select().from(users)
   }
 }
-
-export default UserRepository
