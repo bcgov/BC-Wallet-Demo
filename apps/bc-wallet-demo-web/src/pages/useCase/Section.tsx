@@ -1,20 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React, {FC, ReactElement, useEffect, useState} from 'react'
 import { isMobile } from 'react-device-detect'
 import { useNavigate, useParams } from 'react-router-dom'
-
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion, AnimatePresence } from 'framer-motion'
-
 import { BackButton } from '../../components/BackButton'
 import { Button } from '../../components/Button'
 import { Modal } from '../../components/Modal'
 import { SmallButton } from '../../components/SmallButton'
 import { fadeExit } from '../../FramerAnimations'
 import { useAppDispatch } from '../../hooks/hooks'
-import type { ConnectionState } from '../../slices/connection/connectionSlice'
 import { useCaseCompleted } from '../../slices/preferences/preferencesSlice'
-import { useCurrentPersona } from '../../slices/showcases/showcasesSelectors'
-import type { UseCaseScreen } from '../../slices/types'
 import { nextStep, prevStep, resetStep } from '../../slices/useCases/useCasesSlice'
 import { basePath } from '../../utils/BasePath'
 import { isConnected, isCredIssued } from '../../utils/Helpers'
@@ -25,17 +20,34 @@ import { StepConnection } from './steps/StepConnection'
 import { StepEnd } from './steps/StepEnd'
 import { StepInformation } from './steps/StepInformation'
 import { StepProof } from './steps/StepProof'
+import type { ConnectionState } from '../../slices/connection/connectionSlice'
+import type { Persona, Showcase, UseCaseScreen, Scenario } from '../../slices/types'
+import {StepActionType} from 'bc-wallet-openapi';
+import {SetupConnectionAction} from '../onboarding/steps/actions/SetupConnectionAction';
+import {ChooseWalletAction} from '../onboarding/steps/actions/ChooseWalletAction';
+import {AcceptCredentialAction} from '../onboarding/steps/actions/AcceptCredentialAction';
+import {PickPersona} from '../onboarding/steps/PickPersona';
+import {SetupCompleted} from '../onboarding/steps/SetupCompleted';
+import {StepView} from '../onboarding/steps/StepView';
 
 export interface Props {
-  section: UseCaseScreen[]
+  showcase: Showcase
+  currentPersona: Persona
+  scenario: Scenario
   connection: ConnectionState
-  stepCount: number
-  sectionCount: number
-  credentials: any[]
+  credentials: any[] // TODO any
   proof?: any
 }
 
-export const Section: React.FC<Props> = ({ connection, section, stepCount, sectionCount, credentials, proof }) => {
+export const Section: FC<Props> = (props: Props) => {
+  const {
+    showcase,
+    currentPersona,
+    scenario,
+    connection,
+    credentials,
+    proof
+  } = props
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
@@ -51,7 +63,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
   const showLeaveModal = () => setLeaveModal(true)
   const closeLeave = () => setLeaveModal(false)
 
-  const step = section[stepCount]
+  const currentStep = scenario.steps[0]//section[stepCount] // TODO
 
   const prev = () => dispatch(prevStep())
   const next = () => dispatch(nextStep())
@@ -66,9 +78,6 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
   const [completed, setCompleted] = useState(false)
   const { slug } = useParams()
 
-  const verifier = section.find((x) => x.verifier !== undefined)?.verifier ?? { name: 'Unkown' }
-  const currentCharacter = useCurrentPersona()
-
   const leave = () => {
     trackSelfDescribingEvent({
       event: {
@@ -76,11 +85,11 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
         data: {
           action: 'leave',
           path: ``, // ${currentCharacter?.type.toLowerCase()}_${slug}`, // FIXME?
-          step: step.title,
+          step: currentStep.title,
         },
       },
     })
-    navigate(`${basePath}/dashboard`)
+    navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
     dispatch({ type: 'clearUseCase' })
     dispatch(resetStep())
   }
@@ -97,100 +106,132 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
           data: {
             action: 'usecase_completed',
             path: ``, // ${currentCharacter?.type.toLowerCase()}_${slug}`, FIXME?
-            step: step.title,
+            step: currentStep.title,
           },
         },
       })
     }
   }, [completed, dispatch, slug])
 
-  useEffect(() => {
-    if (step?.screenId.startsWith('CONNECTION')) {
-      if (isConnectionCompleted) {
-        setIsForwardDisabled(false)
-      } else {
-        setIsForwardDisabled(true)
-      }
-    }
+  // useEffect(() => {
+  //   if (step?.screenId.startsWith('CONNECTION')) {
+  //     if (isConnectionCompleted) {
+  //       setIsForwardDisabled(false)
+  //     } else {
+  //       setIsForwardDisabled(true)
+  //     }
+  //   }
+  //
+  //   if (step?.screenId.startsWith('PROOF') || step?.screenId.startsWith('PROOF_OOB')) {
+  //     if (isProofCompleted) {
+  //       setIsForwardDisabled(false)
+  //     } else {
+  //       setIsForwardDisabled(true)
+  //     }
+  //   }
+  //
+  //   if (step?.screenId.startsWith('CREDENTIAL')) {
+  //     if (credentialsReceived) {
+  //       setIsForwardDisabled(false)
+  //     } else {
+  //       setIsForwardDisabled(true)
+  //     }
+  //   }
+  //
+  //   // button is never disabled on INFO step
+  //   if (step?.screenId.startsWith('INFO')) {
+  //     setIsForwardDisabled(false)
+  //   }
+  //
+  //   // buttons are never disabled on the first step
+  //   if (stepCount === 0) {
+  //     setIsBackDisabled(true)
+  //   } else {
+  //     setIsBackDisabled(false)
+  //   }
+  // }, [stepCount, proof, connection.state, credentials])
 
-    if (step?.screenId.startsWith('PROOF') || step?.screenId.startsWith('PROOF_OOB')) {
-      if (isProofCompleted) {
-        setIsForwardDisabled(false)
-      } else {
-        setIsForwardDisabled(true)
-      }
-    }
+  // useEffect(() => {
+  //   // automatically go to next step if connection is set up
+  //   if (step?.screenId.startsWith('CONNECTION') && isConnectionCompleted) {
+  //     next()
+  //     trackSelfDescribingEvent({
+  //       event: {
+  //         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+  //         data: {
+  //           action: 'next',
+  //           path: ``, // ${currentCharacter?.type.toLowerCase()}_${slug}`, FIXME?
+  //           step: step.title,
+  //         },
+  //       },
+  //     })
+  //   }
+  // }, [connection.state])
 
-    if (step?.screenId.startsWith('CREDENTIAL')) {
-      if (credentialsReceived) {
-        setIsForwardDisabled(false)
-      } else {
-        setIsForwardDisabled(true)
-      }
-    }
+  // useEffect(() => {
+  //   if (isMobile) {
+  //     // reset mobile scroll on first & last step
+  //     if (step.screenId.startsWith('START') || step.screenId.startsWith('END')) {
+  //       window.scrollTo(0, 0)
+  //     }
+  //   }
+  // }, [stepCount, sectionCount])
 
-    // button is never disabled on INFO step
-    if (step?.screenId.startsWith('INFO')) {
-      setIsForwardDisabled(false)
-    }
-
-    // buttons are never disabled on the first step
-    if (stepCount === 0) {
-      setIsBackDisabled(true)
-    } else {
-      setIsBackDisabled(false)
-    }
-  }, [stepCount, proof, connection.state, credentials])
-
-  useEffect(() => {
-    // automatically go to next step if connection is set up
-    if (step?.screenId.startsWith('CONNECTION') && isConnectionCompleted) {
-      next()
-      trackSelfDescribingEvent({
-        event: {
-          schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
-          data: {
-            action: 'next',
-            path: ``, // ${currentCharacter?.type.toLowerCase()}_${slug}`, FIXME?
-            step: step.title,
-          },
-        },
-      })
-    }
-  }, [connection.state])
-
-  useEffect(() => {
-    if (isMobile) {
-      // reset mobile scroll on first & last step
-      if (step.screenId.startsWith('START') || step.screenId.startsWith('END')) {
-        window.scrollTo(0, 0)
-      }
-    }
-  }, [stepCount, sectionCount])
+  const getComponentToRender = (): ReactElement => {
+    return <StepInformation key={'TODO'} step={currentStep} />
+    // if (!currentStep || currentStep.order === 1) {
+    //   return (
+    //       <PickPersona
+    //           currentPersona={currentPersona}
+    //           personas={scenarios.map((scenario) => scenario.persona)}
+    //           title={currentStep?.title}
+    //           text={currentStep?.description}
+    //       />
+    //   )
+    // } else if (currentScenario?.steps.length === currentStep.order) {
+    //   return <SetupCompleted title={currentStep.title} text={currentStep.description} />
+    // } else {
+    //   return (
+    //       <StepView
+    //           title={currentStep.title}
+    //           text={currentStep.description}
+    //           actions={currentStep.actions}
+    //           nextStep={nextOnboardingPage}
+    //           connectionState={connectionState}
+    //           invitationUrl={invitationUrl}
+    //           connectionId={connectionId}
+    //           issuerName={currentScenario?.issuer?.name}
+    //       />
+    //   )
+    // }
+  }
 
   const renderStepItem = () => {
-    if (step.screenId.startsWith('START')) {
-      return (
-        <StartContainer
-          key={step.screenId}
-          characterType={undefined} // FIXME? currentCharacter?.type.toLowerCase()}
-          step={step}
-          entity={verifier}
-          requestedCredentials={step.requestOptions?.requestedCredentials}
-        />
-      )
-    }
-    if (step.screenId.startsWith('END')) {
-      return <EndContainer key={step.screenId} step={step} />
-    } else {
+
+    console.log(`CAALING renderStepItem`)
+
+    // if (step.screenId.startsWith('START')) {
+    //   return (
+    //     <StartContainer
+    //       key={step.screenId}
+    //       characterType={undefined} // FIXME? currentCharacter?.type.toLowerCase()}
+    //       step={step}
+    //       entity={verifier}
+    //       requestedCredentials={step.requestOptions?.requestedCredentials}
+    //     />
+    //   )
+    // }
+    // if (step.screenId.startsWith('END')) {
+    //   return <EndContainer key={step.screenId} step={step} />
+    // } else {
       return (
         <>
           <div className="flex flex-col lg:flex-row w-full h-full">
             <SideView
               key={'sideView'}
-              steps={section}
-              currentStep={step.screenId}
-              entity={verifier}
+              steps={scenario.steps}
+              currentStep={1} // TODO
+              entity={scenario.relyingParty ?? { name: 'UNKNOWN' }}
               showLeaveModal={showLeaveModal}
             />
             <motion.div
@@ -204,22 +245,23 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
               data-cy="section"
             >
               <AnimatePresence initial={false} mode="wait" onExitComplete={() => null}>
-                {step.screenId.startsWith('INFO') && <StepInformation key={step.screenId} step={step} />}
-                {step.screenId.startsWith('CONNECTION') && (
-                  <StepConnection newConnection={true} key={step.screenId} step={step} connection={connection} />
-                )}
-                {step.screenId.startsWith('PROOF') && step.requestOptions && connection.id && (
-                  <StepProof
-                    key={step.screenId}
-                    entityName={verifier.name}
-                    characterType={undefined} // FIXME?{currentCharacter?.type.toLowerCase()}
-                    proof={proof}
-                    step={step}
-                    connectionId={connection.id}
-                    requestedCredentials={step.requestOptions.requestedCredentials}
-                  />
-                )}
-                {step.screenId.startsWith('STEP_END') && <StepEnd key={step.screenId} step={step} />}
+                {getComponentToRender()}
+                {/*{step.screenId.startsWith('INFO') && <StepInformation key={step.screenId} step={step} />}*/}
+                {/*{step.screenId.startsWith('CONNECTION') && (*/}
+                {/*  <StepConnection newConnection={true} key={step.screenId} step={step} connection={connection} />*/}
+                {/*)}*/}
+                {/*{step.screenId.startsWith('PROOF') && step.requestOptions && connection.id && (*/}
+                {/*  <StepProof*/}
+                {/*    key={step.screenId}*/}
+                {/*    entityName={verifier.name}*/}
+                {/*    characterType={undefined} // FIXME?{currentCharacter?.type.toLowerCase()}*/}
+                {/*    proof={proof}*/}
+                {/*    step={step}*/}
+                {/*    connectionId={connection.id}*/}
+                {/*    requestedCredentials={step.requestOptions.requestedCredentials}*/}
+                {/*  />*/}
+                {/*)}*/}
+                {/*{step.screenId.startsWith('STEP_END') && <StepEnd key={step.screenId} step={step} />}*/}
               </AnimatePresence>
               <div className="flex justify-between items-center">
                 <BackButton
@@ -231,14 +273,14 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                         data: {
                           action: 'back',
                           path: ``, // FIXME? `${currentCharacter?.type.toLowerCase()}_${slug}`,
-                          step: step.title,
+                          step: currentStep.title,
                         },
                       },
                     })
                   }}
                   disabled={isBackDisabled}
                 />
-                {step.screenId.startsWith('STEP_END') ? (
+                {scenario.steps.length === currentStep.order ? (
                   <Button text="COMPLETE" onClick={() => setCompleted(true)} />
                 ) : (
                   <SmallButton
@@ -251,7 +293,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                           data: {
                             action: 'next',
                             path: ``, // FIXME? ${currentCharacter?.type.toLowerCase()}_${slug}`,
-                            step: step.title,
+                            step: currentStep.title,
                           },
                         },
                       })
@@ -268,8 +310,8 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
           )}
         </>
       )
-    }
+    // }
   }
 
-  return <AnimatePresence mode="wait">{step && renderStepItem()}</AnimatePresence>
+  return <AnimatePresence mode="wait">{currentStep && renderStepItem()}</AnimatePresence>
 }

@@ -14,7 +14,7 @@ export interface Props {
   requiredCredentials: CredentialDefinition[]
   isCompleted: boolean
   isLocked: boolean
-  start(slug: string): void
+  start(scenarioSlug: string): void
 }
 
 export const UseCaseItem: React.FC<Props> = ({

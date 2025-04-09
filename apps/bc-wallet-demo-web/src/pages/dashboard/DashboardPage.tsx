@@ -25,7 +25,6 @@ import {ScenarioType} from 'bc-wallet-openapi';
 
 export const DashboardPage: React.FC = () => {
   useTitle('Dashboard | BC Wallet Self-Sovereign Identity Demo')
-
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { revokableCredentials } = useCredentials()
@@ -110,11 +109,12 @@ export const DashboardPage: React.FC = () => {
       <div className="mx-8 my-4">
         <NavBar />
       </div>
-      {currentPersona ? (
+      {currentPersona && showcase ? (
         <>
           <div className="flex flex-col lg:flex-row mb-auto">
             <div className="w-full lg:w-2/3 order-last lg:order-first">
               <UseCaseContainer
+                  showcase={showcase}
                   completedUseCaseSlugs={completedUseCaseSlugs} // FIXME we need to implement this later
                   currentPersona={currentPersona}
                   scenarios={scenarios}

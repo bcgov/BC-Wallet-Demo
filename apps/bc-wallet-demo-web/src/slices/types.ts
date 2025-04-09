@@ -183,6 +183,7 @@ export interface Scenario {
   persona: Persona
   steps: Step[]
   issuer?: Issuer
+  relyingParty?: RelyingParty
 }
 
 export interface Persona {
@@ -209,6 +210,7 @@ export interface StepAction {
 
 export interface Issuer {
   name: string
+  logo?: string
 }
 
 export interface CredentialDefinition {
@@ -223,4 +225,9 @@ export interface CredentialDefinition {
 export interface CredentialDefinitionAttribute {
   name: string
   value?: string
+}
+
+export interface RelyingParty {
+  name: string
+  logo?: string
 }
