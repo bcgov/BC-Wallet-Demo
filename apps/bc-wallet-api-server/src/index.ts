@@ -1,5 +1,10 @@
 import 'reflect-metadata'
-import { Action, createExpressServer, UnauthorizedError, useContainer } from 'routing-controllers'
+import { 
+  // Action, 
+  createExpressServer, 
+  // UnauthorizedError, 
+  useContainer 
+} from 'routing-controllers'
 import Container from 'typedi'
 import AssetController from './controllers/AssetController'
 import PersonaController from './controllers/PersonaController'
@@ -14,7 +19,7 @@ import { corsOptions } from './utils/cors'
 import { registerServicesByInterface } from './services/RegisterServicesByInterface'
 import TenantController from './controllers/TenantController'
 import * as process from 'node:process'
-import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
+// import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 
 require('dotenv-flow').config()
