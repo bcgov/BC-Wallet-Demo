@@ -13,7 +13,7 @@ import { setOnboardingProgress } from '../../../utils/OnboardingUtils'
 import { StepInformation } from '../components/StepInformation'
 
 export interface Props {
-  currentPersona?: Persona
+  currentPersona?: Persona | null
   personas: Persona[]
   title?: string
   text?: string

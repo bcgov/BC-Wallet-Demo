@@ -11,7 +11,6 @@ import { useCreatePresentation, usePresentations } from '@/hooks/use-presentatio
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
 import { sampleAction } from '@/lib/steps'
-import type { PresentationScenarioResponseType } from '@/openapi-types'
 import type { BasicStepFormData } from '@/schemas/onboarding'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from 'lodash'
@@ -140,12 +139,14 @@ export const BasicStepAdd = () => {
       return scenarioForPersona
     })
 
-    const scenarioIds = []
+    const scenarioIds: string[] = []
 
     for (const scenario of personaScenarios) {
       try {
         const result = await mutateAsync(scenario)
-        scenarioIds.push((result as PresentationScenarioResponseType).presentationScenario.id)
+        if (result?.presentationScenario?.id) {
+          scenarioIds.push(result.presentationScenario.id)
+        }
         toast.success(`Presentation created for ${scenario.personas[0]?.name || 'persona'}`)
       } catch (error) {
         console.error('Error creating scenario:', error)

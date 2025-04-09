@@ -183,161 +183,42 @@ export const useOnboarding = create<State & Actions>()(
   }))
 );
 
-export const useCreateStep = () => {
-  const { createStep, setStepState } = useOnboarding();
-  const [stepType, setStepType] = useState<typeof StepTypeEnum._type | null>(null);
+export const useCreateScenario = (): UseMutationResult<IssuanceScenarioResponse, Error, IssuanceScenarioRequest> => {
+  const queryClient = useQueryClient()
 
-  const stepForm = useForm<typeof StepRequest._type>({
-    resolver: zodResolver(StepRequest),
-  });
-
-  const handleTypeSelection = (type: typeof StepTypeEnum._type) => {
-    setStepType(type);
-    stepForm.reset({
-      title: "",
-      description: "",
-      type: type,
-      asset: "",
-      ...(type === "HUMAN_TASK" && { credentials: [] }),
-    });
-  };
-
-  const onSubmit = (data: typeof StepRequest._type) => {
-    const newStep = {
-      id: `${Date.now()}`,
-      title: data.title,
-      description: data.description,
-      type: data.type,
-      asset: data.asset || "",
-      // ...(data.type === "HUMAN_TASK" && { credentials: data.credentials || [] }),
-    };
-
-    createStep(newStep);
-    setStepState("no-selection");
-  };
-
-  return {
-    stepType,
-    handleTypeSelection,
-    stepForm,
-    onSubmit,
-  };
-};
-
-// forms
-export const useCreateScenarioForm = () => {
-  const [stepType, setStepType] = useState<typeof ScenarioTypeEnum._type | null>(null);
-
-  const form = useForm<ScenarioRequestType>({
-    resolver: zodResolver(ScenarioRequest),
-  });
-
-  const handleTypeSelection = (type: typeof ScenarioTypeEnum._type) => {
-    setStepType(type);
-    form.reset({
-      name: "",
-      description: "",
-      type: type,
-      steps: [], // <-- introduce the array of steps 
-      personas: [],
-      hidden: false,
-      issuer: "",
-    });
-  };
-
-  const onSubmit = (data: ScenarioRequestType) => {
-    console.log(data);
-  };
-
-  return {
-    stepType,
-    handleTypeSelection,
-    form,
-    onSubmit,
-  };
-};
-
-const staleTime = 1000 * 60 * 5; // 5 minutes
-
-export const useCreateScenario = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: ScenarioRequestType) => {
-      const response = await apiClient.post(`/scenarios/issuances`, data);
-      return response;
+  return useMutation<IssuanceScenarioResponse, Error, IssuanceScenarioRequest>({
+    mutationFn: async (data: IssuanceScenarioRequest): Promise<IssuanceScenarioResponse> => {
+      const response = await apiClient.post(`/scenarios/issuances`, data)
+      return response as IssuanceScenarioResponse
     },
-    onSettled: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["issuanceScenario"] });
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['issuanceScenario'] })
     },
-  });
-};
+  })
+}
 
-export const useScenario = (slug: string) => {
+export const useScenario = (slug: string): UseQueryResult<IssuanceScenarioResponse> => {
   return useQuery({
     queryKey: ["issuanceScenario", slug],
-    queryFn: async () => {
+    queryFn: async (): Promise<IssuanceScenarioResponse> => {
       const response = (await apiClient.get(
         `/scenarios/issuances/${slug}`
-      )) as typeof IssuanceScenarioResponse._type;
+      )) as IssuanceScenarioResponse;
       return response;
     },
     staleTime,
   });
 };
 
-
-
-
-// STEPS
-export const useIssuanceStep = (slug: string) => {
+export const useIssuanceStep = (slug: string): UseQueryResult<StepResponse> => {
   return useQuery({
     queryKey: ["issuanceStep", slug],
-    queryFn: async () => {
+    queryFn: async (): Promise<StepResponse> => {
       const response = (await apiClient.get(
         `/scenarios/issuances/${slug}/steps`
-      )) as typeof StepResponse._type;
+      )) as StepResponse;
       return response;
     },
     staleTime,
-  });
-};
-
-export const useCreateIssuanceStep = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      slug,
-      data,
-    }: {
-      slug: string;
-      data: typeof StepRequest._type;
-    }) => {
-      const response = await apiClient.post(
-        `/scenarios/issuances/${slug}/steps`,
-        data
-      );
-      return response;
-    },
-    onSettled: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["issuanceStep"] });
-    },
-  });
-};
-
-export const useUpdateIssuanceStep = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ slug, stepSlug, data }: { slug: string; stepSlug: string; data: typeof StepRequest._type }) => {
-      const response = await apiClient.put(
-        `/scenarios/issuances/${slug}/steps/${stepSlug}`,
-        data
-      );
-      return response;
-    },
-    onSettled: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["issuanceStep"] });
-    },
   });
 };

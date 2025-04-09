@@ -10,3 +10,14 @@ export function useSlug(): string {
 
   return inputSlug
 }
+
+export function usePersonaSlug(): string {
+  const params = useParams()
+  const inputSlug = params['personaSlug']
+
+  if (!inputSlug) {
+    throw Error('No slug provided')
+  }
+
+  return inputSlug
+}

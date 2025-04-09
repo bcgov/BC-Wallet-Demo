@@ -22,7 +22,7 @@ const ws = new Server(server, {
   cors: {
     origin: true,
   },
-  path: `${baseRoute}/demo/socket/`,
+  path: `${baseRoute}/socket/`,
 })
 
 const socketMap = new Map()
@@ -90,4 +90,4 @@ const run = async () => {
   server.listen(5000)
 }
 
-run()
+void run()
