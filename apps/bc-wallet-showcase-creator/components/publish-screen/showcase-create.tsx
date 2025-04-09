@@ -150,7 +150,7 @@ export const ShowcaseCreate = () => {
       scenarios: [],
       credentialDefinitions: [],
       personas: [],
-      tenantId: 'test-tenant-1',
+      tenantId,
       bannerImage: '',
     },
   })

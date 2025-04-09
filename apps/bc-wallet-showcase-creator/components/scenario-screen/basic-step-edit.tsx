@@ -17,12 +17,10 @@ import { toast } from 'sonner'
 import { useCreatePresentation, usePresentations } from '@/hooks/use-presentation'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
-import { sampleAction, sampleScenario } from '@/lib/steps'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { BasicStepFormData, basicStepSchema } from '@/schemas/onboarding'
-import { usePresentationCreation } from "@/hooks/use-presentation-creation"
-import { IssuanceScenarioResponseType, PresentationScenarioResponseType, StepType } from '@/openapi-types'
-import { useCreateScenario } from '@/hooks/use-onboarding'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { PresentationScenarioRequest } from 'bc-wallet-openapi'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
 import { LocalFileUpload } from './local-file-upload'
@@ -30,15 +28,12 @@ import { ErrorModal } from '../error-modal'
 
 export const BasicStepEdit = () => {
   const t = useTranslations()
-  const { personas } = useOnboardingAdapter()
-  const { relayerId } = useHelpersStore()
-  const { screens} = usePresentations()
-  const router = useRouter();
-  const { mutateAsync, isPending } = useCreatePresentation();
-  const { setScenarioIds, showcase } = useShowcaseStore();
-  const {selectedScenario, updateStep, selectedStep, setStepState, deleteStep, activePersonaId,activePersona } = usePresentationAdapter()
+  const router = useRouter()
+  const { mutateAsync } = useCreatePresentation()
+  const { setScenarioIds } = useShowcaseStore()
+  const { selectedScenario, updateStep, selectedStep, setStepState, deleteStep } =
+    usePresentationAdapter()
   const { personaScenarios } = usePresentationCreation()
-  const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
 
@@ -55,70 +50,72 @@ export const BasicStepEdit = () => {
     defaultValues,
     mode: 'all',
   })
-  
+
   useEffect(() => {
     if (currentStep) {
       form.reset(defaultValues)
     }
   }, [currentStep, form])
 
-    const autoSave = debounce((data: BasicStepFormData) => {
-      if (!currentStep || !form.formState.isDirty) return
-  
-      const updatedStep = {
-        ...currentStep,
-        title: data.title,
-        description: data.description,
-        asset: data.asset || undefined,
+  const autoSave = debounce((data: BasicStepFormData) => {
+    if (!currentStep || !form.formState.isDirty) return
+
+    const updatedStep = {
+      ...currentStep,
+      title: data.title,
+      description: data.description,
+      asset: data.asset || undefined,
+    }
+
+    updateStep(currentStep.order, updatedStep)
+
+    setTimeout(() => {
+      toast.success('Changes saved', { duration: 1000 })
+    }, 500)
+  }, 800)
+
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (form.formState.isDirty) {
+        autoSave(value as BasicStepFormData)
       }
+    })
 
-      updateStep(currentStep.order, updatedStep)
-  
-      setTimeout(() => {
-        toast.success('Changes saved', { duration: 1000 })
-      }, 500)
-    }, 800)
+    return () => subscription.unsubscribe()
+  }, [form, autoSave])
 
-    useEffect(() => {
-      const subscription = form.watch((value) => {
-        if (form.formState.isDirty) {
-          autoSave(value as BasicStepFormData)
+  const onSubmit = async (data: BasicStepFormData) => {
+    autoSave.flush()
+
+    const mappedScenarios = Array.from(personaScenarios.values()).flatMap((scenarios) =>
+      scenarios.map((scenario) => ({
+        ...scenario,
+        steps: scenario.steps.map((step, index) => ({
+          ...step,
+          order: index,
+          asset: step.asset || undefined,
+        })),
+      })),
+    )
+
+    const scenarioIds = []
+
+    for (const scenario of mappedScenarios) {
+      try {
+        const result = await mutateAsync(scenario as PresentationScenarioRequest)
+        if (result?.presentationScenario?.id) {
+          scenarioIds.push(result.presentationScenario.id)
         }
-      })
-    
-      return () => subscription.unsubscribe()
-    }, [form, autoSave])
-
-    const onSubmit = async (data: BasicStepFormData) => {
-      autoSave.flush()
- 
-      const mappedScenarios = Array.from(personaScenarios.values()).flatMap(scenarios =>
-        scenarios.map(scenario => ({
-          ...scenario,
-          steps: scenario.steps.map((step, index) => ({
-            ...step,
-            order: index,
-            asset: step.asset || undefined
-          }))
-        }))
-      );
-
-      const scenarioIds = []
-
-      for (const scenario of mappedScenarios) {
-        try {
-          const result = await mutateAsync(scenario);
-          scenarioIds.push((result as PresentationScenarioResponseType).presentationScenario.id)
-          toast.success(`${scenario?.description || 'persona'} created`)
-        } catch (error) {
-          console.error('Error creating scenario:', error)
-          setErrorModal(true)
-          return
-        }
+        toast.success(`${scenario?.description || 'persona'} created`)
+      } catch (error) {
+        console.error('Error creating scenario:', error)
+        setErrorModal(true)
+        return
       }
+    }
 
-      setScenarioIds(scenarioIds)
-      router.push(`/showcases/create/publish`)
+    setScenarioIds(scenarioIds)
+    router.push(`/showcases/create/publish`)
   }
 
   if (!currentStep) return null
@@ -146,7 +143,6 @@ export const BasicStepEdit = () => {
             case 'delete':
               console.log('Delete Page clicked')
               setIsModalOpen(true)
-              setIsOpen(false)
               break
             default:
               console.log('Unknown action')
@@ -177,41 +173,37 @@ export const BasicStepEdit = () => {
 
           <div className="space-y-2">
             <LocalFileUpload
-                text={t("onboarding.icon_label")}
-                element="asset"
-                existingAssetId={form.watch("asset")}
-                handleLocalUpdate={(_, value) => {
-                  console.log('Value',value);
-                  if (!currentStep) return;
-          
-                  const updatedStep1 = {
-                    ...currentStep,
-                    title: currentStep.title,
-                    description: currentStep.description,
-                    asset: value || undefined
-                  };
-                  updateStep(selectedStep?.stepIndex || 0, updatedStep1);
-          
-                  form.setValue("asset", value, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  })
-                }}
-              />
-              {form.formState.errors.asset && (
-                <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
-              )}
-            </div>
+              text={t('onboarding.icon_label')}
+              element="asset"
+              existingAssetId={form.watch('asset')}
+              handleLocalUpdate={(_, value) => {
+                console.log('Value', value)
+                if (!currentStep) return
+
+                const updatedStep1 = {
+                  ...currentStep,
+                  title: currentStep.title,
+                  description: currentStep.description,
+                  asset: value || undefined,
+                }
+                updateStep(selectedStep?.stepIndex || 0, updatedStep1)
+
+                form.setValue('asset', value, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                })
+              }}
+            />
+            {form.formState.errors.asset && (
+              <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
+            )}
+          </div>
 
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
             {/* <Link href="/publish"> */}
-            <ButtonOutline  
-                type='submit'
-                disabled={!form.formState.isValid}
-                onClick={form.handleSubmit(onSubmit)}
-              >
+            <ButtonOutline type="submit" disabled={!form.formState.isValid} onClick={form.handleSubmit(onSubmit)}>
               {t('action.next_label')}
             </ButtonOutline>
             {/* </Link> */}
