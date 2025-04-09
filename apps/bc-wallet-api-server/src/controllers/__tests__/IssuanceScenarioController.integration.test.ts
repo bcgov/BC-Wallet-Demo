@@ -46,6 +46,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
     Container.get(ScenarioService)
     app = createExpressServer({
       controllers: [IssuanceScenarioController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })

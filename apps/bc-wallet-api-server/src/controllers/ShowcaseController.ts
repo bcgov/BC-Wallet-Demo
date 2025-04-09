@@ -1,15 +1,4 @@
-import {
-  BadRequestError,
-  Body,
-  Delete,
-  Get,
-  HttpCode,
-  JsonController,
-  OnUndefined,
-  Param,
-  Post,
-  Put,
-} from 'routing-controllers'
+import { Authorized, BadRequestError, Body, Delete, Get, HttpCode, JsonController, OnUndefined, Param, Post, Put } from 'routing-controllers'
 import { Service } from 'typedi'
 import {
   instanceOfShowcaseRequest,
@@ -56,6 +45,7 @@ class ShowcaseController {
     }
   }
 
+  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
@@ -73,6 +63,7 @@ class ShowcaseController {
     }
   }
 
+  @Authorized()
   @Put('/:slug')
   public async put(@Param('slug') slug: string, @Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
     const id = await this.showcaseService.getIdBySlug(slug)
@@ -90,6 +81,7 @@ class ShowcaseController {
     }
   }
 
+  @Authorized()
   @OnUndefined(204)
   @Delete('/:slug')
   public async delete(@Param('slug') slug: string): Promise<void> {

@@ -50,6 +50,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     Container.get(ScenarioService)
     app = createExpressServer({
       controllers: [PresentationScenarioController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })
