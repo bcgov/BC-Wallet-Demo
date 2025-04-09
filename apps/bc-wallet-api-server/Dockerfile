@@ -24,6 +24,7 @@ RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib drizzle
 RUN pnpm install
 RUN pnpm generate:models
 RUN pnpm --filter bc-wallet-openapi build:clean
+RUN pnpm --filter bc-wallet-traction-openapi build:clean
 RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-api-server --prod --no-optional
 
