@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { Action, createExpressServer, useContainer } from 'routing-controllers'
+import { Action, createExpressServer, UnauthorizedError, useContainer } from 'routing-controllers'
 import Container from 'typedi'
 import AssetController from './controllers/AssetController'
 import PersonaController from './controllers/PersonaController'
@@ -39,7 +39,11 @@ async function bootstrap() {
         TenantController,
       ],
       authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
-          const accessToken: string = action.request.headers['authorization'].split(' ')[1]
+          const authHeader: string = action.request.headers['authorization']
+          if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            throw new UnauthorizedError('Missing or malformed Authorization header')
+          }
+          const accessToken = authHeader.split(' ')[1]
           // Introspect the access token
           if(!await isAccessTokenValid(accessToken)) {
             return false
