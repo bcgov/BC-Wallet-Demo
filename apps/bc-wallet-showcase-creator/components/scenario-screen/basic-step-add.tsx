@@ -30,7 +30,6 @@ import { sampleScenario } from '@/lib/steps'
 
 import { NoSelection } from '../credentials/no-selection'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
-import { PresentationScenarioResponse } from 'bc-wallet-openapi'
 
 export const BasicStepAdd = () => {
   const t = useTranslations()

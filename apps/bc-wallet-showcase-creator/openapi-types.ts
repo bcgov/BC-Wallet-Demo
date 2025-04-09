@@ -438,10 +438,7 @@ export const ErrorResponse = z.object({
   message: z.string(),
 });
 
-export type Showcase = z.infer<typeof ShowcaseSchema>;
 export type ShowcaseRequestType = z.infer<typeof ShowcaseRequest>;
-export type Persona = z.infer<typeof PersonaSchema>;
-export type PersonaRequestType = z.infer<typeof PersonaRequest>;
 export type Credential = z.infer<typeof CredentialDefinition>;
 
 export type ScenarioRequestType = z.infer<typeof ScenarioRequest>;
@@ -458,11 +455,7 @@ export type CredentialSchemaRequestType = z.infer<typeof CredentialSchemaRequest
 export type StepRequestType = z.infer<typeof StepRequest>;
 export type StepType = z.infer<typeof Step>;
 
-export type PresentationScenarioResponseType = z.infer<typeof PresentationScenarioResponse>;
 export type IssuanceScenarioRequestType = z.infer<typeof IssuanceScenarioRequest>;
 export type PresentationScenarioRequestType = z.infer<typeof PresentationScenarioRequest>;
 
-export type CredentialDefinitionRequestType = z.infer<typeof CredentialDefinitionRequest>;
-export type CredentialDefinitionResponseType = z.infer<typeof CredentialDefinitionResponse>;
-export type CredentialSchemaResponseType = z.infer<typeof CredentialSchemaResponse>;
 export type CredentialDefinitionType = z.infer<typeof CredentialDefinition>;
