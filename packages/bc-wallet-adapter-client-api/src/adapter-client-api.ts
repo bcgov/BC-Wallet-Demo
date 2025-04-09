@@ -5,17 +5,18 @@ import { Service } from 'typedi'
 
 import { environment } from './environment'
 import { encryptBuffer } from './util/CypherUtil'
+import { Action } from './types/adapter-backend'
 
 @Service()
 export class AdapterClientApi {
-  private readonly isReady: Promise<void>
+  private readonly isInitComplete: Promise<void>
   private isConnected = false
   private connection: Connection
   private sender!: Sender
 
   public constructor() {
     this.connection = new Connection(environment.messageBroker.getConnectionOptions())
-    this.isReady = this.init() // concurrency protection
+    this.isInitComplete = this.init() // concurrency protection
   }
 
   private async init(): Promise<void> {
@@ -32,9 +33,9 @@ export class AdapterClientApi {
     this.isConnected = true
   }
 
-  private async send(action: string, payload: object, authHeader?: string): Promise<void> {
+  private async send(action: Action, payload: object, authHeader?: string): Promise<void> {
     try {
-      await this.isReady
+      await this.isInitComplete
 
       const { accessTokenEnc, accessTokenNonce } = this.encryptAuthHeader(authHeader)
 
@@ -72,10 +73,6 @@ export class AdapterClientApi {
     }
 
     const token = authHeader.replace('Bearer ', '')
-
-    if (!token) {
-      return { accessTokenEnc: Buffer.alloc(0), accessTokenNonce: Buffer.alloc(0) }
-    }
 
     const result = encryptBuffer(Buffer.from(token, 'utf8'))
 

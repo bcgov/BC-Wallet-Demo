@@ -6,15 +6,11 @@ import { environment } from '../environment'
 
 // TODO move to common package to dedup
 
-const env = environment.encryption
+const envEnc = environment.encryption
 
 function isChaCha20Poly1305Supported(): boolean {
-  try {
-    const supportedAlgorithms = crypto.getCiphers()
-    return supportedAlgorithms.includes('chacha20-poly1305')
-  } catch (error) {
-    return false
-  }
+  const supportedAlgorithms = crypto.getCiphers()
+  return supportedAlgorithms.includes('chacha20-poly1305')
 }
 
 if (!isChaCha20Poly1305Supported()) {
@@ -44,7 +40,7 @@ function decodeKey(encodedKey: string): Buffer {
  * @param size Key size in bytes (default from environment or 32 bytes)
  * @returns Base58 encoded string representation of the generated key
  */
-export function generateKey(size: number = env.KEY_SIZE): string {
+export function generateKey(size: number = envEnc.KEY_SIZE): string {
   const keyBuffer = crypto.randomBytes(size)
   return encodeKey(keyBuffer)
 }
@@ -55,11 +51,11 @@ export function generateKey(size: number = env.KEY_SIZE): string {
  * @throws Error when the ENCRYPTION_KEY env var is not found
  */
 function getKeyFromEnv(): Buffer {
-  if (!env.ENCRYPTION_KEY) {
+  if (!envEnc.ENCRYPTION_KEY) {
     throw Error('No encryption key found in the environment variables.')
   }
 
-  return decodeKey(env.ENCRYPTION_KEY)
+  return decodeKey(envEnc.ENCRYPTION_KEY)
 }
 
 /**
@@ -69,12 +65,12 @@ function getKeyFromEnv(): Buffer {
  * @throws Error if key or nonce size is invalid
  */
 function validateParameters(key: Buffer, nonceSize: number): void {
-  if (key.length !== env.KEY_SIZE) {
-    throw new Error(`Invalid key size. ChaCha20-Poly1305 requires a ${env.KEY_SIZE}-byte key.`)
+  if (key.length !== envEnc.KEY_SIZE) {
+    throw new Error(`Invalid key size. ChaCha20-Poly1305 requires a ${envEnc.KEY_SIZE}-byte key.`)
   }
 
-  if (nonceSize !== env.NONCE_SIZE) {
-    throw new Error(`Invalid nonce size. ChaCha20-Poly1305 requires a ${env.NONCE_SIZE}-byte nonce.`)
+  if (nonceSize !== envEnc.NONCE_SIZE) {
+    throw new Error(`Invalid nonce size. ChaCha20-Poly1305 requires a ${envEnc.NONCE_SIZE}-byte nonce.`)
   }
 }
 
@@ -84,7 +80,7 @@ function validateParameters(key: Buffer, nonceSize: number): void {
  * @param nonceSize Size of the nonce in bytes (default from environment)
  * @returns Object containing encrypted data and nonce
  */
-export function encryptBuffer(data: Buffer, nonceSize: number = env.NONCE_SIZE): { encrypted: Buffer; nonce: Buffer } {
+export function encryptBuffer(data: Buffer, nonceSize: number = envEnc.NONCE_SIZE): { encrypted: Buffer; nonce: Buffer } {
   const key = getKeyFromEnv()
   validateParameters(key, nonceSize)
 
@@ -93,7 +89,7 @@ export function encryptBuffer(data: Buffer, nonceSize: number = env.NONCE_SIZE):
 
   // Create cipher - use 'chacha20-poly1305' algorithm
   const cipher = crypto.createCipheriv('chacha20-poly1305', key, nonce, {
-    authTagLength: env.AUTH_TAG_LENGTH,
+    authTagLength: envEnc.AUTH_TAG_LENGTH,
   })
 
   // Encrypt data
@@ -119,17 +115,17 @@ export function decryptBuffer(encryptedData: Buffer, nonce: Buffer): Buffer {
   const key = getKeyFromEnv()
   validateParameters(key, nonce.length)
 
-  if (encryptedData.length <= env.AUTH_TAG_LENGTH) {
+  if (encryptedData.length <= envEnc.AUTH_TAG_LENGTH) {
     throw new Error('Invalid encrypted data: too short to contain authentication tag')
   }
 
   // Extract auth tag (last 16 bytes)
-  const authTag = encryptedData.slice(encryptedData.length - env.AUTH_TAG_LENGTH)
-  const ciphertext = encryptedData.slice(0, encryptedData.length - env.AUTH_TAG_LENGTH)
+  const authTag = encryptedData.slice(encryptedData.length - envEnc.AUTH_TAG_LENGTH)
+  const ciphertext = encryptedData.slice(0, encryptedData.length - envEnc.AUTH_TAG_LENGTH)
 
   // Create decipher
   const decipher = crypto.createDecipheriv('chacha20-poly1305', key, nonce, {
-    authTagLength: env.AUTH_TAG_LENGTH,
+    authTagLength: envEnc.AUTH_TAG_LENGTH,
   })
 
   // Set auth tag
@@ -147,7 +143,7 @@ export function decryptBuffer(encryptedData: Buffer, nonce: Buffer): Buffer {
  */
 export function encryptString(
   text: string,
-  nonceSize: number = env.NONCE_SIZE,
+  nonceSize: number = envEnc.NONCE_SIZE,
 ): { encryptedBase64: string; nonceBase64: string } {
   const result = encryptBuffer(Buffer.from(text, 'utf8'), nonceSize)
   return {
@@ -191,7 +187,7 @@ export function decryptBufferAsString(encryptedData: Buffer, nonce: Buffer): str
  */
 export function encryptBytes(
   data: Uint8Array,
-  nonceSize: number = env.NONCE_SIZE,
+  nonceSize: number = envEnc.NONCE_SIZE,
 ): { encrypted: Uint8Array; nonce: Uint8Array } {
   const result = encryptBuffer(Buffer.from(data), nonceSize)
   return {

@@ -51,10 +51,3 @@ running the command below from the root project
 pnpm install
 ```
 
-And importing them as any other package
-
-```typescript
-import { Asset } from 'credential-showcase-traction-openapi'
-
-const asset: Asset = {}
-```

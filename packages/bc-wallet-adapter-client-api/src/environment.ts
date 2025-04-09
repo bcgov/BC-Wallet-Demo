@@ -56,7 +56,7 @@ const parsePositiveInt = (value: string | undefined, defaultValue: number): numb
 export const environment = {
   messageBroker: {
     AMQ_HOST: process.env.AMQ_HOST || 'localhost',
-    AMQ_PORT: parseInt(process.env.AMQ_PORT || '5672', 10),
+    AMQ_PORT: parsePositiveInt(process.env.AMQ_PORT, 5672),
     AMQ_USER: process.env.AMQ_USER || 'guest',
     AMQ_PASSWORD: process.env.AMQ_PASSWORD || 'guest',
     AMQ_TRANSPORT:
