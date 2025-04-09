@@ -51,7 +51,7 @@ export const createDefaultStep = ({
   actions: [
     sampleAction,
   ],
-  subScenario: "",
+  // subScenario: "",
   asset,
 });
 
@@ -73,7 +73,7 @@ export const createServiceStep = ({
   actions: [
     sampleAction,
   ],
-  subScenario: "",  
+  // subScenario: "",  
   asset,
   credentials
 });

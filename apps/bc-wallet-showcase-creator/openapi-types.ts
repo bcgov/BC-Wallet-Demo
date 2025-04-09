@@ -111,6 +111,7 @@ export const Step = z.object({
   asset: AssetSchema.optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  credentials: z.array(z.string()).optional(),
 });
 
 export const StepRequest = z.object({
@@ -123,6 +124,7 @@ export const StepRequest = z.object({
   credentialDefinitionIdentifierType: IdentifierTypeEnum.optional(),
   credentialDefinitionIdentifier: z.string().optional(),
   asset: z.string().optional(),
+  credentials: z.array(z.string()).optional(),
 });
 
 export const StepsResponse = z.object({
