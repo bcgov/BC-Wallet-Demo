@@ -42,7 +42,7 @@ export const OnboardingPage: React.FC = () => {
       dispatch(clearCredentials())
       dispatch(clearConnection())
       navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
-    } else {
+    } else if (!isCompleted && !showcase) {
       dispatch(clearShowcase())
       dispatch(fetchWallets())
       dispatch(fetchShowcaseBySlug(slug))
