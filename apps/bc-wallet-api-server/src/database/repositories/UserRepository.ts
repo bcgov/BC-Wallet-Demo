@@ -59,3 +59,5 @@ export class UserRepository implements RepositoryDefinition<User, NewUser> {
     return (await this.databaseService.getConnection()).select().from(users)
   }
 }
+
+export default UserRepository
