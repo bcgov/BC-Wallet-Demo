@@ -39,18 +39,12 @@ export class AdapterClientApi {
 
       const { accessTokenEnc, accessTokenNonce } = this.encryptAuthHeader(authHeader)
 
-      const delivery = this.sender.send({
+      // Send the message
+      const delivery = await this.sender.send({
         body: this.payloadToJson(payload),
         application_properties: { action, accessTokenEnc, accessTokenNonce },
       })
-
-      if (delivery.remote_state && 'error' in delivery.remote_state) {
-        return Promise.reject(Error(`Message rejected: ${delivery.remote_state.error?.description || 'Unknown error'}`))
-      }
-
-      if (!delivery.settled) {
-        return Promise.reject(Error('Message was not settled by the receiver'))
-      }
+      return
     } catch (error) {
       return Promise.reject(error)
     }

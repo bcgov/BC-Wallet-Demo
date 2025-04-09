@@ -35,6 +35,9 @@ class ServiceManager {
     }
 
     const service = new TractionService(tenantId, apiUrlBase, walletId, decodedToken)
+    if (!decodedToken && environment.traction.FIXED_API_KEY) {
+      service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY))
+    }
 
     this.services.set(key, service)
     return service
