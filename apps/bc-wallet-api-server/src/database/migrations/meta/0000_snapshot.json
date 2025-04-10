@@ -1,5 +1,5 @@
 {
-  "id": "76aaf673-e72d-424f-94c8-51072caa0f12",
+  "id": "47ee3f97-3b8f-46bb-afcf-94d50f613ee9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -54,8 +54,12 @@
           "name": "ariesProofRequest_step_action_stepAction_id_fk",
           "tableFrom": "ariesProofRequest",
           "tableTo": "stepAction",
-          "columnsFrom": ["step_action"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "step_action"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -65,7 +69,9 @@
         "ariesProofRequest_step_action_unique": {
           "name": "ariesProofRequest_step_action_unique",
           "nullsNotDistinct": false,
-          "columns": ["step_action"]
+          "columns": [
+            "step_action"
+          ]
         }
       },
       "policies": {},
@@ -181,14 +187,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_credential_attributes": {
+          "name": "idx_credential_attributes",
+          "columns": [
+            {
+              "expression": "credential_schema",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "credentialAttribute_credential_schema_credentialSchema_id_fk": {
           "name": "credentialAttribute_credential_schema_credentialSchema_id_fk",
           "tableFrom": "credentialAttribute",
           "tableTo": "credentialSchema",
-          "columnsFrom": ["credential_schema"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "credential_schema"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -245,7 +271,7 @@
           "name": "icon",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "type": {
           "name": "type",
@@ -253,6 +279,18 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        },
+        "approved_by": {
+          "name": "approved_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -269,14 +307,64 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_cd_icon": {
+          "name": "idx_cd_icon",
+          "columns": [
+            {
+              "expression": "icon",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_cd_credentialSchema": {
+          "name": "idx_cd_credentialSchema",
+          "columns": [
+            {
+              "expression": "credential_schema",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_cd_approvedBy": {
+          "name": "idx_cd_approvedBy",
+          "columns": [
+            {
+              "expression": "approved_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "credentialDefinition_credential_schema_credentialSchema_id_fk": {
           "name": "credentialDefinition_credential_schema_credentialSchema_id_fk",
           "tableFrom": "credentialDefinition",
           "tableTo": "credentialSchema",
-          "columnsFrom": ["credential_schema"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "credential_schema"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -284,8 +372,25 @@
           "name": "credentialDefinition_icon_asset_id_fk",
           "tableFrom": "credentialDefinition",
           "tableTo": "asset",
-          "columnsFrom": ["icon"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "icon"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "credentialDefinition_approved_by_user_id_fk": {
+          "name": "credentialDefinition_approved_by_user_id_fk",
+          "tableFrom": "credentialDefinition",
+          "tableTo": "user",
+          "columnsFrom": [
+            "approved_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -328,14 +433,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_credential_representations": {
+          "name": "idx_credential_representations",
+          "columns": [
+            {
+              "expression": "credential_definition",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "credentialRepresentation_credential_definition_credentialDefinition_id_fk": {
           "name": "credentialRepresentation_credential_definition_credentialDefinition_id_fk",
           "tableFrom": "credentialRepresentation",
           "tableTo": "credentialDefinition",
-          "columnsFrom": ["credential_definition"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "credential_definition"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -363,6 +488,14 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "Source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'CREATED'"
         },
         "identifier": {
           "name": "identifier",
@@ -436,14 +569,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_relyingParty": {
+          "name": "idx_relyingParty",
+          "columns": [
+            {
+              "expression": "relying_party",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "relyingPartiesToCredentialDefinitions_relying_party_relyingParty_id_fk": {
           "name": "relyingPartiesToCredentialDefinitions_relying_party_relyingParty_id_fk",
           "tableFrom": "relyingPartiesToCredentialDefinitions",
           "tableTo": "relyingParty",
-          "columnsFrom": ["relying_party"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "relying_party"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -451,8 +604,12 @@
           "name": "relyingPartiesToCredentialDefinitions_credential_definition_credentialDefinition_id_fk",
           "tableFrom": "relyingPartiesToCredentialDefinitions",
           "tableTo": "credentialDefinition",
-          "columnsFrom": ["credential_definition"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "credential_definition"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -460,7 +617,10 @@
       "compositePrimaryKeys": {
         "relyingPartiesToCredentialDefinitions_relying_party_credential_definition_pk": {
           "name": "relyingPartiesToCredentialDefinitions_relying_party_credential_definition_pk",
-          "columns": ["relying_party", "credential_definition"]
+          "columns": [
+            "relying_party",
+            "credential_definition"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -525,14 +685,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_logo": {
+          "name": "idx_logo",
+          "columns": [
+            {
+              "expression": "logo",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "relyingParty_logo_asset_id_fk": {
           "name": "relyingParty_logo_asset_id_fk",
           "tableFrom": "relyingParty",
           "tableTo": "asset",
-          "columnsFrom": ["logo"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "logo"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -600,14 +780,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_issuer_logo": {
+          "name": "idx_issuer_logo",
+          "columns": [
+            {
+              "expression": "logo",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "issuer_logo_asset_id_fk": {
           "name": "issuer_logo_asset_id_fk",
           "tableFrom": "issuer",
           "tableTo": "asset",
-          "columnsFrom": ["logo"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "logo"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -649,14 +849,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_issuer": {
+          "name": "idx_issuer",
+          "columns": [
+            {
+              "expression": "issuer",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "issuersToCredentialDefinitions_issuer_issuer_id_fk": {
           "name": "issuersToCredentialDefinitions_issuer_issuer_id_fk",
           "tableFrom": "issuersToCredentialDefinitions",
           "tableTo": "issuer",
-          "columnsFrom": ["issuer"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "issuer"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -664,8 +884,12 @@
           "name": "issuersToCredentialDefinitions_credential_definition_credentialDefinition_id_fk",
           "tableFrom": "issuersToCredentialDefinitions",
           "tableTo": "credentialDefinition",
-          "columnsFrom": ["credential_definition"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "credential_definition"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -673,7 +897,10 @@
       "compositePrimaryKeys": {
         "issuersToCredentialDefinitions_issuer_credential_definition_pk": {
           "name": "issuersToCredentialDefinitions_issuer_credential_definition_pk",
-          "columns": ["issuer", "credential_definition"]
+          "columns": [
+            "issuer",
+            "credential_definition"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -698,14 +925,34 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_issuer_schemas": {
+          "name": "idx_issuer_schemas",
+          "columns": [
+            {
+              "expression": "issuer",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "issuersToCredentialSchemas_issuer_issuer_id_fk": {
           "name": "issuersToCredentialSchemas_issuer_issuer_id_fk",
           "tableFrom": "issuersToCredentialSchemas",
           "tableTo": "issuer",
-          "columnsFrom": ["issuer"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "issuer"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -713,8 +960,12 @@
           "name": "issuersToCredentialSchemas_credential_schema_credentialSchema_id_fk",
           "tableFrom": "issuersToCredentialSchemas",
           "tableTo": "credentialSchema",
-          "columnsFrom": ["credential_schema"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "credential_schema"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -722,7 +973,10 @@
       "compositePrimaryKeys": {
         "issuersToCredentialSchemas_issuer_credential_schema_pk": {
           "name": "issuersToCredentialSchemas_issuer_credential_schema_pk",
-          "columns": ["issuer", "credential_schema"]
+          "columns": [
+            "issuer",
+            "credential_schema"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -799,14 +1053,49 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_scenarios_steps": {
+          "name": "idx_scenarios_steps",
+          "columns": [
+            {
+              "expression": "scenario",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_asset_steps": {
+          "name": "idx_asset_steps",
+          "columns": [
+            {
+              "expression": "asset",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "step_sub_scenario_scenario_id_fk": {
           "name": "step_sub_scenario_scenario_id_fk",
           "tableFrom": "step",
           "tableTo": "scenario",
-          "columnsFrom": ["sub_scenario"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "sub_scenario"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -814,8 +1103,12 @@
           "name": "step_scenario_scenario_id_fk",
           "tableFrom": "step",
           "tableTo": "scenario",
-          "columnsFrom": ["scenario"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -823,8 +1116,12 @@
           "name": "step_asset_asset_id_fk",
           "tableFrom": "step",
           "tableTo": "asset",
-          "columnsFrom": ["asset"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "asset"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -834,7 +1131,10 @@
         "step_order_scenario_unique": {
           "name": "step_order_scenario_unique",
           "nullsNotDistinct": false,
-          "columns": ["order", "scenario"]
+          "columns": [
+            "order",
+            "scenario"
+          ]
         }
       },
       "policies": {},
@@ -874,7 +1174,25 @@
           "name": "step",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "credential_definition_id": {
+          "name": "credential_definition_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "connection_id": {
+          "name": "connection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "go_to_step": {
+          "name": "go_to_step",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -891,14 +1209,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_step_actions": {
+          "name": "idx_step_actions",
+          "columns": [
+            {
+              "expression": "step",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "stepAction_step_step_id_fk": {
           "name": "stepAction_step_step_id_fk",
           "tableFrom": "stepAction",
           "tableTo": "step",
-          "columnsFrom": ["step"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "step"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -985,14 +1323,64 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_relyingParty_issuer_scenario": {
+          "name": "idx_relyingParty_issuer_scenario",
+          "columns": [
+            {
+              "expression": "relying_party",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_issuer_scenario": {
+          "name": "idx_issuer_scenario",
+          "columns": [
+            {
+              "expression": "issuer",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_bannerImage_issuer_scenario": {
+          "name": "idx_bannerImage_issuer_scenario",
+          "columns": [
+            {
+              "expression": "banner_image",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "scenario_issuer_issuer_id_fk": {
           "name": "scenario_issuer_issuer_id_fk",
           "tableFrom": "scenario",
           "tableTo": "issuer",
-          "columnsFrom": ["issuer"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "issuer"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1000,8 +1388,12 @@
           "name": "scenario_relying_party_relyingParty_id_fk",
           "tableFrom": "scenario",
           "tableTo": "relyingParty",
-          "columnsFrom": ["relying_party"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "relying_party"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1009,8 +1401,12 @@
           "name": "scenario_banner_image_asset_id_fk",
           "tableFrom": "scenario",
           "tableTo": "asset",
-          "columnsFrom": ["banner_image"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "banner_image"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1020,7 +1416,9 @@
         "scenario_slug_unique": {
           "name": "scenario_slug_unique",
           "nullsNotDistinct": false,
-          "columns": ["slug"]
+          "columns": [
+            "slug"
+          ]
         }
       },
       "policies": {},
@@ -1076,14 +1474,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_revocation_info": {
+          "name": "idx_revocation_info",
+          "columns": [
+            {
+              "expression": "credential_definition",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "revocationInfo_credential_definition_credentialDefinition_id_fk": {
           "name": "revocationInfo_credential_definition_credentialDefinition_id_fk",
           "tableFrom": "revocationInfo",
           "tableTo": "credentialDefinition",
-          "columnsFrom": ["credential_definition"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "credential_definition"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1093,7 +1511,9 @@
         "revocationInfo_credential_definition_unique": {
           "name": "revocationInfo_credential_definition_unique",
           "nullsNotDistinct": false,
-          "columns": ["credential_definition"]
+          "columns": [
+            "credential_definition"
+          ]
         }
       },
       "policies": {},
@@ -1169,14 +1589,49 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_headshotImage": {
+          "name": "idx_headshotImage",
+          "columns": [
+            {
+              "expression": "headshot_image",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_bodyImage": {
+          "name": "idx_bodyImage",
+          "columns": [
+            {
+              "expression": "body_image",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "persona_headshot_image_asset_id_fk": {
           "name": "persona_headshot_image_asset_id_fk",
           "tableFrom": "persona",
           "tableTo": "asset",
-          "columnsFrom": ["headshot_image"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "headshot_image"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1184,8 +1639,12 @@
           "name": "persona_body_image_asset_id_fk",
           "tableFrom": "persona",
           "tableTo": "asset",
-          "columnsFrom": ["body_image"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "body_image"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1195,7 +1654,9 @@
         "persona_slug_unique": {
           "name": "persona_slug_unique",
           "nullsNotDistinct": false,
-          "columns": ["slug"]
+          "columns": [
+            "slug"
+          ]
         }
       },
       "policies": {},
@@ -1233,14 +1694,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_scenario": {
+          "name": "idx_scenario",
+          "columns": [
+            {
+              "expression": "scenario",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "scenariosToPersonas_scenario_scenario_id_fk": {
           "name": "scenariosToPersonas_scenario_scenario_id_fk",
           "tableFrom": "scenariosToPersonas",
           "tableTo": "scenario",
-          "columnsFrom": ["scenario"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scenario"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1248,8 +1729,12 @@
           "name": "scenariosToPersonas_persona_persona_id_fk",
           "tableFrom": "scenariosToPersonas",
           "tableTo": "persona",
-          "columnsFrom": ["persona"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "persona"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1257,9 +1742,51 @@
       "compositePrimaryKeys": {
         "scenariosToPersonas_scenario_persona_pk": {
           "name": "scenariosToPersonas_scenario_persona_pk",
-          "columns": ["scenario", "persona"]
+          "columns": [
+            "scenario",
+            "persona"
+          ]
         }
       },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tenant": {
+      "name": "tenant",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -1275,6 +1802,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "tenant_id": {
+          "name": "tenant_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -1320,6 +1853,24 @@
           "primaryKey": false,
           "notNull": false
         },
+        "approved_by": {
+          "name": "approved_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1335,14 +1886,103 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_bannerImage": {
+          "name": "idx_bannerImage",
+          "columns": [
+            {
+              "expression": "banner_image",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_tenant_id": {
+          "name": "idx_tenant_id",
+          "columns": [
+            {
+              "expression": "tenant_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_sc_approvedBy": {
+          "name": "idx_sc_approvedBy",
+          "columns": [
+            {
+              "expression": "approved_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
+        "showcase_tenant_id_tenant_id_fk": {
+          "name": "showcase_tenant_id_tenant_id_fk",
+          "tableFrom": "showcase",
+          "tableTo": "tenant",
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "showcase_banner_image_asset_id_fk": {
           "name": "showcase_banner_image_asset_id_fk",
           "tableFrom": "showcase",
           "tableTo": "asset",
-          "columnsFrom": ["banner_image"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "banner_image"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "showcase_approved_by_user_id_fk": {
+          "name": "showcase_approved_by_user_id_fk",
+          "tableFrom": "showcase",
+          "tableTo": "user",
+          "columnsFrom": [
+            "approved_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "showcase_created_by_user_id_fk": {
+          "name": "showcase_created_by_user_id_fk",
+          "tableFrom": "showcase",
+          "tableTo": "user",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1352,7 +1992,9 @@
         "showcase_slug_unique": {
           "name": "showcase_slug_unique",
           "nullsNotDistinct": false,
-          "columns": ["slug"]
+          "columns": [
+            "slug"
+          ]
         }
       },
       "policies": {},
@@ -1373,7 +2015,7 @@
           "name": "credential_definition",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1390,14 +2032,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "showcases_to_credential_definitions_showcase_idx": {
+          "name": "showcases_to_credential_definitions_showcase_idx",
+          "columns": [
+            {
+              "expression": "showcase",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "showcasesToCredentialDefinitions_showcase_showcase_id_fk": {
           "name": "showcasesToCredentialDefinitions_showcase_showcase_id_fk",
           "tableFrom": "showcasesToCredentialDefinitions",
           "tableTo": "showcase",
-          "columnsFrom": ["showcase"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "showcase"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1405,8 +2067,12 @@
           "name": "showcasesToCredentialDefinitions_credential_definition_credentialDefinition_id_fk",
           "tableFrom": "showcasesToCredentialDefinitions",
           "tableTo": "credentialDefinition",
-          "columnsFrom": ["credential_definition"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "credential_definition"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1414,7 +2080,10 @@
       "compositePrimaryKeys": {
         "showcasesToCredentialDefinitions_showcase_credential_definition_pk": {
           "name": "showcasesToCredentialDefinitions_showcase_credential_definition_pk",
-          "columns": ["showcase", "credential_definition"]
+          "columns": [
+            "showcase",
+            "credential_definition"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -1436,7 +2105,7 @@
           "name": "persona",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1453,14 +2122,34 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "showcases_to_personas_showcase_idx": {
+          "name": "showcases_to_personas_showcase_idx",
+          "columns": [
+            {
+              "expression": "showcase",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "showcasesToPersonas_showcase_showcase_id_fk": {
           "name": "showcasesToPersonas_showcase_showcase_id_fk",
           "tableFrom": "showcasesToPersonas",
           "tableTo": "showcase",
-          "columnsFrom": ["showcase"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "showcase"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1468,8 +2157,12 @@
           "name": "showcasesToPersonas_persona_persona_id_fk",
           "tableFrom": "showcasesToPersonas",
           "tableTo": "persona",
-          "columnsFrom": ["persona"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "persona"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1477,7 +2170,10 @@
       "compositePrimaryKeys": {
         "showcasesToPersonas_showcase_persona_pk": {
           "name": "showcasesToPersonas_showcase_persona_pk",
-          "columns": ["showcase", "persona"]
+          "columns": [
+            "showcase",
+            "persona"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -1499,7 +2195,98 @@
           "name": "scenario",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "showcases_to_scenarios_showcase_idx": {
+          "name": "showcases_to_scenarios_showcase_idx",
+          "columns": [
+            {
+              "expression": "showcase",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "showcasesToScenarios_showcase_showcase_id_fk": {
+          "name": "showcasesToScenarios_showcase_showcase_id_fk",
+          "tableFrom": "showcasesToScenarios",
+          "tableTo": "showcase",
+          "columnsFrom": [
+            "showcase"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "showcasesToScenarios_scenario_scenario_id_fk": {
+          "name": "showcasesToScenarios_scenario_scenario_id_fk",
+          "tableFrom": "showcasesToScenarios",
+          "tableTo": "scenario",
+          "columnsFrom": [
+            "scenario"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "showcasesToScenarios_showcase_scenario_pk": {
+          "name": "showcasesToScenarios_showcase_scenario_pk",
+          "columns": [
+            "showcase",
+            "scenario"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user": {
+      "name": "user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "userName": {
+          "name": "userName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1517,32 +2304,8 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "showcasesToScenarios_showcase_showcase_id_fk": {
-          "name": "showcasesToScenarios_showcase_showcase_id_fk",
-          "tableFrom": "showcasesToScenarios",
-          "tableTo": "showcase",
-          "columnsFrom": ["showcase"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "showcasesToScenarios_scenario_scenario_id_fk": {
-          "name": "showcasesToScenarios_scenario_scenario_id_fk",
-          "tableFrom": "showcasesToScenarios",
-          "tableTo": "scenario",
-          "columnsFrom": ["scenario"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "showcasesToScenarios_showcase_scenario_pk": {
-          "name": "showcasesToScenarios_showcase_scenario_pk",
-          "columns": ["showcase", "scenario"]
-        }
-      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -1553,42 +2316,75 @@
     "public.CredentialAttributeType": {
       "name": "CredentialAttributeType",
       "schema": "public",
-      "values": ["STRING", "INTEGER", "FLOAT", "BOOLEAN", "DATE"]
+      "values": [
+        "STRING",
+        "INTEGER",
+        "FLOAT",
+        "BOOLEAN",
+        "DATE"
+      ]
     },
     "public.CredentialType": {
       "name": "CredentialType",
       "schema": "public",
-      "values": ["ANONCRED"]
+      "values": [
+        "ANONCRED"
+      ]
     },
     "public.IdentifierType": {
       "name": "IdentifierType",
       "schema": "public",
-      "values": ["DID"]
+      "values": [
+        "DID"
+      ]
     },
     "public.IssuerType": {
       "name": "IssuerType",
       "schema": "public",
-      "values": ["ARIES"]
+      "values": [
+        "ARIES"
+      ]
     },
     "public.StepType": {
       "name": "StepType",
       "schema": "public",
-      "values": ["HUMAN_TASK", "SERVICE", "SCENARIO"]
+      "values": [
+        "HUMAN_TASK",
+        "SERVICE",
+        "SCENARIO"
+      ]
     },
     "public.ScenarioType": {
       "name": "ScenarioType",
       "schema": "public",
-      "values": ["ISSUANCE", "PRESENTATION"]
+      "values": [
+        "ISSUANCE",
+        "PRESENTATION"
+      ]
     },
     "public.ShowcaseStatus": {
       "name": "ShowcaseStatus",
       "schema": "public",
-      "values": ["PENDING", "ACTIVE", "ARCHIVED"]
+      "values": [
+        "PENDING",
+        "ACTIVE",
+        "ARCHIVED"
+      ]
     },
     "public.RelyingPartyType": {
       "name": "RelyingPartyType",
       "schema": "public",
-      "values": ["ARIES"]
+      "values": [
+        "ARIES"
+      ]
+    },
+    "public.Source": {
+      "name": "Source",
+      "schema": "public",
+      "values": [
+        "IMPORTED",
+        "CREATED"
+      ]
     }
   },
   "schemas": {},

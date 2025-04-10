@@ -2,7 +2,7 @@ services:
   bc-wallet-api-server:
     build:
       context: ../..
-      dockerfile: ./docker/dev/bc-wallet-api-server/Dockerfile
+      dockerfile: ./apps/bc-wallet-api-server/Dockerfile
     restart: unless-stopped
     networks:
       - api_net
@@ -33,7 +33,7 @@ services:
   bc-wallet-traction-adapter:
     build:
       context: ../..
-      dockerfile: ./docker/dev/bc-wallet-traction-adapter/Dockerfile
+      dockerfile: ./packages/bc-wallet-traction-adapter/Dockerfile
     restart: unless-stopped
     networks:
       - messagebroker_net

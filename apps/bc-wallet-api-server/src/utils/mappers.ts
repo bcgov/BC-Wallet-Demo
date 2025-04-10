@@ -20,6 +20,7 @@ import {
   StepAction as StepActionDTO,
   User as UserDTO,
 } from 'bc-wallet-openapi'
+
 import {
   AcceptCredentialAction,
   AriesOOBAction,
@@ -41,7 +42,7 @@ import {
   Step,
   StepActionType,
   StepActionTypes,
-  User
+  User,
 } from '../types'
 
 export const newAssetFrom = (asset: AssetRequestDTO): NewAsset => {
@@ -231,15 +232,13 @@ export const showcaseDTOFrom = (showcase: Showcase): ShowcaseDTO => {
     completionMessage: showcase.completionMessage || undefined,
     createdBy: showcase.createdBy ? userDTOFrom(showcase.createdBy) : undefined,
     approvedBy: showcase.approvedBy ? userDTOFrom(showcase.approvedBy) : undefined,
-    approvedAt: showcase.approvedAt || undefined
+    approvedAt: showcase.approvedAt || undefined,
   }
 }
 
 export const userDTOFrom = (user: User): UserDTO => {
   return {
     ...user,
-    identifierType: user.identifierType ?? undefined,
-    identifier: user.identifier ?? undefined,
     createdAt: user.createdAt ?? undefined,
     updatedAt: user.updatedAt ?? undefined,
   }

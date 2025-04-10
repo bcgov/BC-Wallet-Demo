@@ -54,12 +54,15 @@ export const environment = {
         ? process.env.AMQ_TRANSPORT
         : 'tls',
     getConnectionOptions: () => createAmqConnectionOptions(process.env.AMQ_TRANSPORT),
-    MESSAGE_PROCESSOR_TOPIC: (process.env.MESSAGE_PROCESSOR_TOPIC ?? 'showcase-cmd') as Topic,
+    MESSAGE_PROCESSOR_TOPIC: (process.env.MESSAGE_PROCESSOR_TOPIC ?? 'SHOWCASE_CMD') as Topic,
   },
   traction: {
     DEFAULT_API_BASE_PATH: process.env.DEFAULT_API_BASE_PATH ?? 'http://localhost:8032',
     TENANT_SESSION_CACHE_SIZE: parsePositiveInt(process.env.TENANT_SESSION_CACHE_SIZE, 1024),
     TENANT_SESSION_TTL_MINS: parsePositiveInt(process.env.TENANT_SESSION_TTL_MINS, 1440),
+    FIXED_TENANT_ID: process.env.FIXED_TENANT_ID as string | undefined,
+    FIXED_WALLET_ID: process.env.FIXED_WALLET_ID as string | undefined,
+    FIXED_API_KEY: process.env.FIXED_API_KEY as string | undefined,
   },
   encryption: {
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
