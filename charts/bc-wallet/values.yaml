@@ -390,7 +390,7 @@ rabbitmq:
     secretKeys:
       passwordKey: "rabbitmq-password"
       erlangCookieKey: "rabbitmq-erlang-cookie"
-  plugins: "rabbitmq_management"
+  plugins: "rabbitmq_management rabbitmq_amqp1_0"
   extraConfiguration: |
     management.listener.port = 15672
     management.listener.ssl = false
