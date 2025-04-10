@@ -180,6 +180,16 @@ jobs:
               --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
               --set showcase_creator.env.AUTH_SECRET=${{secrets.AUTH_SECRET}} \
               --set showcase_creator.env.AUTH_KEYCLOAK_SECRET=${{secrets.AUTH_KEYCLOAK_SECRET}} \
+              --set showcase_creator.env.ENCRYPTION_KEY=${{secrets.ENCRYPTION_KEY}} \
+              --set showcase_creator.env.FIXED_API_KEY=${{secrets.FIXED_API_KEY}} \
+              --set showcase_creator.env.FIXED_WALLET_ID=${{secrets.FIXED_WALLET_ID}} \
+              --set showcase_creator.env.FIXED_TENANT_ID=${{secrets.FIXED_TENANT_ID}} \
+              --set traction_adapter.env.DEFAULT_API_BASE_PATH=${{secrets.DEFAULT_API_BASE_PATH}} \
+              --set traction_adapter.env.ENCRYPTION_KEY=${{secrets.ENCRYPTION_KEY}} \
+              --set traction_adapter.env.FIXED_API_KEY=${{secrets.FIXED_API_KEY}} \
+              --set traction_adapter.env.FIXED_WALLET_ID=${{secrets.FIXED_WALLET_ID}} \
+              --set traction_adapter.env.FIXED_TENANT_ID=${{secrets.FIXED_TENANT_ID}} \
+              --set traction_adapter.env.DEFAULT_API_BASE_PATH=${{secrets.DEFAULT_API_BASE_PATH}} \
               . --wait
             
             # Create Certificate for TLS

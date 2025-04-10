@@ -90,6 +90,7 @@ traction_adapter:
     RABBITMQ_PORT: 5672
     RABBITMQ_USER: guest
     RABBITMQ_VHOST: /
+    AMQ_TRANSPORT: tcp
   resources:
     limits:
       cpu: 200m
