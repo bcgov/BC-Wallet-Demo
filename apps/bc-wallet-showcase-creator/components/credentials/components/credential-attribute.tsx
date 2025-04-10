@@ -123,7 +123,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
                   className="text-sm"
                   register={form.register}
                   error={form.formState.errors?.attributes?.[index]?.name?.message}
-                  placeholder={fieldType === 'DATE' ? 'YYYYMMDD' : t('credentials.attribute_name_placeholder')}
+                  placeholder={t('credentials.attribute_name_placeholder')}
                 />
               </div>
               <div className="flex items-end">

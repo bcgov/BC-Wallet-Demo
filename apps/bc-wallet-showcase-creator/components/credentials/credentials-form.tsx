@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Form } from '@/components/ui/form'
 import { useCreateAsset } from '@/hooks/use-asset'
 import {
+  useApproveCredentialDefinition,
   useCreateCredentialDefinition,
   useCreateCredentialSchema,
   useCreateIssuer,
@@ -52,7 +53,7 @@ export const CredentialsForm = () => {
   const { mutateAsync: createRelyingParty } = useCreateRelyingParty()
 
   const { setIssuerId, setSelectedCredentialDefinitionIds, setRelayerId } = useHelpersStore()
-
+  const { mutateAsync: approveCredentialDefinition } = useApproveCredentialDefinition()
   const { mutateAsync: deleteCredentialDefinition, isPending: isDeleting } = useDeleteCredentialDefinition()
   const form = useForm<CredentialSchemaRequestType>({
     resolver: zodResolver(schema),
@@ -179,6 +180,17 @@ export const CredentialsForm = () => {
     setCredentialLogo(undefined)
   }
 
+  const handleApproveCredentialDefinition = async() => {
+    if(selectedCredential){
+      try {
+       await approveCredentialDefinition(selectedCredential.id);
+       toast.success('Credential approved successfully!')
+      } catch (error) {
+        toast.error('Failed to approve credential')
+      }
+    }
+  }
+
   if (mode === 'view' && selectedCredential) {
     const credentialDefinition = selectedCredential
 
@@ -205,6 +217,9 @@ export const CredentialsForm = () => {
               switch (action) {
                 case 'delete':
                   setIsModalOpen(true)
+                  break
+                case 'approve':
+                  handleApproveCredentialDefinition();
                   break
                 default:
                   console.log('Unknown action')
@@ -387,7 +402,7 @@ export const CredentialsForm = () => {
               </div>
             </>
           )}
-          <div className="">
+          <div>
             <CredentialAttributes mode="create" form={form as any} />
           </div>
           <div

@@ -88,6 +88,11 @@ export const OnboardingScreen = ({ slug }: { slug: string }) => {
                             ? `${baseUrl}/assets/${char.headshotImage.id}/file`
                             : '/assets/no-image.jpg'
                         }
+                        unoptimized
+                        onError={(e) => {
+                          const target = e.currentTarget as HTMLImageElement
+                          target.src = '/assets/no-image.jpg'
+                        }}
                         alt={char.headshotImage?.description || 'Character'}
                         width={50}
                         height={50}
