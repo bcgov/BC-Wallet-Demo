@@ -58,7 +58,11 @@ export class AdapterClientApi {
   }
 
   public async publishIssuer(issuer: Issuer, authHeader: string): Promise<void> {
-    return this.send('publish-issuer-assets', issuer, authHeader)
+    try {
+      return this.send('publish-issuer-assets', issuer, authHeader)
+    } catch (e) {
+      console.warn('publishIssuer failed', e) // FIXME remove after demo
+    }
   }
 
   public async close(): Promise<void> {
