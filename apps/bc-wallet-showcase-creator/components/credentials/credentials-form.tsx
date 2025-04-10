@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-
 import { Form } from '@/components/ui/form'
 import { useCreateAsset } from '@/hooks/use-asset'
 import {
@@ -32,13 +31,11 @@ import { FileUploadFull } from '../file-upload'
 import StepHeaderCredential from '../showcases-screen/step-header-credential'
 import { FormTextInput } from '../text-input'
 import { CredentialAttributes } from './components/credential-attribute'
-
 import DeleteModal from '../delete-modal'
-
 import { toast } from 'sonner'
 import Image from 'next/image'
-
 import { Button } from '../ui/button'
+import { CredentialType, IssuerType, RelyingPartyType, Source } from 'bc-wallet-openapi'
 
 export const CredentialsForm = () => {
   const { selectedCredential, mode, setSelectedCredential, viewCredential } = useCredentials()
@@ -75,9 +72,7 @@ export const CredentialsForm = () => {
       const schemaPayload: CredentialSchemaRequestType = {
         name: formData.name || 'example_name',
         version: formData.version || 'example_version',
-        identifierType: 'DID',
-        source: 'CREATED',
-        identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
+        source: Source.Created,
         attributes: formData?.attributes?.map((item) => ({
           name: item.name,
           value: item.value ?? '',
@@ -103,9 +98,7 @@ export const CredentialsForm = () => {
         name: formData.name || 'example_name',
         version: formData.version || 'example_version',
         credentialSchema: schemaId,
-        identifierType: 'DID',
-        identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-        type: 'ANONCRED',
+        type: CredentialType.Anoncred,
         icon: assetId,
       }
 
@@ -118,7 +111,7 @@ export const CredentialsForm = () => {
 
       const issuerResponse = (await createIssuer({
         name: 'dummy-issuer',
-        type: 'ARIES',
+        type: IssuerType.Aries,
         credentialDefinitions: [credentialId],
         credentialSchemas: [schemaId],
         description: '',
@@ -126,7 +119,7 @@ export const CredentialsForm = () => {
 
       const relyingPartyResponse = (await createRelyingParty({
         name: 'dummy-relying-party',
-        type: 'ARIES',
+        type: RelyingPartyType.Aries,
         credentialDefinitions: [credentialId],
         description: '',
       })) as typeof RelyingPartyResponse._type
@@ -138,7 +131,7 @@ export const CredentialsForm = () => {
         id: credentialId,
         name: formData.name,
         version: formData.version,
-        type: 'ANONCRED' as const,
+        type: CredentialType.Anoncred,
         createdAt: credentialDefinition?.credentialDefinition?.createdAt,
         updatedAt: credentialDefinition?.credentialDefinition?.updatedAt,
         credentialSchema: {
@@ -236,6 +229,10 @@ export const CredentialsForm = () => {
                 value: credentialDefinition?.id,
               },
               {
+                label: t('credentials.type_label'),
+                value: credentialDefinition?.type,
+              },
+              {
                 label: t('credentials.version_label'),
                 value: credentialDefinition?.version,
               },
@@ -246,7 +243,7 @@ export const CredentialsForm = () => {
               </div>
             ))}
           </div>
-          {credentialDefinition?.icon?.content ? (
+          {credentialDefinition?.icon?.id ? (
             <div className="grid grid-cols-1 gap-4 px-6 mt-6">
               <>
                 <h6 className="text-md font-semibold text-foreground">{t('credentials.image_label')}</h6>

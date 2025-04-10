@@ -11,7 +11,10 @@ export const schemaAttribute = z.object({
 
 export const schema = z.object({
   name: z.string().min(1, "Credential name is required"),
-  version: z.string().min(1, "Version is required"),
+  version: z.string().regex(
+	/^(\d+)(\.\d+)?$/,
+	"Version must be a number or decimal (e.g., 1, 1.0, 2.3)"
+  ),
   attributes: z.array(
     z.object({
       name: z.string().min(1, "Attribute name is required"),

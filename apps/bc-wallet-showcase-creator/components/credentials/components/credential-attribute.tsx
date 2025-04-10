@@ -34,14 +34,34 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
   if (mode === 'view' && attributes) {
     return (
       <div className="space-y-4">
-        <div className="overflow-x-auto w-full">
+        <div className="flex items-center gap-x-2 mx-4 py-3 border-b border-gray-200">
+          <h3 className="text-md font-semibold text-foreground">{t('credentials.attributes_label')}</h3>
+        </div>
+        <Table className="w-full gap-x-2 px-4 py-3">
+          <TableHeader className="bg-gray-100 dark:bg-dark-bg-tertiary border-b border-gray-200 uppercase dark:border-dark-border">
+            <TableRow>
+              <TableHead>{t('credentials.attribute_name_label')}</TableHead>
+              <TableHead className="w-1/2">{t('credentials.attribute_type_label')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="bg-white dark:bg-dark-bg-secondary border-b border-gray-200 dark:border-dark-border">
+            {attributes.map((attr, index) => (
+              <TableRow className='border-b border-foreground/10' key={attr.name || index}>
+                <TableCell className="font-semibold w-1/2 text-sm text-foreground py-2">{attr.name}</TableCell>
+                <TableCell className="w-1/2 text-sm text-foreground py-2 pr-2">{attr.type || 'string'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        {/* <div className="overflow-x-auto w-full">
           {attributes.map((attr, index) => (
             <div key={attr.name || index} className="flex">
               <p className="w-1/2 text-sm text-foreground py-2 ">{attr.type || 'string'}</p>
               <p className="w-1/2 text-sm text-foreground py-2 ">{attr.name}</p>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
     )
   }
@@ -103,7 +123,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
                   className="text-sm"
                   register={form.register}
                   error={form.formState.errors?.attributes?.[index]?.name?.message}
-                  placeholder={fieldType === 'DATE' ? 'YYYYMMDD' : t('credentials.attribute_value_placeholder')}
+                  placeholder={fieldType === 'DATE' ? 'YYYYMMDD' : t('credentials.attribute_name_placeholder')}
                 />
               </div>
               <div className="flex items-end">
