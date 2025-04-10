@@ -40,11 +40,10 @@ services:
 
     environment:
       - NODE_PORT=3000
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=${RABBITMQ_USER}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - AMQ_HOST=rabbitmq
+      - AMQ_PORT=5672
+      - AMQ_USER=${RABBITMQ_USER}
+      - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - APP_NAME=${APP_NAME}
       - LOG_LEVEL=${LOG_LEVEL}
     depends_on:
