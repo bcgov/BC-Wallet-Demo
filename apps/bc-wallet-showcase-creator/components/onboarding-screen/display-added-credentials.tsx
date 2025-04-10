@@ -9,10 +9,12 @@ import { Input } from "../ui/input";
 import ButtonOutline from "../ui/button-outline";
 import apiClient from "@/lib/apiService";
 import { toast } from "sonner";
-import { CredentialAttributeType, CredentialDefinitionType } from "@/openapi-types";
+import { CredentialDefinitionType } from "@/openapi-types";
 import { Control, Controller, Path } from "react-hook-form";
 import { FormControl } from "../ui/form";
 import { IssueStepFormData } from "@/schemas/onboarding";
+import { useUpdateCredentialSchema } from "@/hooks/use-credentials";
+import type { CredentialSchemaRequest, CredentialAttribute } from "bc-wallet-openapi";
 
 interface DisplayAddedCredentialsProps {
   credentials: CredentialDefinitionType[];
@@ -29,6 +31,8 @@ export const DisplayAddedCredentials = ({
 }: DisplayAddedCredentialsProps) => {
   const t = useTranslations();
   const hasCredentials = credentials.length > 0;
+  const updateCredentialSchema = useUpdateCredentialSchema(); // no destructuring
+
   const [isEditing, setIsEditing] = useState(false);
   if (!hasCredentials) {
     return (
@@ -63,27 +67,50 @@ export const DisplayAddedCredentials = ({
     }
   };
 
-  const handleSaveAttributes = (credentialId: string) => {
+  const handleSaveAttributes = async(credentialId: string) => {
     if (!updateCredentials) return;
   
-    const updated = credentials.map((cred: CredentialDefinitionType) => {
-      if (cred.id !== credentialId) return cred;
+    const updatedCredentials = await Promise.all(
+      credentials.map(async (cred: CredentialDefinitionType) => {
+        const updatedAttrs = cred.credentialSchema?.attributes?.map(attr => ({
+          ...attr,
+          value: attr.value || '',
+        })) || [];
   
-      const updatedAttrs = cred.credentialSchema?.attributes?.map(attr => ({
-        ...attr,
-        value: attr.value || '',
-      })) || [];
+        const schemaPayload: CredentialSchemaRequest = {
+          name: cred.credentialSchema.name,
+          version: cred.credentialSchema.version,
+          identifierType: cred.credentialSchema.identifierType || 'DID',
+          source: cred.credentialSchema.source || 'CREATED',
+          identifier: cred.credentialSchema.identifier || 'did:sov:XUeUZauFLeBNofY3NhaZCB',
+          attributes: updatedAttrs.map(attr => ({
+            name: attr.name,
+            value: attr.value,
+            type: attr.type,
+          })),
+        };
   
-      return {
-        ...cred,
-        credentialSchema: {
-          ...cred.credentialSchema,
-          attributes: updatedAttrs,
-        },
-      };
-    });
+        try {
+          const schemaResponse = await updateCredentialSchema.mutateAsync({
+            credentialSchemaId: cred.credentialSchema.id,
+            data: schemaPayload,
+          });
+          console.log(`Updated schema for credential ${cred.id}`, schemaResponse);
+        } catch (error) {
+          console.error(`Failed to update schema for credential ${cred.id}`, error);
+        }
   
-    updateCredentials(updated);
+        return {
+          ...cred,
+          credentialSchema: {
+            ...cred.credentialSchema,
+            attributes: updatedAttrs,
+          },
+        };
+      })
+    );
+
+    updateCredentials(updatedCredentials);
     setIsEditing(false);
   };
   
@@ -160,7 +187,7 @@ export const DisplayAddedCredentials = ({
               {isEditing && (
                 <>
                   <div className="p-3 rounded-b-lg bg-white dark:bg-dark-bg">
-                    {credential.credentialSchema?.attributes?.map((attr:CredentialAttributeType, attrIndex: number) => (
+                    {credential.credentialSchema?.attributes?.map((attr:CredentialAttribute, attrIndex: number) => (
                         <div key={attr.id || attrIndex} className="grid grid-cols-2 gap-4">
                           {/* Attribute Column */}
                           <div className="space-y-2 flex flex-col justify-center p-4">
