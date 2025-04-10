@@ -1,5 +1,4 @@
 import type { Issuer } from 'bc-wallet-openapi'
-import { IssuerFromJSONTyped } from 'bc-wallet-openapi'
 import type { Buffer } from 'buffer'
 import type { Receiver, ReceiverOptions } from 'rhea-promise'
 import { Connection, ReceiverEvents } from 'rhea-promise'

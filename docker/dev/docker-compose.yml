@@ -25,6 +25,12 @@ services:
       - ALLOW_METHODS=${ALLOW_METHODS}
       - ALLOW_HEADERS=${ALLOW_HEADERS}
       - ALLOW_CREDENTIALS=${ALLOW_CREDENTIALS}
+      # active-mq settings
+      - AMQ_HOST=rabbitmq
+      - AMQ_USER=${RABBITMQ_USER}
+      - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - AMQ_TRANSPORT=tcp
+
     depends_on:
       - postgres  # Ensure Postgres starts first
     ports:
@@ -40,8 +46,9 @@ services:
 
     environment:
       - NODE_PORT=3000
-      - AMQ_HOST=rabbitmq
+#     - AMQ_HOST=rabbitmq
       - AMQ_PORT=5672
+      - AMQ_TRANSPORT=tcp
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - APP_NAME=${APP_NAME}
