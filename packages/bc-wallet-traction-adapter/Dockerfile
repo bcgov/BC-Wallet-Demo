@@ -19,11 +19,11 @@ COPY packages packages
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib turbo
 RUN pnpm install
 RUN pnpm generate:models
-RUN cd packages/ && pnpm build
+RUN pnpm --filter bc-wallet-openapi build:clean
+RUN pnpm --filter bc-wallet-traction-openapi build:clean
+RUN pnpm --filter bc-wallet-traction-adapter build:clean # don't ask me why, but in the docker compose context Turbo fails to build bc-wallet-traction-adapter which I don't pre-build it like this
+RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-traction-adapter --prod --no-optional
-RUN ls -la /
-RUN pwd
-RUN ls -la /build
 
 # Runtime stage
 FROM node:20-bookworm-slim
