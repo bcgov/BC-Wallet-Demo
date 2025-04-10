@@ -22,6 +22,7 @@ describe('CredentialSchemaController Integration Tests', () => {
     useContainer(Container)
     app = createExpressServer({
       controllers: [CredentialSchemaController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })

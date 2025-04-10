@@ -1,0 +1,26 @@
+{
+  "name": "bc-wallet-traction-openapi",
+  "version": "0.1.0",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "generate:models": "rimraf ./src && mvn clean generate-sources",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "build:clean": "tsc --build --clean && tsc --build"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": "git@github.com:Sphereon-Opensource/credential-showcase-api.git",
+  "author": "4Sure",
+  "license": "Apache-2.0",
+  "keywords": []
+}

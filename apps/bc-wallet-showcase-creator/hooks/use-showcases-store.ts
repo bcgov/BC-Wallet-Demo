@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ShowcaseRequestType, PersonaRequestType } from "@/openapi-types";
+import { ShowcaseStatus } from "bc-wallet-openapi";
+import type { ShowcaseRequest, PersonaRequest, Showcase } from "bc-wallet-openapi";
 
 interface ShowcaseStore {
-  showcase: ShowcaseRequestType;  
+  showcase: ShowcaseRequest;  
+  showcaseResponse: Showcase;  
   displayShowcase: any;
   
   // Selection states
@@ -11,9 +13,10 @@ interface ShowcaseStore {
   selectedCredentialDefinitionIds: string[];
 
   // Basic setters
-  setShowcase: (showcase: ShowcaseRequestType) => void;
+  setShowcase: (showcase: ShowcaseRequest) => void;
+  setShowcaseFromResponse: (showcase: Showcase) => void;
   setPersonaIds: (personaIds: string[]) => void;
-  setDisplayPersonas: (personas: PersonaRequestType[]) => void;
+  setDisplayPersonas: (personas: PersonaRequest[]) => void;
   setScenarioIds: (scenarioIds: string[]) => void;
   
   // Persona selection functions
@@ -34,17 +37,36 @@ const initialState = {
   showcase: {
     name: "",
     description: "",
-    status: "ACTIVE",
+    status: ShowcaseStatus.Active,
     hidden: false,
     scenarios: [],
     credentialDefinitions: [],
     personas: [],
-  } as ShowcaseRequestType,
+    tenantId: "test-tenant-1",
+  },
+
+  showcaseResponse: {
+    id: "",
+    tenantId: "",
+    slug: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    name: "",
+    description: "",
+    status: ShowcaseStatus.Active,
+    hidden: false,
+    scenarios: [],
+    credentialDefinitions: [],
+    personas: [],
+    bannerImage: undefined,
+    completionMessage: "",
+    createdBy: undefined,
+  },
   
   displayShowcase: {
     name: "",
     description: "",
-    status: "ACTIVE",
+    status: ShowcaseStatus.Active,
     hidden: false,
     scenarios: [],
     credentialDefinitions: [{
@@ -71,6 +93,7 @@ const initialState = {
     }],
     personas: [],
   },
+
   selectedPersonaIds: [] as string[],
   selectedCredentialDefinitionIds: [] as string[],
 };
@@ -79,8 +102,14 @@ export const useShowcaseStore = create<ShowcaseStore>()(
   persist(
     (set) => ({
       ...initialState,
-      setShowcase: (showcase: ShowcaseRequestType) => set((state) => ({
+
+      setShowcase: (showcase: ShowcaseRequest) => set((state) => ({
         showcase: { ...state.showcase, ...showcase },
+        displayShowcase: { ...state.displayShowcase, ...showcase }
+      })),
+
+      setShowcaseFromResponse: (showcase: Showcase) => set((state) => ({
+        showcaseResponse: { ...state.showcaseResponse, ...showcase },
         displayShowcase: { ...state.displayShowcase, ...showcase }
       })),
       
@@ -93,7 +122,7 @@ export const useShowcaseStore = create<ShowcaseStore>()(
       })),
       
       setScenarioIds: (scenarioIds) => set((state) => ({
-        showcase: { ...state.showcase, scenarios: scenarioIds }
+        showcase: { ...state.showcase, scenarios:  scenarioIds.length === 0 ? [] : [...state.showcase.scenarios ?? [] , ...scenarioIds] }
       })),
       
       // Persona selection functions

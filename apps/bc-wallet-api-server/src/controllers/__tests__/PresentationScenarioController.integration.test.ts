@@ -22,7 +22,7 @@ import {
   setupTestDatabase,
 } from './dbTestData'
 import {
-  createApiAriesOOBAction,
+  createApiAcceptAction,
   createApiButtonAction,
   createApiIssuanceScenarioRequest,
   createApiPresentationScenarioRequest,
@@ -50,6 +50,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     Container.get(ScenarioService)
     app = createExpressServer({
       controllers: [PresentationScenarioController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })
@@ -79,7 +80,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     // Create persona
     const persona = await createTestPersona(asset)
 
-    const scenarioRequest = createApiPresentationScenarioRequest(relyingParty.id, persona.id, asset.id)
+    const scenarioRequest = createApiPresentationScenarioRequest(relyingParty.id, persona.id, asset.id, credentialDefinition.id)
 
     const createResponse = await request.post('/scenarios/presentations').send(scenarioRequest).expect(201)
 
@@ -110,7 +111,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     const updatedScenario = updateResponse.body.presentationScenario
 
     // 6. Create a step for the scenario
-    const stepRequest = createApiStepRequest(asset.id, 2)
+    const stepRequest = createApiStepRequest(asset.id, credentialDefinition.id, 2)
     const createStepResponse = await request
       .post(`/scenarios/presentations/${updatedScenario.slug}/steps`)
       .send(stepRequest)
@@ -142,7 +143,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     expect(updateStepResponse.body.step.title).toEqual('Updated Test Step')
 
     // 10. Create an additional action for the step
-    const actionRequest = createApiAriesOOBAction()
+    const actionRequest = createApiAcceptAction(credentialDefinition.id)
     actionRequest.title = 'Additional Action'
     actionRequest.text = 'Additional action text'
 
@@ -154,7 +155,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     const createdAction = createActionResponse.body.action
     expect(createdAction).toHaveProperty('id')
     expect(createdAction.title).toEqual('Additional Action')
-    expect(createdAction.actionType).toEqual(StepActionType.ARIES_OOB)
+    expect(createdAction.actionType).toEqual(StepActionType.ACCEPT_CREDENTIAL)
 
     // 11. Retrieve all actions for the step
     const getAllActionsResponse = await request
@@ -208,8 +209,10 @@ describe('PresentationScenarioController Integration Tests', () => {
 
     // Try to create a step for a non-existent scenario
     const asset = await createTestAsset()
+    const credentialSchema = await createTestCredentialSchema()
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
 
-    const stepRequest = createApiStepRequest(asset.id)
+    const stepRequest = createApiStepRequest(asset.id, credentialDefinition.id)
     await request.post(`/scenarios/presentations/${nonExistentSlug}/steps`).send(stepRequest).expect(404)
   })
 
@@ -224,10 +227,13 @@ describe('PresentationScenarioController Integration Tests', () => {
     // Set up assets and personas for testing
     const asset = await createTestAsset()
     const persona = await createTestPersona(asset)
+    const credentialSchema = await createTestCredentialSchema()
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+
 
     // Attempt to create a scenario with a non-existent issuer
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
-    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(nonExistentId, persona.id, asset.id)
+    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(nonExistentId, persona.id, asset.id, credentialDefinition.id)
 
     await request.post('/scenarios/issuances').send(invalidScenarioRequest2).expect(404)
   })
@@ -251,7 +257,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     const persona = await createTestPersona(asset)
 
     // Create a scenario with initial step
-    const scenarioRequest = createApiPresentationScenarioRequest(relyingParty.id, persona.id, asset.id)
+    const scenarioRequest = createApiPresentationScenarioRequest(relyingParty.id, persona.id, asset.id, credentialDefinition.id)
     scenarioRequest.name = 'Action Types Test Scenario'
     scenarioRequest.description = 'Testing different action types'
 
@@ -311,7 +317,7 @@ describe('PresentationScenarioController Integration Tests', () => {
 
     // Check each action type is present
     const actionTypes = actions.map((a: StepAction) => a.actionType)
-    expect(actionTypes).toContain(StepActionType.ARIES_OOB)
+    expect(actionTypes).toContain(StepActionType.ACCEPT_CREDENTIAL)
     expect(actionTypes).toContain(StepActionType.BUTTON)
     expect(actionTypes).toContain(StepActionType.SETUP_CONNECTION)
     expect(actionTypes).toContain(StepActionType.CHOOSE_WALLET)

@@ -8,6 +8,7 @@ import { relyingPartiesToCredentialDefinitions } from './relyingPartiesToCredent
 import { CredentialType, IdentifierType } from '../../types'
 import { credentialSchemas } from './credentialSchema'
 import { IdentifierTypePg } from './identifierType'
+import { users } from './user'
 
 export const credentialDefinitions = pgTable(
   'credentialDefinition',
@@ -20,15 +21,21 @@ export const credentialDefinitions = pgTable(
     credentialSchema: uuid('credential_schema')
       .references(() => credentialSchemas.id)
       .notNull(),
-    icon: uuid().references(() => assets.id),
+    icon: uuid('icon').references(() => assets.id),
     type: CredentialTypePg().notNull().$type<CredentialType>(),
+    approvedBy: uuid('approved_by').references(() => users.id),
+    approvedAt: timestamp('approved_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (t) => [index('idx_icon').on(t.icon), index('idx_credentialSchema').on(t.credentialSchema)],
+  (t) => [
+    index('idx_cd_icon').on(t.icon), // Corrected index name
+    index('idx_cd_credentialSchema').on(t.credentialSchema), // Corrected index name
+    index('idx_cd_approvedBy').on(t.approvedBy), // Added index for approvedBy
+  ],
 )
 
 export const credentialDefinitionRelations = relations(credentialDefinitions, ({ one, many }) => ({
@@ -39,6 +46,10 @@ export const credentialDefinitionRelations = relations(credentialDefinitions, ({
   icon: one(assets, {
     fields: [credentialDefinitions.icon],
     references: [assets.id],
+  }),
+  approver: one(users, {
+    fields: [credentialDefinitions.approvedBy],
+    references: [users.id],
   }),
   representations: many(credentialRepresentations),
   revocation: one(revocationInfo),

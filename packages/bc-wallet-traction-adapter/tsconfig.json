@@ -6,5 +6,12 @@
     "declarationDir": "dist",
     "noUnusedLocals": false
   },
-  "references": []
+  "references": [
+    {
+      "path": "../bc-wallet-traction-openapi"
+    },
+    {
+      "path": "../bc-wallet-openapi"
+    }
+  ]
 }

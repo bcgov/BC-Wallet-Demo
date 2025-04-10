@@ -46,15 +46,18 @@
     "hidden_label": "Hidden",
     "warning_label": "Warning!",
     "warning_placeholder_label": "This character is hidden. You can attach credentials and scenarios, but they will not be visible in the published version of this showcase.",
-    "select_your_character_title": "Select your Character",
-    "select_your_character_subtitle": "Select an existing character or use the fields on the right to create a new character.",
+    "create_your_character_title": "Create your Character",
+    "create_your_character_subtitle": "Use the fields on the right to create a new character.",
     "character_detail": "Character Details",
     "hide_character": "Hide this character",
     "create_new_character_label": "CREATE NEW CHARACTER",
     "hide_character_placeholder": "Turning this setting on will hide this character and any attached scenarios.",
     "no_character_selected_label": "No Persona Selected",
     "character_delete_title": "Are you sure you want to delete this character?",
-    "character_delete_description": "This action cannot be undone."
+    "character_delete_description": "This action cannot be undone.",
+    "success_characters_selected_label": "Characters added successfully",
+    "error_no_characters_selected_label": "Please select at least one character to proceed",
+    "error_character_creation_label": "Error creating character"
   },
   "credentials": {
     "header_title": "Add your Credentials",
@@ -262,5 +265,18 @@
   },
   "footer": {
     "copyright_label": "British Columbia Digital Identity and Trust Program. All rights reserved."
+  },
+  "login": {
+    "email_label": "Email",
+    "password_label": "Password",
+    "login_label": "Login with Keycloak",
+    "forgot_password_label": "Forgot Password?",
+    "sign_up_label": "Sign Up",
+    "continue_label": "Continue",
+    "terms_of_service_label": "Terms of Service",
+    "privacy_policy_label": "Privacy Policy",
+    "dont_have_account_label": "Don't have an account?",
+    "welcome_message": "Welcome to BC Showcase Creator.",
+    "app_name": "BC Showcase Creator."
   }
 }

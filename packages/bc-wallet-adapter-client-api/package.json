@@ -1,0 +1,36 @@
+{
+  "name": "bc-wallet-adapter-client-api",
+  "version": "0.1.0",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "build:clean": "tsc --build --clean && tsc --build",
+    "generate-key": "ts-node src/util/CypherUtil.ts generate-key"
+  },
+  "dependencies": {
+    "bc-wallet-openapi": "workspace:*",
+    "bs58": "^6.0.0",
+    "rhea": "^3.0.3",
+    "rhea-promise": "^3.0.3",
+    "typedi": "^0.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": "git@github.com:Sphereon-Opensource/bc-wallet-api.git",
+  "author": "4Sure",
+  "license": "Apache-2.0",
+  "keywords": []
+}

@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
     ],
     dangerouslyAllowSVG: true,
   },
+  transpilePackages: ["@t3-oss/env-nextjs", "@t3-oss/env-core"],
+  publicRuntimeConfig: {
+    staticFolder: '/public',
+  },
 };
 
 export default withNextIntl(nextConfig);

@@ -1,8 +1,10 @@
+import { env } from "@/env";
+
 class ApiService {
   private baseUrl: string
 
   public constructor(baseUrl: string) {
-    this.baseUrl = baseUrl
+    this.baseUrl = baseUrl;
   }
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
@@ -49,11 +51,11 @@ class ApiService {
     return this.request<T>('GET', `${url}${queryString}`)
   }
 
-  public post<T>(url: string, data?: Record<string, unknown>): Promise<T | void> {
+  public post<T>(url: string, data?: any): Promise<T | void> {
     return this.request<T>('POST', url, data)
   }
 
-  public put<T>(url: string, data?: Record<string, unknown>): Promise<T | void> {
+  public put<T>(url: string, data?: any): Promise<T | void> {
     return this.request<T>('PUT', url, data)
   }
 
@@ -62,9 +64,6 @@ class ApiService {
   }
 }
 
-if (!process.env.NEXT_PUBLIC_SHOWCASE_BACKEND) {
-  throw new Error('SHOWCASE_BACKEND environment variable is not defined')
-}
-const apiClient = new ApiService(process.env.NEXT_PUBLIC_SHOWCASE_BACKEND)
+const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_BACKEND)
 
 export default apiClient

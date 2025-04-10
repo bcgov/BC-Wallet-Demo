@@ -1,8 +1,6 @@
 import 'reflect-metadata'
-import { createExpressServer, useContainer } from 'routing-controllers'
+import { Action, createExpressServer, UnauthorizedError, useContainer } from 'routing-controllers'
 import Container from 'typedi'
-
-import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 import AssetController from './controllers/AssetController'
 import PersonaController from './controllers/PersonaController'
 import RelyingPartyController from './controllers/RelyingPartyController'
@@ -13,12 +11,19 @@ import ShowcaseController from './controllers/ShowcaseController'
 import { CredentialDefinitionController } from './controllers/CredentialDefinitionController'
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import { corsOptions } from './utils/cors'
+import { registerServicesByInterface } from './services/RegisterServicesByInterface'
+import TenantController from './controllers/TenantController'
+import * as process from 'node:process'
+import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
+import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 
 require('dotenv-flow').config()
 useContainer(Container)
 
 async function bootstrap() {
   try {
+    await registerServicesByInterface()
+
     // Create and configure Express server
     const app = createExpressServer({
       controllers: [
@@ -31,7 +36,27 @@ async function bootstrap() {
         IssuanceScenarioController,
         PresentationScenarioController,
         ShowcaseController,
+        TenantController,
       ],
+      authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
+        const authHeader: string = action.request.headers['authorization']
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          throw new UnauthorizedError('Missing or malformed Authorization header')
+        }
+        try  {
+            const accessToken = authHeader.split(' ')[1]
+            // Introspect the access token
+            if (!await isAccessTokenValid(accessToken)) {
+              return false
+            }
+            const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
+            // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
+            // User roles which at the moment we are not using, do not need any prefix.
+            return checkRoles(token, roles)
+        } catch (e) {
+          throw new UnauthorizedError(e.message)
+        }
+      },
       middlewares: [ExpressErrorHandler],
       defaultErrorHandler: false,
       cors: corsOptions,

@@ -3,9 +3,10 @@
 import React, { useState } from 'react'
 import { useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
-import type { Showcase } from '@/openapi-types'
+import type { Showcase } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import { env } from '@/env'
 
 import Header from '../header'
 import ButtonOutline from '../ui/button-outline'
@@ -13,6 +14,10 @@ import { Card } from '../ui/card'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
+
+
+const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
+
 
 export const LandingPage = () => {
   const t = useTranslations()
@@ -27,12 +32,13 @@ export const LandingPage = () => {
   }
 
   const handlePreview = (slug: string) => {
-  const previewUrl = `${process.env.NEXT_PUBLIC_WALLET_URL}/${slug}`
+
+    const previewUrl = `${WALLET_URL}/${slug}`
     window.open(previewUrl, '_blank')
   }
 
   const handleOpen = (slug: string) => {
-    const openUrl = `${process.env.NEXT_PUBLIC_WALLET_URL}/${slug}`
+    const openUrl = `${WALLET_URL}/${slug}`
     window.open(openUrl, '_blank')
   }
 
@@ -49,7 +55,7 @@ export const LandingPage = () => {
 
       <section className="mx-auto p-4">
         <div className="grid md:grid-cols-3 gap-6 mt-6 pb-4">
-          {data?.showcases.filter(searchFilter).map((showcase: Showcase) => (
+          {(data?.showcases || []).filter(searchFilter).map((showcase: Showcase) => (
             <Card key={showcase.id}>
               <div
                 key={showcase.id}
@@ -59,7 +65,7 @@ export const LandingPage = () => {
                   className="relative min-h-[15rem] h-auto flex items-center justify-center bg-cover bg-center"
                   style={{
                     backgroundImage: `url('${
-                      showcase?.bannerImage?.content ? showcase.bannerImage.content : '/assets/NavBar/Showcase.jpeg'
+                      showcase?.bannerImage?.id ? `${baseUrl}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
                     }')`,
                   }}
                 >
@@ -77,8 +83,8 @@ export const LandingPage = () => {
                             console.log('delete', showcase.id)
                           }}
                         />
-                        <CopyButton value={`${process.env.NEXT_PUBLIC_WALLET_URL}/${showcase.slug}`} />
-                        <OpenButton value={`${process.env.NEXT_PUBLIC_WALLET_URL}/${showcase.slug}`} />
+                        <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />
+                        <OpenButton value={`${WALLET_URL}/${showcase.slug}`} />
                       </div>
                     </div>
                   </div>

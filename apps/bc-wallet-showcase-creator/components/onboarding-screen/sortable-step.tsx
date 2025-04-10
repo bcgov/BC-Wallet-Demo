@@ -165,7 +165,7 @@ export const SortableStep = ({
                             ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
                             : '/assets/no-image.jpg'
                         }
-                        alt={selectedCredential.icon.description || 'Credential Icon'}
+                        alt={'Credential Icon'}
                         width={50}
                         height={50}
                         className="rounded-full"

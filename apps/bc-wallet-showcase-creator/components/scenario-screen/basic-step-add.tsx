@@ -11,7 +11,6 @@ import { useCreatePresentation, usePresentations } from '@/hooks/use-presentatio
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
 import { sampleAction } from '@/lib/steps'
-import type { PresentationScenarioResponseType } from '@/openapi-types'
 import type { BasicStepFormData } from '@/schemas/onboarding'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from 'lodash'
@@ -120,6 +119,12 @@ export const BasicStepAdd = () => {
         (step: any) => step.title === data.title && step.description === data.description
       )
 
+      scenarioForPersona.steps = scenarioForPersona.steps.map((step: any) => {
+        delete step.id
+        return step
+      })
+
+      console.log('scenarioForPersona.steps', scenarioForPersona.steps)
       if (!currentStepExists) {
         scenarioForPersona.steps.push({
           title: data.title,
@@ -134,12 +139,14 @@ export const BasicStepAdd = () => {
       return scenarioForPersona
     })
 
-    const scenarioIds = []
+    const scenarioIds: string[] = []
 
     for (const scenario of personaScenarios) {
       try {
         const result = await mutateAsync(scenario)
-        scenarioIds.push((result as PresentationScenarioResponseType).presentationScenario.id)
+        if (result?.presentationScenario?.id) {
+          scenarioIds.push(result.presentationScenario.id)
+        }
         toast.success(`Presentation created for ${scenario.personas[0]?.name || 'persona'}`)
       } catch (error) {
         console.error('Error creating scenario:', error)
@@ -154,7 +161,7 @@ export const BasicStepAdd = () => {
 
   const handleCancel = () => {
     form.reset()
-    setStepState('no-selection')
+    // setStepState('no-selection')
     setSelectedStep(null)
   }
 
@@ -170,7 +177,7 @@ export const BasicStepAdd = () => {
             <p className="text-foreground text-sm">{t('onboarding.section_title')}</p>
             <h3 className="text-2xl font-bold text-foreground">{t('onboarding.details_step_header_title')}</h3>
           </div>
-          <Button variant="outline" onClick={() => setStepState('editing-basic')} className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => {}} className="flex items-center gap-2">
             <Edit className="h-4 w-4" />
             {t('action.edit_label')}
           </Button>

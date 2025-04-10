@@ -1,5 +1,7 @@
-import { RabbitMQContainer, StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
-import { Connection, Receiver, ReceiverEvents, ReceiverOptions, Sender, SenderOptions } from 'rhea-promise'
+import type { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
+import { RabbitMQContainer } from '@testcontainers/rabbitmq'
+import type { Receiver, ReceiverOptions, Sender, SenderOptions } from 'rhea-promise'
+import { Connection, ReceiverEvents } from 'rhea-promise'
 
 describe('RabbitMQ Hello World Test', () => {
   jest.setTimeout(60000) // Extend timeout for container startup

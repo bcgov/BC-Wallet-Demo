@@ -12,6 +12,7 @@ import { PGlite } from '@electric-sql/pglite'
 import DatabaseService from '../../services/DatabaseService'
 import supertest = require('supertest')
 import { createMockDatabaseService, createTestAsset, createTestCredentialSchema, setupTestDatabase } from './dbTestData'
+import { MockSessionService } from './MockSessionService'
 
 describe('CredentialDefinitionController Integration Tests', () => {
   let client: PGlite
@@ -24,12 +25,14 @@ describe('CredentialDefinitionController Integration Tests', () => {
     const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
+    Container.set('ISessionService', Container.get(MockSessionService))
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)
     Container.get(CredentialDefinitionRepository)
     Container.get(CredentialDefinitionService)
     app = createExpressServer({
       controllers: [CredentialDefinitionController],
+      authorizationChecker: () => true
     })
     request = supertest(app)
   })

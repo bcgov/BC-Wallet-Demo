@@ -12,8 +12,10 @@
     "migration:generate": "npx drizzle-kit generate --config=drizzle.config.ts --name=bc-wallet-api"
   },
   "dependencies": {
-    "cors": "^2.8.5",
     "bc-wallet-openapi": "workspace:*",
+    "bc-wallet-adapter-client-api": "workspace:*",
+    "cors": "^2.8.5",
+    "cross-fetch": "3.1.8",
     "dotenv-flow": "^4.1.0",
     "drizzle-orm": "^0.39.3",
     "express": "^4.21.2",
