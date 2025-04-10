@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 import { environment } from './environment'
 import { MessageProcessor } from './message-processor'
 

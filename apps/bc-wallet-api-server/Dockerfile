@@ -16,6 +16,7 @@ RUN apt-get update && \
 WORKDIR /build
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json tsconfig.build.json tsconfig.eslint.json ./
 COPY packages packages
+RUN rm -rf packages/bc-wallet-traction-adapter # TODO This package has to be moved to apps because it's not a lib and has special needs to build
 COPY apps/tsconfig-base.json apps/
 COPY apps/bc-wallet-api-server apps/bc-wallet-api-server
 
@@ -23,7 +24,7 @@ COPY apps/bc-wallet-api-server apps/bc-wallet-api-server
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib drizzle-kit
 RUN pnpm install
 RUN pnpm generate:models
-RUN pnpm --filter bc-wallet-openapi build:clean
+RUN pnpm build:clean # FIXME turbo does not build this correctly in docker compose for unknown reasons, so do a pre-build
 RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-api-server --prod --no-optional
 

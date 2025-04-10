@@ -8,12 +8,12 @@ const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
 
   // Base connection options
   const options = {
-    hostname: process.env.AMQ_HOST || 'localhost',
+    host: process.env.AMQ_HOST || 'localhost',
     port: parseInt(process.env.AMQ_PORT || '5672', 10),
     reconnect: true,
     username: process.env.AMQ_USER || 'guest',
     password: process.env.AMQ_PASSWORD || 'guest',
-  }
+  } satisfies ConnectionOptions
 
   // Add transport property with correct type
   if (validTransport === 'tcp') {
@@ -52,6 +52,8 @@ const parsePositiveInt = (value: string | undefined, defaultValue: number): numb
 
   return parsed
 }
+
+console.log('env:', process.env)
 
 export const environment = {
   messageBroker: {

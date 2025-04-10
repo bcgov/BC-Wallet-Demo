@@ -1,6 +1,7 @@
-import { ISessionService } from '../../types/services/session'
-import { Tenant, User } from '../../types'
 import { Service } from 'typedi'
+
+import type { Tenant, User } from '../../types'
+import type { ISessionService } from '../../types/services/session'
 
 @Service()
 export class MockSessionService implements ISessionService {
@@ -15,6 +16,10 @@ export class MockSessionService implements ISessionService {
   public async getCurrentTenant(): Promise<Tenant | null> {
     console.log('[MockSession] getCurrentTenant called')
     return Promise.resolve(this.tenant)
+  }
+
+  public getBearerToken(): string {
+    return ''
   }
 
   // --- Test Control Methods ---
