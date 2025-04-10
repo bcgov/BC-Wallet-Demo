@@ -2,11 +2,11 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-ingress
+  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-ingress
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
   annotations:
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
@@ -16,54 +16,54 @@ spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
   rules:
-  - host: {{ include "bc-wallet.api-server.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.api-server.host" . | quote }}
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ include "bc-wallet.fullname" . }}-api-server
+            name: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-server
             port:
               number: {{ $.Values.api_server.service.port }}
-  - host: {{ include "bc-wallet.traction-adapter.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.traction-adapter.host" . | quote }}
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ include "bc-wallet.fullname" . }}-traction-adapter
+            name: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
             port:
               number: {{ $.Values.traction_adapter.service.port }}
-  - host: {{ include "bc-wallet.demo-web.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.demo-web.host" . | quote }}
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ include "bc-wallet.fullname" . }}-demo-web
+            name: {{ include "bc-wallet-showcase-builder.fullname" . }}-demo-web
             port:
               number: {{ $.Values.demo_web.service.port }}
-  - host: {{ include "bc-wallet.showcase-creator.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.showcase-creator.host" . | quote }}
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ include "bc-wallet.fullname" . }}-showcase-creator
+            name: {{ include "bc-wallet-showcase-builder.fullname" . }}-showcase-creator
             port:
               number: {{ $.Values.showcase_creator.service.port }}
-  - host: {{ include "bc-wallet.demo-server.host" . | quote }}
+  - host: {{ include "bc-wallet-showcase-builder.demo-server.host" . | quote }}
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ include "bc-wallet.fullname" . }}-demo-server
+            name: {{ include "bc-wallet-showcase-builder.fullname" . }}-demo-server
             port:
               number: {{ $.Values.demo_server.service.port }}
   {{- with .Values.ingress.tls }}

@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-postgresql-config
+  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-postgresql-config
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 data:
   postgresql.conf: |
     {{- .Values.postgresql.primary.extendedConfiguration | nindent 4 }}
@@ -14,10 +14,10 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}
+  name: {{ include "bc-wallet-showcase-builder.fullname" . }}
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 data:
   {{- if .Values.postgresql.enabled }}
   DB_HOST: {{ .Release.Name }}-postgresql

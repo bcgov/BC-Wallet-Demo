@@ -2,24 +2,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-traction-adapter
+  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: adapter
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.traction_adapter.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-traction-adapter
+      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
   template:
     metadata:
       labels:
-        app: {{ include "bc-wallet.fullname" . }}-traction-adapter
+        app: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
         app.kubernetes.io/component: adapter
         app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
       {{- with .Values.traction_adapter.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -56,9 +56,9 @@ spec:
         - name: RABBITMQ_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
-              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+              name: {{ include "bc-wallet-showcase-builder.rabbitmq.secret.name" . }}
+              key: {{ include "bc-wallet-showcase-builder.rabbitmq.passwordKey" . }}
         resources:
           {{- toYaml .Values.traction_adapter.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-traction-adapter{{ end }}{{ end }}
+      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter{{ end }}{{ end }}
 {{- end }}

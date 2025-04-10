@@ -2,24 +2,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-showcase-creator
+  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-showcase-creator
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: creator
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.showcase_creator.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-showcase-creator
+      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-showcase-creator
   template:
     metadata:
       labels:
-        app: {{ include "bc-wallet.fullname" . }}-showcase-creator
+        app: {{ include "bc-wallet-showcase-builder.fullname" . }}-showcase-creator
         app.kubernetes.io/component: creator
         app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
       {{- with .Values.showcase_creator.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -56,14 +56,14 @@ spec:
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet.database.secret.name" . }}
-              key: {{ include "bc-wallet.database.userPasswordKey" . }}
+              name: {{ include "bc-wallet-showcase-builder.database.secret.name" . }}
+              key: {{ include "bc-wallet-showcase-builder.database.userPasswordKey" . }}
         - name: AUTH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet.authtoken.secret.name" . }}
+              name: {{ include "bc-wallet-showcase-builder.authtoken.secret.name" . }}
               key: token
         resources:
           {{- toYaml .Values.showcase_creator.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.showcase_creator.serviceAccount.create }}{{ if .Values.showcase_creator.serviceAccount.name }}{{ .Values.showcase_creator.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-showcase-creator{{ end }}{{ end }}
+      serviceAccountName: {{ if .Values.showcase_creator.serviceAccount.create }}{{ if .Values.showcase_creator.serviceAccount.name }}{{ .Values.showcase_creator.serviceAccount.name }}{{ else }}{{ include "bc-wallet-showcase-builder.fullname" . }}-showcase-creator{{ end }}{{ end }}
 {{- end }} 

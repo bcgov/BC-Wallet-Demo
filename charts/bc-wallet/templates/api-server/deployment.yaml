@@ -2,24 +2,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-api-server
+  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-server
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: api
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.api_server.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-api-server
+      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-server
   template:
     metadata:
       labels:
-        app: {{ include "bc-wallet.fullname" . }}-api-server
+        app: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-server
         app.kubernetes.io/component: api
         app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
       {{- with .Values.api_server.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -56,14 +56,14 @@ spec:
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet.database.secret.name" . }}
-              key: {{ include "bc-wallet.database.userPasswordKey" . }}
+              name: {{ include "bc-wallet-showcase-builder.database.secret.name" . }}
+              key: {{ include "bc-wallet-showcase-builder.database.userPasswordKey" . }}
         - name: AUTH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: {{ include "bc-wallet.authtoken.secret.name" . }}
+              name: {{ include "bc-wallet-showcase-builder.authtoken.secret.name" . }}
               key: token
         resources:
           {{- toYaml .Values.api_server.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.api_server.serviceAccount.create }}{{ if .Values.api_server.serviceAccount.name }}{{ .Values.api_server.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-api-server{{ end }}{{ end }}
+      serviceAccountName: {{ if .Values.api_server.serviceAccount.create }}{{ if .Values.api_server.serviceAccount.name }}{{ .Values.api_server.serviceAccount.name }}{{ else }}{{ include "bc-wallet-showcase-builder.fullname" . }}-api-server{{ end }}{{ end }}
 {{- end }}
