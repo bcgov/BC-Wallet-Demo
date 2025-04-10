@@ -53,9 +53,11 @@ const parsePositiveInt = (value: string | undefined, defaultValue: number): numb
   return parsed
 }
 
+console.log('env:', process.env)
+
 export const environment = {
   messageBroker: {
-    AMQ_HOST: process.env.AMQ_HOST || 'localhost',
+    AMQ_HOST: process.env.AMQ_HOST || 'bc-wallet-rabbitmq.default.svc.cluster.local',
     AMQ_PORT: parsePositiveInt(process.env.AMQ_PORT, 5672),
     AMQ_USER: process.env.AMQ_USER || 'guest',
     AMQ_PASSWORD: process.env.AMQ_PASSWORD || 'guest',
