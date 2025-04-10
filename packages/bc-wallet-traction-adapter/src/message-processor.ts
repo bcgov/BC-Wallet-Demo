@@ -39,7 +39,7 @@ export class MessageProcessor {
     const receiverOptions: ReceiverOptions = {
       source: {
         address: this.topic,
-        durable: 2,
+        durable: 1,
         filter: {
           'topic-filter': this.topic,
         },
