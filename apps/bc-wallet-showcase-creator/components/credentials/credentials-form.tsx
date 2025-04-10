@@ -95,8 +95,8 @@ export const CredentialsForm = () => {
       const assetId = assetResponse?.asset?.id
 
       const credentialDefinitionPayload: z.infer<typeof CredentialDefinitionRequest> = {
-        name: formData.name || 'example_name',
-        version: formData.version || 'example_version',
+        name: 'default',
+        version: formData.version || 'default_version',
         credentialSchema: schemaId,
         type: CredentialType.Anoncred,
         icon: assetId,
