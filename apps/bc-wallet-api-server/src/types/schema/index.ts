@@ -13,7 +13,7 @@ import {
   showcases,
   stepActions,
   steps,
-  tenant,
+  tenants,
   users,
 } from '../../database/schema'
 
@@ -298,8 +298,8 @@ export type AriesRequestCredentialPredicate = {
 export type AriesProofRequest = typeof ariesProofRequests.$inferSelect
 export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 'stepAction'>
 
-export type Tenant = typeof tenant.$inferSelect
-export type NewTenant = typeof tenant.$inferInsert
+export type Tenant = typeof tenants.$inferSelect
+export type NewTenant = typeof tenants.$inferInsert
 
 export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage' | 'createdBy' | 'approvedBy'> & {
   scenarios: Scenario[]
