@@ -387,17 +387,20 @@ rabbitmq:
   auth:
     username: "guest"
     password: ""
-    secretKeys:
-      passwordKey: "rabbitmq-password"
-      erlangCookieKey: "rabbitmq-erlang-cookie"
-  plugins: "rabbitmq_management rabbitmq_amqp1_0"
-  extraConfiguration: |
+    existingSecret: ""
+    existingSecretPasswordKey: "rabbitmq-password"
+    erlangCookie: ""
+    existingErlangSecret: ""
+    existingErlangSecretKey: "rabbitmq-erlang-cookie"
+  extraPlugins: "rabbitmq_management rabbitmq_amqp1_0"
+  configuration: |-
     management.listener.port = 15672
     management.listener.ssl = false
   service:
+    type: ClusterIP
     ports:
       amqp: 5672
-      management: 15672
+      manager: 15672
   livenessProbe:
     enabled: false
   readinessProbe:
