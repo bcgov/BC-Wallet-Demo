@@ -8,7 +8,7 @@ const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
 
   // Base connection options
   const options = {
-    host: process.env.AMQ_HOST || 'bc-wallet-rabbitmq.default.svc.cluster.local',
+    host: process.env.AMQ_HOST || 'localhost',
     port: parseInt(process.env.AMQ_PORT || '5672', 10),
     reconnect: true,
     username: process.env.AMQ_USER || 'guest',
@@ -57,7 +57,7 @@ console.log('env:', process.env)
 
 export const environment = {
   messageBroker: {
-    AMQ_HOST: process.env.AMQ_HOST || 'bc-wallet-rabbitmq.default.svc.cluster.local',
+    AMQ_HOST: process.env.AMQ_HOST || 'localhost',
     AMQ_PORT: parsePositiveInt(process.env.AMQ_PORT, 5672),
     AMQ_USER: process.env.AMQ_USER || 'guest',
     AMQ_PASSWORD: process.env.AMQ_PASSWORD || 'guest',
