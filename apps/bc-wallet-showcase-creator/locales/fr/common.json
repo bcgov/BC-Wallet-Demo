@@ -245,6 +245,7 @@
     "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine."
   },
   "navigation": {
+    "general_label": "Général",
     "character_label": "Personnage",
     "credentials_label": "Identifiants",
     "onboarding_label": "Intégration",

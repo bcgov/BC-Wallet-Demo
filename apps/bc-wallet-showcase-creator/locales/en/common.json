@@ -249,6 +249,7 @@
     "modal_description2": "Do you want to proceed?"
   },
   "navigation": {
+    "general_label": "General",
     "character_label": "Character",
     "credentials_label": "Credentials",
     "onboarding_label": "Onboarding",
