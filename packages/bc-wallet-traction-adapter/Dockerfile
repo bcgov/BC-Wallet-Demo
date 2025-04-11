@@ -31,4 +31,6 @@ WORKDIR /app
 COPY --from=builder /deploy /app
 ENV NODE_ENV=production
 RUN echo PORT=3000  > .env
-CMD ["node", "dist/index.js"]
+RUN echo '#!/bin/sh\necho "Waiting for message broker to start..."\nsleep 6\necho "Starting application..."\nexec node dist/index.js' > /start.sh && \
+    chmod +x /start.sh
+CMD ["/start.sh"]
