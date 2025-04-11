@@ -20,7 +20,7 @@ export const CredentialsPage = () => {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-foreground/10 dark:bg-dark-bg dark:bg-none min-h-screen">
       <Header
         title={t('sidebar.credential_library_label')}
         searchTerm={searchTerm}
@@ -33,7 +33,7 @@ export const CredentialsPage = () => {
         showIcon={false}
       />
 
-      <div className="flex gap-4 p-4">
+      <div className="flex gap-4 p-4 ">
         <div className="w-1/3 bg-[white] dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
           <CredentialsDisplay searchTerm={searchTerm} />
         </div>

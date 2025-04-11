@@ -165,6 +165,11 @@ export const SortableStep = ({
                           ? `${baseUrl}/assets/${cred.icon.id}/file`
                           : '/assets/no-image.jpg'
                       }
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement
+                        target.src = '/assets/no-image.jpg'
+                      }}
                       alt={'Credential Icon'}
                       width={50}
                       height={50}
