@@ -103,7 +103,7 @@ jobs:
         uses: ./.github/actions/build_docker
         id: builder
         with:
-          context: "./apps/bc-wallet-demo-server"
+          context: "."
           dockerfile: "./apps/bc-wallet-demo-server/Dockerfile"
           image_name: ${{ github.repository_owner}}/bc-wallet-demo-server
           registry: ghcr.io
