@@ -6,7 +6,9 @@ config:
 classDiagram
     class Tenant {
         +id : String
+        +users : List~User~
         +createdAt : DateTime
+        +updatedAt : DateTime
         +deletedAt : DateTime
     }
     class Showcase {

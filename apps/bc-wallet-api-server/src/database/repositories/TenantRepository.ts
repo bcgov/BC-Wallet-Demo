@@ -82,7 +82,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
           .values(
             newTenant.users.map((userId: string) => ({
               tenant: tenantResult.id,
-              user: userId
+              user: userId,
             })),
           )
           .returning()
@@ -102,13 +102,25 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
   }
 
   async findById(id: string): Promise<Tenant> {
-    const [result] = await (await this.databaseService.getConnection()).select().from(tenants).where(eq(tenants.id, id))
+    const prepared = (await this.databaseService.getConnection()).query.tenants
+      .findFirst({
+        where: eq(tenants.id, id),
+        with: {
+          users: true,
+        },
+      })
+      .prepare('statement_name')
 
-    if (!result) {
+    const tenant = await prepared.execute()
+
+    if (!tenant) {
       return Promise.reject(new NotFoundError(`No tenant found for id: ${id}`))
     }
 
-    return result
+    return {
+      ...tenant,
+      users: tenant.users.map((item: any) => item.user),
+    }
   }
 
   async findAll(): Promise<Tenant[]> {
