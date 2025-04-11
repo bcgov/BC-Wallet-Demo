@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "start": "ts-node src/index.ts",
     "build": "tsc",
     "build:clean": "tsc --build --clean && tsc --build",
     "generate-key": "ts-node src/util/CypherUtil.ts generate-key"

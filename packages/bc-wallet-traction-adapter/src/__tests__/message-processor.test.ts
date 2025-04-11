@@ -189,7 +189,7 @@ describe('MessageProcessor Integration Test', () => {
     })
 
     // Verify that the getTractionService was called with the correct parameters
-    expect(getTractionService).toHaveBeenCalledWith(
+    expect(await getTractionService).toHaveBeenCalledWith(
       'test-tenant',
       'http://localhost:8080',
       'test-wallet',

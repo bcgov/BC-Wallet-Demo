@@ -1,5 +1,4 @@
 import type { Issuer } from 'bc-wallet-openapi'
-import { IssuerFromJSONTyped } from 'bc-wallet-openapi'
 import type { Buffer } from 'buffer'
 import type { Receiver, ReceiverOptions } from 'rhea-promise'
 import { Connection, ReceiverEvents } from 'rhea-promise'
@@ -67,22 +66,26 @@ export class MessageProcessor {
         return
       }
 
-      if (!headers.tenantId) {
+      if (!headers.tenantId && !environment.traction.FIXED_TENANT_ID) {
         this.rejectDelivery(context, `message ${messageId} did not contain the tenant id`)
         return
       }
 
-      const service = getTractionService(
-        headers.tenantId,
+      if (!headers.walletId && !environment.traction.FIXED_WALLET_ID) {
+        this.rejectDelivery(context, `message ${messageId} did not contain the wallet id`)
+        return
+      }
+
+      const service = await getTractionService(
+        headers.tenantId ?? environment.traction.FIXED_TENANT_ID!,
         headers.apiUrlBase,
-        headers.walletId,
+        headers.walletId ?? environment.traction.FIXED_WALLET_ID!,
         headers.accessTokenEnc,
         headers.accessTokenNonce,
       )
 
       try {
-        const jsonData = JSON.parse(message.body as string)
-        await this.processMessage(headers.action, jsonData, service, context, headers)
+        await this.processMessage(headers.action, message.body, service, context, headers)
       } catch (error) {
         this.rejectDelivery(context, `Failed to parse message body for ${messageId}: ${error}`, headers)
       }
@@ -112,14 +115,14 @@ export class MessageProcessor {
 
   private async processMessage(
     action: Action,
-    jsonData: any,
+    payload: object,
     service: TractionService,
     context: any,
     headers: MessageHeaders,
   ): Promise<void> {
     switch (action) {
       case 'publish-issuer-assets': {
-        await this.handlePublishIssuerAssets(jsonData, service, context, headers)
+        await this.handlePublishIssuerAssets(payload, service, context, headers)
         break
       }
       default: {
@@ -130,12 +133,12 @@ export class MessageProcessor {
   }
 
   private async handlePublishIssuerAssets(
-    jsonData: any,
+    payload: object,
     service: TractionService,
     context: any,
     headers: MessageHeaders,
   ): Promise<void> {
-    const issuer: Issuer = IssuerFromJSONTyped(jsonData, false)
+    const issuer: Issuer = payload as Issuer
     try {
       console.debug('Received issuer', issuer)
       await service.publishIssuerAssets(issuer)

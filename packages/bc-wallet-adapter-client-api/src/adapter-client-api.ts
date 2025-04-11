@@ -1,7 +1,6 @@
 import type { Issuer } from 'bc-wallet-openapi'
 import { instanceOfIssuer, IssuerToJSONTyped } from 'bc-wallet-openapi'
-import type { Sender } from 'rhea-promise'
-import { Connection } from 'rhea-promise'
+import { Connection, Sender } from 'rhea-promise'
 import { Service } from 'typedi'
 
 import { environment } from './environment'
@@ -40,18 +39,12 @@ export class AdapterClientApi {
 
       const { accessTokenEnc, accessTokenNonce } = this.encryptAuthHeader(authHeader)
 
-      const delivery = this.sender.send({
+      // Send the message
+      const delivery = await this.sender.send({
         body: this.payloadToJson(payload),
         application_properties: { action, accessTokenEnc, accessTokenNonce },
       })
-
-      if (delivery.remote_state && 'error' in delivery.remote_state) {
-        return Promise.reject(Error(`Message rejected: ${delivery.remote_state.error?.description || 'Unknown error'}`))
-      }
-
-      if (!delivery.settled) {
-        return Promise.reject(Error('Message was not settled by the receiver'))
-      }
+      return
     } catch (error) {
       return Promise.reject(error)
     }
@@ -65,7 +58,11 @@ export class AdapterClientApi {
   }
 
   public async publishIssuer(issuer: Issuer, authHeader: string): Promise<void> {
-    return this.send('publish-issuer-assets', issuer, authHeader)
+    try {
+      return this.send('publish-issuer-assets', issuer, authHeader)
+    } catch (e) {
+      console.warn('publishIssuer failed', e) // FIXME remove after demo
+    }
   }
 
   public async close(): Promise<void> {

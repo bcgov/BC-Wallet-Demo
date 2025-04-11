@@ -120,6 +120,7 @@ packages/**/target
 /packages/*/dist
 /apps/*/dist
 **/bc-wallet-openapi/src/**/*
+**/bc-wallet-traction-openapi/src/**/*
 
 **/.env
 **/.env.*
