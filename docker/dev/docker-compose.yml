@@ -26,6 +26,7 @@ services:
       - ALLOW_HEADERS=${ALLOW_HEADERS}
       - ALLOW_CREDENTIALS=${ALLOW_CREDENTIALS}
       # active-mq settings
+      - MESSAGE_PROCESSOR_TOPIC=${TRACTION_ADAPTER_MESSAGE_TOPIC}
       - AMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
       - AMQ_PORT=${RABBITMQ_PORT:-5672}
       - AMQ_USER=${RABBITMQ_USER}
@@ -83,6 +84,7 @@ services:
       - APP_NAME=${APP_NAME}
       - LOG_LEVEL=${LOG_LEVEL}
         # active-mq settings
+      - MESSAGE_PROCESSOR_TOPIC=${TRACTION_ADAPTER_MESSAGE_TOPIC}
       - AMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
       - AMQ_PORT=${RABBITMQ_PORT:-5672}
       - AMQ_USER=${RABBITMQ_USER}
