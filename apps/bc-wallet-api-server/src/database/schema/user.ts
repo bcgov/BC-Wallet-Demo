@@ -9,7 +9,7 @@ import { showcases } from './showcase'
 import { tenantsToUsers } from './tenantsToUsers'
 
 export const users = pgTable('user', {
-  id: uuid('id').notNull().primaryKey().defaultRandom(),
+  id: uuid('id').notNull().primaryKey(),
   identifierType: IdentifierTypePg('identifier_type').$type<IdentifierType>(),
   identifier: text(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
