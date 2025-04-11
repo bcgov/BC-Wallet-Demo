@@ -1,5 +1,6 @@
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+
 import { showcases } from './showcase'
 import { tenantsToUsers } from './tenantsToUsers'
 
@@ -15,5 +16,5 @@ export const tenants = pgTable('tenant', {
 
 export const tenantRelations = relations(tenants, ({ many }) => ({
   showcase: many(showcases),
-  user: many(tenantsToUsers)
+  users: many(tenantsToUsers),
 }))

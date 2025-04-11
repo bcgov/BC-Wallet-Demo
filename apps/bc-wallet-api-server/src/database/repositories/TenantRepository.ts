@@ -1,18 +1,55 @@
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { Service } from 'typedi'
-import DatabaseService from '../../services/DatabaseService'
+
 import { NotFoundError } from '../../errors'
-import { tenants } from '../schema'
-import { NewTenant, RepositoryDefinition, Tenant } from '../../types'
+import DatabaseService from '../../services/DatabaseService'
+import { tenants, tenantsToUsers, users } from '../schema'
+import { NewTenant, RepositoryDefinition, Tenant, User } from '../../types'
+import UserRepository from './UserRepository'
 
 @Service()
 class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly userRepository: UserRepository) {}
 
   async create(newTenant: NewTenant): Promise<Tenant> {
-    const [result] = await (await this.databaseService.getConnection()).insert(tenants).values(newTenant).returning()
+    let usersResult: User[] = []
+    const connection = await this.databaseService.getConnection()
+    return connection.transaction(async (tx): Promise<Tenant> => {
+      const [tenantResult] = await tx
+        .insert(tenants)
+        .values({
+          ...newTenant,
+        })
+        .returning()
 
-    return result
+      if (newTenant.users.length > 0) {
+        const tenantPromises = newTenant.users.map(async (user) => this.userRepository.findById(user))
+        await Promise.all(tenantPromises)
+
+        const tenantsToUsersResult = await tx
+          .insert(tenantsToUsers)
+          .values(
+            newTenant.users.map((userId: string) => ({
+              tenant: tenantResult.id,
+              user: userId
+            })),
+          )
+          .returning()
+
+        usersResult = await tx.query.users.findMany({
+          where: inArray(
+            users.id,
+            tenantsToUsersResult.map((item) => item.user).filter((id): id is string => id !== null),
+          )
+        })
+      }
+      return {
+        ...tenantResult,
+        users: usersResult
+      }
+    })
   }
 
   async delete(id: string): Promise<void> {
@@ -20,15 +57,48 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
     await (await this.databaseService.getConnection()).delete(tenants).where(eq(tenants.id, id))
   }
 
-  async update(id: string, tenantData: NewTenant): Promise<Tenant> {
+  async update(id: string, newTenant: NewTenant): Promise<Tenant> {
     await this.findById(id)
-    const [result] = await (await this.databaseService.getConnection())
-      .update(tenants)
-      .set(tenantData)
-      .where(eq(tenants.id, id))
-      .returning()
 
-    return result
+    let usersResult: User[] = []
+
+    const connection = await this.databaseService.getConnection()
+
+    return connection.transaction(async (tx): Promise<Tenant> => {
+      const [tenantResult] = await tx
+        .update(tenants)
+        .set(newTenant)
+        .where(eq(tenants.id, id))
+        .returning()
+
+      await tx.delete(tenantsToUsers).where(eq(tenantsToUsers.user, id))
+
+      if (newTenant.users.length > 0) {
+        const tenantPromises = newTenant.users.map(async (user) => this.userRepository.findById(user))
+        await Promise.all(tenantPromises)
+
+        const tenantsToUsersResult = await tx
+          .insert(tenantsToUsers)
+          .values(
+            newTenant.users.map((userId: string) => ({
+              tenant: tenantResult.id,
+              user: userId
+            })),
+          )
+          .returning()
+
+        usersResult = await tx.query.users.findMany({
+          where: inArray(
+            users.id,
+            tenantsToUsersResult.map((item) => item.user).filter((id): id is string => id !== null),
+          )
+        })
+      }
+      return {
+        ...tenantResult,
+        users: usersResult
+      }
+    })
   }
 
   async findById(id: string): Promise<Tenant> {
@@ -42,7 +112,32 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
   }
 
   async findAll(): Promise<Tenant[]> {
-    return (await this.databaseService.getConnection()).select().from(tenants)
+    const connection = await this.databaseService.getConnection()
+    const tenants = await connection.query.tenants.findMany()
+    const tenantIds = tenants.map((s: any) => s.id)
+
+    const users = await connection.query.tenantsToUsers.findMany({
+      where: inArray(tenantsToUsers.tenant, tenantIds),
+      with: {
+        user: true,
+      },
+    })
+
+    const usersMap = new Map<string, any[]>()
+    for (const item of users) {
+      const key = item.tenant
+      if (!usersMap.has(key)) {
+        usersMap.set(key, [])
+      }
+      usersMap.get(key)!.push(item)
+    }
+
+    return tenants.map((tenant) => {
+      return {
+        ...tenant,
+        users: (usersMap.get(tenant.id) || []).map((item: any) => item.user),
+      }
+    })
   }
 }
 

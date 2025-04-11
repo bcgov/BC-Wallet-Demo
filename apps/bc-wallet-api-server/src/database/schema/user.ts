@@ -1,8 +1,10 @@
+import { relations } from 'drizzle-orm'
 import { pgTable, text } from 'drizzle-orm/pg-core'
 import { timestamp, uuid } from 'drizzle-orm/pg-core'
+
 import { IdentifierTypePg } from './identifierType'
 import { IdentifierType } from '../../types'
-import { relations } from 'drizzle-orm'
+
 import { showcases } from './showcase'
 import { tenantsToUsers } from './tenantsToUsers'
 
@@ -19,5 +21,5 @@ export const users = pgTable('user', {
 
 export const userRelations = relations(users, ({ many }) => ({
   showcase: many(showcases),
-  tenant: many(tenantsToUsers)
+  tenants: many(tenantsToUsers),
 }))

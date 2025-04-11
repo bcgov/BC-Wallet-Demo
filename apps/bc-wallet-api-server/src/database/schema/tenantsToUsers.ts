@@ -20,11 +20,11 @@ export const tenantsToUsers = pgTable(
 )
 
 export const tenantsToUsersRelations = relations(tenantsToUsers, ({ one }) => ({
-  scenario: one(tenants, {
+  tenant: one(tenants, {
     fields: [tenantsToUsers.tenant],
     references: [tenants.id],
   }),
-  showcase: one(users, {
+  user: one(users, {
     fields: [tenantsToUsers.user],
     references: [users.id],
   }),

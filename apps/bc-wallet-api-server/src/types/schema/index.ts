@@ -298,8 +298,12 @@ export type AriesRequestCredentialPredicate = {
 export type AriesProofRequest = typeof ariesProofRequests.$inferSelect
 export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 'stepAction'>
 
-export type Tenant = typeof tenants.$inferSelect
-export type NewTenant = typeof tenants.$inferInsert
+export type Tenant = typeof tenants.$inferSelect & {
+  users: User[]
+}
+export type NewTenant = typeof tenants.$inferInsert & {
+  users: string[]
+}
 
 export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage' | 'createdBy' | 'approvedBy'> & {
   scenarios: Scenario[]
