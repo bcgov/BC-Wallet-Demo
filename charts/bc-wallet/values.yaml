@@ -388,7 +388,7 @@ rabbitmq:
     username: "guest"
     password: ""
     existingSecret: ""
-    existingSecretPasswordKey: "rabbitmq-password"
+    existingSecretKey: "rabbitmq-password"
     erlangCookie: ""
     existingErlangSecret: ""
     existingErlangSecretKey: "rabbitmq-erlang-cookie"
