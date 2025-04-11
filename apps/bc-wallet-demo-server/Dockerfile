@@ -21,6 +21,7 @@ COPY apps/tsconfig-base.json apps/
 COPY apps/bc-wallet-demo-server apps/bc-wallet-demo-server
 
 
+
 # Install dependencies and build
 RUN rm -rf $(pnpm store path) && pnpm install -g typescript ts-node
 RUN pnpm install --frozen-lockfile
