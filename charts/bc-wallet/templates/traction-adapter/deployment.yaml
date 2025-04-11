@@ -56,11 +56,11 @@ spec:
                 name: {{ include "bc-wallet.rabbitmq.secretName" . }}
                 key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
           {{- range $key, $value := .Values.traction_adapter.env }}
-          {{- if and (ne $key "RABBITMQ_HOST") (kindIs "map" $value) }}
+          {{- if and (ne $key "RABBITMQ_HOST") (ne $key "RABBITMQ_PORT") (ne $key "RABBITMQ_USERNAME") (ne $key "RABBITMQ_PASSWORD") (kindIs "map" $value) }}
           - name: {{ $key }}
             valueFrom:
               {{- toYaml $value | nindent 14 }}
-          {{- else if ne $key "RABBITMQ_HOST" }}
+          {{- else if and (ne $key "RABBITMQ_HOST") (ne $key "RABBITMQ_PORT") (ne $key "RABBITMQ_USERNAME") (ne $key "RABBITMQ_PASSWORD") }}
           - name: {{ $key }}
             value: {{ $value | quote }}
           {{- end }}
