@@ -24,7 +24,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
         })
         .returning()
 
-      if (newTenant.users.length > 0) {
+      if (newTenant.users && newTenant.users.length > 0) {
         const tenantPromises = newTenant.users.map(async (user) => this.userRepository.findById(user))
         await Promise.all(tenantPromises)
 
@@ -33,7 +33,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
           .values(
             newTenant.users.map((userId: string) => ({
               tenant: tenantResult.id,
-              user: userId
+              user: userId,
             })),
           )
           .returning()
@@ -73,7 +73,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
 
       await tx.delete(tenantsToUsers).where(eq(tenantsToUsers.user, id))
 
-      if (newTenant.users.length > 0) {
+      if (newTenant.users && newTenant.users.length > 0) {
         const tenantPromises = newTenant.users.map(async (user) => this.userRepository.findById(user))
         await Promise.all(tenantPromises)
 

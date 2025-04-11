@@ -1,4 +1,4 @@
-import { pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { index, pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { tenants } from './tenants'
 import { users } from './user'
@@ -16,7 +16,7 @@ export const tenantsToUsers = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (t) => [primaryKey({ columns: [t.tenant, t.user] })],
+  (t) => [primaryKey({ columns: [t.tenant, t.user] }), index('tenants_to_users_tenant_idx').on(t.tenant)],
 )
 
 export const tenantsToUsersRelations = relations(tenantsToUsers, ({ one }) => ({

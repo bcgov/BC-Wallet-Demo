@@ -302,7 +302,7 @@ export type Tenant = typeof tenants.$inferSelect & {
   users: User[]
 }
 export type NewTenant = typeof tenants.$inferInsert & {
-  users: string[]
+  users?: string[]
 }
 
 export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage' | 'createdBy' | 'approvedBy'> & {
