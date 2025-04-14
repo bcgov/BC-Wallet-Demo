@@ -381,12 +381,12 @@ postgresql:
       requests:
         cpu: 100m
         memory: 128Mi
-        
+
 rabbitmq:
   enabled: true
   auth:
-    username: "admin"  # Changed from "guest" to match working rab-values.yaml
-    password: ""       # Empty to generate a random password
+    username: "admin" 
+    password: ""
     existingSecret: ""
     existingSecretKey: "rabbitmq-password"
     erlangCookie: ""
@@ -403,12 +403,12 @@ rabbitmq:
       amqp: 5672
       manager: 15672
   livenessProbe:
-    enabled: true  # Enabled for better debugging
+    enabled: true   
     initialDelaySeconds: 60
     timeoutSeconds: 5
     periodSeconds: 30
   readinessProbe:
-    enabled: true  # Enabled for better debugging
+    enabled: true   
     initialDelaySeconds: 60
     timeoutSeconds: 5
     periodSeconds: 10
@@ -434,4 +434,4 @@ rabbitmq:
 global:
   namespaceOverride: ""
 
-debug: true  # Enable debug mode to create the debug-helper ConfigMap
+debug: true  
