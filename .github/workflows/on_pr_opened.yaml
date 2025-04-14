@@ -45,7 +45,6 @@ jobs:
         with:
           node-version: '20'
           pnpm-version: '8'
-          turbo-command: 'test'
           
     outputs:
       status: ${{ steps.run-tests.outputs.status }}
