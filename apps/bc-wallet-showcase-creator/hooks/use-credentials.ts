@@ -108,6 +108,15 @@ export const useCreateCredentialDefinition = () => {
 	});
 };
 
+export const useApproveCredentialDefinition = () => {
+	return useMutation({
+		mutationFn: async (credentialId: string) => {
+			const response = await apiClient.post(`/credentials/definitions/${credentialId}/approve`);
+			return response;
+		}
+	});
+};
+
 export const useDeleteCredentialDefinition = () => {
 	const queryClient = useQueryClient();
 

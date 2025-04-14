@@ -41,7 +41,7 @@ export const FormTextInput = <T extends FieldValues>({
               {label}
             </Label>
             <Input
-              className="mt-3 border dark:border-dark-border text-foreground"
+              className="rounded w-full text-foreground dark:bg-dark-input bg-light-bg resize-none mt-3 p-2 border dark:border-dark-border"
               id={name}
               type="text"
               placeholder={placeholder}

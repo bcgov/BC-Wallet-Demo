@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({
   const t = useTranslations()
   // const session = useSession()
   return (
-    <section className="w-full px-0 pt-2 bg-cover bg-center dark:bg-dark-bg">
+    <section className="w-full px-0 pt-2 bg-cover bg-center ">
       <div className="mx-auto px-4 mt-6 mb-4">
         <h1 className="text-3xl font-bold">{title}</h1>
         {/* <pre>{JSON.stringify(session, null, 2)}</pre> */}

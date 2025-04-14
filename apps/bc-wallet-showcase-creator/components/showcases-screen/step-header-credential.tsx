@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 
-import { EllipsisVertical, Trash2 } from 'lucide-react'
+import { Check, EllipsisVertical, Trash2 } from 'lucide-react'
 
 interface StepHeaderCredentialProps {
   icon: React.ReactNode
   title: string
   actions?: React.ReactNode // Custom actions (buttons, menus, etc.)
   showDropdown?: boolean // Control dropdown visibility from parent
-  onActionClick?: (action: 'save' | 'preview' | 'revert' | 'delete') => void // Callback function for actions
+  onActionClick?: (action: 'save' | 'preview' | 'revert' | 'delete' | 'approve') => void // Callback function for actions
 }
 
 const StepHeaderCredential = ({
@@ -50,6 +50,15 @@ const StepHeaderCredential = ({
               >
                 <Trash2 size={20} />
                 Delete
+              </li>
+              <li
+                className="flex gap-2 px-4 mt-2 py-2 hover:bg-light-bg-secondary dark:hover:bg-dark-input-hover cursor-pointer"
+                onClick={() => {
+                  onActionClick?.('approve')
+                }}
+              >
+                <Check size={20} />
+                Approve
               </li>
             </ul>
           </div>
