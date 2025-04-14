@@ -381,12 +381,12 @@ postgresql:
       requests:
         cpu: 100m
         memory: 128Mi
-
+        
 rabbitmq:
   enabled: true
   auth:
-    username: "guest"
-    password: ""
+    username: "admin"  # Changed from "guest" to match working rab-values.yaml
+    password: ""       # Empty to generate a random password
     existingSecret: ""
     existingSecretKey: "rabbitmq-password"
     erlangCookie: ""
@@ -396,15 +396,22 @@ rabbitmq:
   configuration: |-
     management.listener.port = 15672
     management.listener.ssl = false
+    loopback_users.guest = false
   service:
     type: ClusterIP
     ports:
       amqp: 5672
       manager: 15672
   livenessProbe:
-    enabled: false
+    enabled: true  # Enabled for better debugging
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 30
   readinessProbe:
-    enabled: false
+    enabled: true  # Enabled for better debugging
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 10
   persistence:
     enabled: true
     size: 1Gi
