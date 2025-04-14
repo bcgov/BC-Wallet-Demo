@@ -6,7 +6,7 @@ export const SourceEnum = z.enum(['IMPORTED', 'CREATED']);
 export const IssuerTypeEnum = z.enum(['ARIES']);
 export const RelyingPartyTypeEnum = z.enum(['ARIES']);
 export const CredentialTypeEnum = z.enum(['ANONCRED']);
-export const CredentialAttributeTypeEnum = z.enum(['STRING', 'INTEGER', 'FLOAT', 'BOOLEAN', 'DATE']);
+export const CredentialAttributeTypeEnum = z.enum(['STRING', 'DATE']);
 export const ShowcaseStatusEnum = z.enum(['PENDING', 'ACTIVE', 'ARCHIVED']);
 export const ScenarioTypeEnum = z.enum(['ISSUANCE', 'PRESENTATION']);
 export const StepTypeEnum = z.enum(['HUMAN_TASK', 'SERVICE', 'SCENARIO']);
@@ -111,6 +111,7 @@ export const Step = z.object({
   asset: AssetSchema.optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  credentials: z.array(z.string()).optional(),
 });
 
 export const StepRequest = z.object({
@@ -123,6 +124,7 @@ export const StepRequest = z.object({
   credentialDefinitionIdentifierType: IdentifierTypeEnum.optional(),
   credentialDefinitionIdentifier: z.string().optional(),
   asset: z.string().optional(),
+  credentials: z.array(z.string()).optional(),
 });
 
 export const StepsResponse = z.object({

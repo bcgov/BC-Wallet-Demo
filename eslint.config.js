@@ -49,7 +49,6 @@ module.exports = [
       '@typescript-eslint/explicit-member-accessibility': 'error',
       'no-console': 'warn',
       '@typescript-eslint/ban-ts-comment': 'warn',
-      '@typescript-eslint/consistent-type-imports': 'error',
       'import/no-cycle': 'error',
       'import/order': 'off',
       'import-helpers/order-imports': [
@@ -101,14 +100,6 @@ module.exports = [
         beforeAll: 'readonly',
         afterAll: 'readonly',
       },
-    },
-    rules: {
-      'import/no-extraneous-dependencies': [
-        'error',
-        {
-          devDependencies: true,
-        },
-      ],
     },
   },
 ]

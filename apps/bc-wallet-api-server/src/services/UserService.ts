@@ -1,10 +1,11 @@
 import { Service } from 'typedi'
-import { User, NewUser } from '../types'
-import UserRepository from '../database/repositories/UserRepository'
+
+import { UserRepository } from '../database/repositories/UserRepository'
+import type { NewUser, User } from '../types'
 
 @Service()
 class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  public constructor(private readonly userRepository: UserRepository) {}
 
   public getUsers = async (): Promise<User[]> => {
     return this.userRepository.findAll()
@@ -12,6 +13,10 @@ class UserService {
 
   public getUser = async (id: string): Promise<User> => {
     return this.userRepository.findById(id)
+  }
+
+  public getUserByName = async (userName: string): Promise<User> => {
+    return this.userRepository.findByUserName(userName)
   }
 
   public createUser = async (user: NewUser): Promise<User> => {

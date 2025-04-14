@@ -13,6 +13,7 @@ class ApiService {
       method,
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsImlhdCI6MTY5MDgwNzA5MSwiZXhwIjoxNjkwODA3NDkxfQ.mocksignature1234567890abcdef`,
       },
     }
 

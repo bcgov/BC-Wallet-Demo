@@ -1,22 +1,22 @@
 import 'reflect-metadata'
-import { Action, createExpressServer, UnauthorizedError, useContainer } from 'routing-controllers'
+import * as process from 'node:process'
+import { createExpressServer, useContainer } from 'routing-controllers'
 import Container from 'typedi'
+
+import ApprovalController from './controllers/ApprovalController'
 import AssetController from './controllers/AssetController'
-import PersonaController from './controllers/PersonaController'
-import RelyingPartyController from './controllers/RelyingPartyController'
-import IssuerController from './controllers/IssuerController'
-import IssuanceScenarioController from './controllers/IssuanceScenarioController'
-import PresentationScenarioController from './controllers/PresentationScenarioController'
-import ShowcaseController from './controllers/ShowcaseController'
 import { CredentialDefinitionController } from './controllers/CredentialDefinitionController'
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
-import { corsOptions } from './utils/cors'
-import { registerServicesByInterface } from './services/RegisterServicesByInterface'
+import IssuanceScenarioController from './controllers/IssuanceScenarioController'
+import IssuerController from './controllers/IssuerController'
+import PersonaController from './controllers/PersonaController'
+import PresentationScenarioController from './controllers/PresentationScenarioController'
+import RelyingPartyController from './controllers/RelyingPartyController'
+import ShowcaseController from './controllers/ShowcaseController'
 import TenantController from './controllers/TenantController'
-import * as process from 'node:process'
-import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
-import UserService from './services/UserService'
+import { registerServicesByInterface } from './services/RegisterServicesByInterface'
+import { corsOptions } from './utils/cors'
 
 require('dotenv-flow').config()
 useContainer(Container)
@@ -38,29 +38,28 @@ async function bootstrap() {
         PresentationScenarioController,
         ShowcaseController,
         TenantController,
+        ApprovalController,
       ],
-      authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
-        const authHeader: string = action.request.headers['authorization']
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          throw new UnauthorizedError('Missing or malformed Authorization header')
-        }
-        try  {
-            const accessToken = authHeader.split(' ')[1]
-            // Introspect the access token
-            if (!await isAccessTokenValid(accessToken)) {
-              return false
-            }
-            const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
+      // authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
+      //   const authHeader: string = action.request.headers['authorization']
+      //   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      //     throw new UnauthorizedError('Missing or malformed Authorization header')
+      //   }
 
-            const userService = Container.get(UserService)
-            await userService.insertIfNotExists({ id: token.payload.sub })
-            // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
-            // User roles which at the moment we are not using, do not need any prefix.
-            return checkRoles(token, roles)
-        } catch (e) {
-          throw new UnauthorizedError(e.message)
-        }
-      },
+      //   try  {
+      //       const accessToken = authHeader.split(' ')[1]
+      //       // Introspect the access token
+      //       if (!await isAccessTokenValid(accessToken)) {
+      //         return false
+      //       }
+      //       const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
+      //       // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
+      //       // User roles which at the moment we are not using, do not need any prefix.
+      //       return checkRoles(token, roles)
+      //   } catch (e) {
+      //     throw new UnauthorizedError(e.message)
+      //   }
+      // },
       middlewares: [ExpressErrorHandler],
       defaultErrorHandler: false,
       cors: corsOptions,

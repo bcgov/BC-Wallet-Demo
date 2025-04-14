@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <artifactId>credential-showcase-openapi</artifactId>
+
+    <profiles>
+        <profile>
+            <id>typescript-fetch-traction</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.openapitools</groupId>
+                        <artifactId>openapi-generator-maven-plugin</artifactId>
+                        <version>${openapi-generator-version}</version>
+                        <executions>
+                            <execution>
+                                <id>typescript-fetch-traction</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <inputSpec>${project.basedir}/openapi/traction-openapi.yaml</inputSpec>
+                                    <generatorName>typescript-fetch</generatorName>
+                                    <output>${project.basedir}/src</output>
+
+                                    <apiPackage>tech.4sure.traction.api</apiPackage>
+                                    <modelPackage>tech.4sure.traction.model</modelPackage>
+                                    <invokerPackage>tech.4sure.traction.handler</invokerPackage>
+
+                                    <skipValidateSpec>true</skipValidateSpec>
+                                    <addCompileSourceRoot>true</addCompileSourceRoot>
+                                    <artifactVersion>${project.version}</artifactVersion>
+
+                                    <generateApis>true</generateApis>
+                                    <generateModels>true</generateModels>
+                                    <generateModelDocumentation>true</generateModelDocumentation>
+                                    <generateSupportingFiles>true</generateSupportingFiles>
+
+                                    <configOptions>
+                                        <useTags>true</useTags>
+                                        <serializableModel>true</serializableModel>
+                                        <snapshotVersion>true</snapshotVersion>
+                                    </configOptions>
+
+                                    <typeMappings>
+                                        <typeMapping>OffsetDateTime=Instant</typeMapping>
+                                    </typeMappings>
+                                    <importMappings>
+                                        <importMapping>java.time.OffsetDateTime=java.time.Instant</importMapping>
+                                    </importMappings>
+
+                                    <enablePostProcessFile>true</enablePostProcessFile>
+                                    <skipOverwrite>false</skipOverwrite>
+                                    <verbose>${openapi-codegen-verbose}</verbose>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <description>Credential Showcase Traction Openapi</description>
+    <modelVersion>4.0.0</modelVersion>
+    <name>Credential Showcase Traction Openapi</name>
+
+    <parent>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <version>2.7.6</version>
+    </parent>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven-central</id>
+            <name>Maven Central</name>
+            <url>https://repo1.maven.org/maven2/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <properties>
+        <openapi-codegen-verbose>false</openapi-codegen-verbose>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <openapi-generator-version>7.11.0</openapi-generator-version>
+        <maven-compiler-plugin-version>3.9.0</maven-compiler-plugin-version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+</project>

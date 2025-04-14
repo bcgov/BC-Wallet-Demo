@@ -15,17 +15,15 @@ rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json tsconfig.build.json tsconfig.eslint.json ./
-COPY packages/bc-wallet-traction-adapter packages/bc-wallet-traction-adapter/
-COPY packages/tsconfig* packages/
+COPY packages packages
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib turbo
 RUN pnpm install
 RUN pnpm generate:models
 RUN pnpm --filter bc-wallet-openapi build:clean
-RUN cd packages/ && pnpm build
+RUN pnpm --filter bc-wallet-traction-openapi build:clean
+RUN pnpm --filter bc-wallet-traction-adapter build:clean # don't ask me why, but in the docker compose context Turbo fails to build bc-wallet-traction-adapter which I don't pre-build it like this
+RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-traction-adapter --prod --no-optional
-RUN ls -la /
-RUN pwd
-RUN ls -la /build
 
 # Runtime stage
 FROM node:20-bookworm-slim
@@ -33,4 +31,6 @@ WORKDIR /app
 COPY --from=builder /deploy /app
 ENV NODE_ENV=production
 RUN echo PORT=3000  > .env
-CMD ["node", "dist/index.js"]
+RUN echo '#!/bin/sh\necho "Waiting for message broker to start..."\nsleep 6\necho "Starting application..."\nexec node dist/index.js' > /start.sh && \
+    chmod +x /start.sh
+CMD ["/start.sh"]
