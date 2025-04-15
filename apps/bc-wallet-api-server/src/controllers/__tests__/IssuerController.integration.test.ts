@@ -1,37 +1,54 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import type { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
+import { RabbitMQContainer } from '@testcontainers/rabbitmq'
+import { IssuerRequest } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import IssuerController from '../IssuerController'
-import IssuerService from '../../services/IssuerService'
-import IssuerRepository from '../../database/repositories/IssuerRepository'
-import AssetRepository from '../../database/repositories/AssetRepository'
-import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import { Application } from 'express'
-import { CredentialType, IdentifierType } from '../../types'
-import { IssuerRequest } from 'bc-wallet-openapi'
-import { PGlite } from '@electric-sql/pglite'
-import DatabaseService from '../../services/DatabaseService'
+
 import {
   createMockDatabaseService,
   createTestAsset,
   createTestCredentialDefinition,
   createTestCredentialSchema,
   setupTestDatabase,
-} from './dbTestData'
+} from '../../database/repositories/__tests__/dbTestData'
+import AssetRepository from '../../database/repositories/AssetRepository'
+import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
+import IssuerRepository from '../../database/repositories/IssuerRepository'
+import DatabaseService from '../../services/DatabaseService'
+import IssuerService from '../../services/IssuerService'
+import { CredentialType, IdentifierType } from '../../types'
+import IssuerController from '../IssuerController'
 import { createApiIssuerRequest } from './apiTestData'
+import { MockSessionService } from './MockSessionService'
 import supertest = require('supertest')
 
 describe('IssuerController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
+  let startedRabbitMQContainer: StartedRabbitMQContainer
+  let sessionService: MockSessionService
 
   beforeAll(async () => {
+    // Start the RabbitMQ container (for loading approve typedi inject classes
+    startedRabbitMQContainer = await new RabbitMQContainer('rabbitmq:4').start()
+
+    // Setup environment variables for the processor
+    process.env.AMQ_HOST = startedRabbitMQContainer.getHost()
+    process.env.AMQ_PORT = `${startedRabbitMQContainer.getMappedPort(5672)}`
+    process.env.AMQ_TRANSPORT = 'tcp'
+    process.env.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
     const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
+    sessionService = Container.get(MockSessionService)
+    Container.set('ISessionService', sessionService)
 
     useContainer(Container)
 
@@ -44,7 +61,7 @@ describe('IssuerController Integration Tests', () => {
     // Create Express server using routing-controllers
     app = createExpressServer({
       controllers: [IssuerController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

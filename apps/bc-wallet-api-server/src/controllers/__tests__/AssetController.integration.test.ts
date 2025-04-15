@@ -1,13 +1,14 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import AssetController from '../AssetController'
-import AssetService from '../../services/AssetService'
+
+import { createMockDatabaseService, setupTestDatabase } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
-import { Application } from 'express'
-import { PGlite } from '@electric-sql/pglite'
+import AssetService from '../../services/AssetService'
 import DatabaseService from '../../services/DatabaseService'
-import { createMockDatabaseService, setupTestDatabase } from './dbTestData'
+import AssetController from '../AssetController'
 import supertest = require('supertest')
 
 describe('AssetController Integration Tests', () => {
@@ -25,7 +26,7 @@ describe('AssetController Integration Tests', () => {
     Container.get(AssetService)
     app = createExpressServer({
       controllers: [AssetController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

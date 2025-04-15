@@ -1,19 +1,10 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { AriesOOBActionRequest } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import IssuanceScenarioController from '../IssuanceScenarioController'
-import { Application } from 'express'
-import { AriesOOBActionRequest } from 'bc-wallet-openapi'
-import AssetRepository from '../../database/repositories/AssetRepository'
-import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
-import IssuerRepository from '../../database/repositories/IssuerRepository'
-import PersonaRepository from '../../database/repositories/PersonaRepository'
-import ScenarioRepository from '../../database/repositories/ScenarioRepository'
-import ScenarioService from '../../services/ScenarioService'
-import { PGlite } from '@electric-sql/pglite'
-import DatabaseService from '../../services/DatabaseService'
-import { ScenarioType, StepActionType } from '../../types'
+
 import {
   createMockDatabaseService,
   createTestAsset,
@@ -22,7 +13,17 @@ import {
   createTestIssuer,
   createTestPersona,
   setupTestDatabase,
-} from './dbTestData'
+} from '../../database/repositories/__tests__/dbTestData'
+import AssetRepository from '../../database/repositories/AssetRepository'
+import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
+import IssuerRepository from '../../database/repositories/IssuerRepository'
+import PersonaRepository from '../../database/repositories/PersonaRepository'
+import ScenarioRepository from '../../database/repositories/ScenarioRepository'
+import DatabaseService from '../../services/DatabaseService'
+import ScenarioService from '../../services/ScenarioService'
+import { ScenarioType, StepActionType } from '../../types'
+import IssuanceScenarioController from '../IssuanceScenarioController'
 import { createApiIssuanceScenarioRequest, createApiStepRequest } from './apiTestData'
 import supertest = require('supertest')
 
@@ -46,7 +47,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
     Container.get(ScenarioService)
     app = createExpressServer({
       controllers: [IssuanceScenarioController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })
@@ -253,7 +254,12 @@ describe('IssuanceScenarioController Integration Tests', () => {
 
     // Attempt to create a scenario with a non-existent issuer
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
-    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(nonExistentId, persona.id, asset.id, credentialDefinition.id)
+    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(
+      nonExistentId,
+      persona.id,
+      asset.id,
+      credentialDefinition.id,
+    )
 
     await request.post('/scenarios/issuances').send(invalidScenarioRequest2).expect(404)
   })

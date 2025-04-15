@@ -1,27 +1,25 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
+
 import DatabaseService from '../../../services/DatabaseService'
-import AssetRepository from '../AssetRepository'
-import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import UserRepository from '../UserRepository' // Import UserRepository
-import * as schema from '../../schema'
 import {
   Asset,
   CredentialAttributeType,
   CredentialSchema,
   CredentialType,
   IdentifierType,
-  NewAsset,
   NewCredentialDefinition,
   NewCredentialSchema,
-  NewUser,
   User,
 } from '../../../types'
+import * as schema from '../../schema'
+import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import { createTestAsset, createTestUser } from './dbTestData' // Import UserRepository
 
 // Helper to check if a date is recent (within the last N seconds)
 const isRecentDate = (date: Date | null | undefined, seconds = 5): boolean => {
@@ -36,7 +34,6 @@ describe('Database credential definition repository tests', (): void => {
   let database: NodePgDatabase
   let credentialDefinitionRepository: CredentialDefinitionRepository
   let credentialSchemaRepository: CredentialSchemaRepository
-  let userRepository: UserRepository
   let testUser: User
   let asset: Asset
   let credentialSchema: CredentialSchema
@@ -50,25 +47,11 @@ describe('Database credential definition repository tests', (): void => {
     }
     Container.set(DatabaseService, mockDatabaseService)
 
-    userRepository = Container.get(UserRepository)
     credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const assetRepository = Container.get(AssetRepository)
 
-    const newUser: NewUser = {
-      identifierType: IdentifierType.DID, // Or null if not required
-      identifier: `did:example:testuser${Date.now()}`, // Unique identifier
-    }
-    testUser = await userRepository.create(newUser)
-
-    // Create a test asset
-    const newAsset: NewAsset = {
-      mediaType: 'image/png',
-      fileName: 'image.png',
-      description: 'some image',
-      content: Buffer.from('some binary data'),
-    }
-    asset = await assetRepository.create(newAsset)
+    testUser = await createTestUser('test-user')
+    asset = await createTestAsset()
 
     // Create a test credential schema
     const newCredentialSchema: NewCredentialSchema = {
@@ -165,7 +148,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(approvedDefinition.id).toEqual(savedCredentialDefinition.id)
     expect(approvedDefinition.approvedBy).toBeDefined()
     expect(approvedDefinition.approvedBy?.id).toEqual(testUser.id)
-    expect(approvedDefinition.approvedBy?.identifier).toEqual(testUser.identifier) // Check some user fields
+    expect(approvedDefinition.approvedBy?.userName).toEqual(testUser.userName) // Check some user fields
     expect(approvedDefinition.approvedAt).toBeDefined()
     expect(isRecentDate(approvedDefinition.approvedAt)).toBe(true)
 
@@ -447,7 +430,9 @@ describe('Database credential definition repository tests', (): void => {
     }
     await expect(
       credentialDefinitionRepository.update(savedCredentialDefinition.id, updatePayload),
-    ).rejects.toThrowError(`insert or update on table "credentialDefinition" violates foreign key constraint "credentialDefinition_icon_asset_id_fk"`)
+    ).rejects.toThrowError(
+      `insert or update on table "credentialDefinition" violates foreign key constraint "credentialDefinition_icon_asset_id_fk"`,
+    )
   })
 
   it('Should update credential definition removing the icon', async (): Promise<void> => {
