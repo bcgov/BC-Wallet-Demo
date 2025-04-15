@@ -9,9 +9,16 @@ import { v4 as uuidv4 } from 'uuid'
 import { environment } from '../environment'
 import { MessageProcessor } from '../message-processor'
 import { getTractionService } from '../services/service-manager'
+import { ShowcaseApiService } from '../services/showcase-api-service'
 import type { Action } from '../types'
 import { Topic } from '../types'
 import { encryptBuffer } from '../util/CypherUtil'
+
+// Mock ShowcaseApiService
+jest.mock('../services/showcase-api-service')
+
+// Mock TractionService
+jest.mock('../services/traction-service')
 
 // Create a spy on getTractionService to monitor calls
 jest.spyOn(require('../services/service-manager'), 'getTractionService')
@@ -23,6 +30,7 @@ describe('MessageProcessor Integration Test', () => {
   let connection: Connection
   let sender: Sender
   let processor: MessageProcessor
+  let mockShowcaseApiService: jest.Mocked<ShowcaseApiService>
   const testTopic: Topic = Topic.SHOWCASE_CMD_TESTING
 
   beforeAll(async () => {
@@ -38,6 +46,12 @@ describe('MessageProcessor Integration Test', () => {
     process.env.AMQ_TRANSPORT = environment.messageBroker.AMQ_TRANSPORT = 'tcp'
     process.env.DEFAULT_API_BASE_PATH = environment.traction.DEFAULT_API_BASE_PATH = 'http://localhost:8080'
     process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+
+    // Setup mock ShowcaseApiService
+    mockShowcaseApiService = new ShowcaseApiService('') as jest.Mocked<ShowcaseApiService>
+    mockShowcaseApiService.updateBearerToken = jest.fn().mockResolvedValue(undefined)
+    mockShowcaseApiService.updateCredentialSchemaIdentifier = jest.fn().mockResolvedValue(undefined)
+    mockShowcaseApiService.updateCredentialDefIdentifier = jest.fn().mockResolvedValue(undefined)
 
     // Establish an AMQP connection for sending test messages
     connection = new Connection({
@@ -197,6 +211,8 @@ describe('MessageProcessor Integration Test', () => {
       nonce,
     )
 
+    // Verify ShowcaseApiService was initialized and used properly
+    expect(mockShowcaseApiService.updateBearerToken).toHaveBeenCalled()
     consoleSpy.mockRestore()
   })
 

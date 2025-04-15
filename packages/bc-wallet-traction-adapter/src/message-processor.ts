@@ -12,7 +12,8 @@ import { Topic } from './types'
 interface MessageHeaders {
   action?: Action
   tenantId?: string
-  apiUrlBase?: string
+  showcaseApiUrlBase?: string
+  tractionApiUrlBase?: string
   walletId?: string
   accessTokenEnc?: Buffer
   accessTokenNonce?: Buffer
@@ -78,7 +79,8 @@ export class MessageProcessor {
 
       const service = await getTractionService(
         headers.tenantId ?? environment.traction.FIXED_TENANT_ID!,
-        headers.apiUrlBase,
+        headers.showcaseApiUrlBase ?? 'http://localhost:5003', // FIXME
+        headers.tractionApiUrlBase,
         headers.walletId ?? environment.traction.FIXED_WALLET_ID!,
         headers.accessTokenEnc,
         headers.accessTokenNonce,
@@ -106,7 +108,7 @@ export class MessageProcessor {
     return {
       action: applicationProperties['action'] as Action | undefined,
       tenantId: applicationProperties['tenantId'] as string | undefined,
-      apiUrlBase: applicationProperties['apiUrlBase'] as string | undefined,
+      tractionApiUrlBase: applicationProperties['apiUrlBase'] as string | undefined,
       walletId: applicationProperties['walletId'] as string | undefined,
       accessTokenEnc: applicationProperties['accessTokenEnc'] as Buffer | undefined,
       accessTokenNonce: applicationProperties['accessTokenNonce'] as Buffer | undefined,
@@ -150,7 +152,7 @@ export class MessageProcessor {
       console.error(errorMsg)
       if (context.delivery) {
         context.delivery.reject({
-          info: `apiBasePath: ${headers.apiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tenantId}, walletId: ${headers.walletId}`,
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tenantId}, walletId: ${headers.walletId}`,
           condition: 'fatal error',
           description: errorMsg,
           value: [issuer],
@@ -165,7 +167,7 @@ export class MessageProcessor {
       const rejectOptions: any = { description: errorMsg }
 
       if (headers) {
-        rejectOptions.info = `apiBasePath: ${headers.apiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tenantId}, walletId: ${headers.walletId}`
+        rejectOptions.info = `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tenantId}, walletId: ${headers.walletId}`
         rejectOptions.condition = 'fatal error'
       }
 
