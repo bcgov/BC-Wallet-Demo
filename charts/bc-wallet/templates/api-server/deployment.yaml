@@ -43,12 +43,25 @@ spec:
         env:
         - name: DB_HOST
           value: {{ .Release.Name }}-postgresql
+        - name: AMQ_HOST
+          value: "{{ .Release.Name }}-rabbitmq.{{ .Values.global.namespaceOverride | default .Release.Namespace }}.svc.cluster.local"
+        - name: AMQ_PORT
+          value: {{ include "bc-wallet.rabbitmq.port" . | quote }}
+        - name: AMQ_TRANSPORT
+          value: tcp
+        - name: AMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.rabbitmq.secretName" . }}
+              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+        - name: AMQ_USER
+          value: {{ .Values.rabbitmq.auth.username | quote }}
         {{- range $key, $value := .Values.api_server.env }}
-        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
+        {{- if and (ne $key "DB_HOST") (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") (kindIs "map" $value) }}
         - name: {{ $key }}
           valueFrom:
             {{- toYaml $value | nindent 12 }}
-        {{- else if ne $key "DB_HOST" }}
+        {{- else if and (ne $key "DB_HOST") (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") }}
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
