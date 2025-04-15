@@ -1979,9 +1979,11 @@ components:
           type: string
           description: Unique identifier of the user
           example: 123e4567-e89b-12d3-a456-426614174456
-        identifierType:
-          $ref: '#/components/schemas/IdentifierType'
-        identifier:
+        userName:
+          type: string
+        issuer:
+          type: string
+        clientId:
           type: string
         createdAt:
           type: string

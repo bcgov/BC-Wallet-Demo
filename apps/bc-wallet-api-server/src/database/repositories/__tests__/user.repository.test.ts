@@ -1,13 +1,14 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
-import AssetRepository from '../UserRepository'
+
 import DatabaseService from '../../../services/DatabaseService'
+import { NewUser } from '../../../types'
 import * as schema from '../../schema'
-import { IdentifierType, NewUser } from '../../../types'
+import AssetRepository from '../UserRepository'
 
 describe('Database user repository tests', (): void => {
   let client: PGlite
@@ -32,20 +33,24 @@ describe('Database user repository tests', (): void => {
 
   it('Should save user to database', async (): Promise<void> => {
     const user: NewUser = {
-      identifierType: IdentifierType.DID,
-      identifier: 'test_identifier',
+      userName: 'test_user',
+      issuer: 'https://auth-server.example.com/auth/realms/BC', // from iss claim
+      clientId: 'showcase-tenantA', // from azp claim
     }
 
     const savedUser = await repository.create(user)
 
     expect(savedUser).toBeDefined()
-    expect(savedUser.identifier).toEqual(user.identifier)
+    expect(savedUser.userName).toEqual(user.userName)
+    expect(savedUser.issuer).toEqual(user.issuer)
+    expect(savedUser.clientId).toEqual(user.clientId)
   })
 
   it('Should get user by id from database', async (): Promise<void> => {
     const user: NewUser = {
-      identifierType: IdentifierType.DID,
-      identifier: 'test_identifier',
+      userName: 'test_user',
+      issuer: 'https://auth-server.example.com/auth/realms/BC',
+      clientId: 'showcase-tenantA',
     }
 
     const savedUser = await repository.create(user)
@@ -54,13 +59,16 @@ describe('Database user repository tests', (): void => {
     const fromDb = await repository.findById(savedUser.id)
 
     expect(fromDb).toBeDefined()
-    expect(fromDb!.identifier).toEqual(user.identifier)
+    expect(fromDb!.userName).toEqual(user.userName)
+    expect(fromDb!.issuer).toEqual(user.issuer)
+    expect(fromDb!.clientId).toEqual(user.clientId)
   })
 
   it('Should get all users from database', async (): Promise<void> => {
     const user: NewUser = {
-      identifierType: IdentifierType.DID,
-      identifier: 'test_identifier',
+      userName: 'test_user',
+      issuer: 'https://auth-server.example.com/auth/realms/BC',
+      clientId: 'showcase-tenantA',
     }
 
     const savedUser1 = await repository.create(user)
@@ -76,8 +84,9 @@ describe('Database user repository tests', (): void => {
 
   it('Should delete user from database', async (): Promise<void> => {
     const user: NewUser = {
-      identifierType: IdentifierType.DID,
-      identifier: 'test_identifier',
+      userName: 'test_user',
+      issuer: 'https://auth-server.example.com/auth/realms/BC',
+      clientId: 'showcase-tenantA',
     }
 
     const savedUser = await repository.create(user)
@@ -90,17 +99,18 @@ describe('Database user repository tests', (): void => {
 
   it('Should update user in database', async (): Promise<void> => {
     const user: NewUser = {
-      identifierType: IdentifierType.DID,
-      identifier: 'test_identifier',
+      userName: 'test_user',
+      issuer: 'https://auth-server.example.com/auth/realms/BC',
+      clientId: 'showcase-tenantA',
     }
 
     const savedUser = await repository.create(user)
     expect(savedUser).toBeDefined()
 
-    const newUserIdentifier = 'new_test_identifier'
-    const updatedUser = await repository.update(savedUser.id, { ...savedUser, identifier: newUserIdentifier })
+    const newClientId = 'showcase-tenantB'
+    const updatedUser = await repository.update(savedUser.id, { ...savedUser, clientId: newClientId })
 
     expect(updatedUser).toBeDefined()
-    expect(updatedUser.identifier).toEqual(newUserIdentifier)
+    expect(updatedUser.clientId).toEqual(newClientId)
   })
 })
