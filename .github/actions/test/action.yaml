@@ -10,10 +10,6 @@ inputs:
     description: 'PNPM version to use'
     required: false
     default: '8'
-  turbo-command:
-    description: 'Turbo command to run'
-    required: false
-    default: 'test'
 
 outputs:
   status:
@@ -55,7 +51,7 @@ runs:
     - name: Run tests
       id: tests
       shell: bash
-      run: pnpm turbo run ${{ inputs.turbo-command }}
+      run: pnpm run test
       
     - name: Set test status
       id: test-status
