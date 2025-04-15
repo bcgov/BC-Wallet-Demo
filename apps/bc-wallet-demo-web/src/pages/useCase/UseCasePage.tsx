@@ -17,7 +17,7 @@ import { useSection } from '../../slices/section/sectionSelectors'
 import { setSection } from '../../slices/section/sectionSlice'
 import {useCurrentPersona, useShowcases} from '../../slices/showcases/showcasesSelectors'
 import { useUseCaseState } from '../../slices/useCases/useCasesSelectors'
-import { nextSection } from '../../slices/useCases/useCasesSlice'
+//import { nextSection } from '../../slices/useCases/useCasesSlice'
 import { basePath } from '../../utils/BasePath'
 import { Section } from './Section'
 import type {CustomUseCase, Scenario} from '../../slices/types'
@@ -28,7 +28,7 @@ import {PageNotFound} from '../PageNotFound';
 export const UseCasePage: React.FC = () => {
   const dispatch = useAppDispatch()
   const { slug } = useParams()
-  const { stepCount, sectionCount, isLoading } = useUseCaseState()
+  const { stepCount, isLoading } = useUseCaseState()
   // const currentCharacter = useCurrentPersona()
   const { showcase, currentPersona, currentScenario } = useShowcases()
   const { section } = useSection()
@@ -125,10 +125,8 @@ export const UseCasePage: React.FC = () => {
               <Section
                 showcase={showcase}
                 currentPersona={currentPersona}
-                scenario={currentScenario}
+                currentScenario={currentScenario}
                 connection={connection}
-                //sectionCount={sectionCount}
-                //stepCount={stepCount}
                 credentials={issuedCredentials}
                 proof={proof}
               />

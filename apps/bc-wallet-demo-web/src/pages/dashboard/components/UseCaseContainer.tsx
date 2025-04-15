@@ -24,7 +24,7 @@ export const UseCaseContainer: FC<Props> = ({ showcase, currentPersona, complete
   const renderUseCases = scenarios.map(scenario => {
     const isCompleted = false // FIXME we need to implement this later. completedUseCaseSlugs.includes(item.id)
     const credentialDefinitions = scenario.steps.flatMap(step =>
-        step.actions?.filter(action => action.actionType === StepActionType.ShareCredential)?.flatMap(action =>
+        step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
             action.credentialDefinitions ?? []
         ) ?? []
     );

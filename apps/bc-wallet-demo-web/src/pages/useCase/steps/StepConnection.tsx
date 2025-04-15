@@ -1,29 +1,35 @@
-import React, { useEffect } from 'react'
+import React, { FC, useEffect } from 'react'
 import { isMobile } from 'react-device-detect'
 import { FiExternalLink } from 'react-icons/fi'
-
 import { motion } from 'framer-motion'
-
 import { QRCode } from '../../../components/QRCode'
-import { fade, fadeX } from '../../../FramerAnimations'
+import { fade } from '../../../FramerAnimations'
 import { useAppDispatch } from '../../../hooks/hooks'
-import type { ConnectionState } from '../../../slices/connection/connectionSlice'
 import { setConnection, setDeepLink } from '../../../slices/connection/connectionSlice'
 import { createInvitation } from '../../../slices/connection/connectionThunks'
 import { useSocket } from '../../../slices/socket/socketSelector'
-import type { UseCaseScreen } from '../../../slices/types'
 import { nextStep } from '../../../slices/useCases/useCasesSlice'
 import { isConnected } from '../../../utils/Helpers'
-import { prependApiUrl } from '../../../utils/Url'
-import { StepInfo } from '../components/StepInfo'
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
+import type { RelyingParty } from '../../../slices/types'
+import type { ConnectionState } from '../../../slices/connection/connectionSlice'
 
 export interface Props {
-  step: UseCaseScreen
+  verifierName: string
   connection: ConnectionState
   newConnection?: boolean
+  image?: string
+  title: string
 }
 
-export const StepConnection: React.FC<Props> = ({ step, connection, newConnection }) => {
+export const StepConnection: FC<Props> = (props: Props) => {
+  const {
+    connection,
+    newConnection,
+    verifierName,
+    image,
+    title
+  } = props
   const dispatch = useAppDispatch()
   const { state, invitationUrl } = connection
   const { message } = useSocket()
@@ -31,8 +37,9 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
   const deepLink = `bcwallet://aries_connection_invitation?${invitationUrl?.split('?')[1]}`
 
   useEffect(() => {
-    if (!isCompleted || newConnection)
-      dispatch(createInvitation({ issuer: step.verifier?.name ?? 'Unknown', goalCode: 'aries.vc.verify.once' }))
+    if (!isCompleted || newConnection) {
+      dispatch(createInvitation({ entity: verifierName, goalCode: 'request-proof', goal: 'Verify credential' })) //aries.vc.verify.once
+    }
   }, [])
 
   useEffect(() => {
@@ -79,26 +86,45 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
   )
 
   return (
-    <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
-      <StepInfo title={step.title} description={step.text} />
-      {step.image && !isMobile ? (
-        <div
-          className="bg-contain bg-center bg-no-repeat h-full flex justify-end"
-          title={step.title}
-          style={{ backgroundImage: `url(${prependApiUrl(step.image)})` }}
-        >
-          <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4 mr-8 shadow-lg dark:text-black">
-            {/* {step?.overlay?.header && <p className="w-3/4 text-center font-semibold mb-2">{step.overlay.header}</p>} */}
-            {renderQRCode(true)}
-            {/* {step?.overlay?.footer && <p className="w-3/4 text-center mt-2">{step.overlay.footer}</p>} */}
-          </div>
-        </div>
-      ) : (
-        <>
-          {renderQRCode()}
-          <div className="flex flex-col my-4 text-center font-semibold">{renderCTA}</div>
-        </>
-      )}
-    </motion.div>
+      image && !isMobile ? (
+          <div
+              className="bg-contain bg-center bg-no-repeat h-full flex justify-end"
+              title={title}
+              style={{ backgroundImage: `url(${showcaseServerBaseUrl}/assets/${image}/file)` }}
+          >
+              <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4 mr-8 shadow-lg dark:text-black">
+                {renderQRCode(true)}
+              </div>
+            </div>
+        ) : (
+            <>
+              {renderQRCode()}
+              <div className="flex flex-col my-4 text-center font-semibold">{renderCTA}</div>
+            </>
+      )
   )
+
+  // return (
+  //   <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
+  //     <StepInfo title={step.title} description={step.text} />
+  //     {step.image && !isMobile ? (
+  //       <div
+  //         className="bg-contain bg-center bg-no-repeat h-full flex justify-end"
+  //         title={step.title}
+  //         style={{ backgroundImage: `url(${prependApiUrl(step.image)})` }}
+  //       >
+  //         <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4 mr-8 shadow-lg dark:text-black">
+  //           {/* {step?.overlay?.header && <p className="w-3/4 text-center font-semibold mb-2">{step.overlay.header}</p>} */}
+  //           {renderQRCode(true)}
+  //           {/* {step?.overlay?.footer && <p className="w-3/4 text-center mt-2">{step.overlay.footer}</p>} */}
+  //         </div>
+  //       </div>
+  //     ) : (
+  //       <>
+  //         {renderQRCode()}
+  //         <div className="flex flex-col my-4 text-center font-semibold">{renderCTA}</div>
+  //       </>
+  //     )}
+  //   </motion.div>
+  // )
 }

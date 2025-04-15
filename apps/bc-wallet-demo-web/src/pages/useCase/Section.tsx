@@ -1,4 +1,4 @@
-import React, {FC, ReactElement, useEffect, useState} from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
 import { useNavigate, useParams } from 'react-router-dom'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
@@ -29,11 +29,12 @@ import {AcceptCredentialAction} from '../onboarding/steps/actions/AcceptCredenti
 import {PickPersona} from '../onboarding/steps/PickPersona';
 import {SetupCompleted} from '../onboarding/steps/SetupCompleted';
 import {StepView} from '../onboarding/steps/StepView';
+import {useUseCaseState} from '../../slices/useCases/useCasesSelectors';
 
 export interface Props {
   showcase: Showcase
   currentPersona: Persona
-  scenario: Scenario
+  currentScenario: Scenario
   connection: ConnectionState
   credentials: any[] // TODO any
   proof?: any
@@ -43,48 +44,49 @@ export const Section: FC<Props> = (props: Props) => {
   const {
     showcase,
     currentPersona,
-    scenario,
+    currentScenario,
     connection,
     credentials,
     proof
   } = props
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-
-  const style = isMobile ? { height: '700px' } : { minHeight: '800px', height: '80vh' }
-
+  const { stepCount, isLoading } = useUseCaseState()
+  const { slug } = useParams()
   const [isBackDisabled, setIsBackDisabled] = useState(false)
   const [isForwardDisabled, setIsForwardDisabled] = useState(false)
-
   const [leaveModal, setLeaveModal] = useState(false)
+  const [completed, setCompleted] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
+  const [isProofCompleted, setIsProofCompleted] = useState(false)
+
+  const style = isMobile ? { height: '700px' } : { minHeight: '800px', height: '80vh' }
   const LEAVE_MODAL_TITLE = 'Are you sure you want to leave?'
   const LEAVE_MODAL_DESCRIPTION = `You'll be redirected to the dashboard.`
 
   const showLeaveModal = () => setLeaveModal(true)
   const closeLeave = () => setLeaveModal(false)
 
-  const currentStep = scenario.steps[0]//section[stepCount] // TODO
+  const currentStep = currentScenario.steps[stepCount]
 
   const prev = () => dispatch(prevStep())
   const next = () => dispatch(nextStep())
 
   const isConnectionCompleted = isConnected(connection.state as string)
-  const isProofCompleted =
-    (proof?.state as string) === 'presentation_received' ||
-    (proof?.state as string) === 'verified' ||
-    proof?.state === 'done'
-  const credentialsReceived = Object.values(credentials).every((x) => isCredIssued(x.state))
 
-  const [completed, setCompleted] = useState(false)
-  const { slug } = useParams()
+  // const credentialsReceived = Object.values(credentials).every((x) => isCredIssued(x.state))
+
+
+
 
   const leave = () => {
+    setIsExiting(true)
     trackSelfDescribingEvent({
       event: {
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'leave',
-          path: ``, // ${currentCharacter?.type.toLowerCase()}_${slug}`, // FIXME?
+          path: `${currentPersona?.role.toLowerCase()}_${slug}`,
           step: currentStep.title,
         },
       },
@@ -95,17 +97,31 @@ export const Section: FC<Props> = (props: Props) => {
   }
 
   useEffect(() => {
+    const result =
+        (proof?.state as string) === 'presentation_received' ||
+        (proof?.state as string) === 'verified' ||
+        proof?.state === 'done'
+    console.log(`LOGGING PROOF CHANGE: ${proof?.state}, result ${result}`)
+    setIsProofCompleted(result)
+  }, [proof])
+
+  useEffect(() => {
+    setIsBackDisabled(stepCount <= 0)
+    setIsForwardDisabled(stepCount >= currentScenario.steps.length - 1)
+  }, [stepCount])
+
+  useEffect(() => {
     if (completed && slug) {
       dispatch(useCaseCompleted(slug))
       dispatch({ type: 'clearUseCase' })
-      navigate(`${basePath}/dashboard`)
+      navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
       dispatch(resetStep())
       trackSelfDescribingEvent({
         event: {
           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
           data: {
             action: 'usecase_completed',
-            path: ``, // ${currentCharacter?.type.toLowerCase()}_${slug}`, FIXME?
+            path: `${currentPersona?.role.toLowerCase()}_${slug}`,
             step: currentStep.title,
           },
         },
@@ -113,204 +129,146 @@ export const Section: FC<Props> = (props: Props) => {
     }
   }, [completed, dispatch, slug])
 
-  // useEffect(() => {
-  //   if (step?.screenId.startsWith('CONNECTION')) {
-  //     if (isConnectionCompleted) {
-  //       setIsForwardDisabled(false)
-  //     } else {
-  //       setIsForwardDisabled(true)
-  //     }
-  //   }
-  //
-  //   if (step?.screenId.startsWith('PROOF') || step?.screenId.startsWith('PROOF_OOB')) {
-  //     if (isProofCompleted) {
-  //       setIsForwardDisabled(false)
-  //     } else {
-  //       setIsForwardDisabled(true)
-  //     }
-  //   }
-  //
-  //   if (step?.screenId.startsWith('CREDENTIAL')) {
-  //     if (credentialsReceived) {
-  //       setIsForwardDisabled(false)
-  //     } else {
-  //       setIsForwardDisabled(true)
-  //     }
-  //   }
-  //
-  //   // button is never disabled on INFO step
-  //   if (step?.screenId.startsWith('INFO')) {
-  //     setIsForwardDisabled(false)
-  //   }
-  //
-  //   // buttons are never disabled on the first step
-  //   if (stepCount === 0) {
-  //     setIsBackDisabled(true)
-  //   } else {
-  //     setIsBackDisabled(false)
-  //   }
-  // }, [stepCount, proof, connection.state, credentials])
+  useEffect(() => {
+    if (currentStep.actions?.some(action => action.actionType === StepActionType.SetupConnection)) {
+      if (isConnectionCompleted) {
+        setIsForwardDisabled(false)
+      } else {
+        setIsForwardDisabled(true)
+      }
+    }
 
-  // useEffect(() => {
-  //   // automatically go to next step if connection is set up
-  //   if (step?.screenId.startsWith('CONNECTION') && isConnectionCompleted) {
-  //     next()
-  //     trackSelfDescribingEvent({
-  //       event: {
-  //         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
-  //         data: {
-  //           action: 'next',
-  //           path: ``, // ${currentCharacter?.type.toLowerCase()}_${slug}`, FIXME?
-  //           step: step.title,
-  //         },
-  //       },
-  //     })
-  //   }
-  // }, [connection.state])
+    if (currentStep.actions?.some(action => action.actionType === StepActionType.AriesOob)) {
+      if (isProofCompleted) {
+        setIsForwardDisabled(false)
+      } else {
+        setIsForwardDisabled(true)
+      }
+    }
+  }, [currentStep, isConnectionCompleted, isProofCompleted])
 
-  // useEffect(() => {
-  //   if (isMobile) {
-  //     // reset mobile scroll on first & last step
-  //     if (step.screenId.startsWith('START') || step.screenId.startsWith('END')) {
-  //       window.scrollTo(0, 0)
-  //     }
-  //   }
-  // }, [stepCount, sectionCount])
+  useEffect(() => {
+    // automatically go to next step if connection is set up
+    if (currentStep.actions?.some(action => action.actionType === StepActionType.SetupConnection) && isConnectionCompleted) {
+      next()
+      trackSelfDescribingEvent({
+        event: {
+          schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+          data: {
+            action: 'next',
+            path: `${currentPersona?.role.toLowerCase()}_${slug}`,
+            step: currentStep.title,
+          },
+        },
+      })
+    }
+  }, [connection.state])
 
-  const getComponentToRender = (): ReactElement => {
-    return <StepInformation key={'TODO'} step={currentStep} />
-    // if (!currentStep || currentStep.order === 1) {
-    //   return (
-    //       <PickPersona
-    //           currentPersona={currentPersona}
-    //           personas={scenarios.map((scenario) => scenario.persona)}
-    //           title={currentStep?.title}
-    //           text={currentStep?.description}
-    //       />
-    //   )
-    // } else if (currentScenario?.steps.length === currentStep.order) {
-    //   return <SetupCompleted title={currentStep.title} text={currentStep.description} />
-    // } else {
-    //   return (
-    //       <StepView
-    //           title={currentStep.title}
-    //           text={currentStep.description}
-    //           actions={currentStep.actions}
-    //           nextStep={nextOnboardingPage}
-    //           connectionState={connectionState}
-    //           invitationUrl={invitationUrl}
-    //           connectionId={connectionId}
-    //           issuerName={currentScenario?.issuer?.name}
-    //       />
-    //   )
-    // }
-  }
+  useEffect(() => {
+    if (isMobile) {
+      // reset mobile scroll on first & last step
+      if (currentStep.order === 1 || currentScenario?.steps.length === currentStep.order ) {
+        window.scrollTo(0, 0)
+      }
+    }
+  }, [currentStep])
 
   const renderStepItem = () => {
+    if (completed || isExiting) {
+      return
+    }
 
-    console.log(`CAALING renderStepItem`)
-
-    // if (step.screenId.startsWith('START')) {
-    //   return (
-    //     <StartContainer
-    //       key={step.screenId}
-    //       characterType={undefined} // FIXME? currentCharacter?.type.toLowerCase()}
-    //       step={step}
-    //       entity={verifier}
-    //       requestedCredentials={step.requestOptions?.requestedCredentials}
-    //     />
-    //   )
-    // }
-    // if (step.screenId.startsWith('END')) {
-    //   return <EndContainer key={step.screenId} step={step} />
-    // } else {
+    if (!currentStep || currentStep.order === 1) {
       return (
-        <>
-          <div className="flex flex-col lg:flex-row w-full h-full">
-            <SideView
-              key={'sideView'}
-              steps={scenario.steps}
-              currentStep={1} // TODO
-              entity={scenario.relyingParty ?? { name: 'UNKNOWN' }}
-              showLeaveModal={showLeaveModal}
-            />
-            <motion.div
-              key={'mainContentDiv'}
-              variants={fadeExit}
-              initial="hidden"
-              animate="show"
-              exit="exit"
-              className="flex flex-col w-auto lg:w-2/3 p-8 bg-white dark:bg-bcgov-darkgrey rounded-lg shadow"
-              style={style}
-              data-cy="section"
-            >
-              <AnimatePresence initial={false} mode="wait" onExitComplete={() => null}>
-                {getComponentToRender()}
-                {/*{step.screenId.startsWith('INFO') && <StepInformation key={step.screenId} step={step} />}*/}
-                {/*{step.screenId.startsWith('CONNECTION') && (*/}
-                {/*  <StepConnection newConnection={true} key={step.screenId} step={step} connection={connection} />*/}
-                {/*)}*/}
-                {/*{step.screenId.startsWith('PROOF') && step.requestOptions && connection.id && (*/}
-                {/*  <StepProof*/}
-                {/*    key={step.screenId}*/}
-                {/*    entityName={verifier.name}*/}
-                {/*    characterType={undefined} // FIXME?{currentCharacter?.type.toLowerCase()}*/}
-                {/*    proof={proof}*/}
-                {/*    step={step}*/}
-                {/*    connectionId={connection.id}*/}
-                {/*    requestedCredentials={step.requestOptions.requestedCredentials}*/}
-                {/*  />*/}
-                {/*)}*/}
-                {/*{step.screenId.startsWith('STEP_END') && <StepEnd key={step.screenId} step={step} />}*/}
-              </AnimatePresence>
-              <div className="flex justify-between items-center">
-                <BackButton
-                  onClick={() => {
-                    prev()
-                    trackSelfDescribingEvent({
-                      event: {
-                        schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
-                        data: {
-                          action: 'back',
-                          path: ``, // FIXME? `${currentCharacter?.type.toLowerCase()}_${slug}`,
-                          step: currentStep.title,
-                        },
-                      },
-                    })
-                  }}
-                  disabled={isBackDisabled}
-                />
-                {scenario.steps.length === currentStep.order ? (
-                  <Button text="COMPLETE" onClick={() => setCompleted(true)} />
-                ) : (
-                  <SmallButton
-                    text="NEXT"
-                    onClick={() => {
-                      next()
-                      trackSelfDescribingEvent({
-                        event: {
-                          schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
-                          data: {
-                            action: 'next',
-                            path: ``, // FIXME? ${currentCharacter?.type.toLowerCase()}_${slug}`,
-                            step: currentStep.title,
-                          },
-                        },
-                      })
-                    }}
-                    disabled={isForwardDisabled}
-                    data-cy="use-case-next"
-                  />
-                )}
-              </div>
-            </motion.div>
-          </div>
-          {leaveModal && (
-            <Modal title={LEAVE_MODAL_TITLE} description={LEAVE_MODAL_DESCRIPTION} onOk={leave} onCancel={closeLeave} />
-          )}
-        </>
+          <StartContainer
+              showcase={showcase}
+              currentPersona={currentPersona}
+              scenario={currentScenario}
+              currentStep={currentStep}
+              requestedCredentials={[]}//step.requestOptions?.requestedCredentials}
+          />
       )
-    // }
+    } else {
+      return (
+          <>
+            <div className="flex flex-col lg:flex-row w-full h-full">
+              <SideView
+                  key={'sideView'}
+                  steps={currentScenario.steps}
+                  currentStep={currentStep.order}
+                  entity={currentScenario.relyingParty ?? { name: 'UNKNOWN' }}
+                  showLeaveModal={showLeaveModal}
+              />
+              <motion.div
+                  key={'mainContentDiv'}
+                  variants={fadeExit}
+                  initial="hidden"
+                  animate="show"
+                  exit="exit"
+                  className="flex flex-col w-auto lg:w-2/3 p-8 bg-white dark:bg-bcgov-darkgrey rounded-lg shadow"
+                  style={style}
+                  data-cy="section"
+              >
+                <AnimatePresence initial={false} mode="wait" onExitComplete={() => null}>
+                  <StepInformation
+                      title={currentStep.title}
+                      description={currentStep.description}
+                      asset={currentStep.asset}
+                      connection={connection}
+                      actions={currentStep.actions}
+                      proof={proof}
+                      currentPersona={currentPersona}
+                      verifier={currentScenario.relyingParty}
+                  />
+                </AnimatePresence>
+                <div className="flex justify-between items-center">
+                  <BackButton
+                      onClick={() => {
+                        prev()
+                        trackSelfDescribingEvent({
+                          event: {
+                            schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+                            data: {
+                              action: 'back',
+                              path: `${currentPersona?.role.toLowerCase()}_${slug}`,
+                              step: currentStep.title,
+                            },
+                          },
+                        })
+                      }}
+                      disabled={isBackDisabled}
+                  />
+                  {currentScenario.steps.length === currentStep.order ? (
+                      <Button text="COMPLETE" onClick={() => setCompleted(true)} />
+                  ) : (
+                      <SmallButton
+                          text="NEXT"
+                          onClick={() => {
+                            next()
+                            trackSelfDescribingEvent({
+                              event: {
+                                schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+                                data: {
+                                  action: 'next',
+                                  path: `${currentPersona?.role.toLowerCase()}_${slug}`,
+                                  step: currentStep.title,
+                                },
+                              },
+                            })
+                          }}
+                          disabled={isForwardDisabled}
+                          data-cy="use-case-next"
+                      />
+                  )}
+                </div>
+              </motion.div>
+            </div>
+            {leaveModal && (
+                <Modal title={LEAVE_MODAL_TITLE} description={LEAVE_MODAL_DESCRIPTION} onOk={leave} onCancel={closeLeave} />
+            )}
+          </>
+      )
+    }
   }
 
   return <AnimatePresence mode="wait">{currentStep && renderStepItem()}</AnimatePresence>

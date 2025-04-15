@@ -1,10 +1,10 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { getShowcaseBySlug } from '../../api/ShowcaseApi';
 import { getCredentialDefinitionById } from '../../api/credentialDefinitionApi'
-import {PresentationScenario, ScenarioType, ShareCredentialAction, StepActionType} from 'bc-wallet-openapi'
+import {AriesOOBAction, PresentationScenario, ScenarioType, StepActionType} from 'bc-wallet-openapi'
 import { RootState } from '../../store/configureStore'
 import type { AcceptCredentialAction, CredentialAttribute, IssuanceScenario, ShowcaseScenariosInner, Step } from 'bc-wallet-openapi'
-import type {Persona, Scenario, Showcase, StepAction} from '../types'
+import type { Persona, Scenario, Showcase } from '../types'
 
 export const fetchShowcaseBySlug = createAsyncThunk(
     'showcases/fetchBySlug',
@@ -26,71 +26,38 @@ export const fetchShowcaseBySlug = createAsyncThunk(
           }
 
           const stepPromises = scenario.steps.map(async (step: Step, index) => {
-            // const actionPromises = step?.actions?.map(async (action) => {
-            //   const credentialDefinition = (action.actionType === StepActionType.AcceptCredential || action.actionType === StepActionType.ShareCredential) ? (await getCredentialDefinitionById((<AcceptCredentialAction | ShareCredentialAction>action).credentialDefinitionId)).data.credentialDefinition : undefined
-            //
-            //   if (credentialDefinition && !credentialDefinition.identifier) {
-            //     throw new Error('No identifier found in credential definition')
-            //   }
-            //
-            //   return {
-            //     actionType: action.actionType,
-            //     ...(credentialDefinition && { credentialDefinitions: [
-            //       {
-            //         id: credentialDefinition.id,
-            //         name: credentialDefinition.name,
-            //         version: credentialDefinition.version,
-            //         icon: credentialDefinition.icon?.id,
-            //         attributes: credentialDefinition.credentialSchema.attributes?.map((attribute: CredentialAttribute) => ({
-            //           name: attribute.name,
-            //           value: attribute.value
-            //         })) ?? [],
-            //         identifier: credentialDefinition.identifier!
-            //       }
-            //     ] })
-            //   }
-            // }) ?? []
-            // const actions = await Promise.all(actionPromises)
-            let actions: StepAction[] = []
-            if (index === 3) {
-              actions = [
-                {
-                  actionType: StepActionType.ChooseWallet
-                }
-              ]
-            } else if (index === 4) {
-              actions = [
-                {
-                  actionType: StepActionType.SetupConnection
-                }
-              ]
-            } else if (index === 5) {
-              actions = [
-                {
-                  actionType: StepActionType.AcceptCredential,
-                  credentialDefinitions: [
-                    {
-                      id: 'a987afd9-ed4d-4f73-a585-bf89cfe68f12',
-                      name: 'default',//'student_card',
-                      version: '1.0',
-                      icon: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1',
-                      attributes: [
-                        {
-                          name: 'scores',
-                          value: 'Alice',
-                        }
-                      ],
-                      identifier: 'DpmUAZoZyADXmed1NMrJPZ:3:CL:2751642:default'
-                    }
-                  ]
-                }
-              ]
-            }
+            const actionPromises = step?.actions?.map(async (action) => {
+              const credentialDefinition = (action.actionType === StepActionType.AcceptCredential || action.actionType === StepActionType.AriesOob) ? (await getCredentialDefinitionById((<AcceptCredentialAction | AriesOOBAction>action).credentialDefinitionId)).data.credentialDefinition : undefined
+
+              if (credentialDefinition && !credentialDefinition.identifier) {
+                throw new Error('No identifier found in credential definition')
+              }
+
+              return {
+                actionType: action.actionType,
+                title: action.title,
+                text: action.text,
+                ...(credentialDefinition && { credentialDefinitions: [
+                  {
+                    id: credentialDefinition.id,
+                    name: credentialDefinition.name,
+                    version: credentialDefinition.version,
+                    icon: credentialDefinition.icon?.id,
+                    attributes: credentialDefinition.credentialSchema.attributes?.map((attribute: CredentialAttribute) => ({
+                      name: attribute.name,
+                      value: attribute.value
+                    })) ?? [],
+                    identifier: credentialDefinition.identifier!
+                  }
+                ] })
+              }
+            }) ?? []
+            const actions = await Promise.all(actionPromises)
 
             return {
               title: step.title,
               description: step.description,
-              order: step.order,
+              order: step.order + 1,
               ...(step.asset && { asset: step.asset.id }),
               actions,
             }
@@ -138,43 +105,41 @@ export const fetchShowcaseBySlug = createAsyncThunk(
               persona: scenarios[0].persona,
               steps: [
                 {
-                  title: 'Start proving you`re a student',
-                  description: 'Imagine, as Ana, you are in the checkout process for Bad Clothes Retail. They`re offering you a 15% discount on your purchase if you can prove you`re a student. First, scan the QR code.',
+                  title: 'Getting a student discount',
+                  description: 'Ana (that\'s you in this demo!) can get a student discount on her online purchase. In this example, you will just tell Cool Clothes Online you\'re a student.',
                   order: 1,
+                  asset: '9ed230b9-c69e-4029-9577-dcc818870bf6',
+                  actions: []
+                },
+                {
+                  title: 'Start proving you\'re a student',
+                  description: 'Imagine, as Ana, you are in the checkout process for Bad Clothes Retail. They`re offering you a 15% discount on your purchase if you can prove you\'re a student. First, scan the QR code.',
+                  order: 2,
+                  asset: '9ed230b9-c69e-4029-9577-dcc818870bf6',
                   actions: [
                     {
-                      actionType: StepActionType.ShareCredential,
-                      credentialDefinitions: [
-                        {
-                          id: 'a987afd9-ed4d-4f73-a585-bf89cfe68f12',
-                          name: 'credential 1',//'student_card',
-                          version: '1.0',
-                          icon: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1',
-                          attributes: [
-                            {
-                              name: 'scores',
-                              value: 'Alice',
-                            }
-                          ],
-                          identifier: 'DpmUAZoZyADXmed1NMrJPZ:3:CL:2751642:default'
-                        }
-                      ]
+                      actionType: StepActionType.SetupConnection,
+                      title: 'title 1',
+                      text: 'text 2'
                     }
                   ]
                 },
                 {
                   title: 'Confirm the information to send',
-                  description: 'also no one cares',
-                  order: 2,
+                  description: 'BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has expired, not even the expiry date itself gets shared. You don\'t have to share anything else for it to be trustable.',
+                  order: 3,
+                  //asset: '9ed230b9-c69e-4029-9577-dcc818870bf6',
                   actions: [
                     {
-                      actionType: StepActionType.ShareCredential,
+                      actionType: StepActionType.AriesOob,
+                      title: 'action title example',
+                      text: 'action text example',
                       credentialDefinitions: [
                         {
                           id: 'a987afd9-ed4d-4f73-a585-bf89cfe68f12',
-                          name: 'credential 2',//'student_card',
+                          name: 'credential 3',//'student_card',
                           version: '1.0',
-                          icon: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1',
+                          icon: '9ed230b9-c69e-4029-9577-dcc818870bf6',
                           attributes: [
                             {
                               name: 'scores',
@@ -183,20 +148,38 @@ export const fetchShowcaseBySlug = createAsyncThunk(
                           ],
                           identifier: 'DpmUAZoZyADXmed1NMrJPZ:3:CL:2751642:default'
                         }
-                      ]
+                      ],
+                      // @ts-ignore
+                      proofRequest: {
+                        id: 'some id',
+                        attributes: {
+                          attribute1: {
+                            attributes: ["attribute1", "attribute2"],
+                            restrictions: ["restriction1", "restriction2"]
+                          }
+                        },
+                        predicates: {
+                          predicate1: {
+                            name: "example_name",
+                            type: "example_type",
+                            value:"example_value",
+                            restrictions: ["restriction1","restriction2"]
+                          }
+                        }
+                      }
                     }
                   ]
                 },
                 {
                   title: 'You`re done!',
-                  description: 'also no one cares',
-                  order: 3,
+                  description: 'You proved that you\'re a student, and Cool Clothes Online gave you the discount. It only took a few seconds, you revealed minimal information, and Cool Clothes Online could easily and automatically trust what you sent.',
+                  order: 4,
                   actions: []
                 },
               ],
               relyingParty: {
                 name: 'Bram ten Cate',
-                logo: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1'
+                logo: '7a0c9926-e92e-436f-8afe-7ca93fe59fe8'
               },
             },
             {
@@ -212,13 +195,15 @@ export const fetchShowcaseBySlug = createAsyncThunk(
                   order: 1,
                   actions: [
                     {
-                      actionType: StepActionType.ShareCredential,
+                      actionType: StepActionType.AriesOob,
+                      title: 'title 1',
+                      text: 'text 2',
                       credentialDefinitions: [
                         {
                           id: 'a987afd9-ed4d-4f73-a585-bf89cfe68f12',
                           name: 'credential 3',//'student_card',
                           version: '1.0',
-                          icon: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1',
+                          icon: '9ed230b9-c69e-4029-9577-dcc818870bf6',
                           attributes: [
                             {
                               name: 'scores',
@@ -234,7 +219,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
               ],
               relyingParty: {
                 name: 'Bram ten Cate',
-                logo: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1'
+                logo: '7a0c9926-e92e-436f-8afe-7ca93fe59fe8'
               },
             },
             {
@@ -252,12 +237,14 @@ export const fetchShowcaseBySlug = createAsyncThunk(
                   actions: [
                     {
                       actionType: StepActionType.ShareCredential,
+                      title: 'title 1',
+                      text: 'text 2',
                       credentialDefinitions: [
                         {
                           id: 'a987afd9-ed4d-4f73-a585-bf89cfe68f12',
                           name: 'credential 4',//'student_card',
                           version: '1.0',
-                          icon: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1',
+                          icon: '9ed230b9-c69e-4029-9577-dcc818870bf6',
                           attributes: [
                             {
                               name: 'scores',
@@ -277,12 +264,14 @@ export const fetchShowcaseBySlug = createAsyncThunk(
                   actions: [
                     {
                       actionType: StepActionType.ShareCredential,
+                      title: 'title 1',
+                      text: 'text 2',
                       credentialDefinitions: [
                         {
                           id: 'a987afd9-ed4d-4f73-a585-bf89cfe68f12',
                           name: 'credential 5',//'student_card',
                           version: '1.0',
-                          icon: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1',
+                          icon: '9ed230b9-c69e-4029-9577-dcc818870bf6',
                           attributes: [
                             {
                               name: 'scores',
@@ -304,7 +293,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
               ],
               relyingParty: {
                 name: 'Bram ten Cate',
-                logo: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1'
+                logo: '7a0c9926-e92e-436f-8afe-7ca93fe59fe8'
               },
             },
             {
@@ -321,12 +310,14 @@ export const fetchShowcaseBySlug = createAsyncThunk(
                   actions: [
                     {
                       actionType: StepActionType.ShareCredential,
+                      title: 'title 1',
+                      text: 'text 2',
                       credentialDefinitions: [
                         {
                           id: 'a987afd9-ed4d-4f73-a585-bf89cfe68f12',
                           name: 'credential 6',//'student_card',
                           version: '1.0',
-                          icon: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1',
+                          icon: '9ed230b9-c69e-4029-9577-dcc818870bf6',
                           attributes: [
                             {
                               name: 'scores',
@@ -342,7 +333,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
               ],
               relyingParty: {
                 name: 'Bram ten Cate',
-                logo: 'b16d46c1-16fa-4a9e-a0b3-8e863eeb8fe1'
+                logo: '7a0c9926-e92e-436f-8afe-7ca93fe59fe8'
               },
             }
         )

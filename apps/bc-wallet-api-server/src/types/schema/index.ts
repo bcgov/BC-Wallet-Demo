@@ -144,7 +144,6 @@ export enum StepType {
 export enum StepActionType {
   ARIES_OOB = 'ARIES_OOB',
   ACCEPT_CREDENTIAL = 'ACCEPT_CREDENTIAL',
-  SHARE_CREDENTIAL = 'SHARE_CREDENTIAL',
   SETUP_CONNECTION = 'SETUP_CONNECTION',
   CHOOSE_WALLET = 'CHOOSE_WALLET',
   BUTTON = 'BUTTON',
@@ -186,7 +185,6 @@ export type NewPresentationScenario = Omit<typeof scenarios.$inferInsert, 'issue
 export type StepActionTypes =
   | StepAction
   | AcceptCredentialAction
-  | ShareCredentialAction
   | ButtonAction
   | AriesOOBAction
   | SetupConnectionAction
@@ -194,7 +192,6 @@ export type StepActionTypes =
 export type NewStepActionTypes =
   | NewStepAction
   | NewAcceptCredentialAction
-  | NewShareCredentialAction
   | NewButtonAction
   | NewAriesOOBAction
   | NewSetupConnectionAction
@@ -225,17 +222,6 @@ export type NewAcceptCredentialAction = Omit<typeof stepActions.$inferInsert, 's
   connectionId?: string | null
 }
 
-export type ShareCredentialAction = Omit<typeof stepActions.$inferSelect, 'goToStep'> & {
-  actionType: StepActionType.SHARE_CREDENTIAL
-  credentialDefinitionId: string
-  connectionId?: string | null
-}
-export type NewShareCredentialAction = Omit<typeof stepActions.$inferInsert, 'step' | 'goToStep'> & {
-  actionType: StepActionType.SHARE_CREDENTIAL
-  credentialDefinitionId: string
-  connectionId?: string | null
-}
-
 export type ButtonAction = Omit<typeof stepActions.$inferSelect, 'credentialDefinitionId' | 'connectionId'> & {
   actionType: StepActionType.BUTTON
   goToStep?: string | null
@@ -250,6 +236,7 @@ export type NewButtonAction = Omit<
 
 export type AriesOOBAction = Omit<typeof stepActions.$inferSelect, 'proofRequest'> & {
   actionType: StepActionType.ARIES_OOB
+  credentialDefinitionId: string
   proofRequest?: AriesProofRequest | null
 }
 export type NewAriesOOBAction = Omit<typeof stepActions.$inferInsert, 'step' | 'proofRequest'> & {
@@ -296,7 +283,10 @@ export type AriesRequestCredentialPredicate = {
 }
 
 export type AriesProofRequest = typeof ariesProofRequests.$inferSelect
-export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 'stepAction'>
+export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 'stepAction'> & {
+  attributes?: Record<string, AriesRequestCredentialAttribute>
+  predicates?: Record<string, AriesRequestCredentialPredicate>
+}
 
 export type Tenant = typeof tenant.$inferSelect
 export type NewTenant = typeof tenant.$inferInsert

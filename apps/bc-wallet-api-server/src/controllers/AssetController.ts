@@ -1,5 +1,4 @@
 import {
-  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -55,7 +54,6 @@ class AssetController {
     }
   }
 
-  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body({ options: { limit: '250mb' } }) assetRequest: AssetRequest): Promise<AssetResponse> {
@@ -71,7 +69,6 @@ class AssetController {
     }
   }
 
-  @Authorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body({ options: { limit: '250mb' } }) assetRequest: AssetRequest): Promise<AssetResponse> {
     try {
@@ -88,7 +85,6 @@ class AssetController {
     }
   }
 
-  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

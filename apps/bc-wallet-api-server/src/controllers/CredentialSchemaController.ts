@@ -1,5 +1,4 @@
 import {
-  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -54,7 +53,6 @@ export class CredentialSchemaController {
     }
   }
 
-  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() credentialSchemaRequest: CredentialSchemaRequest): Promise<CredentialSchemaResponse> {
@@ -72,7 +70,6 @@ export class CredentialSchemaController {
     }
   }
 
-  @Authorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() credentialSchemaRequest: CredentialSchemaRequest): Promise<CredentialSchemaResponse> {
     try {
@@ -92,7 +89,6 @@ export class CredentialSchemaController {
     }
   }
 
-  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

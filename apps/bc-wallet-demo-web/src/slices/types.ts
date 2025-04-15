@@ -1,4 +1,10 @@
-import { ScenarioType, StepActionType } from 'bc-wallet-openapi'
+import {
+  AriesProofRequest,
+  AriesRequestCredentialAttributes,
+  AriesRequestCredentialPredicates,
+  ScenarioType,
+  StepActionType
+} from 'bc-wallet-openapi'
 
 export interface RevocationRecord {
   connectionId: string
@@ -51,8 +57,8 @@ export interface CredentialRequest {
   icon?: string
   schema_id?: string
   cred_def_id?: string
-  predicates?: { name: string; value?: string | number | (() => string | number); type: string }
-  properties?: string[]
+  predicates?: { name: string; value?: string | number | (() => string | number); type: string }///{ [key: string]: AriesRequestCredentialPredicates }//{ name: string; value?: string | number | (() => string | number); type: string }
+  properties?: string[]//{ [key: string]: AriesRequestCredentialAttributes }//string[]
   nonRevoked?: { to: number; from?: number }
 }
 
@@ -205,7 +211,10 @@ export interface Step {
 
 export interface StepAction {
   actionType: StepActionType
+  title: string
+  text: string
   credentialDefinitions?: CredentialDefinition[]
+  proofRequest?: AriesProofRequest
 }
 
 export interface Issuer {

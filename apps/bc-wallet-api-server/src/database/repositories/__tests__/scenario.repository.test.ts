@@ -276,13 +276,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
     expect(savedIssuanceScenario.steps[0].asset).not.toBeNull()
@@ -437,16 +437,16 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.name).toEqual(action.proofRequest.predicates.predicate1.name)
-        expect(action.proofRequest.predicates.predicate1.type).toEqual(action.proofRequest.predicates.predicate1.type)
-        expect(action.proofRequest.predicates.predicate1.value).toEqual(action.proofRequest.predicates.predicate1.value)
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.name).toEqual(action.proofRequest.predicates!.predicate1.name)
+        expect(action.proofRequest.predicates!.predicate1.type).toEqual(action.proofRequest.predicates!.predicate1.type)
+        expect(action.proofRequest.predicates!.predicate1.value).toEqual(action.proofRequest.predicates!.predicate1.value)
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
 
@@ -1002,13 +1002,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
 
@@ -1436,13 +1436,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
     expect(updatedIssuanceScenarioResult.personas).toBeDefined()
@@ -2236,13 +2236,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
   })
@@ -2440,13 +2440,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
   })
@@ -2817,13 +2817,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
   })
@@ -3015,13 +3015,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
   })
@@ -3096,13 +3096,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
   })
@@ -3400,13 +3400,13 @@ describe('Database scenario repository tests', (): void => {
 
       if (action.proofRequest) {
         expect(action.proofRequest.attributes).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1).toBeDefined()
-        expect(action.proofRequest.attributes.attribute1.attributes?.length).toEqual(2)
-        expect(action.proofRequest.attributes.attribute1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1).toBeDefined()
+        expect(action.proofRequest.attributes!.attribute1.attributes?.length).toEqual(2)
+        expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
+        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }
   })

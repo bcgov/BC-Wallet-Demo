@@ -62,13 +62,10 @@ classDiagram
         +updatedAt : DateTime
     }
     class AriesOOBAction {
+        credentialDefinitionId: String
         proofRequest: AriesProofRequest
     }
     class AcceptCredentialAction {
-        credentialDefinitionId: String
-        connectionId: String
-    }
-    class ShareCredentialAction {
         credentialDefinitionId: String
         connectionId: String
     }
@@ -273,7 +270,6 @@ classDiagram
     Step "1" *-- "0..*" StepAction: actions
     StepAction <|-- AriesOOBAction: Aries implementation
     StepAction <|-- AcceptCredentialAction: Accept credential
-    StepAction <|-- ShareCredentialAction: Share credential
     StepAction <|-- SetupConnectionAction: Setup connection
     StepAction <|-- ChooseWalletAction: Choose wallet
     StepAction <|-- ButtonAction: Button action

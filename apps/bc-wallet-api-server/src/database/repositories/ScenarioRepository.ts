@@ -29,7 +29,6 @@ import {
   ScenarioFindAllArgs,
   ScenarioType,
   SetupConnectionAction,
-  ShareCredentialAction,
   Step,
   StepAction,
   StepActionType,
@@ -54,20 +53,15 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
         return {
           ...action,
           actionType: StepActionType.ARIES_OOB,
-          proofRequest: action.proofRequest || null,
+          proofRequest: action.proofRequest,
+          credentialDefinitionId: action.credentialDefinitionId,
         } as AriesOOBAction
       case StepActionType.ACCEPT_CREDENTIAL:
         return {
           ...action,
           actionType: StepActionType.ACCEPT_CREDENTIAL,
-          credentialDefinitionId: action.credentialDefinitionId || null,
+          credentialDefinitionId: action.credentialDefinitionId,
         } as AcceptCredentialAction
-      case StepActionType.SHARE_CREDENTIAL:
-        return {
-          ...action,
-          actionType: StepActionType.SHARE_CREDENTIAL,
-          credentialDefinitionId: action.credentialDefinitionId || null,
-        } as ShareCredentialAction
       case StepActionType.BUTTON:
         return {
           ...action,

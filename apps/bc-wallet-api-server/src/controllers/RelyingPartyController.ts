@@ -1,5 +1,4 @@
 import {
-  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -56,7 +55,6 @@ class RelyingPartyController {
     }
   }
 
-  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() relyingPartyRequest: RelyingPartyRequest): Promise<RelyingPartyResponse> {
@@ -74,7 +72,6 @@ class RelyingPartyController {
     }
   }
 
-  @Authorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() relyingPartyRequest: RelyingPartyRequest): Promise<RelyingPartyResponse> {
     try {
@@ -91,7 +88,6 @@ class RelyingPartyController {
     }
   }
 
-  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

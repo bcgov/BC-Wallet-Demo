@@ -46,7 +46,7 @@ export const SetupConnectionAction: React.FC<Props> = ({
   useEffect(() => {
     if (!isCompleted || newConnection) {
       dispatch(clearConnection())
-      dispatch(createInvitation({ issuer: issuerName, goalCode: 'vc-issue' }))
+      dispatch(createInvitation({ entity: issuerName, goalCode: 'vc-issue', goal: 'Issue credential' }))
       dispatch(clearCredentials())
     }
   }, [])

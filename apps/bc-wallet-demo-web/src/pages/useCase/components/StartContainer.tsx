@@ -1,28 +1,40 @@
-import React from 'react'
+import React, {FC} from 'react'
 import { isMobile } from 'react-device-detect'
 import { FiLogOut } from 'react-icons/fi'
 import { useNavigate, useParams } from 'react-router-dom'
-
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
-
 import { SmallButton } from '../../../components/SmallButton'
 import { fadeExit } from '../../../FramerAnimations'
 import { useAppDispatch } from '../../../hooks/hooks'
-import type { CredentialRequest, UseCaseScreen } from '../../../slices/types'
 import { nextStep } from '../../../slices/useCases/useCasesSlice'
 import { basePath } from '../../../utils/BasePath'
-import { prependApiUrl } from '../../../utils/Url'
 import { StarterInfo } from './StarterInfo'
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
+import type {
+  CredentialRequest,
+  Persona,
+  Showcase,
+  Step,
+  Scenario
+} from '../../../slices/types'
 
 export interface Props {
-  step: UseCaseScreen
-  characterType?: string
-  entity: { name: string; icon?: string }
+  showcase: Showcase
+  currentPersona: Persona
+  scenario: Scenario
+  currentStep: Step
   requestedCredentials?: CredentialRequest[]
 }
 
-export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, step, characterType }) => {
+export const StartContainer: FC<Props> = (props: Props) => {
+  const {
+    requestedCredentials,
+    currentStep,
+    showcase,
+    currentPersona,
+    scenario
+  } = props
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { slug } = useParams()
@@ -35,12 +47,12 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'leave',
-          path: `${characterType}_${slug}`,
-          step: step.title,
+          path: `${currentPersona.role}_${slug}`,
+          step: currentStep.title,
         },
       },
     })
-    navigate(`${basePath}/dashboard`)
+    navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
   }
 
   const next = () => {
@@ -49,12 +61,16 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'start',
-          path: `${characterType}_${slug}`,
-          step: step.title,
+          path: `${currentPersona.role}_${slug}`,
+          step: currentStep.title,
         },
       },
     })
-    dispatch(nextStep())
+    if (scenario?.steps.length === currentStep.order) {
+      leave()
+    } else {
+      dispatch(nextStep())
+    }
   }
   return (
     <motion.div
@@ -68,9 +84,9 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
     >
       <div className="flex flex-col p-6 md:p-12 md:pb-6 xl:p-16 xl:pb-8 w-full lg:w-2/3 ">
         <StarterInfo
-          title={step.title}
-          description={step.text ?? ''}
-          entity={entity}
+          title={currentStep.title}
+          description={currentStep.description ?? ''}
+          entity={scenario.relyingParty}
           requestedCredentials={requestedCredentials}
         />
 
@@ -78,11 +94,11 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
           <button onClick={leave}>
             <FiLogOut className="ml-2 inline h-8 cursor-pointer" />
           </button>
-          <SmallButton onClick={next} text={'START'} disabled={false} />
+          <SmallButton onClick={next} text={scenario?.steps.length === currentStep.order ? 'COMPLETE' : 'START'} disabled={false} />
         </div>
       </div>
       <div className="bg-bcgov-white dark:bg-bcgov-black hidden lg:flex lg:w-1/3 rounded-r-lg flex content-center p-4 select-none">
-        {step.image && <img className="p-8" src={prependApiUrl(step.image)} alt={step.title} />}
+        {currentStep.asset && <img className="p-8" src={`${showcaseServerBaseUrl}/assets/${currentStep.asset}/file`} alt={currentStep.title} />}
       </div>
     </motion.div>
   )
