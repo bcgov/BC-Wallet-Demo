@@ -231,8 +231,9 @@ classDiagram
    }
    class User {
     +id: String
-    +identifierType: IdentifierType
-    +identifier: String
+    +userName: String
+    +issuer: String
+    +clientId: String
     +createdAt : DateTime
     +updatedAt : DateTime
    }
