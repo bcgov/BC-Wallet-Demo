@@ -1,5 +1,4 @@
 import type { CredentialDefinition, CredentialSchema } from 'bc-wallet-openapi'
-import type { CredDefResult, CredDefState, GetCredDefResult } from 'bc-wallet-traction-openapi'
 import { type CredentialDefinitionSendRequest, type SchemaSendRequest } from 'bc-wallet-traction-openapi'
 
 /**

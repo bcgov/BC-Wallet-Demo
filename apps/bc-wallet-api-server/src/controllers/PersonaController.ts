@@ -54,6 +54,7 @@ class PersonaController {
     }
   }
 
+//  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() personaRequest: PersonaRequest): Promise<PersonaResponse> {
@@ -69,6 +70,7 @@ class PersonaController {
     }
   }
 
+//  @Authorized()
   @Put('/:slug')
   public async put(@Param('slug') slug: string, @Body() personaRequest: PersonaRequest): Promise<PersonaResponse> {
     const id = await this.personaService.getIdBySlug(slug)
@@ -86,6 +88,7 @@ class PersonaController {
     }
   }
 
+//  @Authorized()
   @OnUndefined(204)
   @Delete('/:slug')
   public async delete(@Param('slug') slug: string): Promise<void> {

@@ -71,6 +71,7 @@ class PresentationScenarioController {
     }
   }
 
+//  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async postPresentationScenario(@Body() presentationScenarioRequest: PresentationScenarioRequest): Promise<PresentationScenarioResponse> {
@@ -88,6 +89,7 @@ class PresentationScenarioController {
     }
   }
 
+//  @Authorized()
   @Put('/:slug')
   public async putPresentationScenario(
     @Param('slug') slug: string,
@@ -154,6 +156,7 @@ class PresentationScenarioController {
     }
   }
 
+//  @Authorized()
   @HttpCode(201)
   @Post('/:slug/steps')
   public async postPresentationScenarioStep(@Param('slug') slug: string, @Body() stepRequest: StepRequest): Promise<StepResponse> {
@@ -172,6 +175,7 @@ class PresentationScenarioController {
     }
   }
 
+//  @Authorized()
   @Put('/:slug/steps/:stepId')
   public async putPresentationScenarioStep(
     @Param('slug') slug: string,
@@ -240,6 +244,7 @@ class PresentationScenarioController {
     }
   }
 
+//  @Authorized()
   @HttpCode(201)
   @Post('/:slug/steps/:stepId/actions')
   public async postPresentationScenarioStepAction(
@@ -262,6 +267,7 @@ class PresentationScenarioController {
     }
   }
 
+//  @Authorized()
   @Put('/:slug/steps/:stepId/actions/:actionId')
   public async putPresentationScenarioStepAction(
     @Param('slug') slug: string,
