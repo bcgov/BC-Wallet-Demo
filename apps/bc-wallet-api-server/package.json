@@ -35,8 +35,9 @@
     "@types/express": "^5.0.0",
     "@types/pg": "^8.11.11",
     "drizzle-kit": "^0.30.4",
-    "ts-node-dev": "^2.0.0",
-    "testcontainers": "^10.18.0"
+    "testcontainers": "^10.18.0",
+    
+    "typescript": "^5.8.3"
   },
   "files": [
     "dist/**/*",
