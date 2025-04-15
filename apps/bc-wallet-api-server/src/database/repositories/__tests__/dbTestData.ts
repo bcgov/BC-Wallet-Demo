@@ -186,6 +186,8 @@ export async function createTestUser(userName: string): Promise<User> {
   const userRepository = Container.get(UserRepository)
   const newUser: NewUser = {
     userName,
+    issuer: 'https://auth-server.example.com/auth/realms/BC',
+    clientId: 'showcase-tenantA',
   }
   return await userRepository.create(newUser)
 }

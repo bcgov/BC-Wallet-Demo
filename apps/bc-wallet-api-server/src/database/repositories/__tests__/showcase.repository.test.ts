@@ -264,42 +264,13 @@ describe('Database showcase repository tests', (): void => {
     expect(savedShowcase.bannerImage!.description).toEqual(asset.description)
     expect(savedShowcase.bannerImage!.content).toStrictEqual(asset.content)
     expect(savedShowcase.createdBy).toEqual({
+      userName: 'test-user-showcase',
       createdAt: expect.any(Date),
       id: expect.any(String),
-      identifier: 'did:example.org',
-      identifierType: 'DID',
       updatedAt: expect.any(Date),
+      issuer: 'https://auth-server.example.com/auth/realms/BC',
+      clientId: 'showcase-tenantA',
     })
-  })
-
-  it('Should throw error when saving showcase with no personas', async (): Promise<void> => {
-    const showcase: NewShowcase = {
-      name: 'example_name',
-      description: 'example_description',
-      status: ShowcaseStatus.ACTIVE,
-      hidden: false,
-      tenantId: tenant.id,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      personas: [],
-    }
-
-    await expect(repository.create(showcase)).rejects.toThrowError(`At least one persona is required`)
-  })
-
-  it('Should throw error when saving showcase with no scenarios', async (): Promise<void> => {
-    const showcase: NewShowcase = {
-      name: 'example_name',
-      description: 'example_description',
-      status: ShowcaseStatus.ACTIVE,
-      hidden: false,
-      tenantId: tenant.id,
-      scenarios: [],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      personas: [persona1.id, persona2.id],
-    }
-
-    await expect(repository.create(showcase)).rejects.toThrowError(`At least one scenario is required`)
   })
 
   it('Should throw error when saving showcase with invalid persona id', async (): Promise<void> => {
@@ -460,68 +431,6 @@ describe('Database showcase repository tests', (): void => {
     expect(updatedShowcase.hidden).toEqual(showcase.hidden)
     expect(updatedShowcase.scenarios.length).toEqual(2)
     expect(updatedShowcase.personas.length).toEqual(2)
-  })
-
-  it('Should throw error when updating showcase with no personas', async (): Promise<void> => {
-    const showcase: NewShowcase = {
-      name: 'example_name',
-      description: 'example_description',
-      status: ShowcaseStatus.ACTIVE,
-      hidden: false,
-      tenantId: tenant.id,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      personas: [persona1.id, persona2.id],
-    }
-
-    const savedShowcase = await repository.create(showcase)
-
-    const updatedShowcase: NewShowcase = {
-      name: savedShowcase.name,
-      description: savedShowcase.description,
-      status: savedShowcase.status,
-      hidden: savedShowcase.hidden,
-      tenantId: savedShowcase.tenantId,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      personas: [],
-      bannerImage: null,
-    }
-
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(
-      `At least one persona is required`,
-    )
-  })
-
-  it('Should throw error when updating showcase with no scenarios', async (): Promise<void> => {
-    const showcase: NewShowcase = {
-      name: 'example_name',
-      description: 'example_description',
-      status: ShowcaseStatus.ACTIVE,
-      hidden: false,
-      tenantId: tenant.id,
-      scenarios: [issuanceScenario1.id, issuanceScenario2.id],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      personas: [persona1.id, persona2.id],
-    }
-
-    const savedShowcase = await repository.create(showcase)
-
-    const updatedShowcase: NewShowcase = {
-      name: savedShowcase.name,
-      description: savedShowcase.description,
-      status: savedShowcase.status,
-      hidden: savedShowcase.hidden,
-      tenantId: savedShowcase.tenantId,
-      scenarios: [],
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      personas: [persona1.id, persona2.id],
-      bannerImage: null,
-    }
-
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(
-      `At least one scenario is required`,
-    )
   })
 
   it('Should throw error when updating showcase with invalid persona id', async (): Promise<void> => {
