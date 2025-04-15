@@ -29,12 +29,33 @@ jobs:
           echo "true_false=${{ toJSON(github.event.pull_request.draft != true && github.repository_owner == '4sure-tech') }}" >> $GITHUB_OUTPUT
           echo "owner_true_false=${{ toJSON(github.repository_owner == '4sure-tech') }}" >> $GITHUB_OUTPUT 
 
-  build_api_server:
-    name: "Build API Server"
+  test:
+    name: "Run Tests"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - ready
     if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run Tests
+        id: run-tests
+        uses: ./.github/actions/test
+        with:
+          node-version: '20'
+          pnpm-version: '8'
+    outputs:
+      status: ${{ steps.run-tests.outputs.status }}
+
+  build_api_server:
+    name: "Build API Server"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - ready
+      - test
+    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && needs.test.outputs.status == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - name: Build API Server Image
@@ -54,9 +75,11 @@ jobs:
   build_traction_adapter:
     name: "Build Traction Adapter"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - ready
-    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true }}
+      - test
+    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && needs.test.outputs.status == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - name: Build Traction Adapter Image
@@ -76,9 +99,11 @@ jobs:
   build_showcase_creator:
     name: "Build Showcase Creator"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - ready
-    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true }}
+      - test
+    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && needs.test.outputs.status == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - name: Build Showcase Creator Image
@@ -98,9 +123,11 @@ jobs:
   build_demo_server:
     name: "Build Demo Server"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - ready
-    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true }}
+      - test
+    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && needs.test.outputs.status == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - name: Build Demo Server Image
@@ -120,9 +147,11 @@ jobs:
   build_demo_web:
     name: "Build Demo Web"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - ready
-    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true }}
+      - test
+    if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && needs.test.outputs.status == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - name: Build Demo Web Image
@@ -143,6 +172,7 @@ jobs:
     name: "Image Scan"
     needs: [build_api_server, build_traction_adapter, build_showcase_creator, build_demo_server, build_demo_web, ready]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
     steps:
       - name: Checkout Code

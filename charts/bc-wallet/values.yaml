@@ -23,10 +23,6 @@ api_server:
     ALLOW_METHODS: GET,POST,PUT,DELETE,OPTIONS
     ALLOW_HEADERS: Content-Type,Authorization,X-Requested-With,Cache-Control,Pragma,Expires
     ALLOW_CREDENTIALS: true
-    AMQ_HOST: bc-wallet-rabbitmq.default.svc.cluster.local
-    AMQ_PORT: 5672
-    AMQ_USER: guest
-    AMQ_TRANSPORT: tcp
   resources:
     limits:
       cpu: 200m
@@ -91,10 +87,6 @@ traction_adapter:
     APP_NAME: bc-wallet-traction-adapter
     LOG_LEVEL: debug
     NODE_PORT: 3000
-    AMQ_HOST: bc-wallet-rabbitmq.default.svc.cluster.local
-    AMQ_PORT: 5672
-    AMQ_USER: guest
-    AMQ_TRANSPORT: tcp
   resources:
     limits:
       cpu: 200m
@@ -385,8 +377,8 @@ postgresql:
 rabbitmq:
   enabled: true
   auth:
-    username: "admin" 
-    password: ""
+    username: "bc_user"
+    password: "some_password"
     existingSecret: ""
     existingSecretKey: "rabbitmq-password"
     erlangCookie: ""
@@ -396,22 +388,20 @@ rabbitmq:
   configuration: |-
     management.listener.port = 15672
     management.listener.ssl = false
-    loopback_users.guest = false
+    default_user = bc_user
+    default_pass = some_password
+  extraConfiguration: |-
+    default_user = bc_user
+    default_pass = some_password
   service:
     type: ClusterIP
     ports:
       amqp: 5672
       manager: 15672
   livenessProbe:
-    enabled: true   
-    initialDelaySeconds: 60
-    timeoutSeconds: 5
-    periodSeconds: 30
+    enabled: false
   readinessProbe:
-    enabled: true   
-    initialDelaySeconds: 60
-    timeoutSeconds: 5
-    periodSeconds: 10
+    enabled: false
   persistence:
     enabled: true
     size: 1Gi
@@ -434,4 +424,4 @@ rabbitmq:
 global:
   namespaceOverride: ""
 
-debug: true  
+debug: true  # Enable debug mode to create the debug-helper ConfigMap
