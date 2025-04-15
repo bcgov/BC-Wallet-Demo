@@ -1,15 +1,20 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { PersonaRequest } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import PersonaController from '../PersonaController'
-import PersonaService from '../../services/PersonaService'
-import PersonaRepository from '../../database/repositories/PersonaRepository'
+
+import {
+  createMockDatabaseService,
+  createTestAsset,
+  setupTestDatabase,
+} from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
-import { Application } from 'express'
-import { PersonaRequest } from 'bc-wallet-openapi'
-import { PGlite } from '@electric-sql/pglite'
+import PersonaRepository from '../../database/repositories/PersonaRepository'
 import DatabaseService from '../../services/DatabaseService'
-import { createMockDatabaseService, createTestAsset, setupTestDatabase } from './dbTestData'
+import PersonaService from '../../services/PersonaService'
+import PersonaController from '../PersonaController'
 import supertest = require('supertest')
 
 describe('PersonaController Integration Tests', () => {
@@ -28,7 +33,7 @@ describe('PersonaController Integration Tests', () => {
     Container.get(PersonaService)
     app = createExpressServer({
       controllers: [PersonaController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

@@ -146,7 +146,7 @@ export class MessageProcessor {
         context.delivery.accept()
       }
     } catch (e) {
-      const errorMsg = `An error occurred while publishing issuer ${issuer.id} / ${issuer.name} of type ${issuer.type} to Traction`
+      const errorMsg = `An error occurred while publishing issuer ${issuer.id} / ${issuer.name} of type ${issuer.type} to Traction. Reason: ${e.message}`
       console.error(errorMsg)
       if (context.delivery) {
         context.delivery.reject({

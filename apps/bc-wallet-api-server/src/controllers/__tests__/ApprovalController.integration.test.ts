@@ -1,22 +1,18 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import {
+  CredentialDefinitionResponse,
+  CredentialDefinitionResponseFromJSONTyped,
+  PendingApprovalsResponse,
+  PendingApprovalsResponseFromJSONTyped,
+  ShowcaseFromJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import { Application } from 'express'
-import { PGlite } from '@electric-sql/pglite'
 
-import ApprovalController from '../ApprovalController'
-import AssetRepository from '../../database/repositories/AssetRepository'
-import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
-import IssuerRepository from '../../database/repositories/IssuerRepository'
-import PersonaRepository from '../../database/repositories/PersonaRepository'
-import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepository'
-import ScenarioRepository from '../../database/repositories/ScenarioRepository'
-import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
-import UserRepository from '../../database/repositories/UserRepository'
-import CredentialDefinitionService from '../../services/CredentialDefinitionService'
-import ShowcaseService from '../../services/ShowcaseService'
-import DatabaseService from '../../services/DatabaseService'
 import {
   createMockDatabaseService,
   createTestShowcase,
@@ -24,23 +20,29 @@ import {
   createTestUser,
   createUnapprovedCredDef,
   setupTestDatabase,
-} from './dbTestData'
-import {
-  CredentialDefinitionResponse,
-  CredentialDefinitionResponseFromJSONTyped,
-  PendingApprovalsResponse,
-  PendingApprovalsResponseFromJSONTyped, ShowcaseFromJSONTyped,
-  ShowcaseResponse,
-  ShowcaseResponseFromJSONTyped
-} from 'bc-wallet-openapi'
+} from '../../database/repositories/__tests__/dbTestData'
+import AssetRepository from '../../database/repositories/AssetRepository'
+import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
+import IssuerRepository from '../../database/repositories/IssuerRepository'
+import PersonaRepository from '../../database/repositories/PersonaRepository'
+import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepository'
+import ScenarioRepository from '../../database/repositories/ScenarioRepository'
+import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
 import TenantRepository from '../../database/repositories/TenantRepository'
+import UserRepository from '../../database/repositories/UserRepository'
+import CredentialDefinitionService from '../../services/CredentialDefinitionService'
+import ShowcaseService from '../../services/ShowcaseService'
+import DatabaseService from '../../services/DatabaseService'
+
 import TenantService from '../../services/TenantService'
 import { AcceptCredentialAction, ShowcaseStatus } from '../../types'
-import { MockSessionService } from './MockSessionService'
+import ApprovalController from '../ApprovalController'
 import supertest = require('supertest')
-import { createApiFullTestData } from './apiTestData'
-import ShowcaseController from '../ShowcaseController'
 import { CredentialDefinitionController } from '../CredentialDefinitionController'
+import ShowcaseController from '../ShowcaseController'
+import { createApiFullTestData } from './apiTestData'
+import { MockSessionService } from './MockSessionService'
 
 const isRecentDate = (inputDate: Date | null | undefined, seconds = 5): boolean => {
   if (!inputDate) return false
@@ -242,7 +244,7 @@ describe('ApprovalController Integration Tests', () => {
 
   async function getTenantId() {
     const tenant = await sessionService.getCurrentTenant()
-    if(!tenant) {
+    if (!tenant) {
       return Promise.reject('No tenant was created that was registered in sessionService')
     }
     return tenant.id
