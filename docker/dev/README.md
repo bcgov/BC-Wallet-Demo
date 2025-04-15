@@ -27,7 +27,7 @@ cp .env.example .env
 
 ```
 # Server Configuration
-API_PORT=3377                   # Port for the API server
+API_PORT=5002                   # Port for the API server
 
 # Database Configuration
 DB_HOST=postgres

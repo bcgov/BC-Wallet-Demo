@@ -1,6 +1,6 @@
 import type { ConnectionOptions } from 'rhea-promise'
 
-import type { Topic } from './types'
+import { Topic } from './types'
 
 const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
   // Default to 'tls' if not provided or invalid
@@ -43,7 +43,15 @@ const parsePositiveInt = (value: string | undefined, defaultValue: number): numb
   return parsed
 }
 
-console.log('env:', process.env)
+const validateTopic = (topic?: string): Topic | undefined => {
+  if (!topic) {
+    return undefined
+  }
+  if (!Object.values(Topic).includes(topic as Topic)) {
+    throw new Error(`Invalid topic: ${topic}. Valid topics are: ${Object.values(Topic).join(', ')}`)
+  }
+  return topic as Topic
+}
 
 export const environment = {
   messageBroker: {
@@ -56,7 +64,7 @@ export const environment = {
         ? process.env.AMQ_TRANSPORT
         : 'tls',
     getConnectionOptions: () => createAmqConnectionOptions(process.env.AMQ_TRANSPORT),
-    MESSAGE_PROCESSOR_TOPIC: (process.env.MESSAGE_PROCESSOR_TOPIC ?? 'SHOWCASE_CMD') as Topic,
+    MESSAGE_PROCESSOR_TOPIC: validateTopic(process.env.MESSAGE_PROCESSOR_TOPIC) ?? Topic.SHOWCASE_CMD,
   },
   traction: {
     DEFAULT_API_BASE_PATH: process.env.DEFAULT_API_BASE_PATH ?? 'http://localhost:8032',

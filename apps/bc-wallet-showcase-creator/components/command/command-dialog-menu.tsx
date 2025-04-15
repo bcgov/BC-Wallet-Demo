@@ -80,7 +80,7 @@ export function CommandDialogMenu() {
           </CommandItem>
           <CommandItem>
             <Smile />
-            <span>Create tennant</span>
+            <span>Create tenant</span>
           </CommandItem>
           <CommandItem>
             <Calculator />

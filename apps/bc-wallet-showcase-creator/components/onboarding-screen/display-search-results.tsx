@@ -50,6 +50,11 @@ export const DisplaySearchResults = ({
                   width={50}
                   height={50}
                   className="rounded-full"
+                  unoptimized
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement
+                    target.src = '/assets/no-image.jpg'
+                  }}
                 />
                 <div className="space-y-1 ml-4 text-start">
                   <p className="font-semibold">{result.name}</p>

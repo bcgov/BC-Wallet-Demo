@@ -143,6 +143,11 @@ export const DisplayAddedCredentials = ({
                     width={50}
                     height={50}
                     className="rounded-full"
+                    unoptimized
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement
+                      target.src = '/assets/no-image.jpg'
+                    }}
                   />
                   <div className="space-y-1 ml-4">
                     <p className="font-semibold">{credential.name}</p>
@@ -212,6 +217,7 @@ export const DisplayAddedCredentials = ({
 
                   <div className="justify-self-center mb-2">
                     <ButtonOutline
+                     type="button"
                      onClick={() => handleSaveAttributes(credential.id)}               
                     >
                       {t("action.save_label")}

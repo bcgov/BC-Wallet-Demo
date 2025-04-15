@@ -107,14 +107,46 @@ Create a default fully qualified rabbitmq name.
 {{- end -}}
 
 {{/*
-Get the rabbitmq password key.
+Get the password key to be retrieved from RabbitMQ secret.
 */}}
 {{- define "bc-wallet.rabbitmq.passwordKey" -}}
-{{- if .Values.rabbitmq.auth.secretKeys.passwordKey -}}
-{{- printf "%s" .Values.rabbitmq.auth.secretKeys.passwordKey -}}
+{{- if .Values.rabbitmq.auth.existingSecretKey -}}
+    {{- .Values.rabbitmq.auth.existingSecretKey -}}
 {{- else -}}
-rabbitmq-password
+    {{- print "rabbitmq-password" -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Get the username key to be retrieved from RabbitMQ secret.
+*/}}
+{{- define "bc-wallet.rabbitmq.usernameKey" -}}
+{{- print "rabbitmq-username" -}}
+{{- end -}}
+
+{{/*
+Get the name of the RabbitMQ secret.
+*/}}
+{{- define "bc-wallet.rabbitmq.secretName" -}}
+{{- if .Values.rabbitmq.auth.existingSecret -}}
+    {{- .Values.rabbitmq.auth.existingSecret -}}
+{{- else -}}
+    {{- printf "%s-rabbitmq" (include "common.names.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the RabbitMQ host.
+*/}}
+{{- define "bc-wallet.rabbitmq.host" -}}
+{{- printf "%s-rabbitmq" .Release.Name -}}
+{{- end -}}
+
+{{/*
+Get the RabbitMQ port.
+*/}}
+{{- define "bc-wallet.rabbitmq.port" -}}
+{{- print "5672" -}}
 {{- end -}}
 
 {{/*

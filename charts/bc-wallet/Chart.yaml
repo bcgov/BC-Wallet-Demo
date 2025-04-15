@@ -4,7 +4,7 @@ description: BC Wallet services with PostgreSQL and RabbitMQ
 version: 0.1.0
 dependencies:
   - name: postgresql
-    version: "12.5.7"
+    version: "16.6.3"
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
   - name: rabbitmq

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
@@ -15,13 +15,12 @@ import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { toast } from 'sonner'
 import Image from 'next/image'
-import { ShowcaseRequest, ShowcaseStatus } from 'bc-wallet-openapi'
+import { ShowcaseRequest, ShowcaseStatus, AssetResponse } from 'bc-wallet-openapi'
 import { z } from 'zod'
 
 import { ConfirmationDialog } from '@/components/confirmation-dialog'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useCreateAsset } from '@/hooks/use-asset' 
-import { AssetResponseType } from '@/openapi-types'
 
 const BannerImageUpload = ({
   text,
@@ -47,7 +46,7 @@ const BannerImageUpload = ({
             },
             {
               onSuccess: (data: unknown) => {
-                const response = data as AssetResponseType
+                const response = data as AssetResponse
                 onChange(response.asset.id)
               },
               onError: (error) => {
