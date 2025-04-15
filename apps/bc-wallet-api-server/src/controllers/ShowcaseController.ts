@@ -1,13 +1,13 @@
 import { BadRequestError, Body, Delete, Get, HttpCode, JsonController, OnUndefined, Param, Post, Put } from 'routing-controllers'
 import { Service } from 'typedi'
 import {
-  ShowcaseResponse,
-  ShowcaseResponseFromJSONTyped,
+  instanceOfShowcaseRequest,
   ShowcaseRequest,
   ShowcaseRequestToJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
   ShowcasesResponse,
   ShowcasesResponseFromJSONTyped,
-  instanceOfShowcaseRequest,
 } from 'bc-wallet-openapi'
 import ShowcaseService from '../services/ShowcaseService'
 import { showcaseDTOFrom } from '../utils/mappers'
@@ -45,9 +45,10 @@ class ShowcaseController {
     }
   }
 
+//  @Authorized()
   @HttpCode(201)
   @Post('/')
-  public async post(@Body() showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
+  public async post(@Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
     try {
       if (!instanceOfShowcaseRequest(showcaseRequest)) {
         return Promise.reject(new BadRequestError())
@@ -62,8 +63,9 @@ class ShowcaseController {
     }
   }
 
+//  @Authorized()
   @Put('/:slug')
-  public async put(@Param('slug') slug: string, @Body() showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
+  public async put(@Param('slug') slug: string, @Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
     const id = await this.showcaseService.getIdBySlug(slug)
     try {
       if (!instanceOfShowcaseRequest(showcaseRequest)) {
@@ -79,6 +81,7 @@ class ShowcaseController {
     }
   }
 
+//  @Authorized()
   @OnUndefined(204)
   @Delete('/:slug')
   public async delete(@Param('slug') slug: string): Promise<void> {

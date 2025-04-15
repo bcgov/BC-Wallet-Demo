@@ -1,2 +1,2 @@
-CREATE TYPE "public"."Source" AS ENUM('IMPORTED', 'CREATED');--> statement-breakpoint
-ALTER TABLE "credentialSchema" ADD COLUMN "source" "Source" DEFAULT 'CREATED';
+ALTER TABLE "user" ADD COLUMN "issuer" text;--> statement-breakpoint
+ALTER TABLE "user" ADD COLUMN "clientId" text;

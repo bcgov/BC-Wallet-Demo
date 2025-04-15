@@ -20,9 +20,10 @@
     "description_label": "Description",
     "character_label": "Personnage(s)",
     "description_version": "Version",
+    "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine.",
+        "publish_info_credentials": "Recevera les attestations suivantes:",
     "loading_label": "Chargement...",
-    "publish_info_title": "Vitrine de révision et de publication",
-    "publish_info_subtitle": "Sélectionnez le personnage et examinez la vitrine."
+    "publish_info_title": "Réviser et publier la vitrine"
   },
   "character": {
     "header_title": "Créez votre Personnage",
@@ -45,24 +46,27 @@
     "hidden_label": "Caché",
     "warning_label": "Avertissement!",
     "warning_placeholder_label": "Ce caractère est caché. Vous pouvez joindre des informations d’identification et des scénarios, mais ils ne seront pas visibles dans la version publiée de cette présentation.",
-    "select_your_character_title": "Sélectionnez votre personnage",
-    "select_your_character_subtitle": "Sélectionnez un caractère existant ou utilisez les champs de droite pour créer un nouveau caractère.",
+    "create_your_character_title": "Créer votre personnage",
+    "create_your_character_subtitle": "Utilisez les champs de droite pour créer un nouveau personnage.",
     "character_detail": "Détails du personnage",
-    "hide_character": "Masquer ce caractère",
+    "hide_character": "Masquer ce personnage",
     "create_new_character_label": "CRÉER UN NOUVEAU PERSONNAGE",
     "hide_character_placeholder": "L’activation de ce paramètre masquera ce personnage et tous les scénarios associés.",
-    "no_character_selected_label": "Aucun persona sélectionné",
+    "no_character_selected_label": "Aucun personnage sélectionné",
     "character_delete_title": "Êtes-vous sûr de vouloir supprimer ce personnage ?",
-    "character_delete_description": "Cette action ne peut pas être annulée."
+    "character_delete_description": "Cette action ne peut pas être annulée.",
+    "success_characters_selected_label": "Personnages ajoutés avec succès",
+    "error_no_characters_selected_label": "Veuillez sélectionner au moins un personnage pour continuer",
+    "error_character_creation_label": "Erreur lors de la création du personnage"
   },
   "credentials": {
-    "credential_title": "Selectionnez un Justificatif",
+    "credential_title": "Justificatifs",
     "credential_loading": "Chargement des Identifiants",
     "credential_subtitle": "Selectionnez un justificatif existant ou utilisez les champs de droite pour créer un nouveau justificatif.",
     "header_title": "Ajoutez vos Identifiants",
     "header_subtitle": "Remplissez les détails à droite pour créer un identifiant pour cette vitrine.",
     "credentials_added_label": "Identifiants ajoutés: {credentialCount}",
-    "add_credential_label": "Ajouter un identidiant",
+    "add_credential_label": "AJOUTER UN JUSTIFICATIF",
     "no_credential_selected_message": "Aucun identifiant sélectionné.",
     "item_attribute_count_label": "Attributs: {attributeCount}",
     "section_title": "Identifiants",
@@ -77,7 +81,8 @@
     "version_placeholder": "Entrez la version",
     "attributes_label": "Attributs",
     "attribute_label": "Attribute",
-    "attributes_add_attribute_label": "Ajouter un attribut",
+    "attributes_add_attribute_label": "AJOUTER UN ATTRIBUT",
+    "invalid_date_format_label": "Format de date invalide, doit être au format YYYY-MM-DD",
     "attribute_name_label": "Nom",
     "attribute_name_placeholder": "Nom de l'attribut",
     "attribute_value_label": "Valeur",
@@ -197,9 +202,9 @@
     "edit_image_label": "Image",
     "edit_summary_label": "Résumé",
     "proof_attribute_placeholder": "Sélectionner un attribut",
-    "basic_label":"Basique",
-    "proof_request_label":"Demande de preuve",
-    "scenario_description" : "Scenario Description",
+    "basic_label": "Basique",
+    "proof_request_label": "Demande de preuve",
+    "scenario_description": "Scenario Description",
     "remove_scenario_label": "Supprimer le Scénario"
   },
   "action": {
@@ -232,9 +237,16 @@
   "showcase": {
     "header_title": "Enregistrer la vitrine",
     "title": "Entrez le nom de cette vitrine ci-dessous.",
-    "subtitle": "La date d'aujourd'hui sera ajoutée au nom du fichier pour la gestion des versions.\nex. MaVitrine_v3_(jj-mm-aaaa)"
+    "subtitle": "La date d'aujourd'hui sera ajoutée au nom du fichier pour la gestion des versions.\nex. MaVitrine_v3_(jj-mm-aaaa)",
+    "button_label": "PUBLIER ET SOUMETTRE A LA REVISION",
+    "modal_description": "Une fois soumis, vous ne pourrez plus apporter de modifications avant la fin de la révision.",
+    "modal_button": "CONFIMER ET ENVOYER POUR LA REVISION",
+    "modal_description2": "Voulez-vous continuer?",
+    "publish_info_credentials": "Recevera les attestations suivantes:",
+    "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine."
   },
   "navigation": {
+    "general_label": "Général",
     "character_label": "Personnage",
     "credentials_label": "Identifiants",
     "onboarding_label": "Intégration",
@@ -251,5 +263,18 @@
   },
   "footer": {
     "copyright_label": "Programme d'Identité Numérique et de Confiance de la Colombie-Britannique. Tous droits réservés."
+  },
+  "login": {
+    "email_label": "Email",
+    "password_label": "Mot de passe",
+    "login_label": "Connexion avec Keycloak",
+    "forgot_password_label": "Mot de passe oublié?",
+    "sign_up_label": "Créer un compte",
+    "continue_label": "Continuer",
+    "terms_of_service_label": "Conditions d'utilisation",
+    "privacy_policy_label": "Politique de confidentialité",
+    "dont_have_account_label": "Pas de compte?",
+    "welcome_message": "Bienvenue à BC Showcase Creator.",
+    "app_name": "BC Showcase Creator."
   }
 }

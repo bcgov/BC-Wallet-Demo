@@ -18,16 +18,16 @@ import Loader from "../loader";
 import { IssuanceScenarioResponseType, StepRequestType,CredentialDefinition, CredentialDefinitionType } from "@/openapi-types";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { toast } from "sonner";
-import { sampleAction } from "@/lib/steps";
-import { sampleScenario } from "@/lib/steps";
+import { sampleAction, sampleScenario } from "@/lib/steps";
 import { NoSelection } from "../credentials/no-selection";
 import { debounce } from "lodash";
 import { useHelpersStore } from "@/hooks/use-helpers-store";
 import { DisplaySearchResults } from "./display-search-results";
-import apiClient from "@/lib/apiService";
+import Image from 'next/image'
 import { DisplayAddedCredentials } from "./display-added-credentials";
 import { useCredentialDefinitions } from "@/hooks/use-credentials";
 import { useCredentials } from "@/hooks/use-credentials-store";
+import { useOnboardingAdapter } from "@/hooks/use-onboarding-adapter";
 
 interface StepWithCredentials extends StepRequestType {
   credentials?: string[];
@@ -48,11 +48,11 @@ export const IssuanceStepAdd = () => {
 
   const router = useRouter();
   const { mutateAsync, isPending } = useCreateScenario();
-  const currentStep = selectedStep !== null ? screens[selectedStep] as StepWithCredentials : null;
+  const currentStep = selectedStep !== null ? screens[selectedStep] as StepRequestType : null;
   const { showcase, setScenarioIds } = useShowcaseStore();
-  const { setSelectedCredential } = useCredentials()
+  const { setSelectedCredential, selectedCredential } = useCredentials()
   const { issuerId } = useHelpersStore();
-  const personas = showcase.personas || [];
+  const { personas } = useOnboardingAdapter()
 
   const isEditMode = stepState === "editing-issue";
   const [showErrorModal, setErrorModal] = useState(false);
@@ -79,7 +79,6 @@ export const IssuanceStepAdd = () => {
         title: currentStep.title,
         description: currentStep.description,
         asset: currentStep.asset || undefined,
-        credentials: currentStep.credentials || [],
       });
     }
   }, [currentStep, form]);
@@ -88,17 +87,14 @@ export const IssuanceStepAdd = () => {
   const autoSave = debounce((data: IssueStepFormData) => {
     if (!currentStep || !form.formState.isDirty) return;
 
-    const stepWithCredentials: StepWithCredentials = {
+    const stepWithCredentials: StepRequestType = {
       ...currentStep,
       title: data.title,
       description: data.description,
       asset: data.asset || undefined,
-      credentials: data.credentials || [],
       type: currentStep.type || "HUMAN_TASK",
       order: currentStep.order || 0,
-      credentialDefinitionIdentifierType: currentStep.credentialDefinitionIdentifierType || 'DID',
-      credentialDefinitionIdentifier: currentStep.credentialDefinitionIdentifier || 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      actions: currentStep.actions || [sampleAction],
+      actions: currentStep.actions || [],
     };
 
     updateStep(selectedStep || 0, stepWithCredentials);
@@ -139,31 +135,11 @@ export const IssuanceStepAdd = () => {
   };
 
   const addCredential = (credentialId: string) => {
-    const currentCredentials = form.getValues("credentials") || [];
-    if (!currentCredentials.includes(credentialId)) {
-      const updatedCredentials = [...currentCredentials, credentialId];
-      
-      form.setValue("credentials", updatedCredentials, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-
-      if (!currentStep) return;
-
-      const stepWithCredentials: StepWithCredentials = {
-        ...currentStep,
-        title: currentStep.title,
-        description: currentStep.description,
-        credentials: updatedCredentials,
-        type: currentStep.type || "HUMAN_TASK",
-        order: currentStep.order || 0,
-        credentialDefinitionIdentifierType: currentStep.credentialDefinitionIdentifierType || 'DID',
-        credentialDefinitionIdentifier: currentStep.credentialDefinitionIdentifier || 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-        actions: currentStep.actions || [sampleAction],
-      };
-
-      updateStep(selectedStep || 0, stepWithCredentials);
+    if (!currentStep) return;
+    const existing = currentStep.credentials || [];
+    if (!existing.includes(credentialId)) {
+      const updated = [...existing, credentialId];
+      updateStep(selectedStep || 0, { ...currentStep, credentials: updated });
     }
     setSearchResults([]);
   };
@@ -173,7 +149,14 @@ export const IssuanceStepAdd = () => {
     const personaScenarios = personas.map((persona) => {
       const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario))
 
-      scenarioForPersona.personas = [persona]
+      const ActionDataWithCredential = {
+        title: "example_title",
+        actionType: "ACCEPT_CREDENTIAL",
+        text: "example_text",
+        credentialDefinitionId: selectedCredential?.id,
+      }
+
+      scenarioForPersona.personas = [persona.id]
       scenarioForPersona.issuer = issuerId
 
       scenarioForPersona.steps = [
@@ -183,9 +166,7 @@ export const IssuanceStepAdd = () => {
           asset: screen.asset || undefined,
           type: screen.type || 'HUMAN_TASK',
           order: index,
-          credentialDefinitionIdentifierType: screen.credentialDefinitionIdentifierType || 'DID',
-          credentialDefinitionIdentifier: screen.credentialDefinitionIdentifier || 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-          actions: screen.actions || [sampleAction],
+          actions: screen?.type === 'SERVICE' ? [ActionDataWithCredential] : [],
         })),
       ]
 
@@ -200,9 +181,7 @@ export const IssuanceStepAdd = () => {
           asset: data.asset || undefined,
           type: 'HUMAN_TASK',
           order: currentStep?.order || scenarioForPersona.steps.length,
-          credentialDefinitionIdentifierType: currentStep?.credentialDefinitionIdentifierType || 'DID',
-          credentialDefinitionIdentifier: currentStep?.credentialDefinitionIdentifier || 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-          actions: [sampleAction],
+          actions: [],
         })
       }
 
@@ -232,28 +211,12 @@ export const IssuanceStepAdd = () => {
     setStepState("no-selection");
     setSelectedStep(null);
   };
-
-  const updateCredentials = (updatedCredentials: Array<typeof CredentialDefinition._type>) => {
-    form.setValue("credentials", updatedCredentials as unknown as string[], {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-  };
   
-
   const removeCredential = (credentialId: string) => {
-    const currentCredentials = form.getValues("credentials") || [];
-    form.setValue(
-      "credentials",
-      currentCredentials.filter((id) => id !== credentialId),
-      {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-        }
-    );
-    setSelectedCredential(null)
+    if (!currentStep) return;
+    const updated = (currentStep.credentials || []).filter(id => id !== credentialId);
+    updateStep(selectedStep || 0, { ...currentStep, credentials: updated });
+    setSelectedCredential(null);
   };
 
   if (selectedStep === null) {
@@ -290,7 +253,7 @@ export const IssuanceStepAdd = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <img src={currentStep.asset} alt="Step icon" className="w-full object-cover" />
+                <Image src={currentStep.asset} alt={currentStep.title} className="w-full object-cover" />
               </div>
             </div>
           )}
@@ -403,16 +366,20 @@ export const IssuanceStepAdd = () => {
             <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
 
             <DisplayAddedCredentials
-              credentials={form.getValues().credentials as unknown as CredentialDefinitionType[]}
+              credentials={currentStep?.credentials as unknown as CredentialDefinitionType[]}
               removeCredential={removeCredential}
               control={form.control}
-              updateCredentials={(updatedCredentials) => form.setValue("credentials", updatedCredentials as unknown as string[])}
+              updateCredentials={(updated) => {
+                if (currentStep?.title && currentStep?.description) {
+                  updateStep(selectedStep || 0, {
+                    ...currentStep,
+                    credentials: updated as unknown as string[],
+                    title: currentStep.title,
+                    description: currentStep.description,
+                  });
+                }
+              }}
             /> 
-          
-
-            {form.formState.errors.credentials && (
-              <p className="text-sm text-destructive">{form.formState.errors.credentials.message}</p>
-            )}
           </div>
         </div>
         <div className="mt-auto pt-4 border-t flex justify-end gap-3">

@@ -1,15 +1,13 @@
 import type { ReactElement } from 'react'
 import React from 'react'
 import { StepActionType } from 'bc-wallet-openapi'
-
 import { motion } from 'framer-motion'
-
 import { fadeX } from '../../../FramerAnimations'
-import type { Credential, StepAction, TextWithImage } from '../../../slices/types'
 import { StepInformation } from '../components/StepInformation'
 import { SetupConnectionAction } from './actions/SetupConnectionAction'
 import { ChooseWalletAction } from './actions/ChooseWalletAction'
 import { AcceptCredentialAction } from './actions/AcceptCredentialAction'
+import type { StepAction, TextWithImage } from '../../../slices/types'
 
 export interface Props {
   title: string
@@ -21,7 +19,6 @@ export interface Props {
   connectionState?: string
   connectionId?: string
   issuerName?: string
-  credentials?: Credential[]
 }
 
 export const StepView: React.FC<Props> = (props: Props): ReactElement => {
@@ -35,7 +32,6 @@ export const StepView: React.FC<Props> = (props: Props): ReactElement => {
     connectionState,
     connectionId,
     issuerName,
-    credentials = [],
   } = props
 
   const getActionElements = () => {
@@ -54,9 +50,16 @@ export const StepView: React.FC<Props> = (props: Props): ReactElement => {
               //backgroundImage={} // FIXME we need to support a background image
             />
         case StepActionType.ChooseWallet:
-          return <ChooseWalletAction key={index} nextStep={nextStep} />
+          return <ChooseWalletAction
+              key={index}
+              nextStep={nextStep}
+          />
         case StepActionType.AcceptCredential:
-          return <AcceptCredentialAction key={index} connectionId={connectionId ?? ''} credentials={credentials} />
+          return <AcceptCredentialAction
+              key={index}
+              connectionId={connectionId ?? ''}
+              credentialDefinitions={action.credentialDefinitions ?? []}
+          />
         default:
           return <div />
       }

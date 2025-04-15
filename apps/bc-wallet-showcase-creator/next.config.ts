@@ -9,9 +9,17 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: '*.picsum.photos',
+        hostname: '*.dev.nborbit.ca',
+      },
+      {
+        hostname: 'localhost',
       },
     ],
+    dangerouslyAllowSVG: true,
+  },
+  transpilePackages: ["@t3-oss/env-nextjs", "@t3-oss/env-core"],
+  publicRuntimeConfig: {
+    staticFolder: '/public',
   },
 };
 

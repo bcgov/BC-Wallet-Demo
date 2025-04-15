@@ -1,17 +1,15 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import AssetController from '../AssetController'
-import AssetService from '../../services/AssetService'
+
+import { createMockDatabaseService, setupTestDatabase } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
-import { Application } from 'express'
-import supertest = require('supertest')
-import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import * as schema from '../../database/schema'
-import { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import AssetService from '../../services/AssetService'
 import DatabaseService from '../../services/DatabaseService'
+import AssetController from '../AssetController'
+import supertest = require('supertest')
 
 describe('AssetController Integration Tests', () => {
   let app: Application
@@ -19,18 +17,16 @@ describe('AssetController Integration Tests', () => {
   let client: PGlite
 
   beforeAll(async () => {
-    client = new PGlite()
-    const database = drizzle(client, { schema }) as unknown as NodePgDatabase
-    await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
-    const mockDatabaseService = {
-      getConnection: jest.fn().mockResolvedValue(database),
-    }
+    const { client: pgClient, database } = await setupTestDatabase()
+    client = pgClient
+    const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
     useContainer(Container)
     Container.get(AssetRepository)
     Container.get(AssetService)
     app = createExpressServer({
       controllers: [AssetController],
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

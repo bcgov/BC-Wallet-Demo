@@ -1,28 +1,29 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
+
 import DatabaseService from '../../../services/DatabaseService'
-import IssuerRepository from '../IssuerRepository'
-import AssetRepository from '../AssetRepository'
-import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import * as schema from '../../schema'
 import {
   Asset,
   CredentialAttributeType,
   CredentialDefinition,
+  CredentialSchema,
   CredentialType,
+  IdentifierType,
+  IssuerType,
   NewAsset,
   NewCredentialDefinition,
-  NewIssuer,
-  IssuerType,
   NewCredentialSchema,
-  CredentialSchema,
-  IdentifierType,
+  NewIssuer,
 } from '../../../types'
+import * as schema from '../../schema'
+import AssetRepository from '../AssetRepository'
+import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import IssuerRepository from '../IssuerRepository'
 
 describe('Database issuer repository tests', (): void => {
   let client: PGlite
@@ -185,7 +186,9 @@ describe('Database issuer repository tests', (): void => {
       logo: asset.id,
     }
 
-    await expect(repository.create(issuer)).rejects.toThrowError(`No credential definition found for id: ${unknownCredentialDefinitionId}`)
+    await expect(repository.create(issuer)).rejects.toThrowError(
+      `No credential definition found for id: ${unknownCredentialDefinitionId}`,
+    )
   })
 
   it('Should get issuer by id from database', async (): Promise<void> => {
@@ -316,7 +319,9 @@ describe('Database issuer repository tests', (): void => {
       logo: unknownIconId,
     }
 
-    await expect(repository.update(savedIssuer.id, updatedIssuer)).rejects.toThrowError(`No asset found for id: ${unknownIconId}`)
+    await expect(repository.update(savedIssuer.id, updatedIssuer)).rejects.toThrowError(
+      `No asset found for id: ${unknownIconId}`,
+    )
   })
 
   it('Should throw error when updating issuer with no credential definitions', async (): Promise<void> => {
@@ -340,7 +345,9 @@ describe('Database issuer repository tests', (): void => {
       logo: asset.id,
     }
 
-    await expect(repository.update(savedIssuer.id, updatedIssuer)).rejects.toThrowError(`At least one credential definition is required`)
+    await expect(repository.update(savedIssuer.id, updatedIssuer)).rejects.toThrowError(
+      `At least one credential definition is required`,
+    )
   })
 
   it('Should throw error when updating issuer with no credential schemas', async (): Promise<void> => {
@@ -364,7 +371,9 @@ describe('Database issuer repository tests', (): void => {
       logo: asset.id,
     }
 
-    await expect(repository.update(savedIssuer.id, updatedIssuer)).rejects.toThrowError(`At least one credential schema is required`)
+    await expect(repository.update(savedIssuer.id, updatedIssuer)).rejects.toThrowError(
+      `At least one credential schema is required`,
+    )
   })
 
   it('Should throw error when updating issuer with invalid credential definition id', async (): Promise<void> => {

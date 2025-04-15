@@ -22,7 +22,8 @@
     "description_version": "Version",
     "loading_label": "Loading...",
     "publish_info_title": "Review and Publish Showcase",
-    "publish_info_subtitle": "Select the character and review their showcase."
+"publish_info_subtitle": "Enter and review the showcase details.",
+    "publish_info_credentials": "Will receive the following credential(s):"
   },
   "character": {
     "header_title": "Create your Character",
@@ -45,24 +46,27 @@
     "hidden_label": "Hidden",
     "warning_label": "Warning!",
     "warning_placeholder_label": "This character is hidden. You can attach credentials and scenarios, but they will not be visible in the published version of this showcase.",
-    "select_your_character_title": "Select your Character",
-    "select_your_character_subtitle": "Select an existing character or use the fields on the right to create a new character.",
+    "create_your_character_title": "Create your Character",
+    "create_your_character_subtitle": "Use the fields on the right to create a new character.",
     "character_detail": "Character Details",
     "hide_character": "Hide this character",
     "create_new_character_label": "CREATE NEW CHARACTER",
     "hide_character_placeholder": "Turning this setting on will hide this character and any attached scenarios.",
     "no_character_selected_label": "No Persona Selected",
     "character_delete_title": "Are you sure you want to delete this character?",
-    "character_delete_description": "This action cannot be undone."
+    "character_delete_description": "This action cannot be undone.",
+    "success_characters_selected_label": "Characters added successfully",
+    "error_no_characters_selected_label": "Please select at least one character to proceed",
+    "error_character_creation_label": "Error creating character"
   },
   "credentials": {
     "header_title": "Add your Credentials",
-    "credential_title": "Select your Credential",
+    "credential_title": "Credentials",
     "credential_loading": "Loading Credentials",
     "credential_subtitle": "Select an existing credential or use the fields on the right to create a new credential.",
     "header_subtitle": "Fill in the details on the right to create a credential for this showcase.",
     "credentials_added_label": "Credentials Added: {credentialCount}",
-    "add_credential_label": "Add Credential",
+    "add_credential_label": "CREATE NEW CREDENTIAL",
     "no_credential_selected_message": "You have no credential selected.",
     "item_attribute_count_label": "Attributes: {attributeCount}",
     "section_title": " Create Credentials",
@@ -76,8 +80,10 @@
     "version_label": "Version",
     "version_placeholder": "Enter Version",
     "attributes_label": "Attributes",
+    "add_attributes_label": "Add Attributes",
     "attribute_label": "Attribute",
-    "attributes_add_attribute_label": "Add Attribute",
+    "attributes_add_attribute_label": "ADD ATTRIBUTE",
+    "invalid_date_format_label": "Invalid date format. Please use YYYY-MM-DD.",
     "attribute_name_label": "Name",
     "attribute_name_placeholder": "Attribute Name",
     "attribute_value_label": "Value",
@@ -238,9 +244,14 @@
   "showcase": {
     "header_title": "Save Showcase",
     "title": "Enter the name for this showcase below.",
-    "subtitle": "Today's date will be appended to the filename for versioning.\nex. MyShowcase_v3_(mm-dd-yyyy)"
+    "button_label": "PUBLISH FOR REVIEW",
+    "subtitle": "Today's date will be appended to the filename for versioning.\nex. MyShowcase_v3_(mm-dd-yyyy)",
+    "modal_description": "Once submitted, you won't be able to make further edits until the review is complete.",
+    "modal_button": "CONFIRM & SUBMIT FOR REVIEW",
+    "modal_description2": "Do you want to proceed?"
   },
   "navigation": {
+    "general_label": "General",
     "character_label": "Character",
     "credentials_label": "Credentials",
     "onboarding_label": "Onboarding",
@@ -257,5 +268,18 @@
   },
   "footer": {
     "copyright_label": "British Columbia Digital Identity and Trust Program. All rights reserved."
+  },
+  "login": {
+    "email_label": "Email",
+    "password_label": "Password",
+    "login_label": "Login with Keycloak",
+    "forgot_password_label": "Forgot Password?",
+    "sign_up_label": "Sign Up",
+    "continue_label": "Continue",
+    "terms_of_service_label": "Terms of Service",
+    "privacy_policy_label": "Privacy Policy",
+    "dont_have_account_label": "Don't have an account?",
+    "welcome_message": "Welcome to BC Showcase Creator.",
+    "app_name": "BC Showcase Creator."
   }
 }

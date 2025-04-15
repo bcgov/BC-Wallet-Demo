@@ -1,8 +1,10 @@
+import { env } from "@/env";
+
 class ApiService {
   private baseUrl: string
 
   public constructor(baseUrl: string) {
-    this.baseUrl = baseUrl
+    this.baseUrl = baseUrl;
   }
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
@@ -11,6 +13,7 @@ class ApiService {
       method,
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsImlhdCI6MTY5MDgwNzA5MSwiZXhwIjoxNjkwODA3NDkxfQ.mocksignature1234567890abcdef`,
       },
     }
 
@@ -49,11 +52,11 @@ class ApiService {
     return this.request<T>('GET', `${url}${queryString}`)
   }
 
-  public post<T>(url: string, data?: Record<string, unknown>): Promise<T | void> {
+  public post<T>(url: string, data?: any): Promise<T | void> {
     return this.request<T>('POST', url, data)
   }
 
-  public put<T>(url: string, data?: Record<string, unknown>): Promise<T | void> {
+  public put<T>(url: string, data?: any): Promise<T | void> {
     return this.request<T>('PUT', url, data)
   }
 
@@ -62,7 +65,6 @@ class ApiService {
   }
 }
 
-// Create an instance with the actual API base URL
-const apiClient = new ApiService(process.env.SHOWCASE_BACKEND ?? 'https://bcshowcase-api.dev.nborbit.ca')
+const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_BACKEND)
 
 export default apiClient

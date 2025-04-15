@@ -6,7 +6,7 @@ export const SourceEnum = z.enum(['IMPORTED', 'CREATED']);
 export const IssuerTypeEnum = z.enum(['ARIES']);
 export const RelyingPartyTypeEnum = z.enum(['ARIES']);
 export const CredentialTypeEnum = z.enum(['ANONCRED']);
-export const CredentialAttributeTypeEnum = z.enum(['STRING', 'INTEGER', 'FLOAT', 'BOOLEAN', 'DATE']);
+export const CredentialAttributeTypeEnum = z.enum(['STRING', 'DATE']);
 export const ShowcaseStatusEnum = z.enum(['PENDING', 'ACTIVE', 'ARCHIVED']);
 export const ScenarioTypeEnum = z.enum(['ISSUANCE', 'PRESENTATION']);
 export const StepTypeEnum = z.enum(['HUMAN_TASK', 'SERVICE', 'SCENARIO']);
@@ -111,6 +111,7 @@ export const Step = z.object({
   asset: AssetSchema.optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  credentials: z.array(z.string()).optional(),
 });
 
 export const StepRequest = z.object({
@@ -123,6 +124,7 @@ export const StepRequest = z.object({
   credentialDefinitionIdentifierType: IdentifierTypeEnum.optional(),
   credentialDefinitionIdentifier: z.string().optional(),
   asset: z.string().optional(),
+  credentials: z.array(z.string()).optional(),
 });
 
 export const StepsResponse = z.object({
@@ -413,15 +415,16 @@ export const ShowcaseSchema = z.object({
 });
 
 export const ShowcaseRequest = z.object({
-  name: z.string(),
-  description: z.string(),
+  name: z.string().min(3),
+  description: z.string().min(10),
   status: ShowcaseStatusEnum,
   hidden: z.boolean().default(false),
-  scenarios: z.array(z.string()),
-  credentialDefinitions: z.array(z.string()),
-  personas: z.array(z.string()),
+  scenarios: z.array(z.string()).optional(),
+  credentialDefinitions: z.array(z.string()).optional(),
+  personas: z.array(z.string()).optional(),
   bannerImage: z.string().optional(),
   completionMessage: z.string().optional(),
+  tenantId: z.string().optional(),
 });
 
 export const ShowcasesResponse = z.object({
@@ -437,10 +440,7 @@ export const ErrorResponse = z.object({
   message: z.string(),
 });
 
-export type Showcase = z.infer<typeof ShowcaseSchema>;
 export type ShowcaseRequestType = z.infer<typeof ShowcaseRequest>;
-export type Persona = z.infer<typeof PersonaSchema>;
-export type PersonaRequestType = z.infer<typeof PersonaRequest>;
 export type Credential = z.infer<typeof CredentialDefinition>;
 
 export type ScenarioRequestType = z.infer<typeof ScenarioRequest>;
@@ -457,11 +457,7 @@ export type CredentialSchemaRequestType = z.infer<typeof CredentialSchemaRequest
 export type StepRequestType = z.infer<typeof StepRequest>;
 export type StepType = z.infer<typeof Step>;
 
-export type PresentationScenarioResponseType = z.infer<typeof PresentationScenarioResponse>;
 export type IssuanceScenarioRequestType = z.infer<typeof IssuanceScenarioRequest>;
 export type PresentationScenarioRequestType = z.infer<typeof PresentationScenarioRequest>;
 
-export type CredentialDefinitionRequestType = z.infer<typeof CredentialDefinitionRequest>;
-export type CredentialDefinitionResponseType = z.infer<typeof CredentialDefinitionResponse>;
-export type CredentialSchemaResponseType = z.infer<typeof CredentialSchemaResponse>;
 export type CredentialDefinitionType = z.infer<typeof CredentialDefinition>;

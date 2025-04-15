@@ -1,19 +1,15 @@
 // @ts-nocheck
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import Image from "next/image";
-import {
-  Copy,
-  GripVertical,
-  TriangleAlert,
-} from "lucide-react";
-import { cn, ensureBase64HasPrefix } from "@/lib/utils";
-import { useOnboarding } from "@/hooks/use-onboarding";
-import { useTranslations } from "next-intl";
-import { produce } from "immer";
-import { useShowcaseStore } from "@/hooks/use-showcase-store";
-import { Step } from "@/openapi-types";
-import { useCredentials } from "@/hooks/use-credentials-store";
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import Image from 'next/image'
+import { Copy, GripVertical, TriangleAlert } from 'lucide-react'
+import { cn, baseUrl } from '@/lib/utils'
+import { useOnboarding } from '@/hooks/use-onboarding'
+import { useTranslations } from 'next-intl'
+import { produce } from 'immer'
+import { useShowcaseStore } from '@/hooks/use-showcase-store'
+import { Step } from '@/openapi-types'
+import { useCredentials } from '@/hooks/use-credentials-store'
 
 const MAX_CHARS = 50;
 
@@ -28,11 +24,11 @@ export const SortableStep = ({
   totalSteps: number;
 }) => {
   const t = useTranslations();
-  const { setSelectedStep, setStepState, stepState } = useOnboarding();
+  const { setSelectedStep, setStepState, stepState, screens } = useOnboarding();
   const { selectedCredential } = useCredentials()
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
-      id: myScreen.id,
+    id: myScreen.id,
     });
 
   const style = {
@@ -43,10 +39,10 @@ export const SortableStep = ({
   const handleStepClick = () => {
     setSelectedStep(stepIndex - 1);
     const ScreenType = myScreen.type;
-  
+
     switch (ScreenType) {
       case 'SERVICE':
-        setStepState('editing-issue');
+        setStepState('editing-basic');
         break;
       case 'wallet':
         setStepState('editing-wallet');
@@ -80,13 +76,13 @@ export const SortableStep = ({
             draft.showcaseJSON.personas[selectedCharacter].onboarding =
               JSON.parse(JSON.stringify(state.screens));
           });
-        })
+          })
       );
     } catch (error) {
       console.log("Error ", error);
     }
   };
-  
+
   return (
     <div
       ref={setNodeRef}
@@ -150,44 +146,48 @@ export const SortableStep = ({
               myScreen.description
             )}
           </p>
-          {myScreen.type == 'SERVICE' && (
+          {myScreen.type === 'SERVICE' && (
             <>
-           {!selectedCredential ? (
-            <>
-               <div className="bg-light-yellow mt-2 font-bold rounded gap-2 flex flex-row items-center justify-center">
-               <TriangleAlert size={22}/>
-                {t('action.select_credential_label')}
-             </div>
-            </>
-           ):(
-            <>
-            {selectedCredential &&        
-            <div className="bg-white dark:bg-dark-bg-secondary p-2 flex">
-              <Image
-                src={
-                  selectedCredential.icon?.content
-                    ? ensureBase64HasPrefix(
-                      selectedCredential.icon.content
-                    )
-                    : "/assets/no-image.jpg"
-                }
-                alt={"Bob"}
-                width={50}
-                height={50}
-                className="rounded-full"
-              />
-              <div className="ml-4 flex-col">
-                <div className="font-semibold">{selectedCredential?.name}</div>
-                <div className="text-sm">{selectedCredential?.issuer?.name ?? 'Test college'}</div>
-              </div>
-              <div className="align-middle ml-auto">
-                <div className="font-semibold">Attributes</div>
-                {/* <div className="text-sm text-end">{Object.keys(selectedCredential.credentialSchema.attributes).length}</div> */}
-              </div>
-            </div>
-            }
-            </>
-           )}
+              {(!myScreen.credentials || myScreen.credentials.length === 0) ? (
+                <div className="bg-light-yellow mt-2 font-bold rounded gap-2 flex flex-row items-center justify-center">
+                  <TriangleAlert size={22} />
+                  {t('action.select_credential_label')}
+                </div>
+              ) : (
+                myScreen.credentials.map((cred, index) => (
+                  <div
+                    key={cred.id ?? index}
+                    className="bg-white dark:bg-dark-bg-secondary p-2 flex mt-2 rounded"
+                  >
+                    <Image
+                      src={
+                        cred.icon?.id
+                          ? `${baseUrl}/assets/${cred.icon.id}/file`
+                          : '/assets/no-image.jpg'
+                      }
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement
+                        target.src = '/assets/no-image.jpg'
+                      }}
+                      alt={'Credential Icon'}
+                      width={50}
+                      height={50}
+                      className="rounded-full"
+                    />
+                    <div className="ml-4 flex-col">
+                      <div className="font-semibold">{cred.name}</div>
+                      <div className="text-sm">{cred.issuer?.name ?? 'Test college'}</div>
+                    </div>
+                    <div className="align-middle ml-auto text-right">
+                      <div className="font-semibold">{t('credentials.attributes_label')}</div>
+                      <div className="text-sm text-end">
+                        {cred.credentialSchema?.attributes?.length ?? 0}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             
             </>
           )}

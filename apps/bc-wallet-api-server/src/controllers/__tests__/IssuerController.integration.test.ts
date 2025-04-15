@@ -1,38 +1,54 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import type { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
+import { RabbitMQContainer } from '@testcontainers/rabbitmq'
+import { IssuerRequest } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import IssuerController from '../IssuerController'
-import IssuerService from '../../services/IssuerService'
-import IssuerRepository from '../../database/repositories/IssuerRepository'
+
+import {
+  createMockDatabaseService,
+  createTestAsset,
+  createTestCredentialDefinition,
+  createTestCredentialSchema,
+  setupTestDatabase,
+} from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import { Application } from 'express'
-import { CredentialAttributeType, CredentialType, IdentifierType, RelyingPartyType } from '../../types'
-import { IssuerRequest } from 'bc-wallet-openapi'
-import supertest = require('supertest')
-import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import * as schema from '../../database/schema'
-import { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import IssuerRepository from '../../database/repositories/IssuerRepository'
 import DatabaseService from '../../services/DatabaseService'
+import IssuerService from '../../services/IssuerService'
+import { CredentialType, IdentifierType } from '../../types'
+import IssuerController from '../IssuerController'
+import { createApiIssuerRequest } from './apiTestData'
+import { MockSessionService } from './MockSessionService'
+import supertest = require('supertest')
 
 describe('IssuerController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
+  let startedRabbitMQContainer: StartedRabbitMQContainer
+  let sessionService: MockSessionService
 
   beforeAll(async () => {
-    //await testDbContainer.start()
+    // Start the RabbitMQ container (for loading approve typedi inject classes
+    startedRabbitMQContainer = await new RabbitMQContainer('rabbitmq:4').start()
 
-    client = new PGlite()
-    const database = drizzle(client, { schema }) as unknown as NodePgDatabase
-    await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
-    const mockDatabaseService = {
-      getConnection: jest.fn().mockResolvedValue(database),
-    }
+    // Setup environment variables for the processor
+    process.env.AMQ_HOST = startedRabbitMQContainer.getHost()
+    process.env.AMQ_PORT = `${startedRabbitMQContainer.getMappedPort(5672)}`
+    process.env.AMQ_TRANSPORT = 'tcp'
+    process.env.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+
+    const { client: pgClient, database } = await setupTestDatabase()
+    client = pgClient
+    const mockDatabaseService = await createMockDatabaseService(database)
     Container.set(DatabaseService, mockDatabaseService)
+    sessionService = Container.get(MockSessionService)
+    Container.set('ISessionService', sessionService)
 
     useContainer(Container)
 
@@ -45,6 +61,7 @@ describe('IssuerController Integration Tests', () => {
     // Create Express server using routing-controllers
     app = createExpressServer({
       controllers: [IssuerController],
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })
@@ -56,61 +73,17 @@ describe('IssuerController Integration Tests', () => {
   })
 
   it('should create, retrieve, update, and delete an issuer', async () => {
-    // Create prerequisites: an asset, credential schema, and credential definition
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
+    // Create prerequisites using test utilities
+    const asset = await createTestAsset()
+    const credentialSchema = await createTestCredentialSchema()
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
 
-    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const credentialSchema = await credentialSchemaRepository.create({
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        {
-          name: 'example_attribute_name1',
-          value: 'example_attribute_value1',
-          type: CredentialAttributeType.STRING,
-        },
-        {
-          name: 'example_attribute_name2',
-          value: 'example_attribute_value2',
-          type: CredentialAttributeType.STRING,
-        },
-      ],
-    })
+    const issuerRequest = createApiIssuerRequest(asset.id, [credentialDefinition.id], [credentialSchema.id])
+    // Add identifierType and identifier that aren't in the utility
+    issuerRequest.identifierType = 'DID'
+    issuerRequest.identifier = 'did:test:456'
 
-    const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
-    const credentialDefinition = await credentialDefinitionRepository.create({
-      name: 'Test Definition',
-      version: '1.0',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:test:123',
-      icon: asset.id,
-      type: CredentialType.ANONCRED,
-      credentialSchema: credentialSchema.id,
-    })
-
-    // Create an issuer
-    const createResponse = await request
-      .post('/roles/issuers')
-      .send({
-        name: 'Test Issuer',
-        description: 'Test Issuer Description',
-        type: 'ARIES',
-        identifierType: 'DID',
-        identifier: 'did:test:456',
-        organization: 'Test Organization',
-        logo: asset.id,
-        credentialDefinitions: [credentialDefinition.id],
-        credentialSchemas: [credentialSchema.id],
-      } satisfies IssuerRequest)
-      .expect(201)
+    const createResponse = await request.post('/roles/issuers').send(issuerRequest).expect(201)
 
     const created = createResponse.body.issuer
     expect(created).toHaveProperty('id')
@@ -160,13 +133,7 @@ describe('IssuerController Integration Tests', () => {
     await request.get(`/roles/issuers/${nonExistentId}`).expect(404)
 
     // Try to update a non-existent issuer
-    const updateRequest: IssuerRequest = {
-      name: 'Non-existent Issuer',
-      description: 'This issuer does not exist',
-      type: RelyingPartyType.ARIES,
-      credentialDefinitions: [],
-      credentialSchemas: [],
-    }
+    const updateRequest = createApiIssuerRequest('', [], [])
 
     await request.put(`/roles/issuers/${nonExistentId}`).send(updateRequest).expect(404)
 
@@ -184,40 +151,14 @@ describe('IssuerController Integration Tests', () => {
 
     // Attempt to create an issuer with a non-existent credential definition
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
-    const invalidIssuerRequest2: IssuerRequest = {
-      name: 'Invalid Issuer',
-      description: 'Test description',
-      type: RelyingPartyType.ARIES,
-      credentialDefinitions: [nonExistentId],
-      credentialSchemas: [nonExistentId],
-    }
+    const invalidIssuerRequest2 = createApiIssuerRequest('', [nonExistentId], [nonExistentId])
 
     await request.post('/roles/issuers').send(invalidIssuerRequest2).expect(404)
   })
 
   it('should handle creating a issuer with multiple credential definitions', async () => {
-    const assetRepository = Container.get(AssetRepository)
-    const asset = await assetRepository.create({
-      mediaType: 'image/png',
-      fileName: 'test.png',
-      description: 'Test image',
-      content: Buffer.from('binary data'),
-    })
-
-    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const credentialSchema = await credentialSchemaRepository.create({
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        {
-          name: 'example_attribute_name1',
-          value: 'example_attribute_value1',
-          type: CredentialAttributeType.STRING,
-        },
-      ],
-    })
+    const asset = await createTestAsset()
+    const credentialSchema = await createTestCredentialSchema()
 
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     const credentialDefinition1 = await credentialDefinitionRepository.create({
@@ -240,21 +181,16 @@ describe('IssuerController Integration Tests', () => {
       credentialSchema: credentialSchema.id,
     })
 
-    const issuerRequest: IssuerRequest = {
-      name: 'Multi-Cred Issuer',
-      description: 'Issuer with multiple credential definitions',
-      type: RelyingPartyType.ARIES,
-      organization: 'Test Organization',
-      logo: asset.id,
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      credentialSchemas: [credentialSchema.id],
-    }
-
+    const issuerRequest = createApiIssuerRequest(
+      asset.id,
+      [credentialDefinition1.id, credentialDefinition2.id],
+      [credentialSchema.id],
+    )
     const createResponse = await request.post('/roles/issuers').send(issuerRequest).expect(201)
 
     const createdIssuer = createResponse.body.issuer
     expect(createdIssuer).toHaveProperty('id')
-    expect(createdIssuer.name).toEqual('Multi-Cred Issuer')
+    expect(createdIssuer.name).toEqual('Test Issuer')
     expect(createdIssuer.credentialDefinitions.length).toBe(2)
 
     // Verify that both credential definitions are included

@@ -1,29 +1,34 @@
 import { Service } from 'typedi'
-import { User, NewUser } from '../types'
-import UserRepository from '../database/repositories/UserRepository'
+
+import { UserRepository } from '../database/repositories/UserRepository'
+import type { NewUser, User } from '../types'
 
 @Service()
 class UserService {
-  constructor(private readonly assetRepository: UserRepository) {}
+  public constructor(private readonly userRepository: UserRepository) {}
 
   public getUsers = async (): Promise<User[]> => {
-    return this.assetRepository.findAll()
+    return this.userRepository.findAll()
   }
 
   public getUser = async (id: string): Promise<User> => {
-    return this.assetRepository.findById(id)
+    return this.userRepository.findById(id)
+  }
+
+  public getUserByName = async (userName: string): Promise<User> => {
+    return this.userRepository.findByUserName(userName)
   }
 
   public createUser = async (user: NewUser): Promise<User> => {
-    return this.assetRepository.create(user)
+    return this.userRepository.create(user)
   }
 
   public updateUser = async (id: string, user: NewUser): Promise<User> => {
-    return this.assetRepository.update(id, user)
+    return this.userRepository.update(id, user)
   }
 
   public deleteUser = async (id: string): Promise<void> => {
-    return this.assetRepository.delete(id)
+    return this.userRepository.delete(id)
   }
 }
 

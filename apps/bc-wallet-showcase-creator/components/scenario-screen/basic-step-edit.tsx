@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form'
 
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import { Form } from '@/components/ui/form'
-import { RequestType, StepType } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -13,53 +12,115 @@ import { useTranslations } from 'next-intl'
 import DeleteModal from '../delete-modal'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
+import { debounce } from 'lodash'
+import { toast } from 'sonner'
+import { useCreatePresentation } from '@/hooks/use-presentation'
+import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
+import { BasicStepFormData, basicStepSchema } from '@/schemas/onboarding'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { StepRequest, StepRequestType } from '@/openapi-types'
+import { PresentationScenarioRequest } from 'bc-wallet-openapi'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { useRouter } from '@/i18n/routing'
+import { LocalFileUpload } from './local-file-upload'
+import { ErrorModal } from '../error-modal'
 
 export const BasicStepEdit = () => {
   const t = useTranslations()
-  const { selectedScenario, setStepState, selectedStep } = usePresentationCreation()
-
-  const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
+  const { mutateAsync } = useCreatePresentation()
+  const { setScenarioIds } = useShowcaseStore()
+  const { selectedScenario, updateStep, selectedStep, setStepState, deleteStep } =
+    usePresentationAdapter()
+  const { personaScenarios } = usePresentationCreation()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showErrorModal, setErrorModal] = useState(false)
 
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] : null
 
-  const form = useForm<StepRequestType>({
-    resolver: zodResolver(StepRequest),
+  const defaultValues = {
+    title: currentStep?.title || '',
+    description: currentStep?.description || '',
+    asset: currentStep?.asset || undefined,
+  }
+
+  const form = useForm<BasicStepFormData>({
+    resolver: zodResolver(basicStepSchema),
+    defaultValues,
     mode: 'all',
-    defaultValues: {
-      type: StepType.HUMAN_TASK,
-      title: '',
-      description: '',
-    },
   })
 
   useEffect(() => {
     if (currentStep) {
-      form.reset(currentStep)
+      form.reset(defaultValues)
     }
-  }, [currentStep, form.reset])
+  }, [currentStep, form])
 
-  const onSubmit = (data: StepRequestType) => {
-    console.log('data', data)
-    if (selectedScenario === null || selectedStep === null) return
+  const autoSave = debounce((data: BasicStepFormData) => {
+    if (!currentStep || !form.formState.isDirty) return
 
-    // Transform the form data back to the expected format
-    const stepData = {
-      ...data,
-      type: data.type.toUpperCase() as StepType,
-      actions: {
-        ...data.actions,
-        type: data.actions[0].actionType.toUpperCase() as RequestType,
-      },
+    const updatedStep = {
+      ...currentStep,
+      title: data.title,
+      description: data.description,
+      asset: data.asset || undefined,
     }
-    console.log('StepData After Update', stepData)
-    // updateStep(selectedScenario, selectedStep, stepData)
-    setStepState('no-selection')
+
+    updateStep(currentStep.order, updatedStep)
+
+    setTimeout(() => {
+      toast.success('Changes saved', { duration: 1000 })
+    }, 500)
+  }, 800)
+
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (form.formState.isDirty) {
+        autoSave(value as BasicStepFormData)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form, autoSave])
+
+  const onSubmit = async (data: BasicStepFormData) => {
+    autoSave.flush()
+
+    const mappedScenarios = Array.from(personaScenarios.values()).flatMap((scenarios) =>
+      scenarios.map((scenario) => ({
+        ...scenario,
+        steps: scenario.steps.map((step, index) => ({
+          ...step,
+          order: index,
+          asset: step.asset || undefined,
+        })),
+      })),
+    )
+
+    const scenarioIds = []
+
+    for (const scenario of mappedScenarios) {
+      try {
+        const result = await mutateAsync(scenario as PresentationScenarioRequest)
+        if (result?.presentationScenario?.id) {
+          scenarioIds.push(result.presentationScenario.id)
+        }
+        toast.success(`${scenario?.description || 'persona'} created`)
+      } catch (error) {
+        console.error('Error creating scenario:', error)
+        setErrorModal(true)
+        return
+      }
+    }
+
+    setScenarioIds(scenarioIds)
+    router.push(`/showcases/create/publish`)
   }
-  console.log('form.formState', form.formState)
+
   if (!currentStep) return null
+
+  if (showErrorModal) {
+    return <ErrorModal errorText="Unknown error occurred" setShowModal={setErrorModal} />
+  }
 
   return (
     <>
@@ -80,7 +141,6 @@ export const BasicStepEdit = () => {
             case 'delete':
               console.log('Delete Page clicked')
               setIsModalOpen(true)
-              setIsOpen(false)
               break
             default:
               console.log('Unknown action')
@@ -109,10 +169,39 @@ export const BasicStepEdit = () => {
             />
           </div>
 
+          <div className="space-y-2">
+            <LocalFileUpload
+              text={t('onboarding.icon_label')}
+              element="asset"
+              existingAssetId={form.watch('asset')}
+              handleLocalUpdate={(_, value) => {
+                console.log('Value', value)
+                if (!currentStep) return
+
+                const updatedStep1 = {
+                  ...currentStep,
+                  title: currentStep.title,
+                  description: currentStep.description,
+                  asset: value || undefined,
+                }
+                updateStep(selectedStep?.stepIndex || 0, updatedStep1)
+
+                form.setValue('asset', value, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                })
+              }}
+            />
+            {form.formState.errors.asset && (
+              <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
+            )}
+          </div>
+
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
             {/* <Link href="/publish"> */}
-            <ButtonOutline disabled={!form.formState.isDirty || !form.formState.isValid}>
+            <ButtonOutline type="submit" disabled={!form.formState.isValid} onClick={form.handleSubmit(onSubmit)}>
               {t('action.next_label')}
             </ButtonOutline>
             {/* </Link> */}
@@ -125,8 +214,8 @@ export const BasicStepEdit = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onDelete={() => {
-          console.log('Item Deleted')
           setIsModalOpen(false)
+          deleteStep(selectedStep?.stepIndex as number)
         }}
         header="Are you sure you want to delete this page?"
         description="Are you sure you want to delete this page?"

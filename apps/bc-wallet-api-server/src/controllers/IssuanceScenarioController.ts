@@ -1,4 +1,15 @@
-import { BadRequestError, Body, Delete, Get, HttpCode, JsonController, OnUndefined, Param, Post, Put } from 'routing-controllers'
+import {
+  BadRequestError,
+  Body,
+  Delete,
+  Get,
+  HttpCode,
+  JsonController,
+  OnUndefined,
+  Param,
+  Post,
+  Put
+} from 'routing-controllers'
 import { Service } from 'typedi'
 import ScenarioService from '../services/ScenarioService'
 import {
@@ -60,6 +71,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async postIssuanceScenario(@Body() issuanceScenarioRequest: IssuanceScenarioRequest): Promise<IssuanceScenarioResponse> {
@@ -77,6 +89,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @Put('/:slug')
   public async putIssuanceScenario(
     @Param('slug') slug: string,
@@ -97,6 +110,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @OnUndefined(204)
   @Delete('/:slug')
   public async deleteIssuanceScenario(@Param('slug') slug: string): Promise<void> {
@@ -140,6 +154,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @HttpCode(201)
   @Post('/:slug/steps')
   public async postIssuanceScenarioStep(@Param('slug') slug: string, @Body() stepRequest: StepRequest): Promise<StepResponse> {
@@ -158,6 +173,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @Put('/:slug/steps/:stepId')
   public async putIssuanceScenarioStep(
     @Param('slug') slug: string,
@@ -179,6 +195,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @OnUndefined(204)
   @Delete('/:slug/steps/:stepId')
   public async deleteIssuanceScenarioStep(@Param('slug') slug: string, @Param('stepId') stepId: string): Promise<void> {
@@ -226,6 +243,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @HttpCode(201)
   @Post('/:slug/steps/:stepId/actions')
   public async postIssuanceScenarioStepAction(
@@ -248,6 +266,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @Put('/:slug/steps/:stepId/actions/:actionId')
   public async putIssuanceScenarioStepAction(
     @Param('slug') slug: string,
@@ -275,6 +294,7 @@ class IssuanceScenarioController {
     }
   }
 
+//  @Authorized()
   @OnUndefined(204)
   @Delete('/:slug/steps/:stepId/actions/:actionId')
   public async deleteIssuanceScenarioStepAction(

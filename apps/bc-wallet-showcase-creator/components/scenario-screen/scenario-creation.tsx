@@ -1,8 +1,9 @@
 'use client'
 
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
-import { cn, ensureBase64HasPrefix } from '@/lib/utils'
-import type { Persona, ScenarioRequestType, StepRequestType } from '@/openapi-types'
+import { cn, baseUrl } from '@/lib/utils'
+import type {  ScenarioRequestType, StepRequestType } from '@/openapi-types'
+import type { Persona } from 'bc-wallet-openapi'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -82,7 +83,7 @@ export const CreateScenariosScreen = () => {
       ) : (
         <>
           <div className="flex bg-gray-100 rounded-t-md border-b">
-            {personas.map((persona: Persona) => (
+            {(personas || []).map((persona: Persona) => (
               <div
                 key={persona.id}
                 onClick={() => setActivePersonaId(persona.id)}
@@ -97,11 +98,11 @@ export const CreateScenariosScreen = () => {
                   <div className="w-12 h-12 bg-gray-300 rounded-full mb-2 overflow-hidden">
                     <Image
                       src={
-                        persona.headshotImage?.content
-                          ? ensureBase64HasPrefix(persona.headshotImage.content)
+                        persona.headshotImage?.id
+                          ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
                           : '/assets/no-image.jpg'
                       }
-                      alt={`${persona.name} Headshot`}
+                      alt={`${persona.headshotImage?.description || 'Character headshot'} `}
                       width={50}
                       height={50}
                       className="rounded-full aspect-square object-cover"

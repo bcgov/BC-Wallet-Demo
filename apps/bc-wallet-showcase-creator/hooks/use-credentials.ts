@@ -2,14 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
 import type {
 	CredentialDefinitionRequest,
-	IssuersResponse,
-	IssuerResponse,
 	CredentialDefinitionsResponse,
-	CredentialSchemaRequest,
-	IssuerRequest,
-	RelyingPartyResponse,
-	RelyingPartyRequest,
 } from "@/openapi-types";
+import type { IssuersResponse, IssuerRequest, CredentialSchemaRequest, IssuerResponse, RelyingPartyResponse, RelyingPartyRequest } from "bc-wallet-openapi";
 
 const staleTime = 1000 * 60 * 5; // 5 minutes
 
@@ -43,7 +38,7 @@ export const useIssuersQuery = () => {
 	return useQuery({
 		queryKey: ["issuers"],
 		queryFn: async () => {
-			const response = await apiClient.get<{ issuers: typeof IssuersResponse }>(
+			const response = await apiClient.get<{ issuers: IssuersResponse }>(
 				"/roles/issuers"
 			);
 			if (!response) {
@@ -61,7 +56,7 @@ export const useIssuerQuery = (issuerId: string) => {
 		queryFn: async () => {
 			if (!issuerId) throw new Error("Issuer ID is required");
 
-			const response = await apiClient.get<{ issuer: typeof IssuerResponse }>(
+			const response = await apiClient.get<{ issuer: IssuerResponse }>(
 				`/roles/issuers/${issuerId}`
 			);
 			if (!response) {
@@ -77,10 +72,21 @@ export const useIssuerQuery = (issuerId: string) => {
 export const useCreateCredentialSchema = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (data: typeof CredentialSchemaRequest._type) => {
-			console.log("data", data);
+		mutationFn: async (data: CredentialSchemaRequest) => { 
 			const response = await apiClient.post(`/credentials/schemas`, data);
-			console.log("response", response);
+			return response;
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["credentialSchema"] });
+		},
+	});
+};
+
+export const useUpdateCredentialSchema = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({credentialSchemaId, data}:{credentialSchemaId: string, data: CredentialSchemaRequest}) => { 
+			const response = await apiClient.put(`/credentials/schemas/${credentialSchemaId}`, data);
 			return response;
 		},
 		onSettled: () => {
@@ -99,6 +105,15 @@ export const useCreateCredentialDefinition = () => {
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["credential"] });
 		},
+	});
+};
+
+export const useApproveCredentialDefinition = () => {
+	return useMutation({
+		mutationFn: async (credentialId: string) => {
+			const response = await apiClient.post(`/credentials/definitions/${credentialId}/approve`);
+			return response;
+		}
 	});
 };
 
@@ -121,7 +136,7 @@ export const useDeleteCredentialDefinition = () => {
 export const useCreateIssuer = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async (data: typeof IssuerRequest._type) => {
+		mutationFn: async (data: IssuerRequest) => {
 			const response = await apiClient.post(`/roles/issuers`, data);
 			return response;
 		},
@@ -136,7 +151,7 @@ export const useRelyingPartyQuery = () => {
 	return useQuery({
 		queryKey: ["relying-parties"],
 		queryFn: async () => {
-			const response = await apiClient.get<{ relayer: typeof RelyingPartyResponse }>(
+			const response = await apiClient.get<{ relayer: RelyingPartyResponse }>(
 				"/roles/relying-parties"
 			);
 			return response;
@@ -148,7 +163,7 @@ export const useRelyingPartyQuery = () => {
 export const useCreateRelyingParty = () => {
 	const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: typeof RelyingPartyRequest._type) => {
+    mutationFn: async (data: RelyingPartyRequest) => {
       const response = await apiClient.post(`/roles/relying-parties`, data);
       return response;
     },

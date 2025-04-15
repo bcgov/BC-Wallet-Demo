@@ -7,7 +7,7 @@ import ButtonOutline from '@/components/ui/button-outline'
 import { usePersonas } from '@/hooks/use-personas'
 import { useShowcaseStore } from '@/hooks/use-showcase-store'
 import { Link } from '@/i18n/routing'
-import { ensureBase64HasPrefix } from '@/lib/utils'
+import { baseUrl } from '@/lib/utils'
 import { EyeOff, Monitor, CheckCircle2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -43,8 +43,8 @@ export default function EditScenarioCharacterPage({ slug }: { slug: string }) {
     <div className="flex flex-col h-full w-full bg-light-bg dark:bg-dark-bg dark:text-dark-text text-light-text p-4">
       <div className="bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col h-full w-full">
         <div className="p-4 border-b flex-shrink-0">
-          <StepHeader icon={<Monitor strokeWidth={3} />} title={t('character.select_your_character_title')} />
-          <p className="text-sm mt-2">{t('character.select_your_character_subtitle')}</p>
+          <StepHeader icon={<Monitor strokeWidth={3} />} title={t('character.create_your_character_title')} />
+          <p className="text-sm mt-2">{t('character.create_your_character_subtitle')}</p>
         </div>
 
         {isLoading ? (
@@ -86,11 +86,11 @@ export default function EditScenarioCharacterPage({ slug }: { slug: string }) {
                         <div className="w-24 h-24 overflow-hidden rounded-full mb-3">
                           <Image
                             src={
-                              persona.headshotImage?.content
-                                ? ensureBase64HasPrefix(persona.headshotImage.content)
+                              persona.headshotImage?.id
+                                ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
                                 : '/assets/no-image.jpg'
                             }
-                            alt={persona.name}
+                            alt={persona.headshotImage?.description || 'Character headshot'}
                             width={96}
                             height={96}
                             className="object-cover w-full h-full"

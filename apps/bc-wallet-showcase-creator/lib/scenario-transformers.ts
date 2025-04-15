@@ -21,7 +21,7 @@ const transformPredicate = (
 }
 
 const transformStep = (step: ScenarioStep): ScenarioFormData['steps'][number] => {
-  if (step.type === StepType.CONNECT_AND_VERIFY) {
+  if (step.type === StepType.SERVICE) {
     const transformedPredicates: Record<string, ReturnType<typeof transformPredicate>> = {}
 
     Object.entries(step.requestOptions.proofRequest.predicates).forEach(([key, value]) => {
@@ -32,7 +32,7 @@ const transformStep = (step: ScenarioStep): ScenarioFormData['steps'][number] =>
       id: step.id,
       title: step.title,
       description: step.description,
-      type: StepType.CONNECT_AND_VERIFY as const,
+      type: StepType.SERVICE as const,
       requestOptions: {
         title: step.requestOptions.title,
         text: step.requestOptions.text,

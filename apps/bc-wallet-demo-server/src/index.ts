@@ -6,13 +6,14 @@ import * as http from 'http'
 import { createExpressServer } from 'routing-controllers'
 import { Server } from 'socket.io'
 
+import { corsOptions } from './utils/cors'
 import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
 
 const baseRoute = process.env.BASE_ROUTE
 
 const app: Express = createExpressServer({
   controllers: [__dirname + '/controllers/**/*.ts'],
-  cors: true,
+  cors: corsOptions,
   routePrefix: `${baseRoute}/demo`,
 })
 
@@ -22,7 +23,7 @@ const ws = new Server(server, {
   cors: {
     origin: true,
   },
-  path: `${baseRoute}/demo/socket/`,
+  path: `${baseRoute}/socket/`,
 })
 
 const socketMap = new Map()
@@ -87,7 +88,7 @@ const run = async () => {
     res.send(response.data)
   })
 
-  server.listen(5000)
+  server.listen(process.env.NODE_PORT || 5000)
 }
 
-run()
+void run()

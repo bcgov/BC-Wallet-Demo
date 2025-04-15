@@ -1,28 +1,29 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
+
 import DatabaseService from '../../../services/DatabaseService'
-import RelyingPartyRepository from '../RelyingPartyRepository'
-import AssetRepository from '../AssetRepository'
-import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import * as schema from '../../schema'
 import {
   Asset,
   CredentialAttributeType,
-  CredentialType,
   CredentialDefinition,
+  CredentialSchema,
+  CredentialType,
+  IdentifierType,
   NewAsset,
   NewCredentialDefinition,
+  NewCredentialSchema,
   NewRelyingParty,
   RelyingPartyType,
-  NewCredentialSchema,
-  IdentifierType,
-  CredentialSchema,
 } from '../../../types'
+import * as schema from '../../schema'
+import AssetRepository from '../AssetRepository'
+import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import RelyingPartyRepository from '../RelyingPartyRepository'
 
 describe('Database relying party repository tests', (): void => {
   let client: PGlite
@@ -168,7 +169,9 @@ describe('Database relying party repository tests', (): void => {
       logo: asset.id,
     }
 
-    await expect(repository.create(relyingParty)).rejects.toThrowError(`No credential definition found for id: ${unknownCredentialDefinitionId}`)
+    await expect(repository.create(relyingParty)).rejects.toThrowError(
+      `No credential definition found for id: ${unknownCredentialDefinitionId}`,
+    )
   })
 
   it('Should get relying party by id from database', async (): Promise<void> => {
@@ -234,7 +237,9 @@ describe('Database relying party repository tests', (): void => {
 
     await repository.delete(savedRelyingParty.id)
 
-    await expect(repository.findById(savedRelyingParty.id)).rejects.toThrowError(`No relying party found for id: ${savedRelyingParty.id}`)
+    await expect(repository.findById(savedRelyingParty.id)).rejects.toThrowError(
+      `No relying party found for id: ${savedRelyingParty.id}`,
+    )
   })
 
   it('Should update relying party in database', async (): Promise<void> => {
@@ -288,11 +293,15 @@ describe('Database relying party repository tests', (): void => {
 
     const updatedRelyingParty: NewRelyingParty = {
       ...savedRelyingParty,
-      credentialDefinitions: savedRelyingParty.credentialDefinitions.map((credentialDefinition) => credentialDefinition.id),
+      credentialDefinitions: savedRelyingParty.credentialDefinitions.map(
+        (credentialDefinition) => credentialDefinition.id,
+      ),
       logo: unknownIconId,
     }
 
-    await expect(repository.update(savedRelyingParty.id, updatedRelyingParty)).rejects.toThrowError(`No asset found for id: ${unknownIconId}`)
+    await expect(repository.update(savedRelyingParty.id, updatedRelyingParty)).rejects.toThrowError(
+      `No asset found for id: ${unknownIconId}`,
+    )
   })
 
   it('Should throw error when updating relying party with no credential definitions', async (): Promise<void> => {
@@ -314,7 +323,9 @@ describe('Database relying party repository tests', (): void => {
       logo: asset.id,
     }
 
-    await expect(repository.update(savedRelyingParty.id, updatedRelyingParty)).rejects.toThrowError(`At least one credential definition is required`)
+    await expect(repository.update(savedRelyingParty.id, updatedRelyingParty)).rejects.toThrowError(
+      `At least one credential definition is required`,
+    )
   })
 
   it('Should throw error when updating relying party with invalid credential definition id', async (): Promise<void> => {

@@ -1,9 +1,12 @@
-const path = require('path')
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres'
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
+import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Pool } from 'pg'
 import { Service } from 'typedi'
+
 import * as schema from '../database/schema'
+
+const path = require('path')
 
 @Service()
 export class DatabaseService {

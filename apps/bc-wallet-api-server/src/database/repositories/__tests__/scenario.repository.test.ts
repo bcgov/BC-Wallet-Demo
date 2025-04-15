@@ -1,18 +1,16 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
-import DatabaseService from '../../../services/DatabaseService'
-import ScenarioRepository from '../../../database/repositories/ScenarioRepository'
-import IssuerRepository from '../../../database/repositories/IssuerRepository'
-import CredentialDefinitionRepository from '../../../database/repositories/CredentialDefinitionRepository'
+
 import AssetRepository from '../../../database/repositories/AssetRepository'
-import PersonaRepository from '../PersonaRepository'
-import RelyingPartyRepository from '../RelyingPartyRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import CredentialDefinitionRepository from '../../../database/repositories/CredentialDefinitionRepository'
+import IssuerRepository from '../../../database/repositories/IssuerRepository'
+import ScenarioRepository from '../../../database/repositories/ScenarioRepository'
 import * as schema from '../../../database/schema'
+import DatabaseService from '../../../services/DatabaseService'
 import {
   AriesOOBAction,
   Asset,
@@ -45,6 +43,9 @@ import {
   StepActionType,
   StepType,
 } from '../../../types'
+import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import PersonaRepository from '../PersonaRepository'
+import RelyingPartyRepository from '../RelyingPartyRepository'
 
 describe('Database scenario repository tests', (): void => {
   let client: PGlite
@@ -265,14 +266,15 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].title).toEqual(issuanceScenario.steps[0].title)
     expect(savedIssuanceScenario.steps[0].order).toEqual(issuanceScenario.steps[0].order)
     expect(savedIssuanceScenario.steps[0].type).toEqual(issuanceScenario.steps[0].type)
-    expect(savedIssuanceScenario.steps[0].credentialDefinition).not.toBeNull()
-    expect(savedIssuanceScenario.steps[0].actions.length).toEqual(1)
-    expect(savedIssuanceScenario.steps[0].actions[0].id).toBeDefined()
-    expect(savedIssuanceScenario.steps[0].actions[0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(savedIssuanceScenario.steps[0].actions[0].actionType).toEqual(issuanceScenario.steps[0].actions[0].actionType)
-    expect(savedIssuanceScenario.steps[0].actions[0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
-    if (savedIssuanceScenario.steps[0].actions[0].actionType === StepActionType.ARIES_OOB) {
-      const action = savedIssuanceScenario.steps[0].actions[0] as AriesOOBAction
+    expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
+    expect(savedIssuanceScenario.steps[0].actions![0].id).toBeDefined()
+    expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(
+      issuanceScenario.steps[0].actions![0].actionType,
+    )
+    expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
+    if (savedIssuanceScenario.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
+      const action = savedIssuanceScenario.steps[0].actions![0] as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
 
       if (action.proofRequest) {
@@ -291,10 +293,8 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].asset!.fileName).toEqual(asset.fileName)
     expect(savedIssuanceScenario.steps[0].asset!.description).toEqual(asset.description)
     expect(savedIssuanceScenario.steps[0].asset!.content).toStrictEqual(asset.content)
-    expect(savedIssuanceScenario.steps[1].credentialDefinition).toBeNull()
     expect((<IssuanceScenario>savedIssuanceScenario).issuer).not.toBeNull()
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.name).toEqual(issuer.name)
-    expect((<IssuanceScenario>savedIssuanceScenario).issuer!.credentialDefinitions.length).toEqual(1)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.description).toEqual(issuer.description)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.organization).toEqual(issuer.organization)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.logo).not.toBeNull()
@@ -428,15 +428,16 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].title).toEqual(issuanceScenario.steps[0].title)
     expect(savedIssuanceScenario.steps[0].order).toEqual(issuanceScenario.steps[0].order)
     expect(savedIssuanceScenario.steps[0].type).toEqual(issuanceScenario.steps[0].type)
-    expect(savedIssuanceScenario.steps[0].credentialDefinition).not.toBeNull()
-    expect(savedIssuanceScenario.steps[0].actions.length).toEqual(1)
-    expect(savedIssuanceScenario.steps[0].actions[0].id).toBeDefined()
-    expect(savedIssuanceScenario.steps[0].actions[0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(savedIssuanceScenario.steps[0].actions[0].actionType).toEqual(issuanceScenario.steps[0].actions[0].actionType)
-    expect(savedIssuanceScenario.steps[0].actions[0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
+    expect(savedIssuanceScenario.steps[0].actions![0].id).toBeDefined()
+    expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(
+      issuanceScenario.steps[0].actions![0].actionType,
+    )
+    expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
 
-    if (savedIssuanceScenario.steps[0].actions[0].actionType === StepActionType.ARIES_OOB) {
-      const action = savedIssuanceScenario.steps[0].actions[0] as AriesOOBAction
+    if (savedIssuanceScenario.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
+      const action = savedIssuanceScenario.steps[0].actions![0] as AriesOOBAction
       expect(action.proofRequest).not.toBeNull()
 
       if (action.proofRequest) {
@@ -459,10 +460,8 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].asset!.fileName).toEqual(asset.fileName)
     expect(savedIssuanceScenario.steps[0].asset!.description).toEqual(asset.description)
     expect(savedIssuanceScenario.steps[0].asset!.content).toStrictEqual(asset.content)
-    expect(savedIssuanceScenario.steps[1].credentialDefinition).toBeNull()
     expect((<IssuanceScenario>savedIssuanceScenario).issuer).not.toBeNull()
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.name).toEqual(issuer.name)
-    expect((<IssuanceScenario>savedIssuanceScenario).issuer!.credentialDefinitions.length).toEqual(1)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.description).toEqual(issuer.description)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.organization).toEqual(issuer.organization)
     expect((<IssuanceScenario>savedIssuanceScenario).issuer!.logo).not.toBeNull()
@@ -691,7 +690,9 @@ describe('Database scenario repository tests', (): void => {
       hidden: false,
     }
 
-    await expect(repository.create(issuanceScenario)).rejects.toThrowError(`No asset found for id: ${unknownBannerImageId}`)
+    await expect(repository.create(issuanceScenario)).rejects.toThrowError(
+      `No asset found for id: ${unknownBannerImageId}`,
+    )
   })
 
   it('Should throw error when saving scenario with duplicate step order', async (): Promise<void> => {
@@ -842,7 +843,9 @@ describe('Database scenario repository tests', (): void => {
       hidden: false,
     }
 
-    await expect(repository.create(issuanceScenario)).rejects.toThrowError(`No persona found for id: ${unknownPersonaId}`)
+    await expect(repository.create(issuanceScenario)).rejects.toThrowError(
+      `No persona found for id: ${unknownPersonaId}`,
+    )
   })
 
   it('Should throw error when saving scenario with no personas', async (): Promise<void> => {
@@ -1002,8 +1005,8 @@ describe('Database scenario repository tests', (): void => {
     expect(fromDb.steps).toBeDefined()
     expect(fromDb.steps.length).toEqual(2)
 
-    if (fromDb.steps[0].actions[0].actionType === StepActionType.ARIES_OOB) {
-      const action = fromDb.steps[0].actions[0] as AriesOOBAction
+    if (fromDb.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
+      const action = fromDb.steps[0].actions![0] as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
 
       if (action.proofRequest) {
@@ -1235,7 +1238,9 @@ describe('Database scenario repository tests', (): void => {
 
     await repository.delete(savedIssuanceScenario.id)
 
-    await expect(repository.findById(savedIssuanceScenario.id)).rejects.toThrowError(`No scenario found for id: ${savedIssuanceScenario.id}`)
+    await expect(repository.findById(savedIssuanceScenario.id)).rejects.toThrowError(
+      `No scenario found for id: ${savedIssuanceScenario.id}`,
+    )
   })
 
   it('Should update scenario in database', async (): Promise<void> => {
@@ -1426,19 +1431,24 @@ describe('Database scenario repository tests', (): void => {
     expect(updatedIssuanceScenarioResult.steps[0].title).toEqual(updatedIssuanceScenario.steps[0].title)
     expect(updatedIssuanceScenarioResult.steps[0].order).toEqual(updatedIssuanceScenario.steps[0].order)
     expect(updatedIssuanceScenarioResult.steps[0].type).toEqual(updatedIssuanceScenario.steps[0].type)
-    expect(updatedIssuanceScenarioResult.steps[0].credentialDefinition).not.toBeNull()
     expect(updatedIssuanceScenarioResult.steps[0].actions!.length).toEqual(2)
     expect(updatedIssuanceScenarioResult.steps[0].actions![0].id).toBeDefined()
-    expect(updatedIssuanceScenarioResult.steps[0].actions![0].title).toEqual(updatedIssuanceScenario.steps[0].actions![0].title)
-    expect(updatedIssuanceScenarioResult.steps[0].actions![0].actionType).toEqual(updatedIssuanceScenario.steps[0].actions![0].actionType)
-    expect(updatedIssuanceScenarioResult.steps[0].actions![0].text).toEqual(updatedIssuanceScenario.steps[0].actions![0].text)
+    expect(updatedIssuanceScenarioResult.steps[0].actions![0].title).toEqual(
+      updatedIssuanceScenario.steps[0].actions![0].title,
+    )
+    expect(updatedIssuanceScenarioResult.steps[0].actions![0].actionType).toEqual(
+      updatedIssuanceScenario.steps[0].actions![0].actionType,
+    )
+    expect(updatedIssuanceScenarioResult.steps[0].actions![0].text).toEqual(
+      updatedIssuanceScenario.steps[0].actions![0].text,
+    )
     expect(updatedIssuanceScenarioResult.steps[0].asset).not.toBeNull()
     expect(updatedIssuanceScenarioResult.steps[0].asset!.mediaType).toEqual(asset.mediaType)
     expect(updatedIssuanceScenarioResult.steps[0].asset!.fileName).toEqual(asset.fileName)
     expect(updatedIssuanceScenarioResult.steps[0].asset!.description).toEqual(asset.description)
     expect(updatedIssuanceScenarioResult.steps[0].asset!.content).toStrictEqual(asset.content)
-    if (updatedIssuanceScenarioResult.steps[0].actions[0].actionType === StepActionType.ARIES_OOB) {
-      const action = updatedIssuanceScenarioResult.steps[0].actions[0] as AriesOOBAction
+    if (updatedIssuanceScenarioResult.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
+      const action = updatedIssuanceScenarioResult.steps[0].actions![0] as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
 
       if (action.proofRequest) {
@@ -1573,7 +1583,9 @@ describe('Database scenario repository tests', (): void => {
       bannerImage: null,
     }
 
-    await expect(repository.update(savedIssuanceScenario.id, updatedIssuanceScenario)).rejects.toThrowError(`At least one step is required`)
+    await expect(repository.update(savedIssuanceScenario.id, updatedIssuanceScenario)).rejects.toThrowError(
+      `At least one step is required`,
+    )
   })
 
   it('Should throw error when updating scenario with invalid issuer id', async (): Promise<void> => {
@@ -2086,7 +2098,9 @@ describe('Database scenario repository tests', (): void => {
       bannerImage: null,
     }
 
-    await expect(repository.update(savedIssuanceScenario.id, updatedIssuanceScenario)).rejects.toThrowError(`At least one persona is required`)
+    await expect(repository.update(savedIssuanceScenario.id, updatedIssuanceScenario)).rejects.toThrowError(
+      `At least one persona is required`,
+    )
   })
 
   it('Should add scenario step to database', async (): Promise<void> => {
@@ -2227,19 +2241,18 @@ describe('Database scenario repository tests', (): void => {
     expect(fromDb.steps[1].title).toEqual(step.title)
     expect(fromDb.steps[1].order).toEqual(step.order)
     expect(fromDb.steps[1].type).toEqual(step.type)
-    expect(fromDb.steps[1].credentialDefinition).not.toBeNull()
-    expect(fromDb.steps[1].actions.length).toEqual(2)
-    expect(fromDb.steps[1].actions[0].id).toBeDefined()
-    expect(fromDb.steps[1].actions[0].title).toEqual(step.actions[0].title)
-    expect(fromDb.steps[1].actions[0].actionType).toEqual(step.actions[0].actionType)
-    expect(fromDb.steps[1].actions[0].text).toEqual(step.actions[0].text)
+    expect(fromDb.steps[1].actions!.length).toEqual(2)
+    expect(fromDb.steps[1].actions![0].id).toBeDefined()
+    expect(fromDb.steps[1].actions![0].title).toEqual(step.actions![0].title)
+    expect(fromDb.steps[1].actions![0].actionType).toEqual(step.actions![0].actionType)
+    expect(fromDb.steps[1].actions![0].text).toEqual(step.actions![0].text)
     expect(fromDb.steps[1].asset).not.toBeNull()
     expect(fromDb.steps[1].asset!.mediaType).toEqual(asset.mediaType)
     expect(fromDb.steps[1].asset!.fileName).toEqual(asset.fileName)
     expect(fromDb.steps[1].asset!.description).toEqual(asset.description)
     expect(fromDb.steps[1].asset!.content).toStrictEqual(asset.content)
-    if (fromDb.steps[0].actions[0].actionType === StepActionType.ARIES_OOB) {
-      const action = fromDb.steps[0].actions[0] as AriesOOBAction
+    if (fromDb.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
+      const action = fromDb.steps[0].actions![0] as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
 
       if (action.proofRequest) {
@@ -2255,7 +2268,7 @@ describe('Database scenario repository tests', (): void => {
     }
   })
 
-  it('Should throw error when adding scenario step with no actions', async (): Promise<void> => {
+  it('Should not throw error when adding scenario step with no actions', async (): Promise<void> => {
     const issuanceScenario: NewIssuanceScenario = {
       name: 'example_name',
       description: 'example_description',
@@ -2318,7 +2331,26 @@ describe('Database scenario repository tests', (): void => {
       actions: [],
     }
 
-    await expect(repository.createStep(savedIssuanceScenario.id, step)).rejects.toThrowError(`At least one action is required`)
+    await expect(repository.createStep(savedIssuanceScenario.id, step)).resolves.toEqual({
+      asset: {
+        content: expect.any(Buffer),
+        createdAt: expect.any(Date),
+        description: 'some image',
+        fileName: 'image.png',
+        id: expect.any(String),
+        mediaType: 'image/png',
+        updatedAt: expect.any(Date),
+      },
+      createdAt: expect.any(Date),
+      description: 'example_description',
+      id: expect.any(String),
+      order: 2,
+      scenario: expect.any(String),
+      subScenario: null,
+      title: 'example_title',
+      type: 'HUMAN_TASK',
+      updatedAt: expect.any(Date),
+    })
   })
 
   it('Should get scenario step by step id from database', async (): Promise<void> => {
@@ -2413,18 +2445,18 @@ describe('Database scenario repository tests', (): void => {
     expect(fromDb.title).toEqual(issuanceScenario.steps[0].title)
     expect(fromDb.order).toEqual(issuanceScenario.steps[0].order)
     expect(fromDb.type).toEqual(issuanceScenario.steps[0].type)
-    expect(fromDb.actions.length).toEqual(2)
-    expect(fromDb.actions[0].id).toBeDefined()
-    expect(fromDb.actions[0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(fromDb.actions[0].actionType).toEqual(issuanceScenario.steps[0].actions[0].actionType)
-    expect(fromDb.actions[0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(fromDb.actions!.length).toEqual(2)
+    expect(fromDb.actions![0].id).toBeDefined()
+    expect(fromDb.actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(fromDb.actions![0].actionType).toEqual(issuanceScenario.steps[0].actions![0].actionType)
+    expect(fromDb.actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
     expect(fromDb.asset).not.toBeNull()
     expect(fromDb.asset!.mediaType).toEqual(asset.mediaType)
     expect(fromDb.asset!.fileName).toEqual(asset.fileName)
     expect(fromDb.asset!.description).toEqual(asset.description)
     expect(fromDb.asset!.content).toStrictEqual(asset.content)
-    if (fromDb.actions[0].actionType === StepActionType.ARIES_OOB) {
-      const action = fromDb.actions[0] as AriesOOBAction
+    if (fromDb.actions![0].actionType === StepActionType.ARIES_OOB) {
+      const action = fromDb.actions![0] as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
 
       if (action.proofRequest) {
@@ -2542,11 +2574,11 @@ describe('Database scenario repository tests', (): void => {
     expect(fromDb[0].title).toEqual(issuanceScenario.steps[0].title)
     expect(fromDb[0].order).toEqual(issuanceScenario.steps[0].order)
     expect(fromDb[0].type).toEqual(issuanceScenario.steps[0].type)
-    expect(fromDb[0].actions.length).toEqual(1)
-    expect(fromDb[0].actions[0].id).toBeDefined()
-    expect(fromDb[0].actions[0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(fromDb[0].actions[0].actionType).toEqual(issuanceScenario.steps[0].actions[0].actionType)
-    expect(fromDb[0].actions[0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(fromDb[0].actions!.length).toEqual(1)
+    expect(fromDb[0].actions![0].id).toBeDefined()
+    expect(fromDb[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(fromDb[0].actions![0].actionType).toEqual(issuanceScenario.steps[0].actions![0].actionType)
+    expect(fromDb[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
     expect(fromDb[0].asset).not.toBeNull()
     expect(fromDb[0].asset!.mediaType).toEqual(asset.mediaType)
     expect(fromDb[0].asset!.fileName).toEqual(asset.fileName)
@@ -2784,25 +2816,28 @@ describe('Database scenario repository tests', (): void => {
       ],
       asset: savedIssuanceScenario.steps[0].asset!.id,
     }
-    const updatedStepResult = await repository.updateStep(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, updatedStep)
+    const updatedStepResult = await repository.updateStep(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      updatedStep,
+    )
 
     expect(updatedStepResult).toBeDefined()
     expect(updatedStepResult.title).toEqual(updatedStep.title)
     expect(updatedStepResult.order).toEqual(updatedStep.order)
     expect(updatedStepResult.type).toEqual(updatedStep.type)
-    expect(updatedStepResult.credentialDefinition).not.toBeNull()
-    expect(updatedStepResult.actions.length).toEqual(2)
-    expect(updatedStepResult.actions[0].id).toBeDefined()
-    expect(updatedStepResult.actions[0].title).toEqual(updatedStep.actions[0].title)
-    expect(updatedStepResult.actions[0].actionType).toEqual(updatedStep.actions[0].actionType)
-    expect(updatedStepResult.actions[0].text).toEqual(updatedStep.actions[0].text)
+    expect(updatedStepResult.actions!.length).toEqual(2)
+    expect(updatedStepResult.actions![0].id).toBeDefined()
+    expect(updatedStepResult.actions![0].title).toEqual(updatedStep.actions![0].title)
+    expect(updatedStepResult.actions![0].actionType).toEqual(updatedStep.actions![0].actionType)
+    expect(updatedStepResult.actions![0].text).toEqual(updatedStep.actions![0].text)
     expect(updatedStepResult.asset).not.toBeNull()
     expect(updatedStepResult.asset!.mediaType).toEqual(asset.mediaType)
     expect(updatedStepResult.asset!.fileName).toEqual(asset.fileName)
     expect(updatedStepResult.asset!.description).toEqual(asset.description)
     expect(updatedStepResult.asset!.content).toStrictEqual(asset.content)
-    if (updatedStepResult.actions[0].actionType === StepActionType.ARIES_OOB) {
-      const action = updatedStepResult.actions[0] as AriesOOBAction
+    if (updatedStepResult.actions![0].actionType === StepActionType.ARIES_OOB) {
+      const action = updatedStepResult.actions![0] as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
 
       if (action.proofRequest) {
@@ -2818,7 +2853,7 @@ describe('Database scenario repository tests', (): void => {
     }
   })
 
-  it('Should throw error when updating scenario step with no actions', async (): Promise<void> => {
+  it('Should not throw error when updating scenario step with no actions', async (): Promise<void> => {
     const issuanceScenario: NewIssuanceScenario = {
       name: 'example_name',
       description: 'example_description',
@@ -2878,9 +2913,28 @@ describe('Database scenario repository tests', (): void => {
       asset: savedIssuanceScenario.steps[0].asset!.id,
     }
 
-    await expect(repository.updateStep(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, updatedStep)).rejects.toThrowError(
-      `At least one action is required`,
-    )
+    await expect(
+      repository.updateStep(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, updatedStep),
+    ).resolves.toEqual({
+      asset: {
+        content: expect.any(Buffer),
+        createdAt: expect.any(Date),
+        description: 'some image',
+        fileName: 'image.png',
+        id: expect.any(String),
+        mediaType: 'image/png',
+        updatedAt: expect.any(Date),
+      },
+      createdAt: expect.any(Date),
+      description: 'example_description',
+      id: expect.any(String),
+      order: 1,
+      scenario: expect.any(String),
+      subScenario: null,
+      title: 'example_title',
+      type: 'HUMAN_TASK',
+      updatedAt: expect.any(Date),
+    })
   })
 
   it('Should add to scenario step action to database', async (): Promise<void> => {
@@ -2968,7 +3022,11 @@ describe('Database scenario repository tests', (): void => {
         },
       },
     }
-    const savedStepAction = await repository.createStepAction(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, action)
+    const savedStepAction = await repository.createStepAction(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      action,
+    )
     expect(savedStepAction).toBeDefined()
 
     const fromDb = await repository.findById(savedIssuanceScenario.id)
@@ -2977,13 +3035,13 @@ describe('Database scenario repository tests', (): void => {
     expect(fromDb.steps).toBeDefined()
     expect(fromDb.steps.length).toEqual(1)
     expect(fromDb.steps[0].actions).toBeDefined()
-    expect(fromDb.steps[0].actions.length).toEqual(2)
-    expect(fromDb.steps[0].actions[1].id).toBeDefined()
-    expect(fromDb.steps[0].actions[1].title).toEqual(action.title)
-    expect(fromDb.steps[0].actions[1].actionType).toEqual(action.actionType)
-    expect(fromDb.steps[0].actions[1].text).toEqual(action.text)
-    if (fromDb.steps[0].actions[0].actionType === StepActionType.ARIES_OOB) {
-      const action = fromDb.steps[0].actions[0] as AriesOOBAction
+    expect(fromDb.steps[0].actions!.length).toEqual(2)
+    expect(fromDb.steps[0].actions![1].id).toBeDefined()
+    expect(fromDb.steps[0].actions![1].title).toEqual(action.title)
+    expect(fromDb.steps[0].actions![1].actionType).toEqual(action.actionType)
+    expect(fromDb.steps[0].actions![1].text).toEqual(action.text)
+    if (fromDb.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
+      const action = fromDb.steps[0].actions![0] as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
 
       if (action.proofRequest) {
@@ -3056,13 +3114,13 @@ describe('Database scenario repository tests', (): void => {
     const fromDb = await repository.findByStepActionId(
       savedIssuanceScenario.id,
       savedIssuanceScenario.steps[0].id,
-      savedIssuanceScenario.steps[0].actions[0].id,
+      savedIssuanceScenario.steps[0].actions![0].id,
     )
 
-    expect(fromDb.id).toEqual(savedIssuanceScenario.steps[0].actions[0].id)
-    expect(fromDb.title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(fromDb.actionType).toEqual(issuanceScenario.steps[0].actions[0].actionType)
-    expect(fromDb.text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(fromDb.id).toEqual(savedIssuanceScenario.steps[0].actions![0].id)
+    expect(fromDb.title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(fromDb.actionType).toEqual(issuanceScenario.steps[0].actions![0].actionType)
+    expect(fromDb.text).toEqual(issuanceScenario.steps[0].actions![0].text)
     if (fromDb.actionType === StepActionType.ARIES_OOB) {
       const action = fromDb as AriesOOBAction
       expect(action.proofRequest).toBeDefined()
@@ -3170,9 +3228,9 @@ describe('Database scenario repository tests', (): void => {
     expect(fromDb).toBeDefined()
     expect(fromDb.length).toEqual(2)
     expect(fromDb[0].id).toBeDefined()
-    expect(fromDb[0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(fromDb[0].actionType).toEqual(issuanceScenario.steps[0].actions[0].actionType)
-    expect(fromDb[0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(fromDb[0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(fromDb[0].actionType).toEqual(issuanceScenario.steps[0].actions![0].actionType)
+    expect(fromDb[0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
   })
 
   it('Should delete scenario step action from database', async (): Promise<void> => {
@@ -3259,14 +3317,18 @@ describe('Database scenario repository tests', (): void => {
 
     const savedIssuanceScenario = await repository.create(issuanceScenario)
     expect(savedIssuanceScenario).toBeDefined()
-    expect(savedIssuanceScenario.steps[0].actions).toBeDefined()
-    expect(savedIssuanceScenario.steps[0].actions.length).toEqual(2)
+    expect(savedIssuanceScenario.steps[0].actions!).toBeDefined()
+    expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(2)
 
-    await repository.deleteStepAction(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, savedIssuanceScenario.steps[0].actions[1].id)
+    await repository.deleteStepAction(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      savedIssuanceScenario.steps[0].actions![1].id,
+    )
     const fromDb = await repository.findById(savedIssuanceScenario.id)
 
     expect(fromDb.steps[0].actions).toBeDefined()
-    expect(fromDb.steps[0].actions.length).toEqual(1)
+    expect(fromDb.steps[0].actions!.length).toEqual(1)
   })
 
   it('Should update scenario step action in database', async (): Promise<void> => {
@@ -3357,7 +3419,7 @@ describe('Database scenario repository tests', (): void => {
     const updatedStepResult = await repository.updateStepAction(
       savedIssuanceScenario.id,
       savedIssuanceScenario.steps[0].id,
-      savedIssuanceScenario.steps[0].actions[0].id,
+      savedIssuanceScenario.steps[0].actions![0].id,
       updatedStepAction,
     )
 
@@ -3415,11 +3477,11 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario).toBeDefined()
     expect(savedIssuanceScenario.steps).toBeDefined()
     expect(savedIssuanceScenario.steps.length).toEqual(1)
-    expect(savedIssuanceScenario.steps[0].actions.length).toEqual(1)
-    const buttonAction = savedIssuanceScenario.steps[0].actions[0] as ButtonAction
+    expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
+    const buttonAction = savedIssuanceScenario.steps[0].actions![0] as ButtonAction
     expect(buttonAction.actionType).toEqual(StepActionType.BUTTON)
-    expect(buttonAction.title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(buttonAction.text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(buttonAction.title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(buttonAction.text).toEqual(issuanceScenario.steps[0].actions![0].text)
     expect(buttonAction.goToStep).toEqual('step1')
   })
 
@@ -3453,10 +3515,10 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario).toBeDefined()
     expect(savedIssuanceScenario.steps).toBeDefined()
     expect(savedIssuanceScenario.steps.length).toEqual(1)
-    expect(savedIssuanceScenario.steps[0].actions.length).toEqual(1)
-    expect(savedIssuanceScenario.steps[0].actions[0].actionType).toEqual(StepActionType.SETUP_CONNECTION)
-    expect(savedIssuanceScenario.steps[0].actions[0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(savedIssuanceScenario.steps[0].actions[0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
+    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(StepActionType.SETUP_CONNECTION)
+    expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
   })
 
   it('Should save scenario with ChooseWalletAction to database', async (): Promise<void> => {
@@ -3489,10 +3551,10 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario).toBeDefined()
     expect(savedIssuanceScenario.steps).toBeDefined()
     expect(savedIssuanceScenario.steps.length).toEqual(1)
-    expect(savedIssuanceScenario.steps[0].actions.length).toEqual(1)
-    expect(savedIssuanceScenario.steps[0].actions[0].actionType).toEqual(StepActionType.CHOOSE_WALLET)
-    expect(savedIssuanceScenario.steps[0].actions[0].title).toEqual(issuanceScenario.steps[0].actions[0].title)
-    expect(savedIssuanceScenario.steps[0].actions[0].text).toEqual(issuanceScenario.steps[0].actions[0].text)
+    expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
+    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(StepActionType.CHOOSE_WALLET)
+    expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
+    expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
   })
 
   it('Should correctly update a step with multiple action types', async (): Promise<void> => {
@@ -3558,27 +3620,31 @@ describe('Database scenario repository tests', (): void => {
       ],
     }
 
-    const updatedStepResult = await repository.updateStep(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, updatedStep)
+    const updatedStepResult = await repository.updateStep(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      updatedStep,
+    )
 
     expect(updatedStepResult).toBeDefined()
     expect(updatedStepResult.title).toEqual(updatedStep.title)
-    expect(updatedStepResult.actions.length).toEqual(3)
+    expect(updatedStepResult.actions!.length).toEqual(3)
 
     // Check button action
-    const buttonAction = updatedStepResult.actions.find((a) => a.actionType === StepActionType.BUTTON) as ButtonAction
+    const buttonAction = updatedStepResult.actions!.find((a) => a.actionType === StepActionType.BUTTON) as ButtonAction
     expect(buttonAction).toBeDefined()
     expect(buttonAction?.title).toEqual('button_title')
     expect(buttonAction?.text).toEqual('button_text')
     expect(buttonAction?.goToStep).toEqual('step2')
 
     // Check setup connection action
-    const setupAction = updatedStepResult.actions.find((a) => a.actionType === StepActionType.SETUP_CONNECTION)
+    const setupAction = updatedStepResult.actions!.find((a) => a.actionType === StepActionType.SETUP_CONNECTION)
     expect(setupAction).toBeDefined()
     expect(setupAction?.title).toEqual('setup_title')
     expect(setupAction?.text).toEqual('setup_text')
 
     // Check choose wallet action
-    const walletAction = updatedStepResult.actions.find((a) => a.actionType === StepActionType.CHOOSE_WALLET)
+    const walletAction = updatedStepResult.actions!.find((a) => a.actionType === StepActionType.CHOOSE_WALLET)
     expect(walletAction).toBeDefined()
     expect(walletAction?.title).toEqual('wallet_title')
     expect(walletAction?.text).toEqual('wallet_text')
@@ -3643,7 +3709,11 @@ describe('Database scenario repository tests', (): void => {
       text: 'setup_text',
     }
 
-    const savedSetupAction = await repository.createStepAction(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, setupAction)
+    const savedSetupAction = await repository.createStepAction(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      setupAction,
+    )
 
     expect(savedSetupAction).toBeDefined()
     expect(savedSetupAction.actionType).toEqual(StepActionType.SETUP_CONNECTION)
@@ -3657,7 +3727,11 @@ describe('Database scenario repository tests', (): void => {
       text: 'wallet_text',
     }
 
-    const savedWalletAction = await repository.createStepAction(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, walletAction)
+    const savedWalletAction = await repository.createStepAction(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      walletAction,
+    )
 
     expect(savedWalletAction).toBeDefined()
     expect(savedWalletAction.actionType).toEqual(StepActionType.CHOOSE_WALLET)
@@ -3666,7 +3740,7 @@ describe('Database scenario repository tests', (): void => {
 
     // Check all actions are in the step
     const updatedStep = await repository.findByStepId(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id)
-    expect(updatedStep.actions.length).toEqual(4) // Original + 3 new ones
+    expect(updatedStep.actions?.length).toEqual(4) // Original + 3 new ones
   })
 
   it('Should correctly retrieve presentation scenario with relyingParty details', async (): Promise<void> => {

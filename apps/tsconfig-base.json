@@ -27,7 +27,8 @@
     "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */,
     "preserveConstEnums": true /* Prevents TypeScript from erasing const enum declarations. */,
     "declarationMap": true /* Generate .map files for .d.ts declarations. */,
-    "composite": true /* Enables project references. */
+    "composite": true /* Enables project references. */,
+    "types": ["jest"]
   },
   "exclude": ["**/__tests__/**/*", "**/dist/**/*"]
 }

@@ -7,7 +7,7 @@ import { characterFade, fadeExit } from '../../../FramerAnimations'
 import type { Persona } from '../../../slices/types'
 
 export interface Props {
-  persona?: Persona
+  persona?: Persona | null
 }
 
 export const PersonaContent: React.FC<Props> = ({ persona }) => {

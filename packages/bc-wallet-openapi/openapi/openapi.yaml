@@ -25,10 +25,12 @@ tags:
     description: Endpoints for creating and managing credential definitions
   - name: Assets
     description: Endpoints related to media or static assets
+  - name: Tenants
+    description: Endpoints related to tenants
 
 security:
-  - OAuth2: []
-  - OIDC: []
+  - OAuth2: [ ]
+  - OIDC: [ ]
 
 paths:
   /scenarios/issuances:
@@ -933,6 +935,36 @@ paths:
       responses:
         '204':
           description: Deleted
+  /credentials/definitions/{definitionId}/approve:
+    parameters:
+      - name: definitionId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The ID of the credential definition to approve.
+    post:
+      tags:
+        - Approval
+        - Showcases
+      summary: Approve a specific credential definition
+      description: Marks a specific credential definition as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
+      operationId: approveCredentialDefinition
+      responses:
+        '200':
+          description: Credential definition approved successfully. Returns the updated definition.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialDefinitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /credentials/schemas:
     get:
@@ -1546,6 +1578,131 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  # Add to the paths section:
+
+  /tenants:
+    get:
+      tags:
+        - Tenants
+      summary: List all tenants
+      operationId: listTenants
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Tenants
+      summary: Create a new tenant
+      operationId: createTenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantRequest'
+        required: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tenants/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Tenants
+      summary: Get a specific tenant
+      operationId: getTenant
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Tenants
+      summary: Update a tenant
+      operationId: updateTenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Tenants
+      summary: Delete a tenant
+      operationId: deleteTenant
+      responses:
+        '204':
+          description: Deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /showcases:
     get:
@@ -1673,6 +1830,58 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /showcases/{slug}/approve:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The slug of the showcase to approve.
+    post:
+      tags:
+        - Approval
+        - Showcases
+      summary: Approve a specific showcase
+      description: Marks a specific showcase as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
+      operationId: approveShowcase
+      responses:
+        '200':
+          description: Showcase approved successfully. Returns the updated showcase.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowcaseResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /approvals/pending:
+    get:
+      tags:
+        - Approval
+      summary: Get all unapproved showcases and credential definitions
+      description: Retrieves lists of showcases and credential definitions that are awaiting approval (i.e., where 'approvedAt' is null).
+      operationId: getPendingApprovals
+      responses:
+        '200':
+          description: A list of unapproved items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingApprovalsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   securitySchemes:
     OAuth2:
@@ -1690,6 +1899,71 @@ components:
       openIdConnectUrl: <https://auth.example.com/.well-known/openid-configuration>
       description: OpenID Connect security scheme for OAuth2 flows
   schemas:
+    Tenant:
+      type: object
+      required:
+        - id
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the tenant
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        createdAt:
+          type: string
+          description: Date and time the tenant was created
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
+        updatedAt:
+          type: string
+          description: Date and time the asset was created
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
+        deletedAt:
+          type: string
+          description: Date and time the tenant was deleted (if applicable)
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
+    TenantRequest:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the tenant
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+    TenantResponse:
+      type: object
+      required:
+        - tenant
+      properties:
+        tenant:
+          $ref: '#/components/schemas/Tenant'
+    TenantsResponse:
+      type: object
+      required:
+        - tenants
+      properties:
+        tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenant'
+    PendingApprovalsResponse:
+      type: object
+      description: Contains lists of showcases and credential definitions pending approval.
+      properties:
+        showcases:
+          type: array
+          description: List of showcases pending approval.
+          items:
+            $ref: '#/components/schemas/Showcase'
+        credentialDefinitions:
+          type: array
+          description: List of credential definitions pending approval.
+          items:
+            $ref: '#/components/schemas/CredentialDefinition'
+
     User:
       type: object
       properties:
@@ -1697,9 +1971,11 @@ components:
           type: string
           description: Unique identifier of the user
           example: 123e4567-e89b-12d3-a456-426614174456
-        identifierType:
-          $ref: '#/components/schemas/IdentifierType'
-        identifier:
+        userName:
+          type: string
+        issuer:
+          type: string
+        clientId:
           type: string
         createdAt:
           type: string
@@ -1797,7 +2073,6 @@ components:
         - description
         - order
         - type
-        - actions
         - createdAt
         - updatedAt
       properties:
@@ -1873,7 +2148,7 @@ components:
           description: List of actions associated with this step
           items:
             oneOf:
-              - $ref: '#/components/schemas/AriesOOBActionRequest'
+              - $ref: '#/components/schemas/StepActionRequest'
         asset:
           type: string
           description: Asset referenced by this step
@@ -1905,8 +2180,8 @@ components:
         - actionType
         - title
         - text
-#        - createdAt  FIXME This gives issues with the individual step types, they do not all have *Request variants yet
-#        - updatedAt
+      #        - createdAt  FIXME This gives issues with the individual step types, they do not all have *Request variants yet
+      #        - updatedAt
       properties:
         id:
           type: string
@@ -1961,12 +2236,12 @@ components:
       discriminator:
         propertyName: actionType
         mapping:
-          ARIES_OOB: '#/components/schemas/AriesOOBAction'
-          ACCEPT_CREDENTIAL: '#/components/schemas/AcceptCredentialAction'
-          SHARE_CREDENTIAL: '#/components/schemas/ShareCredentialAction'
-          SETUP_CONNECTION: '#/components/schemas/SetupConnectionAction'
-          CHOOSE_WALLET: '#/components/schemas/ChooseWalletAction'
-          BUTTON: '#/components/schemas/ButtonAction'
+          ARIES_OOB: '#/components/schemas/AriesOOBActionRequest'
+          ACCEPT_CREDENTIAL: '#/components/schemas/AcceptCredentialActionRequest'
+          SHARE_CREDENTIAL: '#/components/schemas/ShareCredentialActionRequest'
+          SETUP_CONNECTION: '#/components/schemas/SetupConnectionActionRequest'
+          CHOOSE_WALLET: '#/components/schemas/ChooseWalletActionRequest'
+          BUTTON: '#/components/schemas/ButtonActionRequest'
     StepActionsResponse:
       properties:
         actions:
@@ -2014,8 +2289,8 @@ components:
         - id
         - attributes
         - predicates
-#        - createdAt FIXME This gives issues with the individual step types, they do not all have *Request variants yet
-#        - updatedAt
+      #        - createdAt FIXME This gives issues with the individual step types, they do not all have *Request variants yet
+      #        - updatedAt
       properties:
         attributes:
           type: object
@@ -2151,6 +2426,58 @@ components:
     ButtonAction:
       allOf:
         - $ref: '#/components/schemas/StepAction'
+        - type: object
+          properties:
+            goToStep:
+              type: string
+              description: Step ID
+              example: 123e4567-e89b-12d3-a456-426614174456
+
+    AcceptCredentialActionRequest:
+      allOf:
+        - $ref: '#/components/schemas/StepActionRequest'
+        - type: object
+          required:
+            - credentialDefinitionId
+          properties:
+            credentialDefinitionId:
+              type: string
+              description: Credential definition ID
+              example: 123e4567-e89b-12d3-a456-426614174456
+            connectionId:
+              type: string
+              description: Connection ID
+              example: 341c384b-3313-41ba-96a7-4f07329cd6b5
+
+    ShareCredentialActionRequest:
+      allOf:
+        - $ref: '#/components/schemas/StepActionRequest'
+        - type: object
+          required:
+            - credentialDefinitionId
+          properties:
+            credentialDefinitionId:
+              type: string
+              description: Credential definition ID
+              example: 123e4567-e89b-12d3-a456-426614174456
+            connectionId:
+              type: string
+              description: Connection ID
+              example: 341c384b-3313-41ba-96a7-4f07329cd6b5
+
+    SetupConnectionActionRequest:
+      allOf:
+        - $ref: '#/components/schemas/StepActionRequest'
+        - type: object
+
+    ChooseWalletActionRequest:
+      allOf:
+        - $ref: '#/components/schemas/StepActionRequest'
+        - type: object
+
+    ButtonActionRequest:
+      allOf:
+        - $ref: '#/components/schemas/StepActionRequest'
         - type: object
           properties:
             goToStep:
@@ -2346,7 +2673,7 @@ components:
       type: object
       properties:
         issuanceScenario:
-            $ref: '#/components/schemas/IssuanceScenario'
+          $ref: '#/components/schemas/IssuanceScenario'
     IssuanceScenario:
       type: object
       allOf:
@@ -2708,6 +3035,14 @@ components:
           description: Date and time the credential definition was last updated
           format: date-time
           example: 2025-03-06T11:30:16.573Z
+        approvedBy:
+          $ref: '#/components/schemas/User'
+        approvedAt:
+          type: string
+          description: Date and time the credential definition was last approved
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
+
     CredentialDefinitionRequest:
       type: object
       required:
@@ -2758,6 +3093,15 @@ components:
         icon:
           type: string
           example: 123e4567-e89b-12d3-a456-426614174469
+        approvedBy:
+          type: string
+          description: Reference to the associated user who approved this definition
+          example: 456e4567-e89b-12d3-a456-426614174789
+        approvedAt:
+          type: string
+          description: Date and time the credential definition was last approved
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
     CredentialDefinitionsResponse:
       type: object
       properties:
@@ -2923,7 +3267,7 @@ components:
         id:
           type: string
           description: Unique identifier for the credential schema
-          example:  123e4567-e89b-12d3-a456-426614174123
+          example: 123e4567-e89b-12d3-a456-426614174123
         name:
           type: string
           description: Name of the credential schema
@@ -2999,6 +3343,7 @@ components:
       type: object
       required:
         - id
+        - tenantId
         - name
         - slug
         - description
@@ -3014,6 +3359,10 @@ components:
           type: string
           description: Unique identifier for the showcase
           example: 123e4567-e89b-12d3-a456-426614174456
+        tenantId:
+          type: string
+          description: ID of the tenant that created this showcase
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         name:
           type: string
           description: Name of the showcase
@@ -3067,6 +3416,13 @@ components:
           description: Date and time the showcase was last updated
           format: date-time
           example: 2025-03-06T11:30:16.573Z
+        approvedBy:
+          $ref: '#/components/schemas/User'
+        approvedAt:
+          type: string
+          description: Date and time this showcase was last approved
+          format: date-time
+          example: 2025-03-06T11:30:16.573Z
     ShowcasesResponse:
       type: object
       properties:
@@ -3083,17 +3439,19 @@ components:
     ShowcaseRequest:
       required:
         - name
+        - tenantId
         - description
         - status
-        - scenarios
-        - personas
-        - credentialDefinitions
         - hidden
       properties:
         name:
           type: string
           description: Name of the showcase
           example: Credential Showcase BCGov
+        tenantId:
+          type: string
+          description: ID of the tenant that created this showcase
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         description:
           type: string
           description: Description of the showcase
@@ -3126,9 +3484,9 @@ components:
     ShowcaseStatus:
       type: string
       enum:
-          - PENDING
-          - ACTIVE
-          - ARCHIVED
+        - PENDING
+        - ACTIVE
+        - ARCHIVED
       description: Types of supported credentials
       example: PENDING
 

@@ -2,8 +2,8 @@
   "files": [],
   "references": [
     { "path": "bc-wallet-openapi" },
-    { "path": "bc-wallet-ts-model" },
-    { "path": "bc-wallet-ts-sdk" },
-    { "path": "bc-wallet-traction-adapter" }
+    { "path": "bc-wallet-traction-openapi" },
+    { "path": "bc-wallet-traction-adapter" },
+    { "path": "bc-wallet-adapter-client-api" }
   ]
 }
