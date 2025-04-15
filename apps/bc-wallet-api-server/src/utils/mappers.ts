@@ -229,6 +229,9 @@ export const showcaseDTOFrom = (showcase: Showcase): ShowcaseDTO => {
 export const userDTOFrom = (user: User): UserDTO => {
   return {
     ...user,
+    userName: user.userName ?? undefined,
+    issuer: user.issuer ?? undefined,
+    clientId: user.clientId ?? undefined,
     createdAt: user.createdAt ?? undefined,
     updatedAt: user.updatedAt ?? undefined,
   }

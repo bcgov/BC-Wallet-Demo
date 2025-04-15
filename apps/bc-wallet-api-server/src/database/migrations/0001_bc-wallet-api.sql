@@ -1,2 +1,2 @@
-ALTER TABLE "ariesProofRequest" ALTER COLUMN "attributes" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "ariesProofRequest" ALTER COLUMN "predicates" DROP NOT NULL;
+ALTER TABLE "user" ADD COLUMN "issuer" text;--> statement-breakpoint
+ALTER TABLE "user" ADD COLUMN "clientId" text;

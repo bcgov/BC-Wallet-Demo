@@ -6,6 +6,8 @@ import { showcases } from './showcase'
 export const users = pgTable('user', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),
   userName: text(),
+  issuer: text(),
+  clientId: text(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
