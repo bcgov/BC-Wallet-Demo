@@ -37,6 +37,7 @@
     "edit_name_label": "Name",
     "edit_name_placeholder": "Character Name",
     "edit_role_label": "Role",
+    "error_persona_exists_label": "Persona already exists",
     "edit_role_placeholder": "Character Role",
     "edit_description_label": "Description",
     "edit_description_placeholder": "Page Content",
