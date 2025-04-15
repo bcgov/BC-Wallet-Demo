@@ -29,7 +29,6 @@ import {
   User,
 } from '../../../types'
 import * as schema from '../../schema'
-import AssetRepository from '../AssetRepository'
 import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../CredentialSchemaRepository'
 import IssuerRepository from '../IssuerRepository'
@@ -37,7 +36,6 @@ import PersonaRepository from '../PersonaRepository'
 import ScenarioRepository from '../ScenarioRepository'
 import ShowcaseRepository from '../ShowcaseRepository'
 import TenantRepository from '../TenantRepository'
-import UserRepository from '../UserRepository'
 import { createTestAsset, createTestUser } from './dbTestData'
 
 describe('Database showcase repository tests', (): void => {
