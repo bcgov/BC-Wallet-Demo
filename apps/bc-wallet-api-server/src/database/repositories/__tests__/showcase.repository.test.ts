@@ -1,20 +1,12 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import { Container } from 'typedi'
-import * as schema from '../../schema'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
+import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
+import { Container } from 'typedi'
+
+import { createTestAsset, createTestUser } from '../../../controllers/__tests__/dbTestData'
 import DatabaseService from '../../../services/DatabaseService'
-import ShowcaseRepository from '../ShowcaseRepository'
-import IssuerRepository from '../IssuerRepository'
-import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import AssetRepository from '../AssetRepository'
-import PersonaRepository from '../PersonaRepository'
-import ScenarioRepository from '../ScenarioRepository'
-import TenantRepository from '../TenantRepository'
-import UserRepository from '../UserRepository'
 import {
   Asset,
   CredentialAttributeType,
@@ -39,6 +31,16 @@ import {
   Tenant,
   User,
 } from '../../../types'
+import * as schema from '../../schema'
+import AssetRepository from '../AssetRepository'
+import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import IssuerRepository from '../IssuerRepository'
+import PersonaRepository from '../PersonaRepository'
+import ScenarioRepository from '../ScenarioRepository'
+import ShowcaseRepository from '../ShowcaseRepository'
+import TenantRepository from '../TenantRepository'
+import UserRepository from '../UserRepository'
 
 describe('Database showcase repository tests', (): void => {
   let client: PGlite
@@ -67,18 +69,8 @@ describe('Database showcase repository tests', (): void => {
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     const assetRepository = Container.get(AssetRepository)
     const userRepository = Container.get(UserRepository)
-    const newUser: NewUser = {
-      identifierType: IdentifierType.DID,
-      identifier: 'did:example.org',
-    }
-    user = await userRepository.create(newUser)
-    const newAsset: NewAsset = {
-      mediaType: 'image/png',
-      fileName: 'image.png',
-      description: 'some image',
-      content: Buffer.from('some binary data'),
-    }
-    asset = await assetRepository.create(newAsset)
+    const user = createTestUser('test-user-showcase')
+    asset = await createTestAsset()
     const newCredentialSchema: NewCredentialSchema = {
       name: 'example_name',
       version: 'example_version',
@@ -237,7 +229,7 @@ describe('Database showcase repository tests', (): void => {
     issuanceScenario2 = await scenarioRepository.create(newIssuanceScenario)
     const tenantRepository = Container.get(TenantRepository)
     const newTenant: NewTenant = {
-      id: '79a56be5-89bd-40dc-a6a7-fc035487e437'
+      id: '79a56be5-89bd-40dc-a6a7-fc035487e437',
     }
     tenant = await tenantRepository.create(newTenant)
   })
@@ -432,7 +424,9 @@ describe('Database showcase repository tests', (): void => {
 
     await repository.delete(savedShowcase.id)
 
-    await expect(repository.findById(savedShowcase.id)).rejects.toThrowError(`No showcase found for id: ${savedShowcase.id}`)
+    await expect(repository.findById(savedShowcase.id)).rejects.toThrowError(
+      `No showcase found for id: ${savedShowcase.id}`,
+    )
   })
 
   it('Should update showcase in database', async (): Promise<void> => {
@@ -460,7 +454,7 @@ describe('Database showcase repository tests', (): void => {
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       personas: [persona1.id, persona2.id],
       bannerImage: null,
-      completionMessage
+      completionMessage,
     })
 
     expect(updatedShowcase).toBeDefined()
@@ -497,10 +491,12 @@ describe('Database showcase repository tests', (): void => {
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [],
-      bannerImage: null
+      bannerImage: null,
     }
 
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`At least one persona is required`)
+    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(
+      `At least one persona is required`,
+    )
   })
 
   it('Should throw error when updating showcase with no scenarios', async (): Promise<void> => {
@@ -526,10 +522,12 @@ describe('Database showcase repository tests', (): void => {
       scenarios: [],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
-      bannerImage: null
+      bannerImage: null,
     }
 
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`At least one scenario is required`)
+    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(
+      `At least one scenario is required`,
+    )
   })
 
   it('Should throw error when updating showcase with invalid persona id', async (): Promise<void> => {
@@ -556,12 +554,13 @@ describe('Database showcase repository tests', (): void => {
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [unknownPersonaId],
-      bannerImage: null
+      bannerImage: null,
     }
 
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`No persona found for id: ${unknownPersonaId}`)
+    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(
+      `No persona found for id: ${unknownPersonaId}`,
+    )
   })
-
 
   it('Should throw error when updating showcase with invalid scenario id', async (): Promise<void> => {
     const unknownScenarioId = 'a197e5b2-e4e5-4788-83b1-ecaa0e99ed3a'
@@ -587,10 +586,12 @@ describe('Database showcase repository tests', (): void => {
       scenarios: [unknownScenarioId],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
-      bannerImage: null
+      bannerImage: null,
     }
 
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`No scenario found for id: ${unknownScenarioId}`)
+    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(
+      `No scenario found for id: ${unknownScenarioId}`,
+    )
   })
 
   it('Should throw error when updating showcase with invalid banner image id', async (): Promise<void> => {
@@ -617,8 +618,10 @@ describe('Database showcase repository tests', (): void => {
       scenarios: [issuanceScenario1.id, issuanceScenario2.id],
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       personas: [persona1.id, persona2.id],
-      bannerImage: unknownBannerImageId
+      bannerImage: unknownBannerImageId,
     }
-    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(`No asset found for id: ${unknownBannerImageId}`)
+    await expect(repository.update(savedShowcase.id, updatedShowcase)).rejects.toThrowError(
+      `No asset found for id: ${unknownBannerImageId}`,
+    )
   })
 })

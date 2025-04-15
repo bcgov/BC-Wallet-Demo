@@ -48,10 +48,10 @@ runs:
       shell: bash
       run: pnpm install
       
-    - name: Build models
-      id: build-models
+    - name: Generate models
+      id: generate-models
       shell: bash
-      run: pnpm run generate-build:models
+      run: pnpm run generate:models
 
     - name: Run tests
       id: tests
