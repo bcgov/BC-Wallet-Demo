@@ -57,8 +57,7 @@ describe('Database credential definition repository tests', (): void => {
     const assetRepository = Container.get(AssetRepository)
 
     const newUser: NewUser = {
-      identifierType: IdentifierType.DID, // Or null if not required
-      identifier: `did:example:testuser${Date.now()}`, // Unique identifier
+      userName,
     }
     testUser = await userRepository.create(newUser)
 
