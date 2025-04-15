@@ -1,24 +1,25 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { RelyingPartyRequest } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import RelyingPartyController from '../RelyingPartyController'
-import { Application } from 'express'
-import { CredentialType, IdentifierType, RelyingPartyType } from '../../types'
-import { RelyingPartyRequest } from 'bc-wallet-openapi'
-import AssetRepository from '../../database/repositories/AssetRepository'
-import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
-import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepository'
-import RelyingPartyService from '../../services/RelyingPartyService'
-import { PGlite } from '@electric-sql/pglite'
-import DatabaseService from '../../services/DatabaseService'
+
 import {
   createMockDatabaseService,
   createTestAsset,
   createTestCredentialDefinition,
   createTestCredentialSchema,
   setupTestDatabase,
-} from './dbTestData'
+} from '../../database/repositories/__tests__/dbTestData'
+import AssetRepository from '../../database/repositories/AssetRepository'
+import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
+import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepository'
+import DatabaseService from '../../services/DatabaseService'
+import RelyingPartyService from '../../services/RelyingPartyService'
+import { CredentialType, IdentifierType, RelyingPartyType } from '../../types'
+import RelyingPartyController from '../RelyingPartyController'
 import supertest = require('supertest')
 
 describe('RelyingPartyController Integration Tests', () => {
@@ -39,7 +40,7 @@ describe('RelyingPartyController Integration Tests', () => {
     Container.get(RelyingPartyService)
     app = createExpressServer({
       controllers: [RelyingPartyController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

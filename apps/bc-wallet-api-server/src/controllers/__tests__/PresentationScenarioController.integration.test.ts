@@ -1,18 +1,10 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { StepAction } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import PresentationScenarioController from '../PresentationScenarioController'
-import { Application } from 'express'
-import { StepAction } from 'bc-wallet-openapi'
-import { PGlite } from '@electric-sql/pglite'
-import AssetRepository from '../../database/repositories/AssetRepository'
-import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
-import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepository'
-import ScenarioRepository from '../../database/repositories/ScenarioRepository'
-import ScenarioService from '../../services/ScenarioService'
-import { RelyingPartyType, ScenarioType, StepActionType } from '../../types'
-import DatabaseService from '../../services/DatabaseService'
+
 import {
   createMockDatabaseService,
   createTestAsset,
@@ -20,7 +12,16 @@ import {
   createTestCredentialSchema,
   createTestPersona,
   setupTestDatabase,
-} from './dbTestData'
+} from '../../database/repositories/__tests__/dbTestData'
+import AssetRepository from '../../database/repositories/AssetRepository'
+import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
+import RelyingPartyRepository from '../../database/repositories/RelyingPartyRepository'
+import ScenarioRepository from '../../database/repositories/ScenarioRepository'
+import DatabaseService from '../../services/DatabaseService'
+import ScenarioService from '../../services/ScenarioService'
+import { RelyingPartyType, ScenarioType, StepActionType } from '../../types'
+import PresentationScenarioController from '../PresentationScenarioController'
 import {
   createApiAcceptAction,
   createApiButtonAction,
@@ -50,7 +51,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     Container.get(ScenarioService)
     app = createExpressServer({
       controllers: [PresentationScenarioController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })
@@ -80,7 +81,12 @@ describe('PresentationScenarioController Integration Tests', () => {
     // Create persona
     const persona = await createTestPersona(asset)
 
-    const scenarioRequest = createApiPresentationScenarioRequest(relyingParty.id, persona.id, asset.id, credentialDefinition.id)
+    const scenarioRequest = createApiPresentationScenarioRequest(
+      relyingParty.id,
+      persona.id,
+      asset.id,
+      credentialDefinition.id,
+    )
 
     const createResponse = await request.post('/scenarios/presentations').send(scenarioRequest).expect(201)
 
@@ -230,10 +236,14 @@ describe('PresentationScenarioController Integration Tests', () => {
     const credentialSchema = await createTestCredentialSchema()
     const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
 
-
     // Attempt to create a scenario with a non-existent issuer
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
-    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(nonExistentId, persona.id, asset.id, credentialDefinition.id)
+    const invalidScenarioRequest2 = createApiIssuanceScenarioRequest(
+      nonExistentId,
+      persona.id,
+      asset.id,
+      credentialDefinition.id,
+    )
 
     await request.post('/scenarios/issuances').send(invalidScenarioRequest2).expect(404)
   })
@@ -257,7 +267,12 @@ describe('PresentationScenarioController Integration Tests', () => {
     const persona = await createTestPersona(asset)
 
     // Create a scenario with initial step
-    const scenarioRequest = createApiPresentationScenarioRequest(relyingParty.id, persona.id, asset.id, credentialDefinition.id)
+    const scenarioRequest = createApiPresentationScenarioRequest(
+      relyingParty.id,
+      persona.id,
+      asset.id,
+      credentialDefinition.id,
+    )
     scenarioRequest.name = 'Action Types Test Scenario'
     scenarioRequest.description = 'Testing different action types'
 

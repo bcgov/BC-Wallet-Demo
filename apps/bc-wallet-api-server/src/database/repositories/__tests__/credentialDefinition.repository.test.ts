@@ -12,17 +12,15 @@ import {
   CredentialSchema,
   CredentialType,
   IdentifierType,
-  NewAsset,
   NewCredentialDefinition,
   NewCredentialSchema,
-  NewUser,
   User,
 } from '../../../types'
 import * as schema from '../../schema'
-import AssetRepository from '../AssetRepository'
 import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import UserRepository from '../UserRepository' // Import UserRepository
+import UserRepository from '../UserRepository'
+import { createTestAsset, createTestUser } from './dbTestData' // Import UserRepository
 
 // Helper to check if a date is recent (within the last N seconds)
 const isRecentDate = (date: Date | null | undefined, seconds = 5): boolean => {
@@ -37,7 +35,6 @@ describe('Database credential definition repository tests', (): void => {
   let database: NodePgDatabase
   let credentialDefinitionRepository: CredentialDefinitionRepository
   let credentialSchemaRepository: CredentialSchemaRepository
-  let userRepository: UserRepository
   let testUser: User
   let asset: Asset
   let credentialSchema: CredentialSchema
@@ -51,24 +48,11 @@ describe('Database credential definition repository tests', (): void => {
     }
     Container.set(DatabaseService, mockDatabaseService)
 
-    userRepository = Container.get(UserRepository)
     credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const assetRepository = Container.get(AssetRepository)
 
-    const newUser: NewUser = {
-      userName,
-    }
-    testUser = await userRepository.create(newUser)
-
-    // Create a test asset
-    const newAsset: NewAsset = {
-      mediaType: 'image/png',
-      fileName: 'image.png',
-      description: 'some image',
-      content: Buffer.from('some binary data'),
-    }
-    asset = await assetRepository.create(newAsset)
+    testUser = await createTestUser('test-user')
+    asset = await createTestAsset()
 
     // Create a test credential schema
     const newCredentialSchema: NewCredentialSchema = {

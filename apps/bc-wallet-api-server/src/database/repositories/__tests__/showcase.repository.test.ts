@@ -5,7 +5,6 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
 
-import { createTestAsset, createTestUser } from '../../../controllers/__tests__/dbTestData'
 import DatabaseService from '../../../services/DatabaseService'
 import {
   Asset,
@@ -15,7 +14,6 @@ import {
   IdentifierType,
   IssuanceScenario,
   IssuerType,
-  NewAsset,
   NewCredentialDefinition,
   NewCredentialSchema,
   NewIssuanceScenario,
@@ -23,7 +21,6 @@ import {
   NewPersona,
   NewShowcase,
   NewTenant,
-  NewUser,
   Persona,
   ShowcaseStatus,
   StepActionType,
@@ -41,6 +38,7 @@ import ScenarioRepository from '../ScenarioRepository'
 import ShowcaseRepository from '../ShowcaseRepository'
 import TenantRepository from '../TenantRepository'
 import UserRepository from '../UserRepository'
+import { createTestAsset, createTestUser } from './dbTestData'
 
 describe('Database showcase repository tests', (): void => {
   let client: PGlite
@@ -67,9 +65,7 @@ describe('Database showcase repository tests', (): void => {
     const issuerRepository = Container.get(IssuerRepository)
     const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
-    const assetRepository = Container.get(AssetRepository)
-    const userRepository = Container.get(UserRepository)
-    const user = createTestUser('test-user-showcase')
+    user = await createTestUser('test-user-showcase')
     asset = await createTestAsset()
     const newCredentialSchema: NewCredentialSchema = {
       name: 'example_name',
