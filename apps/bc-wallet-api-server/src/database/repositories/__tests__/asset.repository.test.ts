@@ -1,13 +1,14 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
-import AssetRepository from '../AssetRepository'
+
 import DatabaseService from '../../../services/DatabaseService'
-import * as schema from '../../schema'
 import { NewAsset } from '../../../types'
+import * as schema from '../../schema'
+import AssetRepository from '../AssetRepository'
 
 describe('Database asset repository tests', (): void => {
   let client: PGlite

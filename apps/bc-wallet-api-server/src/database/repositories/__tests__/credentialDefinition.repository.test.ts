@@ -19,7 +19,6 @@ import {
 import * as schema from '../../schema'
 import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import UserRepository from '../UserRepository'
 import { createTestAsset, createTestUser } from './dbTestData' // Import UserRepository
 
 // Helper to check if a date is recent (within the last N seconds)

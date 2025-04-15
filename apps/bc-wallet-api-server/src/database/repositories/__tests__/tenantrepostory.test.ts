@@ -1,13 +1,14 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
-import TenantRepository from '../TenantRepository'
+
 import DatabaseService from '../../../services/DatabaseService'
-import * as schema from '../../schema'
 import { NewTenant } from '../../../types'
+import * as schema from '../../schema'
+import TenantRepository from '../TenantRepository'
 
 describe('Database tenant repository tests', (): void => {
   let client: PGlite
@@ -18,7 +19,7 @@ describe('Database tenant repository tests', (): void => {
     const database = drizzle(client, { schema }) as unknown as NodePgDatabase
     await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
     const mockDatabaseService = {
-      getConnection: jest.fn().mockResolvedValue(database)
+      getConnection: jest.fn().mockResolvedValue(database),
     }
     Container.set(DatabaseService, mockDatabaseService)
     repository = Container.get(TenantRepository)
@@ -32,7 +33,7 @@ describe('Database tenant repository tests', (): void => {
 
   it('Should save tenant to database', async (): Promise<void> => {
     const tenant: NewTenant = {
-      id: 'test-tenant-id'
+      id: 'test-tenant-id',
     }
 
     const savedTenant = await repository.create(tenant)
@@ -43,7 +44,7 @@ describe('Database tenant repository tests', (): void => {
 
   it('Should get tenant by id from database', async (): Promise<void> => {
     const tenant: NewTenant = {
-      id: 'test-tenant-id'
+      id: 'test-tenant-id',
     }
 
     const savedTenant = await repository.create(tenant)
@@ -57,11 +58,11 @@ describe('Database tenant repository tests', (): void => {
 
   it('Should get all tenants from database', async (): Promise<void> => {
     const tenant1: NewTenant = {
-      id: 'test-tenant-id-1'
+      id: 'test-tenant-id-1',
     }
 
     const tenant2: NewTenant = {
-      id: 'test-tenant-id-2'
+      id: 'test-tenant-id-2',
     }
 
     const savedTenant1 = await repository.create(tenant1)
@@ -77,7 +78,7 @@ describe('Database tenant repository tests', (): void => {
 
   it('Should delete tenant from database', async (): Promise<void> => {
     const tenant: NewTenant = {
-      id: 'test-tenant-id'
+      id: 'test-tenant-id',
     }
 
     const savedTenant = await repository.create(tenant)
@@ -90,7 +91,7 @@ describe('Database tenant repository tests', (): void => {
 
   it('Should update tenant in database', async (): Promise<void> => {
     const tenant: NewTenant = {
-      id: 'test-tenant-id'
+      id: 'test-tenant-id',
     }
 
     const savedTenant = await repository.create(tenant)
