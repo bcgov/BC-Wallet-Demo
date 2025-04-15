@@ -5,7 +5,7 @@ import { showcases } from './showcase'
 import { tenantsToUsers } from './tenantsToUsers'
 
 export const users = pgTable('user', {
-  id: uuid('id').notNull().primaryKey(),
+  id: uuid('id').notNull().primaryKey().defaultRandom(),
   userName: text(),
   issuer: text(),
   clientId: text(),
