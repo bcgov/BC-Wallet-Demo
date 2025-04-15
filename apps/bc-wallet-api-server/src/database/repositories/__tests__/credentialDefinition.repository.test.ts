@@ -1,15 +1,11 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
+
 import DatabaseService from '../../../services/DatabaseService'
-import AssetRepository from '../AssetRepository'
-import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import UserRepository from '../UserRepository' // Import UserRepository
-import * as schema from '../../schema'
 import {
   Asset,
   CredentialAttributeType,
@@ -22,6 +18,11 @@ import {
   NewUser,
   User,
 } from '../../../types'
+import * as schema from '../../schema'
+import AssetRepository from '../AssetRepository'
+import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import UserRepository from '../UserRepository' // Import UserRepository
 
 // Helper to check if a date is recent (within the last N seconds)
 const isRecentDate = (date: Date | null | undefined, seconds = 5): boolean => {
@@ -165,7 +166,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(approvedDefinition.id).toEqual(savedCredentialDefinition.id)
     expect(approvedDefinition.approvedBy).toBeDefined()
     expect(approvedDefinition.approvedBy?.id).toEqual(testUser.id)
-    expect(approvedDefinition.approvedBy?.identifier).toEqual(testUser.identifier) // Check some user fields
+    expect(approvedDefinition.approvedBy?.userName).toEqual(testUser.userName) // Check some user fields
     expect(approvedDefinition.approvedAt).toBeDefined()
     expect(isRecentDate(approvedDefinition.approvedAt)).toBe(true)
 
@@ -447,7 +448,9 @@ describe('Database credential definition repository tests', (): void => {
     }
     await expect(
       credentialDefinitionRepository.update(savedCredentialDefinition.id, updatePayload),
-    ).rejects.toThrowError(`insert or update on table "credentialDefinition" violates foreign key constraint "credentialDefinition_icon_asset_id_fk"`)
+    ).rejects.toThrowError(
+      `insert or update on table "credentialDefinition" violates foreign key constraint "credentialDefinition_icon_asset_id_fk"`,
+    )
   })
 
   it('Should update credential definition removing the icon', async (): Promise<void> => {
