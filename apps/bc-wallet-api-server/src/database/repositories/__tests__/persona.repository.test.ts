@@ -1,14 +1,15 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
+
 import DatabaseService from '../../../services/DatabaseService'
+import { Asset, NewAsset, NewPersona } from '../../../types'
+import * as schema from '../../schema'
 import AssetRepository from '../AssetRepository'
 import PersonaRepository from '../PersonaRepository'
-import * as schema from '../../schema'
-import { Asset, NewAsset, NewPersona } from '../../../types'
 
 describe('Database persona repository tests', (): void => {
   let client: PGlite
@@ -185,7 +186,9 @@ describe('Database persona repository tests', (): void => {
 
     await personaRepository.delete(savedPersona.id)
 
-    await expect(personaRepository.findById(savedPersona.id)).rejects.toThrowError(`No persona found for id: ${savedPersona.id}`)
+    await expect(personaRepository.findById(savedPersona.id)).rejects.toThrowError(
+      `No persona found for id: ${savedPersona.id}`,
+    )
   })
 
   it('Should update persona in database', async (): Promise<void> => {
@@ -249,7 +252,9 @@ describe('Database persona repository tests', (): void => {
       bodyImage: savedPersona.bodyImage!.id,
     }
 
-    await expect(personaRepository.update(savedPersona.id, updatedPersona)).rejects.toThrowError(`No asset found for id: ${unknownImageId}`)
+    await expect(personaRepository.update(savedPersona.id, updatedPersona)).rejects.toThrowError(
+      `No asset found for id: ${unknownImageId}`,
+    )
   })
 
   it('Should throw error when updating persona with invalid body image id', async (): Promise<void> => {
@@ -272,6 +277,8 @@ describe('Database persona repository tests', (): void => {
       bodyImage: unknownImageId,
     }
 
-    await expect(personaRepository.update(savedPersona.id, updatedPersona)).rejects.toThrowError(`No asset found for id: ${unknownImageId}`)
+    await expect(personaRepository.update(savedPersona.id, updatedPersona)).rejects.toThrowError(
+      `No asset found for id: ${unknownImageId}`,
+    )
   })
 })

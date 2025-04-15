@@ -48,11 +48,21 @@ runs:
       shell: bash
       run: pnpm install
       
+    - name: Generate models
+      id: generate-models
+      shell: bash
+      run: pnpm run generate:models
+
+    - name: Build libs
+      id: build-libs
+      shell: bash
+      run: pnpm run build:clean
+
     - name: Run tests
       id: tests
       shell: bash
       run: pnpm run test
-      
+
     - name: Set test status
       id: test-status
       if: always()

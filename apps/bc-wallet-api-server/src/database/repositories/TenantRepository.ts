@@ -1,6 +1,5 @@
 import { eq, inArray } from 'drizzle-orm'
 import { Service } from 'typedi'
-
 import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
 import { tenants, tenantsToUsers, users } from '../schema'
@@ -9,11 +8,11 @@ import UserRepository from './UserRepository'
 
 @Service()
 class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
-  constructor(
+  public constructor(
     private readonly databaseService: DatabaseService,
     private readonly userRepository: UserRepository) {}
 
-  async create(newTenant: NewTenant): Promise<Tenant> {
+  public async create(newTenant: NewTenant): Promise<Tenant> {
     let usersResult: User[] = []
     const connection = await this.databaseService.getConnection()
     return connection.transaction(async (tx): Promise<Tenant> => {
@@ -52,12 +51,12 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
     })
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.findById(id)
     await (await this.databaseService.getConnection()).delete(tenants).where(eq(tenants.id, id))
   }
 
-  async update(id: string, newTenant: NewTenant): Promise<Tenant> {
+  public async update(id: string, newTenant: NewTenant): Promise<Tenant> {
     await this.findById(id)
 
     let usersResult: User[] = []
@@ -101,7 +100,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
     })
   }
 
-  async findById(id: string): Promise<Tenant> {
+  public async findById(id: string): Promise<Tenant> {
     const prepared = (await this.databaseService.getConnection()).query.tenants
       .findFirst({
         where: eq(tenants.id, id),
@@ -123,7 +122,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
     }
   }
 
-  async findAll(): Promise<Tenant[]> {
+  public async findAll(): Promise<Tenant[]> {
     const connection = await this.databaseService.getConnection()
     const tenants = await connection.query.tenants.findMany()
     const tenantIds = tenants.map((s: any) => s.id)

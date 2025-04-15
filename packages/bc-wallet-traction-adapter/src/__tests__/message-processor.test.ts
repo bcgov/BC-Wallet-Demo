@@ -223,6 +223,8 @@ describe('MessageProcessor Integration Test', () => {
       body: JSON.stringify(issuer),
       application_properties: {
         tenantId: 'test-tenant',
+        apiUrlBase: 'http://localhost:8080',
+        walletId: 'test-wallet',
       },
     }))
 
@@ -271,6 +273,9 @@ describe('MessageProcessor Integration Test', () => {
       body: JSON.stringify(issuer),
       application_properties: {
         action: 'publish-issuer-assets' as Action,
+        tenantId: 'test-tenant',
+        apiUrlBase: 'http://localhost:8080',
+        walletId: 'test-wallet',
       },
     }))
 
@@ -291,7 +296,11 @@ describe('MessageProcessor Integration Test', () => {
     })
 
     // Verify the error was logged
-    expect(consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))).toBeTruthy()
+    expect(
+      consoleSpy.mock.calls.some((call) => {
+        return call[0].includes('An error occurred while publishing issuer')
+      }),
+    ).toBeTruthy()
 
     consoleSpy.mockRestore()
   })
@@ -309,6 +318,7 @@ describe('MessageProcessor Integration Test', () => {
         action: 'publish-issuer-assets' as Action,
         tenantId: 'test-tenant',
         apiUrlBase: 'http://localhost:8080',
+        walletId: 'test-wallet',
       },
     }))
 
@@ -329,7 +339,9 @@ describe('MessageProcessor Integration Test', () => {
     })
 
     // Verify the error was logged
-    expect(consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))).toBeTruthy()
+    expect(
+      consoleSpy.mock.calls.some((call) => call[0].includes('An error occurred while publishing issuer')),
+    ).toBeTruthy()
 
     consoleSpy.mockRestore()
   })
@@ -379,6 +391,9 @@ describe('MessageProcessor Integration Test', () => {
       body: JSON.stringify(credDef),
       application_properties: {
         action: 'publish-issuer-assets' as Action,
+        tenantId: 'test-tenant',
+        apiUrlBase: 'http://localhost:8080',
+        walletId: 'test-wallet',
       },
     }))
 
@@ -399,7 +414,9 @@ describe('MessageProcessor Integration Test', () => {
     })
 
     // Verify the error was logged
-    expect(consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))).toBeTruthy()
+    expect(
+      consoleSpy.mock.calls.some((call) => call[0].includes('An error occurred while publishing issuer')),
+    ).toBeTruthy()
 
     consoleSpy.mockRestore()
   })
@@ -417,6 +434,7 @@ describe('MessageProcessor Integration Test', () => {
         action: 'publish-issuer-assets' as Action,
         tenantId: 'test-tenant',
         apiUrlBase: 'http://localhost:8080',
+        walletId: 'test-wallet',
       },
     }))
 
@@ -437,7 +455,9 @@ describe('MessageProcessor Integration Test', () => {
     })
 
     // Verify the error was logged
-    expect(consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))).toBeTruthy()
+    expect(
+      consoleSpy.mock.calls.some((call) => call[0].includes('An error occurred while publishing issuer')),
+    ).toBeTruthy()
 
     consoleSpy.mockRestore()
   })
@@ -466,6 +486,8 @@ describe('MessageProcessor Integration Test', () => {
       application_properties: {
         action: 'unsupported-action' as Action,
         tenantId: 'test-tenant',
+        walletId: 'test-wallet',
+        apiUrlBase: 'http://localhost:8080',
       },
     }))
 

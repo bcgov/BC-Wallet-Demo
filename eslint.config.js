@@ -4,6 +4,7 @@ module.exports = [
       '**/dist/**',
       '**/build/**',
       'apps/*/src/showcase-api/**',
+      'apps/bc-wallet-showcase-creator/**',
       '**/*.spec.ts',
       '**/node_modules/**',
       '**/.next/**',
