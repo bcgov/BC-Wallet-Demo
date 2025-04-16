@@ -187,19 +187,18 @@ jobs:
               --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
               --set showcase_creator.env.AUTH_SECRET=${{secrets.AUTH_SECRET}} \
               --set showcase_creator.env.AUTH_KEYCLOAK_SECRET=${{secrets.AUTH_KEYCLOAK_SECRET}} \
-              --set traction_adapter.env.DEFAULT_API_BASE_PATH=${{secrets.DEFAULT_API_BASE_PATH}} \
               --set traction_adapter.env.ENCRYPTION_KEY=${{secrets.ENCRYPTION_KEY}} \
               --set traction_adapter.env.FIXED_API_KEY=${{secrets.FIXED_API_KEY}} \
               --set traction_adapter.env.FIXED_WALLET_ID=${{secrets.FIXED_WALLET_ID}} \
               --set traction_adapter.env.FIXED_TENANT_ID=${{secrets.FIXED_TENANT_ID}} \
-              --set traction_adapter.env.DEFAULT_API_BASE_PATH=${{secrets.DEFAULT_API_BASE_PATH}} \
               --set rabbitmq.auth.password=${{secrets.RABBITMQ_PASSWORD}} \
               --set rabbitmq.auth.username=${{secrets.RABBITMQ_USERNAME}} \
-              --set rabbitmq.configuration="management.listener.port = 15672\nmanagement.listener.ssl = false\ndefault_user = ${{secrets.RABBITMQ_USERNAME}}\ndefault_pass = ${{secrets.RABBITMQ_PASSWORD}}" \
-              --set rabbitmq.extraConfiguration="default_user = ${{secrets.RABBITMQ_USERNAME}}\ndefault_pass = ${{secrets.RABBITMQ_PASSWORD}}" \
               --set demo_server.env.WEBHOOK_SECRET=${{secrets.WEBHOOK_SECRET}} \
               --set demo_server.env.API_KEY=${{secrets.API_KEY}} \
               --set demo_server.env.TENANT_ID=${{secrets.TENANT_ID}} \
+              --set demo_server.env.WALLET_KEY=${{secrets.WALLET_KEY}} \
+              --set api_server.env.ENCRYPTION_KEY=${{secrets.ENCRYPTION_KEY}} \
+              --set demo_web.env.REACT_APP_SNOWPLOW_ENDPOINT=${{secrets.REACT_APP_SNOWPLOW_ENDPOINT}} \
               . --wait
             
             # Create Certificate for TLS

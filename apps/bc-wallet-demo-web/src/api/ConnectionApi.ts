@@ -5,12 +5,14 @@ import { demoBackendApi } from './BaseUrl'
 export const createInvitation = (
   agentName?: string,
   goalCode?: string,
+  goal?: string,
   agentImageUrl?: string
 ): Promise<AxiosResponse> => {
   return demoBackendApi.post('/demo/connections/createInvite', {
     my_label: agentName,
     image_url: agentImageUrl,
     goal_code: goalCode,
+    goal
   })
 }
 

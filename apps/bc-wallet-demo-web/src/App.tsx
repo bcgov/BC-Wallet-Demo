@@ -18,7 +18,6 @@ import { fetchLastServerReset } from './slices/preferences/preferencesThunks'
 import { setMessage } from './slices/socket/socketSlice'
 import { AuthProvider } from './utils/AuthContext'
 import { basePath } from './utils/BasePath'
-import { PrivateRoute } from './utils/PrivateRoute'
 import { ThemeProvider } from './utils/ThemeContext'
 
 function App() {
@@ -77,15 +76,8 @@ function App() {
             {basePath !== '/' && <Route path="/" element={<Navigate to={basePath} />}></Route>}
             <Route path={`${basePath}/`} element={<LandingPage />} />
             <Route path={`${basePath}/:slug`} element={<OnboardingPage />} />
-            <Route path={`${basePath}/:slug/:personaSlug/presentations`} element={<DashboardPage />}/>
-            <Route
-              path={`${basePath}/uc/:slug`}
-              element={
-                <PrivateRoute>
-                  <UseCasePage />
-                </PrivateRoute>
-              }
-            />
+            <Route path={`${basePath}/:slug/:personaSlug/presentations`} element={<DashboardPage />} />
+            <Route path={`${basePath}/:slug/:personaSlug/presentations/:scenarioSlug`} element={<UseCasePage />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </AnimatePresence>

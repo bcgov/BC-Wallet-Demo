@@ -2,13 +2,13 @@ import React from 'react'
 
 import { motion } from 'framer-motion'
 
-import type { CredentialRequest } from '../../../slices/types'
+import type {CredentialRequest, RelyingParty} from '../../../slices/types'
 import { ActionCard } from './ActionCard'
 
 export interface Props {
   title: string
   description: string
-  entity: { name: string; icon?: string }
+  entity?: RelyingParty
   requestedCredentials?: CredentialRequest[]
 }
 

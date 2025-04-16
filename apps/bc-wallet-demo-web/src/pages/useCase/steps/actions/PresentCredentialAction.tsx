@@ -1,35 +1,33 @@
-import React, { useEffect, useState } from 'react'
-
+import React, {useEffect, useRef, useState} from 'react'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
-
-import { ActionCTA } from '../../../components/ActionCTA'
-import { fadeX } from '../../../FramerAnimations'
-import { useAppDispatch } from '../../../hooks/hooks'
-import { useConnection } from '../../../slices/connection/connectionSelectors'
-import { createDeepProof, createProof, deleteProofById, fetchProofById } from '../../../slices/proof/proofThunks'
-import { useSocket } from '../../../slices/socket/socketSelector'
-import type { CredentialRequest, UseCaseScreen } from '../../../slices/types'
-import { FailedRequestModal } from '../../onboarding/components/FailedRequestModal'
-import { ProofAttributesCard } from '../components/ProofAttributesCard'
-import { StepInfo } from '../components/StepInfo'
+import { ActionCTA } from '../../../../components/ActionCTA'
+import { useAppDispatch } from '../../../../hooks/hooks'
+import { useConnection } from '../../../../slices/connection/connectionSelectors'
+import { createDeepProof, createProof, deleteProofById, fetchProofById } from '../../../../slices/proof/proofThunks'
+import { useSocket } from '../../../../slices/socket/socketSelector'
+import { FailedRequestModal } from '../../../onboarding/components/FailedRequestModal'
+import { ProofAttributesCard } from '../../components/ProofAttributesCard'
+import type { CredentialRequest } from '../../../../slices/types'
 
 export interface Props {
   proof?: any
-  step: UseCaseScreen
+  title: string
   characterType?: string
   connectionId: string
   requestedCredentials: CredentialRequest[]
   entityName: string
+  requestOptions: { title: string, text: string }
 }
 
-export const StepProof: React.FC<Props> = ({
+export const PresentCredentialAction: React.FC<Props> = ({
   proof,
-  step,
+  title,
   connectionId,
   requestedCredentials,
   entityName,
   characterType,
+  requestOptions
 }) => {
   const dispatch = useAppDispatch()
   const proofReceived =
@@ -40,6 +38,7 @@ export const StepProof: React.FC<Props> = ({
   const [isFailedRequestModalOpen, setIsFailedRequestModalOpen] = useState(false)
   const showFailedRequestModal = () => setIsFailedRequestModalOpen(true)
   const closeFailedRequestModal = () => setIsFailedRequestModalOpen(false)
+  const proofRequestCreated = useRef(false);
 
   const { isDeepLink } = useConnection()
   const { message } = useSocket()
@@ -89,7 +88,7 @@ export const StepProof: React.FC<Props> = ({
           connectionId: connectionId,
           attributes: proofs,
           predicates: predicates,
-          requestOptions: { name: step.requestOptions?.title, comment: step.requestOptions?.text },
+          requestOptions: { name: requestOptions.title, comment: requestOptions.text },
         })
       )
     } else {
@@ -98,15 +97,16 @@ export const StepProof: React.FC<Props> = ({
           connectionId: connectionId,
           attributes: proofs,
           predicates: predicates,
-          requestOptions: { name: step.requestOptions?.title, comment: step.requestOptions?.text },
+          requestOptions: { name: requestOptions.title, comment: requestOptions.text },
         })
       )
     }
   }
 
   useEffect(() => {
-    if (!proof) {
+    if (!proof && !proofRequestCreated.current) {
       createProofRequest()
+      proofRequestCreated.current = true
     }
     return () => {
       dispatch({ type: 'clearProof' })
@@ -135,51 +135,51 @@ export const StepProof: React.FC<Props> = ({
 
   const sendNewRequest = () => {
     if (!proofReceived && proof) {
-      dispatch(deleteProofById(proof?.id))
+      dispatch(deleteProofById(proof.id))
       createProofRequest()
     }
+    proofRequestCreated.current = true
     closeFailedRequestModal()
   }
 
   return (
-    <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
-      <StepInfo title={step.title} description={step.text} />
-      <div className="flex flex-row m-auto w-full">
-        <div className="w-full lg:w-2/3 sxl:w-2/3 m-auto">
-          {proof && (
-            <ProofAttributesCard
-              entityName={entityName}
-              requestedCredentials={requestedCredentials}
-              proof={proof}
-              proofReceived={proofReceived}
-            />
-          )}
+      <motion.div>
+        <div className="flex flex-row m-auto w-full">
+          <div className="w-full lg:w-2/3 sxl:w-2/3 m-auto">
+            {proof && (
+                <ProofAttributesCard
+                    entityName={entityName}
+                    requestedCredentials={requestedCredentials}
+                    proof={proof}
+                    proofReceived={proofReceived}
+                />
+            )}
+          </div>
         </div>
-      </div>
-      <ActionCTA
-        isCompleted={proofReceived}
-        onFail={() => {
-          trackSelfDescribingEvent({
-            event: {
-              schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
-              data: {
-                action: 'cred_not_received',
-                path: characterType,
-                step: step.title,
-              },
-            },
-          })
-          showFailedRequestModal()
-        }}
-      />
-      {isFailedRequestModalOpen && (
-        <FailedRequestModal
-          key="credentialModal"
-          action={sendNewRequest}
-          close={closeFailedRequestModal}
-          proof={true}
+        <ActionCTA
+            isCompleted={proofReceived}
+            onFail={() => {
+              trackSelfDescribingEvent({
+                event: {
+                  schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+                  data: {
+                    action: 'cred_not_received',
+                    path: characterType,
+                    step: title,
+                  },
+                },
+              })
+              showFailedRequestModal()
+            }}
         />
-      )}
-    </motion.div>
+        {isFailedRequestModalOpen && (
+            <FailedRequestModal
+                key="credentialModal"
+                action={sendNewRequest}
+                close={closeFailedRequestModal}
+                proof={true}
+            />
+        )}
+      </motion.div>
   )
 }

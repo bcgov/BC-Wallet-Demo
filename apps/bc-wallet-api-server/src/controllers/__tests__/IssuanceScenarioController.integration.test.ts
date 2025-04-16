@@ -140,6 +140,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
       title: 'Additional Action',
       actionType: StepActionType.ARIES_OOB,
       text: 'Additional action text',
+      credentialDefinitionId: credentialDefinition.id,
       proofRequest: {
         attributes: {
           attribute1: {
@@ -154,14 +155,14 @@ describe('IssuanceScenarioController Integration Tests', () => {
         predicates: {
           predicate1: {
             name: 'example_name',
-            type: 'example_type',
-            value: 'example_value',
+            type: '>=',
+            value: 1,
             restrictions: ['restriction1', 'restriction2'],
           },
           predicate2: {
             name: 'example_name',
-            type: 'example_type',
-            value: 'example_value',
+            type: '>=',
+            value: 1,
             restrictions: ['restriction1', 'restriction2'],
           },
         },
