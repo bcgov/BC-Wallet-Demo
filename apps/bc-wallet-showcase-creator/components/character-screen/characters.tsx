@@ -10,7 +10,7 @@ import { Form } from '@/components/ui/form'
 import { baseUrl, cn } from '@/lib/utils'
 import { characterSchema } from '@/schemas/character'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleAlert, EyeOff, Monitor} from 'lucide-react'
+import { CircleAlert, EyeOff, Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { toast } from 'sonner'
@@ -102,10 +102,25 @@ export default function NewCharacterPage() {
         headshotImage: headshotImage || undefined,
         bodyImage: bodyImage || undefined,
       });
+
+      handleCreateNew();
+
+      form.reset({
+        name: '',
+        role: '',
+        description: '',
+        hidden: false,
+      });
+
+      setHeadshotImage(null);
+      setBodyImage(null);
+      setIsHeadshotImageEdited(false);
+      setIsBodyImageEdited(false);
+
     } catch (error) {
-      toast.error(t('character.error_character_creation_label'))
+      toast.error(t('character.error_character_creation_label'));
     }
-  }
+  };
 
   const handleDelete = async () => {
     setIsModalOpen(false)
@@ -171,8 +186,8 @@ export default function NewCharacterPage() {
                         key={persona.id}
                         className={cn("hover:bg-light-bg dark:hover:bg-dark-input-hover relative p-4 border-t border-b border-light-border-secondary dark:border-dark-border flex",
                           selectedPersonaId === persona.id
-                          ? 'flex-col items-center bg-gray-100 dark:bg-dark-bg border border-light-border-secondary'
-                          : 'flex-row items-center bg-white dark:bg-dark-bg-secondary'
+                            ? 'flex-col items-center bg-gray-100 dark:bg-dark-bg border border-light-border-secondary'
+                            : 'flex-row items-center bg-white dark:bg-dark-bg-secondary'
                         )}
                         onClick={() => handlePersonaSelect(persona)}
                       >
