@@ -28,24 +28,37 @@ class ServiceManager {
       const service = this.services.get(key)! as TractionService
 
       // Update token if provided
-      if (decodedToken) {
+      /*if (decodedToken) {  TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
         service.updateBearerToken(decodedToken)
       } else if (!service.hasBearerToken() && environment.traction.FIXED_API_KEY) {
         service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY))
+      }*/
+      // -> Alternative logic
+      if (!service.hasBearerToken() && environment.traction.FIXED_API_KEY) {
+        service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY), decodedToken)
+      } else if (!service.hasBearerToken() && decodedToken) {
+        service.updateBearerToken(decodedToken)
       }
       return service
     }
 
     const showcaseApiService = new ShowcaseApiService(showcaseApiUrlBase)
-    const tractionService = new TractionService(
-      tenantId,
-      tractionApiUrlBase,
-      showcaseApiService,
-      walletId,
-      decodedToken,
-    )
-    if (!decodedToken && environment.traction.FIXED_API_KEY) {
+    const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
+    /*
+    if (!decodedToken && environment.traction.FIXED_API_KEY) { TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
       tractionService.updateBearerToken(await tractionService.getTenantToken(environment.traction.FIXED_API_KEY))
+    }
+*/
+    // -> Alternative logic
+    if (environment.traction.FIXED_API_KEY) {
+      tractionService.updateBearerToken(
+        await tractionService.getTenantToken(environment.traction.FIXED_API_KEY),
+        decodedToken,
+      )
+    } else if (!tractionService.hasBearerToken() && decodedToken) {
+      tractionService.updateBearerToken(decodedToken)
+    } else {
+      return Promise.reject(Error('Access token for Traction is neither present nor could it be created'))
     }
 
     this.services.set(key, tractionService)

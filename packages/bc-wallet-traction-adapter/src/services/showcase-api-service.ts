@@ -1,6 +1,7 @@
 import {
   Configuration,
   type ConfigurationParameters,
+  CredentialAttributeRequest,
   CredentialDefinitionRequest,
   CredentialDefinitionsApi,
   CredentialSchemaRequest,
@@ -30,7 +31,7 @@ export class ShowcaseApiService extends ApiService {
       return Promise.reject(`No schema is was returned for id ${id}`)
     }
 
-    this.credentialDefinitionsApi.updateCredentialSchema({
+    void (await this.credentialDefinitionsApi.updateCredentialSchema({
       credentialSchema: id,
       credentialSchemaRequest: {
         name: existingSchema.credentialSchema.name,
@@ -38,8 +39,9 @@ export class ShowcaseApiService extends ApiService {
         identifierType: 'DID',
         identifier,
         source: existingSchema.credentialSchema.source,
+        attributes: existingSchema.credentialSchema.attributes as Array<CredentialAttributeRequest>,
       } satisfies CredentialSchemaRequest,
-    })
+    }))
   }
 
   public async updateCredentialDefIdentifier(id: string, identifier: string) {
@@ -49,7 +51,7 @@ export class ShowcaseApiService extends ApiService {
       return Promise.reject(`No definition is was returned for id ${id}`)
     }
 
-    this.credentialDefinitionsApi.updateCredentialDefinition({
+    void (await this.credentialDefinitionsApi.updateCredentialDefinition({
       definitionId: id,
       credentialDefinitionRequest: {
         name: existingDefinition.credentialDefinition.name,
@@ -59,7 +61,7 @@ export class ShowcaseApiService extends ApiService {
         type: existingDefinition.credentialDefinition.type,
         credentialSchema: existingDefinition.credentialDefinition.credentialSchema.id,
       } satisfies CredentialDefinitionRequest,
-    })
+    }))
   }
 
   public updateBearerToken(token: string): void {

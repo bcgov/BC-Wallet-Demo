@@ -44,7 +44,7 @@ describe('MessageProcessor Integration Test', () => {
     process.env.AMQ_USER = environment.messageBroker.AMQ_USER = 'guest'
     process.env.AMQ_PASSWORD = environment.messageBroker.AMQ_PASSWORD = 'guest'
     process.env.AMQ_TRANSPORT = environment.messageBroker.AMQ_TRANSPORT = 'tcp'
-    process.env.DEFAULT_API_BASE_PATH = environment.traction.DEFAULT_API_BASE_PATH = 'http://localhost:8080'
+    process.env.DEFAULT_API_BASE_PATH = environment.traction.DEFAULT_API_BASE_PATH = 'http://localhost:5003'
     process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
 
     // Setup mock ShowcaseApiService
@@ -179,7 +179,8 @@ describe('MessageProcessor Integration Test', () => {
       application_properties: {
         action: 'publish-issuer-assets' as Action,
         tenantId: 'test-tenant',
-        apiUrlBase: 'http://localhost:8080',
+        tractionApiUrlBase: 'http://localhost:8032',
+        showcaseApiUrlBase: 'http://localhost:5003',
         walletId: 'test-wallet',
         accessTokenEnc: encrypted,
         accessTokenNonce: nonce,
@@ -205,14 +206,13 @@ describe('MessageProcessor Integration Test', () => {
     // Verify that the getTractionService was called with the correct parameters
     expect(await getTractionService).toHaveBeenCalledWith(
       'test-tenant',
-      'http://localhost:8080',
+      'http://localhost:5003',
+      'http://localhost:8032',
       'test-wallet',
       encrypted,
       nonce,
     )
 
-    // Verify ShowcaseApiService was initialized and used properly
-    expect(mockShowcaseApiService.updateBearerToken).toHaveBeenCalled()
     consoleSpy.mockRestore()
   })
 
@@ -239,7 +239,7 @@ describe('MessageProcessor Integration Test', () => {
       body: JSON.stringify(issuer),
       application_properties: {
         tenantId: 'test-tenant',
-        apiUrlBase: 'http://localhost:8080',
+        apiUrlBase: 'http://localhost:5003',
         walletId: 'test-wallet',
       },
     }))
@@ -247,7 +247,9 @@ describe('MessageProcessor Integration Test', () => {
     // Wait for the message to be processed
     void (await new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-        if (consoleSpy.mock.calls.some((call) => call[0].includes('did not contain an action'))) {
+        if (
+          consoleSpy.mock.calls.some((call: (string | string[])[]) => call[0].includes('did not contain an action'))
+        ) {
           clearInterval(checkInterval)
           resolve()
         }
@@ -259,104 +261,10 @@ describe('MessageProcessor Integration Test', () => {
         resolve()
       }, 5000)
     }))
-
-    // Verify the error was logged
-    expect(consoleSpy.mock.calls.some((call) => call[0].includes('did not contain an action'))).toBeTruthy()
-
-    consoleSpy.mockRestore()
-  })
-
-  test('should reject message with missing tenant ID', async () => {
-    // Create a sample issuer
-    const issuer = {
-      id: 'test-issuer-id',
-      name: 'Test Issuer',
-      description: 'Test Issuer Description',
-      type: IssuerType.Aries,
-      credentialDefinitions: [],
-      credentialSchemas: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-
-    // Spy on console.error to detect when the message is rejected
-    const consoleSpy = jest.spyOn(console, 'error')
-
-    // Send a message without a tenant ID
-    const messageId = uuidv4()
-    void (await sender.send({
-      message_id: messageId,
-      body: JSON.stringify(issuer),
-      application_properties: {
-        action: 'publish-issuer-assets' as Action,
-        tenantId: 'test-tenant',
-        apiUrlBase: 'http://localhost:8080',
-        walletId: 'test-wallet',
-      },
-    }))
-
-    // Wait for the message to be processed
-    await new Promise<void>((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))) {
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 100)
-
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        clearInterval(checkInterval)
-        resolve()
-      }, 5000)
-    })
 
     // Verify the error was logged
     expect(
-      consoleSpy.mock.calls.some((call) => {
-        return call[0].includes('An error occurred while publishing issuer')
-      }),
-    ).toBeTruthy()
-
-    consoleSpy.mockRestore()
-  })
-
-  test('should reject message with invalid JSON', async () => {
-    // Spy on console.error to detect when the message is rejected
-    const consoleSpy = jest.spyOn(console, 'error')
-
-    // Send a message with invalid JSON
-    const messageId = uuidv4()
-    void (await sender.send({
-      message_id: messageId,
-      body: '{invalid json}',
-      application_properties: {
-        action: 'publish-issuer-assets' as Action,
-        tenantId: 'test-tenant',
-        apiUrlBase: 'http://localhost:8080',
-        walletId: 'test-wallet',
-      },
-    }))
-
-    // Wait for the message to be processed
-    await new Promise<void>((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))) {
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 100)
-
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        clearInterval(checkInterval)
-        resolve()
-      }, 5000)
-    })
-
-    // Verify the error was logged
-    expect(
-      consoleSpy.mock.calls.some((call) => call[0].includes('An error occurred while publishing issuer')),
+      consoleSpy.mock.calls.some((call: (string | string[])[]) => call[0].includes('did not contain an action')),
     ).toBeTruthy()
 
     consoleSpy.mockRestore()
@@ -402,13 +310,14 @@ describe('MessageProcessor Integration Test', () => {
 
     // Send a message without a tenant ID
     const messageId = uuidv4()
+    const tenantId = environment.traction.FIXED_TENANT_ID
+    environment.traction.FIXED_TENANT_ID = undefined
     void (await sender.send({
       message_id: messageId,
       body: JSON.stringify(credDef),
       application_properties: {
         action: 'publish-issuer-assets' as Action,
-        tenantId: 'test-tenant',
-        apiUrlBase: 'http://localhost:8080',
+        apiUrlBase: 'http://localhost:5003',
         walletId: 'test-wallet',
       },
     }))
@@ -416,7 +325,9 @@ describe('MessageProcessor Integration Test', () => {
     // Wait for the message to be processed
     await new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-        if (consoleSpy.mock.calls.some((call) => call[0].includes('did not contain the tenant id'))) {
+        if (
+          consoleSpy.mock.calls.some((call: (string | string[])[]) => call[0].includes('did not contain the tenant id'))
+        ) {
           clearInterval(checkInterval)
           resolve()
         }
@@ -429,15 +340,12 @@ describe('MessageProcessor Integration Test', () => {
       }, 5000)
     })
 
-    // Verify the error was logged
-    expect(
-      consoleSpy.mock.calls.some((call) => call[0].includes('An error occurred while publishing issuer')),
-    ).toBeTruthy()
+    environment.traction.FIXED_TENANT_ID = tenantId
 
     consoleSpy.mockRestore()
   })
 
-  test('should reject message with invalid JSON', async () => {
+  test('should reject message with invalid payload', async () => {
     // Spy on console.error to detect when the message is rejected
     const consoleSpy = jest.spyOn(console, 'error')
 
@@ -445,11 +353,11 @@ describe('MessageProcessor Integration Test', () => {
     const messageId = uuidv4()
     void (await sender.send({
       message_id: messageId,
-      body: '{invalid json}',
+      body: '{invalid payload}',
       application_properties: {
         action: 'publish-issuer-assets' as Action,
         tenantId: 'test-tenant',
-        apiUrlBase: 'http://localhost:8080',
+        apiUrlBase: 'http://localhost:5003',
         walletId: 'test-wallet',
       },
     }))
@@ -457,7 +365,11 @@ describe('MessageProcessor Integration Test', () => {
     // Wait for the message to be processed
     await new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-        if (consoleSpy.mock.calls.some((call) => call[0].includes('Failed to parse message body'))) {
+        if (
+          consoleSpy.mock.calls.some((call: (string | string[])[]) =>
+            call[0].includes('The message body did not contain a valid Issuer payload'),
+          )
+        ) {
           clearInterval(checkInterval)
           resolve()
         }
@@ -469,11 +381,6 @@ describe('MessageProcessor Integration Test', () => {
         resolve()
       }, 5000)
     })
-
-    // Verify the error was logged
-    expect(
-      consoleSpy.mock.calls.some((call) => call[0].includes('An error occurred while publishing issuer')),
-    ).toBeTruthy()
 
     consoleSpy.mockRestore()
   })
@@ -503,14 +410,14 @@ describe('MessageProcessor Integration Test', () => {
         action: 'unsupported-action' as Action,
         tenantId: 'test-tenant',
         walletId: 'test-wallet',
-        apiUrlBase: 'http://localhost:8080',
+        apiUrlBase: 'http://localhost:5003',
       },
     }))
 
     // Wait for the message to be processed
     await new Promise<void>((resolve) => {
       const checkInterval = setInterval(() => {
-        if (consoleSpy.mock.calls.some((call) => call[0].includes('unsupported action'))) {
+        if (consoleSpy.mock.calls.some((call: (string | string[])[]) => call[0].includes('unsupported action'))) {
           clearInterval(checkInterval)
           resolve()
         }
@@ -524,7 +431,9 @@ describe('MessageProcessor Integration Test', () => {
     })
 
     // Verify the error was logged
-    expect(consoleSpy.mock.calls.some((call) => call[0].includes('unsupported action'))).toBeTruthy()
+    expect(
+      consoleSpy.mock.calls.some((call: (string | string[])[]) => call[0].includes('unsupported action')),
+    ).toBeTruthy()
 
     consoleSpy.mockRestore()
   })

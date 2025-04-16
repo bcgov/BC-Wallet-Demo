@@ -4,3 +4,11 @@ export enum Topic {
 }
 
 export type Action = 'publish-issuer-assets'
+
+export type SendOptions = {
+  authHeader?: string
+  walletId?: string
+  showcaseApiUrlBase?: string
+  tractionApiUrlBase?: string
+  tractionTenantId?: string
+}

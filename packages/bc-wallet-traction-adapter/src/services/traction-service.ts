@@ -57,14 +57,14 @@ export class TractionService extends ApiService {
     private basePath: string = environment.traction.DEFAULT_API_BASE_PATH,
     private showcaseApiService: ShowcaseApiService,
     private walletId?: string,
-    private accessToken?: string,
+    //    private accessToken?: string, TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
   ) {
     super()
 
     // Create a shared configuration for this tenant
     this.configOptions = {
       basePath: this.basePath,
-      ...(this.accessToken && { apiKey: this.tokenCallback(this.accessToken) }), // Probably an error in the generated code, it's mapping apiKey not accessToken
+      //      ...(this.accessToken && { apiKey: this.tokenCallback(this.accessToken) }), // Probably an error in the generated code, it's mapping apiKey not accessToken
     }
     this.config = new Configuration(this.configOptions)
 
@@ -84,9 +84,9 @@ export class TractionService extends ApiService {
     return this.configOptions.apiKey !== undefined
   }
 
-  public updateBearerToken(token: string): void {
-    this.configOptions.apiKey = this.tokenCallback(token)
-    this.showcaseApiService.updateBearerToken(token)
+  public updateBearerToken(tractionToken: string, showcaseApiToken?: string): void {
+    this.configOptions.apiKey = this.tokenCallback(tractionToken)
+    this.showcaseApiService.updateBearerToken(showcaseApiToken ?? tractionToken)
   }
 
   private tokenCallback(token: string) {
@@ -145,7 +145,7 @@ export class TractionService extends ApiService {
       console.log('Schema creation transaction state:', result.txn.state)
     }
 
-    const schemaId = result?.sent?.schemaId
+    let schemaId = result?.sent?.schemaId
     if (!schemaId) {
       return Promise.reject(Error('No schema ID was returned after creation request'))
     }
@@ -231,7 +231,7 @@ export class TractionService extends ApiService {
       const credentialDefList = await this.credentialDefStorageApi.credentialDefinitionStorageGet()
       if (credentialDefList.results) {
         for (const result of credentialDefList.results) {
-          // Match based on schemaId and tag (version)
+          // Match based on schemaId and tag (version) TODO improve equality check in the future
           if (result.schemaId === schemaId && result.tag === dbCredentialDef.version) {
             return result.credDefId
           }
@@ -278,6 +278,7 @@ export class TractionService extends ApiService {
           if (!credentialSchema.identifier) {
             credentialSchema.identifierType = 'DID'
             credentialSchema.identifier = schemaId
+            void (await this.showcaseApiService.updateCredentialSchemaIdentifier(credentialSchema.id, schemaId))
           }
         }
         // Map internal ID (if used) or name+version to the ledger schema ID
@@ -327,6 +328,7 @@ export class TractionService extends ApiService {
           if (!credentialDef.identifier) {
             credentialDef.identifierType = 'DID'
             credentialDef.identifier = credDefId
+            void (await this.showcaseApiService.updateCredentialDefIdentifier(credentialDef.id, credDefId))
           }
         }
       }

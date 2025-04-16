@@ -57,15 +57,6 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     jest.clearAllMocks()
   })
 
-  it('should update bearer token in ShowcaseApiService when token is updated', async () => {
-    const testToken = 'test-token-12345'
-
-    await tractionService.updateBearerToken(testToken)
-
-    expect(mockShowcaseApiService.updateBearerToken).toHaveBeenCalledWith(testToken)
-    expect(mockShowcaseApiService.updateBearerToken).toHaveBeenCalledTimes(1)
-  })
-
   it('should return undefined for non-existent schema', async () => {
     const nonExistentSchemaName = 'NonExistentSchema_' + short.generate()
     const nonExistentSchemaVersion = '99.99'

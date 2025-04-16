@@ -946,7 +946,6 @@ paths:
     post:
       tags:
         - Approval
-        - Showcases
       summary: Approve a specific credential definition
       description: Marks a specific credential definition as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
       operationId: approveCredentialDefinition
@@ -1841,7 +1840,6 @@ paths:
     post:
       tags:
         - Approval
-        - Showcases
       summary: Approve a specific showcase
       description: Marks a specific showcase as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
       operationId: approveShowcase
