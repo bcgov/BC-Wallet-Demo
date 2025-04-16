@@ -140,7 +140,7 @@ export const PublishEdit = () => {
     defaultValues: {
       name: '',
       description: '',
-      status: 'PENDING',
+      status: 'ACTIVE',
       hidden: false,
       scenarios: [],
       personas: [],
@@ -154,7 +154,7 @@ export const PublishEdit = () => {
       name: showcase.name || '',
       description: showcase.description || '',
       personas: personas.map((persona) => persona.id) || [],
-      status: 'PENDING',
+      status: 'ACTIVE',
       tenantId,
     })
   }, [form, showcase])
