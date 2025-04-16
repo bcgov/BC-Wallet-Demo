@@ -357,7 +357,7 @@ export default function NewCharacterPage() {
                           <ButtonOutline type="submit" disabled={!form.formState.isValid}>
                             {t('action.save_label')}
                           </ButtonOutline>
-                          <ButtonOutline onClick={handleProceed} disabled={!selectedPersona} >
+                          <ButtonOutline onClick={handleProceed} disabled={!selectedPersona || selectedPersonaIds.length === 0} >
                             {t('action.next_label')}
                           </ButtonOutline>
 
