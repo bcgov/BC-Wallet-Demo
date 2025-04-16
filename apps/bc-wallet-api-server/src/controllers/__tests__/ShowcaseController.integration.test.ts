@@ -1,22 +1,10 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { ShowcaseRequest } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import ShowcaseController from '../ShowcaseController'
-import { Application } from 'express'
-import { ShowcaseStatus } from '../../types'
-import AssetRepository from '../../database/repositories/AssetRepository'
-import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
-import IssuerRepository from '../../database/repositories/IssuerRepository'
-import PersonaRepository from '../../database/repositories/PersonaRepository'
-import ScenarioRepository from '../../database/repositories/ScenarioRepository'
-import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
-import TenantRepository from '../../database/repositories/TenantRepository'
-import ShowcaseService from '../../services/ShowcaseService'
-import TenantService from '../../services/TenantService'
-import { ShowcaseRequest } from 'bc-wallet-openapi'
-import { PGlite } from '@electric-sql/pglite'
-import DatabaseService from '../../services/DatabaseService'
+
 import {
   createMockDatabaseService,
   createTestAsset,
@@ -26,7 +14,20 @@ import {
   createTestPersona,
   createTestTenant,
   setupTestDatabase,
-} from './dbTestData'
+} from '../../database/repositories/__tests__/dbTestData'
+import AssetRepository from '../../database/repositories/AssetRepository'
+import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
+import IssuerRepository from '../../database/repositories/IssuerRepository'
+import PersonaRepository from '../../database/repositories/PersonaRepository'
+import ScenarioRepository from '../../database/repositories/ScenarioRepository'
+import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
+import TenantRepository from '../../database/repositories/TenantRepository'
+import DatabaseService from '../../services/DatabaseService'
+import ShowcaseService from '../../services/ShowcaseService'
+import TenantService from '../../services/TenantService'
+import { ShowcaseStatus } from '../../types'
+import ShowcaseController from '../ShowcaseController'
 import { createApiFullTestData, createApiTestScenario } from './apiTestData'
 import supertest = require('supertest')
 import { MockSessionService } from './MockSessionService'
@@ -62,7 +63,7 @@ describe('ShowcaseController Integration Tests', () => {
 
     app = createExpressServer({
       controllers: [ShowcaseController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

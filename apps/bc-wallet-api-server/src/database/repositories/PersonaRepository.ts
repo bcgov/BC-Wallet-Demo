@@ -1,11 +1,12 @@
 import { eq } from 'drizzle-orm'
 import { Service } from 'typedi'
-import DatabaseService from '../../services/DatabaseService'
-import AssetRepository from './AssetRepository'
-import { generateSlug } from '../../utils/slug'
+
 import { NotFoundError } from '../../errors'
+import DatabaseService from '../../services/DatabaseService'
+import { NewPersona, Persona, RepositoryDefinition, Tx } from '../../types'
+import { generateSlug } from '../../utils/slug'
 import { personas } from '../schema'
-import { Persona, NewPersona, RepositoryDefinition } from '../../types'
+import AssetRepository from './AssetRepository'
 
 @Service()
 class PersonaRepository implements RepositoryDefinition<Persona, NewPersona> {
@@ -15,7 +16,9 @@ class PersonaRepository implements RepositoryDefinition<Persona, NewPersona> {
   ) {}
 
   async create(persona: NewPersona): Promise<Persona> {
-    const headshotImageResult = persona.headshotImage ? await this.assetRepository.findById(persona.headshotImage) : null
+    const headshotImageResult = persona.headshotImage
+      ? await this.assetRepository.findById(persona.headshotImage)
+      : null
     const bodyImageResult = persona.bodyImage ? await this.assetRepository.findById(persona.bodyImage) : null
     const connection = await this.databaseService.getConnection()
     const slug = await generateSlug({
@@ -51,7 +54,9 @@ class PersonaRepository implements RepositoryDefinition<Persona, NewPersona> {
 
   async update(id: string, persona: NewPersona): Promise<Persona> {
     await this.findById(id)
-    const headshotImageResult = persona.headshotImage ? await this.assetRepository.findById(persona.headshotImage) : null
+    const headshotImageResult = persona.headshotImage
+      ? await this.assetRepository.findById(persona.headshotImage)
+      : null
     const bodyImageResult = persona.bodyImage ? await this.assetRepository.findById(persona.bodyImage) : null
     const connection = await this.databaseService.getConnection()
     const slug = await generateSlug({
@@ -82,10 +87,8 @@ class PersonaRepository implements RepositoryDefinition<Persona, NewPersona> {
     }
   }
 
-  async findById(id: string): Promise<Persona> {
-    const result = await (
-      await this.databaseService.getConnection()
-    ).query.personas.findFirst({
+  async findById(id: string, tx?: Tx): Promise<Persona> {
+    const result = await (tx ?? (await this.databaseService.getConnection())).query.personas.findFirst({
       where: eq(personas.id, id),
       with: {
         headshotImage: true,

@@ -1,12 +1,13 @@
 import { eq, inArray } from 'drizzle-orm'
-import { Service } from 'typedi'
 import { BadRequestError } from 'routing-controllers'
-import DatabaseService from '../../services/DatabaseService'
-import CredentialDefinitionRepository from './CredentialDefinitionRepository'
-import AssetRepository from './AssetRepository'
+import { Service } from 'typedi'
+
 import { NotFoundError } from '../../errors'
+import DatabaseService from '../../services/DatabaseService'
+import { NewRelyingParty, RelyingParty, RepositoryDefinition } from '../../types'
 import { credentialDefinitions, relyingParties, relyingPartiesToCredentialDefinitions } from '../schema'
-import { RelyingParty, NewRelyingParty, RepositoryDefinition } from '../../types'
+import AssetRepository from './AssetRepository'
+import CredentialDefinitionRepository from './CredentialDefinitionRepository'
 
 @Service()
 class RelyingPartyRepository implements RepositoryDefinition<RelyingParty, NewRelyingParty> {
@@ -102,7 +103,9 @@ class RelyingPartyRepository implements RepositoryDefinition<RelyingParty, NewRe
         .where(eq(relyingParties.id, id))
         .returning()
 
-      await tx.delete(relyingPartiesToCredentialDefinitions).where(eq(relyingPartiesToCredentialDefinitions.relyingParty, id))
+      await tx
+        .delete(relyingPartiesToCredentialDefinitions)
+        .where(eq(relyingPartiesToCredentialDefinitions.relyingParty, id))
 
       const relyingPartiesToCredentialDefinitionsResult = await tx
         .insert(relyingPartiesToCredentialDefinitions)

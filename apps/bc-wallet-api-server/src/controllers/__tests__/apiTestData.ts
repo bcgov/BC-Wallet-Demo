@@ -12,6 +12,8 @@ import {
   StepRequest,
   StepType,
 } from 'bc-wallet-openapi'
+import Container from 'typedi'
+
 import {
   createTestAsset,
   createTestCredentialDefinition,
@@ -19,11 +21,10 @@ import {
   createTestIssuer,
   createTestPersona,
   createTestScenario,
-} from './dbTestData'
-import Container from 'typedi'
+} from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
-import PersonaRepository from '../../database/repositories/PersonaRepository'
 import IssuerRepository from '../../database/repositories/IssuerRepository'
+import PersonaRepository from '../../database/repositories/PersonaRepository'
 
 // Step Actions
 export function createApiAcceptAction(credentialDefinitionId: string): AcceptCredentialActionRequest {

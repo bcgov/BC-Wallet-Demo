@@ -22,8 +22,10 @@ import {
 
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert & {
-  identifierType?: IdentifierType | null
-  identifier?: string | null
+  // NewUser allows id to be preset
+  userName?: string | null
+  issuer?: string | null
+  clientId?: string | null
 }
 
 export type Asset = typeof assets.$inferSelect

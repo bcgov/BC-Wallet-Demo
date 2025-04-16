@@ -1,9 +1,10 @@
 import { eq } from 'drizzle-orm'
 import { Service } from 'typedi'
-import DatabaseService from '../../services/DatabaseService'
+
 import { NotFoundError } from '../../errors'
-import { assets } from '../schema'
+import DatabaseService from '../../services/DatabaseService'
 import { Asset, NewAsset, RepositoryDefinition } from '../../types'
+import { assets } from '../schema'
 
 @Service()
 class AssetRepository implements RepositoryDefinition<Asset, NewAsset> {
@@ -22,7 +23,11 @@ class AssetRepository implements RepositoryDefinition<Asset, NewAsset> {
 
   async update(id: string, asset: NewAsset): Promise<Asset> {
     await this.findById(id)
-    const [result] = await (await this.databaseService.getConnection()).update(assets).set(asset).where(eq(assets.id, id)).returning()
+    const [result] = await (await this.databaseService.getConnection())
+      .update(assets)
+      .set(asset)
+      .where(eq(assets.id, id))
+      .returning()
 
     return result
   }

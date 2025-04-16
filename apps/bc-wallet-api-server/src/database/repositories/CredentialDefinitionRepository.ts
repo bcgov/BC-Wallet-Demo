@@ -1,11 +1,12 @@
 import { and, eq, isNull } from 'drizzle-orm'
 import { Service } from 'typedi'
-import DatabaseService from '../../services/DatabaseService'
-import AssetRepository from './AssetRepository'
+
 import { NotFoundError } from '../../errors'
+import DatabaseService from '../../services/DatabaseService'
+import { CredentialDefinition, IdentifierType, NewCredentialDefinition, RepositoryDefinition, Tx } from '../../types'
 import { credentialDefinitions, credentialRepresentations, revocationInfo } from '../schema'
+import AssetRepository from './AssetRepository'
 import CredentialSchemaRepository from './CredentialSchemaRepository'
-import { CredentialDefinition, IdentifierType, NewCredentialDefinition, RepositoryDefinition } from '../../types'
 
 @Service()
 class CredentialDefinitionRepository implements RepositoryDefinition<CredentialDefinition, NewCredentialDefinition> {
@@ -139,10 +140,8 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     })
   }
 
-  async findById(id: string): Promise<CredentialDefinition> {
-    const result = await (
-      await this.databaseService.getConnection()
-    ).query.credentialDefinitions.findFirst({
+  async findById(id: string, tx?: Tx): Promise<CredentialDefinition> {
+    const result = await (tx ?? (await this.databaseService.getConnection())).query.credentialDefinitions.findFirst({
       where: eq(credentialDefinitions.id, id),
       with: {
         icon: true,
@@ -246,18 +245,19 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
 
   async approve(id: string, userId: string): Promise<CredentialDefinition> {
     const now = new Date()
-    await (
-      await this.databaseService.getConnection()
-    )
-      .update(credentialDefinitions)
-      .set({
-        approvedBy: userId,
-        approvedAt: now,
-        updatedAt: now, // Also update updatedAt timestamp
-      })
-      .where(eq(credentialDefinitions.id, id))
 
-    return this.findById(id)
+    const connection = await this.databaseService.getConnection()
+    return await connection.transaction(async (tx) => {
+      await tx
+        .update(credentialDefinitions)
+        .set({
+          approvedBy: userId,
+          approvedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(credentialDefinitions.id, id))
+      return await this.findById(id, tx)
+    })
   }
 }
 
