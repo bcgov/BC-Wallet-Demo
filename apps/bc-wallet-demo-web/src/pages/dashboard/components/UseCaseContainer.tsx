@@ -5,7 +5,7 @@ import { dashboardTitle, rowContainer } from '../../../FramerAnimations'
 import { basePath } from '../../../utils/BasePath'
 import { UseCaseItem } from './UseCaseItem'
 import { StepActionType } from 'bc-wallet-openapi';
-import type { Persona, Scenario, Showcase } from '../../../slices/types'
+import type { AriesOOBStepAction, Persona, Scenario, Showcase } from '../../../slices/types'
 
 export interface Props {
   showcase: Showcase
@@ -22,10 +22,10 @@ export const UseCaseContainer: FC<Props> = ({ showcase, currentPersona, complete
   }
 
   const renderUseCases = scenarios.map(scenario => {
-    const isCompleted = false // FIXME we need to implement this later. completedUseCaseSlugs.includes(item.id)
+    const isCompleted = completedUseCaseSlugs.includes(scenario.slug)
     const credentialDefinitions = scenario.steps.flatMap(step =>
         step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
-            action.credentialDefinitions ?? []
+            (action as AriesOOBStepAction).credentialDefinitions ?? []
         ) ?? []
     );
 

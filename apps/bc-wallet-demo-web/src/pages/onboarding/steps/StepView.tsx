@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import type { FC, ReactElement } from 'react'
 import React from 'react'
 import { StepActionType } from 'bc-wallet-openapi'
 import { motion } from 'framer-motion'
@@ -7,7 +7,7 @@ import { StepInformation } from '../components/StepInformation'
 import { SetupConnectionAction } from './actions/SetupConnectionAction'
 import { ChooseWalletAction } from './actions/ChooseWalletAction'
 import { AcceptCredentialAction } from './actions/AcceptCredentialAction'
-import type { StepAction, TextWithImage } from '../../../slices/types'
+import type { AcceptCredentialStepAction, StepAction, TextWithImage } from '../../../slices/types'
 
 export interface Props {
   title: string
@@ -15,19 +15,21 @@ export interface Props {
   textWithImage?: TextWithImage[]
   actions?: StepAction[]
   nextStep?: () => Promise<void>
+  skipGetCredential?: () => Promise<void>
   invitationUrl?: string
   connectionState?: string
   connectionId?: string
   issuerName?: string
 }
 
-export const StepView: React.FC<Props> = (props: Props): ReactElement => {
+export const StepView: FC<Props> = (props: Props): ReactElement => {
   const {
     title,
     text,
     textWithImage,
     actions = [],
     nextStep,
+    skipGetCredential,
     invitationUrl,
     connectionState,
     connectionId,
@@ -42,10 +44,10 @@ export const StepView: React.FC<Props> = (props: Props): ReactElement => {
               key={index}
               connectionId={connectionId}
               nextStep={nextStep}
+              skipGetCredential={skipGetCredential}
               invitationUrl={invitationUrl}
               issuerName={issuerName ?? 'Unknown'}
               newConnection
-              disableSkipConnection={false}
               connectionState={connectionState}
               //backgroundImage={} // FIXME we need to support a background image
             />
@@ -58,7 +60,7 @@ export const StepView: React.FC<Props> = (props: Props): ReactElement => {
           return <AcceptCredentialAction
               key={index}
               connectionId={connectionId ?? ''}
-              credentialDefinitions={action.credentialDefinitions ?? []}
+              credentialDefinitions={(action as AcceptCredentialStepAction).credentialDefinitions ?? []}
           />
         default:
           return <div />

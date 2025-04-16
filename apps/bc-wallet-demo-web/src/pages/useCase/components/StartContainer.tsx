@@ -16,13 +16,13 @@ import type {
   Persona,
   Showcase,
   Step,
-  Scenario
+  PresentationScenario
 } from '../../../slices/types'
 
 export interface Props {
   showcase: Showcase
   currentPersona: Persona
-  scenario: Scenario
+  scenario: PresentationScenario
   currentStep: Step
   requestedCredentials?: CredentialRequest[]
 }
@@ -89,7 +89,6 @@ export const StartContainer: FC<Props> = (props: Props) => {
           entity={scenario.relyingParty}
           requestedCredentials={requestedCredentials}
         />
-
         <div className="flex justify-between content-center bg-bcgovgrey dark:bg-bcgov-darkgrey ">
           <button onClick={leave}>
             <FiLogOut className="ml-2 inline h-8 cursor-pointer" />

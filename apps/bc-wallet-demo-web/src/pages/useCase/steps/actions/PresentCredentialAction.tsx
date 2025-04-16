@@ -1,14 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
-import { ActionCTA } from '../../../components/ActionCTA'
-import { useAppDispatch } from '../../../hooks/hooks'
-import { useConnection } from '../../../slices/connection/connectionSelectors'
-import { createDeepProof, createProof, deleteProofById, fetchProofById } from '../../../slices/proof/proofThunks'
-import { useSocket } from '../../../slices/socket/socketSelector'
-import { FailedRequestModal } from '../../onboarding/components/FailedRequestModal'
-import { ProofAttributesCard } from '../components/ProofAttributesCard'
-import type { CredentialRequest } from '../../../slices/types'
+import { ActionCTA } from '../../../../components/ActionCTA'
+import { useAppDispatch } from '../../../../hooks/hooks'
+import { useConnection } from '../../../../slices/connection/connectionSelectors'
+import { createDeepProof, createProof, deleteProofById, fetchProofById } from '../../../../slices/proof/proofThunks'
+import { useSocket } from '../../../../slices/socket/socketSelector'
+import { FailedRequestModal } from '../../../onboarding/components/FailedRequestModal'
+import { ProofAttributesCard } from '../../components/ProofAttributesCard'
+import type { CredentialRequest } from '../../../../slices/types'
 
 export interface Props {
   proof?: any
@@ -20,7 +20,7 @@ export interface Props {
   requestOptions: { title: string, text: string } // TODO interface
 }
 
-export const StepProof: React.FC<Props> = ({
+export const PresentCredentialAction: React.FC<Props> = ({
   proof,
   title,
   connectionId,
@@ -182,46 +182,4 @@ export const StepProof: React.FC<Props> = ({
         )}
       </motion.div>
   )
-
-  // return (
-  //   <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
-  //     <StepInfo title={step.title} description={step.text} />
-  //     <div className="flex flex-row m-auto w-full">
-  //       <div className="w-full lg:w-2/3 sxl:w-2/3 m-auto">
-  //         {proof && (
-  //           <ProofAttributesCard
-  //             entityName={entityName}
-  //             requestedCredentials={requestedCredentials}
-  //             proof={proof}
-  //             proofReceived={proofReceived}
-  //           />
-  //         )}
-  //       </div>
-  //     </div>
-  //     <ActionCTA
-  //       isCompleted={proofReceived}
-  //       onFail={() => {
-  //         trackSelfDescribingEvent({
-  //           event: {
-  //             schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
-  //             data: {
-  //               action: 'cred_not_received',
-  //               path: characterType,
-  //               step: step.title,
-  //             },
-  //           },
-  //         })
-  //         showFailedRequestModal()
-  //       }}
-  //     />
-  //     {isFailedRequestModalOpen && (
-  //       <FailedRequestModal
-  //         key="credentialModal"
-  //         action={sendNewRequest}
-  //         close={closeFailedRequestModal}
-  //         proof={true}
-  //       />
-  //     )}
-  //   </motion.div>
-  // )
 }

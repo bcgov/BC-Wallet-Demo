@@ -22,7 +22,14 @@ import { PersonaContent } from './components/PersonaContent'
 import { PickPersona } from './steps/PickPersona'
 import { SetupCompleted } from './steps/SetupCompleted'
 import { StepView } from './steps/StepView'
-import type { CredentialDefinition, Persona, Scenario, Step } from '../../slices/types'
+import type {
+  AcceptCredentialStepAction,
+  CredentialDefinition,
+  IssuanceScenario,
+  Persona,
+  Scenario,
+  Step
+} from '../../slices/types'
 
 export interface Props {
   scenarios: Scenario[]
@@ -64,7 +71,7 @@ export const OnboardingContainer: FC<Props> = ({
       return
     }
 
-    const credDefs = currentStep.actions.flatMap(action => action.credentialDefinitions ?? []);
+    const credDefs = currentStep.actions.flatMap(action => (action as AcceptCredentialStepAction).credentialDefinitions ?? []);
     setCredentialDefinitions(credDefs);
   }, [currentStep])
 
@@ -121,6 +128,36 @@ export const OnboardingContainer: FC<Props> = ({
     }
   }
 
+  const skipGetCredential = async (): Promise<void> => {
+    if (!currentStep || !currentScenario) {
+      return
+    }
+
+    const nextIndex = currentScenario.steps
+        .slice(currentStep.order - 1)
+        .findIndex(step =>
+            step.actions?.some(action => action.actionType === StepActionType.AcceptCredential)
+        )
+
+    if (!nextIndex || nextIndex === -1) {
+      return nextOnboardingPage()
+    }
+
+    const target = nextIndex + currentStep.order
+    const nextStep =  currentScenario.steps[target < currentScenario.steps.length ? target : currentStep.order]
+    trackSelfDescribingEvent({
+      event: {
+        schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+        data: {
+          action: 'skip get credential',
+          path: currentPersona?.role.toLowerCase(),
+          step: currentStep,
+        },
+      },
+    })
+    setOnboardingProgress(dispatch, nextStep)
+  }
+
   const getComponentToRender = (): ReactElement => {
     if (!currentStep || currentStep.order === 1) {
       return (
@@ -140,10 +177,11 @@ export const OnboardingContainer: FC<Props> = ({
               text={currentStep.description}
               actions={currentStep.actions}
               nextStep={nextOnboardingPage}
+              skipGetCredential={skipGetCredential}
               connectionState={connectionState}
               invitationUrl={invitationUrl}
               connectionId={connectionId}
-              issuerName={currentScenario?.issuer?.name}
+              issuerName={(currentScenario as IssuanceScenario)?.issuer.name}
           />
       )
     }

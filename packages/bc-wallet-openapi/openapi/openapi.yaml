@@ -2295,8 +2295,6 @@ components:
       type: object
       required:
         - id
-        - attributes
-        - predicates
       #        - createdAt FIXME This gives issues with the individual step types, they do not all have *Request variants yet
       #        - updatedAt
       properties:

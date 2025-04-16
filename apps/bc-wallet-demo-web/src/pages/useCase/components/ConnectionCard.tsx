@@ -1,7 +1,5 @@
 import React from 'react'
-
-import { prependApiUrl } from '../../../utils/Url'
-import {showcaseServerBaseUrl} from '../../../api/BaseUrl';
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
 
 export interface Props {
   icon?: string

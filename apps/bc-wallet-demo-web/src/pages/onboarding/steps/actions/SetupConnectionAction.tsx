@@ -18,10 +18,10 @@ import { isConnected } from '../../../../utils/Helpers'
 export interface Props {
   connectionId?: string
   nextStep?: () => Promise<void>
+  skipGetCredential?: () => Promise<void>
   invitationUrl?: string
   connectionState?: string
   newConnection?: boolean
-  disableSkipConnection?: boolean
   issuerName: string
   backgroundImage?: string
   onConnectionComplete?: () => void
@@ -30,11 +30,11 @@ export interface Props {
 export const SetupConnectionAction: React.FC<Props> = ({
   connectionId,
   nextStep,
+  skipGetCredential,
   invitationUrl,
   connectionState,
   newConnection,
   issuerName,
-  disableSkipConnection,
   backgroundImage,
   onConnectionComplete,
 }) => {
@@ -102,11 +102,11 @@ export const SetupConnectionAction: React.FC<Props> = ({
           </a>
         )}
       </>
-      {!disableSkipConnection && (
+      { skipGetCredential &&
         <div className="my-5">
-          {nextStep && <Button text="I Already Have my Credential" onClick={nextStep}></Button>}
+          <Button text="I Already Have my Credential" onClick={skipGetCredential}></Button>
         </div>
-      )}
+      }
     </motion.div>
   ) : (
     <motion.div variants={fade} key="ctaCompleted">
@@ -129,9 +129,11 @@ export const SetupConnectionAction: React.FC<Props> = ({
       <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4 dark:text-black">
         <p className="text-center mb-2">Scan the QR Code below with your digital wallet.</p>
         <div>{renderQRCode(true)}</div>
-        <div className="mt-5">
-          {nextStep && <Button text="I Already Have my Credential" onClick={nextStep}></Button>}
-        </div>
+        { skipGetCredential &&
+            <div className="mt-5">
+              <Button text="I Already Have my Credential" onClick={skipGetCredential}></Button>
+            </div>
+        }
       </div>
     </div>
   )

@@ -178,7 +178,7 @@ export interface Showcase {
   name: string
   slug: string
   description: string
-  scenarios: Scenario[]
+  scenarios: Array<IssuanceScenario | PresentationScenario>
 }
 
 export interface Scenario {
@@ -190,6 +190,14 @@ export interface Scenario {
   steps: Step[]
   issuer?: Issuer
   relyingParty?: RelyingParty
+}
+
+export interface IssuanceScenario extends Scenario {
+  issuer: Issuer
+}
+
+export interface PresentationScenario extends Scenario {
+  relyingParty: RelyingParty
 }
 
 export interface Persona {
@@ -206,15 +214,21 @@ export interface Step {
   description: string
   asset?: string
   order: number
-  actions?: StepAction[]
+  actions?: Array<StepAction | AriesOOBStepAction | AcceptCredentialStepAction>
 }
 
 export interface StepAction {
   actionType: StepActionType
   title: string
   text: string
-  credentialDefinitions?: CredentialDefinition[]
-  proofRequest?: AriesProofRequest
+}
+
+export interface AriesOOBStepAction extends StepAction {
+  credentialDefinitions: CredentialDefinition[]
+}
+
+export interface AcceptCredentialStepAction extends StepAction {
+  credentialDefinitions: CredentialDefinition[]
 }
 
 export interface Issuer {
@@ -227,7 +241,14 @@ export interface CredentialDefinition {
   version: string
   name: string
   icon?: string
+  schema: CredentialSchema
+  identifier: string
+  proofRequest?: AriesProofRequest
+}
+
+export interface CredentialSchema {
   attributes: CredentialDefinitionAttribute[]
+  name: string
   identifier: string
 }
 

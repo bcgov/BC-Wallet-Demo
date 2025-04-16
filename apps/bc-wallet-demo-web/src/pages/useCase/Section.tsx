@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BackButton } from '../../components/BackButton'
@@ -12,31 +12,21 @@ import { useAppDispatch } from '../../hooks/hooks'
 import { useCaseCompleted } from '../../slices/preferences/preferencesSlice'
 import { nextStep, prevStep, resetStep } from '../../slices/useCases/useCasesSlice'
 import { basePath } from '../../utils/BasePath'
-import { isConnected, isCredIssued } from '../../utils/Helpers'
-import { EndContainer } from './components/EndContainer'
+import { isConnected } from '../../utils/Helpers'
 import { StartContainer } from './components/StartContainer'
 import { SideView } from './SideView'
-import { StepConnection } from './steps/StepConnection'
-import { StepEnd } from './steps/StepEnd'
 import { StepInformation } from './steps/StepInformation'
-import { StepProof } from './steps/StepProof'
+import { StepActionType } from 'bc-wallet-openapi'
+import { useUseCaseState } from '../../slices/useCases/useCasesSelectors'
+import { AriesOOBStepAction } from '../../slices/types'
 import type { ConnectionState } from '../../slices/connection/connectionSlice'
-import type { Persona, Showcase, UseCaseScreen, Scenario } from '../../slices/types'
-import {StepActionType} from 'bc-wallet-openapi';
-import {SetupConnectionAction} from '../onboarding/steps/actions/SetupConnectionAction';
-import {ChooseWalletAction} from '../onboarding/steps/actions/ChooseWalletAction';
-import {AcceptCredentialAction} from '../onboarding/steps/actions/AcceptCredentialAction';
-import {PickPersona} from '../onboarding/steps/PickPersona';
-import {SetupCompleted} from '../onboarding/steps/SetupCompleted';
-import {StepView} from '../onboarding/steps/StepView';
-import {useUseCaseState} from '../../slices/useCases/useCasesSelectors';
+import type { Persona, Showcase, PresentationScenario } from '../../slices/types'
 
 export interface Props {
   showcase: Showcase
   currentPersona: Persona
-  currentScenario: Scenario
+  currentScenario: PresentationScenario
   connection: ConnectionState
-  credentials: any[] // TODO any
   proof?: any
 }
 
@@ -46,13 +36,11 @@ export const Section: FC<Props> = (props: Props) => {
     currentPersona,
     currentScenario,
     connection,
-    credentials,
     proof
   } = props
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { stepCount, isLoading } = useUseCaseState()
-  const { slug } = useParams()
   const [isBackDisabled, setIsBackDisabled] = useState(false)
   const [isForwardDisabled, setIsForwardDisabled] = useState(false)
   const [leaveModal, setLeaveModal] = useState(false)
@@ -74,11 +62,6 @@ export const Section: FC<Props> = (props: Props) => {
 
   const isConnectionCompleted = isConnected(connection.state as string)
 
-  // const credentialsReceived = Object.values(credentials).every((x) => isCredIssued(x.state))
-
-
-
-
   const leave = () => {
     setIsExiting(true)
     trackSelfDescribingEvent({
@@ -86,7 +69,7 @@ export const Section: FC<Props> = (props: Props) => {
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'leave',
-          path: `${currentPersona?.role.toLowerCase()}_${slug}`,
+          path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
           step: currentStep.title,
         },
       },
@@ -101,7 +84,6 @@ export const Section: FC<Props> = (props: Props) => {
         (proof?.state as string) === 'presentation_received' ||
         (proof?.state as string) === 'verified' ||
         proof?.state === 'done'
-    console.log(`LOGGING PROOF CHANGE: ${proof?.state}, result ${result}`)
     setIsProofCompleted(result)
   }, [proof])
 
@@ -111,8 +93,8 @@ export const Section: FC<Props> = (props: Props) => {
   }, [stepCount])
 
   useEffect(() => {
-    if (completed && slug) {
-      dispatch(useCaseCompleted(slug))
+    if (completed && currentScenario.slug) {
+      dispatch(useCaseCompleted(currentScenario.slug))
       dispatch({ type: 'clearUseCase' })
       navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
       dispatch(resetStep())
@@ -121,13 +103,13 @@ export const Section: FC<Props> = (props: Props) => {
           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
           data: {
             action: 'usecase_completed',
-            path: `${currentPersona?.role.toLowerCase()}_${slug}`,
+            path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
             step: currentStep.title,
           },
         },
       })
     }
-  }, [completed, dispatch, slug])
+  }, [completed, dispatch, currentScenario])
 
   useEffect(() => {
     if (currentStep.actions?.some(action => action.actionType === StepActionType.SetupConnection)) {
@@ -156,7 +138,7 @@ export const Section: FC<Props> = (props: Props) => {
           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
           data: {
             action: 'next',
-            path: `${currentPersona?.role.toLowerCase()}_${slug}`,
+            path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
             step: currentStep.title,
           },
         },
@@ -185,7 +167,12 @@ export const Section: FC<Props> = (props: Props) => {
               currentPersona={currentPersona}
               scenario={currentScenario}
               currentStep={currentStep}
-              requestedCredentials={[]}//step.requestOptions?.requestedCredentials}
+              requestedCredentials={
+                currentScenario.steps.flatMap(step =>
+                    step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
+                        (action as AriesOOBStepAction).credentialDefinitions ?? []
+                    ) ?? [])
+              }
           />
       )
     } else {
@@ -196,7 +183,7 @@ export const Section: FC<Props> = (props: Props) => {
                   key={'sideView'}
                   steps={currentScenario.steps}
                   currentStep={currentStep.order}
-                  entity={currentScenario.relyingParty ?? { name: 'UNKNOWN' }}
+                  entity={currentScenario.relyingParty}
                   showLeaveModal={showLeaveModal}
               />
               <motion.div
@@ -230,7 +217,7 @@ export const Section: FC<Props> = (props: Props) => {
                             schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
                             data: {
                               action: 'back',
-                              path: `${currentPersona?.role.toLowerCase()}_${slug}`,
+                              path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
                               step: currentStep.title,
                             },
                           },
@@ -250,7 +237,7 @@ export const Section: FC<Props> = (props: Props) => {
                                 schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
                                 data: {
                                   action: 'next',
-                                  path: `${currentPersona?.role.toLowerCase()}_${slug}`,
+                                  path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
                                   step: currentStep.title,
                                 },
                               },
