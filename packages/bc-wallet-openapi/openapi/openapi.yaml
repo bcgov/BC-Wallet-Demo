@@ -2212,7 +2212,6 @@ components:
         mapping:
           ARIES_OOB: '#/components/schemas/AriesOOBAction'
           ACCEPT_CREDENTIAL: '#/components/schemas/AcceptCredentialAction'
-          SHARE_CREDENTIAL: '#/components/schemas/ShareCredentialAction'
           SETUP_CONNECTION: '#/components/schemas/SetupConnectionAction'
           CHOOSE_WALLET: '#/components/schemas/ChooseWalletAction'
           BUTTON: '#/components/schemas/ButtonAction'
@@ -2238,7 +2237,6 @@ components:
         mapping:
           ARIES_OOB: '#/components/schemas/AriesOOBActionRequest'
           ACCEPT_CREDENTIAL: '#/components/schemas/AcceptCredentialActionRequest'
-          SHARE_CREDENTIAL: '#/components/schemas/ShareCredentialActionRequest'
           SETUP_CONNECTION: '#/components/schemas/SetupConnectionActionRequest'
           CHOOSE_WALLET: '#/components/schemas/ChooseWalletActionRequest'
           BUTTON: '#/components/schemas/ButtonActionRequest'
@@ -2271,24 +2269,32 @@ components:
         - type: object
           required:
             - proofRequest
+            - credentialDefinitionId
           properties:
             proofRequest:
               $ref: '#/components/schemas/AriesProofRequest'
+            credentialDefinitionId:
+              type: string
+              description: Credential definition ID
+              example: 123e4567-e89b-12d3-a456-426614174456
     AriesOOBActionRequest:
       allOf:
         - $ref: '#/components/schemas/StepActionRequest'
         - type: object
           required:
             - proofRequest
+            - credentialDefinitionId
           properties:
             proofRequest:
               $ref: '#/components/schemas/AriesProofRequestRequest'
+            credentialDefinitionId:
+              type: string
+              description: Credential definition ID
+              example: 123e4567-e89b-12d3-a456-426614174456
     AriesProofRequest:
       type: object
       required:
         - id
-        - attributes
-        - predicates
       #        - createdAt FIXME This gives issues with the individual step types, they do not all have *Request variants yet
       #        - updatedAt
       properties:
@@ -2322,8 +2328,6 @@ components:
       type: object
       required:
         - id
-        - attributes
-        - predicates
       properties:
         attributes:
           type: object
@@ -2375,30 +2379,15 @@ components:
           description: Type of predicate (e.g., >=, <=, etc.)
           example: '>='
         value:
-          type: string
+          type: integer
           description: Value to compare against
-          example: '30'
+          example: 30
         restrictions:
           type: array
           items:
             type: string
           description: List of restrictions on the predicate
     AcceptCredentialAction:
-      allOf:
-        - $ref: '#/components/schemas/StepAction'
-        - type: object
-          required:
-            - credentialDefinitionId
-          properties:
-            credentialDefinitionId:
-              type: string
-              description: Credential definition ID
-              example: 123e4567-e89b-12d3-a456-426614174456
-            connectionId:
-              type: string
-              description: Connection ID
-              example: 341c384b-3313-41ba-96a7-4f07329cd6b5
-    ShareCredentialAction:
       allOf:
         - $ref: '#/components/schemas/StepAction'
         - type: object
@@ -2434,22 +2423,6 @@ components:
               example: 123e4567-e89b-12d3-a456-426614174456
 
     AcceptCredentialActionRequest:
-      allOf:
-        - $ref: '#/components/schemas/StepActionRequest'
-        - type: object
-          required:
-            - credentialDefinitionId
-          properties:
-            credentialDefinitionId:
-              type: string
-              description: Credential definition ID
-              example: 123e4567-e89b-12d3-a456-426614174456
-            connectionId:
-              type: string
-              description: Connection ID
-              example: 341c384b-3313-41ba-96a7-4f07329cd6b5
-
-    ShareCredentialActionRequest:
       allOf:
         - $ref: '#/components/schemas/StepActionRequest'
         - type: object
