@@ -16,7 +16,6 @@ class ApiService {
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
     const fullUrl = `${this.baseUrl}${url}`
     const session = await getSession();
-    // @ts-expect-error: accessToken is not typed
     const accessToken = session?.accessToken
 
     const options: RequestInit = {
