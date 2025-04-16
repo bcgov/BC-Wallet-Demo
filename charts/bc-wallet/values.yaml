@@ -23,10 +23,6 @@ api_server:
     ALLOW_METHODS: GET,POST,PUT,DELETE,OPTIONS
     ALLOW_HEADERS: Content-Type,Authorization,X-Requested-With,Cache-Control,Pragma,Expires
     ALLOW_CREDENTIALS: true
-    AMQ_HOST: bc-wallet-rabbitmq.default.svc.cluster.local
-    AMQ_PORT: 5672
-    AMQ_USER: guest
-    AMQ_TRANSPORT: tcp
   resources:
     limits:
       cpu: 200m
@@ -91,10 +87,6 @@ traction_adapter:
     APP_NAME: bc-wallet-traction-adapter
     LOG_LEVEL: debug
     NODE_PORT: 3000
-    AMQ_HOST: bc-wallet-rabbitmq.default.svc.cluster.local
-    AMQ_PORT: 5672
-    AMQ_USER: guest
-    AMQ_TRANSPORT: tcp
   resources:
     limits:
       cpu: 200m
@@ -205,7 +197,10 @@ demo_web:
   port: 80
   path: /
   env:
-    APP_NAME: bc-wallet-demo-web
+    REACT_APP_DEFAULT_SLUG: REACT_APP_DEFAULT_SLUG 
+    REACT_APP_HOST_BACKEND: https://bcshowcase-demo-server.dev.nborbit.ca
+    REACT_APP_BASE_ROUTE: /digital-trust/showcase
+    REACT_APP_SHOWCASE_BACKEND: https://bcshowcase-api.dev.nborbit.ca/
   resources:
     limits:
       cpu: 200m
@@ -261,18 +256,11 @@ demo_server:
   path: /
   env:
     APP_NAME: bc-wallet-demo-server
-    LOG_LEVEL: debug
-    TENANT_ID: "xyz"
-    API_KEY: "xyz"
-    TRACTION_URL: "https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca"
-    TRACTION_DID: "xyz"
-    BASE_ROUTE: "/digital-trust/showcase"
-    WEBHOOK_SECRET: "xyz"
-    STUDENT_VERSION: "1.6"
-    LAWYER_VERSION: "1.54"
-    PERSON_VERSION: "1.3"
-    BUSINESS_VERSION: "1.0.0"
-    NODE_ENV: "production"
+    TENANT_ID: TENANT_ID 
+    API_KEY: KEY 
+    TRACTION_URL: https://bcshowcase-traction.dev.nborbit.ca
+    BASE_ROUTE: /digital-trust/showcase
+    WEBHOOK_SECRET: WEBHOOK_SECRET
   resources:
     limits:
       cpu: 200m
@@ -385,8 +373,8 @@ postgresql:
 rabbitmq:
   enabled: true
   auth:
-    username: "guest"
-    password: ""
+    username: "bc_user"
+    password: "some_password"
     existingSecret: ""
     existingSecretKey: "rabbitmq-password"
     erlangCookie: ""
@@ -396,6 +384,11 @@ rabbitmq:
   configuration: |-
     management.listener.port = 15672
     management.listener.ssl = false
+    default_user = bc_user
+    default_pass = some_password
+  extraConfiguration: |-
+    default_user = bc_user
+    default_pass = some_password
   service:
     type: ClusterIP
     ports:
