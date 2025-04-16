@@ -160,6 +160,11 @@ export const Section: FC<Props> = (props: Props) => {
       return
     }
 
+    const requestedCredentials = currentScenario.steps.flatMap(step =>
+        step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
+            (action as AriesOOBStepAction).credentialDefinitions ?? []
+        ) ?? [])
+
     if (!currentStep || currentStep.order === 1) {
       return (
           <StartContainer
@@ -167,12 +172,7 @@ export const Section: FC<Props> = (props: Props) => {
               currentPersona={currentPersona}
               scenario={currentScenario}
               currentStep={currentStep}
-              requestedCredentials={
-                currentScenario.steps.flatMap(step =>
-                    step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
-                        (action as AriesOOBStepAction).credentialDefinitions ?? []
-                    ) ?? [])
-              }
+              requestedCredentials={requestedCredentials}
           />
       )
     } else {
@@ -185,6 +185,7 @@ export const Section: FC<Props> = (props: Props) => {
                   currentStep={currentStep.order}
                   entity={currentScenario.relyingParty}
                   showLeaveModal={showLeaveModal}
+                  requestedCredentials={requestedCredentials}
               />
               <motion.div
                   key={'mainContentDiv'}

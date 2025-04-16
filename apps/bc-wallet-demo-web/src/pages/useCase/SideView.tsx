@@ -6,19 +6,18 @@ import { fadeDelay } from '../../FramerAnimations'
 import { ConnectionCard } from './components/ConnectionCard'
 import { ProofCard } from './components/ProofCard'
 import { StepperCard } from './components/StepperCard'
-import type { RelyingParty, Step } from '../../slices/types'
+import type { CredentialDefinition, RelyingParty, Step } from '../../slices/types'
 
 export interface Props {
   steps: Step[]
   currentStep: number
   entity: RelyingParty
   showLeaveModal(): void
+  requestedCredentials?: CredentialDefinition[]
 }
 
 export const SideView: FC<Props> = (props: Props) => {
-  const { steps, currentStep, entity, showLeaveModal } = props
-  // const requestedCredentials = steps.find((step) => step.requestOptions?.requestedCredentials)?.requestOptions
-  //   ?.requestedCredentials
+  const { steps, currentStep, entity, showLeaveModal, requestedCredentials = [] } = props
 
   return (
     <motion.div
@@ -50,7 +49,7 @@ export const SideView: FC<Props> = (props: Props) => {
       className="flex flex-col lg:mx-6 dark:text-white w-auto lg:w-1/3"
     >
       <ConnectionCard icon={entity.logo} entity={entity.name} />
-      {/*{requestedCredentials && <ProofCard requestedItems={requestedCredentials} />}*/}
+      {requestedCredentials.length > 0 && <ProofCard requestedItems={requestedCredentials} />}
       <StepperCard steps={steps} currentStep={currentStep} />
       <motion.button
         onClick={showLeaveModal}
