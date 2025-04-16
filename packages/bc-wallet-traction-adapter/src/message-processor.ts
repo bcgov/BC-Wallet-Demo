@@ -79,7 +79,7 @@ export class MessageProcessor {
 
       const service = await getTractionService(
         headers.tractionTenantId ?? environment.traction.FIXED_TENANT_ID!,
-        headers.showcaseApiUrlBase ?? 'http://localhost:5003', // FIXME
+        headers.showcaseApiUrlBase ?? environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
         headers.tractionApiUrlBase,
         headers.walletId ?? environment.traction.FIXED_WALLET_ID!,
         headers.accessTokenEnc,

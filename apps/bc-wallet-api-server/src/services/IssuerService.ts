@@ -1,5 +1,5 @@
 import { AdapterClientApi } from 'bc-wallet-adapter-client-api'
-import { SendOptions } from 'bc-wallet-adapter-client-api/dist/types/adapter-backend'
+import { SendOptions } from 'bc-wallet-adapter-client-api'
 import { Inject, Service } from 'typedi'
 
 import IssuerRepository from '../database/repositories/IssuerRepository'

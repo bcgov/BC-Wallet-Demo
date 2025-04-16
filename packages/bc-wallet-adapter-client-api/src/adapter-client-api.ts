@@ -38,7 +38,7 @@ export class AdapterClientApi {
       await this.isInitComplete
 
       const { accessTokenEnc, accessTokenNonce } = this.encryptAuthHeader(options.authHeader)
-      delete options['authHeader'] // IMPORTANT!
+      delete options['authHeader'] // IMPORTANT! - authHeader (the Bearer token) should not be transmitted unencrypted.
 
       // Send the message
       this.sender.send({
