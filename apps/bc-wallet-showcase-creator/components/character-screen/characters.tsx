@@ -7,10 +7,10 @@ import StepHeader from '@/components/step-header'
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import ButtonOutline from '@/components/ui/button-outline'
 import { Form } from '@/components/ui/form'
-import { baseUrl } from '@/lib/utils'
+import { baseUrl, cn } from '@/lib/utils'
 import { characterSchema } from '@/schemas/character'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleAlert, EyeOff, Monitor } from 'lucide-react'
+import { CircleAlert, EyeOff, Monitor} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { toast } from 'sonner'
@@ -27,6 +27,7 @@ export default function NewCharacterPage() {
   const t = useTranslations()
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isProceeding, setIsProceeding] = useState(false)
 
   const {
     // State
@@ -40,17 +41,17 @@ export default function NewCharacterPage() {
     setIsBodyImageEdited,
     personasData,
     isLoading,
-    
+
     // Actions
     savePersona,
     deleteCurrentPersona,
     handlePersonaSelect,
     handleCreateNew,
     handleCancel,
-    
+
     // UI state
     personaState,
-    
+
     // Derived data
     selectedPersonaIds,
   } = usePersonaAdapter();
@@ -79,7 +80,6 @@ export default function NewCharacterPage() {
         { keepDefaultValues: false },
       )
     } else if (!selectedPersonaId) {
-      // Reset form when creating new
       form.reset(
         {
           name: '',
@@ -112,16 +112,35 @@ export default function NewCharacterPage() {
     await deleteCurrentPersona()
   }
 
-  const handleProceed = () => {
-    // save personas to showcase
-    if (selectedPersonaIds.length === 0) {
-      toast.error(t('character.error_no_characters_selected_label'))
-      return
-    }
+  const handleProceed = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) return;
 
-    toast.success(t('character.success_characters_selected_label'))
-    router.push('/showcases/create/onboarding')
-  }
+    setIsProceeding(true);
+    const formData = form.getValues();
+
+    try {
+      await handleFormSubmit(formData);
+      const updatedPersonaId = selectedPersona?.id;
+
+      if (!updatedPersonaId || !selectedPersonaIds.includes(updatedPersonaId)) {
+        toast.error(t('character.error_no_characters_selected_label'));
+        return;
+      }
+
+      toast.success(t('character.success_characters_selected_label'));
+
+      setTimeout(() => {
+        router.push('/showcases/create/onboarding');
+      }, 300);
+
+    } catch (error) {
+      toast.error(t('character.error_character_creation_label'));
+    } finally {
+      setIsProceeding(false);
+    }
+  };
+
 
   const onlyRecentlyCreated = (persona: Persona) => {
     return selectedPersonaIds.find((id: string) => id === persona.id)
@@ -150,11 +169,11 @@ export default function NewCharacterPage() {
                     personasData.personas.filter(onlyRecentlyCreated).map((persona: Persona) => (
                       <div
                         key={persona.id}
-                        className={`hover:bg-light-bg dark:hover:bg-dark-input-hover relative p-4 border-t border-b border-light-border-secondary dark:border-dark-border flex ${
+                        className={cn("hover:bg-light-bg dark:hover:bg-dark-input-hover relative p-4 border-t border-b border-light-border-secondary dark:border-dark-border flex",
                           selectedPersonaId === persona.id
-                            ? 'flex-col items-center bg-gray-100 dark:bg-dark-bg border border-light-border-secondary'
-                            : 'flex-row items-center bg-white dark:bg-dark-bg-secondary'
-                        }`}
+                          ? 'flex-col items-center bg-gray-100 dark:bg-dark-bg border border-light-border-secondary'
+                          : 'flex-row items-center bg-white dark:bg-dark-bg-secondary'
+                        )}
                         onClick={() => handlePersonaSelect(persona)}
                       >
                         {selectedPersonaId === persona.id && persona.hidden && (
@@ -323,9 +342,10 @@ export default function NewCharacterPage() {
                           <ButtonOutline type="submit" disabled={!form.formState.isValid}>
                             {t('action.save_label')}
                           </ButtonOutline>
-                          <ButtonOutline disabled={selectedPersonaIds.length === 0} onClick={handleProceed}>
+                          <ButtonOutline onClick={handleProceed} disabled={isProceeding || selectedPersonaIds.length === 0}>
                             {t('action.next_label')}
                           </ButtonOutline>
+
                         </div>
                       </div>
                     </form>

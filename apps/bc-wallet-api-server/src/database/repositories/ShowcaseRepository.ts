@@ -3,7 +3,7 @@ import { Service } from 'typedi'
 
 import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
-import { NewShowcase, Persona, RepositoryDefinition, Scenario, Showcase, Step } from '../../types'
+import { NewShowcase, Persona, RepositoryDefinition, Scenario, Showcase, Step, Tx } from '../../types'
 import { generateSlug } from '../../utils/slug'
 import { sortSteps } from '../../utils/sort'
 import {
@@ -44,7 +44,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       schema: showcases,
     })
 
-    return connection.transaction(async (tx): Promise<Showcase> => {
+    return connection.transaction(async (tx: Tx): Promise<Showcase> => {
       const [showcaseResult] = await tx
         .insert(showcases)
         .values({
@@ -54,7 +54,9 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         .returning()
 
       if (showcase.scenarios.length > 0) {
-        const scenarioPromises = showcase.scenarios.map(async (scenario) => this.scenarioRepository.findById(scenario))
+        const scenarioPromises = showcase.scenarios.map(async (scenario) =>
+          this.scenarioRepository.findById(scenario, tx),
+        )
         await Promise.all(scenarioPromises)
 
         const showcasesToScenariosResult = await tx
@@ -201,7 +203,9 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       }
 
       if (showcase.personas.length > 0) {
-        const personaPromises = showcase.personas.map(async (persona) => await this.personaRepository.findById(persona))
+        const personaPromises = showcase.personas.map(
+          async (persona) => await this.personaRepository.findById(persona, tx),
+        )
         await Promise.all(personaPromises)
 
         const showcasesToPersonasResult = await tx
@@ -284,7 +288,9 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       await tx.delete(showcasesToScenarios).where(eq(showcasesToScenarios.showcase, id))
 
       if (showcase.scenarios.length > 0) {
-        const scenarioPromises = showcase.scenarios.map(async (scenario) => this.scenarioRepository.findById(scenario))
+        const scenarioPromises = showcase.scenarios.map(async (scenario) =>
+          this.scenarioRepository.findById(scenario, tx),
+        )
         await Promise.all(scenarioPromises)
 
         const showcasesToScenariosResult =
@@ -432,7 +438,9 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       }
 
       if (showcase.personas.length > 0) {
-        const personaPromises = showcase.personas.map(async (persona) => await this.personaRepository.findById(persona))
+        const personaPromises = showcase.personas.map(
+          async (persona) => await this.personaRepository.findById(persona, tx),
+        )
         await Promise.all(personaPromises)
 
         const showcasesToPersonasResult = await tx
@@ -468,8 +476,8 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     })
   }
 
-  async findById(id: string): Promise<Showcase> {
-    const prepared = (await this.databaseService.getConnection()).query.showcases
+  async findById(id: string, tx?: Tx): Promise<Showcase> {
+    const prepared = (tx ?? (await this.databaseService.getConnection())).query.showcases
       .findFirst({
         where: eq(showcases.id, id),
         with: {
@@ -926,18 +934,18 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
 
   async approve(id: string, userId: string): Promise<Showcase> {
     const now = new Date()
-    await (
-      await this.databaseService.getConnection()
-    )
-      .update(showcases)
-      .set({
-        approvedBy: userId,
-        approvedAt: now,
-        updatedAt: now,
-      })
-      .where(eq(showcases.id, id))
-
-    return await this.findById(id)
+    const connection = await this.databaseService.getConnection()
+    return await connection.transaction(async (tx) => {
+      await tx
+        .update(showcases)
+        .set({
+          approvedBy: userId,
+          approvedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(showcases.id, id))
+      return await this.findById(id, tx)
+    })
   }
 }
 

@@ -1,9 +1,10 @@
 import { eq } from 'drizzle-orm'
 import { Service } from 'typedi'
-import DatabaseService from '../../services/DatabaseService'
+
 import { NotFoundError } from '../../errors'
-import { tenant } from '../schema'
+import DatabaseService from '../../services/DatabaseService'
 import { NewTenant, RepositoryDefinition, Tenant } from '../../types'
+import { tenant } from '../schema'
 
 @Service()
 class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {

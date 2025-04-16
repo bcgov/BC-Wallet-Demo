@@ -1,9 +1,10 @@
 import { eq } from 'drizzle-orm'
 import { Service } from 'typedi'
-import DatabaseService from '../../services/DatabaseService'
+
 import { NotFoundError } from '../../errors'
-import { credentialAttributes, credentialSchemas } from '../schema'
+import DatabaseService from '../../services/DatabaseService'
 import { CredentialSchema, NewCredentialAttribute, NewCredentialSchema, RepositoryDefinition } from '../../types'
+import { credentialAttributes, credentialSchemas } from '../schema'
 
 @Service()
 class CredentialSchemaRepository implements RepositoryDefinition<CredentialSchema, NewCredentialSchema> {
@@ -39,7 +40,11 @@ class CredentialSchemaRepository implements RepositoryDefinition<CredentialSchem
     await this.findById(id)
 
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<CredentialSchema> => {
-      const [credentialSchemaResult] = await tx.update(credentialSchemas).set(credentialSchema).where(eq(credentialSchemas.id, id)).returning()
+      const [credentialSchemaResult] = await tx
+        .update(credentialSchemas)
+        .set(credentialSchema)
+        .where(eq(credentialSchemas.id, id))
+        .returning()
 
       await tx.delete(credentialAttributes).where(eq(credentialAttributes.credentialSchema, id))
 

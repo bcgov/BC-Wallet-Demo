@@ -40,7 +40,7 @@ export class AdapterClientApi {
       const { accessTokenEnc, accessTokenNonce } = this.encryptAuthHeader(authHeader)
 
       // Send the message
-      const delivery = await this.sender.send({
+      await this.sender.send({
         body: this.payloadToJson(payload),
         application_properties: { action, accessTokenEnc, accessTokenNonce },
       })

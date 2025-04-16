@@ -4,19 +4,9 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
 
-import AssetRepository from '../../database/repositories/AssetRepository'
-import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import IssuerRepository from '../../database/repositories/IssuerRepository'
-import PersonaRepository from '../../database/repositories/PersonaRepository'
-import ScenarioRepository from '../../database/repositories/ScenarioRepository'
-import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
-import TenantRepository from '../../database/repositories/TenantRepository'
-import UserRepository from '../../database/repositories/UserRepository'
-import * as schema from '../../database/schema'
-import CredentialDefinitionService from '../../services/CredentialDefinitionService'
-import DatabaseService from '../../services/DatabaseService'
-import ShowcaseService from '../../services/ShowcaseService'
+import CredentialDefinitionService from '../../../services/CredentialDefinitionService'
+import DatabaseService from '../../../services/DatabaseService'
+import ShowcaseService from '../../../services/ShowcaseService'
 import {
   Asset,
   CredentialAttributeType,
@@ -37,7 +27,17 @@ import {
   StepType,
   Tenant,
   User,
-} from '../../types'
+} from '../../../types'
+import * as schema from '../../schema'
+import AssetRepository from '../AssetRepository'
+import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
+import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import IssuerRepository from '../IssuerRepository'
+import PersonaRepository from '../PersonaRepository'
+import ScenarioRepository from '../ScenarioRepository'
+import ShowcaseRepository from '../ShowcaseRepository'
+import TenantRepository from '../TenantRepository'
+import UserRepository from '../UserRepository'
 
 export async function setupTestDatabase(): Promise<{ client: PGlite; database: NodePgDatabase }> {
   const client = new PGlite()
@@ -186,6 +186,8 @@ export async function createTestUser(userName: string): Promise<User> {
   const userRepository = Container.get(UserRepository)
   const newUser: NewUser = {
     userName,
+    issuer: 'https://auth-server.example.com/auth/realms/BC',
+    clientId: 'showcase-tenantA',
   }
   return await userRepository.create(newUser)
 }

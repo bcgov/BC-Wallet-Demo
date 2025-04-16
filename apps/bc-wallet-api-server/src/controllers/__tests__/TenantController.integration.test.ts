@@ -1,19 +1,13 @@
 import 'reflect-metadata'
-import { createExpressServer, useContainer } from 'routing-controllers'
-import { Container } from 'typedi'
-import TenantController from '../TenantController'
-import { Application } from 'express'
-import TenantRepository from '../../database/repositories/TenantRepository'
-import TenantService from '../../services/TenantService'
-import { TenantRequest } from 'bc-wallet-openapi'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import * as schema from '../../database/schema'
+import { TenantRequest } from 'bc-wallet-openapi'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import DatabaseService from '../../services/DatabaseService'
-import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
-import ShowcaseService from '../../services/ShowcaseService'
+import { drizzle } from 'drizzle-orm/pglite'
+import { Application } from 'express'
+import { createExpressServer, useContainer } from 'routing-controllers'
+import { Container } from 'typedi'
+
 import {
   createTestAsset,
   createTestCredentialDefinition,
@@ -22,8 +16,15 @@ import {
   createTestPersona,
   createTestScenario,
   createTestTenant,
-} from './dbTestData'
+} from '../../database/repositories/__tests__/dbTestData'
+import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
+import TenantRepository from '../../database/repositories/TenantRepository'
+import * as schema from '../../database/schema'
+import DatabaseService from '../../services/DatabaseService'
+import ShowcaseService from '../../services/ShowcaseService'
+import TenantService from '../../services/TenantService'
 import { ShowcaseStatus } from '../../types'
+import TenantController from '../TenantController'
 import supertest = require('supertest')
 import { MockSessionService } from './MockSessionService'
 

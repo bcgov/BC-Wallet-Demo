@@ -1,17 +1,23 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { CredentialDefinitionRequest, CredentialType, IdentifierType } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import { CredentialDefinitionController } from '../CredentialDefinitionController'
-import CredentialDefinitionService from '../../services/CredentialDefinitionService'
+
+import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
-import AssetRepository from '../../database/repositories/AssetRepository'
-import { Application } from 'express'
-import { CredentialDefinitionRequest, CredentialType, IdentifierType } from 'bc-wallet-openapi'
-import { PGlite } from '@electric-sql/pglite'
+import CredentialDefinitionService from '../../services/CredentialDefinitionService'
 import DatabaseService from '../../services/DatabaseService'
+import { CredentialDefinitionController } from '../CredentialDefinitionController'
 import supertest = require('supertest')
-import { createMockDatabaseService, createTestAsset, createTestCredentialSchema, setupTestDatabase } from './dbTestData'
+import {
+  createMockDatabaseService,
+  createTestAsset,
+  createTestCredentialSchema,
+  setupTestDatabase,
+} from '../../database/repositories/__tests__/dbTestData'
 import { MockSessionService } from './MockSessionService'
 
 describe('CredentialDefinitionController Integration Tests', () => {
@@ -32,7 +38,7 @@ describe('CredentialDefinitionController Integration Tests', () => {
     Container.get(CredentialDefinitionService)
     app = createExpressServer({
       controllers: [CredentialDefinitionController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

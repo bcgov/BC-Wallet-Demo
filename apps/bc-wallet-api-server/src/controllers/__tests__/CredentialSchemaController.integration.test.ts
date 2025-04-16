@@ -1,12 +1,14 @@
 import 'reflect-metadata'
+import { PGlite } from '@electric-sql/pglite'
+import { CredentialAttributeType, CredentialSchemaRequest, IdentifierType, Source } from 'bc-wallet-openapi'
+import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
-import { CredentialSchemaController } from '../CredentialSchemaController'
-import { Application } from 'express'
-import { CredentialAttributeType, CredentialSchemaRequest, IdentifierType, Source } from 'bc-wallet-openapi'
-import { PGlite } from '@electric-sql/pglite'
+
+import { createMockDatabaseService, setupTestDatabase } from '../../database/repositories/__tests__/dbTestData'
 import DatabaseService from '../../services/DatabaseService'
-import { createMockDatabaseService, setupTestDatabase } from './dbTestData'
+import { CredentialSchemaController } from '../CredentialSchemaController'
+
 import supertest = require('supertest')
 
 describe('CredentialSchemaController Integration Tests', () => {
@@ -22,7 +24,7 @@ describe('CredentialSchemaController Integration Tests', () => {
     useContainer(Container)
     app = createExpressServer({
       controllers: [CredentialSchemaController],
-      authorizationChecker: () => true
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

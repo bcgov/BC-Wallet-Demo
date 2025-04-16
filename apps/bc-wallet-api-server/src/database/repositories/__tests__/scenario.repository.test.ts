@@ -1,18 +1,16 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
-import DatabaseService from '../../../services/DatabaseService'
-import ScenarioRepository from '../../../database/repositories/ScenarioRepository'
-import IssuerRepository from '../../../database/repositories/IssuerRepository'
-import CredentialDefinitionRepository from '../../../database/repositories/CredentialDefinitionRepository'
+
 import AssetRepository from '../../../database/repositories/AssetRepository'
-import PersonaRepository from '../PersonaRepository'
-import RelyingPartyRepository from '../RelyingPartyRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import CredentialDefinitionRepository from '../../../database/repositories/CredentialDefinitionRepository'
+import IssuerRepository from '../../../database/repositories/IssuerRepository'
+import ScenarioRepository from '../../../database/repositories/ScenarioRepository'
 import * as schema from '../../../database/schema'
+import DatabaseService from '../../../services/DatabaseService'
 import {
   AriesOOBAction,
   Asset,
@@ -45,6 +43,9 @@ import {
   StepActionType,
   StepType,
 } from '../../../types'
+import CredentialSchemaRepository from '../CredentialSchemaRepository'
+import PersonaRepository from '../PersonaRepository'
+import RelyingPartyRepository from '../RelyingPartyRepository'
 
 describe('Database scenario repository tests', (): void => {
   let client: PGlite
@@ -268,7 +269,9 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
     expect(savedIssuanceScenario.steps[0].actions![0].id).toBeDefined()
     expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
-    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(issuanceScenario.steps[0].actions![0].actionType)
+    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(
+      issuanceScenario.steps[0].actions![0].actionType,
+    )
     expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
     if (savedIssuanceScenario.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
       const action = savedIssuanceScenario.steps[0].actions![0] as AriesOOBAction
@@ -428,7 +431,9 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(1)
     expect(savedIssuanceScenario.steps[0].actions![0].id).toBeDefined()
     expect(savedIssuanceScenario.steps[0].actions![0].title).toEqual(issuanceScenario.steps[0].actions![0].title)
-    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(issuanceScenario.steps[0].actions![0].actionType)
+    expect(savedIssuanceScenario.steps[0].actions![0].actionType).toEqual(
+      issuanceScenario.steps[0].actions![0].actionType,
+    )
     expect(savedIssuanceScenario.steps[0].actions![0].text).toEqual(issuanceScenario.steps[0].actions![0].text)
 
     if (savedIssuanceScenario.steps[0].actions![0].actionType === StepActionType.ARIES_OOB) {
@@ -685,7 +690,9 @@ describe('Database scenario repository tests', (): void => {
       hidden: false,
     }
 
-    await expect(repository.create(issuanceScenario)).rejects.toThrowError(`No asset found for id: ${unknownBannerImageId}`)
+    await expect(repository.create(issuanceScenario)).rejects.toThrowError(
+      `No asset found for id: ${unknownBannerImageId}`,
+    )
   })
 
   it('Should throw error when saving scenario with duplicate step order', async (): Promise<void> => {
@@ -836,7 +843,9 @@ describe('Database scenario repository tests', (): void => {
       hidden: false,
     }
 
-    await expect(repository.create(issuanceScenario)).rejects.toThrowError(`No persona found for id: ${unknownPersonaId}`)
+    await expect(repository.create(issuanceScenario)).rejects.toThrowError(
+      `No persona found for id: ${unknownPersonaId}`,
+    )
   })
 
   it('Should throw error when saving scenario with no personas', async (): Promise<void> => {
@@ -1229,7 +1238,9 @@ describe('Database scenario repository tests', (): void => {
 
     await repository.delete(savedIssuanceScenario.id)
 
-    await expect(repository.findById(savedIssuanceScenario.id)).rejects.toThrowError(`No scenario found for id: ${savedIssuanceScenario.id}`)
+    await expect(repository.findById(savedIssuanceScenario.id)).rejects.toThrowError(
+      `No scenario found for id: ${savedIssuanceScenario.id}`,
+    )
   })
 
   it('Should update scenario in database', async (): Promise<void> => {
@@ -1422,9 +1433,15 @@ describe('Database scenario repository tests', (): void => {
     expect(updatedIssuanceScenarioResult.steps[0].type).toEqual(updatedIssuanceScenario.steps[0].type)
     expect(updatedIssuanceScenarioResult.steps[0].actions!.length).toEqual(2)
     expect(updatedIssuanceScenarioResult.steps[0].actions![0].id).toBeDefined()
-    expect(updatedIssuanceScenarioResult.steps[0].actions![0].title).toEqual(updatedIssuanceScenario.steps[0].actions![0].title)
-    expect(updatedIssuanceScenarioResult.steps[0].actions![0].actionType).toEqual(updatedIssuanceScenario.steps[0].actions![0].actionType)
-    expect(updatedIssuanceScenarioResult.steps[0].actions![0].text).toEqual(updatedIssuanceScenario.steps[0].actions![0].text)
+    expect(updatedIssuanceScenarioResult.steps[0].actions![0].title).toEqual(
+      updatedIssuanceScenario.steps[0].actions![0].title,
+    )
+    expect(updatedIssuanceScenarioResult.steps[0].actions![0].actionType).toEqual(
+      updatedIssuanceScenario.steps[0].actions![0].actionType,
+    )
+    expect(updatedIssuanceScenarioResult.steps[0].actions![0].text).toEqual(
+      updatedIssuanceScenario.steps[0].actions![0].text,
+    )
     expect(updatedIssuanceScenarioResult.steps[0].asset).not.toBeNull()
     expect(updatedIssuanceScenarioResult.steps[0].asset!.mediaType).toEqual(asset.mediaType)
     expect(updatedIssuanceScenarioResult.steps[0].asset!.fileName).toEqual(asset.fileName)
@@ -1566,7 +1583,9 @@ describe('Database scenario repository tests', (): void => {
       bannerImage: null,
     }
 
-    await expect(repository.update(savedIssuanceScenario.id, updatedIssuanceScenario)).rejects.toThrowError(`At least one step is required`)
+    await expect(repository.update(savedIssuanceScenario.id, updatedIssuanceScenario)).rejects.toThrowError(
+      `At least one step is required`,
+    )
   })
 
   it('Should throw error when updating scenario with invalid issuer id', async (): Promise<void> => {
@@ -2079,7 +2098,9 @@ describe('Database scenario repository tests', (): void => {
       bannerImage: null,
     }
 
-    await expect(repository.update(savedIssuanceScenario.id, updatedIssuanceScenario)).rejects.toThrowError(`At least one persona is required`)
+    await expect(repository.update(savedIssuanceScenario.id, updatedIssuanceScenario)).rejects.toThrowError(
+      `At least one persona is required`,
+    )
   })
 
   it('Should add scenario step to database', async (): Promise<void> => {
@@ -2795,7 +2816,11 @@ describe('Database scenario repository tests', (): void => {
       ],
       asset: savedIssuanceScenario.steps[0].asset!.id,
     }
-    const updatedStepResult = await repository.updateStep(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, updatedStep)
+    const updatedStepResult = await repository.updateStep(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      updatedStep,
+    )
 
     expect(updatedStepResult).toBeDefined()
     expect(updatedStepResult.title).toEqual(updatedStep.title)
@@ -2888,7 +2913,9 @@ describe('Database scenario repository tests', (): void => {
       asset: savedIssuanceScenario.steps[0].asset!.id,
     }
 
-    await expect(repository.updateStep(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, updatedStep)).resolves.toEqual({
+    await expect(
+      repository.updateStep(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, updatedStep),
+    ).resolves.toEqual({
       asset: {
         content: expect.any(Buffer),
         createdAt: expect.any(Date),
@@ -2995,7 +3022,11 @@ describe('Database scenario repository tests', (): void => {
         },
       },
     }
-    const savedStepAction = await repository.createStepAction(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, action)
+    const savedStepAction = await repository.createStepAction(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      action,
+    )
     expect(savedStepAction).toBeDefined()
 
     const fromDb = await repository.findById(savedIssuanceScenario.id)
@@ -3289,7 +3320,11 @@ describe('Database scenario repository tests', (): void => {
     expect(savedIssuanceScenario.steps[0].actions!).toBeDefined()
     expect(savedIssuanceScenario.steps[0].actions!.length).toEqual(2)
 
-    await repository.deleteStepAction(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, savedIssuanceScenario.steps[0].actions![1].id)
+    await repository.deleteStepAction(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      savedIssuanceScenario.steps[0].actions![1].id,
+    )
     const fromDb = await repository.findById(savedIssuanceScenario.id)
 
     expect(fromDb.steps[0].actions).toBeDefined()
@@ -3585,7 +3620,11 @@ describe('Database scenario repository tests', (): void => {
       ],
     }
 
-    const updatedStepResult = await repository.updateStep(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, updatedStep)
+    const updatedStepResult = await repository.updateStep(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      updatedStep,
+    )
 
     expect(updatedStepResult).toBeDefined()
     expect(updatedStepResult.title).toEqual(updatedStep.title)
@@ -3670,7 +3709,11 @@ describe('Database scenario repository tests', (): void => {
       text: 'setup_text',
     }
 
-    const savedSetupAction = await repository.createStepAction(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, setupAction)
+    const savedSetupAction = await repository.createStepAction(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      setupAction,
+    )
 
     expect(savedSetupAction).toBeDefined()
     expect(savedSetupAction.actionType).toEqual(StepActionType.SETUP_CONNECTION)
@@ -3684,7 +3727,11 @@ describe('Database scenario repository tests', (): void => {
       text: 'wallet_text',
     }
 
-    const savedWalletAction = await repository.createStepAction(savedIssuanceScenario.id, savedIssuanceScenario.steps[0].id, walletAction)
+    const savedWalletAction = await repository.createStepAction(
+      savedIssuanceScenario.id,
+      savedIssuanceScenario.steps[0].id,
+      walletAction,
+    )
 
     expect(savedWalletAction).toBeDefined()
     expect(savedWalletAction.actionType).toEqual(StepActionType.CHOOSE_WALLET)
