@@ -128,34 +128,31 @@ export default function NewCharacterPage() {
   }
 
   const handleProceed = async () => {
-    const isValid = await form.trigger();
-    if (!isValid) return;
+    const hasUnsavedChanges = form.formState.isDirty && personaState === 'editing-persona';
+
+    if (hasUnsavedChanges) {
+      toast.warning(t('character.warning_unsaved_changes_label'));
+      return;
+    }
+
+    if (selectedPersonaIds.length === 0) {
+      toast.error(t('character.error_no_characters_created_label'));
+      return;
+    }
 
     setIsProceeding(true);
-    const formData = form.getValues();
 
     try {
-      await handleFormSubmit(formData);
-      const updatedPersonaId = selectedPersona?.id;
+      // Optional: persist personas to showcase if needed
+      // await updateShowcase({ personas: selectedPersonaIds });
 
-      if (!updatedPersonaId || !selectedPersonaIds.includes(updatedPersonaId)) {
-        toast.error(t('character.error_no_characters_selected_label'));
-        return;
-      }
-
-      toast.success(t('character.success_characters_selected_label'));
-
-      setTimeout(() => {
-        router.push('/showcases/create/onboarding');
-      }, 300);
-
+      router.push('/showcases/create/onboarding');
     } catch (error) {
-      toast.error(t('character.error_character_creation_label'));
+      toast.error(t('character.error_proceed_label'));
     } finally {
       setIsProceeding(false);
     }
   };
-
 
   const onlyRecentlyCreated = (persona: Persona) => {
     return selectedPersonaIds.find((id: string) => id === persona.id)
@@ -357,7 +354,7 @@ export default function NewCharacterPage() {
                           <ButtonOutline type="submit" disabled={!form.formState.isValid}>
                             {t('action.save_label')}
                           </ButtonOutline>
-                          <ButtonOutline onClick={handleProceed} disabled={!selectedPersona || selectedPersonaIds.length === 0} >
+                          <ButtonOutline onClick={handleProceed} disabled={isProceeding || selectedPersonaIds.length === 0}>
                             {t('action.next_label')}
                           </ButtonOutline>
 
