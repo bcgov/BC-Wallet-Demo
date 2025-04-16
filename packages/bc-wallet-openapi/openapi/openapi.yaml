@@ -2379,9 +2379,9 @@ components:
           description: Type of predicate (e.g., >=, <=, etc.)
           example: '>='
         value:
-          type: string
+          type: integer
           description: Value to compare against
-          example: '30'
+          example: 30
         restrictions:
           type: array
           items:

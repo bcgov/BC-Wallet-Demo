@@ -280,7 +280,7 @@ export type AriesRequestCredentialAttribute = {
 export type AriesRequestCredentialPredicate = {
   name?: string
   type?: string
-  value?: string
+  value?: number
   restrictions?: string[]
 }
 
