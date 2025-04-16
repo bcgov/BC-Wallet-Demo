@@ -70,7 +70,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
         .where(eq(tenants.id, id))
         .returning()
 
-      await tx.delete(tenantsToUsers).where(eq(tenantsToUsers.user, id))
+      await tx.delete(tenantsToUsers).where(eq(tenantsToUsers.tenant, id))
 
       if (newTenant.users && newTenant.users.length > 0) {
         const tenantPromises = newTenant.users.map(async (user) => this.userRepository.findById(user))
