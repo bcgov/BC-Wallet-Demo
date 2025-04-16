@@ -7,7 +7,7 @@ import StepHeader from '@/components/step-header'
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import ButtonOutline from '@/components/ui/button-outline'
 import { Form } from '@/components/ui/form'
-import { baseUrl } from '@/lib/utils'
+import { baseUrl, cn } from '@/lib/utils'
 import { characterSchema } from '@/schemas/character'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CircleAlert, EyeOff, Monitor} from 'lucide-react'
@@ -169,10 +169,11 @@ export default function NewCharacterPage() {
                     personasData.personas.filter(onlyRecentlyCreated).map((persona: Persona) => (
                       <div
                         key={persona.id}
-                        className={`hover:bg-light-bg dark:hover:bg-dark-input-hover relative p-4 border-t border-b border-light-border-secondary dark:border-dark-border flex ${selectedPersonaId === persona.id
+                        className={cn("hover:bg-light-bg dark:hover:bg-dark-input-hover relative p-4 border-t border-b border-light-border-secondary dark:border-dark-border flex",
+                          selectedPersonaId === persona.id
                           ? 'flex-col items-center bg-gray-100 dark:bg-dark-bg border border-light-border-secondary'
                           : 'flex-row items-center bg-white dark:bg-dark-bg-secondary'
-                          }`}
+                        )}
                         onClick={() => handlePersonaSelect(persona)}
                       >
                         {selectedPersonaId === persona.id && persona.hidden && (
