@@ -145,7 +145,7 @@ export const ShowcaseCreate = () => {
     defaultValues: {
       name: '',
       description: '',
-      status: 'PENDING',
+      status: 'ACTIVE',
       hidden: false,
       scenarios: [],
       credentialDefinitions: [],

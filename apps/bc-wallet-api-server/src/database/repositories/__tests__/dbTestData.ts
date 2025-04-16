@@ -195,7 +195,7 @@ export async function createTestUser(userName: string): Promise<User> {
 export async function createTestShowcase(
   tenantId: string,
   name: string,
-  status: ShowcaseStatus = ShowcaseStatus.PENDING,
+  status: ShowcaseStatus = ShowcaseStatus.ACTIVE,
   creatorUserId?: string,
 ): Promise<Showcase> {
   // Returning internal Showcase type after creation
