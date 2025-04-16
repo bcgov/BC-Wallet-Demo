@@ -108,7 +108,11 @@ describe('Database user repository tests', (): void => {
     expect(savedUser).toBeDefined()
 
     const newClientId = 'showcase-tenantB'
-    const updatedUser = await repository.update(savedUser.id, { ...savedUser, clientId: newClientId })
+    const updatedUser = await repository.update(savedUser.id, {
+      ...savedUser,
+      clientId: newClientId,
+      tenants: undefined,
+    })
 
     expect(updatedUser).toBeDefined()
     expect(updatedUser.clientId).toEqual(newClientId)

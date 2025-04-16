@@ -41,12 +41,12 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
           where: inArray(
             users.id,
             tenantsToUsersResult.map((item) => item.user).filter((id): id is string => id !== null),
-          )
+          ),
         })
       }
       return {
         ...tenantResult,
-        users: usersResult
+        users: usersResult,
       }
     })
   }

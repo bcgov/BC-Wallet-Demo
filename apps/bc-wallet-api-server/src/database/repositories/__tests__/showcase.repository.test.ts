@@ -269,6 +269,7 @@ describe('Database showcase repository tests', (): void => {
       id: expect.any(String),
       updatedAt: expect.any(Date),
       issuer: 'https://auth-server.example.com/auth/realms/BC',
+      tenants: [],
       clientId: 'showcase-tenantA',
     })
   })

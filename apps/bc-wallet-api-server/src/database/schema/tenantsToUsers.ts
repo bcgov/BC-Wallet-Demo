@@ -1,4 +1,4 @@
-import { index, pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { index, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { tenants } from './tenants'
 import { users } from './user'
@@ -6,10 +6,12 @@ import { users } from './user'
 export const tenantsToUsers = pgTable(
   'tenantsToUsers',
   {
-    tenant: uuid()
+    tenant: text()
       .references(() => tenants.id, { onDelete: 'cascade' })
       .notNull(),
-    user: uuid().references(() => users.id, { onDelete: 'cascade' }),
+    user: uuid()
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
