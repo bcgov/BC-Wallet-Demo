@@ -24,8 +24,8 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
         .returning()
 
       if (newTenant.users && newTenant.users.length > 0) {
-        const tenantPromises = newTenant.users.map(async (user) => this.userRepository.findById(user))
-        await Promise.all(tenantPromises)
+        const userPromises = newTenant.users.map(async (user) => this.userRepository.findById(user))
+        await Promise.all(userPromises)
 
         const tenantsToUsersResult = await tx
           .insert(tenantsToUsers)
