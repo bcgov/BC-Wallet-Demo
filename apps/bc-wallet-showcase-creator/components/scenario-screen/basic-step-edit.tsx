@@ -18,11 +18,16 @@ import { useCreatePresentation } from '@/hooks/use-presentation'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { BasicStepFormData, basicStepSchema } from '@/schemas/onboarding'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { PresentationScenarioRequest } from 'bc-wallet-openapi'
+import { PresentationScenarioRequest, StepType } from 'bc-wallet-openapi'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
 import { LocalFileUpload } from './local-file-upload'
 import { ErrorModal } from '../error-modal'
+import { DisplaySearchResults } from '../onboarding-screen/display-search-results'
+import { DisplayStepCredentials } from './display-step-credentials'
+import { useCredentialDefinitions } from '@/hooks/use-credentials'
+import { CredentialDefinition, CredentialDefinitionType } from '@/openapi-types'
+import { useCredentials } from '@/hooks/use-credentials-store'
 
 export const BasicStepEdit = () => {
   const t = useTranslations()
@@ -31,6 +36,9 @@ export const BasicStepEdit = () => {
   const { setScenarioIds } = useShowcaseStore()
   const { selectedScenario, updateStep, selectedStep, setStepState, deleteStep } =
     usePresentationAdapter()
+  const [searchResults, setSearchResults] = useState<typeof CredentialDefinition._type[]>([])
+  const { data: credentials } = useCredentialDefinitions();
+  const { setSelectedCredential, selectedCredential } = useCredentials()
   const { personaScenarios } = usePresentationCreation()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
@@ -82,20 +90,67 @@ export const BasicStepEdit = () => {
     return () => subscription.unsubscribe()
   }, [form, autoSave])
 
+  const searchCredential = (searchText: string) => {
+    setSearchResults([]);
+    if (!searchText) return;
+
+    const searchUpper = searchText.toUpperCase();
+
+    if (!Array.isArray(credentials?.credentialDefinitions)) {
+      console.error("Invalid credential data format");
+      return;
+    }
+
+    const results = credentials.credentialDefinitions.filter((cred: any) =>
+      cred.name.toUpperCase().includes(searchUpper)
+    );
+
+    setSearchResults(results);
+  };
+
+  const addCredential = (credentialId: string) => {
+    if (!currentStep) return;
+    const existing = currentStep.credentials || [];
+    if (!existing.includes(credentialId)) {
+      const updated = [...existing, credentialId];
+      updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
+    }
+    setSearchResults([]);
+  }
+
+  const removeCredential = (credentialId: string) => {
+    if (!currentStep) return;
+    const updated = (currentStep.credentials || []).filter(id => id !== credentialId);
+
+    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
+    setSelectedCredential(null);
+  }
+
   const onSubmit = async (data: BasicStepFormData) => {
     autoSave.flush()
 
     const mappedScenarios = Array.from(personaScenarios.values()).flatMap((scenarios) =>
       scenarios.map((scenario) => ({
         ...scenario,
-        steps: scenario.steps.map((step, index) => ({
-          ...step,
-          order: index,
-          asset: step.asset || undefined,
-        })),
+        steps: scenario.steps.map((step, index) => {
+          const { credentials, ...restStep } = step;
+    
+          return {
+            ...restStep,
+            order: index,
+            asset: step.asset || undefined,
+            actions:
+              step.type === StepType.Service
+                ? step.actions.map((action) => ({
+                    ...action,
+                    actionType: "ARIES_OOB",
+                    credentialDefinitionId: selectedCredential?.id,
+                  }))
+                : step.actions,
+          };
+        }),
       })),
-    )
-
+    )    
     const scenarioIds = []
 
     for (const scenario of mappedScenarios) {
@@ -198,6 +253,40 @@ export const BasicStepEdit = () => {
             )}
           </div>
 
+          {currentStep?.type == StepType.Service && (
+            <div className="space-y-4 h-screen">
+                <h4 className="text-xl font-bold">Request Options</h4>
+                <hr />
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-md font-bold">Search for a Credential:</p>
+                    <div className="flex flex-row justify-center items-center my-4">
+                      <div className="relative w-full">
+                        <input
+                          className="dark:text-dark-text dark:bg-dark-input border dark:border-dark-border rounded pl-2 pr-10 mb-2 w-full bg-light-bg"
+                          placeholder="ex. Student Card"
+                          type="text"
+                          onChange={(e) => searchCredential(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
+
+                  {currentStep && (
+                    <DisplayStepCredentials
+                      credentials={currentStep?.credentials as unknown as CredentialDefinitionType[]}
+                      selectedStep={selectedStep?.stepIndex || 0}
+                      localData={{}}
+                      selectedScenario={selectedStep?.scenarioIndex || 0}
+                      removeCredential={removeCredential}
+                    />
+                  )}
+                </div>
+            </div>
+          )}
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
             {/* <Link href="/publish"> */}
