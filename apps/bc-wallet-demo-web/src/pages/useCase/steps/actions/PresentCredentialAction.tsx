@@ -17,7 +17,7 @@ export interface Props {
   connectionId: string
   requestedCredentials: CredentialRequest[]
   entityName: string
-  requestOptions: { title: string, text: string } // TODO interface
+  requestOptions: { title: string, text: string }
 }
 
 export const PresentCredentialAction: React.FC<Props> = ({

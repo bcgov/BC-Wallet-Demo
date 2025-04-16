@@ -37,7 +37,7 @@ export const SetupConnectionAction: FC<Props> = (props: Props) => {
 
   useEffect(() => {
     if (!isCompleted || newConnection) {
-      dispatch(createInvitation({ entity: verifierName, goalCode: 'request-proof', goal: 'Verify credential' })) //aries.vc.verify.once
+      dispatch(createInvitation({ entity: verifierName, goalCode: 'request-proof', goal: 'Verify credential' }))
     }
   }, [])
 
