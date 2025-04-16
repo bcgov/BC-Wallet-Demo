@@ -1,7 +1,5 @@
 import {
   AriesProofRequest,
-  AriesRequestCredentialAttributes,
-  AriesRequestCredentialPredicates,
   ScenarioType,
   StepActionType
 } from 'bc-wallet-openapi'
