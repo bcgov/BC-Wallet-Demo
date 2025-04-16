@@ -369,7 +369,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
               const currentStep = steps[stepIndex]
 
               if (currentStep.type === StepType.SERVICE) {
-                state.stepState = 'editing-issue'
+                state.stepState = 'editing-basic'
               } else {
                 state.stepState = 'editing-basic'
               }
@@ -540,5 +540,6 @@ export const usePresentationCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
+    personaScenariosMap
   }
 }

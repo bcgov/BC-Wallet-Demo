@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl'
 
 interface ProofAttributeProps {
   index: number
-  attribute: string
+  attribute: Attribute
   availableAttributes: Attribute[]
   currentValue: string
   onAttributeChange: (index: number, value: string) => void
@@ -34,7 +34,6 @@ export const ProofAttribute = ({
           onValueChange={(value) => {
             onAttributeChange(index, value as any)
           }}
-          defaultValue={attribute}
         >
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
@@ -56,7 +55,7 @@ export const ProofAttribute = ({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Condition</label>
-        <Select value="none" onValueChange={(value) => onConditionTypeChange(index, value)}>
+        <Select defaultValue='none' onValueChange={(value) => onConditionTypeChange(index, value)}>
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
           </SelectTrigger>
