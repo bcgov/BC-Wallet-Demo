@@ -1,0 +1,22 @@
+{
+  "extends": "../tsconfig-base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationDir": "dist"
+  },
+  "references": [
+    {
+      "path": "../../packages/bc-wallet-openapi"
+    },
+    {
+      "path": "../../packages/bc-wallet-adapter-client-api"
+    }
+  ],
+  "exclude": [
+    "**/__tests__/**/*",
+    "**/dist/**/*",
+    "**/drizzle.config.ts"
+  ]
+}
