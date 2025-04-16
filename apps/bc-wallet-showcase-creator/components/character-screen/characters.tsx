@@ -143,9 +143,6 @@ export default function NewCharacterPage() {
     setIsProceeding(true);
 
     try {
-      // Optional: persist personas to showcase if needed
-      // await updateShowcase({ personas: selectedPersonaIds });
-
       router.push('/showcases/create/onboarding');
     } catch (error) {
       toast.error(t('character.error_proceed_label'));
@@ -354,7 +351,10 @@ export default function NewCharacterPage() {
                           <ButtonOutline type="submit" disabled={!form.formState.isValid}>
                             {t('action.save_label')}
                           </ButtonOutline>
-                          <ButtonOutline onClick={handleProceed} disabled={isProceeding || selectedPersonaIds.length === 0}>
+                          <ButtonOutline onClick={(e) => {
+                            e.preventDefault()
+                            handleProceed()
+                          }} disabled={isProceeding || selectedPersonaIds.length === 0}>
                             {t('action.next_label')}
                           </ButtonOutline>
 
