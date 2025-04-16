@@ -145,7 +145,7 @@ const handleStepClick = () => {
                         alt={selectedCredential.icon?.description || 'Credential icon'}
                         width={50}
                         height={50}
-                        className="rounded-full"
+                        className="rounded-full object-cover"
                       />
                       <div className="ml-4 flex-col">
                         <div className="font-semibold">{selectedCredential?.name}</div>

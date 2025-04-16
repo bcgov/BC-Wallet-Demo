@@ -66,6 +66,7 @@ export const CharacterInfo = () => {
                 width={100}
                 height={100}
                 alt="headshot"
+                className="object-cover"
                 src={`${showcaseJSON.personas[selectedCharacter].headshot_image}`}
               />
             )}
@@ -82,6 +83,7 @@ export const CharacterInfo = () => {
                 width={100}
                 height={100}
                 alt="body"
+                className="object-cover"
                 src={`${showcaseJSON.personas[selectedCharacter].body_image}`}
               />
             )}

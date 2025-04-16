@@ -94,7 +94,7 @@ const BannerImageUpload = ({
           {preview ? (
             <Image
               alt="preview"
-              className="p-3 w-3/4"
+              className="p-3 w-3/4 object-cover"
               src={preview}
               width={300}
               height={100}

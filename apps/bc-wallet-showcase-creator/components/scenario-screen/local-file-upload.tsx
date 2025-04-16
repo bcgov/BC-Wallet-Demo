@@ -98,7 +98,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
           {preview ? (
             <Image
               alt={`${text} preview`}
-              className="right-auto top-auto p-3 w-3/4"
+              className="right-auto top-auto p-3 w-3/4 object-cover"
               src={`${baseUrl}/assets/${preview}/file`}
             />
           ):(

@@ -93,7 +93,7 @@ export const DisplayStepCredentials = ({
                       alt={credentialData.name}
                       width={50}
                       height={50}
-                      className="rounded-full"
+                      className="rounded-full object-cover"
                     />
                   </div>
                   <div className="space-y-1 ml-4">

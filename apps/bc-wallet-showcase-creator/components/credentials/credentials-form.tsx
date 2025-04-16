@@ -97,7 +97,7 @@ export const CredentialsForm = () => {
 
       const credentialDefinitionPayload: z.infer<typeof CredentialDefinitionRequest> = {
         name: 'default',
-        version: formData.version || 'default_version',
+        version: formData.version || '1.0',
         credentialSchema: schemaId,
         type: CredentialType.Anoncred,
         icon: assetId,
@@ -111,7 +111,7 @@ export const CredentialsForm = () => {
       if (!credentialId) throw new Error('Failed to create credential')
 
       const issuerResponse = (await createIssuer({
-        name: 'dummy-issuer',
+        name: 'bc gov issuer',
         type: IssuerType.Aries,
         credentialDefinitions: [credentialId],
         credentialSchemas: [schemaId],
@@ -119,7 +119,7 @@ export const CredentialsForm = () => {
       })) as typeof IssuerResponse._type
 
       const relyingPartyResponse = (await createRelyingParty({
-        name: 'dummy-relying-party',
+        name: 'bc gov relying party',
         type: RelyingPartyType.Aries,
         credentialDefinitions: [credentialId],
         description: '',

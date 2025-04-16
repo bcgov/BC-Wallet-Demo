@@ -2,16 +2,13 @@ import { NoSelection } from "../credentials/no-selection";
 import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn, baseUrl } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import ButtonOutline from "../ui/button-outline";
-import apiClient from "@/lib/apiService";
-import { toast } from "sonner";
 import { CredentialDefinitionType } from "@/openapi-types";
-import { Control, Controller, Path } from "react-hook-form";
-import { FormControl } from "../ui/form";
+import { Control } from "react-hook-form";
 import { IssueStepFormData } from "@/schemas/onboarding";
 import { useUpdateCredentialSchema } from "@/hooks/use-credentials";
 import type { CredentialSchemaRequest, CredentialAttribute } from "bc-wallet-openapi";
@@ -142,7 +139,7 @@ export const DisplayAddedCredentials = ({
                     alt={credential?.icon?.description || 'default credential icon'}
                     width={50}
                     height={50}
-                    className="rounded-full"
+                    className="rounded-full object-cover"
                     unoptimized
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement
