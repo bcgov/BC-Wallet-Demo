@@ -89,7 +89,7 @@ classDiagram
     class AriesRequestCredentialPredicates {
         name: String
         type: String
-        value: String
+        value: int
         restrictions: List~String~
     }
     class StepType {
