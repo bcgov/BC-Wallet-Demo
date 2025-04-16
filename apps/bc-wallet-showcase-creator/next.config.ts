@@ -12,7 +12,10 @@ const nextConfig: NextConfig = {
         hostname: '*.dev.nborbit.ca',
       },
       {
+        protocol: 'http',
         hostname: 'localhost',
+        port: '3001',
+        pathname: '/**',
       },
     ],
     dangerouslyAllowSVG: true,
