@@ -19,6 +19,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return token
     },
+    async session({ session, token }) {
+      // @ts-expect-error: accessToken is not typed
+      session.accessToken = token.accessToken
+  
+      return session
+    }
   },
   session: {
     strategy: 'jwt',

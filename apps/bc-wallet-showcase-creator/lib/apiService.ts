@@ -1,27 +1,35 @@
+'use client'
+
 import { env } from "@/env";
+import { getSession } from "next-auth/react";
 
 class ApiService {
   private baseUrl: string
 
   public constructor(baseUrl: string) {
+    if (!baseUrl) {
+      throw new Error('API base URL is required');
+    }
     this.baseUrl = baseUrl;
   }
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
     const fullUrl = `${this.baseUrl}${url}`
+    const session = await getSession();
+    // @ts-expect-error: accessToken is not typed
+    const accessToken = session?.accessToken
+
     const options: RequestInit = {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsImlhdCI6MTY5MDgwNzA5MSwiZXhwIjoxNjkwODA3NDkxfQ.mocksignature1234567890abcdef`,
+        'Authorization': `Bearer ${accessToken}`,
       },
     }
 
     if (data && method !== 'GET') {
       options.body = JSON.stringify(data)
     }
-
-    console.log('Fetching URL:', fullUrl, 'Options:', options)
 
     try {
       const response = await fetch(fullUrl, options)
