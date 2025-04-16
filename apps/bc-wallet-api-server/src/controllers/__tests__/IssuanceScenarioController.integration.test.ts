@@ -140,6 +140,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
       title: 'Additional Action',
       actionType: StepActionType.ARIES_OOB,
       text: 'Additional action text',
+      credentialDefinitionId: credentialDefinition.id,
       proofRequest: {
         attributes: {
           attribute1: {
