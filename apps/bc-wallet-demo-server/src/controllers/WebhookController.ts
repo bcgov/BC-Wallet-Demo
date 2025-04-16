@@ -18,8 +18,6 @@ export class WebhookController {
     const endpoint = endpointSplit[endpointSplit.length - 1]
     params.endpoint = endpoint
 
-    console.log(`params: ${JSON.stringify(params)}`)
-
     const socket = socketMap.get(connectionId)
     if (socket) {
       socket.emit('message', params)
