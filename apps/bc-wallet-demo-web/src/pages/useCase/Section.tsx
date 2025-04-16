@@ -165,17 +165,18 @@ export const Section: FC<Props> = (props: Props) => {
             (action as AriesOOBStepAction).credentialDefinitions ?? []
         ) ?? [])
 
-    if (!currentStep || currentStep.order === 1) {
-      return (
-          <StartContainer
-              showcase={showcase}
-              currentPersona={currentPersona}
-              scenario={currentScenario}
-              currentStep={currentStep}
-              requestedCredentials={requestedCredentials}
-          />
-      )
-    } else {
+    // FIXME disabled for now because of the showcase builder not supporting this step structure
+    // if (!currentStep || currentStep.order === 1) {
+    //   return (
+    //       <StartContainer
+    //           showcase={showcase}
+    //           currentPersona={currentPersona}
+    //           scenario={currentScenario}
+    //           currentStep={currentStep}
+    //           requestedCredentials={requestedCredentials}
+    //       />
+    //   )
+    // } else {
       return (
           <>
             <div className="flex flex-col lg:flex-row w-full h-full">
@@ -256,7 +257,7 @@ export const Section: FC<Props> = (props: Props) => {
             )}
           </>
       )
-    }
+    // }
   }
 
   return <AnimatePresence mode="wait">{currentStep && renderStepItem()}</AnimatePresence>
