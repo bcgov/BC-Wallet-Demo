@@ -1,0 +1,82 @@
+{
+  "id": "90900e2f-4b0b-49f2-ac52-aa555c4241e2",
+  "name": "Credential Showcase BCGov",
+  "description": "Collection of credential usage scenarios",
+  "status": "PENDING",
+  "hidden": false,
+  "scenarios": [
+    {
+      "id": "081f32f0-7a96-4567-8605-d23872d28aa4",
+      "name": "University Parking Journey",
+      "description": "Student obtaining and using parking credentials",
+      "workflowRefs": ["issuance-flow-123", "presentation-flow-123"],
+      "personaRefs": ["issuer-persona-123", "holder-persona-123", "verifier-persona-123"]
+    }
+  ],
+  "credentialDefinitions": [
+    {
+      "id": "df11d836-46f3-4fe8-aef9-a77967216b96",
+      "name": "University Parking Permit",
+      "version": "1.0",
+      "type": "ANONCRED",
+      "attributes": [
+        {
+          "id": "1db5d54f-c1ea-4558-af6a-7caf2088e609",
+          "name": "permit_type",
+          "type": "STRING",
+          "value": "Student Parking"
+        },
+        {
+          "id": "d55969d9-21ea-4b69-a422-95be3ddcbde6",
+          "name": "valid_until",
+          "type": "DATE",
+          "value": "2024-12-31"
+        }
+      ],
+      "representations": [
+        {
+          "id": "c7e21ee3-a878-431b-a6f2-af3613c1dca7",
+          "type": "CREDENTIAL_DEFINITION"
+        }
+      ],
+      "revocation": {
+        "id": "a2ee7b47-edec-4786-9ee6-d9042ff18939",
+        "title": "Parking Permit Revocation",
+        "description": "Revocation settings for parking permits",
+        "registryId": "registry-123"
+      }
+    }
+  ],
+  "personas": [
+    {
+      "id": "936c3b95-46fc-4c2c-9424-3628cbde2ec2",
+      "name": "Parking Administrator",
+      "role": "Issuer",
+      "description": "University parking services administrator",
+      "headshotImage": {
+        "id": "1a62872b-d269-4bde-a2a8-5eb1f6923a86",
+        "mediaType": "image/jpeg",
+        "fileName": "admin.jpg",
+        "contents": "base64-encoded-image"
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "ffee2d16-44ff-4522-80b3-bfd3830397a9",
+      "type": "ISSUANCE",
+      "name": "Parking Permit Issuance",
+      "description": "Workflow for issuing parking permits",
+      "steps": [],
+      "credentialDefinitions": ["df11d836-46f3-4fe8-aef9-a77967216b96"]
+    },
+    {
+      "id": "b2c0de92-f48c-4933-bcf5-ecb5952b26f9",
+      "type": "PRESENTATION",
+      "name": "Parking Permit Verification",
+      "description": "Workflow for verifying parking permits",
+      "steps": [],
+      "credentialDefinitions": ["df11d836-46f3-4fe8-aef9-a77967216b96"]
+    }
+  ]
+}

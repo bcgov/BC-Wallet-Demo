@@ -1,0 +1,9 @@
+# Include patterns from .gitignore
+!node_modules
+!.git
+
+# Specific patterns to ignore
+apps/*/src/showcase-api/**
+**/build/**
+**/.next/**
+**/charts/**

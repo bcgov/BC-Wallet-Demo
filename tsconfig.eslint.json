@@ -1,6 +1,5 @@
 {
   "extends": "./tsconfig.build.json",
-
-  "include": ["client", "server", "cypress", "./.eslintrc.js"],
+  "include": ["apps/*", "packages/*", "./eslint.config.js", "apps/*/config/*", "apps/*/src/*"],
   "exclude": ["node_modules", "build"]
 }

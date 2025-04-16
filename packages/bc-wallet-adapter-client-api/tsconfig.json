@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig-base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declarationDir": "dist",
+    "noUnusedLocals": false
+  },
+  "references": [
+    {
+      "path": "../bc-wallet-openapi"
+    }
+  ]
+}
