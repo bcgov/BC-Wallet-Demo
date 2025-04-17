@@ -9,12 +9,8 @@ import {
   useQueryClient,
   UseQueryResult,
 } from "@tanstack/react-query";
-import type {
-  StepType
-} from "@/openapi-types";
-
 import apiClient from "@/lib/apiService";
-import { IssuanceScenarioRequest, IssuanceScenarioResponse, StepRequest, StepResponse } from "bc-wallet-openapi";
+import { IssuanceScenarioRequest, IssuanceScenarioResponse, StepRequest, StepResponse, Step } from "bc-wallet-openapi";
 
 type StepState =
   | "editing-basic"
@@ -27,7 +23,7 @@ type StepState =
 interface State {
   selectedStep: number | null;
   stepState: StepState;
-  screens: StepType[];
+  screens: Step[];
   scenarioId: string;
   issuerId: string;
 }
@@ -114,6 +110,8 @@ export const useOnboarding = create<State & Actions>()(
         state.screens = newScreens;
         state.selectedStep = newScreens.length - 1;
       
+        // step.actions.actionType
+        
         if (step.actions?.includes("connect")) {
           state.stepState = "editing-connect";
         } else if (step.actions?.includes("wallet")) {

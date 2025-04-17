@@ -3,11 +3,8 @@ import { immer } from 'zustand/middleware/immer'
 import { produce } from 'immer'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type {
-  StepResponse,
-  StepType,
-} from '@/openapi-types'
-import { StepRequest } from 'bc-wallet-openapi'
+
+import { StepRequest, Step, StepResponse } from 'bc-wallet-openapi'
 import apiClient from '@/lib/apiService'
 import { PresentationScenarioRequest, PresentationScenarioResponse } from 'bc-wallet-openapi'
 
@@ -16,7 +13,7 @@ type StepState = 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-
 interface State {
   selectedStep: number | null
   stepState: StepState
-  screens: StepType[]
+  screens: Step[]
   scenarioId: string
   issuerId: string
   currentScenarioIndex: number
@@ -173,7 +170,7 @@ export const usePresentationStep = (slug: string) => {
   return useQuery({
     queryKey: ['presentationStep', slug],
     queryFn: async () => {
-      const response = (await apiClient.get(`/scenarios/presentations/${slug}/steps`)) as typeof StepResponse._type
+      const response = (await apiClient.get(`/scenarios/presentations/${slug}/steps`)) as StepResponse
       return response
     },
     staleTime,

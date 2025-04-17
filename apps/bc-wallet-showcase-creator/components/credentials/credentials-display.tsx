@@ -3,11 +3,11 @@ import { useState } from 'react'
 import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { baseUrl } from '@/lib/utils'
-import type { Credential, CredentialAttributeType } from '@/openapi-types'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
 import { Button } from '../ui/button'
+import { CredentialAttribute, CredentialDefinition } from 'bc-wallet-openapi'
 
 interface CredentialsDisplayProps {
   searchTerm: string
@@ -17,12 +17,12 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
   const { setSelectedCredential, startCreating, viewCredential } = useCredentials()
   const [openId, setOpenId] = useState<string | null>(null)
   const t = useTranslations()
-  const { data: credentials, isLoading, error } = useCredentialDefinitions()
+  const { data: credentials, isLoading } = useCredentialDefinitions()
 
   const sanitizedSearchTerm = searchTerm?.toLowerCase() || ''
 
   const filteredCredentials =
-    credentials?.credentialDefinitions?.filter((credential: Credential) =>
+    credentials?.credentialDefinitions?.filter((credential: CredentialDefinition) =>
       credential.name?.toLowerCase().includes(sanitizedSearchTerm),
     ) || []
 
@@ -83,7 +83,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   <span className="text-sm text-foreground/80">Version {item.version}</span>
                   <span className="text-sm text-foreground/80">Created</span>
                   <div className="flex flex-wrap gap-2 mt-2 text-xs">
-                    {item.credentialSchema?.attributes?.map((attr: CredentialAttributeType) => (
+                    {item.credentialSchema?.attributes?.map((attr: CredentialAttribute) => (
                       <span
                         key={`${item.id}-${attr.id}-${attr.type || 'unknown'}`}
                         className="text-sm bg-foreground/10 px-2 py-1 rounded transition-all duration-200 hover:bg-foreground/20"
