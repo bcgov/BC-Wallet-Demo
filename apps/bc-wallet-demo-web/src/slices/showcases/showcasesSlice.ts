@@ -1,12 +1,13 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
-import { fetchPersonaBySlug, fetchShowcaseBySlug } from './showcasesThunks'
-import type { Persona, Showcase } from '../types'
+import {fetchPersonaBySlug, fetchScenarioBySlug, fetchShowcaseBySlug} from './showcasesThunks'
+import type {Persona, Scenario, Showcase} from '../types'
 
 interface ShowcasesState {
   showcase?: Showcase | null
   uploadedShowcase?: Showcase
   currentPersona?: Persona | null
+  currentScenario?: Scenario | null
   isUploading: boolean
   isLoading: boolean
 }
@@ -58,6 +59,13 @@ const showcaseSlice = createSlice({
       .addCase(fetchPersonaBySlug.fulfilled, (state, action) => {
         state.isLoading = false
         state.currentPersona = action.payload
+      })
+      .addCase(fetchScenarioBySlug.pending, (state): void => {
+        state.isLoading = true
+      })
+      .addCase(fetchScenarioBySlug.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.currentScenario = action.payload
       })
   },
 })

@@ -1,7 +1,14 @@
-import NextAuth from "next-auth"
+import NextAuth, { User } from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 import { env } from "@/env"
- 
+ declare module "next-auth" {
+  interface Session {
+    accessToken?: string | undefined;
+    user: User;
+  }
+}
+
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [Keycloak({
     clientId: env.AUTH_KEYCLOAK_ID!,
@@ -19,6 +26,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return token
     },
+    async session({ session, token }) {
+      session.accessToken = token.accessToken as string | undefined
+      return session
+    }
   },
   session: {
     strategy: 'jwt',

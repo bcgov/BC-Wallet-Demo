@@ -1,6 +1,5 @@
 import React from 'react'
-
-import { prependApiUrl } from '../../../utils/Url'
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
 
 export interface Props {
   icon?: string
@@ -17,7 +16,7 @@ export const ConnectionCard: React.FC<Props> = ({ icon, entity }) => {
       <div className="flex-1 flex flex-row items-center justify-between pt-4">
         {icon && (
           <div className="bg-bcgov-lightgrey dark:bg-bcgov-black rounded-lg p-2 w-12">
-            <img className="h-8 m-auto" src={prependApiUrl(icon)} alt="icon" />
+            <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${icon}/file`} alt="icon" />
           </div>
         )}
         <div className="flex-1 px-4 justify-self-start dark:text-white">
