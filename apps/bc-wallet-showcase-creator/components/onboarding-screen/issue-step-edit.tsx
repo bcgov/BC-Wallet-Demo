@@ -129,12 +129,12 @@ export const IssuanceStepAdd = () => {
     setSearchResults(results);
   };
 
-  const addCredential = (credentialId: string) => {
+  const addCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
     const existing = currentStep.credentials || [];
-    if (!existing.includes(credentialId)) {
-      const updated = [...existing, credentialId];
-      updateStep(selectedStep || 0, { ...currentStep, credentials: updated });
+    if (!existing.includes(credential)) {
+      const updated = [...existing, credential];
+      updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequest);
     }
     setSearchResults([]);
   };
@@ -212,10 +212,10 @@ export const IssuanceStepAdd = () => {
     setSelectedStep(null);
   };
   
-  const removeCredential = (credentialId: string) => {
+  const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    const updated = (currentStep.credentials || []).filter(id => id !== credentialId);
-    updateStep(selectedStep || 0, { ...currentStep, credentials: updated });
+    const updated = (currentStep.credentials || []).filter(id => id !== credential.id);
+    updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequest);
     setSelectedCredential(null);
   };
 

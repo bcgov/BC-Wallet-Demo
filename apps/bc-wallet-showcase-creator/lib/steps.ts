@@ -23,6 +23,8 @@ export interface StepRequestUIActionTypes extends StepRequest {
   credentials?: CredentialDefinition[];
 }
 
+// StepActionRequest
+
 export const sampleAction: AriesOOBActionRequest =  {
   title: "example_title",
   actionType: "ARIES_OOB" as "ARIES_OOB",
