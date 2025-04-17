@@ -1,5 +1,5 @@
 import { eq, inArray } from 'drizzle-orm'
-import { Service } from 'typedi'
+import { Inject, Service } from 'typedi'
 
 import { NotFoundError } from '../../errors'
 import { DatabaseService } from '../../services/DatabaseService'
@@ -9,24 +9,22 @@ import TenantRepository from './TenantRepository'
 
 @Service()
 export class UserRepository implements RepositoryDefinition<User, NewUser> {
-  public constructor(
-    private readonly databaseService: DatabaseService,
-    private readonly tenantRepository: TenantRepository,
-  ) {}
+  public constructor(private readonly databaseService: DatabaseService) {}
+
+  // Problem with circular references: https://github.com/typestack/typedi/blob/develop/docs/README.md#problem-with-circular-references
+  @Inject((type) => TenantRepository)
+  private tenantRepository!: TenantRepository
 
   public async create(newUser: NewUser): Promise<User> {
     let tenantsResult: Tenant[] = []
     const connection = await this.databaseService.getConnection()
-
+    if (newUser.tenants && newUser.tenants.length > 0) {
+      await Promise.all(newUser.tenants.map(async (tenantId) => this.tenantRepository.findById(tenantId)))
+    }
     return connection.transaction(async (tx): Promise<User> => {
       const [userResult] = await tx.insert(users).values(newUser).returning()
 
       if (newUser.tenants && newUser.tenants.length > 0) {
-        const tenantPromises = newUser.tenants.map(async (tenantId) =>
-          this.tenantRepository.findById(tenantId)
-        )
-        await Promise.all(tenantPromises)
-
         const tenantsToUsersResult = await tx
           .insert(tenantsToUsers)
           .values(
@@ -40,7 +38,7 @@ export class UserRepository implements RepositoryDefinition<User, NewUser> {
         tenantsResult = await tx.query.tenants.findMany({
           where: inArray(
             tenants.id,
-            tenantsToUsersResult.map((item) => item.tenant).filter((id): id is string => id !== null)
+            tenantsToUsersResult.map((item) => item.tenant).filter((id): id is string => id !== null),
           ),
         })
       }
@@ -62,36 +60,29 @@ export class UserRepository implements RepositoryDefinition<User, NewUser> {
 
     let tenantsResult: Tenant[] = []
     const connection = await this.databaseService.getConnection()
-
+    if (newUser.tenants && newUser.tenants.length > 0) {
+      await Promise.all(newUser.tenants.map(async (tenantId) => this.tenantRepository.findById(tenantId)))
+    }
     return connection.transaction(async (tx): Promise<User> => {
-      const [userResult] = await tx
-        .update(users)
-        .set(newUser)
-        .where(eq(users.id, id))
-        .returning()
+      const [userResult] = await tx.update(users).set(newUser).where(eq(users.id, id)).returning()
 
       await tx.delete(tenantsToUsers).where(eq(tenantsToUsers.user, id))
 
       if (newUser.tenants && newUser.tenants.length > 0) {
-        const tenantPromises = newUser.tenants.map(async (tenantId) =>
-          this.tenantRepository.findById(tenantId)
-        )
-        await Promise.all(tenantPromises)
-
         const tenantsToUsersResult = await tx
           .insert(tenantsToUsers)
           .values(
             newUser.tenants.map((tenantId: string) => ({
               user: userResult.id,
               tenant: tenantId,
-            }))
+            })),
           )
           .returning()
 
         tenantsResult = await tx.query.tenants.findMany({
           where: inArray(
             tenants.id,
-            tenantsToUsersResult.map((item) => item.tenant).filter((id): id is string => id !== null)
+            tenantsToUsersResult.map((item) => item.tenant).filter((id): id is string => id !== null),
           ),
         })
       }

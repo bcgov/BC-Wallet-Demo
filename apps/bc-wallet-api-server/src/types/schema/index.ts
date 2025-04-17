@@ -25,6 +25,7 @@ export type User = typeof users.$inferSelect & {
 }
 export type NewUser = typeof users.$inferInsert & {
   // NewUser allows id to be preset
+  id?: string | null
   userName?: string | null
   issuer?: string | null
   clientId?: string | null

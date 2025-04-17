@@ -6,13 +6,15 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
 
 import DatabaseService from '../../../services/DatabaseService'
-import { NewUser } from '../../../types'
+import { NewTenant, NewUser } from '../../../types'
 import * as schema from '../../schema'
-import AssetRepository from '../UserRepository'
+import TenantRepository from '../TenantRepository'
+import UserRepository from '../UserRepository'
 
 describe('Database user repository tests', (): void => {
   let client: PGlite
-  let repository: AssetRepository
+  let userRepository: UserRepository
+  let tenantRepository: TenantRepository
 
   beforeEach(async (): Promise<void> => {
     client = new PGlite()
@@ -22,7 +24,8 @@ describe('Database user repository tests', (): void => {
       getConnection: jest.fn().mockResolvedValue(database),
     }
     Container.set(DatabaseService, mockDatabaseService)
-    repository = Container.get(AssetRepository)
+    tenantRepository = Container.get(TenantRepository)
+    userRepository = Container.get(UserRepository)
   })
 
   afterEach(async (): Promise<void> => {
@@ -38,7 +41,7 @@ describe('Database user repository tests', (): void => {
       clientId: 'showcase-tenantA', // from azp claim
     }
 
-    const savedUser = await repository.create(user)
+    const savedUser = await userRepository.create(user)
 
     expect(savedUser).toBeDefined()
     expect(savedUser.userName).toEqual(user.userName)
@@ -53,10 +56,10 @@ describe('Database user repository tests', (): void => {
       clientId: 'showcase-tenantA',
     }
 
-    const savedUser = await repository.create(user)
+    const savedUser = await userRepository.create(user)
     expect(savedUser).toBeDefined()
 
-    const fromDb = await repository.findById(savedUser.id)
+    const fromDb = await userRepository.findById(savedUser.id)
 
     expect(fromDb).toBeDefined()
     expect(fromDb!.userName).toEqual(user.userName)
@@ -71,13 +74,13 @@ describe('Database user repository tests', (): void => {
       clientId: 'showcase-tenantA',
     }
 
-    const savedUser1 = await repository.create(user)
+    const savedUser1 = await userRepository.create(user)
     expect(savedUser1).toBeDefined()
 
-    const savedUser2 = await repository.create(user)
+    const savedUser2 = await userRepository.create(user)
     expect(savedUser2).toBeDefined()
 
-    const fromDb = await repository.findAll()
+    const fromDb = await userRepository.findAll()
 
     expect(fromDb.length).toEqual(2)
   })
@@ -89,12 +92,12 @@ describe('Database user repository tests', (): void => {
       clientId: 'showcase-tenantA',
     }
 
-    const savedUser = await repository.create(user)
+    const savedUser = await userRepository.create(user)
     expect(savedUser).toBeDefined()
 
-    await repository.delete(savedUser.id)
+    await userRepository.delete(savedUser.id)
 
-    await expect(repository.findById(savedUser.id)).rejects.toThrowError(`No user found for id: ${savedUser.id}`)
+    await expect(userRepository.findById(savedUser.id)).rejects.toThrowError(`No user found for id: ${savedUser.id}`)
   })
 
   it('Should update user in database', async (): Promise<void> => {
@@ -104,11 +107,11 @@ describe('Database user repository tests', (): void => {
       clientId: 'showcase-tenantA',
     }
 
-    const savedUser = await repository.create(user)
+    const savedUser = await userRepository.create(user)
     expect(savedUser).toBeDefined()
 
     const newClientId = 'showcase-tenantB'
-    const updatedUser = await repository.update(savedUser.id, {
+    const updatedUser = await userRepository.update(savedUser.id, {
       ...savedUser,
       clientId: newClientId,
       tenants: undefined,
@@ -116,5 +119,79 @@ describe('Database user repository tests', (): void => {
 
     expect(updatedUser).toBeDefined()
     expect(updatedUser.clientId).toEqual(newClientId)
+  })
+
+  it('Should save user with tenants to database', async (): Promise<void> => {
+    const tenant: NewTenant = {
+      id: 'test-tenant-id',
+    }
+    const savedTenant = await tenantRepository.create(tenant)
+    expect(savedTenant).toBeDefined()
+
+    const user: NewUser = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      userName: 'Test User',
+      tenants: [savedTenant.id],
+    }
+
+    const savedUser = await userRepository.create(user)
+
+    expect(savedUser).toBeDefined()
+    expect(savedUser.id).toEqual(user.id)
+    expect(savedUser.userName).toEqual(user.userName)
+    expect(savedUser.tenants).toHaveLength(1)
+    expect(savedUser.tenants).toEqual([
+      expect.objectContaining({
+        createdAt: expect.any(Date),
+        deletedAt: null,
+        id: 'test-tenant-id',
+        updatedAt: expect.any(Date),
+      }),
+    ])
+  })
+
+  it('Should update user with tenants in database', async (): Promise<void> => {
+    const tenant1: NewTenant = { id: 'test-tenant-id-1' }
+    const tenant2: NewTenant = { id: 'test-tenant-id-2' }
+
+    const savedTenant1 = await tenantRepository.create(tenant1)
+    const savedTenant2 = await tenantRepository.create(tenant2)
+    expect(savedTenant1).toBeDefined()
+    expect(savedTenant2).toBeDefined()
+
+    const user: NewUser = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      userName: 'Test User',
+      tenants: [savedTenant1.id],
+    }
+
+    const savedUser = await userRepository.create(user)
+    expect(savedUser).toBeDefined()
+    expect(savedUser.tenants).toHaveLength(1)
+    expect(savedUser.tenants).toEqual([
+      {
+        createdAt: expect.any(Date),
+        deletedAt: null,
+        id: 'test-tenant-id-1',
+        updatedAt: expect.any(Date),
+      },
+    ])
+
+    const updatedUser = await userRepository.update(savedUser.id, {
+      ...savedUser,
+      tenants: [savedTenant2.id],
+    })
+
+    expect(updatedUser).toBeDefined()
+    expect(updatedUser.id).toEqual(savedUser.id)
+    expect(updatedUser.tenants).toHaveLength(1)
+    expect(updatedUser.tenants).toEqual([
+      expect.objectContaining({
+        id: 'test-tenant-id-2',
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+        deletedAt: null,
+      }),
+    ])
   })
 })
