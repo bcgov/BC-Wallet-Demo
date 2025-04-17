@@ -74,20 +74,21 @@ export const MainSection: React.FC = () => {
         </motion.h2>
       </div>
       <div className="flex flex-row justify-start text-base sxl:text-lg  font-normal mt-6">
-        <motion.button
-          variants={fadeDelay}
-          whileHover={buttonHover}
-          className="bg-bcgov-blue dark:bg-bcgov-white text-bcgov-white dark:text-bcgov-black py-3 px-5 rounded-lg font-semibold shadow-sm dark:shadow-none select-none "
-          onClick={handleStart}
-        >
-          Get started &nbsp;
-          <FiArrowRight className="inline h-6 pb-1" />
-        </motion.button>
+        {/* FIXME we need a tenant and showcase logic based on a tenant for this button */}
+        {/*<motion.button*/}
+        {/*  variants={fadeDelay}*/}
+        {/*  whileHover={buttonHover}*/}
+        {/*  className="bg-bcgov-blue dark:bg-bcgov-white text-bcgov-white dark:text-bcgov-black py-3 px-5 rounded-lg font-semibold shadow-sm dark:shadow-none select-none "*/}
+        {/*  onClick={handleStart}*/}
+        {/*>*/}
+        {/*  Get started &nbsp;*/}
+        {/*  <FiArrowRight className="inline h-6 pb-1" />*/}
+        {/*</motion.button>*/}
         <a href="https://digital.gov.bc.ca/digital-trust/" target="_blank">
           <motion.button
             variants={fadeDelay}
             whileHover={buttonHover}
-            className="bg-white dark:bg-bcgov-gold text-black dark:text-bcgov-black py-3 px-5 ml-4 rounded-lg font-semibold shadow-sm dark:shadow-none select-none "
+            className="bg-white dark:bg-bcgov-gold text-black dark:text-bcgov-black py-3 px-5 rounded-lg font-semibold shadow-sm dark:shadow-none select-none "
           >
             <p className="inline">Get to know us &nbsp;</p>
             <FiExternalLink className="inline h-6 pb-1" />

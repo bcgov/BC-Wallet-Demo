@@ -5,8 +5,8 @@ import { AriesRequestCredentialAttribute, AriesRequestCredentialPredicate } from
 
 export const ariesProofRequests = pgTable('ariesProofRequest', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),
-  attributes: jsonb().$type<Record<string, AriesRequestCredentialAttribute>>().notNull(),
-  predicates: jsonb().$type<Record<string, AriesRequestCredentialPredicate>>().notNull(),
+  attributes: jsonb().$type<Record<string, AriesRequestCredentialAttribute>>(),
+  predicates: jsonb().$type<Record<string, AriesRequestCredentialPredicate>>(),
   stepAction: uuid('step_action')
     .references(() => stepActions.id, { onDelete: 'cascade' })
     .notNull()

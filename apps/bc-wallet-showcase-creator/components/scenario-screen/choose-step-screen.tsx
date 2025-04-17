@@ -56,7 +56,7 @@ export const CreateScenariosStepsScreen = () => {
             description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
           })
         )
-        setStepState('editing-issue')
+        setStepState('editing-basic')
     }
     // Implement this if needed
   }

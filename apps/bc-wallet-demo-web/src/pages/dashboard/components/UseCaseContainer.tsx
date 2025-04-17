@@ -2,29 +2,30 @@ import React, { FC } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { dashboardTitle, rowContainer } from '../../../FramerAnimations'
-import type {Persona, Scenario} from '../../../slices/types'
 import { basePath } from '../../../utils/BasePath'
 import { UseCaseItem } from './UseCaseItem'
 import { StepActionType } from 'bc-wallet-openapi';
+import type { AriesOOBStepAction, Persona, Scenario, Showcase } from '../../../slices/types'
 
 export interface Props {
+  showcase: Showcase
   currentPersona: Persona
   completedUseCaseSlugs: string[]
   scenarios: Scenario[]
 }
 
-export const UseCaseContainer: FC<Props> = ({ currentPersona, completedUseCaseSlugs, scenarios }) => {
+export const UseCaseContainer: FC<Props> = ({ showcase, currentPersona, completedUseCaseSlugs, scenarios }) => {
   const navigate = useNavigate()
 
-  const startUseCase = (slug: string) => {
-    navigate(`${basePath}/uc/${slug}`)
+  const startUseCase = (scenarioSlug: string) => {
+    navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations/${scenarioSlug}`)
   }
 
   const renderUseCases = scenarios.map(scenario => {
-    const isCompleted = false // FIXME we need to implement this later. completedUseCaseSlugs.includes(item.id)
+    const isCompleted = completedUseCaseSlugs.includes(scenario.slug)
     const credentialDefinitions = scenario.steps.flatMap(step =>
-        step.actions?.filter(action => action.actionType === StepActionType.ShareCredential)?.flatMap(action =>
-            action.credentialDefinitions ?? []
+        step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
+            (action as AriesOOBStepAction).credentialDefinitions ?? []
         ) ?? []
     );
 

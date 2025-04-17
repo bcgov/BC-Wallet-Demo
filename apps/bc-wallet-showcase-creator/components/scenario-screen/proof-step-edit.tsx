@@ -17,7 +17,7 @@ import { DisplaySearchResults } from '../onboarding-screen/display-search-result
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { DisplayStepCredentials } from './display-step-credentials'
-import { CredentialAttributeType, CredentialDefinition, StepRequest, StepRequestType } from '@/openapi-types'
+import { CredentialAttributeType, CredentialDefinition, CredentialDefinitionType, StepRequest, StepRequestType } from '@/openapi-types'
 import { usePresentations } from '@/hooks/use-presentation'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { debounce } from 'lodash'
@@ -25,6 +25,7 @@ import { toast } from 'sonner'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useCredentialDefinitions } from "@/hooks/use-credentials";
+import { useCredentials } from '@/hooks/use-credentials-store'
 interface StepWithCredentials extends StepRequestType {
   credentials?: string[];
 }
@@ -38,7 +39,7 @@ export const ProofStepEdit = () => {
   const {selectedScenario, updateStep,selectedStep, setStepState } = usePresentationAdapter()
   const [searchResults, setSearchResults] = useState<typeof CredentialDefinition._type[]>([])
   const { data: credentials } = useCredentialDefinitions();
-  
+  const { setSelectedCredential } = useCredentials()
   const { personas } = useOnboardingAdapter()
 
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepWithCredentials : null
@@ -114,55 +115,20 @@ export const ProofStepEdit = () => {
   };
 
   const addCredential = (credentialId: string) => {
-    setSearchResults([])
-    const currentAttributes = form.getValues('actions.0.proofRequest.attributes')
-
-    if (!currentAttributes[credentialId]) {
-      const credential = showcaseJSON.personas[selectedCharacter].credentials[credentialId]
-      form.setValue(
-        `actions.0.proofRequest.attributes.${credentialId}`,
-        {
-          attributes: [credential.attributes[0].name],
-        },
-        {
-          shouldDirty: true,
-          shouldTouch: true,
-          shouldValidate: true,
-        }
-      )
+    if (!currentStep) return;
+    const existing = currentStep.credentials || [];
+    if (!existing.includes(credentialId)) {
+      const updated = [...existing, credentialId];
+      updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
     }
+    setSearchResults([]);
   }
 
   const removeCredential = (credentialId: string) => {
-    const formValues = form.getValues()
-    const newAttributes = {
-      ...formValues.actions[0].proofRequest.attributes,
-    }
-    delete newAttributes[credentialId]
-
-    form.setValue('actions.0.proofRequest.attributes', newAttributes, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    })
-
-    // Remove any predicates that reference this credential
-    if (formValues.actions[0].proofRequest.predicates) {
-      const newPredicates = {
-        ...formValues.actions[0].proofRequest.predicates,
-      }
-      Object.entries(newPredicates).forEach(([key, predicate]) => {
-        if (predicate.restrictions[0] === credentialId) {
-          delete newPredicates[key]
-        }
-      })
-
-      form.setValue('actions.0.proofRequest.predicates', newPredicates, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      })
-    }
+    if (!currentStep) return;
+    const updated = (currentStep.credentials || []).filter(id => id !== credentialId);
+    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
+    setSelectedCredential(null);
   }
 
   const onSubmit = (data: StepRequestType) => {
@@ -263,16 +229,16 @@ export const ProofStepEdit = () => {
 
                 <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
 
-                {/* {currentScenario && (
+                {currentStep && (
                   <DisplayStepCredentials
+                    credentials={currentStep?.credentials as unknown as CredentialDefinitionType[]}
                     selectedCharacter={selectedCharacter}
-                    showcaseJSON={showcaseJSON}
-                    selectedStep={selectedStep}
+                    selectedStep={selectedStep?.stepIndex || 0}
                     localData={{}}
-                    selectedScenario={selectedScenario}
+                    selectedScenario={selectedStep?.scenarioIndex || 0}
                     removeCredential={removeCredential}
                   />
-                )} */}
+                )}
               </div>
             </div>
           </div>

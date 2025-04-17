@@ -10,7 +10,7 @@ import { Form } from '@/components/ui/form'
 import { baseUrl, cn } from '@/lib/utils'
 import { characterSchema } from '@/schemas/character'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleAlert, EyeOff, Monitor} from 'lucide-react'
+import { CircleAlert, EyeOff, Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { toast } from 'sonner'
@@ -102,10 +102,25 @@ export default function NewCharacterPage() {
         headshotImage: headshotImage || undefined,
         bodyImage: bodyImage || undefined,
       });
+
+      handleCreateNew();
+
+      form.reset({
+        name: '',
+        role: '',
+        description: '',
+        hidden: false,
+      });
+
+      setHeadshotImage(null);
+      setBodyImage(null);
+      setIsHeadshotImageEdited(false);
+      setIsBodyImageEdited(false);
+
     } catch (error) {
-      toast.error(t('character.error_character_creation_label'))
+      toast.error(t('character.error_character_creation_label'));
     }
-  }
+  };
 
   const handleDelete = async () => {
     setIsModalOpen(false)
@@ -113,34 +128,28 @@ export default function NewCharacterPage() {
   }
 
   const handleProceed = async () => {
-    const isValid = await form.trigger();
-    if (!isValid) return;
+    const hasUnsavedChanges = form.formState.isDirty && personaState === 'editing-persona';
+
+    if (hasUnsavedChanges) {
+      toast.warning(t('character.warning_unsaved_changes_label'));
+      return;
+    }
+
+    if (selectedPersonaIds.length === 0) {
+      toast.error(t('character.error_no_characters_created_label'));
+      return;
+    }
 
     setIsProceeding(true);
-    const formData = form.getValues();
 
     try {
-      await handleFormSubmit(formData);
-      const updatedPersonaId = selectedPersona?.id;
-
-      if (!updatedPersonaId || !selectedPersonaIds.includes(updatedPersonaId)) {
-        toast.error(t('character.error_no_characters_selected_label'));
-        return;
-      }
-
-      toast.success(t('character.success_characters_selected_label'));
-
-      setTimeout(() => {
-        router.push('/showcases/create/onboarding');
-      }, 300);
-
+      router.push('/showcases/create/onboarding');
     } catch (error) {
-      toast.error(t('character.error_character_creation_label'));
+      toast.error(t('character.error_proceed_label'));
     } finally {
       setIsProceeding(false);
     }
   };
-
 
   const onlyRecentlyCreated = (persona: Persona) => {
     return selectedPersonaIds.find((id: string) => id === persona.id)
@@ -171,8 +180,8 @@ export default function NewCharacterPage() {
                         key={persona.id}
                         className={cn("hover:bg-light-bg dark:hover:bg-dark-input-hover relative p-4 border-t border-b border-light-border-secondary dark:border-dark-border flex",
                           selectedPersonaId === persona.id
-                          ? 'flex-col items-center bg-gray-100 dark:bg-dark-bg border border-light-border-secondary'
-                          : 'flex-row items-center bg-white dark:bg-dark-bg-secondary'
+                            ? 'flex-col items-center bg-gray-100 dark:bg-dark-bg border border-light-border-secondary'
+                            : 'flex-row items-center bg-white dark:bg-dark-bg-secondary'
                         )}
                         onClick={() => handlePersonaSelect(persona)}
                       >
@@ -342,7 +351,10 @@ export default function NewCharacterPage() {
                           <ButtonOutline type="submit" disabled={!form.formState.isValid}>
                             {t('action.save_label')}
                           </ButtonOutline>
-                          <ButtonOutline onClick={handleProceed} disabled={isProceeding || selectedPersonaIds.length === 0}>
+                          <ButtonOutline onClick={(e) => {
+                            e.preventDefault()
+                            handleProceed()
+                          }} disabled={isProceeding || selectedPersonaIds.length === 0}>
                             {t('action.next_label')}
                           </ButtonOutline>
 

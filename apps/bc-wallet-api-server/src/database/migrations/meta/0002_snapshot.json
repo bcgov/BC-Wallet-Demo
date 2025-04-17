@@ -1,5 +1,5 @@
 {
-  "id": "328404ad-3e2f-4eaf-b289-3d67a1628a0c",
+  "id": "2385298c-4f7e-4589-9284-25c436cdb8e9",
   "prevId": "5de42e43-3189-4d11-92fe-fd9f987c97f8",
   "version": "7",
   "dialect": "postgresql",
@@ -19,13 +19,13 @@
           "name": "attributes",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "predicates": {
           "name": "predicates",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "step_action": {
           "name": "step_action",
@@ -2318,96 +2318,6 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.tenantsToUsers": {
-      "name": "tenantsToUsers",
-      "schema": "",
-      "columns": {
-        "tenant": {
-          "name": "tenant",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user": {
-          "name": "user",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "tenants_to_users_tenant_idx": {
-          "name": "tenants_to_users_tenant_idx",
-          "columns": [
-            {
-              "expression": "tenant",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "tenantsToUsers_tenant_tenant_id_fk": {
-          "name": "tenantsToUsers_tenant_tenant_id_fk",
-          "tableFrom": "tenantsToUsers",
-          "tableTo": "tenant",
-          "columnsFrom": [
-            "tenant"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "tenantsToUsers_user_user_id_fk": {
-          "name": "tenantsToUsers_user_user_id_fk",
-          "tableFrom": "tenantsToUsers",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "tenantsToUsers_tenant_user_pk": {
-          "name": "tenantsToUsers_tenant_user_pk",
-          "columns": [
-            "tenant",
-            "user"
-          ]
-        }
-      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
