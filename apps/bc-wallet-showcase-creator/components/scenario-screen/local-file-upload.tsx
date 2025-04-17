@@ -18,7 +18,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
   const { mutateAsync: createAsset } = useCreateAsset()
 
   const { data: response } = useAssetById(existingAssetId || '') as {
-    data?: AssetResponseType
+    data?: AssetResponse
     isLoading: boolean
   }
 
