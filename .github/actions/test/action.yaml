@@ -53,10 +53,10 @@ runs:
       shell: bash
       run: pnpm run generate:models
 
-    - name: Build libs
-      id: build-libs
-      shell: bash
-      run: pnpm run build:clean
+#    - name: Build libs
+#      id: build-libs
+#      shell: bash
+#      run: pnpm run build:clean
 
     - name: Run tests
       id: tests
