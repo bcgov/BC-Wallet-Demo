@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { convertBase64, baseUrl } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
+import { AssetResponse } from 'bc-wallet-openapi'
 import { useAssetById, useCreateAsset } from '@/hooks/use-asset'
 import Image from 'next/image'
 import { AssetResponse } from 'bc-wallet-openapi'
@@ -48,6 +49,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
             {
               onSuccess: (data: unknown) => {
                 const response = data as AssetResponse
+
                 setPreview(base64)
                 handleLocalUpdate(element, response.asset.id)
               },
