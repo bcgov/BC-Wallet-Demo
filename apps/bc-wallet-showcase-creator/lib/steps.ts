@@ -30,20 +30,8 @@ export const sampleAction: AriesOOBActionRequest =  {
   actionType: "ARIES_OOB" as "ARIES_OOB",
   text: "example_text",
   proofRequest: {
-    attributes: {
-      attribute1: {
-        attributes: ["attribute1", "attribute2"],
-        restrictions: ["restriction1", "restriction2"],
-      },
-    },
-    predicates: {
-      predicate1: {
-        name: "example_name",
-        type: "example_type",
-        value: "example_value",
-        restrictions: ["restriction1", "restriction2"],
-      },
-    },
+    attributes: {},
+    predicates: {},
   },
 }
 

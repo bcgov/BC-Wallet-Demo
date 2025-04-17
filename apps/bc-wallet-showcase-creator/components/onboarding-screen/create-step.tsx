@@ -17,6 +17,7 @@ export const CreateNewStep = () => {
     switch (stepType) {
       case 'issue':
         createStep(
+          //@ts-ignore
           createServiceStep({
             title: `Accept your student card`,
             description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,

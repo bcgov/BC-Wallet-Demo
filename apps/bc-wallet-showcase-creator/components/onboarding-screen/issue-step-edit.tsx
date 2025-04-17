@@ -361,11 +361,10 @@ export const IssuanceStepAdd = () => {
                 if (currentStep?.title && currentStep?.description) {
                   updateStep(selectedStep || 0, {
                     ...currentStep,
-                    // @ts-expect-error: TODO: fix this
-                    credentials: updated as unknown as string[],
+                    credentials: updated,
                     title: currentStep.title,
                     description: currentStep.description,
-                  });
+                  } as StepRequestUIActionTypes);
                 }
               }}
             /> 

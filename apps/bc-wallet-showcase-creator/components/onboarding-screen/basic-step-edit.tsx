@@ -120,6 +120,11 @@ export const BasicStepEdit = () => {
               title: "example_title",
               actionType: "ARIES_OOB",
               text: "example_text",
+              // @ts-ignore
+              proofRequest:{
+                attributes:{},
+                predicates:{}
+              }
             },
           ],
         },

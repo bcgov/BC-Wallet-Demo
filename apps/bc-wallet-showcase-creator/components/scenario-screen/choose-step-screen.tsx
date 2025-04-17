@@ -11,7 +11,6 @@ import { BasicStepAdd } from './basic-step-add'
 import { StepType } from '@/types'
 import { useEffect } from 'react'
 import { createDefaultStep, createServiceStep } from '@/lib/steps'
-import { StepActionType } from 'bc-wallet-openapi'
 
 export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
@@ -51,6 +50,7 @@ export const CreateScenariosStepsScreen = () => {
       setStepState('editing-basic')
     }else if(type == 'SERVICE'){
         createStep(
+          //@ts-ignore
           createServiceStep({
             title: `Accept your student card`,
             description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
@@ -58,9 +58,12 @@ export const CreateScenariosStepsScreen = () => {
               {
                 title: "Accept your student card",
                 text: 'You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose "Accept offer".',
-                actionType: StepActionType.ARIES_OOB,
-                proofRequest: step.actions[0].proofRequest,
-                credentialDefinitionId: step.actions[0].credentialDefinitionId,
+                actionType: 'ARIES_OOB',
+                proofRequest: {
+                  attributes:{},
+                  predicates:{},
+                },
+                credentialDefinitionId: '',
               }
             ],
           })

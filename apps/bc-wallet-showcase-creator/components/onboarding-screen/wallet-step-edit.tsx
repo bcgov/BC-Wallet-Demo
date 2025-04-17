@@ -97,6 +97,10 @@ export const WalletStepEdit = () => {
               title: 'example_title',
               actionType: 'ARIES_OOB',
               text: 'example_text',
+              proofRequest:{
+                attributes:{},
+                predicates:{}
+              }
             },
           ],
         },

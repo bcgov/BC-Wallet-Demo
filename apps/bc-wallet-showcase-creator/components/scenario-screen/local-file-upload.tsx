@@ -48,6 +48,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
             {
               onSuccess: (data: unknown) => {
                 const response = data as AssetResponse
+
                 setPreview(base64)
                 handleLocalUpdate(element, response.asset.id)
               },
@@ -75,7 +76,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
     <div className="flex items-center flex-col justify-center w-full">
       <p className="w-full text-start text-foreground font-bold mb-2">{text}</p>
 
-      {preview && (
+      {existingAssetId && (
         <div className="relative w-full">
           <button
             type="button"

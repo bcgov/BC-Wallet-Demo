@@ -109,18 +109,16 @@ export const useOnboarding = create<State & Actions>()(
         const newScreens = [...state.screens, step];
         state.screens = newScreens;
         state.selectedStep = newScreens.length - 1;
-      
-        // step.actions.actionType
-        
-        if (step.actions?.includes("connect")) {
-          state.stepState = "editing-connect";
-        } else if (step.actions?.includes("wallet")) {
-          state.stepState = "editing-wallet";
-        } else if (step.credentials) {
-          state.stepState = "editing-issue";
-        } else {
-          state.stepState = "editing-basic";
-        }
+        state.stepState = "editing-basic";
+        // if (step.actions?.includes("connect")) {
+        //   state.stepState = "editing-connect";
+        // } else if (step.actions?.includes("wallet")) {
+        //   state.stepState = "editing-wallet";
+        // } else if (step.credentials) {
+        //   state.stepState = "editing-issue";
+        // } else {
+        //   state.stepState = "editing-basic";
+        // }
       }),
 
     updateStep: (index, step) =>
