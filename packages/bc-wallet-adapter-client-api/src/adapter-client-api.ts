@@ -4,7 +4,8 @@ import { Connection, Sender } from 'rhea-promise'
 import { Service } from 'typedi'
 
 import { environment } from './environment'
-import { Action, SendOptions } from './types/adapter-backend'
+import { SendOptions } from './types'
+import { Action } from './types/adapter-backend'
 import { encryptBuffer } from './util/CypherUtil'
 
 @Service()
