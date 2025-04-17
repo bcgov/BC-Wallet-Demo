@@ -1,31 +1,20 @@
-// @ts-nocheck
-
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { useShowcaseStore } from "./use-showcase-store";
 import { produce } from "immer";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+
 import {
   useMutation,
+  UseMutationResult,
   useQuery,
   useQueryClient,
+  UseQueryResult,
 } from "@tanstack/react-query";
 import type {
-  IssuanceScenarioResponse,
-  ScenarioRequestType,
-  ScenarioTypeEnum,
-  StepRequestType,
-  StepResponse,
-  StepTypeEnum,
   StepType
 } from "@/openapi-types";
-import {
-  ScenarioRequest,
-  StepRequest
-} from "@/openapi-types";
+
 import apiClient from "@/lib/apiService";
+import { IssuanceScenarioRequest, IssuanceScenarioResponse, StepRequest, StepResponse } from "bc-wallet-openapi";
 
 type StepState =
   | "editing-basic"
@@ -46,17 +35,19 @@ interface State {
 interface Actions {
   setSelectedStep: (index: number | null) => void;
   setStepState: (state: StepState) => void;
-  initializeScreens: (screens: StepRequestType[]) => void;
+  initializeScreens: (screens: StepRequest[]) => void;
   moveStep: (oldIndex: number, newIndex: number) => void;
   removeStep: (index: number) => void;
-  createStep: (step: StepRequestType) => void;
-  updateStep: (index: number, step: StepRequestType) => void;
+  createStep: (step: StepRequest) => void;
+  updateStep: (index: number, step: StepRequest) => void;
   setScenarioId: (id: string) => void;
   setIssuerId: (id: string) => void;
   reset: () => void;
 }
 
 const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+
+const staleTime = 1000 * 60 * 5;
 
 export const useOnboarding = create<State & Actions>()(
   immer((set) => ({
@@ -100,14 +91,6 @@ export const useOnboarding = create<State & Actions>()(
           const [movedStep] = newScreens.splice(oldIndex, 1);
           newScreens.splice(newIndex, 0, movedStep);
           state.screens = newScreens;
-
-          const { selectedCharacter } = useShowcaseStore.getState();
-          useShowcaseStore.setState(
-            produce((draft) => {
-              draft.showcaseJSON.personas[selectedCharacter].onboarding =
-                deepClone(newScreens);
-            })
-          );
         })
       ),
 
@@ -117,14 +100,6 @@ export const useOnboarding = create<State & Actions>()(
           const newScreens = [...state.screens];
           newScreens.splice(index, 1);
           state.screens = newScreens;
-
-          const { selectedCharacter } = useShowcaseStore.getState();
-          useShowcaseStore.setState(
-            produce((draft) => {
-              draft.showcaseJSON.personas[selectedCharacter].onboarding =
-                deepClone(newScreens);
-            })
-          );
 
           if (state.selectedStep === index) {
             state.selectedStep = null;
@@ -148,11 +123,6 @@ export const useOnboarding = create<State & Actions>()(
         } else {
           state.stepState = "editing-basic";
         }
-    
-        const { selectedCharacter } = useShowcaseStore.getState();
-        useShowcaseStore.setState((showcaseState) => {
-          showcaseState.showcaseJSON.personas[selectedCharacter].onboarding = newScreens;
-        });
       }),
 
     updateStep: (index, step) =>
@@ -161,14 +131,6 @@ export const useOnboarding = create<State & Actions>()(
           const newScreens = [...state.screens];
           newScreens[index] = deepClone(step);
           state.screens = newScreens;
-
-          const { selectedCharacter } = useShowcaseStore.getState();
-          useShowcaseStore.setState(
-            produce((draft) => {
-              draft.showcaseJSON.personas[selectedCharacter].onboarding =
-                deepClone(newScreens);
-            })
-          );
         })
       ),
 

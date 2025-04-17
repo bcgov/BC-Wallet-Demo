@@ -3,11 +3,11 @@ import { Label } from '../ui/label'
 import { useTranslations } from 'next-intl'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { baseUrl } from '@/lib/utils'
+import { CredentialDefinition } from 'bc-wallet-openapi'
 
 interface DisplaySearchResultsProps {
-  searchResults: any;
-  // searchResults: typeof CredentialDefinition._type[];
-  addCredential: (credentialId: string) => void;
+  searchResults: CredentialDefinition[];
+  addCredential: (credential: CredentialDefinition) => void;
 }
 
 export const DisplaySearchResults = ({

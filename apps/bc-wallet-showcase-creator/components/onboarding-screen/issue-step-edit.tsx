@@ -15,10 +15,9 @@ import StepHeader from "../step-header";
 import { useRouter } from "@/i18n/routing";
 import { ErrorModal } from "../error-modal";
 import Loader from "../loader";
-import { IssuanceScenarioResponseType, StepRequestType,CredentialDefinition, CredentialDefinitionType } from "@/openapi-types";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { toast } from "sonner";
-import { sampleAction, sampleScenario } from "@/lib/steps";
+import { sampleScenario, StepRequestUIActionTypes } from "@/lib/steps";
 import { NoSelection } from "../credentials/no-selection";
 import { debounce } from "lodash";
 import { useHelpersStore } from "@/hooks/use-helpers-store";
@@ -28,10 +27,7 @@ import { DisplayAddedCredentials } from "./display-added-credentials";
 import { useCredentialDefinitions } from "@/hooks/use-credentials";
 import { useCredentials } from "@/hooks/use-credentials-store";
 import { useOnboardingAdapter } from "@/hooks/use-onboarding-adapter";
-
-interface StepWithCredentials extends StepRequestType {
-  credentials?: string[];
-}
+import { CredentialDefinition, StepRequest } from "bc-wallet-openapi";
 
 export const IssuanceStepAdd = () => {
   const t = useTranslations();
@@ -48,7 +44,7 @@ export const IssuanceStepAdd = () => {
 
   const router = useRouter();
   const { mutateAsync, isPending } = useCreateScenario();
-  const currentStep = selectedStep !== null ? screens[selectedStep] as StepRequestType : null;
+  const currentStep = selectedStep !== null ? screens[selectedStep] as StepRequestUIActionTypes : null;
   const { showcase, setScenarioIds } = useShowcaseStore();
   const { setSelectedCredential, selectedCredential } = useCredentials()
   const { issuerId } = useHelpersStore();
@@ -56,8 +52,7 @@ export const IssuanceStepAdd = () => {
 
   const isEditMode = stepState === "editing-issue";
   const [showErrorModal, setErrorModal] = useState(false);
-  const [searchResults, setSearchResults] = useState<typeof CredentialDefinition._type[]>([]);
-  const [credential, setCredentials] = useState([]);
+  const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([]);
   const { data: credentials, isLoading, error } = useCredentialDefinitions();
 
   const defaultValues = {
@@ -87,7 +82,7 @@ export const IssuanceStepAdd = () => {
   const autoSave = debounce((data: IssueStepFormData) => {
     if (!currentStep || !form.formState.isDirty) return;
 
-    const stepWithCredentials: StepRequestType = {
+    const stepWithCredentials: StepRequestUIActionTypes = {
       ...currentStep,
       title: data.title,
       description: data.description,
@@ -193,8 +188,13 @@ export const IssuanceStepAdd = () => {
     for (const scenario of personaScenarios) {
       try {
         const result = await mutateAsync(scenario)
-        scenarioIds.push((result as IssuanceScenarioResponseType).issuanceScenario.id)
-        toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
+        if (result && result.issuanceScenario) {
+          scenarioIds.push(result.issuanceScenario.id)
+          toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
+        } else {
+          console.error('Invalid response format:', result)
+          throw new Error('Invalid response format')
+        }
       } catch (error) {
         console.error('Error creating scenario:', error)
         setErrorModal(true)
@@ -258,18 +258,6 @@ export const IssuanceStepAdd = () => {
             </div>
           )}
 
-          {/* {currentStep.credentials && currentStep.credentials.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                {t("onboarding.credentials_label")}
-              </h4>
-              <ul className="list-disc list-inside">
-                {currentStep.credentials.map((cred, index) => (
-                  <li key={index}>{cred}</li>
-                ))}
-              </ul>
-            </div>
-          )} */}
         </div>
       </div>
     )
@@ -366,7 +354,7 @@ export const IssuanceStepAdd = () => {
             <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
 
             <DisplayAddedCredentials
-              credentials={currentStep?.credentials as unknown as CredentialDefinitionType[]}
+              credentials={currentStep?.credentials as unknown as CredentialDefinition[]}
               removeCredential={removeCredential}
               control={form.control}
               updateCredentials={(updated) => {

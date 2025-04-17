@@ -19,10 +19,8 @@ import Image from 'next/image'
 import { useRouter } from '@/i18n/routing'
 import { ErrorModal } from '../error-modal'
 import Loader from '../loader';
-import { CredentialDefinition, CredentialDefinitionType, IssuanceScenarioResponseType } from '@/openapi-types';
 import { useShowcaseStore } from '@/hooks/use-showcases-store';
 import { toast } from 'sonner';
-import { sampleAction } from '@/lib/steps'
 import { sampleScenario } from '@/lib/steps'
 import { NoSelection } from '../credentials/no-selection'
 import { debounce } from 'lodash';
@@ -33,6 +31,7 @@ import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { StepType } from '@/types'
 import { DisplaySearchResults } from './display-search-results'
 import { DisplayAddedCredentials } from './display-added-credentials'
+import { CredentialDefinition, StepRequest } from 'bc-wallet-openapi'
 
 export const BasicStepAdd = () => {
   const t = useTranslations()
@@ -53,7 +52,7 @@ export const BasicStepAdd = () => {
   const { issuerId } = useHelpersStore();
   const { personas } = useOnboardingAdapter()
   const { setSelectedCredential,selectedCredential } = useCredentials()
-  const [searchResults, setSearchResults] = useState<typeof CredentialDefinition._type[]>([]);
+  const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([]);
   const { data: credentials } = useCredentialDefinitions();
 
   const isEditMode = stepState === 'editing-basic'
@@ -91,7 +90,7 @@ export const BasicStepAdd = () => {
       asset: data.asset || undefined,
     }
 
-    updateStep(selectedStep || 0, updatedStep)
+    updateStep(selectedStep || 0, updatedStep as StepRequest)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })
@@ -157,7 +156,13 @@ export const BasicStepAdd = () => {
     for (const scenario of personaScenarios) {
       try {
         const result = await mutateAsync(scenario)
-        scenarioIds.push((result as IssuanceScenarioResponseType).issuanceScenario.id)
+        if (result && result.issuanceScenario) {
+          scenarioIds.push(result.issuanceScenario.id)
+          toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
+        } else {
+          console.error('Invalid response format:', result)
+          throw new Error('Invalid response format')
+        }
         toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
       } catch (error) {
         console.error('Error creating scenario:', error)
@@ -181,7 +186,7 @@ export const BasicStepAdd = () => {
       return;
     }
 
-    const results = credentials.credentialDefinitions.filter((cred: any) =>
+    const results = credentials.credentialDefinitions.filter((cred: CredentialDefinition) =>
       cred.name.toUpperCase().includes(searchUpper)
     );
 
@@ -270,6 +275,7 @@ export const BasicStepAdd = () => {
           title={currentStep?.type == StepType.SERVICE ? t('onboarding.issue_step_header_title') : t('onboarding.basic_step_header_title')}
           showDropdown={false}
         />
+        <p>"BASIC STEP ADD"</p>
         <div className="space-y-6">
           <FormTextInput
             control={form.control}
@@ -318,9 +324,6 @@ export const BasicStepAdd = () => {
                 })
               }}
             />
-            {form.formState.errors.asset && (
-              <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
-            )}
           </div>
           {currentStep?.type == StepType.SERVICE && (
             <div className="space-y-4">
@@ -346,9 +349,8 @@ export const BasicStepAdd = () => {
               <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
 
               <DisplayAddedCredentials
-                credentials={currentStep?.credentials as unknown as CredentialDefinitionType[]}
+                credentials={currentStep?.credentials as unknown as CredentialDefinition[]}
                 removeCredential={removeCredential}
-                control={form.control}
                 updateCredentials={(updated) => {
                   if (currentStep?.title && currentStep?.description) {
                     updateStep(selectedStep || 0, {

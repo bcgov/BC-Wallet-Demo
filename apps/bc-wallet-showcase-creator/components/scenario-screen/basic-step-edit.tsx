@@ -18,7 +18,7 @@ import { useCreatePresentation } from '@/hooks/use-presentation'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { BasicStepFormData, basicStepSchema } from '@/schemas/onboarding'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { PresentationScenarioRequest, StepType } from 'bc-wallet-openapi'
+import { CredentialDefinition, PresentationScenarioRequest, StepType } from 'bc-wallet-openapi'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
 import { LocalFileUpload } from './local-file-upload'
@@ -26,8 +26,8 @@ import { ErrorModal } from '../error-modal'
 import { DisplaySearchResults } from '../onboarding-screen/display-search-results'
 import { DisplayStepCredentials } from './display-step-credentials'
 import { useCredentialDefinitions } from '@/hooks/use-credentials'
-import { CredentialDefinition, CredentialDefinitionType } from '@/openapi-types'
 import { useCredentials } from '@/hooks/use-credentials-store'
+import { StepRequestUIActionTypes } from '@/lib/steps'
 
 export const BasicStepEdit = () => {
   const t = useTranslations()
@@ -36,14 +36,14 @@ export const BasicStepEdit = () => {
   const { setScenarioIds } = useShowcaseStore()
   const { selectedScenario, updateStep, selectedStep, setStepState, deleteStep } =
     usePresentationAdapter()
-  const [searchResults, setSearchResults] = useState<typeof CredentialDefinition._type[]>([])
+  const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions();
   const { setSelectedCredential, selectedCredential } = useCredentials()
   const { personaScenarios } = usePresentationCreation()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
 
-  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] : null
+  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
 
   const defaultValues = {
     title: currentStep?.title || '',
@@ -108,19 +108,19 @@ export const BasicStepEdit = () => {
     setSearchResults(results);
   };
 
-  const addCredential = (credentialId: string) => {
+  const addCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
     const existing = currentStep.credentials || [];
-    if (!existing.includes(credentialId)) {
-      const updated = [...existing, credentialId];
+    if (!existing.includes(credential)) {
+      const updated = [...existing, credential];
       updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
     }
     setSearchResults([]);
   }
 
-  const removeCredential = (credentialId: string) => {
+  const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    const updated = (currentStep.credentials || []).filter(id => id !== credentialId);
+    const updated = (currentStep.credentials || []).filter(id => id !== credential.id);
 
     updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
     setSelectedCredential(null);
@@ -133,7 +133,7 @@ export const BasicStepEdit = () => {
       scenarios.map((scenario) => ({
         ...scenario,
         steps: scenario.steps.map((step, index) => {
-          const { credentials, ...restStep } = step;
+          const { credentials, ...restStep } = step as StepRequestUIActionTypes;
     
           return {
             ...restStep,
@@ -248,9 +248,6 @@ export const BasicStepEdit = () => {
                 })
               }}
             />
-            {form.formState.errors.asset && (
-              <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
-            )}
           </div>
 
           {currentStep?.type == StepType.Service && (
@@ -277,7 +274,7 @@ export const BasicStepEdit = () => {
 
                   {currentStep && (
                     <DisplayStepCredentials
-                      credentials={currentStep?.credentials as unknown as CredentialDefinitionType[]}
+                      credentials={currentStep?.credentials as unknown as CredentialDefinition[]}
                       selectedStep={selectedStep?.stepIndex || 0}
                       localData={{}}
                       selectedScenario={selectedStep?.scenarioIndex || 0}

@@ -8,12 +8,12 @@ import Image from 'next/image'
 
 import { NoSelection } from '../credentials/no-selection'
 import { EditProofRequest } from './edit-proof-request'
-import { CredentialDefinitionType } from '@/openapi-types'
 import { ProofRequestFormData } from '@/schemas/scenario'
+import { CredentialDefinition } from 'bc-wallet-openapi'
 
 interface DisplayStepCredentialsProps {
   selectedCharacter?: number
-  credentials: CredentialDefinitionType[];
+  credentials: CredentialDefinition[];
   updateCredentials?:(updatedCredentials: ProofRequestFormData) => void;
   localData: {
     requestOptions?: {
@@ -22,7 +22,7 @@ interface DisplayStepCredentialsProps {
   }
   selectedStep: number | null
   selectedScenario: number | null
-  removeCredential: (credential: string) => void
+  removeCredential: (credential: CredentialDefinition) => void
 }
 
 export const DisplayStepCredentials = ({
@@ -106,9 +106,7 @@ export const DisplayStepCredentials = ({
                   <EditProofRequest
                     credentials={credential}
                     updateCredentials={updateCredentials}
-                    proofRequest={localData.requestOptions?.proofRequest}
                     credentialName={credential?.credentialSchema?.name}
-                    selectedCharacter={selectedCharacter}
                     selectedScenario={selectedScenario}
                     selectedStep={selectedStep}
                     setEditingCredentials={setEditingCredentials}

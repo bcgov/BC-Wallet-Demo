@@ -1,15 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useShowcaseCreation } from "@/hooks/use-showcase-creation";
-import { StepRequestType } from "@/openapi-types";
-import { createDefaultStep, createServiceStep, StepWithCredentials } from "@/lib/steps";
+import { createDefaultStep, createServiceStep, StepRequestUIActionTypes } from "@/lib/steps";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { useHelpersStore } from "./use-helpers-store";
 import { useUiStore } from "./use-ui-store";
 import { useUpdateShowcase } from "./use-showcases";
 import { StepType } from "@/types";
-import { Persona, ShowcaseRequest } from "bc-wallet-openapi";
-import { useQueryClient } from '@tanstack/react-query'
+import { Persona, ShowcaseRequest, StepRequest } from "bc-wallet-openapi";
 
 export const useOnboardingAdapter = () => {
   const {
@@ -43,7 +41,6 @@ export const useOnboardingAdapter = () => {
   const { selectedCredentialDefinitionIds, issuerId, tenantId } = useHelpersStore()
 
   const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null)
-  const queryClient = useQueryClient()
 
   const loadPersonaSteps = useCallback(
     (personaId: string) => {
@@ -65,7 +62,7 @@ export const useOnboardingAdapter = () => {
                 title: step.title,
                 description: step.description,
                 asset: step.asset || '',
-                credentials: (step as StepWithCredentials).credentials || [],
+                credentials: (step as StepRequestUIActionTypes).credentials || [],
               }),
               ...baseStep,
             }
@@ -96,7 +93,7 @@ export const useOnboardingAdapter = () => {
 
   useEffect(() => {
     if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
-      const scenarioSteps: StepRequestType[] = steps.map((step, index) => {
+      const scenarioSteps = steps.map((step, index) => {
         const baseStep = {
           title: step.title,
           description: step.description,
@@ -104,11 +101,11 @@ export const useOnboardingAdapter = () => {
           type: step.type as 'HUMAN_TASK' | 'SERVICE' | 'SCENARIO',
           actions: step.actions || [],
           issuer: issuerId,
-          asset: step.asset || '',
+          asset: step.asset || undefined,
         }
 
         if (step.type === StepType.SERVICE) {
-          const serviceStep = step as StepWithCredentials
+          const serviceStep = step as StepRequestUIActionTypes
           return {
             ...baseStep,
             credentials: serviceStep.credentials || [],
@@ -118,7 +115,7 @@ export const useOnboardingAdapter = () => {
         return baseStep
       })
 
-      updatePersonaSteps(activePersonaId, scenarioSteps)
+      updatePersonaSteps(activePersonaId, scenarioSteps as StepRequest[])
     }
   }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId]);
   

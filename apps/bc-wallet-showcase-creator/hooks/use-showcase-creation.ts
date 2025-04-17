@@ -1,12 +1,7 @@
 import { useState, useCallback } from "react";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
-import type { 
-  ScenarioRequestType, 
-  StepRequestType,
-  AriesOOBActionRequest,
-  IssuanceScenarioRequestType,
-} from "@/openapi-types";
-import type { Persona } from "bc-wallet-openapi";
+
+import type { AriesOOBActionRequest, IssuanceScenarioRequest, Persona, StepActionRequest, StepRequest } from "bc-wallet-openapi";
 import { sampleAction } from "@/lib/steps";
 import { useHelpersStore } from "@/hooks/use-helpers-store";
 import { usePersonas } from "@/hooks/use-personas";
@@ -20,7 +15,7 @@ export const useShowcaseCreation = () => {
   const { issuerId, selectedCredentialDefinitionIds } = useHelpersStore();
   
   const [personaScenarios, setPersonaScenarios] = useState(() => {
-    const initialScenarios = new Map<string, IssuanceScenarioRequestType>();
+    const initialScenarios = new Map<string, IssuanceScenarioRequest>();
     
     const personas = (personasData?.personas || []).filter(
       (persona: Persona) => selectedPersonaIds.includes(persona.id)
@@ -30,7 +25,6 @@ export const useShowcaseCreation = () => {
       initialScenarios.set(persona.id, {
         name: `${persona.name}'s Journey`,
         description: `Onboarding scenario for ${persona.name}`,
-        type: 'ISSUANCE',
         steps: [
           {
             title: `Meet ${persona.name}`,
@@ -117,7 +111,7 @@ export const useShowcaseCreation = () => {
     (persona: Persona) => selectedPersonaIds.includes(persona.id)
   );
   
-  const updatePersonaSteps = useCallback((personaId: string, steps: StepRequestType[]) => {
+  const updatePersonaSteps = useCallback((personaId: string, steps: StepRequest[]) => {
     setPersonaScenarios(prevScenarios => {
       if (!prevScenarios.has(personaId)) {
         return prevScenarios;
@@ -136,7 +130,7 @@ export const useShowcaseCreation = () => {
   const addActionToStep = useCallback((
     personaId: string, 
     stepIndex: number, 
-    action: typeof AriesOOBActionRequest._type
+    action: AriesOOBActionRequest
   ) => {
     setPersonaScenarios(prevScenarios => {
       if (!prevScenarios.has(personaId)) {
@@ -153,7 +147,7 @@ export const useShowcaseCreation = () => {
       const step = steps[stepIndex];
       const actions = [...(step.actions || []), action];
       
-      steps[stepIndex] = { ...step, actions };
+      steps[stepIndex] = { ...step, actions: actions as StepActionRequest[] };
       
       const newScenarios = new Map(prevScenarios);
       newScenarios.set(personaId, {
@@ -171,10 +165,9 @@ export const useShowcaseCreation = () => {
         return prevScenarios;
       }
       
-      const defaultScenario: ScenarioRequestType = {
+      const defaultScenario: IssuanceScenarioRequest = {
         name: `${persona.name}'s Journey`,
         description: `Onboarding scenario for ${persona.name}`,
-        type: "ISSUANCE",
         steps: [
           {
             title: `Meet ${persona.name}`,
@@ -190,7 +183,7 @@ export const useShowcaseCreation = () => {
       };
       
       const newScenarios = new Map(prevScenarios);
-      newScenarios.set(persona.id, defaultScenario as IssuanceScenarioRequestType);
+      newScenarios.set(persona.id, defaultScenario as IssuanceScenarioRequest);
       return newScenarios;
     });
   }, []);

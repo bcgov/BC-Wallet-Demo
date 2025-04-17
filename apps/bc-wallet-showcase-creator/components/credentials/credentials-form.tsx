@@ -14,20 +14,13 @@ import { useCredentials } from '@/hooks/use-credentials-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { baseUrl } from '@/lib/utils'
 import type {
-  AssetRequest,
-  AssetResponse,
-  CredentialDefinitionResponse,
-  CredentialSchemaRequestType,
-  CredentialSchemaResponse,
-  CredentialDefinitionRequest,
-  IssuerResponse,
-  RelyingPartyResponse,
+  CredentialSchemaFormRequestType,
 } from '@/openapi-types'
 import { schema } from '@/schemas/credential'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import type { z } from 'zod'
+
 import { FileUploadFull } from '../file-upload'
 import StepHeaderCredential from '../showcases-screen/step-header-credential'
 import { FormTextInput } from '../text-input'
@@ -36,7 +29,7 @@ import DeleteModal from '../delete-modal'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { Button } from '../ui/button'
-import { CredentialType, IssuerType, RelyingPartyType, Source } from 'bc-wallet-openapi'
+import { CredentialType, IssuerType, RelyingPartyType, Source, AssetResponse, AssetRequest, CredentialSchemaResponse, CredentialDefinitionRequest } from 'bc-wallet-openapi'
 
 export const CredentialsForm = () => {
   const { selectedCredential, mode, setSelectedCredential, viewCredential } = useCredentials()
@@ -54,8 +47,9 @@ export const CredentialsForm = () => {
 
   const { setIssuerId, setSelectedCredentialDefinitionIds, setRelayerId } = useHelpersStore()
   const { mutateAsync: approveCredentialDefinition } = useApproveCredentialDefinition()
-  const { mutateAsync: deleteCredentialDefinition, isPending: isDeleting } = useDeleteCredentialDefinition()
-  const form = useForm<CredentialSchemaRequestType>({
+  const { mutateAsync: deleteCredentialDefinition } = useDeleteCredentialDefinition()
+
+  const form = useForm<CredentialSchemaFormRequestType>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: '',
@@ -66,11 +60,11 @@ export const CredentialsForm = () => {
     shouldFocusError: true,
   })
 
-  const onSubmit = async (formData: CredentialSchemaRequestType) => {
+  const onSubmit = async (formData: CredentialSchemaFormRequestType) => {
     try {
       setIsSubmitting(true)
 
-      const schemaPayload: CredentialSchemaRequestType = {
+      const schemaPayload = {
         name: formData.name || 'example_name',
         version: formData.version || 'example_version',
         source: Source.Created,
@@ -81,21 +75,21 @@ export const CredentialsForm = () => {
         })),
       }
 
-      const schemaResponse = (await createCredentialSchema(schemaPayload)) as typeof CredentialSchemaResponse._type
+      const schemaResponse = (await createCredentialSchema(schemaPayload)) as CredentialSchemaResponse
       const schemaId = schemaResponse?.credentialSchema?.id
       if (!schemaId) throw new Error('Failed to create schema')
 
-      const assetPayload: z.infer<typeof AssetRequest> = {
+      const assetPayload: AssetRequest = {
         mediaType: 'image/jpeg',
         content: credentialLogo ?? '',
         fileName: 'example.jpg',
         description: 'Example asset',
       }
 
-      const assetResponse = (await createAsset(assetPayload)) as typeof AssetResponse._type
+      const assetResponse = (await createAsset(assetPayload)) as AssetResponse
       const assetId = assetResponse?.asset?.id
 
-      const credentialDefinitionPayload: z.infer<typeof CredentialDefinitionRequest> = {
+      const credentialDefinitionPayload: CredentialDefinitionRequest = {
         name: formData.name || 'default',
         version: formData.version || '1.0',
         credentialSchema: schemaId,
@@ -105,7 +99,7 @@ export const CredentialsForm = () => {
 
       const credentialDefinition = (await createCredentialDefinition(
         credentialDefinitionPayload,
-      )) as typeof CredentialDefinitionResponse._type
+      ))
       const credentialId = credentialDefinition?.credentialDefinition?.id
 
       if (!credentialId) throw new Error('Failed to create credential')
@@ -116,19 +110,23 @@ export const CredentialsForm = () => {
         credentialDefinitions: [credentialId],
         credentialSchemas: [schemaId],
         description: '',
-      })) as typeof IssuerResponse._type
+      }))
 
       const relyingPartyResponse = (await createRelyingParty({
         name: 'bc gov relying party',
         type: RelyingPartyType.Aries,
         credentialDefinitions: [credentialId],
         description: '',
-      })) as typeof RelyingPartyResponse._type
+      }))
 
-      setIssuerId(issuerResponse.issuer.id)
-      setRelayerId(relyingPartyResponse.relyingParty.id)
+      if (!issuerResponse?.issuer?.id || !relyingPartyResponse?.relyingParty?.id) {
+        throw new Error('Failed to create issuer or relying party')
+      }
 
-      const newCredential: (typeof CredentialDefinitionResponse._type)['credentialDefinition'] = {
+      setIssuerId(issuerResponse?.issuer?.id)
+      setRelayerId(relyingPartyResponse?.relyingParty?.id)
+
+      const newCredential = {
         id: credentialId,
         name: formData.name,
         version: formData.version,
@@ -208,7 +206,6 @@ export const CredentialsForm = () => {
     return (
       <div className="my-4 ">
         {' '}
-        {/* Added mx-7 here for uniform horizontal margin */}
         <div className="px-4">
           <StepHeaderCredential
             icon={<Monitor strokeWidth={3} />}
@@ -228,7 +225,6 @@ export const CredentialsForm = () => {
           />
         </div>
         <div className="space-y-6">
-          {/* Basic Information */}
           <div className="grid grid-cols-2 gap-4 w-full px-2">
             {[
               {
@@ -289,7 +285,6 @@ export const CredentialsForm = () => {
             </div>
           ) : null}{' '}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 px-6 mt-6">
-            {/* Displaying Attributes */}
             {credentialDefinition?.credentialSchema &&
               (credentialDefinition.credentialSchema?.attributes?.length ?? 0) > 0 && (
                 <div className="space-y-2">

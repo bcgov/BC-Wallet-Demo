@@ -207,8 +207,6 @@ export type NewStep = Omit<typeof steps.$inferInsert, 'scenario'> & {
   asset?: string | null
   actions?: NewStepActionTypes[]
   subScenario?: string | null
-  credentialDefinitionIdentifierType?: IdentifierType | null
-  credentialDefinitionIdentifier?: string | null
 }
 export type StepAction = typeof stepActions.$inferSelect
 export type NewStepAction = Omit<typeof stepActions.$inferInsert, 'step'>

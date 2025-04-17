@@ -5,9 +5,7 @@ import { useForm } from 'react-hook-form'
 
 import { FormTextInput, FormTextArea } from '@/components/text-input'
 import { Form } from '@/components/ui/form'
-import { useScenarios } from '@/hooks/use-scenarios'
 import { useShowcaseStore } from '@/hooks/use-showcase-store';
-import { StepType } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -17,32 +15,25 @@ import { DisplaySearchResults } from '../onboarding-screen/display-search-result
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { DisplayStepCredentials } from './display-step-credentials'
-import { CredentialAttributeType, CredentialDefinition, CredentialDefinitionType, StepRequest, StepRequestType } from '@/openapi-types'
-import { usePresentations } from '@/hooks/use-presentation'
+import { StepRequestSchema } from '@/openapi-types'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { debounce } from 'lodash'
 import { toast } from 'sonner'
-import { useHelpersStore } from '@/hooks/use-helpers-store'
-import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useCredentialDefinitions } from "@/hooks/use-credentials";
 import { useCredentials } from '@/hooks/use-credentials-store'
-interface StepWithCredentials extends StepRequestType {
-  credentials?: string[];
-}
+import { CredentialDefinition, StepRequest } from 'bc-wallet-openapi'
+import { StepRequestUIActionTypes } from '@/lib/steps'
 
 export const ProofStepEdit = () => {
   const t = useTranslations()
-  const { showcaseJSON, selectedCharacter } = useShowcaseStore()
+  const { selectedCharacter } = useShowcaseStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { screens } = usePresentations()
-  const { relayerId } = useHelpersStore();
   const {selectedScenario, updateStep,selectedStep, setStepState } = usePresentationAdapter()
-  const [searchResults, setSearchResults] = useState<typeof CredentialDefinition._type[]>([])
+  const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions();
   const { setSelectedCredential } = useCredentials()
-  const { personas } = useOnboardingAdapter()
 
-  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepWithCredentials : null
+  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
 
   const defaultValues = {
     title: currentStep?.title || '',
@@ -50,8 +41,8 @@ export const ProofStepEdit = () => {
     asset: currentStep?.asset || undefined,
   }
 
-  const form = useForm<StepRequestType>({
-    resolver: zodResolver(StepRequest),
+  const form = useForm<StepRequest>({
+    resolver: zodResolver(StepRequestSchema),
     defaultValues,
     mode: 'onChange',
   })
@@ -62,14 +53,12 @@ export const ProofStepEdit = () => {
         title: currentStep.title,
         description: currentStep.description,
         asset: undefined,
-        credentialDefinitionIdentifierType: currentStep.credentialDefinitionIdentifierType,
-        credentialDefinitionIdentifier: currentStep.credentialDefinitionIdentifier,
         actions: currentStep.actions
       });
     }
   }, [currentStep, form]);
 
-    const autoSave = debounce((data: StepRequestType) => {
+    const autoSave = debounce((data: StepRequest) => {
       if (!currentStep || !form.formState.isDirty) return
   
       const updatedStep = {
@@ -79,7 +68,7 @@ export const ProofStepEdit = () => {
         asset: data.asset || undefined,
       }
 
-      updateStep(currentStep.order, updatedStep)
+      updateStep(currentStep.order, updatedStep as StepRequest)
   
       setTimeout(() => {
         toast.success('Changes saved', { duration: 1000 })
@@ -89,7 +78,7 @@ export const ProofStepEdit = () => {
     useEffect(() => {
       const subscription = form.watch((value) => {
         if (form.formState.isDirty) {
-          autoSave(value as StepRequestType)
+          autoSave(value as StepRequest)
         }
       })
   
@@ -114,33 +103,28 @@ export const ProofStepEdit = () => {
     setSearchResults(results);
   };
 
-  const addCredential = (credentialId: string) => {
+  const addCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
     const existing = currentStep.credentials || [];
-    if (!existing.includes(credentialId)) {
-      const updated = [...existing, credentialId];
+    if (!existing.includes(credential)) {
+      const updated = [...existing, credential];
       updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
     }
     setSearchResults([]);
   }
 
-  const removeCredential = (credentialId: string) => {
+  const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    const updated = (currentStep.credentials || []).filter(id => id !== credentialId);
+    const updated = (currentStep.credentials || []).filter(id => id !== credential.id);
     updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
     setSelectedCredential(null);
   }
 
-  const onSubmit = (data: StepRequestType) => {
+  const onSubmit = (data: StepRequest) => {
     autoSave.flush()
     if (selectedScenario === null || selectedStep === null) return
-
-
-    // updateStep(selectedScenario, selectedStep, updatedStep as any)
     setStepState('no-selection')
   }
-
-  // if (!currentStep) return null
 
   return (
     <>
@@ -194,24 +178,6 @@ export const ProofStepEdit = () => {
               <h4 className="text-xl font-bold">Request Options</h4>
               <hr />
 
-              {/* <FormTextInput
-                label="Title"
-                name="actions.0.proofRequest.title"
-                register={form.register}
-                error={form.formState.errors.actions?.title?.message}
-                placeholder="Enter request title"
-                control={form.control}
-              />
-
-              <FormTextArea
-                label="Text"
-                name="actions.0.proofRequest.text"
-                register={form.register}
-                error={form.formState.errors.actions?.text?.message}
-                placeholder="Enter request text"
-                control={form.control}
-              /> */}
-
               <div className="space-y-4">
                 <div>
                   <p className="text-md font-bold">Search for a Credential:</p>
@@ -231,7 +197,7 @@ export const ProofStepEdit = () => {
 
                 {currentStep && (
                   <DisplayStepCredentials
-                    credentials={currentStep?.credentials as unknown as CredentialDefinitionType[]}
+                    credentials={currentStep?.credentials}
                     selectedCharacter={selectedCharacter}
                     selectedStep={selectedStep?.stepIndex || 0}
                     localData={{}}

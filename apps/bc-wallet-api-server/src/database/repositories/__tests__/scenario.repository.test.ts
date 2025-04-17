@@ -172,8 +172,6 @@ describe('Database scenario repository tests', (): void => {
           order: 1,
           type: StepType.HUMAN_TASK,
           asset: asset.id,
-          credentialDefinitionIdentifierType: credentialDefinition.identifierType,
-          credentialDefinitionIdentifier: credentialDefinition.identifier,
           actions: [
             {
               title: 'example_title',
@@ -334,8 +332,6 @@ describe('Database scenario repository tests', (): void => {
           order: 1,
           type: StepType.HUMAN_TASK,
           asset: asset.id,
-          credentialDefinitionIdentifierType: credentialDefinition.identifierType,
-          credentialDefinitionIdentifier: credentialDefinition.identifier,
           actions: [
             {
               title: 'example_title',
@@ -1347,8 +1343,8 @@ describe('Database scenario repository tests', (): void => {
           order: 1,
           type: StepType.HUMAN_TASK,
           asset: asset.id,
-          credentialDefinitionIdentifierType: credentialDefinition.identifierType,
-          credentialDefinitionIdentifier: credentialDefinition.identifier,
+          // credentialDefinitionIdentifierType: credentialDefinition.identifierType,
+          // credentialDefinitionIdentifier: credentialDefinition.identifier,
           actions: [
             {
               title: 'example_title1',
@@ -2163,8 +2159,8 @@ describe('Database scenario repository tests', (): void => {
       order: 2,
       type: StepType.HUMAN_TASK,
       asset: asset.id,
-      credentialDefinitionIdentifierType: credentialDefinition.identifierType,
-      credentialDefinitionIdentifier: credentialDefinition.identifier,
+      // credentialDefinitionIdentifierType: credentialDefinition.identifierType,
+      // credentialDefinitionIdentifier: credentialDefinition.identifier,
       actions: [
         {
           title: 'example_title1',
@@ -2701,8 +2697,8 @@ describe('Database scenario repository tests', (): void => {
           order: 1,
           type: StepType.HUMAN_TASK,
           asset: asset.id,
-          credentialDefinitionIdentifierType: credentialDefinition.identifierType,
-          credentialDefinitionIdentifier: credentialDefinition.identifier,
+          // credentialDefinitionIdentifierType: credentialDefinition.identifierType,
+          // credentialDefinitionIdentifier: credentialDefinition.identifier,
           actions: [
             {
               title: 'example_title',
@@ -2748,8 +2744,8 @@ describe('Database scenario repository tests', (): void => {
     const updatedStep: NewStep = {
       ...savedIssuanceScenario.steps[0],
       title: 'new_title',
-      credentialDefinitionIdentifierType: credentialDefinition.identifierType,
-      credentialDefinitionIdentifier: credentialDefinition.identifier,
+      // credentialDefinitionIdentifierType: credentialDefinition.identifierType,
+      // credentialDefinitionIdentifier: credentialDefinition.identifier,
       actions: [
         {
           title: 'example_title1',

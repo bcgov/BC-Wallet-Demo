@@ -1,14 +1,14 @@
 'use client'
 
-import { ArrowRight, Monitor } from 'lucide-react'
+import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import StepHeader from '../step-header'
 import { createDefaultStep, createServiceStep } from '@/lib/steps'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import StepButton from './step-button'
-
+import { StepType } from 'bc-wallet-openapi'
 export const CreateNewStep = () => {
-  const { createStep, setStepState, activePersona, setActivePersonaId } = useOnboardingAdapter()
+  const { createStep, setStepState, activePersona } = useOnboardingAdapter()
   const t = useTranslations()
 
   const handleAddStep = (stepType: string) => {

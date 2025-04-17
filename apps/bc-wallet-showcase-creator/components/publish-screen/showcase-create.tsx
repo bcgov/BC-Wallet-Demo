@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form'
 import { useCreateAsset } from '@/hooks/use-asset'
 import { useRouter } from '@/i18n/routing'
 import { convertBase64 } from '@/lib/utils'
-import type { AssetResponseType, ShowcaseRequestType } from '@/openapi-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor, X } from 'lucide-react'
 import { Trash2 } from 'lucide-react'
@@ -15,7 +14,7 @@ import { FormTextArea, FormTextInput } from '../text-input'
 import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-import { ShowcaseRequest, ShowcaseResponse, ShowcaseStatus } from 'bc-wallet-openapi'
+import { AssetResponse, ShowcaseRequest, ShowcaseResponse, ShowcaseStatus } from 'bc-wallet-openapi'
 
 import { toast } from 'sonner'
 import Image from 'next/image'
@@ -50,7 +49,7 @@ const BannerImageUpload = ({
             },
             {
               onSuccess: (data: unknown) => {
-                const response = data as AssetResponseType                
+                const response = data as AssetResponse                
                 setPreview(`data:${newValue.type};base64,${base64}`)
                 onChange(response.asset.id)
               },
@@ -139,7 +138,7 @@ export const ShowcaseCreate = () => {
   const { setShowcase } = useShowcaseStore()
   const { tenantId } = useHelpersStore()
 
-  const form = useForm<ShowcaseRequestType>({
+  const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseRequestFormData),
     mode: 'all',
     defaultValues: {
@@ -148,15 +147,14 @@ export const ShowcaseCreate = () => {
       status: 'ACTIVE',
       hidden: false,
       scenarios: [],
-      credentialDefinitions: [],
       personas: [],
       tenantId,
       bannerImage: '',
     },
   })
 
-  const onSubmit = async (formData: ShowcaseRequestType) => {
-    createShowcase(formData as ShowcaseRequest, {
+  const onSubmit = async (formData: ShowcaseRequest) => {
+    createShowcase(formData, {
       onSuccess: (data: unknown) => {
         const response = data as ShowcaseResponse
         if (response.showcase?.slug) {

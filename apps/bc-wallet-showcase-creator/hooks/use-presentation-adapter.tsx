@@ -1,10 +1,9 @@
 import { useCallback } from 'react'
-import type { ShowcaseRequestType, StepRequestType } from '@/openapi-types'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/lib/apiService'
 import { usePresentationCreation } from './use-presentation-creation'
-import type {  Persona } from 'bc-wallet-openapi'
+import type { Persona, ShowcaseRequest, StepRequest } from 'bc-wallet-openapi'
 
 export const usePresentationAdapter = () => {
   const {
@@ -47,7 +46,7 @@ export const usePresentationAdapter = () => {
   const steps = getCurrentSteps()
 
   const createStep = useCallback(
-    (stepData: StepRequestType) => {
+    (stepData: StepRequest) => {
       if (!activePersonaId) return
 
       addStep(activePersonaId, activeScenarioIndex, stepData)
@@ -60,7 +59,7 @@ export const usePresentationAdapter = () => {
 
   // Update step wrapper
   const handleUpdateStep = useCallback(
-    (index: number, stepData: StepRequestType) => {
+    (index: number, stepData: StepRequest) => {
       if (!activePersonaId) return
 
       updateStep(activePersonaId, activeScenarioIndex, index, stepData)
@@ -90,7 +89,7 @@ export const usePresentationAdapter = () => {
   )
 
   const updateShowcaseMutation = useMutation({
-    mutationFn: async (showcaseData: ShowcaseRequestType) => {
+    mutationFn: async (showcaseData: ShowcaseRequest) => {
       let response
 
       if (displayShowcase.id) {

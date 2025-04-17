@@ -20,14 +20,11 @@ import DeleteModal
 import { useRouter } from "@/i18n/routing";
 import { ErrorModal } from "../error-modal";
 import Loader from "../loader";
-import {
-  ScenarioRequestType,
-  IssuanceScenarioResponseType,
-} from "@/openapi-types";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { toast } from "sonner";
 import { useDeleteStep } from "@/hooks/use-issue-step";
 import { useHelpersStore } from "@/hooks/use-helpers-store";
+import { IssuanceScenarioRequest, IssuanceScenarioResponse } from "bc-wallet-openapi";
 
 export const BasicStepEdit = () => {
   const t = useTranslations();
@@ -107,10 +104,9 @@ export const BasicStepEdit = () => {
   };
 
   const handleCreateScenario = async () => {
-    const data: ScenarioRequestType = {
+    const data: IssuanceScenarioRequest = {
       name: "example_name",
       description: "example_description",
-      type: "ISSUANCE" as "ISSUANCE" | "PRESENTATION",
       issuer: issuerId,
       steps: [
         {
@@ -124,22 +120,6 @@ export const BasicStepEdit = () => {
               title: "example_title",
               actionType: "ARIES_OOB",
               text: "example_text",
-              proofRequest: {
-                attributes: {
-                  attribute1: {
-                    attributes: ["attribute1", "attribute2"],
-                    restrictions: ["restriction1", "restriction2"],
-                  },
-                },
-                predicates: {
-                  predicate1: {
-                    name: "example_name",
-                    type: "example_type",
-                    value: "example_value",
-                    restrictions: ["restriction1", "restriction2"],
-                  },
-                },
-              },
             },
           ],
         },
@@ -150,9 +130,13 @@ export const BasicStepEdit = () => {
     await mutateAsync(data, {
       onSuccess: (data: unknown) => {
         toast.success("Scenario Created");
-        setScenarioIds([
-          (data as IssuanceScenarioResponseType).issuanceScenario.id,
-        ]);
+        if (data && typeof data === 'object' && 'issuanceScenario' in data) {
+          setScenarioIds([
+            (data as IssuanceScenarioResponse).issuanceScenario?.id || "",
+          ]);
+        } else {
+          console.error("Invalid data received from API:", data);
+        } 
         router.push(`/showcases/create/scenarios`);
       },
     });

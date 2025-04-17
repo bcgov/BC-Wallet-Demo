@@ -2,12 +2,11 @@ import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
 import { useEffect } from 'react'
-import type { StepRequestType, AriesOOBActionRequest, PresentationScenarioRequestType } from '@/openapi-types'
 import { sampleAction } from '@/lib/steps'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
-import type { Persona } from 'bc-wallet-openapi'
+import type { Persona, PresentationScenarioRequest, StepActionRequest, StepRequest } from 'bc-wallet-openapi'
 import { StepType } from '@/types'
 
 enableMapSet()
@@ -17,7 +16,7 @@ type SelectedStep = {
   scenarioIndex: number
 } | null
 interface PresentationCreationState {
-  personaScenariosMap: Record<string, PresentationScenarioRequestType[]>
+  personaScenariosMap: Record<string, PresentationScenarioRequest[]>
   activePersonaId: string | null
   activeScenarioIndex: number
   stepState: 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new' | 'editing-scenario'
@@ -27,13 +26,13 @@ interface PresentationCreationState {
   // Actions
   setActivePersonaId: (id: string | null) => void
   setActiveScenarioIndex: (index: number) => void
-  updatePersonaSteps: (personaId: string, scenarioIndex: number, steps: StepRequestType[]) => void
-  addActionToStep: (personaId: string, stepIndex: number, action: typeof AriesOOBActionRequest._type) => void
+  updatePersonaSteps: (personaId: string, scenarioIndex: number, steps: StepRequest[]) => void
+  addActionToStep: (personaId: string, stepIndex: number, action: StepActionRequest) => void
   addPersonaScenario: (persona: Persona, relayerId: string) => void
   duplicateScenario: (scenarioIndex: number) => void
   deleteScenario: (scenarioIndex: number) => void
-  addStep: (personaId: string, scenarioIndex: number, stepData: StepRequestType) => void
-  updateStep: (personaId: string, scenarioIndex: number, stepIndex: number, stepData: StepRequestType) => void
+  addStep: (personaId: string, scenarioIndex: number, stepData: StepRequest) => void
+  updateStep: (personaId: string, scenarioIndex: number, stepIndex: number, stepData: StepRequest) => void
   deleteStep: (personaId: string, scenarioIndex: number, stepIndex: number) => void
   moveStep: (personaId: string, scenarioIndex: number, oldIndex: number, newIndex: number) => void
   duplicateStep: (personaId: string, scenarioIndex: number, stepIndex: number) => void
@@ -41,7 +40,7 @@ interface PresentationCreationState {
     state: 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new' | 'editing-scenario',
   ) => void
   setSelectedScenarioId: (id: string | null) => void
-  updateScenario: (personaId: string, scenarioIndex: number, scenarioData: PresentationScenarioRequestType) => void
+  updateScenario: (personaId: string, scenarioIndex: number, scenarioData: PresentationScenarioRequest) => void
   removeScenario: (personaId: string, scenarioIndex: number) => void
   setSelectedStep: (selectedStep: SelectedStep) => void
   selectStep: (stepIndex: number, scenarioIndex: number) => void
@@ -104,23 +103,22 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
       set((state) => {
         if (state.personaScenariosMap[persona.id]) return
 
-        const defaultScenario: PresentationScenarioRequestType = {
+        const defaultScenario: PresentationScenarioRequest = {
           name: "BC University Student Card",
           description: `Presentation scenario for ${persona.name}`,
-          type: 'PRESENTATION',
           steps: [
             {
               title: `Start proving you are a student`,
               description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
               order: 0,
               type: 'HUMAN_TASK',
-              actions: [sampleAction],
+              actions: [],
             },
             {
               title: `Confirm the information to send`,
               description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
               order: 0,
-              type: 'HUMAN_TASK',
+              type: 'SERVICE',
               actions: [sampleAction],
             },
             {
@@ -128,7 +126,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
               description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
               order: 0,
               type: 'HUMAN_TASK',
-              actions: [sampleAction],
+              actions: [],
             },
           ],
           personas: [persona.id],
@@ -154,7 +152,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
 
         const newScenarioIndex = scenarios.length
 
-        duplicatedScenario.steps = duplicatedScenario.steps.map((step: StepRequestType, idx: number) => ({
+        duplicatedScenario.steps = duplicatedScenario.steps.map((step: StepRequest, idx: number) => ({
           ...step,
           id: `step-${newScenarioIndex}-${idx}-${Date.now()}`,
           scenarioIndex: newScenarioIndex,
@@ -331,26 +329,6 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         state.selectedStep = selectedStep
       }),
 
-    // selectStep: (stepIndex, scenarioIndex) =>
-    //   set((state) => {
-    //     state.selectedStep = { stepIndex, scenarioIndex }
-    //     state.activeScenarioIndex = scenarioIndex
-
-    //     if (state.activePersonaId && state.personaScenariosMap[state.activePersonaId]) {
-    //       const scenarios = state.personaScenariosMap[state.activePersonaId]
-
-    //       if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
-    //         const steps = scenarios[scenarioIndex].steps
-
-    //         if (stepIndex >= 0 && stepIndex < steps.length) {
-    //           const currentStep = steps[stepIndex]
-
-    //           state.stepState = currentStep.type === 'SERVICE' ? 'editing-issue' : 'editing-basic'
-    //         }
-    //       }
-    //     }
-    //   }),
-
     selectStep: (stepIndex, scenarioIndex) =>
       set((state) => {
         state.selectedStep = { stepIndex, scenarioIndex }
@@ -378,67 +356,6 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         }
       }),
 
-    // addStep: (personaId, scenarioIndex, stepData) =>
-    //   set((state) => {
-    //     if (!state.personaScenariosMap[personaId]) return
-
-    //     const scenarios = state.personaScenariosMap[personaId]
-    //     if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
-
-    //     const currentSteps = scenarios[scenarioIndex].steps
-
-    //     const newStep = {
-    //       ...stepData,
-    //       id: `step-${scenarioIndex}-${currentSteps.length}-${Date.now()}`,
-    //       order: currentSteps.length,
-    //       type: stepData.type || 'HUMAN_TASK',
-    //       actions: stepData.actions || [],
-    //     }
-
-    //     scenarios[scenarioIndex].steps.push(newStep)
-
-    //     state.selectedStep = {
-    //       stepIndex: currentSteps.length,
-    //       scenarioIndex,
-    //     }
-    //   }),
-
-    // deleteStep: (personaId, scenarioIndex, stepIndex) =>
-    //   set((state) => {
-    //     if (!state.personaScenariosMap[personaId]) return
-
-    //     const scenarios = state.personaScenariosMap[personaId]
-    //     if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
-
-    //     const steps = scenarios[scenarioIndex].steps
-    //     if (stepIndex < 0 || stepIndex >= steps.length) return
-
-    //     steps.splice(stepIndex, 1)
-
-    //     steps.forEach((step, idx) => {
-    //       step.order = idx
-    //     })
-
-    //     if (
-    //       state.selectedStep &&
-    //       state.selectedStep.scenarioIndex === scenarioIndex &&
-    //       state.selectedStep.stepIndex === stepIndex
-    //     ) {
-
-    //       state.selectedStep = null
-    //       state.stepState = 'no-selection'
-    //     } else if (
-    //       state.selectedStep &&
-    //       state.selectedStep.scenarioIndex === scenarioIndex &&
-    //       state.selectedStep.stepIndex > stepIndex
-    //     ) {
-
-    //       state.selectedStep = {
-    //         ...state.selectedStep,
-    //         stepIndex: state.selectedStep.stepIndex - 1,
-    //       }
-    //     }
-    //   }),
   })),
 )
 
@@ -534,7 +451,7 @@ export const usePresentationCreation = () => {
     setStepState,
     stepState,
     selectedScenario,
-    updateScenario: (scenarioData: PresentationScenarioRequestType) =>
+    updateScenario: (scenarioData: PresentationScenarioRequest) =>
       activePersonaId && updateScenario(activePersonaId, activeScenarioIndex, scenarioData),
     removeScenario: () => activePersonaId && removeScenario(activePersonaId, activeScenarioIndex),
     selectedStep,
