@@ -30,6 +30,8 @@ import { sampleScenario } from '@/lib/steps'
 
 import { NoSelection } from '../credentials/no-selection'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
+import { StepRequest } from 'bc-wallet-openapi'
+import { baseUrl } from '@/lib/utils'
 
 export const BasicStepAdd = () => {
   const t = useTranslations()
@@ -77,8 +79,7 @@ export const BasicStepAdd = () => {
       description: data.description,
       asset: data.asset || undefined,
     }
-
-    updateStep(selectedStep || 0, updatedStep)
+    updateStep(selectedStep || 0, updatedStep as StepRequest)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })
@@ -199,7 +200,7 @@ export const BasicStepAdd = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <Image src={currentStep.asset} alt={currentStep.title} className="w-full object-cover" width={128} height={128} />
+                <Image src={`${baseUrl}/assets/${currentStep.asset}/file`} alt={currentStep.title} className="w-full object-cover" width={128} height={128} />
               </div>
             </div>
           )}
@@ -262,7 +263,7 @@ export const BasicStepAdd = () => {
                   description: currentStep.description,
                   asset: value || undefined,
                 };
-                updateStep(selectedStep || 0, updatedStep1);
+                updateStep(selectedStep || 0, updatedStep1 as StepRequest);
 
                 form.setValue("asset", value, {
                   shouldDirty: true,
@@ -271,9 +272,6 @@ export const BasicStepAdd = () => {
                 })
               }}
             />
-            {form.formState.errors.asset && (
-              <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
-            )}
           </div>
         </div>
         <div className="mt-auto pt-4 border-t flex justify-end gap-3">

@@ -6,7 +6,7 @@ import StepHeader from '../step-header'
 import { createDefaultStep, createServiceStep } from '@/lib/steps'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import StepButton from './step-button'
-import { StepType } from 'bc-wallet-openapi'
+import { StepActionType, StepType } from 'bc-wallet-openapi'
 export const CreateNewStep = () => {
   const { createStep, setStepState, activePersona } = useOnboardingAdapter()
   const t = useTranslations()
@@ -20,6 +20,7 @@ export const CreateNewStep = () => {
           createServiceStep({
             title: `Accept your student card`,
             description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
+            actions: [],
           })
         )
         setStepState('editing-basic')

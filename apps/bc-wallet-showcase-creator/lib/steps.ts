@@ -87,15 +87,15 @@ export const createServiceStep = ({
   asset?: string;
   credentials?: CredentialDefinition[];
   actions?: StepActionRequestTypes[];
-}) => ({
+}): StepRequest => ({
   title,
   description,
   order: 0,
   type: StepType.Service,
   actions: [
-    actions,
+    ...actions,
   ],
   asset,
-  credentials
+  // credentials: credentials || [],
 });
 

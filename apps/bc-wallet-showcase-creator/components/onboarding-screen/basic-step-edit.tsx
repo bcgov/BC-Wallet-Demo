@@ -287,11 +287,6 @@ export const BasicStepEdit = () => {
                       })
                     }
                   />
-                  {form.formState.errors.asset && (
-                    <p className="text-sm text-destructive">
-                      {form.formState.errors.asset.message}
-                    </p>
-                  )}
                 </div>
               </div>
               <div className="mt-auto pt-4 border-t flex justify-end gap-3">
