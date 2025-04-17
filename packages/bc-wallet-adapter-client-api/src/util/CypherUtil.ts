@@ -80,7 +80,10 @@ function validateParameters(key: Buffer, nonceSize: number): void {
  * @param nonceSize Size of the nonce in bytes (default from environment)
  * @returns Object containing encrypted data and nonce
  */
-export function encryptBuffer(data: Buffer, nonceSize: number = envEnc.NONCE_SIZE): { encrypted: Buffer; nonce: Buffer } {
+export function encryptBuffer(
+  data: Buffer,
+  nonceSize: number = envEnc.NONCE_SIZE,
+): { encrypted: Buffer; nonce: Buffer } {
   const key = getKeyFromEnv()
   validateParameters(key, nonceSize)
 

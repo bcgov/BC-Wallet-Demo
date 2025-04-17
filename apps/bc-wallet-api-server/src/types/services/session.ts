@@ -5,5 +5,11 @@ export interface ISessionService {
 
   getCurrentTenant(): Promise<Tenant | null>
 
-  getBearerToken(): string
+  getBearerToken(): string | undefined
+
+  getApiBaseUrl(): string | undefined
+}
+
+export interface ISessionServiceUpdater extends ISessionService {
+  setRequestDetails(apiBaseUrl: string, token?: string): void
 }
