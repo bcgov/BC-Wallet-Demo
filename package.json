@@ -24,7 +24,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "preinstall": "npx only-allow pnpm",
-    "generate:models": "pnpm -r --if-present --stream run generate:models && pnpm --filter bc-wallet-openapi --filter bc-wallet-traction-openapi run build:clean",
+    "generate:models": "pnpm -r --if-present --stream run generate:models && pnpm --filter bc-wallet-openapi --filter bc-wallet-traction-openapi run build:clean && pnpm install",
     "build:clean": "pnpm -r --if-present --stream run build:clean",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --verbose --config=jest.json --coverage=true --detectOpenHandles --forceExit",
     "test:ci": "jest --config=jest.json"
