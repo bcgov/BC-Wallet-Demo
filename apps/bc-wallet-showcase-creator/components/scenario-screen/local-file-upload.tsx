@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useAssetById, useCreateAsset } from '@/hooks/use-asset'
 import Image from 'next/image'
 import { AssetResponse } from 'bc-wallet-openapi'
+
 interface LocalFileUploadProps {
   text: string
   element: string

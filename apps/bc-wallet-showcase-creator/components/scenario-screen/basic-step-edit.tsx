@@ -120,8 +120,7 @@ export const BasicStepEdit = () => {
 
   const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    // @ts-expect-error: TODO: fix this
-    const updated = (currentStep.credentials || []).filter((id: string) => id !== credential);
+    const updated = (currentStep.credentials || []).filter((id) => id !== credential);
 
     updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
     setSelectedCredential(null);
