@@ -18,7 +18,7 @@ import { useCreatePresentation } from '@/hooks/use-presentation'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { BasicStepFormData, basicStepSchema } from '@/schemas/onboarding'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { CredentialDefinition, PresentationScenarioRequest, StepType } from 'bc-wallet-openapi'
+import { CredentialDefinition, PresentationScenarioRequest, StepActionType, StepType } from 'bc-wallet-openapi'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
 import { LocalFileUpload } from './local-file-upload'
@@ -129,25 +129,46 @@ export const BasicStepEdit = () => {
 
   const onSubmit = async (data: BasicStepFormData) => {
     autoSave.flush()
+    console.log('@@ personaScenarios onSubmit', personaScenarios)
 
     const mappedScenarios = Array.from(personaScenarios.values()).flatMap((scenarios) =>
       scenarios.map((scenario) => ({
         ...scenario,
         steps: scenario.steps.map((step, index) => {
           const { credentials, ...restStep } = step as StepRequestUIActionTypes;
-    
+          console.log('step', step, step.type === StepType.Service)
           return {
             ...restStep,
             order: index,
             asset: step.asset || undefined,
-            actions:
-              step.type === StepType.Service
-                ? step.actions.map((action) => ({
-                    ...action,
-                    actionType: "ARIES_OOB",
-                    credentialDefinitionId: selectedCredential?.id,
-                  }))
-                : step.actions,
+            actions: step.type === StepType.Service ? [{
+                "title": "example_title",
+                "actionType": "ARIES_OOB",
+                "text": "example_text",
+                "credentialDefinitionId": selectedCredential?.id,
+                "proofRequest": {
+                    "attributes": {
+                        "Test": {
+                            "attributes": [
+                                "name"
+                            ]
+                        }
+                    },
+                    "predicates": {
+                        "predicate1": {
+                            "name": "example_name",
+                            "type": "example_type",
+                            "value": "example_value",
+                            "restrictions": [
+                                "restriction1",
+                                "restriction2"
+                            ]
+                        }
+                    }
+                }
+              }
+            ] : step.actions,
+              
           };
         }),
       })),
@@ -155,6 +176,7 @@ export const BasicStepEdit = () => {
     const scenarioIds = []
 
     for (const scenario of mappedScenarios) {
+      console.log('@@ scenario', scenario)
       try {
         const result = await mutateAsync(scenario as PresentationScenarioRequest)
         if (result?.presentationScenario?.id) {
@@ -252,7 +274,7 @@ export const BasicStepEdit = () => {
           </div>
 
           {currentStep?.type == StepType.Service && (
-            <div className="space-y-4 h-screen">
+            <div className="space-y-4">
                 <h4 className="text-xl font-bold">Request Options</h4>
                 <hr />
 
