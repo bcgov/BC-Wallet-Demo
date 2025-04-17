@@ -211,11 +211,11 @@ export const usePersonaAdapter = () => {
           await updateShowcaseWithPersona(newPersonaId);
         }
         
-        setSelectedPersonaId(newPersonaId);
+        setStepState('no-selection'); 
         toast.success('Persona has been created.');
       }
-      
-      // Reset image editing states
+      setHeadshotImage(null);
+      setBodyImage(null);
       setIsHeadshotImageEdited(false);
       setIsBodyImageEdited(false);
       

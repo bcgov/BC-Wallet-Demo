@@ -1,18 +1,14 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { produce } from 'immer'
-import { useForm } from 'react-hook-form'
-import { useState } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
-  ScenarioRequestType,
-  ScenarioTypeEnum,
   StepRequestType,
   StepResponse,
   StepType,
 } from '@/openapi-types'
-import { ScenarioRequest, StepRequest } from '@/openapi-types'
+import { StepRequest } from '@/openapi-types'
 import apiClient from '@/lib/apiService'
 import { PresentationScenarioRequest, PresentationScenarioResponse } from 'bc-wallet-openapi'
 

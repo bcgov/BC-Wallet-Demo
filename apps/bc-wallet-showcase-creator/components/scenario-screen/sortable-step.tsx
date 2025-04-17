@@ -1,10 +1,10 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { cn, baseUrl } from '@/lib/utils'
-import type { StepType } from '@/openapi-types'
+import type { Step } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Copy, GripVertical } from 'lucide-react'
+import { Copy, GripVertical, TriangleAlert } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
@@ -18,7 +18,7 @@ export const SortableStep = ({
   totalSteps,
 }: {
   selectedStep: { stepIndex: number, scenarioIndex: number } | null
-  myScreen: StepType
+  myScreen: typeof Step._type
   stepIndex: number
   totalSteps: number
   scenarioIndex: number
@@ -48,13 +48,18 @@ const handleStepClick = () => {
     }
   });
   
-  switch (ScreenType) {
-    case 'HUMAN_TASK':
-      setStepState('editing-basic')
-      break;
-    case 'SERVICE':
-      setStepState('editing-issue')
-  }
+  setStepState('editing-basic')
+  // switch (ScreenType) {
+  //   case 'HUMAN_TASK':
+  //     setStepState('editing-basic')
+  //     break;
+  //   case 'SERVICE':
+  //     setStepState('editing-basic')
+  //     break;
+  //   default:
+  //     setStepState('editing-basic')
+  //     break;
+  // }
   handleSelectStep(stepIndex, scenarioIndex)
   // setStepState('editing-issue');
 
@@ -130,34 +135,47 @@ const handleStepClick = () => {
           </p>
           {myScreen.type == 'SERVICE' && (
             <>
-              {!selectedCredential ? (
-                <>{/* Optional warning message could go here */}</>
-              ) : (
+              {(!myScreen.credentials || myScreen.credentials.length === 0) ? (
                 <>
-                  {selectedCredential && (
-                    <div className="bg-white dark:bg-dark-bg-secondary p-2 flex">
-                      <Image
-                        src={
-                          selectedCredential.icon?.id
-                            ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
-                            : '/assets/no-image.jpg'
-                        }
-                        alt={selectedCredential.icon?.description || 'Credential icon'}
-                        width={50}
-                        height={50}
-                        className="rounded-full"
-                      />
-                      <div className="ml-4 flex-col">
-                        <div className="font-semibold">{selectedCredential?.name}</div>
-                        {/* <div className="text-sm">{selectedCredential?.relyingParty?.name ?? 'Test college'}</div> */}
-                      </div>
-                      <div className="align-middle ml-auto">
-                        <div className="font-semibold">Attributes</div>
-                        {/* <div className="text-sm text-end">{Object.keys(selectedCredential.credentialSchema.attributes).length}</div> */}
+                <div className="bg-light-yellow mt-2 font-bold rounded gap-2 flex flex-row items-center justify-center">
+                  <TriangleAlert size={22} />
+                  {t('action.select_credential_label')}
+                </div>
+                </>
+              ) : (
+                myScreen.credentials.map((cred:any, index) => (
+                  <div
+                    key={cred.id ?? index}
+                    className="bg-white dark:bg-dark-bg-secondary p-2 flex mt-2 rounded"
+                  >
+                    <Image
+                      src={
+                        cred?.icon?.id
+                          ? `${baseUrl}/assets/${cred.icon.id}/file`
+                          : '/assets/no-image.jpg'
+                      }
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement
+                        target.src = '/assets/no-image.jpg'
+                      }}
+                      alt={'Credential Icon'}
+                      width={50}
+                      height={50}
+                      className="rounded-full"
+                    />
+                    <div className="ml-4 flex-col">
+                      <div className="font-semibold">{cred.name}</div>
+                      <div className="text-sm">{cred.issuer?.name ?? 'Test college'}</div>
+                    </div>
+                    <div className="align-middle ml-auto text-right">
+                      <div className="font-semibold">{t('credentials.attributes_label')}</div>
+                      <div className="text-sm text-end">
+                        {cred.credentialSchema?.attributes?.length ?? 0}
                       </div>
                     </div>
-                  )}
-                </>
+                  </div>
+                ))
               )}
             </>
           )}

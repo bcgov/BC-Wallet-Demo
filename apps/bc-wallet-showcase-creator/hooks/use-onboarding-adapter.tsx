@@ -130,7 +130,7 @@ export const useOnboardingAdapter = () => {
       const showcaseData = {
         name: data.name,
         description: data.description,
-        status: data.status || "PENDING",
+        status: data.status || "ACTIVE",
         hidden: data.hidden || false,
         scenarios: showcase.scenarios,
         credentialDefinitions: selectedCredentialDefinitionIds,

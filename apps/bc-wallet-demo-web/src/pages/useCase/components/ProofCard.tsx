@@ -1,21 +1,20 @@
-import React from 'react'
-
+import React, { FC } from 'react'
 import { startCase } from 'lodash'
-
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
 import type { CredentialRequest } from '../../../slices/types'
-import { prependApiUrl } from '../../../utils/Url'
 
 export interface Props {
   requestedItems: CredentialRequest[]
 }
 
-export const ProofCard: React.FC<Props> = ({ requestedItems }) => {
+export const ProofCard: FC<Props> = (props: Props) => {
+  const { requestedItems } = props
   const renderRequestedItems = requestedItems.map((item) => {
     return (
       <div className="flex-1 flex flex-row items-center justify-between pt-4 " key={item.name}>
         {item.icon && (
           <div className="bg-bcgov-lightgrey dark:bg-bcgov-black rounded-lg p-2 w-12">
-            <img className="h-8 m-auto" src={prependApiUrl(item.icon)} alt="icon" />
+            <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${item.icon}/file`} alt="icon" />
           </div>
         )}
         <div className="flex-1 px-4 justify-self-start dark:text-white">

@@ -1,25 +1,23 @@
-import React from 'react'
+import React, { FC } from 'react'
 import { isMobile } from 'react-device-detect'
 import { FiLogOut } from 'react-icons/fi'
-
 import { motion } from 'framer-motion'
-
 import { fadeDelay } from '../../FramerAnimations'
-import type { UseCaseScreen } from '../../slices/types'
 import { ConnectionCard } from './components/ConnectionCard'
 import { ProofCard } from './components/ProofCard'
 import { StepperCard } from './components/StepperCard'
+import type { CredentialDefinition, RelyingParty, Step } from '../../slices/types'
 
 export interface Props {
-  steps: UseCaseScreen[]
-  currentStep: string
-  entity: { name: string; icon?: string }
+  steps: Step[]
+  currentStep: number
+  entity: RelyingParty
   showLeaveModal(): void
+  requestedCredentials?: CredentialDefinition[]
 }
 
-export const SideView: React.FC<Props> = ({ steps, currentStep, entity, showLeaveModal }) => {
-  const requestedCredentials = steps.find((step) => step.requestOptions?.requestedCredentials)?.requestOptions
-    ?.requestedCredentials
+export const SideView: FC<Props> = (props: Props) => {
+  const { steps, currentStep, entity, showLeaveModal, requestedCredentials = [] } = props
 
   return (
     <motion.div
@@ -50,8 +48,8 @@ export const SideView: React.FC<Props> = ({ steps, currentStep, entity, showLeav
       exit="exit"
       className="flex flex-col lg:mx-6 dark:text-white w-auto lg:w-1/3"
     >
-      <ConnectionCard icon={entity.icon} entity={entity.name} />
-      {requestedCredentials && <ProofCard requestedItems={requestedCredentials} />}
+      <ConnectionCard icon={entity.logo} entity={entity.name} />
+      {requestedCredentials.length > 0 && <ProofCard requestedItems={requestedCredentials} />}
       <StepperCard steps={steps} currentStep={currentStep} />
       <motion.button
         onClick={showLeaveModal}

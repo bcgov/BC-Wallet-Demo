@@ -1,5 +1,5 @@
-import type { AxiosResponse } from 'axios'
 import { demoBackendApi } from './BaseUrl'
+import type { AxiosResponse } from 'axios'
 import type { CredentialDefinition } from '../slices/types'
 
 export const issueCredential = async (
@@ -11,7 +11,7 @@ export const issueCredential = async (
     cred_def_id: credentialDefinition.identifier,
     credential_proposal: {
       '@type': 'issue-credential/1.0/credential-preview',
-      attributes: credentialDefinition.attributes,
+      attributes: credentialDefinition.schema.attributes,
     },
   })
 }
@@ -25,7 +25,7 @@ export const issueDeepCredential = async (
     cred_def_id: credentialDefinition.identifier,
     credential_proposal: {
       '@type': 'issue-credential/1.0/credential-preview',
-      attributes: credentialDefinition.attributes,
+      attributes: credentialDefinition.schema.attributes,
     },
   })
 }

@@ -14,7 +14,6 @@ import {
   PresentationScenario as PresentationScenarioDTO,
   RelyingParty as RelyingPartyDTO,
   SetupConnectionAction as SetupConnectionActionDTO,
-  ShareCredentialAction as ShareCredentialActionDTO,
   Showcase as ShowcaseDTO,
   Step as StepDTO,
   StepAction as StepActionDTO,
@@ -37,7 +36,6 @@ import {
   RelyingParty,
   Scenario,
   ScenarioType,
-  ShareCredentialAction,
   Showcase,
   Step,
   StepActionType,
@@ -163,15 +161,6 @@ export const stepActionDTOFrom = (stepAction: StepActionTypes): StepActionDTO =>
       }
       return acceptCredentialDTO
     }
-    case StepActionType.SHARE_CREDENTIAL: {
-      const action = stepAction as ShareCredentialAction
-      const shareCredentialDTO: ShareCredentialActionDTO = {
-        ...baseAction,
-        credentialDefinitionId: action.credentialDefinitionId,
-        connectionId: action.connectionId || undefined,
-      }
-      return shareCredentialDTO
-    }
     case StepActionType.BUTTON: {
       const action = stepAction as ButtonAction
       const buttonDTO: ButtonActionDTO = {
@@ -184,7 +173,8 @@ export const stepActionDTOFrom = (stepAction: StepActionTypes): StepActionDTO =>
       const action = stepAction as AriesOOBAction
       const ariesOOBDTO: AriesOOBActionDTO = {
         ...baseAction,
-        proofRequest: action.proofRequest as AriesProofRequestDTO, // FIXME, no idea how yet
+        credentialDefinitionId: action.credentialDefinitionId,
+        proofRequest: action.proofRequest as AriesProofRequestDTO,
       }
       return ariesOOBDTO
     }
