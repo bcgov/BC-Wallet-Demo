@@ -2665,8 +2665,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/ScenarioRequest'
         - type: object
-          required:
-            - issuer
+#          required:
+#            - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               type: string
