@@ -23,7 +23,7 @@ import Loader from '../loader'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { LocalFileUpload } from './local-file-upload'
-import { IssuanceScenarioRequest, IssuanceScenarioResponse } from 'bc-wallet-openapi'
+import { IssuanceScenarioRequest } from 'bc-wallet-openapi'
 
 export const WalletStepEdit = () => {
   const t = useTranslations()
@@ -97,10 +97,10 @@ export const WalletStepEdit = () => {
               title: 'example_title',
               actionType: 'ARIES_OOB',
               text: 'example_text',
-              proofRequest:{
-                attributes:{},
-                predicates:{}
-              }
+              // proofRequest:{
+              //   attributes:{},
+              //   predicates:{}
+              // }
             },
           ],
         },

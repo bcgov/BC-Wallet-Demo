@@ -31,7 +31,9 @@ export const useShowcaseCreation = () => {
             description: `Welcome to this showcase. Here you'll learn about digital credentials with ${persona.name}.`,
             order: 0,
             type: 'HUMAN_TASK',
-            actions: [sampleAction],
+            actions: [
+              
+            ],
           },
           {
             title: "Let's get started!",
@@ -45,7 +47,15 @@ export const useShowcaseCreation = () => {
             description: `First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.`,
             order: 2,
             type: 'HUMAN_TASK',
-            actions: [sampleAction],
+            actions: [{
+              title: "example_title",
+              actionType: "CHOOSE_WALLET" as "CHOOSE_WALLET",
+              text: "example_text",
+              proofRequest: {
+                attributes: {},
+                predicates: {},
+              },
+            }],
           },
           {
             title: 'Connect with BC College',

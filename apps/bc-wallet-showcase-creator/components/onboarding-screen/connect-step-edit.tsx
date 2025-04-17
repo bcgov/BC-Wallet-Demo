@@ -41,7 +41,6 @@ export const ConnectStepEdit = () => {
   const router = useRouter()
 
   const isEditMode = stepState === 'editing-connect'
-  const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
 
@@ -82,11 +81,6 @@ export const ConnectStepEdit = () => {
               title: 'example_title',
               actionType: 'ARIES_OOB',
               text: 'example_text',
-              proofRequest:{
-                attributes:{},
-                predicates:{}
-              }
-           
             },
           ],
         },
@@ -209,7 +203,6 @@ export const ConnectStepEdit = () => {
                 case 'delete':
                   console.log('Delete Page clicked')
                   setIsModalOpen(true)
-                  setIsOpen(false)
                   break
                 default:
                   console.log('Unknown action')

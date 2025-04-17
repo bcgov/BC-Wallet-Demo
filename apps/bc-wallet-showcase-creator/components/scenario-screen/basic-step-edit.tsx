@@ -252,7 +252,7 @@ export const BasicStepEdit = () => {
           </div>
 
           {currentStep?.type == StepType.Service && (
-            <div className="space-y-4 h-screen">
+            <div className="space-y-4">
                 <h4 className="text-xl font-bold">Request Options</h4>
                 <hr />
 
