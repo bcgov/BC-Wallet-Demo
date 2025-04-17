@@ -3520,3 +3520,4 @@ components:
               message:
                 type: string
                 example: 'An unexpected error occurred'
+
