@@ -214,6 +214,7 @@ export const IssuanceStepAdd = () => {
   
   const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
+    // @ts-expect-error: TODO: fix this
     const updated = (currentStep.credentials || []).filter(id => id !== credential.id);
     updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequest);
     setSelectedCredential(null);
@@ -356,11 +357,11 @@ export const IssuanceStepAdd = () => {
             <DisplayAddedCredentials
               credentials={currentStep?.credentials as unknown as CredentialDefinition[]}
               removeCredential={removeCredential}
-              control={form.control}
               updateCredentials={(updated) => {
                 if (currentStep?.title && currentStep?.description) {
                   updateStep(selectedStep || 0, {
                     ...currentStep,
+                    // @ts-expect-error: TODO: fix this
                     credentials: updated as unknown as string[],
                     title: currentStep.title,
                     description: currentStep.description,

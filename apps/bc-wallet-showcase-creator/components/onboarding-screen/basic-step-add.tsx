@@ -21,7 +21,7 @@ import { ErrorModal } from '../error-modal'
 import Loader from '../loader';
 import { useShowcaseStore } from '@/hooks/use-showcases-store';
 import { toast } from 'sonner';
-import { sampleScenario } from '@/lib/steps'
+import { sampleScenario, StepRequestUIActionTypes } from '@/lib/steps'
 import { NoSelection } from '../credentials/no-selection'
 import { debounce } from 'lodash';
 import { useHelpersStore } from '@/hooks/use-helpers-store';
@@ -47,7 +47,7 @@ export const BasicStepAdd = () => {
 
   const router = useRouter();
   const { mutateAsync, isPending } = useCreateScenario();
-  const currentStep = selectedStep !== null ? screens[selectedStep] : null;
+  const currentStep = selectedStep !== null ? screens[selectedStep] as StepRequestUIActionTypes : null;
   const { setScenarioIds } = useShowcaseStore();
   const { issuerId } = useHelpersStore();
   const { personas } = useOnboardingAdapter()
@@ -193,20 +193,21 @@ export const BasicStepAdd = () => {
     setSearchResults(results);
   };
 
-  const addCredential = (credentialId: string) => {
+  const addCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
     const existing = currentStep.credentials || [];
-    if (!existing.includes(credentialId)) {
-      const updated = [...existing, credentialId];
-      updateStep(selectedStep || 0, { ...currentStep, credentials: updated });
+    if (!existing.includes(credential)) {
+      const updated = [...existing, credential];
+      updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
     }
     setSearchResults([]);
   };
 
-  const removeCredential = (credentialId: string) => {
+  const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    const updated = (currentStep.credentials || []).filter(id => id !== credentialId);
-    updateStep(selectedStep || 0, { ...currentStep, credentials: updated });
+    // @ts-expect-error: TODO: fix this
+    const updated = (currentStep.credentials || []).filter((id: string) => id !== credential.id);
+    updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
     setSelectedCredential(null);
   };
 
@@ -275,7 +276,6 @@ export const BasicStepAdd = () => {
           title={currentStep?.type == StepType.SERVICE ? t('onboarding.issue_step_header_title') : t('onboarding.basic_step_header_title')}
           showDropdown={false}
         />
-        <p>"BASIC STEP ADD"</p>
         <div className="space-y-6">
           <FormTextInput
             control={form.control}
@@ -355,6 +355,7 @@ export const BasicStepAdd = () => {
                   if (currentStep?.title && currentStep?.description) {
                     updateStep(selectedStep || 0, {
                       ...currentStep,
+                      // @ts-expect-error: TODO: fix this
                       credentials: updated as unknown as string[],
                       title: currentStep.title,
                       description: currentStep.description,

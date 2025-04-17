@@ -113,16 +113,17 @@ export const BasicStepEdit = () => {
     const existing = currentStep.credentials || [];
     if (!existing.includes(credential)) {
       const updated = [...existing, credential];
-      updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
+      updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
     }
     setSearchResults([]);
   }
 
   const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    const updated = (currentStep.credentials || []).filter(id => id !== credential.id);
+    // @ts-expect-error: TODO: fix this
+    const updated = (currentStep.credentials || []).filter((id: string) => id !== credential.id);
 
-    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated });
+    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
     setSelectedCredential(null);
   }
 
@@ -276,7 +277,6 @@ export const BasicStepEdit = () => {
                     <DisplayStepCredentials
                       credentials={currentStep?.credentials as unknown as CredentialDefinition[]}
                       selectedStep={selectedStep?.stepIndex || 0}
-                      localData={{}}
                       selectedScenario={selectedStep?.scenarioIndex || 0}
                       removeCredential={removeCredential}
                     />

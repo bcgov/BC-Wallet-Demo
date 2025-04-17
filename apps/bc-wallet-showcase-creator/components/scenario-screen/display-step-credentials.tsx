@@ -12,22 +12,14 @@ import { ProofRequestFormData } from '@/schemas/scenario'
 import { CredentialDefinition } from 'bc-wallet-openapi'
 
 interface DisplayStepCredentialsProps {
-  selectedCharacter?: number
   credentials: CredentialDefinition[];
   updateCredentials?:(updatedCredentials: ProofRequestFormData) => void;
-  localData: {
-    requestOptions?: {
-      proofRequest?: ProofRequest
-    }
-  }
   selectedStep: number | null
   selectedScenario: number | null
   removeCredential: (credential: CredentialDefinition) => void
 }
 
 export const DisplayStepCredentials = ({
-  selectedCharacter,
-  localData,
   selectedStep,
   selectedScenario,
   removeCredential,
@@ -36,7 +28,7 @@ export const DisplayStepCredentials = ({
 }: DisplayStepCredentialsProps) => {
   const [editingCredentials, setEditingCredentials] = useState<number[]>([])
 
-  if (credentials.length === 0) {
+  if ((credentials || []).length === 0) {
     return (
       <div className="m-5 p-5 w-full h-60">
         <NoSelection text="No Credentials Added" />
@@ -48,7 +40,7 @@ export const DisplayStepCredentials = ({
     <div className="space-y-4">
       <p className="text-md font-bold">Credential(s) Added:</p>
       {/* TODO: FIX credential type */}
-      {credentials.map((credential: any, index) => {
+      {credentials.map((credential: CredentialDefinition, index) => {
 
         if (!credential) return null
 

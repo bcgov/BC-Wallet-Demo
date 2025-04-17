@@ -12,7 +12,7 @@ import type { CredentialSchemaRequest, CredentialAttribute, CredentialDefinition
 
 interface DisplayAddedCredentialsProps {
   credentials: CredentialDefinition[];
-  removeCredential: (credentialId: string) => void;
+  removeCredential: (credential: CredentialDefinition) => void;
   updateCredentials?: (updatedCredentials: CredentialDefinition[]) => void;
 }
 

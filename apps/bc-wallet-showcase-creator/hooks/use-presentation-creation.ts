@@ -104,26 +104,26 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         if (state.personaScenariosMap[persona.id]) return
 
         const defaultScenario: PresentationScenarioRequest = {
-          name: "BC University Student Card",
+          name: "Add your student exam results",
           description: `Presentation scenario for ${persona.name}`,
           steps: [
             {
-              title: `Start proving you are a student`,
-              description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
+              title: `Scan the QR code to start sharing`,
+              description: `Open the BC Wallet app and scan the QR code on the College website to start sharing your teacher credential with College Test.`,
               order: 0,
               type: 'HUMAN_TASK',
               actions: [],
             },
             {
               title: `Confirm the information to send`,
-              description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
+              description: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
               order: 0,
               type: 'SERVICE',
-              actions: [sampleAction],
+              actions: [],
             },
             {
               title: `You are done!`,
-              description: `Imagine, as Ana, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
+              description: `You proved that you're a student, and you can now pass this online exam. It only took a few seconds, you revealed minimal information, and Test College could easily and automatically trust what you sent.`,
               order: 0,
               type: 'HUMAN_TASK',
               actions: [],
