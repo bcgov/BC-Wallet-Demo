@@ -6,8 +6,7 @@ import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { useHelpersStore } from "./use-helpers-store";
 import { useUiStore } from "./use-ui-store";
 import { useUpdateShowcase } from "./use-showcases";
-import { StepType } from "@/types";
-import { Persona, ShowcaseRequest, StepRequest } from "bc-wallet-openapi";
+import { Persona, ShowcaseRequest, StepRequest, StepType } from "bc-wallet-openapi";
 
 export const useOnboardingAdapter = () => {
   const {
@@ -56,7 +55,7 @@ export const useOnboardingAdapter = () => {
             asset: step.asset || '',
           }
 
-          if (step.type === StepType.SERVICE) {
+          if (step.type === StepType.Service) {
             return {
               ...createServiceStep({
                 title: step.title,
@@ -94,17 +93,19 @@ export const useOnboardingAdapter = () => {
   useEffect(() => {
     if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
       const scenarioSteps = steps.map((step, index) => {
+        console.log('step', step)
+        console.log('index', index)
         const baseStep = {
           title: step.title,
           description: step.description,
           order: index,
-          type: step.type as 'HUMAN_TASK' | 'SERVICE' | 'SCENARIO',
+          type: step.type as StepType,
           actions: step.actions || [],
           issuer: issuerId,
           asset: step.asset || undefined,
         }
 
-        if (step.type === StepType.SERVICE) {
+        if (step.type === StepType.Service) {
           const serviceStep = step as StepRequestUIActionTypes
           return {
             ...baseStep,
@@ -115,7 +116,7 @@ export const useOnboardingAdapter = () => {
         return baseStep
       })
 
-      updatePersonaSteps(activePersonaId, scenarioSteps as StepRequest[])
+      updatePersonaSteps(activePersonaId, scenarioSteps as StepRequestUIActionTypes[])
     }
   }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId]);
   

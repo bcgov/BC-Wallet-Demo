@@ -13,9 +13,7 @@ import {
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { baseUrl } from '@/lib/utils'
-import type {
-  CredentialSchemaFormRequestType,
-} from '@/openapi-types'
+import { CredentialSchemaRequest } from 'bc-wallet-openapi'
 import { schema } from '@/schemas/credential'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
@@ -49,7 +47,7 @@ export const CredentialsForm = () => {
   const { mutateAsync: approveCredentialDefinition } = useApproveCredentialDefinition()
   const { mutateAsync: deleteCredentialDefinition } = useDeleteCredentialDefinition()
 
-  const form = useForm<CredentialSchemaFormRequestType>({
+  const form = useForm<CredentialSchemaRequest>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: '',
@@ -60,7 +58,7 @@ export const CredentialsForm = () => {
     shouldFocusError: true,
   })
 
-  const onSubmit = async (formData: CredentialSchemaFormRequestType) => {
+  const onSubmit = async (formData: CredentialSchemaRequest) => {
     try {
       setIsSubmitting(true)
 

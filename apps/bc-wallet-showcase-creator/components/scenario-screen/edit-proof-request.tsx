@@ -60,12 +60,12 @@ export const EditProofRequest = ({
       if (
         updatedStep?.actions?.length &&
         updatedStep?.actions[0]?.actionType === StepActionType.AriesOob &&
-        // @ts-expect-error: proofRequest is not present on StepActionRequest as AriesOOBActionRequest
+
         updatedStep?.actions[0]?.proofRequest?.attributes && updatedStep.actions[0].proofRequest.attributes[credentialName]
       ) {
-        // @ts-expect-error: proofRequest is not present on StepActionRequest as AriesOOBActionRequest
+
         updatedStep.actions[0].proofRequest.attributes[credentialName].attributes = newAttributes;
-        // @ts-expect-error: proofRequest is not present on StepActionRequest as AriesOOBActionRequest
+
         updatedStep.actions[0].credentialDefinitionId = credentials.id;
       }
   
@@ -128,7 +128,6 @@ export const EditProofRequest = ({
         return {
           ...action,
           proofRequest: {
-            // @ts-expect-error: proofRequest is not present on StepActionRequest
             ...action.proofRequest,
             attributes: form.getValues().attributes,
             predicates:{}

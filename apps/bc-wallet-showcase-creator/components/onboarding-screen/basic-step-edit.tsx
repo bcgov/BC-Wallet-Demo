@@ -120,6 +120,10 @@ export const BasicStepEdit = () => {
               title: "example_title",
               actionType: "ARIES_OOB",
               text: "example_text",
+              proofRequest:{
+                attributes:{},
+                predicates:{}
+              }
             },
           ],
         },
@@ -287,11 +291,11 @@ export const BasicStepEdit = () => {
                       })
                     }
                   />
-                  {form.formState.errors.asset && (
+                  {/* {form.formState.errors.asset && (
                     <p className="text-sm text-destructive">
                       {form.formState.errors.asset.message}
                     </p>
-                  )}
+                  )} */}
                 </div>
               </div>
               <div className="mt-auto pt-4 border-t flex justify-end gap-3">

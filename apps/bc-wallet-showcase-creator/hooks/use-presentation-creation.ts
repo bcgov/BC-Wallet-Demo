@@ -95,6 +95,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         const step = steps[stepIndex]
         steps[stepIndex] = {
           ...step,
+          //@ts-ignore
           actions: [...(step.actions || []), action],
         }
       }),
@@ -112,21 +113,21 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
               description: `Open the BC Wallet app and scan the QR code on the College website to start sharing your teacher credential with College Test.`,
               order: 0,
               type: 'HUMAN_TASK',
-              actions: [],
+              actions: [sampleAction],
             },
             {
               title: `Confirm the information to send`,
               description: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
-              order: 0,
+              order: 1,
               type: 'SERVICE',
-              actions: [],
+              actions: [sampleAction],
             },
             {
               title: `You are done!`,
               description: `You proved that you're a student, and you can now pass this online exam. It only took a few seconds, you revealed minimal information, and Test College could easily and automatically trust what you sent.`,
-              order: 0,
+              order: 2,
               type: 'HUMAN_TASK',
-              actions: [],
+              actions: [sampleAction],
             },
           ],
           personas: [persona.id],

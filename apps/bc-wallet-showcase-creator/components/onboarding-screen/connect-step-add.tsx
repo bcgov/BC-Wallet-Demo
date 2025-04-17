@@ -10,7 +10,7 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
-import { sampleAction } from '@/lib/steps'
+import { sampleAction, StepRequestUIActionTypes } from '@/lib/steps'
 import type { BasicStepFormData } from '@/schemas/onboarding'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from 'lodash'
@@ -31,7 +31,8 @@ import { sampleScenario } from '@/lib/steps'
 
 import { NoSelection } from '../credentials/no-selection'
 import { baseUrl } from '@/lib/utils'
-import { StepRequest } from 'bc-wallet-openapi'
+import { StepRequest, StepAction } from 'bc-wallet-openapi'
+
 
 export const ConnectStepAdd = () => {
   const t = useTranslations()
@@ -80,7 +81,7 @@ export const ConnectStepAdd = () => {
       asset: data.asset || undefined,
     }
 
-    updateStep(selectedStep || 0, updatedStep as StepRequest)
+    updateStep(selectedStep || 0, updatedStep as StepRequestUIActionTypes)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })

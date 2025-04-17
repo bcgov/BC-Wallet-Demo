@@ -90,7 +90,7 @@ export const BasicStepAdd = () => {
       asset: data.asset || undefined,
     }
 
-    updateStep(selectedStep || 0, updatedStep as StepRequest)
+    updateStep(selectedStep || 0, updatedStep as StepRequestUIActionTypes)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })
@@ -355,11 +355,10 @@ export const BasicStepAdd = () => {
                   if (currentStep?.title && currentStep?.description) {
                     updateStep(selectedStep || 0, {
                       ...currentStep,
-                      // @ts-expect-error: TODO: fix this
-                      credentials: updated as unknown as string[],
+                      credentials: updated,
                       title: currentStep.title,
                       description: currentStep.description,
-                    });
+                    } as StepRequestUIActionTypes);
                   }
                 }}
               />

@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { baseUrl } from '@/lib/utils'
+import {CredentialDefinition} from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
 import { Button } from '../ui/button'
-import { CredentialAttribute, CredentialDefinition } from 'bc-wallet-openapi'
+
 
 interface CredentialsDisplayProps {
   searchTerm: string
@@ -26,7 +27,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
       credential.name?.toLowerCase().includes(sanitizedSearchTerm),
     ) || []
 
-  const handleSelectCredential = (credential: Credential) => {
+  const handleSelectCredential = (credential: CredentialDefinition) => {
     setSelectedCredential(credential)
     viewCredential(credential)
     setOpenId(credential.id)
@@ -37,7 +38,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
       setOpenId(null)
       setSelectedCredential(null)
     } else {
-      const credential = credentials?.credentialDefinitions?.find((credential: Credential) => credential.id === id)
+      const credential = credentials?.credentialDefinitions?.find((credential: CredentialDefinition) => credential.id === id)
       if (credential) handleSelectCredential(credential)
     }
   }
@@ -83,7 +84,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   <span className="text-sm text-foreground/80">Version {item.version}</span>
                   <span className="text-sm text-foreground/80">Created</span>
                   <div className="flex flex-wrap gap-2 mt-2 text-xs">
-                    {item.credentialSchema?.attributes?.map((attr: CredentialAttribute) => (
+                    {item.credentialSchema?.attributes?.map((attr) => (
                       <span
                         key={`${item.id}-${attr.id}-${attr.type || 'unknown'}`}
                         className="text-sm bg-foreground/10 px-2 py-1 rounded transition-all duration-200 hover:bg-foreground/20"
