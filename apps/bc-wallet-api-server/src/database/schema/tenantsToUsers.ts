@@ -18,7 +18,11 @@ export const tenantsToUsers = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (t) => [primaryKey({ columns: [t.tenant, t.user] }), index('tenants_to_users_tenant_idx').on(t.tenant)],
+  (t) => [
+    primaryKey({ columns: [t.tenant, t.user] }),
+    index('tenants_to_users_tenant_idx').on(t.tenant),
+    index('tenants_to_users_user_idx').on(t.user),
+  ],
 )
 
 export const tenantsToUsersRelations = relations(tenantsToUsers, ({ one }) => ({
