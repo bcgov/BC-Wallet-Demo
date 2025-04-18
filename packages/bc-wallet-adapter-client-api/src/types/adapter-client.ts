@@ -1,7 +1,8 @@
-import type { CredentialDefinition } from 'bc-wallet-openapi'
+import type { CredentialDefinition, CredentialSchema, Issuer } from 'bc-wallet-openapi'
 
 export interface IAdapterClientApi {
-  storeCredentialDefinition(credentialDefinition: CredentialDefinition): Promise<void>
+  publishIssuer(issuer: Issuer, options: SendOptions): Promise<void>
+  importCredentialSchema(credentialSchema: CredentialSchema, options: SendOptions): Promise<void>
 
   close(): Promise<void>
 }

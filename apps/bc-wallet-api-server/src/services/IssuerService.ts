@@ -1,21 +1,21 @@
-import { AdapterClientApi } from 'bc-wallet-adapter-client-api'
-import { SendOptions } from 'bc-wallet-adapter-client-api'
+import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { Inject, Service } from 'typedi'
 
 import IssuerRepository from '../database/repositories/IssuerRepository'
 import type { Issuer, NewIssuer } from '../types'
 import type { ISessionService } from '../types/services/session'
 import { issuerDTOFrom } from '../utils/mappers'
+import { AbstractAdapterClientService } from './AbstractAdapterClientService'
 
 @Service()
-class IssuerService {
-  private readonly adapterClientApi: AdapterClientApi = new AdapterClientApi() // FIXME should be injected in constructor
-
+class IssuerService extends AbstractAdapterClientService {
   public constructor(
     private readonly issuerRepository: IssuerRepository,
-    // private readonly adapterClientApi: AdapterClientApi, FIXME not loading
-    @Inject('ISessionService') private readonly sessionService: ISessionService,
-  ) {}
+    @Inject('ISessionService') sessionService: ISessionService,
+    @Inject('IAdapterClientApi') private readonly adapterClientApi: IAdapterClientApi,
+  ) {
+    super(sessionService)
+  }
 
   public getIssuers = async (): Promise<Issuer[]> => {
     return this.issuerRepository.findAll()
@@ -29,13 +29,6 @@ class IssuerService {
     const createdIssuer = await this.issuerRepository.create(newIssuer)
     void (await this.adapterClientApi.publishIssuer(issuerDTOFrom(createdIssuer), this.buildSendOptions()))
     return createdIssuer
-  }
-
-  private buildSendOptions(): SendOptions {
-    return {
-      authHeader: this.sessionService.getBearerToken(),
-      showcaseApiUrlBase: this.sessionService.getApiBaseUrl(),
-    }
   }
 
   public updateIssuer = async (id: string, newIssuer: NewIssuer): Promise<Issuer> => {

@@ -54,7 +54,7 @@ describe('MessageProcessor Integration Test', () => {
   let sender: Sender
   let processor: MessageProcessor
   let mockShowcaseApiService: jest.Mocked<ShowcaseApiService>
-  const testTopic: Topic = Topic.SHOWCASE_CMD_TESTING
+  const testTopic: Topic = 'showcase-cmd-testing'
 
   beforeAll(async () => {
     // Start the RabbitMQ container
@@ -377,6 +377,69 @@ describe('MessageProcessor Integration Test', () => {
 
     // Verify the error was logged
     expect(logContains(consoleSpy, 'unsupported action')).toBeTruthy()
+
+    consoleSpy.mockRestore()
+  })
+
+  test('should process import.cred-schema message successfully', async () => {
+    // Create a sample credential schema
+    const credentialSchema = {
+      id: 'test-schema-id',
+      name: 'Test Schema',
+      version: '1.0',
+      identifier: 'ABCD:2:TestSchema:1.0',
+      attributes: [
+        {
+          id: 'attr1',
+          name: 'firstName',
+          type: 'STRING' as CredentialAttributeType,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'attr2',
+          name: 'lastName',
+          type: 'STRING' as CredentialAttributeType,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    // Spy on console.debug to detect when the message is processed
+    const consoleSpy = jest.spyOn(console, 'debug')
+
+    // Send a message with the credential schema
+    const messageId = uuidv4()
+    const { encrypted, nonce } = encryptBuffer(Buffer.from('test-token', 'utf8'))
+    void sender.send({
+      message_id: messageId,
+      body: credentialSchema,
+      application_properties: {
+        action: 'import.cred-schema' as Action,
+        tenantId: 'test-tenant',
+        tractionApiUrlBase: environment.traction.DEFAULT_API_BASE_PATH,
+        showcaseApiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        walletId: 'test-wallet',
+        accessTokenEnc: encrypted,
+        accessTokenNonce: nonce,
+      },
+    })
+
+    // Wait for the message to be processed
+    await waitForConsoleMessage(consoleSpy, 'Received credential schema')
+
+    // Verify that the getTractionService was called with the correct parameters
+    expect(await getTractionService).toHaveBeenCalledWith(
+      'test-tenant',
+      environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+      environment.traction.DEFAULT_API_BASE_PATH,
+      'test-wallet',
+      encrypted,
+      nonce,
+    )
 
     consoleSpy.mockRestore()
   })

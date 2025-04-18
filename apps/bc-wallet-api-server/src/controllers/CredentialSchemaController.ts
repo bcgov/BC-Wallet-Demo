@@ -1,4 +1,13 @@
 import {
+  CredentialSchemaRequest,
+  CredentialSchemaRequestToJSONTyped,
+  CredentialSchemaResponse,
+  CredentialSchemaResponseFromJSONTyped,
+  CredentialSchemasResponse,
+  CredentialSchemasResponseFromJSONTyped,
+  instanceOfCredentialSchemaRequest,
+} from 'bc-wallet-openapi'
+import {
   BadRequestError,
   Body,
   Delete,
@@ -8,24 +17,16 @@ import {
   OnUndefined,
   Param,
   Post,
-  Put
+  Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
+
 import CredentialSchemaService from '../services/CredentialSchemaService'
-import {
-  CredentialSchemaRequest,
-  CredentialSchemaRequestToJSONTyped,
-  CredentialSchemaResponse,
-  CredentialSchemaResponseFromJSONTyped,
-  CredentialSchemasResponse,
-  CredentialSchemasResponseFromJSONTyped,
-  instanceOfCredentialSchemaRequest,
-} from 'bc-wallet-openapi'
 
 @JsonController('/credentials/schemas')
 @Service()
 export class CredentialSchemaController {
-  constructor(private credentialSchemaService: CredentialSchemaService) {}
+  public constructor(private readonly credentialSchemaService: CredentialSchemaService) {}
 
   @Get('/')
   public async getAll(): Promise<CredentialSchemasResponse> {
@@ -53,7 +54,7 @@ export class CredentialSchemaController {
     }
   }
 
-//  @Authorized()
+  //  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() credentialSchemaRequest: CredentialSchemaRequest): Promise<CredentialSchemaResponse> {
@@ -61,7 +62,9 @@ export class CredentialSchemaController {
       if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const credentialSchema = await this.credentialSchemaService.createCredentialSchema(CredentialSchemaRequestToJSONTyped(credentialSchemaRequest))
+      const credentialSchema = await this.credentialSchemaService.createCredentialSchema(
+        CredentialSchemaRequestToJSONTyped(credentialSchemaRequest),
+      )
       return CredentialSchemaResponseFromJSONTyped({ credentialSchema }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -71,9 +74,34 @@ export class CredentialSchemaController {
     }
   }
 
-//  @Authorized()
+  //  @Authorized()
+  @HttpCode(201)
+  @Post('/import')
+  public async importSchema(
+    @Body() credentialSchemaRequest: CredentialSchemaRequest,
+  ): Promise<CredentialSchemaResponse> {
+    try {
+      if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
+        return Promise.reject(new BadRequestError())
+      }
+      const credentialSchema = await this.credentialSchemaService.importCredentialSchema(
+        CredentialSchemaRequestToJSONTyped(credentialSchemaRequest),
+      )
+      return CredentialSchemaResponseFromJSONTyped({ credentialSchema }, false)
+    } catch (e) {
+      if (e.httpCode !== 404) {
+        console.error('credentialSchemaRequest import failed:', e)
+      }
+      return Promise.reject(e)
+    }
+  }
+
+  //  @Authorized()
   @Put('/:id')
-  public async put(@Param('id') id: string, @Body() credentialSchemaRequest: CredentialSchemaRequest): Promise<CredentialSchemaResponse> {
+  public async put(
+    @Param('id') id: string,
+    @Body() credentialSchemaRequest: CredentialSchemaRequest,
+  ): Promise<CredentialSchemaResponse> {
     try {
       if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
         return Promise.reject(new BadRequestError())
@@ -91,7 +119,7 @@ export class CredentialSchemaController {
     }
   }
 
-//  @Authorized()
+  //  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

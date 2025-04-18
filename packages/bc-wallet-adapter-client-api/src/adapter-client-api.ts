@@ -1,15 +1,15 @@
-import type { Issuer } from 'bc-wallet-openapi'
+import { CredentialSchema, CredentialSchemaToJSONTyped, instanceOfCredentialSchema, Issuer } from 'bc-wallet-openapi'
 import { instanceOfIssuer, IssuerToJSONTyped } from 'bc-wallet-openapi'
 import { Connection, Sender } from 'rhea-promise'
 import { Service } from 'typedi'
 
 import { environment } from './environment'
-import { SendOptions } from './types'
+import { IAdapterClientApi, SendOptions } from './types'
 import { Action } from './types/adapter-backend'
 import { encryptBuffer } from './util/CypherUtil'
 
 @Service()
-export class AdapterClientApi {
+export class AdapterClientApi implements IAdapterClientApi {
   private readonly isInitComplete: Promise<void>
   private isConnected = false
   private connection: Connection
@@ -60,16 +60,18 @@ export class AdapterClientApi {
   private payloadToJson(payload: object) {
     if (instanceOfIssuer(payload)) {
       return IssuerToJSONTyped(payload, false)
+    } else if (instanceOfCredentialSchema(payload)) {
+      return CredentialSchemaToJSONTyped(payload, false)
     }
-    return JSON.stringify(payload)
+    throw Error('Unknown payload type')
   }
 
   public async publishIssuer(issuer: Issuer, options: SendOptions): Promise<void> {
-    try {
-      return this.send('publish-issuer-assets', issuer, options)
-    } catch (e) {
-      console.warn('publishIssuer failed', e) // FIXME remove after demo
-    }
+    return this.send('publish.issuer-assets', issuer, options)
+  }
+
+  public async importCredentialSchema(credentialSchema: CredentialSchema, options: SendOptions): Promise<void> {
+    return this.send('import.cred-schema', credentialSchema, options)
   }
 
   public async close(): Promise<void> {

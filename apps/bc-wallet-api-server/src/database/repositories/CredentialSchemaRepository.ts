@@ -3,26 +3,35 @@ import { Service } from 'typedi'
 
 import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
-import { CredentialSchema, NewCredentialAttribute, NewCredentialSchema, RepositoryDefinition } from '../../types'
+import {
+  CredentialAttribute,
+  CredentialSchema,
+  NewCredentialAttribute,
+  NewCredentialSchema,
+  RepositoryDefinition,
+} from '../../types'
 import { credentialAttributes, credentialSchemas } from '../schema'
 
 @Service()
 class CredentialSchemaRepository implements RepositoryDefinition<CredentialSchema, NewCredentialSchema> {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async create(credentialSchema: NewCredentialSchema): Promise<CredentialSchema> {
+  public async create(credentialSchema: NewCredentialSchema): Promise<CredentialSchema> {
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<CredentialSchema> => {
       const [credentialSchemaResult] = await tx.insert(credentialSchemas).values(credentialSchema).returning()
 
-      const credentialAttributesResult = await tx
-        .insert(credentialAttributes)
-        .values(
-          credentialSchema.attributes.map((attribute: NewCredentialAttribute) => ({
-            ...attribute,
-            credentialSchema: credentialSchemaResult.id,
-          })),
-        )
-        .returning()
+      let credentialAttributesResult: CredentialAttribute[] = []
+      if (credentialSchema.attributes && credentialSchema.attributes.length > 0) {
+        credentialAttributesResult = await tx
+          .insert(credentialAttributes)
+          .values(
+            credentialSchema.attributes.map((attribute: NewCredentialAttribute) => ({
+              ...attribute,
+              credentialSchema: credentialSchemaResult.id,
+            })),
+          )
+          .returning()
+      }
 
       return {
         ...credentialSchemaResult,

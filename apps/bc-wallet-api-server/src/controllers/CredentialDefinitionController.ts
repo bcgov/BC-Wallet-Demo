@@ -1,4 +1,13 @@
 import {
+  CredentialDefinitionRequest,
+  CredentialDefinitionRequestToJSONTyped,
+  CredentialDefinitionResponse,
+  CredentialDefinitionResponseFromJSONTyped,
+  CredentialDefinitionsResponse,
+  CredentialDefinitionsResponseFromJSONTyped,
+  instanceOfCredentialDefinitionRequest,
+} from 'bc-wallet-openapi'
+import {
   BadRequestError,
   Body,
   Delete,
@@ -8,31 +17,25 @@ import {
   OnUndefined,
   Param,
   Post,
-  Put
+  Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
-import {
-  CredentialDefinitionRequest,
-  CredentialDefinitionRequestToJSONTyped,
-  CredentialDefinitionResponse,
-  CredentialDefinitionResponseFromJSONTyped,
-  CredentialDefinitionsResponse,
-  CredentialDefinitionsResponseFromJSONTyped,
-  instanceOfCredentialDefinitionRequest,
-} from 'bc-wallet-openapi'
+
 import CredentialDefinitionService from '../services/CredentialDefinitionService'
 import { credentialDefinitionDTOFrom } from '../utils/mappers'
 
 @JsonController('/credentials/definitions')
 @Service()
 export class CredentialDefinitionController {
-  constructor(private credentialDefinitionService: CredentialDefinitionService) {}
+  public constructor(private credentialDefinitionService: CredentialDefinitionService) {}
 
   @Get('/')
   public async getAll(): Promise<CredentialDefinitionsResponse> {
     try {
       const result = await this.credentialDefinitionService.getCredentialDefinitions()
-      const credentialDefinitions = result.map((credentialDefinition) => credentialDefinitionDTOFrom(credentialDefinition))
+      const credentialDefinitions = result.map((credentialDefinition) =>
+        credentialDefinitionDTOFrom(credentialDefinition),
+      )
       return CredentialDefinitionsResponseFromJSONTyped({ credentialDefinitions }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -46,7 +49,10 @@ export class CredentialDefinitionController {
   public async getOne(@Param('id') id: string): Promise<CredentialDefinitionResponse> {
     try {
       const result = await this.credentialDefinitionService.getCredentialDefinition(id)
-      return CredentialDefinitionResponseFromJSONTyped({ credentialDefinition: credentialDefinitionDTOFrom(result) }, false)
+      return CredentialDefinitionResponseFromJSONTyped(
+        { credentialDefinition: credentialDefinitionDTOFrom(result) },
+        false,
+      )
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`getOne definition id=${id} failed:`, e)
@@ -55,10 +61,12 @@ export class CredentialDefinitionController {
     }
   }
 
-//  @Authorized()
+  //  @Authorized()
   @HttpCode(201)
   @Post('/')
-  public async post(@Body() credentialDefinitionRequest: CredentialDefinitionRequest): Promise<CredentialDefinitionResponse> {
+  public async post(
+    @Body() credentialDefinitionRequest: CredentialDefinitionRequest,
+  ): Promise<CredentialDefinitionResponse> {
     try {
       if (!instanceOfCredentialDefinitionRequest(credentialDefinitionRequest)) {
         return Promise.reject(new BadRequestError())
@@ -66,16 +74,22 @@ export class CredentialDefinitionController {
       const result = await this.credentialDefinitionService.createCredentialDefinition(
         CredentialDefinitionRequestToJSONTyped(credentialDefinitionRequest),
       )
-      return CredentialDefinitionResponseFromJSONTyped({ credentialDefinition: credentialDefinitionDTOFrom(result) }, false)
+      return CredentialDefinitionResponseFromJSONTyped(
+        { credentialDefinition: credentialDefinitionDTOFrom(result) },
+        false,
+      )
     } catch (e) {
       console.error('credentialDefinitionRequest post failed:', e)
       return Promise.reject(e)
     }
   }
 
-//  @Authorized()
+  //  @Authorized()
   @Put('/:id')
-  public async put(@Param('id') id: string, @Body() credentialDefinitionRequest: CredentialDefinitionRequest): Promise<CredentialDefinitionResponse> {
+  public async put(
+    @Param('id') id: string,
+    @Body() credentialDefinitionRequest: CredentialDefinitionRequest,
+  ): Promise<CredentialDefinitionResponse> {
     try {
       if (!instanceOfCredentialDefinitionRequest(credentialDefinitionRequest)) {
         return Promise.reject(new BadRequestError())
@@ -84,7 +98,10 @@ export class CredentialDefinitionController {
         id,
         CredentialDefinitionRequestToJSONTyped(credentialDefinitionRequest),
       )
-      return CredentialDefinitionResponseFromJSONTyped({ credentialDefinition: credentialDefinitionDTOFrom(result) }, false)
+      return CredentialDefinitionResponseFromJSONTyped(
+        { credentialDefinition: credentialDefinitionDTOFrom(result) },
+        false,
+      )
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`put definition id=${id} failed:`, e)
@@ -93,7 +110,7 @@ export class CredentialDefinitionController {
     }
   }
 
-//  @Authorized()
+  //  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

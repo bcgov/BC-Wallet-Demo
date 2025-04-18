@@ -1,4 +1,4 @@
-import { instanceOfIssuer, Issuer } from 'bc-wallet-openapi'
+import { CredentialSchema, instanceOfCredentialSchema, instanceOfIssuer, Issuer } from 'bc-wallet-openapi'
 import type { Buffer } from 'buffer'
 import type { Receiver, ReceiverOptions } from 'rhea-promise'
 import { Connection, ReceiverEvents } from 'rhea-promise'
@@ -6,8 +6,7 @@ import { Connection, ReceiverEvents } from 'rhea-promise'
 import { environment } from './environment'
 import { getTractionService } from './services/service-manager'
 import type { TractionService } from './services/traction-service'
-import type { Action } from './types'
-import { Topic } from './types'
+import { Action, Topic, TOPICS } from './types'
 
 interface MessageHeaders {
   action?: Action
@@ -25,8 +24,8 @@ export class MessageProcessor {
 
   public constructor(private topic: Topic) {
     // Validate that topic is a valid enum value
-    if (!Object.values(Topic).includes(topic)) {
-      throw new Error(`Invalid topic: ${topic}. Valid topics are: ${Object.values(Topic).join(', ')}`)
+    if (!TOPICS.includes(topic)) {
+      throw new Error(`Invalid topic: ${topic}. Valid topics are: ${TOPICS.join(', ')}`)
     }
 
     // Setup AMQ broker connection
@@ -124,7 +123,10 @@ export class MessageProcessor {
     headers: MessageHeaders,
   ): Promise<void> {
     switch (action) {
-      case 'publish-issuer-assets': {
+      case 'import.cred-schema':
+        await this.handleImportCredentialSchema(payload, service, context, headers)
+        break
+      case 'publish.issuer-assets': {
         await this.handlePublishIssuerAssets(payload, service, context, headers)
         break
       }
@@ -161,6 +163,37 @@ export class MessageProcessor {
           condition: 'fatal error',
           description: errorMsg,
           value: [issuer],
+        }) // FIXME context.delivery.release() to redeliver ??
+      }
+    }
+  }
+
+  private async handleImportCredentialSchema(
+    payload: object,
+    service: TractionService,
+    context: any,
+    headers: MessageHeaders,
+  ): Promise<void> {
+    if (typeof payload !== 'object' || !instanceOfCredentialSchema(payload)) {
+      return Promise.reject(Error('The message body did not contain a valid Issuer payload'))
+    }
+
+    const credentialSchema = payload as CredentialSchema
+    try {
+      console.debug('Received credential schema', credentialSchema)
+      await service.importCredentialSchema(credentialSchema)
+      if (context.delivery) {
+        context.delivery.accept()
+      }
+    } catch (e) {
+      const errorMsg = `An error occurred while importing credential schema ${credentialSchema.id} / ${credentialSchema.name} with identifier ${credentialSchema.identifier} to Traction. Reason: ${e.message}`
+      console.error(errorMsg)
+      if (context.delivery) {
+        context.delivery.reject({
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
+          condition: 'fatal error',
+          description: errorMsg,
+          value: [credentialSchema],
         }) // FIXME context.delivery.release() to redeliver ??
       }
     }
