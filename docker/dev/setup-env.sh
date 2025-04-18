@@ -12,7 +12,7 @@ DOCKER_REGISTRY="${DOCKER_REGISTRY:-sphereonregistry.azurecr.io}"
 
 # Extract versions from package.json files.
 API_VERSION=$(jq -r .version ../../apps/bc-wallet-api-server/package.json)
-ADAPTER_VERSION=$(jq -r .version ../../packages/bc-wallet-traction-adapter/package.json)
+ADAPTER_VERSION=$(jq -r .version ../../apps/bc-wallet-traction-adapter/package.json)
 
 # Check that both versions match.
 if [ "$API_VERSION" != "$ADAPTER_VERSION" ]; then

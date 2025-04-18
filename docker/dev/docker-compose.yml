@@ -74,7 +74,7 @@ services:
   bc-wallet-traction-adapter:
     build:
       context: ../..
-      dockerfile: ./packages/bc-wallet-traction-adapter/Dockerfile
+      dockerfile: ./apps/bc-wallet-traction-adapter/Dockerfile
     restart: unless-stopped
     networks:
       - messagebroker_net
