@@ -139,14 +139,14 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
       },
     })
 
-    const usersMap = new Map<string, any[]>()
-    for (const item of users) {
+    const usersMap = users.reduce((map, item) => {
       const key = item.tenant
-      if (!usersMap.has(key)) {
-        usersMap.set(key, [])
+      if (!map.has(key)) {
+        map.set(key, [])
       }
-      usersMap.get(key)!.push(item)
-    }
+      map.get(key)!.push(item)
+      return map
+    }, new Map<string, any[]>())
 
     return tenants.map((tenant) => {
       return {
