@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm'
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 import { showcases } from './showcase'
+import { tenantsToUsers } from './tenantsToUsers'
 
 export const users = pgTable('user', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),
@@ -17,4 +18,5 @@ export const users = pgTable('user', {
 
 export const userRelations = relations(users, ({ many }) => ({
   showcase: many(showcases),
+  tenants: many(tenantsToUsers),
 }))

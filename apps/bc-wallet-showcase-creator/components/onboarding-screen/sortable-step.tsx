@@ -69,14 +69,7 @@ export const SortableStep = ({
         produce((state) => {
           state.screens.splice(index + 1, 0, newStep);
           state.selectedStep = index + 1;
-
-          // Update showcaseJSON
-          const { selectedCharacter } = useShowcaseStore.getState();
-          useShowcaseStore.setState((draft) => {
-            draft.showcaseJSON.personas[selectedCharacter].onboarding =
-              JSON.parse(JSON.stringify(state.screens));
-          });
-          })
+        })
       );
     } catch (error) {
       console.log("Error ", error);

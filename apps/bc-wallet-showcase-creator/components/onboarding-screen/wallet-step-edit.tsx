@@ -11,7 +11,6 @@ import { useDeleteStep } from '@/hooks/use-issue-step'
 import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
-import type { ScenarioRequestType, IssuanceScenarioResponseType } from '@/openapi-types'
 import { WalletStepFormData, walletStepSchema } from '@/schemas/onboarding'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Edit, Monitor } from 'lucide-react'
@@ -24,6 +23,7 @@ import Loader from '../loader'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { LocalFileUpload } from './local-file-upload'
+import { IssuanceScenarioRequest } from 'bc-wallet-openapi'
 
 export const WalletStepEdit = () => {
   const t = useTranslations()
@@ -81,10 +81,9 @@ export const WalletStepEdit = () => {
   })
 
   const handleCreateScenario = async () => {
-    const data: ScenarioRequestType = {
+    const data: IssuanceScenarioRequest = {
       name: 'example_name',
       description: 'example_description',
-      type: 'ISSUANCE' as 'ISSUANCE' | 'PRESENTATION',
       issuer: issuerId,
       steps: [
         {
@@ -98,22 +97,10 @@ export const WalletStepEdit = () => {
               title: 'example_title',
               actionType: 'ARIES_OOB',
               text: 'example_text',
-              proofRequest: {
-                attributes: {
-                  attribute1: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-                predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: 'example_type',
-                    value: 'example_value',
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-              },
+              // proofRequest:{
+              //   attributes:{},
+              //   predicates:{}
+              // }
             },
           ],
         },
@@ -122,9 +109,14 @@ export const WalletStepEdit = () => {
     }
 
     await mutateAsync(data, {
-      onSuccess: (data: unknown) => {
+      onSuccess: (data) => {
         toast.success('Scenario Created')
-        setScenarioIds([(data as IssuanceScenarioResponseType).issuanceScenario.id])
+        if (data && data.issuanceScenario) {
+          setScenarioIds([data.issuanceScenario.id])
+        } else {
+          console.error('Invalid response format:', data)
+          throw new Error('Invalid response format')
+        }
         router.push(`/showcases/create/scenarios`)
       },
     })

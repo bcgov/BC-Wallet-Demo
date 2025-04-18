@@ -7,27 +7,22 @@ import { cn, baseUrl } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import ButtonOutline from "../ui/button-outline";
-import { CredentialDefinitionType } from "@/openapi-types";
-import { Control } from "react-hook-form";
-import { IssueStepFormData } from "@/schemas/onboarding";
 import { useUpdateCredentialSchema } from "@/hooks/use-credentials";
-import type { CredentialSchemaRequest, CredentialAttribute } from "bc-wallet-openapi";
+import type { CredentialSchemaRequest, CredentialAttribute, CredentialDefinition } from "bc-wallet-openapi";
 
 interface DisplayAddedCredentialsProps {
-  credentials: CredentialDefinitionType[];
-  removeCredential: (credentialId: string) => void;
-  updateCredentials?: (updatedCredentials: CredentialDefinitionType[]) => void;
-  control: Control<IssueStepFormData>
+  credentials: CredentialDefinition[];
+  removeCredential: (credential: CredentialDefinition) => void;
+  updateCredentials?: (updatedCredentials: CredentialDefinition[]) => void;
 }
 
 export const DisplayAddedCredentials = ({
   credentials,
   removeCredential,
   updateCredentials,
-  control
 }: DisplayAddedCredentialsProps) => {
   const t = useTranslations();
-  const hasCredentials = credentials.length > 0;
+  const hasCredentials = (credentials || []).length > 0;
   const updateCredentialSchema = useUpdateCredentialSchema(); // no destructuring
 
   const [isEditing, setIsEditing] = useState(false);
@@ -41,7 +36,7 @@ export const DisplayAddedCredentials = ({
 
   const handleAttributeChange = (credentialId: string, attrIndex: number, newValue: string) => {
     if (updateCredentials) {
-      const updatedCredentials = credentials.map((credential: CredentialDefinitionType) => {
+      const updatedCredentials = credentials.map((credential: CredentialDefinition) => {
         if (credential.id === credentialId) {
           if (!credential.credentialSchema || !credential.credentialSchema.attributes) {
             return credential;
@@ -68,7 +63,7 @@ export const DisplayAddedCredentials = ({
     if (!updateCredentials) return;
   
     const updatedCredentials = await Promise.all(
-      credentials.map(async (cred: CredentialDefinitionType) => {
+      credentials.map(async (cred: CredentialDefinition) => {
         const updatedAttrs = cred.credentialSchema?.attributes?.map(attr => ({
           ...attr,
           value: attr.value || '',
@@ -139,7 +134,7 @@ export const DisplayAddedCredentials = ({
                     alt={credential?.icon?.description || 'default credential icon'}
                     width={50}
                     height={50}
-                    className="rounded-full"
+                    className="rounded-full object-cover"
                     unoptimized
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement

@@ -41,20 +41,18 @@ import {
   steps,
 } from '../schema'
 import AssetRepository from './AssetRepository'
-import CredentialDefinitionRepository from './CredentialDefinitionRepository'
 import IssuerRepository from './IssuerRepository'
 import PersonaRepository from './PersonaRepository'
 import RelyingPartyRepository from './RelyingPartyRepository'
 
 @Service()
 class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> {
-  constructor(
+  public constructor(
     private readonly databaseService: DatabaseService,
     private readonly personaRepository: PersonaRepository,
     private readonly issuerRepository: IssuerRepository,
     private readonly relyingPartyRepository: RelyingPartyRepository,
     private readonly assetRepository: AssetRepository,
-    private readonly credentialDefinitionRepository: CredentialDefinitionRepository,
   ) {}
 
   private mapStepAction(action: StepAction & { proofRequest?: AriesProofRequest | null }): StepActionTypes {
@@ -126,7 +124,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     return proofRequestsMap
   }
 
-  async create(scenario: NewScenario): Promise<Scenario> {
+  public async create(scenario: NewScenario): Promise<Scenario> {
     if (scenario.steps.length === 0) {
       return Promise.reject(new BadRequestError('At least one step is required'))
     }
@@ -141,13 +139,6 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     const updatedSteps = await Promise.all(
       scenario.steps.map(async (step: NewStep) => ({
         ...step,
-        credentialDefinition:
-          step?.credentialDefinitionIdentifier && step?.credentialDefinitionIdentifierType
-            ? await this.credentialDefinitionRepository.findIdByIdentifier(
-                step.credentialDefinitionIdentifier,
-                step.credentialDefinitionIdentifierType,
-              )
-            : null,
       })),
     )
 
@@ -265,12 +256,12 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     })
   }
 
-  async delete(scenarioId: string): Promise<void> {
+  public async delete(scenarioId: string): Promise<void> {
     await this.findById(scenarioId)
     await (await this.databaseService.getConnection()).delete(scenarios).where(eq(scenarios.id, scenarioId))
   }
 
-  async update(scenarioId: string, scenario: NewScenario): Promise<Scenario> {
+  public async update(scenarioId: string, scenario: NewScenario): Promise<Scenario> {
     if (scenario.steps.length === 0) {
       return Promise.reject(new BadRequestError('At least one step is required'))
     }
@@ -285,13 +276,6 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     const updatedSteps = await Promise.all(
       scenario.steps.map(async (step: NewStep) => ({
         ...step,
-        credentialDefinition:
-          step.credentialDefinitionIdentifier && step.credentialDefinitionIdentifierType
-            ? await this.credentialDefinitionRepository.findIdByIdentifier(
-                step.credentialDefinitionIdentifier,
-                step.credentialDefinitionIdentifierType,
-              )
-            : null,
       })),
     )
 
@@ -412,7 +396,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     })
   }
 
-  async findById(scenarioId: string, tx?: Tx): Promise<Scenario> {
+  public async findById(scenarioId: string, tx?: Tx): Promise<Scenario> {
     const result = await (tx ?? (await this.databaseService.getConnection())).query.scenarios.findFirst({
       where: and(eq(scenarios.id, scenarioId)),
       with: {
@@ -515,7 +499,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     }
   }
 
-  async findAll(args: ScenarioFindAllArgs): Promise<Scenario[]> {
+  public async findAll(args: ScenarioFindAllArgs): Promise<Scenario[]> {
     const { filter } = args
     const result = await (
       await this.databaseService.getConnection()
@@ -617,7 +601,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     }))
   }
 
-  async createStep(scenarioId: string, step: NewStep): Promise<Step> {
+  public async createStep(scenarioId: string, step: NewStep): Promise<Step> {
     await this.findById(scenarioId)
 
     const assetResult = step.asset ? await this.assetRepository.findById(step.asset) : null
@@ -658,14 +642,14 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     })
   }
 
-  async deleteStep(scenarioId: string, stepId: string): Promise<void> {
+  public async deleteStep(scenarioId: string, stepId: string): Promise<void> {
     await this.findByStepId(scenarioId, stepId)
     await (await this.databaseService.getConnection())
       .delete(steps)
       .where(and(eq(steps.id, stepId), eq(steps.scenario, scenarioId)))
   }
 
-  async updateStep(scenarioId: string, stepId: string, step: NewStep): Promise<Step> {
+  public async updateStep(scenarioId: string, stepId: string, step: NewStep): Promise<Step> {
     await this.findById(scenarioId)
 
     const assetResult = step.asset ? await this.assetRepository.findById(step.asset) : null
@@ -711,7 +695,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     })
   }
 
-  async findByStepId(scenarioId: string, stepId: string): Promise<Step> {
+  public async findByStepId(scenarioId: string, stepId: string): Promise<Step> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.steps.findFirst({
@@ -735,7 +719,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     }
   }
 
-  async findAllSteps(scenarioId: string): Promise<Step[]> {
+  public async findAllSteps(scenarioId: string): Promise<Step[]> {
     await this.findById(scenarioId)
     const result = await (
       await this.databaseService.getConnection()
@@ -754,7 +738,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     return sortSteps(result as Step[])
   }
 
-  async createStepAction(scenarioId: string, stepId: string, action: NewStepActionTypes): Promise<StepActionTypes> {
+  public async createStepAction(scenarioId: string, stepId: string, action: NewStepActionTypes): Promise<StepActionTypes> {
     await this.findByStepId(scenarioId, stepId)
 
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<StepActionTypes> => {
@@ -785,14 +769,14 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     })
   }
 
-  async deleteStepAction(scenarioId: string, stepId: string, actionId: string): Promise<void> {
+  public async deleteStepAction(scenarioId: string, stepId: string, actionId: string): Promise<void> {
     await this.findByStepActionId(scenarioId, stepId, actionId)
     await (await this.databaseService.getConnection())
       .delete(stepActions)
       .where(and(eq(stepActions.id, actionId), eq(stepActions.step, stepId)))
   }
 
-  async updateStepAction(
+  public async updateStepAction(
     scenarioId: string,
     stepId: string,
     actionId: string,
@@ -831,7 +815,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     })
   }
 
-  async findByStepActionId(scenarioId: string, stepId: string, actionId: string): Promise<StepActionTypes> {
+  public async findByStepActionId(scenarioId: string, stepId: string, actionId: string): Promise<StepActionTypes> {
     await this.findByStepId(scenarioId, stepId)
     const result = await (
       await this.databaseService.getConnection()
@@ -849,7 +833,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     return this.mapStepAction(result)
   }
 
-  async findAllStepActions(scenarioId: string, stepId: string): Promise<StepActionTypes[]> {
+  public async findAllStepActions(scenarioId: string, stepId: string): Promise<StepActionTypes[]> {
     await this.findByStepId(scenarioId, stepId)
     const results = await (
       await this.databaseService.getConnection()
@@ -863,7 +847,7 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     return results.map((result) => this.mapStepAction(result))
   }
 
-  async findIdBySlug(slug: string): Promise<string> {
+  public async findIdBySlug(slug: string): Promise<string> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.scenarios.findFirst({

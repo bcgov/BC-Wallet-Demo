@@ -2,8 +2,9 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { DEFAULT_JSON } from "@/lib/fixtures";
-import type { Persona, ShowcaseJSON } from "@/types";
+import type { ShowcaseJSON } from "@/types";
 import type { CredentialFormData } from "@/schemas/credential";
+import { Persona } from "bc-wallet-openapi";
 
 type Tab = "Character" | "Onboarding" | "Scenario" | "Publish";
 type PersonaState = "editing-persona" | "no-selection" | "creating-new";

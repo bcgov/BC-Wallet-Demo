@@ -10,8 +10,7 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
-import { sampleAction } from '@/lib/steps'
-import type { IssuanceScenarioResponseType } from '@/openapi-types'
+import { sampleAction, StepRequestUIActionTypes } from '@/lib/steps'
 import type { BasicStepFormData } from '@/schemas/onboarding'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from 'lodash'
@@ -31,6 +30,9 @@ import Loader from '../loader'
 import { sampleScenario } from '@/lib/steps'
 
 import { NoSelection } from '../credentials/no-selection'
+import { baseUrl } from '@/lib/utils'
+import { StepRequest, StepActionRequest  } from 'bc-wallet-openapi'
+
 
 export const ConnectStepAdd = () => {
   const t = useTranslations()
@@ -79,7 +81,7 @@ export const ConnectStepAdd = () => {
       asset: data.asset || undefined,
     }
 
-    updateStep(selectedStep || 0, updatedStep)
+    updateStep(selectedStep || 0, updatedStep as StepRequest)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })
@@ -138,7 +140,13 @@ export const ConnectStepAdd = () => {
     for (const scenario of personaScenarios) {
       try {
         const result = await mutateAsync(scenario)
-        scenarioIds.push((result as IssuanceScenarioResponseType).issuanceScenario.id)
+        if (result && result.issuanceScenario) {
+          scenarioIds.push(result.issuanceScenario.id)
+          toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
+        } else {
+          console.error('Invalid response format:', result)
+          throw new Error('Invalid response format')
+        }
         toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
       } catch (error) {
         console.error('Error creating scenario:', error)
@@ -191,7 +199,7 @@ export const ConnectStepAdd = () => {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
-                <Image src={currentStep.asset} alt={currentStep.title} className="w-full object-cover" />
+                <Image src={`${baseUrl}/assets/${currentStep.asset.id}/file`} alt={currentStep.title} className="w-full object-cover" />
               </div>
             </div>
           )}
@@ -252,9 +260,6 @@ export const ConnectStepAdd = () => {
                 })
               }
             />
-            {form.formState.errors.asset && (
-              <p className="text-sm text-destructive">{form.formState.errors.asset.message}</p>
-            )}
           </div>
         </div>
         <div className="mt-auto pt-4 border-t flex justify-end gap-3">

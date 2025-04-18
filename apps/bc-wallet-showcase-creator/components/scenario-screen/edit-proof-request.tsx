@@ -6,25 +6,18 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { ProofRequestFormData } from '@/schemas/scenario'
 import { proofRequestSchema } from '@/schemas/scenario'
-import type { ProofRequest, ShowcaseJSON } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus } from 'lucide-react'
 
 import { ProofAttribute } from './proof-attribute'
-import { CredentialDefinitionType, StepRequestType } from '@/openapi-types'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
-
-interface StepWithCredentials extends StepRequestType {
-  credentials?: string[];
-}
+import { StepActionType, StepRequest, CredentialDefinition } from 'bc-wallet-openapi'
+import { StepRequestUIActionTypes } from '@/lib/steps'
 
 interface EditProofRequestProps {
-  showcaseJSON?: ShowcaseJSON
-  credentials: CredentialDefinitionType;
+  credentials: CredentialDefinition;
   updateCredentials?:(updatedCredentials: ProofRequestFormData) => void;
-  proofRequest?: ProofRequest
   credentialName: string
-  selectedCharacter?: number
   selectedScenario: number
   selectedStep: number
   setEditingCredentials: (editingCredentials: number[]) => void
@@ -33,10 +26,7 @@ interface EditProofRequestProps {
 }
 
 export const EditProofRequest = ({
-  showcaseJSON,
-  proofRequest,
   credentialName,
-  selectedCharacter,
   setEditingCredentials,
   editingCredentials,
   editingIndex,
@@ -48,7 +38,7 @@ export const EditProofRequest = ({
   })
 
   const {selectedScenario, updateStep,selectedStep, setStepState } = usePresentationAdapter()
-  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepWithCredentials : null
+  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
   
   const availableAttributes = (credentials.credentialSchema?.attributes || []).map(attr => ({
     ...attr,
@@ -68,10 +58,15 @@ export const EditProofRequest = ({
       const updatedStep = structuredClone(currentStep);
   
       if (
-        updatedStep?.actions?.[0]?.proofRequest?.attributes &&
-        updatedStep.actions[0].proofRequest.attributes[credentialName]
+        updatedStep?.actions?.length &&
+        updatedStep?.actions[0]?.actionType === StepActionType.AriesOob &&
+
+        updatedStep?.actions[0]?.proofRequest?.attributes && updatedStep.actions[0].proofRequest.attributes[credentialName]
       ) {
+
         updatedStep.actions[0].proofRequest.attributes[credentialName].attributes = newAttributes;
+
+        updatedStep.actions[0].credentialDefinitionId = credentials.id;
       }
   
       updateCredentials({
@@ -126,11 +121,10 @@ export const EditProofRequest = ({
 
     if (!currentStep || !currentStep.actions || currentStep.actions.length === 0) return;
 
-    const updatedStep = {
+    const updatedStep: StepRequest = {
       ...currentStep,
       actions: currentStep.actions.map((action, index) => {
         if (index !== 0) return action;
-  
         return {
           ...action,
           proofRequest: {
