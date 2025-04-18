@@ -5,3 +5,11 @@ export interface IAdapterClientApi {
 
   close(): Promise<void>
 }
+
+export type SendOptions = {
+  authHeader?: string
+  walletId?: string
+  showcaseApiUrlBase?: string
+  tractionApiUrlBase?: string
+  tractionTenantId?: string
+}

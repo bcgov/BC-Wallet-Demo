@@ -946,7 +946,6 @@ paths:
     post:
       tags:
         - Approval
-        - Showcases
       summary: Approve a specific credential definition
       description: Marks a specific credential definition as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
       operationId: approveCredentialDefinition
@@ -1841,7 +1840,6 @@ paths:
     post:
       tags:
         - Approval
-        - Showcases
       summary: Approve a specific showcase
       description: Marks a specific showcase as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
       operationId: approveShowcase
@@ -2660,8 +2658,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/Scenario'
         - type: object
-          required:
-            - issuer
+#         required:
+#           - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               $ref: '#/components/schemas/Issuer'
@@ -2675,8 +2673,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/ScenarioRequest'
         - type: object
-          required:
-            - issuer
+#          required:
+#            - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               type: string
@@ -3530,3 +3528,4 @@ components:
               message:
                 type: string
                 example: 'An unexpected error occurred'
+
