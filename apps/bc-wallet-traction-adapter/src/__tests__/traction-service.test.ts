@@ -46,7 +46,7 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     // Get and set token
     try {
       const token = await tractionService.getTenantToken(apiKey)
-      tractionService.updateBearerTokens(token)
+      tractionService.updateBearerTokens({ tractionToken: token })
     } catch (error) {
       console.error('Failed to get tenant token:', error)
       throw error
