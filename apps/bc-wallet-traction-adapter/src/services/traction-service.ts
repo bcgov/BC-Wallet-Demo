@@ -205,9 +205,7 @@ export class TractionService extends ApiService {
     if (!schemaId) {
       return Promise.reject(Error(`Cannot import schema ${credentialSchema.id} without identifier`))
     }
-    const apiResponse = await this.schemaStorageApi.schemaStoragePostRaw({ body: { schemaId } })
-    const record = await this.handleApiResponse(apiResponse)
-
+    const record = await this.schemaStorageApi.schemaStoragePost({ body: { schemaId } })
     const rawAttrs = (record.schema as any)?.attrNames
     if (!Array.isArray(rawAttrs)) {
       return Promise.reject(Error(`Invalid schema returned for ${schemaId}`))
@@ -234,8 +232,7 @@ export class TractionService extends ApiService {
     if (!definitionId) {
       return Promise.reject(Error(`Cannot import definition ${credentialDefinition.id} without identifier`))
     }
-    const apiResponse = await this.credentialDefApi.credentialDefinitionsCredDefIdGetRaw({ credDefId: definitionId })
-    const record = await this.handleApiResponse(apiResponse)
+    const record = await this.credentialDefApi.credentialDefinitionsCredDefIdGet({ credDefId: definitionId })
     if (record.credentialDefinition) {
       await this.showcaseApiService.updateCredentialDefinition(credentialDefinition.id, record.credentialDefinition)
     } else {
