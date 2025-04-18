@@ -7,7 +7,7 @@ import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
 import type { Persona, PresentationScenarioRequest, StepActionRequest, StepRequest } from 'bc-wallet-openapi'
-import { StepType } from '@/types'
+import { StepType } from 'bc-wallet-openapi'
 
 enableMapSet()
 
@@ -347,7 +347,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
             if (stepIndex >= 0 && stepIndex < steps.length) {
               const currentStep = steps[stepIndex]
 
-              if (currentStep.type === StepType.SERVICE) {
+              if (currentStep.type === StepType.Service) {
                 state.stepState = 'editing-basic'
               } else {
                 state.stepState = 'editing-basic'

@@ -1,23 +1,22 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type { WritableDraft } from "immer";
-import type { Credential } from "@/openapi-types";
+import { CredentialDefinition } from "bc-wallet-openapi";
 
 type Mode = "create" | "import" | "view";
 
 interface State {
-	selectedCredential: Credential | null;
+	selectedCredential: CredentialDefinition | null;
 	mode: Mode;
 	isCreating: boolean;
 	isDeleting: boolean;
-	credentials: Credential[];
+	credentials: CredentialDefinition[];
 }
 
 interface Actions {
-	setSelectedCredential: (credential: Credential | null) => void;
+	setSelectedCredential: (credential: CredentialDefinition | null) => void;
 	startCreating: () => Promise<string>;
 	startImporting: () => void;
-	viewCredential: (credential: Credential) => void;
+	viewCredential: (credential: CredentialDefinition) => void;
 	cancel: () => void;
 	reset: () => void;
 	deleteCredential: (credentialId: string) => void;
@@ -52,21 +51,22 @@ export const useCredentials = create<State & Actions>()(
 			}),
 
 		startCreating: async () => {
-			const newCredential = {
+			const newCredential: CredentialDefinition = {
 				id: Date.now().toString(),
 				name: "",
 				version: "",
 				type: "ANONCRED",
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
+				icon: undefined,
+				createdAt: new Date(),
+				updatedAt: new Date(),
 				credentialSchema: {
-					id: "",
+					id: Date.now().toString(),
 					name: "",
 					version: "",
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
+					createdAt: new Date(),
+					updatedAt: new Date(),
 				},
-			} as WritableDraft<Credential>;
+			}
 
 			set((state) => {
 				state.selectedCredential = newCredential;

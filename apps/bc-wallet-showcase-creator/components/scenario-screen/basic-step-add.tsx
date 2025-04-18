@@ -10,14 +10,13 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useCreatePresentation, usePresentations } from '@/hooks/use-presentation'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
-import { sampleAction, StepRequestUIActionTypes } from '@/lib/steps'
+import { sampleAction } from '@/lib/steps'
 import type { BasicStepFormData } from '@/schemas/onboarding'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from 'lodash'
 import { Edit, Monitor } from 'lucide-react'
 import { basicStepSchema } from '@/schemas/onboarding'
 import { useTranslations } from 'next-intl'
-import Image from 'next/image'
 import { ErrorModal } from '../error-modal'
 import StepHeader from '../step-header'
 import { LocalFileUpload } from "./local-file-upload";
@@ -80,7 +79,7 @@ export const BasicStepAdd = () => {
       asset: data.asset || undefined,
     }
 
-    updateStep(selectedStep || 0, updatedStep as StepRequestUIActionTypes)
+    updateStep(selectedStep || 0, updatedStep as StepRequest)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })
@@ -265,7 +264,7 @@ export const BasicStepAdd = () => {
                   asset: value || undefined,
                 };
 
-                updateStep(selectedStep || 0, updatedStep1 as StepRequestUIActionTypes);
+                updateStep(selectedStep || 0, updatedStep1 as StepRequest);
 
                 form.setValue("asset", value, {
                   shouldDirty: true,

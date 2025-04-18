@@ -10,7 +10,7 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useRouter } from '@/i18n/routing'
-import { sampleAction, StepRequestUIActionTypes } from '@/lib/steps'
+import { sampleAction } from '@/lib/steps'
 import type { BasicStepFormData } from '@/schemas/onboarding'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { debounce } from 'lodash'
@@ -79,7 +79,7 @@ export const WalletStepAdd = () => {
       asset: data.asset || undefined,
     }
 
-    updateStep(selectedStep || 0, updatedStep as StepRequestUIActionTypes)
+    updateStep(selectedStep || 0, updatedStep as StepRequest)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })

@@ -19,7 +19,7 @@ export type StepActionRequestTypes =
 | ChooseWalletActionRequest
   
 export interface StepRequestUIActionTypes extends StepRequest {
-  actions: StepActionRequestTypes[];
+  actions: StepActionRequest[];
   credentials?: CredentialDefinition[];
 }
 

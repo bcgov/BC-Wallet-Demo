@@ -28,7 +28,7 @@ import { useHelpersStore } from '@/hooks/use-helpers-store';
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { useCredentialDefinitions } from '@/hooks/use-credentials'
-import { StepType } from '@/types'
+import { StepType } from 'bc-wallet-openapi'
 import { DisplaySearchResults } from './display-search-results'
 import { DisplayAddedCredentials } from './display-added-credentials'
 import { CredentialDefinition, StepRequest } from 'bc-wallet-openapi'
@@ -90,7 +90,7 @@ export const BasicStepAdd = () => {
       asset: data.asset || undefined,
     }
 
-    updateStep(selectedStep || 0, updatedStep as StepRequestUIActionTypes)
+    updateStep(selectedStep || 0, updatedStep as StepRequest)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })
@@ -198,7 +198,7 @@ export const BasicStepAdd = () => {
     const existing = currentStep.credentials || [];
     if (!existing.includes(credential)) {
       const updated = [...existing, credential];
-      updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
+      updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequest);
     }
     setSearchResults([]);
   };
@@ -206,7 +206,7 @@ export const BasicStepAdd = () => {
   const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
     const updated = (currentStep.credentials || []).filter((cred) => cred !== credential);
-    updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
+    updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequest);
     setSelectedCredential(null);
   };
 
@@ -272,7 +272,7 @@ export const BasicStepAdd = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <StepHeader
           icon={<Monitor strokeWidth={3} />}
-          title={currentStep?.type == StepType.SERVICE ? t('onboarding.issue_step_header_title') : t('onboarding.basic_step_header_title')}
+          title={currentStep?.type == StepType.Service ? t('onboarding.issue_step_header_title') : t('onboarding.basic_step_header_title')}
           showDropdown={false}
         />
         <div className="space-y-6">
@@ -314,7 +314,7 @@ export const BasicStepAdd = () => {
                   asset: value || undefined,
                   // credentials: data.credentials || [],
                 };
-                updateStep(selectedStep || 0, updatedStep1);
+                updateStep(selectedStep || 0, updatedStep1 as StepRequest);
 
                 form.setValue("asset", value, {
                   shouldDirty: true,
@@ -324,7 +324,7 @@ export const BasicStepAdd = () => {
               }}
             />
           </div>
-          {currentStep?.type == StepType.SERVICE && (
+          {currentStep?.type == StepType.Service && (
             <div className="space-y-4">
               <div>
                 <p className="text-2xl font-bold">{t('onboarding.add_your_credential_label')}</p>
@@ -357,7 +357,7 @@ export const BasicStepAdd = () => {
                       credentials: updated,
                       title: currentStep.title,
                       description: currentStep.description,
-                    } as StepRequestUIActionTypes);
+                    } as StepRequest);
                   }
                 }}
               />

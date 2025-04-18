@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl'
 
 import { NoSelection } from '../credentials/no-selection'
 import { BasicStepAdd } from './basic-step-add'
-import { StepType } from '@/types'
+import { StepType } from 'bc-wallet-openapi'
 import { useEffect } from 'react'
 import { createDefaultStep, createServiceStep } from '@/lib/steps'
 

@@ -31,7 +31,7 @@ import { sampleScenario } from '@/lib/steps'
 
 import { NoSelection } from '../credentials/no-selection'
 import { baseUrl } from '@/lib/utils'
-import { StepRequest, StepAction } from 'bc-wallet-openapi'
+import { StepRequest, StepActionRequest  } from 'bc-wallet-openapi'
 
 
 export const ConnectStepAdd = () => {
@@ -81,7 +81,7 @@ export const ConnectStepAdd = () => {
       asset: data.asset || undefined,
     }
 
-    updateStep(selectedStep || 0, updatedStep as StepRequestUIActionTypes)
+    updateStep(selectedStep || 0, updatedStep as StepRequest)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })

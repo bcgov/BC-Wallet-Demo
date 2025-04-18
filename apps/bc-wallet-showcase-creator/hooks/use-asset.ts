@@ -1,6 +1,6 @@
 import apiClient from "@/lib/apiService";
-import { AssetRequestType } from "@/openapi-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AssetRequest, AssetResponse } from "bc-wallet-openapi";
 
 export const useAsset = () => {
   return useQuery({
@@ -21,7 +21,10 @@ export const useAssetById = (id: string) => {
 export const useCreateAsset = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: AssetRequestType) => apiClient.post('/assets', data),
+    mutationFn: async (data: AssetRequest) => {
+      const response = await apiClient.post('/assets', data)
+      return response as AssetResponse
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
     },
@@ -41,7 +44,7 @@ export const useDeleteAsset = () => {
 export const useUpdateAsset = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({id, data}: {id: string, data: AssetRequestType}) => apiClient.put(`/assets/${id}`, data),
+    mutationFn: ({id, data}: {id: string, data: AssetRequest}) => apiClient.put(`/assets/${id}`, data),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
     },

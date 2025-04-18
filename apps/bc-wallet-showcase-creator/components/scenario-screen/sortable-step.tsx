@@ -1,7 +1,6 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { cn, baseUrl } from '@/lib/utils'
-import type { Step } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Copy, GripVertical, TriangleAlert } from 'lucide-react'
@@ -18,7 +17,7 @@ export const SortableStep = ({
   totalSteps,
 }: {
   selectedStep: { stepIndex: number, scenarioIndex: number } | null
-  myScreen: typeof Step._type
+  myScreen: any
   stepIndex: number
   totalSteps: number
   scenarioIndex: number
@@ -130,7 +129,7 @@ const handleStepClick = () => {
                 </div>
                 </>
               ) : (
-                myScreen.credentials.map((cred:any, index) => (
+                myScreen.credentials.map((cred:any, index:number) => (
                   <div
                     key={cred.id ?? index}
                     className="bg-white dark:bg-dark-bg-secondary p-2 flex mt-2 rounded"
