@@ -150,14 +150,14 @@ export class UserRepository implements RepositoryDefinition<User, NewUser> {
       },
     })
 
-    const tenantsMap = new Map<string, any[]>()
-    for (const item of tenants) {
+    const tenantsMap = tenants.reduce((map, item) => {
       const key = item.user
-      if (!tenantsMap.has(key)) {
-        tenantsMap.set(key, [])
+      if (!map.has(key)) {
+        map.set(key, [])
       }
-      tenantsMap.get(key)!.push(item)
-    }
+      map.get(key)!.push(item)
+      return map
+    }, new Map<string, any[]>())
 
     return usersList.map((user) => {
       return {
