@@ -1907,6 +1907,10 @@ components:
           type: string
           description: Unique identifier for the tenant
           example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
         createdAt:
           type: string
           description: Date and time the tenant was created
@@ -1931,6 +1935,10 @@ components:
           type: string
           description: Unique identifier for the tenant
           example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
     TenantResponse:
       type: object
       required:

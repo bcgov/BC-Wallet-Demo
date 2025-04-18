@@ -6,14 +6,14 @@ import { ShowcaseStatus } from '../../types'
 import { showcasesToScenarios } from './showcasesToScenarios'
 import { assets } from './asset'
 import { users } from './user'
-import { tenant } from './tenant'
+import { tenants } from './tenants'
 
 export const showcases = pgTable(
   'showcase',
   {
     id: uuid('id').notNull().primaryKey().defaultRandom(),
     tenantId: text('tenant_id')
-      .references(() => tenant.id, { onDelete: 'cascade' })
+      .references(() => tenants.id, { onDelete: 'cascade' })
       .notNull(),
     name: text().notNull(),
     slug: text().notNull().unique(),
@@ -41,9 +41,9 @@ export const showcases = pgTable(
 export const showcaseRelations = relations(showcases, ({ many, one }) => ({
   scenarios: many(showcasesToScenarios),
   personas: many(showcasesToPersonas),
-  tenant: one(tenant, {
+  tenant: one(tenants, {
     fields: [showcases.tenantId],
-    references: [tenant.id],
+    references: [tenants.id],
   }),
   approver: one(users, {
     fields: [showcases.approvedBy],
