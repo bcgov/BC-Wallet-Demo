@@ -14,7 +14,6 @@ import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
 import {
-  createMockDatabaseService,
   createTestShowcase,
   createTestTenant,
   createTestUser,
@@ -33,16 +32,14 @@ import TenantRepository from '../../database/repositories/TenantRepository'
 import UserRepository from '../../database/repositories/UserRepository'
 import CredentialDefinitionService from '../../services/CredentialDefinitionService'
 import ShowcaseService from '../../services/ShowcaseService'
-import DatabaseService from '../../services/DatabaseService'
-
 import TenantService from '../../services/TenantService'
 import { AcceptCredentialAction, ShowcaseStatus } from '../../types'
 import ApprovalController from '../ApprovalController'
-import supertest = require('supertest')
 import { CredentialDefinitionController } from '../CredentialDefinitionController'
 import ShowcaseController from '../ShowcaseController'
 import { createApiFullTestData } from './apiTestData'
-import { MockSessionService } from './MockSessionService'
+import { MockSessionService, registerMockServicesByInterface } from './MockSessionService'
+import supertest = require('supertest')
 
 const isRecentDate = (inputDate: Date | null | undefined, seconds = 5): boolean => {
   if (!inputDate) return false
@@ -61,13 +58,11 @@ describe('ApprovalController Integration Tests', () => {
     // Setup Database
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
-    const mockDatabaseService = await createMockDatabaseService(database)
-    Container.set(DatabaseService, mockDatabaseService)
 
     // Register all necessary repositories and services
+    await registerMockServicesByInterface(database)
     useContainer(Container)
     sessionService = Container.get(MockSessionService)
-    Container.set('ISessionService', sessionService)
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)
     Container.get(CredentialDefinitionRepository)

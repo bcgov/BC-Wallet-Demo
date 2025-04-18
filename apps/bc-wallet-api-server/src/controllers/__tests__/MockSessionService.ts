@@ -1,5 +1,9 @@
-import { Service } from 'typedi'
+import { AdapterClientApi } from 'bc-wallet-adapter-client-api'
+import { NodePgDatabase } from 'drizzle-orm/node-postgres'
+import Container, { Service } from 'typedi'
 
+import { createMockDatabaseService } from '../../database/repositories/__tests__/dbTestData'
+import DatabaseService from '../../services/DatabaseService'
 import type { Tenant, User } from '../../types'
 import type { ISessionService } from '../../types/services/session'
 
@@ -44,4 +48,13 @@ export class MockSessionService implements ISessionService {
     this.tenant = null
     console.log('[MockSession] Cleared')
   }
+}
+
+export async function registerMockServicesByInterface(database: NodePgDatabase) {
+  const oidcSessionService = Container.get(MockSessionService)
+  Container.set('ISessionService', oidcSessionService)
+  const adapterClientApi = Container.get(AdapterClientApi)
+  Container.set('IAdapterClientApi', adapterClientApi)
+  const mockDatabaseService = await createMockDatabaseService(database)
+  Container.set(DatabaseService, mockDatabaseService)
 }

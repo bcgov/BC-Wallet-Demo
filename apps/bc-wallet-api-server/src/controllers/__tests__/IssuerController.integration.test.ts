@@ -8,7 +8,6 @@ import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
 import {
-  createMockDatabaseService,
   createTestAsset,
   createTestCredentialDefinition,
   createTestCredentialSchema,
@@ -18,12 +17,11 @@ import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
 import IssuerRepository from '../../database/repositories/IssuerRepository'
-import DatabaseService from '../../services/DatabaseService'
 import IssuerService from '../../services/IssuerService'
 import { CredentialType, IdentifierType } from '../../types'
 import IssuerController from '../IssuerController'
 import { createApiIssuerRequest } from './apiTestData'
-import { MockSessionService } from './MockSessionService'
+import { registerMockServicesByInterface } from './MockSessionService'
 import supertest = require('supertest')
 
 describe('IssuerController Integration Tests', () => {
@@ -31,7 +29,6 @@ describe('IssuerController Integration Tests', () => {
   let app: Application
   let request: any
   let startedRabbitMQContainer: StartedRabbitMQContainer
-  let sessionService: MockSessionService
 
   beforeAll(async () => {
     // Start the RabbitMQ container (for loading approve typedi inject classes
@@ -45,10 +42,7 @@ describe('IssuerController Integration Tests', () => {
 
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
-    const mockDatabaseService = await createMockDatabaseService(database)
-    Container.set(DatabaseService, mockDatabaseService)
-    sessionService = Container.get(MockSessionService)
-    Container.set('ISessionService', sessionService)
+    await registerMockServicesByInterface(database)
 
     useContainer(Container)
 
