@@ -18,7 +18,6 @@ import {
   createTestTenant,
   createTestUser,
   createUnapprovedCredDef,
-  setupTestDatabase,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -38,7 +37,8 @@ import ApprovalController from '../ApprovalController'
 import { CredentialDefinitionController } from '../CredentialDefinitionController'
 import ShowcaseController from '../ShowcaseController'
 import { createApiFullTestData } from './apiTestData'
-import { MockSessionService, registerMockServicesByInterface } from './MockSessionService'
+import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
+import { MockSessionService } from './MockSessionService'
 import supertest = require('supertest')
 
 const isRecentDate = (inputDate: Date | null | undefined, seconds = 5): boolean => {
@@ -55,7 +55,7 @@ describe('ApprovalController Integration Tests', () => {
   let sessionService: MockSessionService
 
   beforeAll(async () => {
-    // Setup Database
+    await setupRabbitMQ()
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
 

@@ -11,7 +11,6 @@ import {
   createTestCredentialDefinition,
   createTestCredentialSchema,
   createTestPersona,
-  setupTestDatabase,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -30,6 +29,7 @@ import {
   createApiSetupConnectionAction,
   createApiStepRequest,
 } from './apiTestData'
+import { setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
 
 describe('PresentationScenarioController Integration Tests', () => {

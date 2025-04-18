@@ -85,6 +85,29 @@ export class CredentialDefinitionController {
   }
 
   //  @Authorized()
+  @HttpCode(201)
+  @Post('/import')
+  public async importCredentialDefinition(
+    @Body() credentialDefinitionRequest: CredentialDefinitionRequest,
+  ): Promise<CredentialDefinitionResponse> {
+    try {
+      if (!instanceOfCredentialDefinitionRequest(credentialDefinitionRequest)) {
+        return Promise.reject(new BadRequestError())
+      }
+      const result = await this.credentialDefinitionService.importCredentialDefinition(
+        CredentialDefinitionRequestToJSONTyped(credentialDefinitionRequest),
+      )
+      return CredentialDefinitionResponseFromJSONTyped(
+        { credentialDefinition: credentialDefinitionDTOFrom(result) },
+        false,
+      )
+    } catch (e) {
+      console.error('importCredentialDefinition failed:', e)
+      return Promise.reject(e)
+    }
+  }
+
+  //  @Authorized()
   @Put('/:id')
   public async put(
     @Param('id') id: string,

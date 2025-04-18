@@ -1,7 +1,5 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import type { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
-import { RabbitMQContainer } from '@testcontainers/rabbitmq'
 import { IssuerRequest } from 'bc-wallet-openapi'
 import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
@@ -11,7 +9,6 @@ import {
   createTestAsset,
   createTestCredentialDefinition,
   createTestCredentialSchema,
-  setupTestDatabase,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -21,25 +18,16 @@ import IssuerService from '../../services/IssuerService'
 import { CredentialType, IdentifierType } from '../../types'
 import IssuerController from '../IssuerController'
 import { createApiIssuerRequest } from './apiTestData'
-import { registerMockServicesByInterface } from './MockSessionService'
+import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
 
 describe('IssuerController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
-  let startedRabbitMQContainer: StartedRabbitMQContainer
 
   beforeAll(async () => {
-    // Start the RabbitMQ container (for loading approve typedi inject classes
-    startedRabbitMQContainer = await new RabbitMQContainer('rabbitmq:4').start()
-
-    // Setup environment variables for the processor
-    process.env.AMQ_HOST = startedRabbitMQContainer.getHost()
-    process.env.AMQ_PORT = `${startedRabbitMQContainer.getMappedPort(5672)}`
-    process.env.AMQ_TRANSPORT = 'tcp'
-    process.env.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
-
+    await setupRabbitMQ()
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
     await registerMockServicesByInterface(database)

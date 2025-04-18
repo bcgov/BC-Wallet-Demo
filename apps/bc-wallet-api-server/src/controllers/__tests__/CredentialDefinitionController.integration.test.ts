@@ -5,20 +5,14 @@ import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
+import { createTestAsset, createTestCredentialSchema } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
 import CredentialDefinitionService from '../../services/CredentialDefinitionService'
-import DatabaseService from '../../services/DatabaseService'
 import { CredentialDefinitionController } from '../CredentialDefinitionController'
+import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
-import {
-  createMockDatabaseService,
-  createTestAsset,
-  createTestCredentialSchema,
-  setupTestDatabase,
-} from '../../database/repositories/__tests__/dbTestData'
-import { MockSessionService } from './MockSessionService'
 
 describe('CredentialDefinitionController Integration Tests', () => {
   let client: PGlite
@@ -26,12 +20,11 @@ describe('CredentialDefinitionController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
+    await setupRabbitMQ()
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
-    const mockDatabaseService = await createMockDatabaseService(database)
-    Container.set(DatabaseService, mockDatabaseService)
+    await registerMockServicesByInterface(database)
     useContainer(Container)
-    Container.set('ISessionService', Container.get(MockSessionService))
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)
     Container.get(CredentialDefinitionRepository)
