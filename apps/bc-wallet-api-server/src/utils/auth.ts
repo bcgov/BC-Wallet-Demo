@@ -1,32 +1,55 @@
 import { Buffer } from 'buffer'
 import fetch from 'cross-fetch'
 
+type JwtPayload = {
+  exp?: number
+  iat?: number
+  jti?: string
+  iss?: string
+  aud?: string
+  sub?: string
+  typ?: string
+  azp?: string
+  sid?: string
+  acr?: string
+  'allowed-origins'?: string[]
+  realm_access?: {
+    roles: string[]
+  }
+  resource_access?: {
+    [key: string]: {
+      roles: string[]
+    }
+  }
+  scope?: string
+  email_verified?: boolean
+  name?: string
+  preferred_username?: string
+  given_name?: string
+  family_name?: string
+  email?: string
+  [key: string]: any
+}
+
 export function checkRoles(token: Token, roles: string[]) {
   if (token && !roles.length) return true
   return !!(token && roles.find((role) => token.hasRole(role)))
 }
 
-export async function isAccessTokenValid(token: string): Promise<boolean> {
-  const authorization = 'Basic ' + Buffer.from(`${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`).toString('base64')
-  return fetch(
-        `${process.env.AUTH_SERVER_URL}/realms/${process.env.REALM}/protocol/openid-connect/token/introspect`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: authorization,
-          },
-          body: new URLSearchParams({
-            token: token,
-            client_id: `${process.env.CLIENT_ID}`,
-            client_secret: `${process.env.CLIENT_SECRET}`,
-          }),
-        },
-      ).then(checkResponse).then(response => response.json().then(data => data.active))
+export async function getUserInfo(token: string, authIssuerUrl?: string): Promise<any> {
+  return fetch(`${authIssuerUrl}/protocol/openid-connect/userinfo`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: token,
+    },
+  })
+    .then(checkResponse)
+    .then((response) => response.json())
 }
 
 async function checkResponse(response: Response) {
-  if(response.status < 400) {
+  if (response.status < 400) {
     return response
   }
 
@@ -49,19 +72,10 @@ async function checkResponse(response: Response) {
   throw new Error(errorMessage)
 }
 
-// TODO Check if this is correct, or even necessary
-export function isAccessTokenAudienceValid(token: Token): boolean {
-  const audienceData = Array.isArray(token.payload.aud) ? token.payload.aud : [token.payload.aud]
-  return audienceData.includes(process.env.CLIENT_ID)
-}
-
 export class Token {
-  private readonly _payload: any
+  private readonly _payload: JwtPayload
 
-  constructor(
-    private token: string,
-    private clientId: string,
-  ) {
+  public constructor(private token: string) {
     if (this.token) {
       const parts = token.split('.')
       if (parts.length !== 3) {
@@ -73,17 +87,17 @@ export class Token {
     }
   }
 
-  get payload() {
+  public get payload(): JwtPayload {
     return this._payload
   }
 
-  hasRole = (name: string) => {
-    if (!this.clientId) {
+  public hasRole = (name: string) => {
+    if (!this._payload?.azp) {
       return false
     }
     const parts = name.split(':')
     if (parts.length === 1) {
-      return this.hasApplicationRole(this.clientId, parts[0])
+      return this.hasApplicationRole(this._payload?.azp, parts[0])
     }
     if (parts[0] === 'realm') {
       return this.hasRealmRole(parts[1])
@@ -91,7 +105,7 @@ export class Token {
     return this.hasApplicationRole(parts[0], parts[1])
   }
 
-  hasApplicationRole = (appName: string, roleName: string): boolean => {
+  public hasApplicationRole = (appName: string, roleName: string): boolean => {
     if (!this._payload.resource_access) {
       return false
     }
@@ -105,7 +119,7 @@ export class Token {
     return appRoles.roles.indexOf(roleName) >= 0
   }
 
-  hasRealmRole = (roleName: string) => {
+  public hasRealmRole = (roleName: string) => {
     if (!this._payload.realm_access || !this._payload.realm_access.roles) {
       return false
     }

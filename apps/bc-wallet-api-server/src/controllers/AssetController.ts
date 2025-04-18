@@ -1,4 +1,5 @@
 import {
+  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -9,7 +10,7 @@ import {
   Param,
   Post,
   Put,
-  Res
+  Res,
 } from 'routing-controllers'
 import { Service } from 'typedi'
 import { Response } from 'express'
@@ -54,7 +55,7 @@ class AssetController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body({ options: { limit: '250mb' } }) assetRequest: AssetRequest): Promise<AssetResponse> {
@@ -70,7 +71,7 @@ class AssetController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body({ options: { limit: '250mb' } }) assetRequest: AssetRequest): Promise<AssetResponse> {
     try {
@@ -87,7 +88,7 @@ class AssetController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {
