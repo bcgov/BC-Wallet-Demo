@@ -29,6 +29,8 @@ import {
   credentialSchemaToSchemaPostRequest,
 } from '../mappers/credential-definition'
 import type { CreateSchemaResult, PublishCredentialDefinitionResult } from '../types'
+import { ApiService } from './api-service'
+import { ShowcaseApiService } from './showcase-api-service'
 
 const TRANSACTION_TERMINAL_STATES = new Set([
   'transaction_acked',
@@ -39,7 +41,7 @@ const TRANSACTION_TERMINAL_STATES = new Set([
 const TRANSACTION_ERROR_STATES = new Set(['transaction_refused', 'transaction_cancelled'])
 const TX_DELAY_MS = 2000
 
-export class TractionService {
+export class TractionService extends ApiService {
   private readonly config: Configuration
   private readonly configOptions: ConfigurationParameters
   private multitenancyApi: MultitenancyApi
@@ -53,13 +55,16 @@ export class TractionService {
   public constructor(
     private tenantId: string,
     private basePath: string = environment.traction.DEFAULT_API_BASE_PATH,
+    private showcaseApiService: ShowcaseApiService,
     private walletId?: string,
-    private accessToken?: string,
+    //    private accessToken?: string, TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
   ) {
+    super()
+
     // Create a shared configuration for this tenant
     this.configOptions = {
       basePath: this.basePath,
-      ...(this.accessToken && { apiKey: this.tokenCallback(this.accessToken) }), // Probably an error in the generated code, it's mapping apiKey not accessToken
+      //      ...(this.accessToken && { apiKey: this.tokenCallback(this.accessToken) }), // Probably an error in the generated code, it's mapping apiKey not accessToken
     }
     this.config = new Configuration(this.configOptions)
 
@@ -71,14 +76,17 @@ export class TractionService {
     this.schemaStorageApi = new SchemaStorageApi(this.config)
     this.walletApi = new WalletApi(this.config)
     this.endorseTransactionApi = new EndorseTransactionApi(this.config)
+
+    this.showcaseApiService = showcaseApiService
   }
 
   public hasBearerToken(): boolean {
     return this.configOptions.apiKey !== undefined
   }
 
-  public updateBearerToken(token: string): void {
-    this.configOptions.apiKey = this.tokenCallback(token)
+  public updateBearerToken(tractionToken: string, showcaseApiToken?: string): void {
+    this.configOptions.apiKey = this.tokenCallback(tractionToken)
+    this.showcaseApiService.updateBearerToken(showcaseApiToken ?? tractionToken)
   }
 
   private tokenCallback(token: string) {
@@ -137,13 +145,14 @@ export class TractionService {
       console.log('Schema creation transaction state:', result.txn.state)
     }
 
-    const schemaId = result?.sent?.schemaId
+    let schemaId = result?.sent?.schemaId
     if (!schemaId) {
       return Promise.reject(Error('No schema ID was returned after creation request'))
     }
 
     const transactionId = result?.txn?.transactionId
 
+    void (await this.showcaseApiService.updateCredentialSchemaIdentifier(credentialSchema.id, schemaId))
     return { schemaId, transactionId }
   }
 
@@ -171,19 +180,23 @@ export class TractionService {
 
     const result = await this.handleApiResponse<TxnOrCredentialDefinitionSendResult>(apiResponse)
 
-    const credentialDefinitionId = result.sent?.credentialDefinitionId
+    const identifier = result.sent?.credentialDefinitionId
     const transactionId = result.txn?.transactionId
 
     if (transactionId) {
       console.log('Credential definition transaction state:', result.txn?.state)
       console.log('Created credential definition transaction:', transactionId)
-    } else if (credentialDefinitionId) {
-      console.log('Created credential definition directly:', credentialDefinitionId)
+    } else if (identifier) {
+      console.log('Created credential definition directly:', identifier)
     } else {
       return Promise.reject(Error('No credential definition ID or transaction ID was returned'))
     }
 
-    return { credentialDefinitionId, transactionId }
+    if (!identifier) {
+      return Promise.reject(`Created credential definition ${credentialDef.id}, but no identifier was returned`)
+    }
+    void (await this.showcaseApiService.updateCredentialDefIdentifier(credentialDef.id, identifier))
+    return { credentialDefinitionId: identifier, transactionId }
   }
 
   /**
@@ -218,7 +231,7 @@ export class TractionService {
       const credentialDefList = await this.credentialDefStorageApi.credentialDefinitionStorageGet()
       if (credentialDefList.results) {
         for (const result of credentialDefList.results) {
-          // Match based on schemaId and tag (version)
+          // Match based on schemaId and tag (version) TODO improve equality check in the future
           if (result.schemaId === schemaId && result.tag === dbCredentialDef.version) {
             return result.credDefId
           }
@@ -265,6 +278,7 @@ export class TractionService {
           if (!credentialSchema.identifier) {
             credentialSchema.identifierType = 'DID'
             credentialSchema.identifier = schemaId
+            void (await this.showcaseApiService.updateCredentialSchemaIdentifier(credentialSchema.id, schemaId))
           }
         }
         // Map internal ID (if used) or name+version to the ledger schema ID
@@ -314,6 +328,7 @@ export class TractionService {
           if (!credentialDef.identifier) {
             credentialDef.identifierType = 'DID'
             credentialDef.identifier = credDefId
+            void (await this.showcaseApiService.updateCredentialDefIdentifier(credentialDef.id, credDefId))
           }
         }
       }
@@ -493,36 +508,13 @@ export class TractionService {
 
     return transactionStates
   }
-
-  private async handleApiResponse<T>(response: ApiResponse<T>): Promise<T> {
-    if (!response.raw.ok) {
-      let errorText = 'No error details available'
-      try {
-        errorText = await response.raw.text()
-      } catch (e) {
-        // Ignore error trying to read body
-      }
-      // Throw ResponseError for structured error handling
-      throw new ResponseError(response.raw, `HTTP error! Status: ${response.raw.status}, Details: ${errorText}`)
-    }
-    try {
-      return await response.value()
-    } catch (e) {
-      // Handle cases where parsing the response body fails
-      console.error('Error parsing response value:', e)
-      throw new Error(`Failed to parse response body: ${e instanceof Error ? e.message : String(e)}`)
-    }
-  }
-
-  private handleServiceError(error: unknown, operation: string): Promise<never> {
-    console.error(`Error ${operation}:`, error)
-    if (error instanceof Error) {
-      return Promise.reject(error)
-    }
-    return Promise.reject(new Error(`Unknown error ${operation}`))
-  }
 }
 
-export function createTractionService(apiBase: string, tenantId: string, walletId?: string): TractionService {
-  return new TractionService(tenantId, apiBase, walletId)
+export function createTractionService(
+  apiBase: string,
+  tenantId: string,
+  showcaseApiService: ShowcaseApiService,
+  walletId?: string,
+): TractionService {
+  return new TractionService(tenantId, apiBase, showcaseApiService, walletId)
 }
