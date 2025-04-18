@@ -78,7 +78,7 @@ export const useShowcaseCreation = () => {
                     predicate1: {
                       name: "example_name",
                       type: "example_type",
-                      value: "example_value",
+                      value: 1,
                       restrictions: ["restriction1", "restriction2"],
                     },
                   },

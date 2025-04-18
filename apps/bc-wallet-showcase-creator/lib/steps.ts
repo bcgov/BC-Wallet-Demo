@@ -33,6 +33,7 @@ export const sampleAction: AriesOOBActionRequest =  {
     attributes: {},
     predicates: {},
   },
+  credentialDefinitionId: ""
 }
 
 export const sampleScenario: IssuanceScenarioRequest | PresentationScenarioRequest = {
