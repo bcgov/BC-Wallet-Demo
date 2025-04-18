@@ -1,8 +1,7 @@
 import { create } from 'zustand';
-import type { Scenario, ScenarioStep} from '@/types';
-import { RequestType, StepType } from '@/types';
 import { useShowcaseStore } from './use-showcase-store';
 import { produce } from 'immer';
+import { Scenario, Step, StepType } from 'bc-wallet-openapi';
 
 type ScenarioStepState = 
   | "none-selected" 
@@ -36,8 +35,8 @@ interface Actions {
   updateScenario: (index: number, scenario: Scenario) => void;
   removeScenario: (index: number) => void;
   
-  addStep: (scenarioIndex: number, step: Omit<ScenarioStep, 'id'>) => void;
-  updateStep: (scenarioIndex: number, stepIndex: number, step: ScenarioStep) => void;
+  addStep: (scenarioIndex: number, step: Omit<Step, 'id'>) => void;
+  updateStep: (scenarioIndex: number, stepIndex: number, step: Step) => void;
   removeStep: (scenarioIndex: number, stepIndex: number) => void;
   moveStep: (scenarioIndex: number, oldIndex: number, newIndex: number) => void;
 
@@ -147,7 +146,7 @@ export const useScenarios = create<State & Actions>((set, get) => ({
     set({
       scenarios: newScenarios,
       selectedStep: newScenarios[scenarioIndex].steps.length - 1,
-      stepState: step.type === StepType.SERVICE ? "proof-step-edit" : "basic-step-edit"
+      stepState: step.type === StepType.Service ? "proof-step-edit" : "basic-step-edit"
     });
     
     updateShowcaseStore(newScenarios);
@@ -218,30 +217,3 @@ export const useScenarios = create<State & Actions>((set, get) => ({
     stepState: null,
   }),
 }));
-
-export const createEmptyStep = (
-  type: StepType
-): Omit<ScenarioStep, "id"> => ({
-  type: type,
-  title: "",
-  description: "",
-  requestOptions: type === StepType.SERVICE
-    ? {
-        type: RequestType.OOB,
-        title: "",
-        text: "",
-        proofRequest: {
-          attributes: {},
-          predicates: {},
-        },
-      }
-    : {
-        type: RequestType.BASIC,
-        title: "",
-        text: "",
-        proofRequest: {
-          attributes: {},
-          predicates: {},
-        },
-      },
-});

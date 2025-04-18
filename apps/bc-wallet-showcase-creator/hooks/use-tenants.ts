@@ -1,3 +1,5 @@
+'use client'
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
 import type { TenantsResponse, TenantResponse, TenantRequest } from "bc-wallet-openapi";

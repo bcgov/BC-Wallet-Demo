@@ -130,7 +130,7 @@ const Accordion = () => {
               </div>
             </div>
             <div className="flex flex-col">
-              <Image src={CredentialStep} alt="CandyScan" />
+              <Image src={CredentialStep} alt="CandyScan" className="object-cover" />
             </div>
           </div>
         </>

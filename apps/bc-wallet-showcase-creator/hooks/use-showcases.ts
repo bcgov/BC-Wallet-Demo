@@ -1,3 +1,5 @@
+'use client'
+
 import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
 import type { ShowcaseRequest, ShowcasesResponse, Showcase } from "bc-wallet-openapi";

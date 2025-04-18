@@ -41,10 +41,6 @@ export const Tenant = () => {
           <Button variant="outline" onClick={handleCreateTenant}>
             Create Tenant
           </Button>
-
-          <Button variant="destructive" onClick={() => signOut()}>
-            Sign Out
-          </Button>
         </div>
       </CardFooter>
     </Card>

@@ -2,14 +2,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PREDICATE_OPTIONS } from '@/schemas/scenario'
-import type { Attribute } from '@/types'
+import { CredentialAttribute } from 'bc-wallet-openapi'
 import { Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 interface ProofAttributeProps {
   index: number
-  attribute: Attribute
-  availableAttributes: Attribute[]
+  attribute: CredentialAttribute
+  availableAttributes: CredentialAttribute[]
   currentValue: string
   onAttributeChange: (index: number, value: string) => void
   onConditionTypeChange: (index: number, value: string) => void

@@ -1,7 +1,6 @@
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { cn, baseUrl } from '@/lib/utils'
-import type { Step } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Copy, GripVertical, TriangleAlert } from 'lucide-react'
@@ -18,7 +17,7 @@ export const SortableStep = ({
   totalSteps,
 }: {
   selectedStep: { stepIndex: number, scenarioIndex: number } | null
-  myScreen: typeof Step._type
+  myScreen: any
   stepIndex: number
   totalSteps: number
   scenarioIndex: number
@@ -49,24 +48,11 @@ const handleStepClick = () => {
   });
   
   setStepState('editing-basic')
-  // switch (ScreenType) {
-  //   case 'HUMAN_TASK':
-  //     setStepState('editing-basic')
-  //     break;
-  //   case 'SERVICE':
-  //     setStepState('editing-basic')
-  //     break;
-  //   default:
-  //     setStepState('editing-basic')
-  //     break;
-  // }
   handleSelectStep(stepIndex, scenarioIndex)
-  // setStepState('editing-issue');
 
   if (activeScenarioIndex !== scenarioIndex) {
     setActiveScenarioIndex(scenarioIndex);
   }
-  // setSelectedScenario(stepIndex);
 };
 
   const handleCopyStep = (stepIndex: number, scenarioIndex: number) => {
@@ -143,7 +129,7 @@ const handleStepClick = () => {
                 </div>
                 </>
               ) : (
-                myScreen.credentials.map((cred:any, index) => (
+                myScreen.credentials.map((cred:any, index:number) => (
                   <div
                     key={cred.id ?? index}
                     className="bg-white dark:bg-dark-bg-secondary p-2 flex mt-2 rounded"
@@ -162,7 +148,7 @@ const handleStepClick = () => {
                       alt={'Credential Icon'}
                       width={50}
                       height={50}
-                      className="rounded-full"
+                      className="rounded-full object-cover"
                     />
                     <div className="ml-4 flex-col">
                       <div className="font-semibold">{cred.name}</div>
