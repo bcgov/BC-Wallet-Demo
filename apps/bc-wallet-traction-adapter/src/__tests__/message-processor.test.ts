@@ -1,5 +1,4 @@
-import type { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
-import { RabbitMQContainer } from '@testcontainers/rabbitmq'
+import { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
 import type { CredentialAttributeType, CredentialDefinition } from 'bc-wallet-openapi'
 import { CredentialType, IssuerType } from 'bc-wallet-openapi'
 import type { Sender, SenderOptions } from 'rhea-promise'
@@ -13,6 +12,7 @@ import { ShowcaseApiService } from '../services/showcase-api-service'
 import type { Action } from '../types'
 import { Topic } from '../types'
 import { encryptBuffer } from '../util/CypherUtil'
+import { setupRabbitMQ } from './globalTestSetup'
 
 // Mock ShowcaseApiService
 jest.mock('../services/showcase-api-service')
@@ -54,18 +54,11 @@ describe('MessageProcessor Integration Test', () => {
   let sender: Sender
   let processor: MessageProcessor
   let mockShowcaseApiService: jest.Mocked<ShowcaseApiService>
+
   const testTopic: Topic = 'showcase-cmd-testing'
 
   beforeAll(async () => {
-    // Start the RabbitMQ container
-    container = await new RabbitMQContainer('rabbitmq:4').start()
-
-    // Setup environment variables for the processor
-    process.env.AMQ_HOST = environment.messageBroker.AMQ_HOST = container.getHost()
-    environment.messageBroker.AMQ_PORT = container.getMappedPort(5672)
-    process.env.AMQ_PORT = environment.messageBroker.AMQ_PORT.toString()
-    process.env.AMQ_TRANSPORT = environment.messageBroker.AMQ_TRANSPORT = 'tcp'
-    process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+    container = await setupRabbitMQ()
 
     // Setup mock ShowcaseApiService
     mockShowcaseApiService = new ShowcaseApiService('') as jest.Mocked<ShowcaseApiService>

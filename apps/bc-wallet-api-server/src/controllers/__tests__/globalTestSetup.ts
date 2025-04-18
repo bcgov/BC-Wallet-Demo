@@ -41,5 +41,5 @@ export async function setupRabbitMQ() {
     process.env.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
   }
 
-  return rabbitMQContainer
+  return global.rabbitMQContainer
 }
