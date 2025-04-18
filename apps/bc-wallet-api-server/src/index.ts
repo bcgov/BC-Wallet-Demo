@@ -1,5 +1,6 @@
 import 'reflect-metadata'
-import { createExpressServer, useContainer } from 'routing-controllers'
+import * as process from 'node:process'
+import { Action, createExpressServer, UnauthorizedError, useContainer } from 'routing-controllers'
 import Container from 'typedi'
 
 import ApprovalController from './controllers/ApprovalController'
@@ -13,9 +14,9 @@ import PresentationScenarioController from './controllers/PresentationScenarioCo
 import RelyingPartyController from './controllers/RelyingPartyController'
 import ShowcaseController from './controllers/ShowcaseController'
 import TenantController from './controllers/TenantController'
-import * as process from 'node:process'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 import { registerServicesByInterface } from './services/RegisterServicesByInterface'
+import { checkRoles, getUserInfo, Token } from './utils/auth'
 import { corsOptions } from './utils/cors'
 
 require('dotenv-flow').config()
@@ -40,26 +41,21 @@ async function bootstrap() {
         TenantController,
         ApprovalController,
       ],
-      // authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
-      //   const authHeader: string = action.request.headers['authorization']
-      //   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      //     throw new UnauthorizedError('Missing or malformed Authorization header')
-      //   }
+      authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
+        const authHeader: string = action.request.headers['authorization']
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          throw new UnauthorizedError('Missing or malformed Authorization header')
+        }
+        const accessToken = authHeader.split(' ')[1]
+        const token = new Token(accessToken)
 
-      //   try  {
-      //       const accessToken = authHeader.split(' ')[1]
-      //       // Introspect the access token
-      //       if (!await isAccessTokenValid(accessToken)) {
-      //         return false
-      //       }
-      //       const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
-      //       // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
-      //       // User roles which at the moment we are not using, do not need any prefix.
-      //       return checkRoles(token, roles)
-      //   } catch (e) {
-      //     throw new UnauthorizedError(e.message)
-      //   }
-      // },
+        if (!(await getUserInfo(accessToken))) {
+          throw new UnauthorizedError('Invalid token')
+        }
+        // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
+        // User roles which at the moment we are not using, do not need any prefix.
+        return checkRoles(token, roles)
+      },
       middlewares: [ExpressErrorHandler],
       defaultErrorHandler: false,
       cors: corsOptions,

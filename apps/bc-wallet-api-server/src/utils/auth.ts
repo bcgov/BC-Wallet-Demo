@@ -36,7 +36,7 @@ export function checkRoles(token: Token, roles: string[]) {
   return !!(token && roles.find((role) => token.hasRole(role)))
 }
 
-export async function getUserInfo(token: string, authIssuerUrl?: string): Promise<any> {
+export async function getUserInfo(token: string, authIssuerUrl?: string): Promise<JwtPayload> {
   return fetch(`${authIssuerUrl}/protocol/openid-connect/userinfo`, {
     method: 'GET',
     headers: {
