@@ -41,7 +41,6 @@
   "scripts": {
     "dev": "cross-env DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts start",
     "build": "cross-env DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build",
-    "build:clean": "rimraf build && cross-env DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build",
     "test": "cross-env GENERATE_SOURCEMAP=false react-scripts test",
     "eject": "cross-env GENERATE_SOURCEMAP=false react-scripts eject"
   },

@@ -4,7 +4,8 @@ import { Connection, Sender } from 'rhea-promise'
 import { Service } from 'typedi'
 
 import { environment } from './environment'
-import type { Action } from './types/adapter-backend'
+import { SendOptions } from './types'
+import { Action } from './types/adapter-backend'
 import { encryptBuffer } from './util/CypherUtil'
 
 @Service()
@@ -33,16 +34,22 @@ export class AdapterClientApi {
     this.isConnected = true
   }
 
-  private async send(action: Action, payload: object, authHeader?: string): Promise<void> {
+  private async send(action: Action, payload: object, options: SendOptions): Promise<void> {
     try {
       await this.isInitComplete
 
-      const { accessTokenEnc, accessTokenNonce } = this.encryptAuthHeader(authHeader)
+      const { accessTokenEnc, accessTokenNonce } = this.encryptAuthHeader(options.authHeader)
+      delete options['authHeader'] // IMPORTANT! - authHeader (the Bearer token) should not be transmitted unencrypted.
 
       // Send the message
-      await this.sender.send({
+      this.sender.send({
         body: this.payloadToJson(payload),
-        application_properties: { action, accessTokenEnc, accessTokenNonce },
+        application_properties: {
+          ...options,
+          action,
+          accessTokenEnc,
+          accessTokenNonce,
+        },
       })
       return
     } catch (error) {
@@ -57,9 +64,9 @@ export class AdapterClientApi {
     return JSON.stringify(payload)
   }
 
-  public async publishIssuer(issuer: Issuer, authHeader: string): Promise<void> {
+  public async publishIssuer(issuer: Issuer, options: SendOptions): Promise<void> {
     try {
-      return this.send('publish-issuer-assets', issuer, authHeader)
+      return this.send('publish-issuer-assets', issuer, options)
     } catch (e) {
       console.warn('publishIssuer failed', e) // FIXME remove after demo
     }

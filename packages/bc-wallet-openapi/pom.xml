@@ -31,7 +31,7 @@
                                     </configOptions>
 
                                     <enablePostProcessFile>true</enablePostProcessFile>
-                                    <generateApis>false</generateApis>
+                                    <generateApis>true</generateApis>
                                     <generateModelDocumentation>true</generateModelDocumentation>
                                     <generateModels>true</generateModels>
 
