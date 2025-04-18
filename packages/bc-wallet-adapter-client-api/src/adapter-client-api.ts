@@ -1,5 +1,14 @@
-import { CredentialSchema, CredentialSchemaToJSONTyped, instanceOfCredentialSchema, Issuer } from 'bc-wallet-openapi'
-import { instanceOfIssuer, IssuerToJSONTyped } from 'bc-wallet-openapi'
+import {
+  CredentialDefinition,
+  CredentialDefinitionToJSONTyped,
+  CredentialSchema,
+  CredentialSchemaToJSONTyped,
+  instanceOfCredentialDefinition,
+  instanceOfCredentialSchema,
+  instanceOfIssuer,
+  Issuer,
+  IssuerToJSONTyped,
+} from 'bc-wallet-openapi'
 import { Connection, Sender } from 'rhea-promise'
 import { Service } from 'typedi'
 
@@ -62,6 +71,8 @@ export class AdapterClientApi implements IAdapterClientApi {
       return IssuerToJSONTyped(payload, false)
     } else if (instanceOfCredentialSchema(payload)) {
       return CredentialSchemaToJSONTyped(payload, false)
+    } else if (instanceOfCredentialDefinition(payload)) {
+      return CredentialDefinitionToJSONTyped(payload, false)
     }
     throw Error('Unknown payload type')
   }
@@ -72,6 +83,13 @@ export class AdapterClientApi implements IAdapterClientApi {
 
   public async importCredentialSchema(credentialSchema: CredentialSchema, options: SendOptions): Promise<void> {
     return this.send('import.cred-schema', credentialSchema, options)
+  }
+
+  public async importCredentialDefinition(
+    credentialDefinition: CredentialDefinition,
+    options: SendOptions,
+  ): Promise<void> {
+    return this.send('import.cred-def', credentialDefinition, options)
   }
 
   public async close(): Promise<void> {

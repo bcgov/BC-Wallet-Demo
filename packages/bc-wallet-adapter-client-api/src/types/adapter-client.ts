@@ -3,6 +3,7 @@ import type { CredentialDefinition, CredentialSchema, Issuer } from 'bc-wallet-o
 export interface IAdapterClientApi {
   publishIssuer(issuer: Issuer, options: SendOptions): Promise<void>
   importCredentialSchema(credentialSchema: CredentialSchema, options: SendOptions): Promise<void>
+  importCredentialDefinition(credentialDefinition: CredentialDefinition, options: SendOptions): Promise<void>
 
   close(): Promise<void>
 }

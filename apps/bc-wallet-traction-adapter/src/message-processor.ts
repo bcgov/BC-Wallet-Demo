@@ -1,4 +1,11 @@
-import { CredentialSchema, instanceOfCredentialSchema, instanceOfIssuer, Issuer } from 'bc-wallet-openapi'
+import {
+  CredentialDefinition,
+  CredentialSchema,
+  instanceOfCredentialDefinition,
+  instanceOfCredentialSchema,
+  instanceOfIssuer,
+  Issuer,
+} from 'bc-wallet-openapi'
 import type { Buffer } from 'buffer'
 import type { Receiver, ReceiverOptions } from 'rhea-promise'
 import { Connection, ReceiverEvents } from 'rhea-promise'
@@ -126,6 +133,9 @@ export class MessageProcessor {
       case 'import.cred-schema':
         await this.handleImportCredentialSchema(payload, service, context, headers)
         break
+      case 'import.cred-def':
+        await this.handleImportCredentialDefinition(payload, service, context, headers)
+        break
       case 'publish.issuer-assets': {
         await this.handlePublishIssuerAssets(payload, service, context, headers)
         break
@@ -194,6 +204,37 @@ export class MessageProcessor {
           condition: 'fatal error',
           description: errorMsg,
           value: [credentialSchema],
+        }) // FIXME context.delivery.release() to redeliver ??
+      }
+    }
+  }
+
+  private async handleImportCredentialDefinition(
+    payload: object,
+    service: TractionService,
+    context: any,
+    headers: MessageHeaders,
+  ): Promise<void> {
+    if (typeof payload !== 'object' || !instanceOfCredentialDefinition(payload)) {
+      return Promise.reject(Error('The message body did not contain a valid Issuer payload'))
+    }
+
+    const credentialDefinition = payload as CredentialDefinition
+    try {
+      console.debug('Received credential definition', credentialDefinition)
+      await service.importCredentialDefinition(credentialDefinition)
+      if (context.delivery) {
+        context.delivery.accept()
+      }
+    } catch (e) {
+      const errorMsg = `An error occurred while importing credential definition ${credentialDefinition.id} / ${credentialDefinition.name} with identifier ${credentialDefinition.identifier} to Traction. Reason: ${e.message}`
+      console.error(errorMsg)
+      if (context.delivery) {
+        context.delivery.reject({
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
+          condition: 'fatal error',
+          description: errorMsg,
+          value: [credentialDefinition],
         }) // FIXME context.delivery.release() to redeliver ??
       }
     }

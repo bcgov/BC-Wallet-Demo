@@ -5,7 +5,9 @@ import {
   CredentialDefinitionRequest,
   CredentialDefinitionsApi,
   CredentialSchemaRequest,
+  CredentialType,
 } from 'bc-wallet-openapi'
+import { CredentialDefinition } from 'bc-wallet-traction-openapi'
 
 import { ApiService } from './api-service'
 
@@ -109,6 +111,39 @@ export class ShowcaseApiService extends ApiService {
         attributes: newAttrs,
       },
     })
+  }
+
+  /**
+   * Updates the attributes of a credential definition.
+   * @param id ID of the credential definition to update
+   * @param credDef Fetched CredentialDefinition
+   * @returns Promise resolving when update is complete
+   * @throws Error if no definition is found for the given ID
+   */
+  public async updateCredentialDefinition(id: string, credDef: CredentialDefinition): Promise<void> {
+    const response = await this.credentialDefinitionsApi.getCredentialDefinitionRaw({ definitionId: id })
+    const existing = await this.handleApiResponse(response)
+    const definition = existing.credentialDefinition
+    if (!definition) {
+      return Promise.reject(Error(`No definition found in Showcase for id ${id}`))
+    }
+
+    const { credentialSchema, representations, revocation, icon, approvedBy, ...definitionWithoutRelations } =
+      definition
+    await this.credentialDefinitionsApi.updateCredentialDefinition({
+      definitionId: id,
+      credentialDefinitionRequest: {
+        ...definitionWithoutRelations,
+        credentialSchema: credDef.schemaId ?? definition.credentialSchema.id,
+        ...(credDef.type &&
+          Object.keys(CredentialType).includes(credDef.type as any) && {
+            type: credDef.type as unknown as CredentialType, // FIXME?
+          }),
+        ...(credDef.tag && { version: credDef.tag }),
+        ...(definition.icon && { icon: definition.icon?.id }),
+        ...(approvedBy && { approvedBy: approvedBy?.id }),
+      },
+    }) // TODO revocation
   }
 
   /**
