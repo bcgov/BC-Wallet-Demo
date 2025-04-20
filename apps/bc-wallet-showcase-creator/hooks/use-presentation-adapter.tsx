@@ -50,14 +50,12 @@ export const usePresentationAdapter = () => {
       if (!activePersonaId) return
 
       addStep(activePersonaId, activeScenarioIndex, stepData)
-      // Set the newly added step as selected
       setSelectedStep({ stepIndex: steps.length, scenarioIndex: activeScenarioIndex })
       setStepState('editing-basic')
     },
     [activePersonaId, activeScenarioIndex, addStep, steps.length],
   )
 
-  // Update step wrapper
   const handleUpdateStep = useCallback(
     (index: number, stepData: StepRequest) => {
       if (!activePersonaId) return
@@ -108,9 +106,7 @@ export const usePresentationAdapter = () => {
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
   const handleSelectStep = useCallback(
-    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
-      console.log('handleSelectStep', { stepIndex, scenarioIndex });
-      
+    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {      
       selectStep(stepIndex, scenarioIndex);
     },
     [selectStep],

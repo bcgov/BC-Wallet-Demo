@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback } from "react";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas';

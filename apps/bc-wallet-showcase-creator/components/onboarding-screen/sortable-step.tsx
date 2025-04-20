@@ -7,9 +7,8 @@ import { cn, baseUrl } from '@/lib/utils'
 import { useOnboarding } from '@/hooks/use-onboarding'
 import { useTranslations } from 'next-intl'
 import { produce } from 'immer'
-import { useShowcaseStore } from '@/hooks/use-showcase-store'
-import { Step } from '@/openapi-types'
 import { useCredentials } from '@/hooks/use-credentials-store'
+import { Step } from 'bc-wallet-openapi'
 
 const MAX_CHARS = 50;
 
@@ -19,7 +18,7 @@ export const SortableStep = ({
   stepIndex,
 }: {
   selectedStep: number | null;
-  myScreen: typeof Step._type;
+  myScreen: Step;
   stepIndex: number;
   totalSteps: number;
 }) => {
