@@ -13,7 +13,7 @@ interface Actions {
   reset: () => void;
 }
 
-export const useShowcaseStore = create<State & Actions>()(
+export const usePersonaStore = create<State & Actions>()(
   immer((set) => ({
     editMode: false,
     personaState: "no-selection",
