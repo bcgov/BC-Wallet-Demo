@@ -134,7 +134,7 @@ export const BasicStepAdd = () => {
       ]
 
       const currentStepExists = scenarioForPersona.steps.some(
-        (step: any) => step.title === data.title && step.description === data.description
+        (step: StepRequest) => step.title === data.title && step.description === data.description
       )
 
       if (!currentStepExists) {
