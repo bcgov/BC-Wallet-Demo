@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState, useCallback } from "react";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useShowcaseCreation } from "@/hooks/use-showcase-creation";
@@ -6,7 +8,7 @@ import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { useHelpersStore } from "./use-helpers-store";
 import { useUiStore } from "./use-ui-store";
 import { useUpdateShowcase } from "./use-showcases";
-import { Persona, ShowcaseRequest, StepRequest, StepType } from "bc-wallet-openapi";
+import { Persona, ShowcaseRequest, StepType } from "bc-wallet-openapi";
 
 export const useOnboardingAdapter = () => {
   const {
@@ -36,9 +38,7 @@ export const useOnboardingAdapter = () => {
   } = useShowcaseStore();
   const { currentShowcaseSlug } = useUiStore();
   const { mutateAsync: updateShowcase, isPending: isSaving } = useUpdateShowcase(currentShowcaseSlug);
-
   const { selectedCredentialDefinitionIds, issuerId, tenantId } = useHelpersStore()
-
   const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null)
 
   const loadPersonaSteps = useCallback(

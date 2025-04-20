@@ -6,7 +6,8 @@ import StepHeader from '../step-header'
 import { createDefaultStep, createServiceStep } from '@/lib/steps'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import StepButton from './step-button'
-import { StepActionType, StepType } from 'bc-wallet-openapi'
+
+
 export const CreateNewStep = () => {
   const { createStep, setStepState, activePersona } = useOnboardingAdapter()
   const t = useTranslations()
@@ -24,7 +25,7 @@ export const CreateNewStep = () => {
             actions: [],
           })
         )
-        setStepState('editing-basic')
+        setStepState('editing-issue')
         break
 
       case 'basic':

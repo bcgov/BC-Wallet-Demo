@@ -32,10 +32,6 @@ export const CreateOnboardingScreen = () => {
     }
   }
 
-  const handleDragStart = (event: DragStartEvent) => {
-    // Handle drag start if needed
-  }
-
   return (
     <div className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text rounded-md border shadow-sm">
       {selectedPersonaIds.length === 0 ? (
@@ -90,7 +86,7 @@ export const CreateOnboardingScreen = () => {
             </div>
           </div>
 
-          <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
               {steps.length === 0 ? (
                 <div className="text-center text-gray-500 p-4">
