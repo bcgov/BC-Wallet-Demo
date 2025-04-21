@@ -1,32 +1,29 @@
 'use client'
 
+import { useOnboarding } from '@/hooks/use-onboarding'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useTranslations } from 'next-intl'
 
 import { NoSelection } from '../credentials/no-selection'
-import { BasicStepAdd } from './basic-step-add'
 import { CreateNewStep } from './create-step'
-import { IssuanceStepAdd } from './issue-step-edit'
-import { WalletStepEdit } from './wallet-step-edit'
-import { ConnectStepEdit } from './connect-step-edit'
+import { StepEditor } from './step-editor'
 
 export const OnboardingSteps = () => {
   const t = useTranslations()
-  const { stepState, activePersonaId } = useOnboardingAdapter()
+  const { activePersonaId } = useOnboardingAdapter()
+  const { stepState, selectedStep } = useOnboarding()
 
   return (
     <div
       id="editStep"
-      className=" bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
+      className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
     >
       {!activePersonaId && (
         <NoSelection
-          text={
-            t("onboarding.select_persona_message")
-          }
+          text={t("onboarding.select_persona_message")}
         />
       )}
-      {activePersonaId && (stepState === null || stepState === 'no-selection') && (
+      {activePersonaId && (selectedStep === null) && (
         <NoSelection
           text={
             t('onboarding.no_step_selected_message') ||
@@ -35,10 +32,7 @@ export const OnboardingSteps = () => {
         />
       )}
       {activePersonaId && stepState === 'creating-new' && <CreateNewStep />}
-      {activePersonaId && stepState === 'editing-basic' && <BasicStepAdd />} 
-      {activePersonaId && stepState === 'editing-connect' && <ConnectStepEdit />}
-      {activePersonaId && stepState === 'editing-wallet' && <WalletStepEdit />}
-      {activePersonaId && stepState === 'editing-issue' && <IssuanceStepAdd />}
+      {activePersonaId && selectedStep !== null && <StepEditor />}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 
-import type { AriesOOBActionRequest, IssuanceScenarioRequest, Persona, StepActionRequest, StepRequest } from "bc-wallet-openapi";
+import { StepActionType, type AriesOOBActionRequest, type IssuanceScenarioRequest, type Persona, type StepActionRequest, type StepRequest } from "bc-wallet-openapi";
 import { sampleAction } from "@/lib/steps";
 import { useHelpersStore } from "@/hooks/use-helpers-store";
 import { usePersonas } from "@/hooks/use-personas";
@@ -47,7 +47,7 @@ export const useShowcaseCreation = () => {
             type: 'HUMAN_TASK',
             actions: [{
               title: "example_title",
-              actionType: "CHOOSE_WALLET" as "CHOOSE_WALLET",
+              actionType: StepActionType.ChooseWallet,
               text: "example_text",
               proofRequest: {
                 attributes: {},
@@ -62,7 +62,7 @@ export const useShowcaseCreation = () => {
             type: 'HUMAN_TASK',
             actions: [
               {
-                actionType: 'ARIES_OOB',
+                actionType: StepActionType.SetupConnection,
                 title: 'Download BC Wallet on your phone',
                 text: "To download, scan this QR code with your phone or select the app store icon below. You can also search for BC Wallet in your phone's app store.",
                 proofRequest: {
@@ -89,7 +89,29 @@ export const useShowcaseCreation = () => {
             description: `Your wallet now has a secure and private connection with BestBC College. You should have received an offer in BC Wallet for a Student Card.\nReview what they are sending, and choose 'Accept offer'.`,
             order: 4,
             type: 'SERVICE',
-            actions: [sampleAction],
+            actions: [
+              {
+                actionType: StepActionType.AriesOob,
+                title: 'Download BC Wallet on your phone',
+                text: "To download, scan this QR code with your phone or select the app store icon below. You can also search for BC Wallet in your phone's app store.",
+                proofRequest: {
+                  attributes: {
+                    attribute1: {
+                      attributes: ["attribute1", "attribute2"],
+                      restrictions: ["restriction1", "restriction2"],
+                    },
+                  },
+                  predicates: {
+                    predicate1: {
+                      name: "example_name",
+                      type: "example_type",
+                      value: 1,
+                      restrictions: ["restriction1", "restriction2"],
+                    },
+                  },
+                },
+              },
+            ],
           },
           {
             title: "You're all set!",
