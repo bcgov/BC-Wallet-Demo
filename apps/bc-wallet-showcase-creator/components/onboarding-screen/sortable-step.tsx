@@ -1,3 +1,5 @@
+'use client'
+
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Image from 'next/image'
@@ -7,6 +9,7 @@ import { useOnboarding } from '@/hooks/use-onboarding'
 import { useTranslations } from 'next-intl'
 import { produce } from 'immer'
 import { Screen } from '@/types'
+
 const MAX_CHARS = 50;
 
 export const SortableStep = ({
@@ -42,7 +45,7 @@ export const SortableStep = ({
         setStepState('editing-basic');
         break;
       case 'HUMAN_TASK':
-        setStepState('editing-wallet');
+        setStepState('editing-basic');
         break;
       case 'SCENARIO':
         setStepState('editing-connect');
@@ -51,6 +54,7 @@ export const SortableStep = ({
         setStepState('editing-basic');
     }
   };
+  
   const handleCopyStep = (index: number) => {
     try {
       const { screens, selectedStep } = useOnboarding.getState();
