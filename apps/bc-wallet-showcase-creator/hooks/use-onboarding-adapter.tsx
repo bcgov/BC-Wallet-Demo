@@ -1,27 +1,29 @@
 'use client'
 
-import { useEffect, useState, useCallback } from "react";
-import { useOnboarding } from "@/hooks/use-onboarding";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { StepState, useOnboarding } from "@/hooks/use-onboarding";
 import { useShowcaseCreation } from "@/hooks/use-showcase-creation";
 import { createDefaultStep, createServiceStep, StepRequestUIActionTypes } from "@/lib/steps";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { useHelpersStore } from "./use-helpers-store";
 import { useUiStore } from "./use-ui-store";
 import { useUpdateShowcase } from "./use-showcases";
-import { Persona, ShowcaseRequest, StepType } from "bc-wallet-openapi";
+import { Persona, ShowcaseRequest, StepRequest, StepType } from "bc-wallet-openapi";
 
 export const useOnboardingAdapter = () => {
   const {
-    screens: steps,
+    screens: originalSteps,
     selectedStep,
     initializeScreens,
-    createStep,
-    updateStep,
-    removeStep,
-    moveStep,
-    setStepState,
+    createStep: originalCreateStep,
+    updateStep: originalUpdateStep,
+    removeStep: originalRemoveStep,
+    moveStep: originalMoveStep,
+    setStepState: originalSetStepState,
     stepState,
-  } = useOnboarding()
+    setSelectedStep,
+    reset,
+  } = useOnboarding();
 
   const {
     selectedPersonas,
@@ -38,8 +40,38 @@ export const useOnboardingAdapter = () => {
   } = useShowcaseStore();
   const { currentShowcaseSlug } = useUiStore();
   const { mutateAsync: updateShowcase, isPending: isSaving } = useUpdateShowcase(currentShowcaseSlug);
-  const { selectedCredentialDefinitionIds, issuerId, tenantId } = useHelpersStore()
-  const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null)
+  const { selectedCredentialDefinitionIds, issuerId, tenantId } = useHelpersStore();
+  const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null);
+  
+  const stepsCache = useRef<typeof originalSteps>([]);
+  const isCreatingNew = useRef(false);
+
+  useEffect(() => {
+    if (originalSteps.length > 0 && !isCreatingNew.current) {
+      stepsCache.current = originalSteps;
+    }
+  }, [originalSteps]);
+
+  const createStep = useCallback((step: StepRequest) => {
+    originalCreateStep(step);
+  }, [originalCreateStep]);
+
+  const updateStep = useCallback((index: number, step: StepRequest) => {
+    originalUpdateStep(index, step);
+  }, [originalUpdateStep]);
+
+  const removeStep = useCallback((index: number) => {
+    originalRemoveStep(index);
+  }, [originalRemoveStep]);
+
+  const moveStep = useCallback((oldIndex: number, newIndex: number) => {
+    originalMoveStep(oldIndex, newIndex);
+  }, [originalMoveStep]);
+
+  const setStepState = useCallback((newState: StepState) => {
+    isCreatingNew.current = newState === 'creating-new';
+    originalSetStepState(newState);
+  }, [originalSetStepState]);
 
   const loadPersonaSteps = useCallback(
     (personaId: string) => {
@@ -91,8 +123,8 @@ export const useOnboardingAdapter = () => {
   }, [activePersonaId, loadedPersonaId, loadPersonaSteps])
 
   useEffect(() => {
-    if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
-      const scenarioSteps = steps.map((step, index) => {
+    if (activePersonaId && loadedPersonaId === activePersonaId && stepsCache.current.length > 0) {
+      const scenarioSteps = stepsCache.current.map((step, index) => {
         const baseStep = {
           title: step.title,
           description: step.description,
@@ -116,11 +148,8 @@ export const useOnboardingAdapter = () => {
 
       updatePersonaSteps(activePersonaId, scenarioSteps as StepRequestUIActionTypes[])
     }
-  }, [steps, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId]);
+  }, [stepsCache.current, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId]);
   
-  // TODO: create persona adapter for the persona logic 
-  // TODO: move this to use-showcase-adapter.ts
-  // TODO: create addPersonaToShowcase mutation
   const saveShowcase = useCallback(async (data: ShowcaseRequest) => {
     try {
       const showcaseData = {
@@ -134,9 +163,6 @@ export const useOnboardingAdapter = () => {
         bannerImage: data.bannerImage,
         tenantId,
       };
-      // Maybe create a addIssuanceScenarioToShowcase mutation
-      // that retrieves the showcase and adds the issuance scenario to it
-      // and then updates the showcase
       
       const updatedShowcase = await updateShowcase(showcaseData);      
       setShowcase(showcaseData);
@@ -145,12 +171,18 @@ export const useOnboardingAdapter = () => {
       console.error("Error saving showcase:", error);
       throw error;
     }
-  }, [displayShowcase, selectedPersonas, setShowcase, showcase, selectedCredentialDefinitionIds]);
+  }, [displayShowcase, selectedPersonas, setShowcase, showcase, selectedCredentialDefinitionIds, updateShowcase, tenantId]);
 
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
+  const handleSelectStep = useCallback((index: number) => {
+    setSelectedStep(index);
+    const stepType = stepsCache.current[index]?.type;
+    originalSetStepState(stepType === StepType.Service ? 'editing-issue' : 'editing-basic');
+  }, [originalSetStepState, setSelectedStep]);
+
   return {
-    steps,
+    steps: isCreatingNew.current ? stepsCache.current : originalSteps,
     selectedStep,
     createStep,
     updateStep,
@@ -158,6 +190,8 @@ export const useOnboardingAdapter = () => {
     moveStep,
     setStepState,
     stepState,
+    handleSelectStep,
+    setSelectedStep,
     personas: selectedPersonas,
     activePersonaId,
     setActivePersonaId,
