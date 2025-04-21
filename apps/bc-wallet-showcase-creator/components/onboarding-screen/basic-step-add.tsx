@@ -129,7 +129,7 @@ export const BasicStepAdd = () => {
           type: screen.type || 'HUMAN_TASK',
           order: index,
           screenId:'INFO',
-          actions: screen?.type === 'SERVICE' ? [ActionDataWithCredential] : [],
+          actions: screen?.type === 'SERVICE' ? [ ActionDataWithCredential ] : [],
         })),
       ]
 

@@ -5,7 +5,7 @@ import { usePresentationAdapter } from "@/hooks/use-presentation-adapter"
 import { Button } from "@/components/ui/button"
 
 export function PresentationState() {
-  const { steps, personas, scenarios } = usePresentationAdapter()
+  const { steps, scenarios } = usePresentationAdapter()
 
   return (
     <Card>

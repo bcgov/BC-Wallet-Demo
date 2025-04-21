@@ -113,7 +113,6 @@ export const usePersonaAdapter = () => {
     setStepState
   ]);
 
-  // Helper functions for UI interactions
   const handlePersonaSelect = useCallback((persona: Persona) => {
     setSelectedPersonaId(persona.id);
     setStepState('editing-persona');

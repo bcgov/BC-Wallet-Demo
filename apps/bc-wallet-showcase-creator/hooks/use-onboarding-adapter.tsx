@@ -65,15 +65,15 @@ export const useOnboardingAdapter = () => {
               }),
               ...baseStep,
             }
-          } else {
-            return {
-              ...createDefaultStep({
-                title: step.title,
-                description: step.description,
-                asset: step.asset || '',
-              }),
-              ...baseStep,
-            }
+          } 
+
+          return {
+            ...createDefaultStep({
+              title: step.title,
+              description: step.description,
+              asset: step.asset || '',
+            }),
+            ...baseStep,
           }
         })
 
@@ -93,8 +93,6 @@ export const useOnboardingAdapter = () => {
   useEffect(() => {
     if (activePersonaId && loadedPersonaId === activePersonaId && steps.length > 0) {
       const scenarioSteps = steps.map((step, index) => {
-        console.log('step', step)
-        console.log('index', index)
         const baseStep = {
           title: step.title,
           description: step.description,
@@ -152,7 +150,6 @@ export const useOnboardingAdapter = () => {
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
   return {
-    // From onboarding
     steps,
     selectedStep,
     createStep,
@@ -161,14 +158,10 @@ export const useOnboardingAdapter = () => {
     moveStep,
     setStepState,
     stepState,
-
-    // From showcase creation
     personas: selectedPersonas,
     activePersonaId,
     setActivePersonaId,
     activePersona,
-
-    // Combined functionality
     saveShowcase,
     isSaving
   };

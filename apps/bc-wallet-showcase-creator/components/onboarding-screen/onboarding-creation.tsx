@@ -12,6 +12,7 @@ import { useRouter } from '@/i18n/routing'
 import { SortableStep } from '@/components/onboarding-screen/sortable-step'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { cn, baseUrl } from '@/lib/utils'
+import { Screen } from '@/types'
 
 export const CreateOnboardingScreen = () => {
   const t = useTranslations()
@@ -97,7 +98,7 @@ export const CreateOnboardingScreen = () => {
                   <div key={index} className="flex flex-row px-4 pt-4">
                     <SortableStep
                       selectedStep={selectedStep}
-                      myScreen={step as any}
+                      myScreen={step as unknown as Screen}
                       stepIndex={index + 1}
                       totalSteps={steps.length}
                     />

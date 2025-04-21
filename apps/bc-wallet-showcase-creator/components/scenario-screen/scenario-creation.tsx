@@ -173,7 +173,6 @@ export const CreateScenariosScreen = () => {
                                     selectedStep={selectedStep}
                                     myScreen={step as any}
                                     stepIndex={stepIndex}
-                                    totalSteps={scenario.steps.length}
                                     scenarioIndex={index}
                                   />
                                 </div>

@@ -19,7 +19,6 @@ export const OnboardingSteps = () => {
       id="editStep"
       className=" bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
     >
-      {"step state: " + stepState}
       {!activePersonaId && (
         <NoSelection
           text={
@@ -35,13 +34,9 @@ export const OnboardingSteps = () => {
           }
         />
       )}
-      {/* creating-new */}
       {activePersonaId && stepState === 'creating-new' && <CreateNewStep />}
-      {/* // used  */}
       {activePersonaId && stepState === 'editing-basic' && <BasicStepAdd />} 
-      {/* editing-wallet */}
       {activePersonaId && stepState === 'editing-connect' && <ConnectStepEdit />}
-      {/* editing-wallet */}
       {activePersonaId && stepState === 'editing-wallet' && <WalletStepEdit />}
       {activePersonaId && stepState === 'editing-issue' && <IssuanceStepAdd />}
     </div>

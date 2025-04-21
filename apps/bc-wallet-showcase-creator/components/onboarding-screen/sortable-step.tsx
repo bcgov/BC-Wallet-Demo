@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Image from 'next/image'
@@ -7,9 +6,7 @@ import { cn, baseUrl } from '@/lib/utils'
 import { useOnboarding } from '@/hooks/use-onboarding'
 import { useTranslations } from 'next-intl'
 import { produce } from 'immer'
-import { useCredentials } from '@/hooks/use-credentials-store'
-import { Step } from 'bc-wallet-openapi'
-
+import { Screen } from '@/types'
 const MAX_CHARS = 50;
 
 export const SortableStep = ({
@@ -18,24 +15,25 @@ export const SortableStep = ({
   stepIndex,
 }: {
   selectedStep: number | null;
-  myScreen: Step;
+  myScreen: Screen;
   stepIndex: number;
   totalSteps: number;
 }) => {
   const t = useTranslations();
-  const { setSelectedStep, setStepState, stepState, screens } = useOnboarding();
-  const { selectedCredential } = useCredentials()
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({
-    id: myScreen.id,
-    });
+  const { setSelectedStep, setStepState } = useOnboarding();
+  const { attributes, listeners, setNodeRef, transform, transition } =  useSortable({ id: myScreen.id, });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
+  // TODO: add sub-scenario support
+  // what is this?
   const handleStepClick = () => {
+    // I want to simplify step state like editing or adding new step
+    // the wallet, coonect extends the basic step, 
+    // that is defined inside the component from the action
     setSelectedStep(stepIndex - 1);
     const ScreenType = myScreen.type;
 
@@ -43,10 +41,10 @@ export const SortableStep = ({
       case 'SERVICE':
         setStepState('editing-basic');
         break;
-      case 'wallet':
+      case 'HUMAN_TASK':
         setStepState('editing-wallet');
         break;
-      case 'connect':
+      case 'SCENARIO':
         setStepState('editing-connect');
         break;
       default:
@@ -97,10 +95,9 @@ export const SortableStep = ({
             <GripVertical />
           </div>
 
-          {/* Copy Step on Click */}
           <div
             onClick={(e) => {
-              e.stopPropagation(); // Prevent drag interference
+              e.stopPropagation();
               handleCopyStep(stepIndex - 1);
             }}
             className="text-white text-2xl flex flex-col gap-2 cursor-pointer"
@@ -123,8 +120,6 @@ export const SortableStep = ({
               : "border-light-bg-secondary"
           )}
         >
-          
-
           <span className="font-semibold">{myScreen.title}</span>
           <p>
             {myScreen.description.length > MAX_CHARS ? (
@@ -167,10 +162,10 @@ export const SortableStep = ({
                       height={50}
                       className="rounded-full"
                     />
-                    <div className="ml-4 flex-col">
+                    {/* <div className="ml-4 flex-col">
                       <div className="font-semibold">{cred.name}</div>
                       <div className="text-sm">{cred.issuer?.name ?? 'Test college'}</div>
-                    </div>
+                    </div> */}
                     <div className="align-middle ml-auto text-right">
                       <div className="font-semibold">{t('credentials.attributes_label')}</div>
                       <div className="text-sm text-end">

@@ -1,9 +1,8 @@
+'use client'
+
 import { useCallback } from 'react'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import apiClient from '@/lib/apiService'
 import { usePresentationCreation } from './use-presentation-creation'
-import type { Persona, ShowcaseRequest, StepRequest } from 'bc-wallet-openapi'
+import type { Persona, StepRequest } from 'bc-wallet-openapi'
 
 export const usePresentationAdapter = () => {
   const {
@@ -29,9 +28,6 @@ export const usePresentationAdapter = () => {
     setSelectedStep,
     selectStep,
   } = usePresentationCreation()
-
-  const { displayShowcase } = useShowcaseStore()
-  const queryClient = useQueryClient()
 
   const getCurrentSteps = useCallback(() => {
     if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
@@ -86,23 +82,6 @@ export const usePresentationAdapter = () => {
     [activePersonaId, activeScenarioIndex, moveStep],
   )
 
-  const updateShowcaseMutation = useMutation({
-    mutationFn: async (showcaseData: ShowcaseRequest) => {
-      let response
-
-      if (displayShowcase.id) {
-        response = await apiClient.put(`/showcases/${displayShowcase.slug}`, showcaseData)
-      } else {
-        response = await apiClient.post('/showcases', showcaseData)
-      }
-
-      return response
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['showcases'] })
-    },
-  })
-
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
   const handleSelectStep = useCallback(
@@ -131,7 +110,6 @@ export const usePresentationAdapter = () => {
     scenarios:
       activePersonaId && personaScenarios.has(activePersonaId) ? personaScenarios.get(activePersonaId) || [] : [],
     personaScenarios,
-    isSaving: updateShowcaseMutation.isPending,
     duplicateScenario,
     activeScenarioIndex,
     setActiveScenarioIndex,
