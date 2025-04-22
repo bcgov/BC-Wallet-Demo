@@ -42,13 +42,11 @@ export const useOnboardingAdapter = () => {
 
   const steps = getCurrentSteps()
 
-  // Get the action type from a step
   const getStepActionType = useCallback((step: Screen): string | null => {
     if (!step.actions || step.actions.length === 0) return null;
     return step.actions[0].actionType || null;
   }, []);
 
-  // Set the appropriate step state based on action type
   const setStepStateFromAction = useCallback((actionType: string | null) => {
     if (!actionType) {
       setStepState('editing-basic');
@@ -71,7 +69,6 @@ export const useOnboardingAdapter = () => {
     }
   }, [setStepState]);
 
-  // Enhanced setSelectedStep that accepts either a number or null
   const setSelectedStep = useCallback((indexOrNull: number | null) => {
     if (indexOrNull === null) {
       // Reset selection
@@ -173,12 +170,10 @@ export const useOnboardingAdapter = () => {
     [selectStep, activeScenarioIndex, steps, getStepActionType, setStepStateFromAction],
   );
 
-  // Find the index of the currently selected step
   const selectedStepIndex = selectedStep 
     ? steps.findIndex(step => step.id === selectedStep.id)
     : null;
 
-  // Get the action type of the selected step
   const selectedStepActionType = selectedStep 
     ? getStepActionType(selectedStep) 
     : null;
@@ -187,7 +182,7 @@ export const useOnboardingAdapter = () => {
     steps,
     selectedStep,
     selectedStepIndex,
-    selectedStepActionType, // New property to expose the action type
+    selectedStepActionType,
     setSelectedStep,
     handleSelectStep,
     createStep,
