@@ -6,6 +6,9 @@ import { tenantsToUsers } from './tenantsToUsers'
 
 export const tenants = pgTable('tenant', {
   id: text().notNull().primaryKey(),
+  realm: text().notNull(),
+  clientId: text().notNull(),
+  clientSecret: text().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()

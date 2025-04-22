@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import { Inject, Service } from 'typedi'
 
 import { NotFoundError } from '../../errors'
@@ -125,6 +125,21 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
       ...tenant,
       users: tenant.users.map((item: any) => item.user),
     }
+  }
+
+  public async findByRealmAndClientId(realm: string, clientId: string): Promise<Tenant> {
+    const prepared = (await this.databaseService.getConnection()).query.tenants
+      .findFirst({
+        where: and(eq(tenants.realm, realm), eq(tenants.clientId, clientId)),
+      })
+      .prepare('statement_name')
+
+    const tenant = await prepared.execute()
+
+    if (!tenant) {
+      return Promise.reject(new NotFoundError(`No tenant found for realm: ${realm} and clientId: ${clientId}`))
+    }
+    return tenant
   }
 
   public async findAll(): Promise<Tenant[]> {
