@@ -20,9 +20,7 @@ const app: Express = createExpressServer({
 const server = http.createServer(app)
 
 const ws = new Server(server, {
-  cors: {
-    origin: true,
-  },
+  cors: corsOptions,
   path: `${baseRoute}/socket/`,
 })
 
