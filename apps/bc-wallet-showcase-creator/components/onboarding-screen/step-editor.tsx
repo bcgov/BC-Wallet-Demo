@@ -32,12 +32,7 @@ import {
   StepType,
   StepActionType,
   StepActionRequest,
-  AriesOOBActionRequest,
   AcceptCredentialActionRequest,
-  SetupConnectionActionRequest,
-  ChooseWalletActionRequest,
-  ButtonActionRequest,
-  StepAction,
 } from 'bc-wallet-openapi'
 import { sampleScenario, StepRequestUIActionTypes } from '@/lib/steps'
 import {
@@ -56,18 +51,16 @@ export const StepEditor = () => {
   const t = useTranslations()
   const router = useRouter()
   const { mutateAsync, isPending } = useCreateScenario()
-  const { setScenarioIds, showcase } = useShowcaseStore()
+  const { setScenarioIds } = useShowcaseStore()
   const { issuerId } = useHelpersStore()
   const { personas } = useOnboardingAdapter()
   const { setSelectedCredential, selectedCredential } = useCredentials()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions()
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [isViewMode, setIsViewMode] = useState(false)
 
-  const { screens, selectedStep, setSelectedStep, setStepState, updateStep, removeStep } = useOnboarding()
+  const { screens, selectedStep, setSelectedStep, setStepState, updateStep } = useOnboarding()
 
   const currentStep = selectedStep !== null ? (screens[selectedStep] as StepRequestUIActionTypes) : null
   const stepType = currentStep?.type || StepType.HumanTask
@@ -153,7 +146,7 @@ export const StepEditor = () => {
   const form = useForm<FormData>({
     resolver: zodResolver(getSchemaForStep()),
     defaultValues: getDefaultValues(),
-    mode: 'all',
+    mode: 'onChange',
   })
 
   const toggleViewMode = () => {
@@ -198,91 +191,47 @@ export const StepEditor = () => {
 
   const handleSubmit = async (data: FormData) => {
     autoSave.flush()
-    const personaScenarios = personas.map((persona) => {
-      const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario))
-
-      let actionData:
-        | AriesOOBActionRequest
-        | AcceptCredentialActionRequest
-        | SetupConnectionActionRequest
-        | ChooseWalletActionRequest
-        | ButtonActionRequest
-        | null = null
-
-      if (currentAction) {
-        switch (currentAction.actionType) {
-          case StepActionType.AcceptCredential:
-            actionData = {
-              title: currentAction.title || 'Accept Credential',
-              actionType: StepActionType.AcceptCredential,
-              text: currentAction.text || 'Accept this credential',
-              credentialDefinitionId:
-                selectedCredential?.id || (currentAction as AcceptCredentialActionRequest).credentialDefinitionId,
-            } as AcceptCredentialActionRequest
-            break
-          case StepActionType.AriesOob:
-            actionData = {
-              title: currentAction.title || 'Connect with Issuer',
-              actionType: StepActionType.AriesOob,
-              text: currentAction.text || 'Scan this QR code to connect',
-              proofRequest: (currentAction as AriesOOBActionRequest).proofRequest || {
-                attributes: {},
-                predicates: {},
-              },
-              credentialDefinitionId: (currentAction as AriesOOBActionRequest).credentialDefinitionId || '',
-            } as AriesOOBActionRequest
-            break
-          case StepActionType.SetupConnection:
-            actionData = {
-              title: currentAction.title || 'Setup Connection',
-              actionType: StepActionType.SetupConnection,
-              text: currentAction.text || 'Set up a connection with the issuer',
-            } as SetupConnectionActionRequest
-            break
-          case StepActionType.ChooseWallet:
-            actionData = {
-              title: currentAction.title || 'Choose Wallet',
-              actionType: StepActionType.ChooseWallet,
-              text: currentAction.text || 'Choose a wallet to continue',
-            } as ChooseWalletActionRequest
-            break
-          case StepActionType.Button:
-            actionData = {
-              title: currentAction.title || 'Continue',
-              actionType: StepActionType.Button,
-              text: currentAction.text || 'Click to continue',
-              goToStep: (currentAction as ButtonActionRequest).goToStep,
-            } as ButtonActionRequest
-            break
-          default:
-            actionData = {
-              title: 'Default Action',
-              actionType: StepActionType.Button,
-              text: 'Continue to next step',
-            } as ButtonActionRequest
-        }
-      } else if (stepType === StepType.Service) {
-        actionData = {
-          title: 'Accept Credential',
-          actionType: StepActionType.AcceptCredential,
-          text: 'Accept this credential',
-          credentialDefinitionId: selectedCredential?.id,
-          connectionId: '',
-        } as AcceptCredentialActionRequest
-      }
-
-      scenarioForPersona.personas = [persona.id]
-      scenarioForPersona.issuer = issuerId
-
-      scenarioForPersona.steps = [
-        ...screens.map((screen, index) => {
-          let actions = screen.actions?.length ? screen.actions : []
-
-          if (screen.type === StepType.Service && !screen.actions?.length && actionData) {
-            // @ts-ignore
-            actions = [actionData]
+    
+    const credentialId = selectedCredential?.id || 
+      (currentStep?.credentials && currentStep.credentials.length > 0 ? currentStep.credentials[0].id : undefined);
+    
+    const ensureCredentialId = (actions: StepActionRequest[]): StepActionRequest[] => {
+      return actions.map(action => {
+        if (action.actionType === StepActionType.AcceptCredential) {
+          const currentCredId = (action as AcceptCredentialActionRequest).credentialDefinitionId;
+          
+          if (!currentCredId && !credentialId) {
+            toast.error("Please select a credential before continuing");
+            throw new Error("Missing credential ID");
           }
-
+          
+          return {
+            ...action,
+            credentialDefinitionId: currentCredId || credentialId
+          };
+        }
+        return action;
+      });
+    };
+    
+    try {
+      const personaScenarios = personas.map((persona) => {
+        const scenarioForPersona = JSON.parse(JSON.stringify(sampleScenario));
+        
+        scenarioForPersona.personas = [persona.id];
+        scenarioForPersona.issuer = issuerId;
+        
+        scenarioForPersona.steps = screens.map((screen, index) => {
+          let actions = screen.actions as StepActionRequest[] || [];
+          
+          if (actions.length > 0) {
+            try {
+              actions = ensureCredentialId(actions);
+            } catch (error) {
+              return null;
+            }
+          }
+          
           return {
             title: screen.title,
             description: screen.description,
@@ -290,51 +239,73 @@ export const StepEditor = () => {
             type: screen.type || StepType.HumanTask,
             order: index,
             screenId: 'INFO',
-            actions: actions as StepAction[],
-          }
-        }),
-      ]
-
-      const currentStepExists = scenarioForPersona.steps.some(
-        (step: StepRequest) => step.title === data.title && step.description === data.description,
-      )
-
-      if (!currentStepExists && currentStep) {
-        scenarioForPersona.steps.push({
-          title: data.title,
-          description: data.description,
-          asset: data.asset || undefined,
-          type: stepType,
-          order: currentStep.order || scenarioForPersona.steps.length,
-          actions: currentStep.actions || [],
-        })
-      }
-
-      return scenarioForPersona
-    })
-
-    const scenarioIds = []
-
-    for (const scenario of personaScenarios) {
-      try {
-        const result = await mutateAsync(scenario)
-        if (result && result.issuanceScenario) {
-          scenarioIds.push(result.issuanceScenario.id)
-          toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`)
-        } else {
-          console.error('Invalid response format:', result)
-          throw new Error('Invalid response format')
+            actions: actions,
+          };
+        }).filter(Boolean);
+        
+        if (scenarioForPersona.steps.length !== screens.length) {
+          return null;
         }
-      } catch (error) {
-        console.error('Error creating scenario:', error)
-        setErrorModal(true)
-        return
+        
+        const currentStepExists = scenarioForPersona.steps.some(
+          (step: StepRequest) => 
+            step.title === data.title && 
+            step.description === data.description
+        );
+        
+        if (!currentStepExists && currentStep) {
+          let currentActions = currentStep.actions || [];
+          
+          if (currentActions.length > 0) {
+            try {
+              currentActions = ensureCredentialId(currentActions as StepActionRequest[]);
+            } catch (error) {
+              return null;
+            }
+          }
+          
+          scenarioForPersona.steps.push({
+            title: data.title,
+            description: data.description,
+            asset: data.asset || undefined,
+            type: currentStep.type || StepType.HumanTask,
+            order: currentStep.order || scenarioForPersona.steps.length,
+            actions: currentActions as StepActionRequest[],
+          });
+        }
+        
+        return scenarioForPersona;
+      }).filter(Boolean);
+      
+      if (personaScenarios.length === 0) {
+        return;
       }
+      
+      const scenarioIds = [];
+      
+      for (const scenario of personaScenarios) {
+        try {
+          const result = await mutateAsync(scenario);
+          if (result && result.issuanceScenario) {
+            scenarioIds.push(result.issuanceScenario.id);
+            toast.success(`Scenario created for ${scenario.personas[0]?.name || 'persona'}`);
+          } else {
+            console.error('Invalid response format:', result);
+            throw new Error('Invalid response format');
+          }
+        } catch (error) {
+          console.error('Error creating scenario:', error);
+          setErrorModal(true);
+          return;
+        }
+      }
+      
+      setScenarioIds(scenarioIds);
+      router.push(`/showcases/create/scenarios`);
+    } catch (error) {
+      console.error('Error in form submission:', error);
     }
-
-    setScenarioIds(scenarioIds)
-    router.push(`/showcases/create/scenarios`)
-  }
+  };
 
   const handleCancel = () => {
     form.reset()
@@ -426,7 +397,7 @@ export const StepEditor = () => {
     )
   }
 
-  if (isPending || loading) {
+  if (isPending) {
     return <Loader text="Creating Step" />
   }
 

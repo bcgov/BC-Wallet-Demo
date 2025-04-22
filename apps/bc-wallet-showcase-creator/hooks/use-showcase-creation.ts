@@ -91,25 +91,12 @@ export const useShowcaseCreation = () => {
             type: 'SERVICE',
             actions: [
               {
-                actionType: StepActionType.AriesOob,
+                actionType: StepActionType.AcceptCredential,
                 title: 'Download BC Wallet on your phone',
                 text: "To download, scan this QR code with your phone or select the app store icon below. You can also search for BC Wallet in your phone's app store.",
-                proofRequest: {
-                  attributes: {
-                    attribute1: {
-                      attributes: ["attribute1", "attribute2"],
-                      restrictions: ["restriction1", "restriction2"],
-                    },
-                  },
-                  predicates: {
-                    predicate1: {
-                      name: "example_name",
-                      type: "example_type",
-                      value: 1,
-                      restrictions: ["restriction1", "restriction2"],
-                    },
-                  },
-                },
+                // TODO
+                // when select on the search add it here.
+                credentialDefinitionId: "",
               },
             ],
           },

@@ -65,3 +65,4 @@ export const walletStepSchema = z.object({
 export type WalletStepFormData = z.infer<typeof walletStepSchema>
 export type BasicStepFormData = z.infer<typeof basicStepSchema>
 export type ConnectStepFormData = z.infer<typeof connectStepSchema>
+
