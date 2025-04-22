@@ -166,7 +166,7 @@ export const IssuanceStepAdd = () => {
       ]
 
       const currentStepExists = scenarioForPersona.steps.some(
-        (step: any) => step.title === data.title && step.description === data.description
+        (step: StepRequest) => step.title === data.title && step.description === data.description
       )
 
       if (!currentStepExists) {
@@ -214,8 +214,7 @@ export const IssuanceStepAdd = () => {
   
   const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    // @ts-expect-error: TODO: fix this
-    const updated = (currentStep.credentials || []).filter(id => id !== credential.id);
+    const updated = (currentStep.credentials || []).filter((cred) => cred !== credential);
     updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequest);
     setSelectedCredential(null);
   };

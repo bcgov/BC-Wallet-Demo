@@ -2,7 +2,7 @@
 
 import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
-import type { ShowcaseRequest, ShowcasesResponse, Showcase } from "bc-wallet-openapi";
+import type { ShowcaseRequest, ShowcasesResponse, Showcase, ShowcaseResponse } from "bc-wallet-openapi";
 
 const staleTime = 1000 * 60 * 5; // 5 minutes
 
@@ -50,7 +50,7 @@ export const useCreateShowcase = () => {
   return useMutation({
     mutationFn: async (data: ShowcaseRequest) => {
       const response = await apiClient.post(`/showcases`, data);
-      return response;
+      return response as ShowcaseResponse;
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['showcases'] });

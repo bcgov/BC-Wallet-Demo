@@ -37,7 +37,7 @@ export const EditProofRequest = ({
     resolver: zodResolver(proofRequestSchema),
   })
 
-  const {selectedScenario, updateStep,selectedStep, setStepState } = usePresentationAdapter()
+  const { selectedScenario, updateStep, selectedStep } = usePresentationAdapter()
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
   
   const availableAttributes = (credentials.credentialSchema?.attributes || []).map(attr => ({

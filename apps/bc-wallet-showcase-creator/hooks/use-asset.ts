@@ -12,9 +12,12 @@ export const useAsset = () => {
 export const useAssetById = (id: string) => {
   return useQuery({
     queryKey: ['assets', id],
-    queryFn: () => apiClient.get(`/assets/${id}`),
-    enabled: !!id, // Only fetch if id is valid
-    refetchOnWindowFocus: true, // Fetch when window is focused
+    queryFn: async () => {
+      const response = await apiClient.get(`/assets/${id}`)
+      return response as AssetResponse
+    },
+    enabled: !!id,
+    refetchOnWindowFocus: true,
   });
 };
 

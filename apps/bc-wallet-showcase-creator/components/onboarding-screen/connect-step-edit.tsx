@@ -24,7 +24,7 @@ import Loader from '../loader'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { LocalFileUpload } from './local-file-upload'
-import { IssuanceScenarioRequest, IssuanceScenarioResponse } from 'bc-wallet-openapi'
+import { IssuanceScenarioRequest } from 'bc-wallet-openapi'
 
 export const ConnectStepEdit = () => {
   const t = useTranslations()
@@ -89,10 +89,12 @@ export const ConnectStepEdit = () => {
     }
 
     await mutateAsync(data, {
-      onSuccess: (data: unknown) => {
-        toast.success('Scenario Created')
-        setScenarioIds([(data as IssuanceScenarioResponse).issuanceScenario?.id || ""])
-        router.push(`/showcases/create/scenarios`)
+      onSuccess: (data) => {
+        if (data.issuanceScenario) {
+          toast.success('Scenario Created')
+          setScenarioIds([data.issuanceScenario?.id])
+          router.push(`/showcases/create/scenarios`)
+        }
       },
     })
   }
