@@ -1,4 +1,4 @@
-import type { Issuer } from 'bc-wallet-openapi'
+import { instanceOfIssuer, Issuer } from 'bc-wallet-openapi'
 import type { Buffer } from 'buffer'
 import type { Receiver, ReceiverOptions } from 'rhea-promise'
 import { Connection, ReceiverEvents } from 'rhea-promise'
@@ -11,8 +11,9 @@ import { Topic } from './types'
 
 interface MessageHeaders {
   action?: Action
-  tenantId?: string
-  apiUrlBase?: string
+  showcaseApiUrlBase?: string
+  tractionApiUrlBase?: string
+  tractionTenantId?: string
   walletId?: string
   accessTokenEnc?: Buffer
   accessTokenNonce?: Buffer
@@ -66,7 +67,7 @@ export class MessageProcessor {
         return
       }
 
-      if (!headers.tenantId && !environment.traction.FIXED_TENANT_ID) {
+      if (!headers.tractionTenantId && !environment.traction.FIXED_TENANT_ID) {
         this.rejectDelivery(context, `message ${messageId} did not contain the tenant id`)
         return
       }
@@ -77,8 +78,9 @@ export class MessageProcessor {
       }
 
       const service = await getTractionService(
-        headers.tenantId ?? environment.traction.FIXED_TENANT_ID!,
-        headers.apiUrlBase,
+        headers.tractionTenantId ?? environment.traction.FIXED_TENANT_ID!,
+        headers.showcaseApiUrlBase ?? environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        headers.tractionApiUrlBase,
         headers.walletId ?? environment.traction.FIXED_WALLET_ID!,
         headers.accessTokenEnc,
         headers.accessTokenNonce,
@@ -87,7 +89,7 @@ export class MessageProcessor {
       try {
         await this.processMessage(headers.action, message.body, service, context, headers)
       } catch (error) {
-        this.rejectDelivery(context, `Failed to parse message body for ${messageId}: ${error}`, headers)
+        this.rejectDelivery(context, `Failed to parse message body for ${messageId}: ${error.message}`, headers)
       }
     })
   }
@@ -105,8 +107,9 @@ export class MessageProcessor {
 
     return {
       action: applicationProperties['action'] as Action | undefined,
-      tenantId: applicationProperties['tenantId'] as string | undefined,
-      apiUrlBase: applicationProperties['apiUrlBase'] as string | undefined,
+      tractionTenantId: applicationProperties['tenantId'] as string | undefined,
+      tractionApiUrlBase: applicationProperties['tractionApiUrlBase'] as string | undefined,
+      showcaseApiUrlBase: applicationProperties['showcaseApiUrlBase'] as string | undefined,
       walletId: applicationProperties['walletId'] as string | undefined,
       accessTokenEnc: applicationProperties['accessTokenEnc'] as Buffer | undefined,
       accessTokenNonce: applicationProperties['accessTokenNonce'] as Buffer | undefined,
@@ -138,6 +141,10 @@ export class MessageProcessor {
     context: any,
     headers: MessageHeaders,
   ): Promise<void> {
+    if (typeof payload !== 'object' || !instanceOfIssuer(payload)) {
+      return Promise.reject(Error('The message body did not contain a valid Issuer payload'))
+    }
+
     const issuer: Issuer = payload as Issuer
     try {
       console.debug('Received issuer', issuer)
@@ -150,7 +157,7 @@ export class MessageProcessor {
       console.error(errorMsg)
       if (context.delivery) {
         context.delivery.reject({
-          info: `apiBasePath: ${headers.apiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tenantId}, walletId: ${headers.walletId}`,
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
           condition: 'fatal error',
           description: errorMsg,
           value: [issuer],
@@ -165,7 +172,7 @@ export class MessageProcessor {
       const rejectOptions: any = { description: errorMsg }
 
       if (headers) {
-        rejectOptions.info = `apiBasePath: ${headers.apiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tenantId}, walletId: ${headers.walletId}`
+        rejectOptions.info = `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`
         rejectOptions.condition = 'fatal error'
       }
 

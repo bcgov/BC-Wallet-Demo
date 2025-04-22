@@ -2,14 +2,13 @@
 
 import { BasicStepEdit } from '@/components/scenario-screen/basic-step-edit'
 import { ChooseStepType } from '@/components/scenario-screen/choose-step-type'
-import { ProofStepEdit } from '@/components/scenario-screen/proof-step-edit'
 import { ScenarioEdit } from '@/components/scenario-screen/scenario-edit'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { useTranslations } from 'next-intl'
 
 import { NoSelection } from '../credentials/no-selection'
 import { BasicStepAdd } from './basic-step-add'
-import { StepType } from '@/types'
+import { StepType } from 'bc-wallet-openapi'
 import { useEffect } from 'react'
 import { createDefaultStep, createServiceStep } from '@/lib/steps'
 
@@ -51,9 +50,22 @@ export const CreateScenariosStepsScreen = () => {
       setStepState('editing-basic')
     }else if(type == 'SERVICE'){
         createStep(
+          //@ts-ignore
           createServiceStep({
             title: `Accept your student card`,
             description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
+            actions: [
+              {
+                title: "Accept your student card",
+                text: 'You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose "Accept offer".',
+                actionType: 'ARIES_OOB',
+                proofRequest: {
+                  attributes:{},
+                  predicates:{},
+                },
+                credentialDefinitionId: '',
+              }
+            ],
           })
         )
         setStepState('editing-basic')
@@ -79,11 +91,7 @@ export const CreateScenariosStepsScreen = () => {
       )}
 
       {activePersonaId && stepState === 'creating-new' && <ChooseStepType addNewStep={handleAddStep} />}
-
       {activePersonaId && stepState === 'editing-basic' && <BasicStepEdit />}
-
-      {activePersonaId && stepState === 'editing-issue' && <ProofStepEdit />}
-
       {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit />}
 
     </div>

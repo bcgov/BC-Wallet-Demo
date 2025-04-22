@@ -74,6 +74,9 @@ export const environment = {
     FIXED_WALLET_ID: process.env.FIXED_WALLET_ID as string | undefined,
     FIXED_API_KEY: process.env.FIXED_API_KEY as string | undefined,
   },
+  showcase: {
+    DEFAULT_SHOWCASE_API_BASE_PATH: process.env.DEFAULT_SHOWCASE_API_BASE_PATH ?? 'http://localhost:5003',
+  },
   encryption: {
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
     KEY_SIZE: parsePositiveInt(process.env.ENCRYPTION_KEY_SIZE, 32), // 256 bits

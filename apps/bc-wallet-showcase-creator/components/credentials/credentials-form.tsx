@@ -13,21 +13,11 @@ import {
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { baseUrl } from '@/lib/utils'
-import type {
-  AssetRequest,
-  AssetResponse,
-  CredentialDefinitionResponse,
-  CredentialSchemaRequestType,
-  CredentialSchemaResponse,
-  CredentialDefinitionRequest,
-  IssuerResponse,
-  RelyingPartyResponse,
-} from '@/openapi-types'
 import { schema } from '@/schemas/credential'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import type { z } from 'zod'
+
 import { FileUploadFull } from '../file-upload'
 import StepHeaderCredential from '../showcases-screen/step-header-credential'
 import { FormTextInput } from '../text-input'
@@ -36,7 +26,15 @@ import DeleteModal from '../delete-modal'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { Button } from '../ui/button'
-import { CredentialType, IssuerType, RelyingPartyType, Source } from 'bc-wallet-openapi'
+import {
+  CredentialType,
+  IssuerType,
+  RelyingPartyType,
+  Source,
+  AssetRequest,
+  CredentialDefinitionRequest,
+  CredentialSchemaRequest,
+} from 'bc-wallet-openapi'
 
 export const CredentialsForm = () => {
   const { selectedCredential, mode, setSelectedCredential, viewCredential } = useCredentials()
@@ -54,8 +52,9 @@ export const CredentialsForm = () => {
 
   const { setIssuerId, setSelectedCredentialDefinitionIds, setRelayerId } = useHelpersStore()
   const { mutateAsync: approveCredentialDefinition } = useApproveCredentialDefinition()
-  const { mutateAsync: deleteCredentialDefinition, isPending: isDeleting } = useDeleteCredentialDefinition()
-  const form = useForm<CredentialSchemaRequestType>({
+  const { mutateAsync: deleteCredentialDefinition } = useDeleteCredentialDefinition()
+
+  const form = useForm<CredentialSchemaRequest>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: '',
@@ -66,11 +65,11 @@ export const CredentialsForm = () => {
     shouldFocusError: true,
   })
 
-  const onSubmit = async (formData: CredentialSchemaRequestType) => {
+  const onSubmit = async (formData: CredentialSchemaRequest) => {
     try {
       setIsSubmitting(true)
 
-      const schemaPayload: CredentialSchemaRequestType = {
+      const schemaPayload = {
         name: formData.name || 'example_name',
         version: formData.version || 'example_version',
         source: Source.Created,
@@ -81,75 +80,79 @@ export const CredentialsForm = () => {
         })),
       }
 
-      const schemaResponse = (await createCredentialSchema(schemaPayload)) as typeof CredentialSchemaResponse._type
+      const schemaResponse = await createCredentialSchema(schemaPayload)
       const schemaId = schemaResponse?.credentialSchema?.id
       if (!schemaId) throw new Error('Failed to create schema')
 
-      const assetPayload: z.infer<typeof AssetRequest> = {
+      const assetPayload: AssetRequest = {
         mediaType: 'image/jpeg',
         content: credentialLogo ?? '',
         fileName: 'example.jpg',
         description: 'Example asset',
       }
 
-      const assetResponse = (await createAsset(assetPayload)) as typeof AssetResponse._type
+      const assetResponse = await createAsset(assetPayload)
       const assetId = assetResponse?.asset?.id
 
-      const credentialDefinitionPayload: z.infer<typeof CredentialDefinitionRequest> = {
+      const credentialDefinitionPayload: CredentialDefinitionRequest = {
         name: formData.name || 'default',
-        version: formData.version || 'default_version',
+        version: formData.version || '1.0',
         credentialSchema: schemaId,
         type: CredentialType.Anoncred,
         icon: assetId,
       }
 
-      const credentialDefinition = (await createCredentialDefinition(
-        credentialDefinitionPayload,
-      )) as typeof CredentialDefinitionResponse._type
+      const credentialDefinition = await createCredentialDefinition(credentialDefinitionPayload)
       const credentialId = credentialDefinition?.credentialDefinition?.id
 
       if (!credentialId) throw new Error('Failed to create credential')
 
-      const issuerResponse = (await createIssuer({
-        name: 'dummy-issuer',
+      const issuerResponse = await createIssuer({
+        name: 'bc gov issuer',
         type: IssuerType.Aries,
         credentialDefinitions: [credentialId],
         credentialSchemas: [schemaId],
-        description: '',
-      })) as typeof IssuerResponse._type
+        description: 'bc gov issuer created by showcase creator',
+      })
 
-      const relyingPartyResponse = (await createRelyingParty({
-        name: 'dummy-relying-party',
+      const relyingPartyResponse = await createRelyingParty({
+        name: 'bc gov relying party',
         type: RelyingPartyType.Aries,
         credentialDefinitions: [credentialId],
-        description: '',
-      })) as typeof RelyingPartyResponse._type
+        description: 'bc gov relying party created by showcase creator',
+      })
+
+      if (!issuerResponse?.issuer?.id || !relyingPartyResponse?.relyingParty?.id) {
+        throw new Error('Failed to create issuer or relying party')
+      }
 
       setIssuerId(issuerResponse.issuer.id)
       setRelayerId(relyingPartyResponse.relyingParty.id)
 
-      const newCredential: (typeof CredentialDefinitionResponse._type)['credentialDefinition'] = {
+
+      const newUiCredential = {
         id: credentialId,
         name: formData.name,
         version: formData.version,
         type: CredentialType.Anoncred,
-        createdAt: credentialDefinition?.credentialDefinition?.createdAt,
-        updatedAt: credentialDefinition?.credentialDefinition?.updatedAt,
+        createdAt: credentialDefinition?.credentialDefinition?.createdAt ?? new Date(),
+        updatedAt: credentialDefinition?.credentialDefinition?.updatedAt ?? new Date(),
         credentialSchema: {
           id: schemaId,
           name: formData.name,
           version: formData.version,
-          createdAt: schemaResponse?.credentialSchema?.createdAt,
-          updatedAt: schemaResponse?.credentialSchema?.updatedAt,
+          createdAt: schemaResponse?.credentialSchema?.createdAt ?? new Date(),
+          updatedAt: schemaResponse?.credentialSchema?.updatedAt ?? new Date(),
         },
-        icon: assetId,
+        icon: assetResponse.asset,
       }
 
-      setSelectedCredential(newCredential)
-      viewCredential(newCredential)
+      setSelectedCredential(newUiCredential)
+      viewCredential(newUiCredential)
       setSelectedCredentialDefinitionIds([credentialId])
-      form.reset() 
+      form.reset()
       toast.success('Credential created successfully!')
+
     } catch (error) {
       toast.error('Error creating schema or credential definition.')
       console.error(error)
@@ -180,11 +183,11 @@ export const CredentialsForm = () => {
     setCredentialLogo(undefined)
   }
 
-  const handleApproveCredentialDefinition = async() => {
-    if(selectedCredential){
+  const handleApproveCredentialDefinition = async () => {
+    if (selectedCredential) {
       try {
-       await approveCredentialDefinition(selectedCredential.id);
-       toast.success('Credential approved successfully!')
+        await approveCredentialDefinition(selectedCredential.id)
+        toast.success('Credential approved successfully!')
       } catch (error) {
         toast.error('Failed to approve credential')
       }
@@ -192,8 +195,6 @@ export const CredentialsForm = () => {
   }
 
   if (mode === 'view' && selectedCredential) {
-    const credentialDefinition = selectedCredential
-
     const formattedDate = new Date(selectedCredential?.createdAt).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -208,7 +209,6 @@ export const CredentialsForm = () => {
     return (
       <div className="my-4 ">
         {' '}
-        {/* Added mx-7 here for uniform horizontal margin */}
         <div className="px-4">
           <StepHeaderCredential
             icon={<Monitor strokeWidth={3} />}
@@ -219,7 +219,7 @@ export const CredentialsForm = () => {
                   setIsModalOpen(true)
                   break
                 case 'approve':
-                  handleApproveCredentialDefinition();
+                  handleApproveCredentialDefinition()
                   break
                 default:
                   console.log('Unknown action')
@@ -228,12 +228,11 @@ export const CredentialsForm = () => {
           />
         </div>
         <div className="space-y-6">
-          {/* Basic Information */}
           <div className="grid grid-cols-2 gap-4 w-full px-2">
             {[
               {
                 label: t('credentials.credential_name_label'),
-                value: credentialDefinition?.name,
+                value: selectedCredential?.name,
               },
               {
                 label: 'Created At:',
@@ -241,15 +240,15 @@ export const CredentialsForm = () => {
               },
               {
                 label: t('credentials.credential_id_label'),
-                value: credentialDefinition?.id,
+                value: selectedCredential?.id,
               },
               {
                 label: t('credentials.type_label'),
-                value: credentialDefinition?.type,
+                value: selectedCredential?.type,
               },
               {
                 label: t('credentials.version_label'),
-                value: credentialDefinition?.version,
+                value: selectedCredential?.version,
               },
             ].map((item, index) => (
               <div key={index} className="flex flex-col p-4 dark:bg-dark-bg-secondary space-y-2">
@@ -258,7 +257,7 @@ export const CredentialsForm = () => {
               </div>
             ))}
           </div>
-          {credentialDefinition?.icon?.id ? (
+          {selectedCredential?.icon ? (
             <div className="grid grid-cols-1 gap-4 px-6 mt-6">
               <>
                 <h6 className="text-md font-semibold text-foreground">{t('credentials.image_label')}</h6>
@@ -266,11 +265,11 @@ export const CredentialsForm = () => {
                   <div className="p-3 flex flex-col items-center justify-center w-full h-full bg-light-bg dark:bg-dark-input rounded-lg border dark:border-dark-border">
                     <div className="flex flex-col items-center justify-center border rounded-lg border-dashed dark:border-dark-border px-2">
                       <Image
-                        alt={credentialDefinition?.icon?.description || 'Credential icon'}
+                        alt='Credential icon'
                         className="p-3 max-w-full max-h-full object-contain"
                         src={
-                          credentialDefinition?.icon?.id
-                            ? `${baseUrl}/assets/${credentialDefinition.icon.id}/file`
+                          selectedCredential?.icon?.id
+                            ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
                             : '/assets/no-image.jpg'
                         }
                         width={150}
@@ -289,19 +288,18 @@ export const CredentialsForm = () => {
             </div>
           ) : null}{' '}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 px-6 mt-6">
-            {/* Displaying Attributes */}
-            {credentialDefinition?.credentialSchema &&
-              (credentialDefinition.credentialSchema?.attributes?.length ?? 0) > 0 && (
+            {selectedCredential?.credentialSchema &&
+              (selectedCredential.credentialSchema?.attributes?.length ?? 0) > 0 && (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center mb-4 py-3 border-b border-foreground/10">
                     <h6 className="text-md font-semibold text-foreground">
-                      Attributes: {credentialDefinition.credentialSchema?.attributes?.length ?? 0}
+                      Attributes: {selectedCredential.credentialSchema?.attributes?.length ?? 0}
                     </h6>
                   </div>
                   <CredentialAttributes
                     mode="view"
                     form={form as any}
-                    attributes={credentialDefinition.credentialSchema.attributes}
+                    attributes={selectedCredential.credentialSchema.attributes}
                   />
                 </div>
               )}

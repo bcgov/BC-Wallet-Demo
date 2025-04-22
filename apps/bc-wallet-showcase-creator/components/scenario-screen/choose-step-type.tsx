@@ -2,14 +2,14 @@ import { useState } from 'react'
 
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { StepType } from '@/types'
+import { StepType } from 'bc-wallet-openapi'
 import { ArrowRight, Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import StepHeader from '../step-header'
 
 interface StepTypeOption {
-  type: StepType.BASIC | StepType.SERVICE | StepType.HUMAN_TASK
+  type: typeof StepType.HumanTask | typeof StepType.Service
   title: string
   subtitle: string
   features: string[]
@@ -20,7 +20,7 @@ export const ChooseStepType = ({ addNewStep }: { addNewStep: (type: StepType) =>
 
   const STEP_TYPES: StepTypeOption[] = [
     {
-      type: StepType.HUMAN_TASK,
+      type: StepType.HumanTask,
       title: t('scenario.basic_label'),
       subtitle: 'A simple step with title and description',
       features: [
@@ -30,7 +30,7 @@ export const ChooseStepType = ({ addNewStep }: { addNewStep: (type: StepType) =>
       ],
     },
     {
-      type: StepType.SERVICE,
+      type: StepType.Service,
       title: t('scenario.proof_request_label'),
       subtitle: 'A step that includes verification',
       features: [

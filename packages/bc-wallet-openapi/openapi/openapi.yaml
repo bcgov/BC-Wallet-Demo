@@ -946,7 +946,6 @@ paths:
     post:
       tags:
         - Approval
-        - Showcases
       summary: Approve a specific credential definition
       description: Marks a specific credential definition as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
       operationId: approveCredentialDefinition
@@ -1841,7 +1840,6 @@ paths:
     post:
       tags:
         - Approval
-        - Showcases
       summary: Approve a specific showcase
       description: Marks a specific showcase as approved, setting the 'approvedBy' and 'approvedAt' fields. Requires appropriate permissions.
       operationId: approveShowcase
@@ -1909,6 +1907,10 @@ components:
           type: string
           description: Unique identifier for the tenant
           example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
         createdAt:
           type: string
           description: Date and time the tenant was created
@@ -1933,6 +1935,10 @@ components:
           type: string
           description: Unique identifier for the tenant
           example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
     TenantResponse:
       type: object
       required:
@@ -2652,8 +2658,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/Scenario'
         - type: object
-          required:
-            - issuer
+#         required:
+#           - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               $ref: '#/components/schemas/Issuer'
@@ -2667,8 +2673,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/ScenarioRequest'
         - type: object
-          required:
-            - issuer
+#          required:
+#            - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               type: string
@@ -3522,3 +3528,4 @@ components:
               message:
                 type: string
                 example: 'An unexpected error occurred'
+

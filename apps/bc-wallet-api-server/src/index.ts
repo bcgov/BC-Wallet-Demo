@@ -1,3 +1,5 @@
+require('dotenv-flow').config()
+
 import 'reflect-metadata'
 import * as process from 'node:process'
 import { Action, createExpressServer, UnauthorizedError, useContainer } from 'routing-controllers'
@@ -15,11 +17,11 @@ import RelyingPartyController from './controllers/RelyingPartyController'
 import ShowcaseController from './controllers/ShowcaseController'
 import TenantController from './controllers/TenantController'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
+import { RequestContextMiddleware } from './middleware/RequestContextMiddleware'
 import { registerServicesByInterface } from './services/RegisterServicesByInterface'
 import { checkRoles, getUserInfo, Token } from './utils/auth'
 import { corsOptions } from './utils/cors'
 
-require('dotenv-flow').config()
 useContainer(Container)
 
 async function bootstrap() {
@@ -56,10 +58,11 @@ async function bootstrap() {
         // User roles which at the moment we are not using, do not need any prefix.
         return checkRoles(token, roles)
       },
-      middlewares: [ExpressErrorHandler],
+      middlewares: [RequestContextMiddleware, ExpressErrorHandler],
       defaultErrorHandler: false,
       cors: corsOptions,
     })
+
     // Start the server
     const port = Number(process.env.PORT)
 

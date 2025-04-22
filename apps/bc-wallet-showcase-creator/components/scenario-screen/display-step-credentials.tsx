@@ -2,33 +2,23 @@ import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { baseUrl, cn } from '@/lib/utils'
-import type { ProofRequest, ProofRequestAttributes, ProofRequestPredicates, ShowcaseJSON } from '@/types'
-import { Trash2, Edit } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import Image from 'next/image'
 
 import { NoSelection } from '../credentials/no-selection'
 import { EditProofRequest } from './edit-proof-request'
-import { CredentialDefinitionType } from '@/openapi-types'
 import { ProofRequestFormData } from '@/schemas/scenario'
+import { CredentialDefinition } from 'bc-wallet-openapi'
 
 interface DisplayStepCredentialsProps {
-  selectedCharacter?: number
-  credentials: CredentialDefinitionType[];
+  credentials: CredentialDefinition[];
   updateCredentials?:(updatedCredentials: ProofRequestFormData) => void;
-  showcaseJSON?: ShowcaseJSON
-  localData: {
-    requestOptions?: {
-      proofRequest?: ProofRequest
-    }
-  }
   selectedStep: number | null
   selectedScenario: number | null
-  removeCredential: (credential: string) => void
+  removeCredential: (credential: CredentialDefinition) => void
 }
 
 export const DisplayStepCredentials = ({
-  selectedCharacter,
-  localData,
   selectedStep,
   selectedScenario,
   removeCredential,
@@ -37,7 +27,7 @@ export const DisplayStepCredentials = ({
 }: DisplayStepCredentialsProps) => {
   const [editingCredentials, setEditingCredentials] = useState<number[]>([])
 
-  if (credentials.length === 0) {
+  if ((credentials || []).length === 0) {
     return (
       <div className="m-5 p-5 w-full h-60">
         <NoSelection text="No Credentials Added" />
@@ -49,7 +39,7 @@ export const DisplayStepCredentials = ({
     <div className="space-y-4">
       <p className="text-md font-bold">Credential(s) Added:</p>
       {/* TODO: FIX credential type */}
-      {credentials.map((credential: any, index) => {
+      {credentials.map((credential: CredentialDefinition, index) => {
 
         if (!credential) return null
 
@@ -71,7 +61,7 @@ export const DisplayStepCredentials = ({
                     alt={credential?.icon?.description || 'default credential icon'}
                     width={50}
                     height={50}
-                    className="rounded-full"
+                     className="rounded-full object-cover"
                     unoptimized
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement
@@ -107,9 +97,7 @@ export const DisplayStepCredentials = ({
                   <EditProofRequest
                     credentials={credential}
                     updateCredentials={updateCredentials}
-                    proofRequest={localData.requestOptions?.proofRequest}
                     credentialName={credential?.credentialSchema?.name}
-                    selectedCharacter={selectedCharacter}
                     selectedScenario={selectedScenario}
                     selectedStep={selectedStep}
                     setEditingCredentials={setEditingCredentials}
