@@ -19,12 +19,6 @@ const getEnv = (key: string, fallback: string): string => {
   return process.env[key] || fallback;
 };
 
-console.log('Environment Variables:');
-console.log('REACT_APP_HOST_BACKEND:', getEnv('REACT_APP_HOST_BACKEND', ''));
-console.log('REACT_APP_BASE_ROUTE:', getEnv('REACT_APP_BASE_ROUTE', '/digital-trust/showcase'));
-console.log('REACT_APP_SHOWCASE_BACKEND:', getEnv('REACT_APP_SHOWCASE_BACKEND', ''));
-console.log('window.__env:', window.__env);
-
 const cacheOptions: CacheOptions = {
   ttl: 30 * 24 * 60 * 60 * 1000, // keep 30 days
   methods: ['get'],
