@@ -62,6 +62,8 @@ api_server:
     ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
     ALLOW_HEADERS: "Content-Type, Authorization"
     ALLOW_CREDENTIALS: "true"
+    API_KEY: SENSITIVE
+    ENCRYPTION_KEY: SENSITIVE
   resources:
     limits:
       cpu: 200m
@@ -123,6 +125,12 @@ traction_adapter:
     RABBITMQ_PORT: 5672
     RABBITMQ_USER: guest
     RABBITMQ_VHOST: /
+    DEFAULT_API_BASE_PATH: SENSITIVE # ADD TRACTION API BASE PATH HERE
+    FIXED_SHOWCASE_BACKEND: SENSITIVE # ADD SHOWCASE BACKEND HERE
+    ENCRYPTION_KEY: SENSITIVE
+    FIXED_API_KEY: SENSITIVE
+    FIXED_WALLET_ID: SENSITIVE
+    FIXED_TENANT_ID: SENSITIVE
   resources:
     limits:
       cpu: 200m
@@ -168,10 +176,15 @@ demo_web:
     targetMemoryUtilizationPercentage: 80
     stabilizationWindowSeconds: 300
   labelOverride: ""
-  port: 80
+  port: 3000
   path: /
   env:
-    NODE_ENV: production
+    REACT_APP_INSIGHTS_PROJECT_ID: SENSITIVE
+    REACT_APP_DEFAULT_SLUG: REACT_APP_DEFAULT_SLUG 
+    REACT_APP_HOST_BACKEND: SENSITIVE # ADD DEMO BACKEND HERE
+    REACT_APP_BASE_ROUTE: /digital-trust/showcase
+    REACT_APP_SHOWCASE_BACKEND: SENSITIVE # ADD SHOWCASE BACKEND HERE
+    REACT_APP_SNOWPLOW_ENDPOINT: SENSITIVE
   resources:
     limits:
       cpu: 200m
@@ -184,7 +197,7 @@ demo_web:
   containerSecurityContext: {}
   service:
     type: ClusterIP
-    port: 80
+    port: 3000
   affinity: {}
   nodeSelector: {}
   tolerations: []
@@ -220,12 +233,15 @@ showcase_creator:
   port: 3050
   path: /
   env:
-    APP_NAME: bc-wallet-showcase-creator
-    LOG_LEVEL: debug
-    DB_PORT: "5432"
-    DB_NAME: showcase-db
-    DB_USERNAME: showcase-user
-    CORS_DISABLED: true
+    NEXT_PUBLIC_WALLET_URL: https://digital.gov.bc.ca/digital-trust/showcase
+    NEXT_PUBLIC_SHOWCASE_BACKEND: SENSITIVE # ADD SHOWCASE BACKEND HERE
+    AUTH_SECRET: SENSITIVE # ADD AUTH SECRET HERE
+    AUTH_KEYCLOAK_ID: SENSITIVE # ADD KEYCLOAK ID HERE
+    AUTH_KEYCLOAK_SECRET: SENSITIVE # ADD KEYCLOAK SECRET HERE
+    AUTH_KEYCLOAK_ISSUER: SENSITIVE # ADD KEYCLOAK ISSUER HERE
+    AUTH_TRUST_HOST: "true"
+    AUTH_REDIRECT_PROXY_URL: SENSITIVE # ADD REDIRECT PROXY URL HERE
+    AUTH_URL: SENSITIVE # ADD AUTH URL HERE
   resources:
     limits:
       cpu: 200m
@@ -275,11 +291,11 @@ demo_server:
   path: /
   env:
     APP_NAME: bc-wallet-demo-server
-    LOG_LEVEL: debug
-    DB_PORT: "5432"
-    DB_NAME: showcase-db
-    DB_USERNAME: showcase-user
-    CORS_DISABLED: true
+    TENANT_ID: SENSITIVE # ADD TENANT ID HERE
+    API_KEY: SENSITIVE # ADD API KEY HERE
+    BASE_ROUTE: /digital-trust/showcase
+    WEBHOOK_SECRET: SENSITIVE # ADD WEBHOOK SECRET HERE
+    TRACTION_URL: SENSITIVE # ADD TRACTION URL HERE
   resources:
     limits:
       cpu: 200m
@@ -344,19 +360,27 @@ postgresql:
 rabbitmq:
   enabled: true
   auth:
-    username: "guest"
-    password: ""
-    secretKeys:
-      passwordKey: "rabbitmq-password"
-      erlangCookieKey: "rabbitmq-erlang-cookie"
-  plugins: "rabbitmq_management"
-  extraConfiguration: |
+    username: "bc_user"
+    password: "some_password"
+    existingSecret: ""
+    existingSecretKey: "rabbitmq-password"
+    erlangCookie: ""
+    existingErlangSecret: ""
+    existingErlangSecretKey: "rabbitmq-erlang-cookie"
+  extraPlugins: "rabbitmq_management rabbitmq_amqp1_0"
+  configuration: |-
     management.listener.port = 15672
     management.listener.ssl = false
+    default_user = bc_user
+    default_pass = some_password
+  extraConfiguration: |-
+    default_user = bc_user
+    default_pass = some_password
   service:
+    type: ClusterIP
     ports:
       amqp: 5672
-      management: 15672
+      manager: 15672
   livenessProbe:
     enabled: false
   readinessProbe:

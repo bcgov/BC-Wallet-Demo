@@ -2,16 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter-allow-external
+  name: {{ include "bc-wallet.fullname" . }}-traction-adapter-allow-external
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: adapter
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
+      app: {{ include "bc-wallet.fullname" . }}-traction-adapter
   ingress:
   {{- if .Values.traction_adapter.networkPolicy.ingress.enabled }}
   - from:
@@ -41,7 +41,7 @@ metadata:
   labels:
     app.kubernetes.io/component: messagebroker
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
@@ -51,11 +51,11 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
+          app: {{ include "bc-wallet.fullname" . }}-traction-adapter
     ports:
     - protocol: TCP
       port: {{ .Values.rabbitmq.service.ports.amqp }}
 ---
 {{- $context := dict "componentName" "traction-adapter" "componentLabel" "adapter" "servicePort" .Values.traction_adapter.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet-showcase-builder.intra-release-network-policy" $context }}
+{{- include "bc-wallet.intra-release-network-policy" $context }}
 {{- end }}

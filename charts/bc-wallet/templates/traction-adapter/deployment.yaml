@@ -2,24 +2,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
+  name: {{ include "bc-wallet.fullname" . }}-traction-adapter
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: adapter
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.traction_adapter.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
+      app: {{ include "bc-wallet.fullname" . }}-traction-adapter
   template:
     metadata:
       labels:
-        app: {{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter
+        app: {{ include "bc-wallet.fullname" . }}-traction-adapter
         app.kubernetes.io/component: adapter
         app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
+        {{- include "bc-wallet.labels" . | nindent 8 }}
       {{- with .Values.traction_adapter.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -41,24 +41,30 @@ spec:
         - containerPort: {{ .Values.traction_adapter.port }}
           name: http
         env:
-        - name: RABBITMQ_HOST
-          value: {{ .Release.Name }}-rabbitmq
+        - name: AMQ_HOST
+          value: {{.Release.Name}}-rabbitmq
+        - name: AMQ_PORT
+          value: {{ .Values.rabbitmq.port | quote }}
+        - name: AMQ_TRANSPORT
+          value: tcp
+        - name: AMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
+              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+        - name: AMQ_USER
+          value: {{ .Values.rabbitmq.auth.username | quote }}
         {{- range $key, $value := .Values.traction_adapter.env }}
-        {{- if and (ne $key "RABBITMQ_HOST") (kindIs "map" $value) }}
+        {{- if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") (kindIs "map" $value) }}
         - name: {{ $key }}
           valueFrom:
-            {{- toYaml $value | nindent 12 }}
-        {{- else if ne $key "RABBITMQ_HOST" }}
+            {{- toYaml $value | nindent 14 }}
+        {{- else if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") }}
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
         {{- end }}
-        - name: RABBITMQ_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bc-wallet-showcase-builder.rabbitmq.secret.name" . }}
-              key: {{ include "bc-wallet-showcase-builder.rabbitmq.passwordKey" . }}
         resources:
           {{- toYaml .Values.traction_adapter.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ include "bc-wallet-showcase-builder.fullname" . }}-traction-adapter{{ end }}{{ end }}
+      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-traction-adapter{{ end }}{{ end }}
 {{- end }}

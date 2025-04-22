@@ -2,24 +2,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-demo-web
+  name: {{ include "bc-wallet.fullname" . }}-demo-web
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: web
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.demo_web.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-demo-web
+      app: {{ include "bc-wallet.fullname" . }}-demo-web
   template:
     metadata:
       labels:
-        app: {{ include "bc-wallet-showcase-builder.fullname" . }}-demo-web
+        app: {{ include "bc-wallet.fullname" . }}-demo-web
         app.kubernetes.io/component: web
         app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet-showcase-builder.labels" . | nindent 8 }}
+        {{- include "bc-wallet.labels" . | nindent 8 }}
       {{- with .Values.demo_web.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -52,8 +52,8 @@ spec:
         {{- end }}
         {{- end }}
         - name: API_URL
-          value: "http://{{ include "bc-wallet-showcase-builder.fullname" . }}-api-server:{{ $.Values.api_server.service.port }}"
+          value: "http://{{ include "bc-wallet.fullname" . }}-api-server:{{ $.Values.api_server.service.port }}"
         resources:
           {{- toYaml .Values.demo_web.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.demo_web.serviceAccount.create }}{{ if .Values.demo_web.serviceAccount.name }}{{ .Values.demo_web.serviceAccount.name }}{{ else }}{{ include "bc-wallet-showcase-builder.fullname" . }}-demo-web{{ end }}{{ end }}
+      serviceAccountName: {{ if .Values.demo_web.serviceAccount.create }}{{ if .Values.demo_web.serviceAccount.name }}{{ .Values.demo_web.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-demo-web{{ end }}{{ end }}
 {{- end }} 

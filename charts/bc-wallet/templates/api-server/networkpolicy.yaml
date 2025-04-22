@@ -2,16 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-server-allow-external
+  name: {{ include "bc-wallet.fullname" . }}-api-server-allow-external
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: api
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-server
+      app: {{ include "bc-wallet.fullname" . }}-api-server
   ingress:
   - {}  # Allow all ingress traffic
 ---
@@ -24,7 +24,7 @@ metadata:
   labels:
     app.kubernetes.io/component: database
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
@@ -34,7 +34,7 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-server
+          app: {{ include "bc-wallet.fullname" . }}-api-server
     ports:
     - protocol: TCP
       port: {{ .Values.postgresql.primary.service.ports.postgresql }}
@@ -43,16 +43,16 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-allow-ui
+  name: {{ include "bc-wallet.fullname" . }}-api-allow-ui
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: api
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-api-server
+      app: {{ include "bc-wallet.fullname" . }}-api-server
   ingress:
   - from:
     - podSelector:
@@ -63,5 +63,5 @@ spec:
       port: {{ .Values.api_server.service.port }}
 ---
 {{- $context := dict "componentName" "api-server" "componentLabel" "api" "servicePort" .Values.api_server.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet-showcase-builder.intra-release-network-policy" $context }}
+{{- include "bc-wallet.intra-release-network-policy" $context }}
 {{- end }}

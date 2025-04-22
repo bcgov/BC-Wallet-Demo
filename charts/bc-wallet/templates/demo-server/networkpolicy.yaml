@@ -2,16 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet-showcase-builder.fullname" . }}-demo-server-allow-external
+  name: {{ include "bc-wallet.fullname" . }}-demo-server-allow-external
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: server
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "bc-wallet-showcase-builder.fullname" . }}-demo-server
+      app: {{ include "bc-wallet.fullname" . }}-demo-server
   ingress:
   - from:
     {{- if .Values.demo_server.networkPolicy.ingress.namespaceSelector }}
@@ -37,7 +37,7 @@ metadata:
   labels:
     app.kubernetes.io/component: database
     app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet-showcase-builder.labels" . | nindent 4 }}
+    {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
@@ -47,11 +47,11 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ include "bc-wallet-showcase-builder.fullname" . }}-demo-server
+          app: {{ include "bc-wallet.fullname" . }}-demo-server
     ports:
     - protocol: TCP
       port: {{ .Values.postgresql.primary.service.ports.postgresql }}
 ---
 {{- $context := dict "componentName" "demo-server" "componentLabel" "server" "servicePort" .Values.demo_server.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet-showcase-builder.intra-release-network-policy" $context }}
+{{- include "bc-wallet.intra-release-network-policy" $context }}
 {{- end }} 
