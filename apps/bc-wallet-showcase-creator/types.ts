@@ -1,4 +1,4 @@
-import { AriesProofRequestRequest, CredentialDefinition, Persona } from "bc-wallet-openapi";
+import { AriesProofRequestRequest, CredentialDefinition, Persona, StepRequest } from "bc-wallet-openapi";
 
 export interface ShowcaseJSON {
   personas: Persona[];
@@ -22,3 +22,8 @@ declare module 'bc-wallet-openapi' {
 export type UICredentialDefinition = Omit<CredentialDefinition, 'icon'> & {
   icon: string;
 } 
+
+export interface Screen extends StepRequest {
+  id: string
+  credentials?: CredentialDefinition[]
+}

@@ -129,12 +129,12 @@ export const BasicStepAdd = () => {
           type: screen.type || 'HUMAN_TASK',
           order: index,
           screenId:'INFO',
-          actions: screen?.type === 'SERVICE' ? [ActionDataWithCredential] : [],
+          actions: screen?.type === 'SERVICE' ? [ ActionDataWithCredential ] : [],
         })),
       ]
 
       const currentStepExists = scenarioForPersona.steps.some(
-        (step: any) => step.title === data.title && step.description === data.description
+        (step: StepRequest) => step.title === data.title && step.description === data.description
       )
 
       if (!currentStepExists) {

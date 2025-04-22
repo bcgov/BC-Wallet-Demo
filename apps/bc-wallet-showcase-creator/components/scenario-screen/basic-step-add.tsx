@@ -117,10 +117,10 @@ export const BasicStepAdd = () => {
       ]
 
       const currentStepExists = scenarioForPersona.steps.some(
-        (step: any) => step.title === data.title && step.description === data.description
+        (step: StepRequest) => step.title === data.title && step.description === data.description
       )
 
-      scenarioForPersona.steps = scenarioForPersona.steps.map((step: any) => {
+      scenarioForPersona.steps = scenarioForPersona.steps.map((step: StepRequest & { id?: string }) => {
         delete step.id
         return step
       })

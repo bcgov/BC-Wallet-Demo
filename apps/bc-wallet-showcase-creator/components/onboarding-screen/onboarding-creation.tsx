@@ -1,6 +1,6 @@
 'use client'
 
-import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useTranslations } from 'next-intl'
@@ -12,6 +12,7 @@ import { useRouter } from '@/i18n/routing'
 import { SortableStep } from '@/components/onboarding-screen/sortable-step'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { cn, baseUrl } from '@/lib/utils'
+import { Screen } from '@/types'
 
 export const CreateOnboardingScreen = () => {
   const t = useTranslations()
@@ -30,10 +31,6 @@ export const CreateOnboardingScreen = () => {
     if (oldIndex !== newIndex) {
       moveStep(oldIndex, newIndex)
     }
-  }
-
-  const handleDragStart = (event: DragStartEvent) => {
-    // Handle drag start if needed
   }
 
   return (
@@ -90,7 +87,7 @@ export const CreateOnboardingScreen = () => {
             </div>
           </div>
 
-          <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
               {steps.length === 0 ? (
                 <div className="text-center text-gray-500 p-4">
@@ -101,7 +98,7 @@ export const CreateOnboardingScreen = () => {
                   <div key={index} className="flex flex-row px-4 pt-4">
                     <SortableStep
                       selectedStep={selectedStep}
-                      myScreen={step as any}
+                      myScreen={step as unknown as Screen}
                       stepIndex={index + 1}
                       totalSteps={steps.length}
                     />

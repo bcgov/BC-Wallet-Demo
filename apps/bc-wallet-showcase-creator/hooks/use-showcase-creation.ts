@@ -31,16 +31,14 @@ export const useShowcaseCreation = () => {
             description: `Welcome to this showcase. Here you'll learn about digital credentials with ${persona.name}.`,
             order: 0,
             type: 'HUMAN_TASK',
-            actions: [
-              
-            ],
+            actions: [],
           },
           {
             title: "Let's get started!",
             description: `BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. Using your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed. In this demo, you will use two credentials to prove who you are and access court materials online instead of in-person.`,
             order: 1,
             type: 'HUMAN_TASK',
-            actions: [sampleAction],
+            actions: [],
           },
           {
             title: 'Install BC Wallet',
@@ -98,7 +96,7 @@ export const useShowcaseCreation = () => {
             description: `Congratulations, you’ve just received your first digital credentials. They are safely stored in your wallet and ready to be used. So, what are you waiting for? Let’s go! We're done with this step. Next, we'll explore ways you can use your credentials.`,
             order: 5,
             type: 'HUMAN_TASK',
-            actions: [sampleAction],
+            actions: [],
           },
         ],
         personas: [persona.id],
