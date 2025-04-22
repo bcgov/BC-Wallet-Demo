@@ -124,6 +124,9 @@ describe('Database user repository tests', (): void => {
   it('Should save user with tenants to database', async (): Promise<void> => {
     const tenant: NewTenant = {
       id: 'test-tenant-id',
+      realm: 'test_realm',
+      clientId: 'test_client_id',
+      clientSecret: 'super_secret',
     }
     const savedTenant = await tenantRepository.create(tenant)
     expect(savedTenant).toBeDefined()
@@ -151,8 +154,18 @@ describe('Database user repository tests', (): void => {
   })
 
   it('Should update user with tenants in database', async (): Promise<void> => {
-    const tenant1: NewTenant = { id: 'test-tenant-id-1' }
-    const tenant2: NewTenant = { id: 'test-tenant-id-2' }
+    const tenant1: NewTenant = {
+      id: 'test-tenant-id-1',
+      realm: 'test_realm',
+      clientId: 'test_client_id',
+      clientSecret: 'super_secret',
+    }
+    const tenant2: NewTenant = {
+      id: 'test-tenant-id-2',
+      realm: 'test_realm',
+      clientId: 'test_client_id',
+      clientSecret: 'super_secret',
+    }
 
     const savedTenant1 = await tenantRepository.create(tenant1)
     const savedTenant2 = await tenantRepository.create(tenant2)
@@ -170,9 +183,12 @@ describe('Database user repository tests', (): void => {
     expect(savedUser.tenants).toHaveLength(1)
     expect(savedUser.tenants).toEqual([
       {
+        clientId: 'test_client_id',
+        clientSecret: 'super_secret',
         createdAt: expect.any(Date),
         deletedAt: null,
         id: 'test-tenant-id-1',
+        realm: 'test_realm',
         updatedAt: expect.any(Date),
       },
     ])

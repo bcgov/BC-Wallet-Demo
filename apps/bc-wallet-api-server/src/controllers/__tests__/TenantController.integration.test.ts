@@ -60,6 +60,9 @@ describe('TenantController Integration Tests', () => {
     // 1. Create a tenant
     const tenantRequest: TenantRequest = {
       id: 'test-tenant-1',
+      realm: 'test_realm',
+      clientId: 'test_client_id',
+      clientSecret: 'super_secret',
     }
 
     const createResponse = await request.post('/tenants').send(tenantRequest).expect(201)
@@ -81,6 +84,9 @@ describe('TenantController Integration Tests', () => {
     // 4. Update the tenant
     const updatedRequest = {
       id: 'updated-tenant-1',
+      realm: 'test_realm',
+      clientId: 'test_client_id',
+      clientSecret: 'super_secret',
     }
 
     const updateResponse = await request.put(`/tenants/${createdTenant.id}`).send(updatedRequest).expect(200)
