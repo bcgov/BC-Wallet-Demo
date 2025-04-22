@@ -251,9 +251,9 @@ Defines reusable functions for:
 Example:
 
 ```yaml
-{{ include "bc-wallet-showcase-builder.fullname" . }}
-{{ include "bc-wallet-showcase-builder.demo-server.host" . }}
-{{ include "bc-wallet-showcase-builder.api-server.openshift.route.tls" . }}
+{{ include "bc-wallet.fullname" . }}
+{{ include "bc-wallet.demo-server.host" . }}
+{{ include "bc-wallet.api-server.openshift.route.tls" . }}
 ```
 
 ### `_networkpolicy_helpers.tpl`
@@ -261,7 +261,7 @@ Example:
 Centralizes logic for intra-release communication rules between components (e.g., allow ingress from other pods in the same release).
 
 ```yaml
-{{ include "bc-wallet-showcase-builder.intra-release-network-policy" (dict "Release" .Release "Values" .Values "componentName" "demo-web" "componentLabel" "frontend" "servicePort" 80) }}
+{{ include "bc-wallet.intra-release-network-policy" (dict "Release" .Release "Values" .Values "componentName" "demo-web" "componentLabel" "frontend" "servicePort" 80) }}
 ```
 
 ---
