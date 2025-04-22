@@ -19,7 +19,8 @@ import TenantController from './controllers/TenantController'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 import { RequestContextMiddleware } from './middleware/RequestContextMiddleware'
 import { registerServicesByInterface } from './services/RegisterServicesByInterface'
-import { checkRoles, getUserInfo, Token } from './utils/auth'
+import TenantService from './services/TenantService'
+import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
 import { corsOptions } from './utils/cors'
 
 useContainer(Container)
@@ -51,7 +52,17 @@ async function bootstrap() {
         const accessToken = authHeader.split(' ')[1]
         const token = new Token(accessToken)
 
-        if (!(await getUserInfo(accessToken))) {
+        const tenantService = Container.get(TenantService)
+        const realm = token.payload.iss?.split('/').slice(-1)[0]
+        const clientId = token.payload.azp
+
+        if (!realm || !clientId) {
+          throw new UnauthorizedError('Realm and Client ID are required in token')
+        }
+        const tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
+
+        // Calls the introspection endpoint to validate the token
+        if (!(await isAccessTokenValid(accessToken, tenant.realm, tenant.clientId, tenant.clientSecret))) {
           throw new UnauthorizedError('Invalid token')
         }
         // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and

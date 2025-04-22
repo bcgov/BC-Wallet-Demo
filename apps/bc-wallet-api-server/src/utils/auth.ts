@@ -36,16 +36,27 @@ export function checkRoles(token: Token, roles: string[]) {
   return !!(token && roles.find((role) => token.hasRole(role)))
 }
 
-export async function getUserInfo(token: string, authIssuerUrl?: string): Promise<JwtPayload> {
-  return fetch(`${authIssuerUrl}/protocol/openid-connect/userinfo`, {
-    method: 'GET',
+export async function isAccessTokenValid(
+  token: string,
+  authServerUrl: string,
+  clientId: string,
+  clientSecret: string,
+): Promise<boolean> {
+  const authorization = 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+  return fetch(`${authServerUrl}/protocol/openid-connect/token/introspect`, {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: token,
+      Authorization: authorization,
     },
+    body: new URLSearchParams({
+      token: token,
+      client_id: `${clientId}`,
+      client_secret: `${clientSecret}`,
+    }),
   })
     .then(checkResponse)
-    .then((response) => response.json())
+    .then((response) => response.json().then((data) => data.active))
 }
 
 async function checkResponse(response: Response) {
