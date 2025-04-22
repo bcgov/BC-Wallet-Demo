@@ -1930,6 +1930,7 @@ components:
       type: object
       required:
         - id
+        - authConfiguration
       properties:
         id:
           type: string
@@ -1939,6 +1940,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
+        authConfiguration:
+          $ref: '#/components/schemas/AuthConfiguration'
     TenantResponse:
       type: object
       required:
@@ -1969,7 +1972,25 @@ components:
           description: List of credential definitions pending approval.
           items:
             $ref: '#/components/schemas/CredentialDefinition'
-
+    AuthConfiguration:
+      type: object
+      required:
+        - realm
+        - clientId
+        - clientSecret
+      properties:
+        realm:
+          type: string
+          description: The realm associated with the tenant
+          example: example-realm
+        clientId:
+          type: string
+          description: The client ID for the tenant
+          example: example-client-id
+        clientSecret:
+          type: string
+          description: The client secret for the tenant
+          example: example-client-secret
     User:
       type: object
       properties:
