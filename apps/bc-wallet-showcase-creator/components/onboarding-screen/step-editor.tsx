@@ -12,7 +12,7 @@ import { FormTextArea, FormTextInput } from '@/components/text-input'
 import { LocalFileUpload } from './local-file-upload'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-import { useOnboarding, useCreateScenario } from '@/hooks/use-onboarding'
+import { useCreateScenario } from '@/hooks/use-onboarding'
 import { useRouter } from '@/i18n/routing'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
@@ -53,16 +53,15 @@ export const StepEditor = () => {
   const { mutateAsync, isPending } = useCreateScenario()
   const { setScenarioIds } = useShowcaseStore()
   const { issuerId } = useHelpersStore()
-  const { personas } = useOnboardingAdapter()
   const { setSelectedCredential, selectedCredential } = useCredentials()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions()
   const [showErrorModal, setErrorModal] = useState(false)
   const [isViewMode, setIsViewMode] = useState(false)
 
-  const { screens, selectedStep, setSelectedStep, setStepState, updateStep } = useOnboarding()
+  const { steps: screens, selectedStep, setSelectedStep, setStepState, updateStep, personas } = useOnboardingAdapter()
 
-  const currentStep = selectedStep !== null ? (screens[selectedStep] as StepRequestUIActionTypes) : null
+  const currentStep = selectedStep !== null ? (screens[selectedStep.order] as StepRequestUIActionTypes) : null
   const stepType = currentStep?.type || StepType.HumanTask
 
   const getCurrentAction = (): StepActionRequest | null => {
@@ -173,7 +172,7 @@ export const StepEditor = () => {
       actions: currentStep.actions || [],
     }
 
-    updateStep(selectedStep || 0, updatedStep as StepRequest)
+    updateStep(selectedStep?.order || 0, updatedStep as StepRequest)
 
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 })
@@ -336,7 +335,7 @@ export const StepEditor = () => {
     const existing = currentStep.credentials || []
     if (!existing.includes(credential)) {
       const updated = [...existing, credential]
-      updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequest)
+      updateStep(selectedStep?.order || 0, { ...currentStep, credentials: updated } as StepRequest)
     }
     setSearchResults([])
   }
@@ -344,7 +343,7 @@ export const StepEditor = () => {
   const removeCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return
     const updated = (currentStep.credentials || []).filter((cred) => cred !== credential)
-    updateStep(selectedStep || 0, { ...currentStep, credentials: updated } as StepRequest)
+    updateStep(selectedStep?.order || 0, { ...currentStep, credentials: updated } as StepRequest)
     setSelectedCredential(null)
   }
 
@@ -476,7 +475,7 @@ export const StepEditor = () => {
                   asset: value || undefined,
                 }
 
-                updateStep(selectedStep || 0, updatedStep as StepRequest)
+                updateStep(selectedStep?.order || 0, updatedStep as StepRequest)
 
                 form.setValue('asset', value, {
                   shouldDirty: true,
@@ -612,7 +611,7 @@ export const StepEditor = () => {
                 updateCredentials={(updated) => {
                   if (!currentStep) return
 
-                  updateStep(selectedStep || 0, {
+                  updateStep(selectedStep?.order || 0, {
                     ...currentStep,
                     credentials: updated,
                     title: currentStep.title,

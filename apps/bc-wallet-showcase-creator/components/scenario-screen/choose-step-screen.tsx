@@ -9,13 +9,11 @@ import { useTranslations } from 'next-intl'
 import { NoSelection } from '../credentials/no-selection'
 import { StepType } from 'bc-wallet-openapi'
 import { useEffect } from 'react'
-import { createDefaultStep, createServiceStep } from '@/lib/steps'
+import { createDefaultStep, createAdvancedStep } from '@/lib/steps'
 
 export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
   const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter()
-
-  // Get the current step if available
 
   useEffect(() => {
     console.log('Component re-rendered with stepState:', stepState)
@@ -32,7 +30,7 @@ export const CreateScenariosStepsScreen = () => {
       setStepState('editing-basic')
     }else if(type == 'SERVICE'){
         createStep(
-          createServiceStep({
+          createAdvancedStep({
             title: `Accept your student card`,
             description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
             actions: [

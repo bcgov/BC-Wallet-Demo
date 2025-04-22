@@ -50,7 +50,7 @@ const handleStepClick = () => {
 
       duplicateStep(stepIndex)
 
-      handleSelectStep(stepIndex + 1, scenarioIndex)
+      handleSelectStep(stepIndex, scenarioIndex)
     } catch (error) {
       console.error('Error duplicating step:', error)
     }
