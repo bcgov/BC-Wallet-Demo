@@ -1,7 +1,9 @@
 import {
   CredentialDefinition,
+  type CredentialDefinitionImportRequest,
   CredentialSchema,
   instanceOfCredentialDefinition,
+  instanceOfCredentialDefinitionImportRequest,
   instanceOfCredentialSchema,
   instanceOfIssuer,
   Issuer,
@@ -215,11 +217,11 @@ export class MessageProcessor {
     context: any,
     headers: MessageHeaders,
   ): Promise<void> {
-    if (typeof payload !== 'object' || !instanceOfCredentialDefinition(payload)) {
+    if (typeof payload !== 'object' || !instanceOfCredentialDefinitionImportRequest(payload)) {
       return Promise.reject(Error('The message body did not contain a valid Issuer payload'))
     }
 
-    const credentialDefinition = payload as CredentialDefinition
+    const credentialDefinition = payload as CredentialDefinitionImportRequest
     try {
       console.debug('Received credential definition', credentialDefinition)
       await service.importCredentialDefinition(credentialDefinition)
@@ -227,7 +229,7 @@ export class MessageProcessor {
         context.delivery.accept()
       }
     } catch (e) {
-      const errorMsg = `An error occurred while importing credential definition ${credentialDefinition.id} / ${credentialDefinition.name} with identifier ${credentialDefinition.identifier} to Traction. Reason: ${e.message}`
+      const errorMsg = `An error occurred while importing credential definition ${credentialDefinition.name} / ${credentialDefinition.name} with identifier ${credentialDefinition.identifier} to Traction. Reason: ${e.message}`
       console.error(errorMsg)
       if (context.delivery) {
         context.delivery.reject({

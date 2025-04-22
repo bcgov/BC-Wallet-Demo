@@ -1,9 +1,12 @@
 import {
   CredentialDefinition,
+  CredentialDefinitionImportRequest,
+  CredentialDefinitionImportRequestToJSONTyped,
   CredentialDefinitionToJSONTyped,
   CredentialSchema,
   CredentialSchemaToJSONTyped,
   instanceOfCredentialDefinition,
+  instanceOfCredentialDefinitionImportRequest,
   instanceOfCredentialSchema,
   instanceOfIssuer,
   Issuer,
@@ -71,8 +74,8 @@ export class AdapterClientApi implements IAdapterClientApi {
       return IssuerToJSONTyped(payload, false)
     } else if (instanceOfCredentialSchema(payload)) {
       return CredentialSchemaToJSONTyped(payload, false)
-    } else if (instanceOfCredentialDefinition(payload)) {
-      return CredentialDefinitionToJSONTyped(payload, false)
+    } else if (instanceOfCredentialDefinitionImportRequest(payload)) {
+      return CredentialDefinitionImportRequestToJSONTyped(payload, false)
     }
     throw Error('Unknown payload type')
   }
@@ -86,7 +89,7 @@ export class AdapterClientApi implements IAdapterClientApi {
   }
 
   public async importCredentialDefinition(
-    credentialDefinition: CredentialDefinition,
+    credentialDefinition: CredentialDefinitionImportRequest,
     options: SendOptions,
   ): Promise<void> {
     return this.send('import.cred-def', credentialDefinition, options)

@@ -1,5 +1,8 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
-import { CredentialDefinitionFromJSONTyped } from 'bc-wallet-openapi'
+import {
+  type CredentialDefinitionImportRequest,
+  CredentialDefinitionImportRequestFromJSONTyped,
+} from 'bc-wallet-openapi'
 import { Inject, Service } from 'typedi'
 
 import CredentialDefinitionRepository from '../database/repositories/CredentialDefinitionRepository'
@@ -82,23 +85,18 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
 
   /**
    * Imports a credential definition into the system and adapter.
-   * @param credentialDefinition The credential definition to import
+   * @param importRequest The credential definition to import
    * @returns Promise resolving when import is complete
    * @throws Error if identifier type or identifier is missing
    */
-  public importCredentialDefinition = async (
-    credentialDefinition: NewCredentialDefinition,
-  ): Promise<CredentialDefinition> => {
-    if (!credentialDefinition.identifierType || !credentialDefinition.identifier) {
+  public importCredentialDefinition = async (importRequest: CredentialDefinitionImportRequest): Promise<void> => {
+    if (!importRequest.identifierType || !importRequest.identifier) {
       return Promise.reject(Error('Identifier type and identifier are required for credential definition import.'))
     }
-
-    const savedDefinition = await this.createCredentialDefinition(credentialDefinition)
     await this.adapterClientApi.importCredentialDefinition(
-      CredentialDefinitionFromJSONTyped(savedDefinition, false),
+      CredentialDefinitionImportRequestFromJSONTyped(importRequest, false),
       this.buildSendOptions(),
     )
-    return savedDefinition
   }
 
   /**

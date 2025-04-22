@@ -2,10 +2,12 @@ import {
   Configuration,
   type ConfigurationParameters,
   CredentialAttributeRequest,
+  CredentialDefinitionImportRequest,
   CredentialDefinitionRequest,
   CredentialDefinitionsApi,
   CredentialSchemaRequest,
   CredentialType,
+  Source,
 } from 'bc-wallet-openapi'
 import { CredentialDefinition } from 'bc-wallet-traction-openapi'
 
@@ -114,34 +116,39 @@ export class ShowcaseApiService extends ApiService {
   }
 
   /**
-   * Updates the attributes of a credential definition.
+   * Create a new credential definition based on imported one
    * @param id ID of the credential definition to update
-   * @param credDef Fetched CredentialDefinition
+   * @param remoteCredDef Fetched CredentialDefinition
+   * @param source CREATED or IMPORTED. Defaults to IMPORTED.
+   * @returns Promise resolving when update is complete
    * @returns Promise resolving when update is complete
    * @throws Error if no definition is found for the given ID
    */
-  public async updateCredentialDefinition(id: string, credDef: CredentialDefinition): Promise<void> {
-    const response = await this.credentialDefinitionsApi.getCredentialDefinitionRaw({ definitionId: id })
-    const existing = await this.handleApiResponse(response)
-    const definition = existing.credentialDefinition
-    if (!definition) {
-      return Promise.reject(Error(`No definition found in Showcase for id ${id}`))
+  public async createCredentialDefinition(
+    credDefImportDefinition: CredentialDefinitionImportRequest,
+    remoteCredDef: CredentialDefinition,
+  ): Promise<void> {
+    if (!remoteCredDef.schemaId) {
+      return Promise.reject(Error(`Cannot create a credential definition, it should have a schemaId`))
     }
 
-    const { credentialSchema, representations, revocation, icon, approvedBy, ...definitionWithoutRelations } =
-      definition
-    await this.credentialDefinitionsApi.updateCredentialDefinition({
-      definitionId: id,
+    await this.credentialDefinitionsApi.createCredentialDefinition({
       credentialDefinitionRequest: {
-        ...definitionWithoutRelations,
-        credentialSchema: credDef.schemaId ?? definition.credentialSchema.id,
-        ...(credDef.type &&
-          Object.keys(CredentialType).includes(credDef.type as any) && {
-            type: credDef.type as unknown as CredentialType, // FIXME?
-          }),
-        ...(credDef.tag && { version: credDef.tag }),
-        ...(definition.icon && { icon: definition.icon?.id }),
-        ...(approvedBy && { approvedBy: approvedBy?.id }),
+        name: credDefImportDefinition.name,
+        identifierType: credDefImportDefinition.identifierType,
+        identifier: credDefImportDefinition.identifier,
+        credentialSchema: remoteCredDef.schemaId,
+        version: credDefImportDefinition.version ?? '1.0',
+        type: CredentialType.Anoncred, // FIXME we do not support external types like CL yet
+        /*
+          remoteCredDef.type && Object.keys(CredentialType).includes(remoteCredDef.type as any)
+            ? (remoteCredDef.type as unknown as CredentialType)
+            : CredentialType.Anoncred,
+*/
+        source: Source.Imported,
+        ...(remoteCredDef.tag && { version: remoteCredDef.tag }),
+        ...(credDefImportDefinition.icon && { icon: credDefImportDefinition.icon }),
+        ...(credDefImportDefinition.approvedBy && { approvedBy: credDefImportDefinition.approvedBy }),
       },
     }) // TODO revocation
   }

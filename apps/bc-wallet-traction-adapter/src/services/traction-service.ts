@@ -2,6 +2,7 @@ import {
   CredentialAttributeRequest,
   CredentialAttributeType,
   type CredentialDefinition,
+  CredentialDefinitionImportRequest,
   CredentialSchema,
   Issuer,
 } from 'bc-wallet-openapi'
@@ -224,17 +225,32 @@ export class TractionService extends ApiService {
 
   /**
    * Imports an existing credential definition from the ledger
-   * @param credentialDefinition The credential definition to import
+   * @param credentialDefImportDefinition The credential definition to import
    * @returns A promise that resolves when the import is complete
    */
-  public async importCredentialDefinition(credentialDefinition: CredentialDefinition): Promise<void> {
-    const definitionId = credentialDefinition.identifier
+  public async importCredentialDefinition(
+    credentialDefImportDefinition: CredentialDefinitionImportRequest,
+  ): Promise<void> {
+    const definitionId = credentialDefImportDefinition.identifier
     if (!definitionId) {
-      return Promise.reject(Error(`Cannot import definition ${credentialDefinition.id} without identifier`))
+      return Promise.reject(
+        Error(`Cannot import a credential definition ${credentialDefImportDefinition.name}  without an identifier`),
+      )
     }
     const record = await this.credentialDefApi.credentialDefinitionsCredDefIdGet({ credDefId: definitionId })
     if (record.credentialDefinition) {
-      await this.showcaseApiService.updateCredentialDefinition(credentialDefinition.id, record.credentialDefinition)
+      if (!record.credentialDefinition.schemaId) {
+        return Promise.reject(
+          Error(`Cannot import credential definition ${record.credentialDefinition.id} because it has no an schema id`),
+        )
+      }
+      const schema = await this.schemaApi.schemasSchemaIdGet({ schemaId: record.credentialDefinition.schemaId })
+      record.credentialDefinition.schemaId = schema.schema?.id
+
+      await this.showcaseApiService.createCredentialDefinition(
+        credentialDefImportDefinition,
+        record.credentialDefinition,
+      )
     } else {
       return Promise.reject(Error(`No credential definition returned for identifier ${definitionId}`))
     }

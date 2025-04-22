@@ -10,13 +10,13 @@ import CredentialSchemaRepository from './CredentialSchemaRepository'
 
 @Service()
 class CredentialDefinitionRepository implements RepositoryDefinition<CredentialDefinition, NewCredentialDefinition> {
-  constructor(
+  public constructor(
     private readonly databaseService: DatabaseService,
     private readonly assetRepository: AssetRepository,
     private readonly credentialSchemaRepository: CredentialSchemaRepository,
   ) {}
 
-  async create(credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> {
+  public async create(credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> {
     const iconResult = credentialDefinition.icon && (await this.assetRepository.findById(credentialDefinition.icon))
     const credentialSchemaResult = await this.credentialSchemaRepository.findById(credentialDefinition.credentialSchema)
 
@@ -57,14 +57,14 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     })
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.findById(id)
     await (await this.databaseService.getConnection())
       .delete(credentialDefinitions)
       .where(eq(credentialDefinitions.id, id))
   }
 
-  async update(id: string, credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> {
+  public async update(id: string, credentialDefinition: NewCredentialDefinition): Promise<CredentialDefinition> {
     await this.findById(id)
 
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<CredentialDefinition> => {
@@ -140,7 +140,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     })
   }
 
-  async findById(id: string, tx?: Tx): Promise<CredentialDefinition> {
+  public async findById(id: string, tx?: Tx): Promise<CredentialDefinition> {
     const result = await (tx ?? (await this.databaseService.getConnection())).query.credentialDefinitions.findFirst({
       where: eq(credentialDefinitions.id, id),
       with: {
@@ -168,7 +168,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     }
   }
 
-  async findAll(): Promise<CredentialDefinition[]> {
+  public async findAll(): Promise<CredentialDefinition[]> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialDefinitions.findMany({
@@ -192,7 +192,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     }))
   }
 
-  async findIdByIdentifier(identifier: string, identifierType: IdentifierType): Promise<string> {
+  public async findIdByIdentifier(identifier: string, identifierType: IdentifierType): Promise<string> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialDefinitions.findFirst({
@@ -209,7 +209,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     return result.id
   }
 
-  async findUnapproved(): Promise<CredentialDefinition[]> {
+  public async findUnapproved(): Promise<CredentialDefinition[]> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialDefinitions.findMany({
@@ -243,7 +243,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     )
   }
 
-  async approve(id: string, userId: string): Promise<CredentialDefinition> {
+  public async approve(id: string, userId: string): Promise<CredentialDefinition> {
     const now = new Date()
 
     const connection = await this.databaseService.getConnection()

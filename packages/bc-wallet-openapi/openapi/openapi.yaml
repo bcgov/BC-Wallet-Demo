@@ -884,15 +884,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CredentialDefinitionRequest'
+              $ref: '#/components/schemas/CredentialDefinitionImportRequest'
         required: true
       responses:
         '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CredentialDefinitionResponse'
+          description: Imported
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3046,6 +3042,8 @@ components:
           example: '1.0'
         type:
           $ref: '#/components/schemas/CredentialType'
+        source:
+          $ref: '#/components/schemas/Source'
         representations:
           type: array
           items:
@@ -3102,6 +3100,8 @@ components:
           example: '1.0'
         type:
           $ref: '#/components/schemas/CredentialType'
+        source:
+          $ref: '#/components/schemas/Source'
         credentialSchema:
           type: string
           description: Reference to the associated credential schema
@@ -3148,7 +3148,35 @@ components:
       properties:
         credentialDefinition:
           $ref: '#/components/schemas/CredentialDefinition'
-
+    CredentialDefinitionImportRequest:
+      type: object
+      required:
+        - name
+        - identifierType
+        - identifier
+      properties:
+        identifierType:
+          $ref: '#/components/schemas/IdentifierType'
+        identifier:
+          type: string
+          description: External identifier of this credential definition
+          example: did:sov:XUeUZauFLeBNofY3NhaZCB
+        name:
+          type: string
+          description: Name of the credential definition
+          example: Credential Definition Name
+        version:
+          type: string
+          description: Version of the credential schema
+          example: '1.0'
+        icon:
+          type: string
+          description: Reference to an asset ID for the icon
+          example: 123e4567-e89b-12d3-a456-426614174469
+        approvedBy:
+          type: string
+          description: Reference to the user ID who approved this definition
+          example: 456e4567-e89b-12d3-a456-426614174789
     CredentialAttribute:
       type: object
       required:
