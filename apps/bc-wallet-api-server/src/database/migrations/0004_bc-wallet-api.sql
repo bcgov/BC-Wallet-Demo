@@ -1,0 +1,1 @@
+CREATE INDEX "tenants_to_users_user_idx" ON "tenantsToUsers" USING btree ("user");
