@@ -27,7 +27,7 @@ import { personaDTOFrom } from '../utils/mappers'
 @JsonController('/personas')
 @Service()
 class PersonaController {
-  constructor(private personaService: PersonaService) {}
+  public constructor(private personaService: PersonaService) {}
 
   @Get('/')
   public async getAll(): Promise<PersonasResponse> {

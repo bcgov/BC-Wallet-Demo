@@ -27,7 +27,7 @@ import { issuerDTOFrom } from '../utils/mappers'
 @JsonController('/roles/issuers')
 @Service()
 class IssuerController {
-  constructor(private issuerService: IssuerService) {}
+  public constructor(private issuerService: IssuerService) {}
 
   @Get('/')
   public async getAll(): Promise<IssuersResponse> {

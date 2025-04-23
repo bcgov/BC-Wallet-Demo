@@ -42,7 +42,7 @@ import { IssuanceScenario, ScenarioType } from '../types'
 @JsonController('/scenarios/issuances')
 @Service()
 class IssuanceScenarioController {
-  constructor(private scenarioService: ScenarioService) {}
+  public constructor(private scenarioService: ScenarioService) {}
 
   @Get('/')
   public async getAllIssuanceScenarios(): Promise<IssuanceScenariosResponse> {

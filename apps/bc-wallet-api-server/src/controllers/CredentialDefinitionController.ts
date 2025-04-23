@@ -27,7 +27,7 @@ import { credentialDefinitionDTOFrom } from '../utils/mappers'
 @JsonController('/credentials/definitions')
 @Service()
 export class CredentialDefinitionController {
-  constructor(private credentialDefinitionService: CredentialDefinitionService) {}
+  public constructor(private credentialDefinitionService: CredentialDefinitionService) {}
 
   @Get('/')
   public async getAll(): Promise<CredentialDefinitionsResponse> {

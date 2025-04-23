@@ -27,7 +27,7 @@ import { showcaseDTOFrom } from '../utils/mappers'
 @JsonController('/showcases')
 @Service()
 class ShowcaseController {
-  constructor(private showcaseService: ShowcaseService) {}
+  public constructor(private showcaseService: ShowcaseService) {}
 
   @Get('/')
   public async getAll(): Promise<ShowcasesResponse> {

@@ -28,7 +28,7 @@ import { assetDTOFrom, newAssetFrom } from '../utils/mappers'
 @JsonController('/assets')
 @Service()
 class AssetController {
-  constructor(private assetService: AssetService) {}
+  public constructor(private assetService: AssetService) {}
 
   @Get('/')
   public async getAll(): Promise<AssetsResponse> {

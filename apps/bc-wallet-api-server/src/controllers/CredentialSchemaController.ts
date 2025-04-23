@@ -26,7 +26,7 @@ import {
 @JsonController('/credentials/schemas')
 @Service()
 export class CredentialSchemaController {
-  constructor(private credentialSchemaService: CredentialSchemaService) {}
+  public constructor(private credentialSchemaService: CredentialSchemaService) {}
 
   @Get('/')
   public async getAll(): Promise<CredentialSchemasResponse> {

@@ -27,7 +27,7 @@ import { relyingPartyDTOFrom } from '../utils/mappers'
 @JsonController('/roles/relying-parties')
 @Service()
 class RelyingPartyController {
-  constructor(private relyingPartyService: RelyingPartyService) {}
+  public constructor(private relyingPartyService: RelyingPartyService) {}
 
   @Get('/')
   public async getAll(): Promise<RelyingPartiesResponse> {
