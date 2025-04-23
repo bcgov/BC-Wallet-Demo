@@ -166,7 +166,7 @@ services:
       - REACT_APP_BASE_ROUTE=${REACT_APP_BASE_ROUTE:-/digital-trust/showcase}
       - REACT_APP_INSIGHTS_PROJECT_ID=${REACT_APP_INSIGHTS_PROJECT_ID}
     ports:
-      - "${DEMO_WEB_PORT:-5002}:80" # Caddy uses port 80 by default
+      - "${DEMO_WEB_PORT:-5002}:3000" # Caddy uses port 80 by default
     depends_on:
       - bc-wallet-demo-server
       - bc-wallet-api-server
