@@ -86,7 +86,7 @@ const run = async () => {
     res.send(response.data)
   })
 
-  server.listen(process.env.NODE_PORT || 5000)
+  server.listen(process.env.NODE_PORT || 3000)
 }
 
 void run()
