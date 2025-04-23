@@ -1,8 +1,6 @@
 import {
-  CredentialDefinition,
   type CredentialDefinitionImportRequest,
   CredentialSchema,
-  instanceOfCredentialDefinition,
   instanceOfCredentialDefinitionImportRequest,
   instanceOfCredentialSchema,
   instanceOfIssuer,
