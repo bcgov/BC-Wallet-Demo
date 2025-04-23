@@ -100,7 +100,7 @@ describe('MessageProcessor Integration Test', () => {
     jest.clearAllMocks()
   })
 
-  test('should process publish-issuer-assets message successfully', async () => {
+  test('should process publish.issuer-assets message successfully', async () => {
     // Create a sample issuer with credential definitions and schemas
     const issuer = {
       id: 'test-issuer-id',
@@ -190,7 +190,7 @@ describe('MessageProcessor Integration Test', () => {
       message_id: messageId,
       body: issuer,
       application_properties: {
-        action: 'publish-issuer-assets' as Action,
+        action: 'publish.issuer-assets' as Action,
         tenantId: 'test-tenant',
         tractionApiUrlBase: environment.traction.DEFAULT_API_BASE_PATH,
         showcaseApiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
@@ -299,7 +299,7 @@ describe('MessageProcessor Integration Test', () => {
       message_id: messageId,
       body: JSON.stringify(credDef),
       application_properties: {
-        action: 'publish-issuer-assets' as Action,
+        action: 'publish.issuer-assets' as Action,
         apiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
         walletId: 'test-wallet',
       },
@@ -323,7 +323,7 @@ describe('MessageProcessor Integration Test', () => {
       message_id: messageId,
       body: '{invalid payload}',
       application_properties: {
-        action: 'publish-issuer-assets' as Action,
+        action: 'publish.issuer-assets' as Action,
         tenantId: 'test-tenant',
         apiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
         walletId: 'test-wallet',
