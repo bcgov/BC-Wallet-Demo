@@ -35,7 +35,7 @@ export const OnboardingSteps = () => {
         />
       )}
       {activePersonaId && stepState === 'creating-new' && <CreateNewStep />}
-      {activePersonaId && stepState === 'editing-basic' && <BasicStepAdd />}
+      {activePersonaId && stepState === 'editing-basic' && <BasicStepAdd />} 
       {activePersonaId && stepState === 'editing-connect' && <ConnectStepEdit />}
       {activePersonaId && stepState === 'editing-wallet' && <WalletStepEdit />}
       {activePersonaId && stepState === 'editing-issue' && <IssuanceStepAdd />}

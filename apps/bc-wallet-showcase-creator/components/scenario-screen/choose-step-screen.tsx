@@ -7,34 +7,16 @@ import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { useTranslations } from 'next-intl'
 
 import { NoSelection } from '../credentials/no-selection'
-import { BasicStepAdd } from './basic-step-add'
 import { StepType } from 'bc-wallet-openapi'
 import { useEffect } from 'react'
 import { createDefaultStep, createServiceStep } from '@/lib/steps'
 
 export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
-  const { stepState, activePersonaId, selectedStep, steps, setStepState, setSelectedStep, createStep } = usePresentationAdapter()
+  const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter()
 
   // Get the current step if available
-  const currentStep = selectedStep !== null && steps.length > selectedStep.stepIndex ? steps[selectedStep.stepIndex] : null
 
-  // Debugging output - remove in production
-  useEffect(() => {
-    console.log('Step state changed:', {
-      stepState,
-      selectedStep,
-      activePersonaId,
-      currentStep: currentStep
-        ? {
-            type: currentStep.type,
-            title: currentStep.title,
-          }
-        : null,
-    })
-  }, [stepState, selectedStep, activePersonaId, currentStep])
-
-  // In CreateScenariosStepsScreen.jsx
   useEffect(() => {
     console.log('Component re-rendered with stepState:', stepState)
   }, [stepState])
@@ -50,7 +32,6 @@ export const CreateScenariosStepsScreen = () => {
       setStepState('editing-basic')
     }else if(type == 'SERVICE'){
         createStep(
-          //@ts-ignore
           createServiceStep({
             title: `Accept your student card`,
             description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
@@ -70,7 +51,6 @@ export const CreateScenariosStepsScreen = () => {
         )
         setStepState('editing-basic')
     }
-    // Implement this if needed
   }
 
   return (
@@ -78,9 +58,7 @@ export const CreateScenariosStepsScreen = () => {
       id="editStep"
       className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
     >
-      {/* Simplified, consistent rendering based on stepState */}
       {!activePersonaId && <NoSelection text={t('onboarding.select_persona_message')} />}
-
       {activePersonaId && stepState === 'no-selection' && (
         <NoSelection
           text={
@@ -89,11 +67,9 @@ export const CreateScenariosStepsScreen = () => {
           }
         />
       )}
-
       {activePersonaId && stepState === 'creating-new' && <ChooseStepType addNewStep={handleAddStep} />}
       {activePersonaId && stepState === 'editing-basic' && <BasicStepEdit />}
       {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit />}
-
     </div>
   )
 }

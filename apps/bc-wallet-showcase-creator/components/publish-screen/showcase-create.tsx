@@ -14,7 +14,7 @@ import { FormTextArea, FormTextInput } from '../text-input'
 import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-import { AssetResponse, ShowcaseRequest, ShowcaseResponse, ShowcaseStatus } from 'bc-wallet-openapi'
+import { AssetResponse, ShowcaseRequest, ShowcaseStatus } from 'bc-wallet-openapi'
 
 import { toast } from 'sonner'
 import Image from 'next/image'
@@ -155,11 +155,9 @@ export const ShowcaseCreate = () => {
 
   const onSubmit = async (formData: ShowcaseRequest) => {
     createShowcase(formData, {
-      onSuccess: (data: unknown) => {
-        const response = data as ShowcaseResponse
-        if (response.showcase?.slug) {
-          setCurrentShowcaseSlug(response.showcase.slug)
-          // @ts-ignore
+      onSuccess: (data) => {
+        if (data.showcase?.slug) {
+          setCurrentShowcaseSlug(data.showcase.slug)
           setShowcase({ ...formData, tenantId, bannerImage: formData.bannerImage })
           toast.success('Showcase created successfully')
           // TODO: when dynamic URL is implemented

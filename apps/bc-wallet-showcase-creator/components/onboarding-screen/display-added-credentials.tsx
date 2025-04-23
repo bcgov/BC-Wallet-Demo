@@ -59,7 +59,7 @@ export const DisplayAddedCredentials = ({
     }
   };
 
-  const handleSaveAttributes = async(credentialId: string) => {
+  const handleSaveAttributes = async() => {
     if (!updateCredentials) return;
   
     const updatedCredentials = await Promise.all(
@@ -210,7 +210,7 @@ export const DisplayAddedCredentials = ({
                   <div className="justify-self-center mb-2">
                     <ButtonOutline
                      type="button"
-                     onClick={() => handleSaveAttributes(credential.id)}               
+                     onClick={() => handleSaveAttributes()}               
                     >
                       {t("action.save_label")}
                     </ButtonOutline>

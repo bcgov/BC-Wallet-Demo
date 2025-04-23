@@ -12,7 +12,7 @@ import {
 import apiClient from "@/lib/apiService";
 import { IssuanceScenarioRequest, IssuanceScenarioResponse, StepRequest, StepResponse, Step } from "bc-wallet-openapi";
 
-type StepState =
+export type StepState =
   | "editing-basic"
   | "editing-issue"
   | "no-selection"

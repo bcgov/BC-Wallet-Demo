@@ -97,7 +97,7 @@
     "result_label": "Results",
     "credential_added_label": "Credential Added:",
     "credential_id_label": "Credential ID:",
-    "schema_id_label": "Schema ID: (required)",
+    "schema_id_label": "Schema ID:",
     "id_label": "Schema ID",
     "schema_id_placeholder": "Enter Schema ID",
     "schema_empty": "Schema not available",
