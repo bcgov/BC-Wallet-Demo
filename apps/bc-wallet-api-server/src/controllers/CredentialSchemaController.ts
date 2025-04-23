@@ -84,6 +84,7 @@ export class CredentialSchemaController {
       if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
         return Promise.reject(new BadRequestError())
       }
+      credentialSchemaRequest.source = 'IMPORTED'
       const credentialSchema = await this.credentialSchemaService.importCredentialSchema(
         CredentialSchemaRequestToJSONTyped(credentialSchemaRequest),
       )

@@ -4,6 +4,7 @@ import {
   CredentialDefinitionImportRequestFromJSONTyped,
 } from 'bc-wallet-openapi'
 import { Inject, Service } from 'typedi'
+import { validate as uuidValidate } from 'uuid'
 
 import CredentialDefinitionRepository from '../database/repositories/CredentialDefinitionRepository'
 import { CredentialDefinition, NewCredentialDefinition } from '../types'
@@ -39,6 +40,11 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * @returns Promise resolving to the requested CredentialDefinition
    */
   public getCredentialDefinition = async (id: string): Promise<CredentialDefinition> => {
+    if (!uuidValidate(id) && id.split(':').length >= 3) {
+      // support for lookup by indy identifier
+      return this.credentialDefinitionRepository.findByIdentifier(id)
+    }
+
     return this.credentialDefinitionRepository.findById(id)
   }
 

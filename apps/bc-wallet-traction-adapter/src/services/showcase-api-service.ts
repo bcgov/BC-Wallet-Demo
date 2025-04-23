@@ -110,6 +110,7 @@ export class ShowcaseApiService extends ApiService {
       credentialSchema: id,
       credentialSchemaRequest: {
         ...schema,
+        source: 'IMPORTED',
         attributes: newAttrs,
       },
     })
@@ -131,13 +132,23 @@ export class ShowcaseApiService extends ApiService {
     if (!remoteCredDef.schemaId) {
       return Promise.reject(Error(`Cannot create a credential definition, it should have a schemaId`))
     }
+    const response = await this.credentialDefinitionsApi.getCredentialSchemaRaw({
+      credentialSchema: remoteCredDef.schemaId,
+    })
+    const existing = await this.handleApiResponse(response)
+    const schema = existing.credentialSchema
+    if (!schema) {
+      return Promise.reject(
+        Error(`No schema found in Showcase for identifier ${remoteCredDef.schemaId}. Please import it first.`),
+      )
+    }
 
     await this.credentialDefinitionsApi.createCredentialDefinition({
       credentialDefinitionRequest: {
         name: credDefImportDefinition.name,
         identifierType: credDefImportDefinition.identifierType,
         identifier: credDefImportDefinition.identifier,
-        credentialSchema: remoteCredDef.schemaId,
+        credentialSchema: schema.id,
         version: credDefImportDefinition.version ?? '1.0',
         type: CredentialType.Anoncred, // FIXME we do not support external types like CL yet
         /*

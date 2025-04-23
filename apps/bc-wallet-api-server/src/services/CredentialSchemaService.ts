@@ -1,6 +1,7 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { CredentialSchemaFromJSONTyped } from 'bc-wallet-openapi'
 import { Inject, Service } from 'typedi'
+import { validate as uuidValidate } from 'uuid'
 
 import CredentialSchemaRepository from '../database/repositories/CredentialSchemaRepository'
 import { CredentialSchema, NewCredentialSchema } from '../types'
@@ -42,6 +43,10 @@ class CredentialSchemaService extends AbstractAdapterClientService {
    * @returns Promise resolving to the requested CredentialSchema
    */
   public getCredentialSchema = async (id: string): Promise<CredentialSchema> => {
+    if (!uuidValidate(id) && id.split(':').length >= 3) {
+      // support for lookup by indy identifier
+      return this.credentialSchemaRepository.findByIdentifier(id)
+    }
     return this.credentialSchemaRepository.findById(id)
   }
 

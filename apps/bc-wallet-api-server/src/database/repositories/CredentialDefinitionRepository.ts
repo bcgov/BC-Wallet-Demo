@@ -4,7 +4,7 @@ import { Service } from 'typedi'
 import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
 import { CredentialDefinition, IdentifierType, NewCredentialDefinition, RepositoryDefinition, Tx } from '../../types'
-import { credentialDefinitions, credentialRepresentations, revocationInfo } from '../schema'
+import { credentialDefinitions, credentialRepresentations, credentialSchemas, revocationInfo } from '../schema'
 import AssetRepository from './AssetRepository'
 import CredentialSchemaRepository from './CredentialSchemaRepository'
 
@@ -122,6 +122,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
         identifierType: updatedRecord.identifierType,
         identifier: updatedRecord.identifier,
         type: updatedRecord.type,
+        source: updatedRecord.source,
         createdAt: updatedRecord.createdAt,
         updatedAt: updatedRecord.updatedAt,
         approvedAt: updatedRecord.approvedAt,
@@ -168,6 +169,34 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     }
   }
 
+  public async findByIdentifier(identifier: string, tx?: Tx): Promise<CredentialDefinition> {
+    const result = await (tx ?? (await this.databaseService.getConnection())).query.credentialDefinitions.findFirst({
+      where: eq(credentialSchemas.identifier, identifier),
+      with: {
+        icon: true,
+        cs: {
+          with: {
+            attributes: true,
+          },
+        },
+        representations: true,
+        revocation: true,
+        approver: true,
+      },
+    })
+
+    if (!result) {
+      return Promise.reject(new NotFoundError(`No credential definition found for identifier: ${identifier}`))
+    }
+
+    return {
+      ...result,
+      icon: result.icon ? result.icon : undefined,
+      credentialSchema: result.cs,
+      approvedBy: result.approver,
+    }
+  }
+
   public async findAll(): Promise<CredentialDefinition[]> {
     const result = await (
       await this.databaseService.getConnection()
@@ -192,14 +221,17 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     }))
   }
 
-  public async findIdByIdentifier(identifier: string, identifierType: IdentifierType): Promise<string> {
+  public async findIdByIdentifier(identifier: string, identifierType?: IdentifierType): Promise<string> {
+    const whereConditions = [eq(credentialDefinitions.identifier, identifier)]
+
+    if (identifierType !== undefined) {
+      whereConditions.push(eq(credentialDefinitions.identifierType, identifierType))
+    }
+
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialDefinitions.findFirst({
-      where: and(
-        eq(credentialDefinitions.identifier, identifier),
-        eq(credentialDefinitions.identifierType, identifierType),
-      ),
+      where: and(...whereConditions),
     })
 
     if (!result) {
