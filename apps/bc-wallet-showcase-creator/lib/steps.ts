@@ -70,7 +70,7 @@ export const createAdvancedStep = ({
   asset = "",
   credentials = [],
   actions = [],
-  type = StepType.HumanTask,
+  type = StepType.Service,
 }: {
   title: string;
   description: string;

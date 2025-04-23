@@ -31,12 +31,12 @@ export const CreateScenariosStepsScreen = () => {
     }else if(type == 'SERVICE'){
         createStep(
           createAdvancedStep({
-            title: `Accept your student card`,
-            description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
+            title: `Confirm the information to send`,
+            description: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
             actions: [
               {
-                title: "Accept your student card",
-                text: 'You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose "Accept offer".',
+                title: "Confirm the information to send",
+                text: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
                 actionType: 'ARIES_OOB',
                 proofRequest: {
                   attributes:{},
