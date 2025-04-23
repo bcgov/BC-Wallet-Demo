@@ -7,26 +7,26 @@ export function checkRoles(token: Token, roles: string[]) {
 }
 
 export async function isAccessTokenValid(token: string): Promise<boolean> {
-  const authorization = 'Basic ' + Buffer.from(`${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`).toString('base64')
-  return fetch(
-        `${process.env.AUTH_SERVER_URL}/realms/${process.env.REALM}/protocol/openid-connect/token/introspect`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: authorization,
-          },
-          body: new URLSearchParams({
-            token: token,
-            client_id: `${process.env.CLIENT_ID}`,
-            client_secret: `${process.env.CLIENT_SECRET}`,
-          }),
-        },
-      ).then(checkResponse).then(response => response.json().then(data => data.active))
+  const authorization =
+    'Basic ' + Buffer.from(`${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`).toString('base64')
+  return fetch(`${process.env.AUTH_SERVER_URL}/realms/${process.env.REALM}/protocol/openid-connect/token/introspect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: authorization,
+    },
+    body: new URLSearchParams({
+      token: token,
+      client_id: `${process.env.CLIENT_ID}`,
+      client_secret: `${process.env.CLIENT_SECRET}`,
+    }),
+  })
+    .then(checkResponse)
+    .then((response) => response.json().then((data) => data.active))
 }
 
 async function checkResponse(response: Response) {
-  if(response.status < 400) {
+  if (response.status < 400) {
     return response
   }
 
@@ -58,7 +58,7 @@ export function isAccessTokenAudienceValid(token: Token): boolean {
 export class Token {
   private readonly _payload: any
 
-  constructor(
+  public constructor(
     private token: string,
     private clientId: string,
   ) {
@@ -73,11 +73,11 @@ export class Token {
     }
   }
 
-  get payload() {
+  public get payload() {
     return this._payload
   }
 
-  hasRole = (name: string) => {
+  public hasRole = (name: string) => {
     if (!this.clientId) {
       return false
     }
@@ -91,7 +91,7 @@ export class Token {
     return this.hasApplicationRole(parts[0], parts[1])
   }
 
-  hasApplicationRole = (appName: string, roleName: string): boolean => {
+  public hasApplicationRole = (appName: string, roleName: string): boolean => {
     if (!this._payload.resource_access) {
       return false
     }
@@ -105,7 +105,7 @@ export class Token {
     return appRoles.roles.indexOf(roleName) >= 0
   }
 
-  hasRealmRole = (roleName: string) => {
+  public hasRealmRole = (roleName: string) => {
     if (!this._payload.realm_access || !this._payload.realm_access.roles) {
       return false
     }
