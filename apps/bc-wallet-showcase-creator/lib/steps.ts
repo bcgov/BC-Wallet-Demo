@@ -64,23 +64,25 @@ export const createDefaultStep = ({
   asset,
 });
 
-export const createServiceStep = ({
+export const createAdvancedStep = ({
   title,
   description,
   asset = "",
   credentials = [],
-  actions = []
+  actions = [],
+  type = StepType.Service,
 }: {
   title: string;
   description: string;
   asset?: string;
   credentials?: CredentialDefinition[];
   actions?: StepActionRequestTypes[];
+  type?: StepType;
 }): StepRequest => ({
   title,
   description,
   order: 0,
-  type: StepType.Service,
+  type,
   actions: [
     ...actions,
   ],

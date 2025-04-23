@@ -1,202 +1,210 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { StepState, useOnboarding } from "@/hooks/use-onboarding";
-import { useShowcaseCreation } from "@/hooks/use-showcase-creation";
-import { createDefaultStep, createServiceStep, StepRequestUIActionTypes } from "@/lib/steps";
-import { useShowcaseStore } from "@/hooks/use-showcases-store";
-import { useHelpersStore } from "./use-helpers-store";
-import { useUiStore } from "./use-ui-store";
-import { useUpdateShowcase } from "./use-showcases";
-import { Persona, ShowcaseRequest, StepRequest, StepType } from "bc-wallet-openapi";
+import { useCallback } from 'react'
+import { useOnboardingCreation } from './use-onboarding-creation'
+import type { Persona, StepRequest } from 'bc-wallet-openapi'
+import type { Screen } from '@/types'
 
 export const useOnboardingAdapter = () => {
-  const {
-    screens: originalSteps,
-    selectedStep,
-    initializeScreens,
-    createStep: originalCreateStep,
-    updateStep: originalUpdateStep,
-    removeStep: originalRemoveStep,
-    moveStep: originalMoveStep,
-    setStepState: originalSetStepState,
-    stepState,
-    setSelectedStep,
-    reset,
-  } = useOnboarding();
-
   const {
     selectedPersonas,
     personaScenarios,
     activePersonaId,
     setActivePersonaId,
-    updatePersonaSteps,
-  } = useShowcaseCreation();
-  
-  const { 
-    displayShowcase, 
-    setShowcase,
-    showcase
-  } = useShowcaseStore();
-  const { currentShowcaseSlug } = useUiStore();
-  const { mutateAsync: updateShowcase, isPending: isSaving } = useUpdateShowcase(currentShowcaseSlug);
-  const { selectedCredentialDefinitionIds, issuerId, tenantId } = useHelpersStore();
-  const [loadedPersonaId, setLoadedPersonaId] = useState<string | null>(null);
-  
-  const stepsCache = useRef<typeof originalSteps>([]);
-  const isCreatingNew = useRef(false);
-
-  useEffect(() => {
-    if (originalSteps.length > 0 && !isCreatingNew.current) {
-      stepsCache.current = originalSteps;
-    }
-  }, [originalSteps]);
-
-  const createStep = useCallback((step: StepRequest) => {
-    originalCreateStep(step);
-  }, [originalCreateStep]);
-
-  const updateStep = useCallback((index: number, step: StepRequest) => {
-    originalUpdateStep(index, step);
-  }, [originalUpdateStep]);
-
-  const removeStep = useCallback((index: number) => {
-    originalRemoveStep(index);
-  }, [originalRemoveStep]);
-
-  const moveStep = useCallback((oldIndex: number, newIndex: number) => {
-    originalMoveStep(oldIndex, newIndex);
-  }, [originalMoveStep]);
-
-  const setStepState = useCallback((newState: StepState) => {
-    isCreatingNew.current = newState === 'creating-new';
-    originalSetStepState(newState);
-  }, [originalSetStepState]);
-
-  const loadPersonaSteps = useCallback(
-    (personaId: string) => {
-      if (personaId && personaScenarios.has(personaId)) {
-        const scenario = personaScenarios.get(personaId)!
-
-        const onboardingSteps = scenario.steps.map((step, index) => {
-          const baseStep = {
-            id: `step-${index}`,
-            order: index,
-            type: step.type,
-            actions: step.actions || [],
-            asset: step.asset || '',
-          }
-
-          if (step.type === StepType.Service) {
-            return {
-              ...createServiceStep({
-                title: step.title,
-                description: step.description,
-                asset: step.asset || '',
-                credentials: (step as StepRequestUIActionTypes).credentials || [],
-              }),
-              ...baseStep,
-            }
-          } 
-
-          return {
-            ...createDefaultStep({
-              title: step.title,
-              description: step.description,
-              asset: step.asset || '',
-            }),
-            ...baseStep,
-          }
-        })
-
-        initializeScreens(onboardingSteps)
-        setLoadedPersonaId(personaId)
-      }
-    },
-    [personaScenarios, initializeScreens],
-  )
-
-  useEffect(() => {
-    if (activePersonaId !== loadedPersonaId) {
-      loadPersonaSteps(activePersonaId!)
-    }
-  }, [activePersonaId, loadedPersonaId, loadPersonaSteps])
-
-  useEffect(() => {
-    if (activePersonaId && loadedPersonaId === activePersonaId && stepsCache.current.length > 0) {
-      const scenarioSteps = stepsCache.current.map((step, index) => {
-        const baseStep = {
-          title: step.title,
-          description: step.description,
-          order: index,
-          type: step.type as StepType,
-          actions: step.actions || [],
-          issuer: issuerId,
-          asset: step.asset || undefined,
-        }
-
-        if (step.type === StepType.Service) {
-          const serviceStep = step as StepRequestUIActionTypes
-          return {
-            ...baseStep,
-            credentials: serviceStep.credentials || [],
-          }
-        }
-
-        return baseStep
-      })
-
-      updatePersonaSteps(activePersonaId, scenarioSteps as StepRequestUIActionTypes[])
-    }
-  }, [stepsCache.current, activePersonaId, loadedPersonaId, updatePersonaSteps, issuerId]);
-  
-  const saveShowcase = useCallback(async (data: ShowcaseRequest) => {
-    try {
-      const showcaseData = {
-        name: data.name,
-        description: data.description,
-        status: data.status || "ACTIVE",
-        hidden: data.hidden || false,
-        scenarios: showcase.scenarios,
-        credentialDefinitions: selectedCredentialDefinitionIds,
-        personas: selectedPersonas.map((p: Persona) => p.id),
-        bannerImage: data.bannerImage,
-        tenantId,
-      };
-      
-      const updatedShowcase = await updateShowcase(showcaseData);      
-      setShowcase(showcaseData);
-      return updatedShowcase;
-    } catch (error) {
-      console.error("Error saving showcase:", error);
-      throw error;
-    }
-  }, [displayShowcase, selectedPersonas, setShowcase, showcase, selectedCredentialDefinitionIds, updateShowcase, tenantId]);
-
-  const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
-
-  const handleSelectStep = useCallback((index: number) => {
-    setSelectedStep(index);
-    const stepType = stepsCache.current[index]?.type;
-    originalSetStepState(stepType === StepType.Service ? 'editing-issue' : 'editing-basic');
-  }, [originalSetStepState, setSelectedStep]);
-
-  return {
-    steps: isCreatingNew.current ? stepsCache.current : originalSteps,
-    selectedStep,
-    createStep,
+    duplicateScenario,
+    activeScenarioIndex,
+    setActiveScenarioIndex,
+    deleteScenario,
+    addStep,
     updateStep,
-    removeStep,
+    deleteStep,
     moveStep,
+    duplicateStep,
     setStepState,
     stepState,
-    handleSelectStep,
+    selectedScenario,
+    updateScenario,
+    removeScenario,
+    selectedStep,
+    setSelectedStep: setSelectedStepInternal,
+    selectStep,
+  } = useOnboardingCreation()
+
+  const getCurrentSteps = useCallback(() => {
+    if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
+
+    const scenarioList = personaScenarios.get(activePersonaId)!
+
+    if (activeScenarioIndex < 0 || activeScenarioIndex >= scenarioList.length) return []
+
+    return scenarioList[activeScenarioIndex].steps as Screen[]
+  }, [activePersonaId, personaScenarios, activeScenarioIndex])
+
+  const steps = getCurrentSteps()
+
+  const getStepActionType = useCallback((step: Screen): string | null => {
+    if (!step.actions || step.actions.length === 0) return null;
+    return step.actions[0].actionType || null;
+  }, []);
+
+  const setStepStateFromAction = useCallback((actionType: string | null) => {
+    if (!actionType) {
+      setStepState('editing-basic');
+      return;
+    }
+
+    switch (actionType) {
+      case 'CHOOSE_WALLET':
+        // setStepState('editing-wallet');
+        break;
+      case 'SETUP_CONNECTION':
+      case 'ARIES_OOB':
+        // setStepState('editing-connect');
+        break;
+      case 'ACCEPT_CREDENTIAL':
+        setStepState('editing-issue');
+        break;
+      default:
+        setStepState('editing-basic');
+    }
+  }, [setStepState]);
+
+  const setSelectedStep = useCallback((indexOrNull: number | null) => {
+    if (indexOrNull === null) {
+      // Reset selection
+      setSelectedStepInternal(null);
+      setStepState('no-selection');
+      return;
+    }
+    
+    // Get the step at the given index
+    const step = steps[indexOrNull];
+    if (!step) {
+      console.error(`No step found at index ${indexOrNull}`);
+      return;
+    }
+    
+    // Set the selected step to be the actual step object
+    setSelectedStepInternal(step);
+    
+    // Get the action type and set appropriate state
+    const actionType = getStepActionType(step);
+    setStepStateFromAction(actionType);
+  }, [setSelectedStepInternal, steps, setStepState, getStepActionType, setStepStateFromAction]);
+
+  const createStep = useCallback(
+    (stepData: StepRequest) => {
+      if (!activePersonaId) return
+
+      addStep(activePersonaId, activeScenarioIndex, stepData as Screen)
+      
+      // After adding, the new step will be at the end of the list
+      const newStepIndex = steps.length;
+      
+      // Get the newly added step
+      const newStep = getCurrentSteps()[newStepIndex];
+      if (newStep) {
+        setSelectedStepInternal(newStep);
+        
+        // Set state based on action type
+        const actionType = getStepActionType(newStep);
+        setStepStateFromAction(actionType);
+      }
+    },
+    [
+      activePersonaId, 
+      activeScenarioIndex, 
+      addStep, 
+      steps.length, 
+      setSelectedStepInternal, 
+      getCurrentSteps, 
+      getStepActionType, 
+      setStepStateFromAction
+    ],
+  )
+
+  const handleUpdateStep = useCallback(
+    (index: number, stepData: StepRequest) => {
+      if (!activePersonaId) return
+
+      updateStep(activePersonaId, activeScenarioIndex, index, stepData as Screen)
+    },
+    [activePersonaId, activeScenarioIndex, updateStep],
+  )
+
+  const handleDuplicateStep = useCallback(
+    (stepIndex: number) => {
+      if (!activePersonaId) {
+        console.error('Cannot duplicate - no active persona')
+        return
+      }
+
+      duplicateStep(activePersonaId, activeScenarioIndex, stepIndex)
+    },
+    [activePersonaId, activeScenarioIndex, duplicateStep],
+  )
+
+  const handleMoveStep = useCallback(
+    (oldIndex: number, newIndex: number) => {
+      if (!activePersonaId) return
+
+      moveStep(activePersonaId, activeScenarioIndex, oldIndex, newIndex)
+    },
+    [activePersonaId, activeScenarioIndex, moveStep],
+  )
+
+  const activePersona = activePersonaId 
+    ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null 
+    : null
+
+  const handleSelectStep = useCallback(
+    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {      
+      selectStep(stepIndex, scenarioIndex);
+      
+      const step = steps[stepIndex];
+      if (step) {
+        const actionType = getStepActionType(step);
+        setStepStateFromAction(actionType);
+      }
+    },
+    [selectStep, activeScenarioIndex, steps, getStepActionType, setStepStateFromAction],
+  );
+
+  const selectedStepIndex = selectedStep 
+    ? steps.findIndex(step => step.id === selectedStep.id)
+    : null;
+
+  const selectedStepActionType = selectedStep 
+    ? getStepActionType(selectedStep) 
+    : null;
+
+  return {
+    steps,
+    selectedStep,
+    selectedStepIndex,
+    selectedStepActionType,
     setSelectedStep,
+    handleSelectStep,
+    createStep,
+    updateStep: handleUpdateStep,
+    moveStep: handleMoveStep,
+    deleteStep: (index: number) => activePersonaId && deleteStep(activePersonaId, activeScenarioIndex, index),
+    duplicateStep: handleDuplicateStep,
+    setStepState,
+    stepState,
     personas: selectedPersonas,
     activePersonaId,
     setActivePersonaId,
     activePersona,
-    saveShowcase,
-    isSaving
-  };
-};
+    scenarios:
+      activePersonaId && personaScenarios.has(activePersonaId) ? personaScenarios.get(activePersonaId) || [] : [],
+    personaScenarios,
+    duplicateScenario,
+    activeScenarioIndex,
+    setActiveScenarioIndex,
+    deleteScenario,
+    selectedScenario,
+    updateScenario,
+    removeScenario,
+  }
+}
