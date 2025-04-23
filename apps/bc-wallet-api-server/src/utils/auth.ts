@@ -1,9 +1,32 @@
 import { Buffer } from 'buffer'
 import fetch from 'cross-fetch'
+import process from 'node:process'
+import { Action, UnauthorizedError } from 'routing-controllers'
 
 export function checkRoles(token: Token, roles: string[]) {
   if (token && !roles.length) return true
   return !!(token && roles.find((role) => token.hasRole(role)))
+}
+
+export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
+  const authHeader: string = action.request.headers['authorization']
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new UnauthorizedError('Missing or malformed Authorization header')
+  }
+
+  try {
+    const accessToken = authHeader.split(' ')[1]
+    // Introspect the access token
+    if (!(await isAccessTokenValid(accessToken))) {
+      return false
+    }
+    const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
+    // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
+    // User roles which at the moment we are not using, do not need any prefix.
+    return checkRoles(token, roles)
+  } catch (e) {
+    throw new UnauthorizedError(e.message)
+  }
 }
 
 export async function isAccessTokenValid(token: string): Promise<boolean> {
