@@ -17,26 +17,26 @@ export function useShowcases() {
   });
 }
 
-export const useShowcase = (slug: string): UseQueryResult<Showcase> => {
+export const useShowcase = (slug: string): UseQueryResult<ShowcaseResponse> => {
   return useQuery({
     queryKey: ['showcase', slug],
     queryFn: async () => {
-      const response = await apiClient.get(`/showcases/${slug}`) as Showcase;
-      return response;
+      const response = await apiClient.get(`/showcases/${slug}`);
+      return response as ShowcaseResponse;
     },
     staleTime,
   });
 }
 
-export const useUpdateShowcase = (slug: string): UseMutationResult<Showcase, Error, ShowcaseRequest> => {
+export const useUpdateShowcase = (slug: string): UseMutationResult<ShowcaseResponse, Error, ShowcaseRequest> => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: ShowcaseRequest): Promise<Showcase> => {
+    mutationFn: async (data: ShowcaseRequest): Promise<ShowcaseResponse> => {
       if (!slug) {
         throw new Error("Showcase slug is required");
       }
       const response = await apiClient.put(`/showcases/${slug}`, data);
-      return response as Showcase;
+      return response as ShowcaseResponse;
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['showcases', slug] });

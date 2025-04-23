@@ -5,7 +5,7 @@ import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useUiStore } from '@/hooks/use-ui-store'
 import { useUpdateShowcase } from '@/hooks/use-showcases'
-import { ShowcaseRequest } from 'bc-wallet-openapi'
+import { ShowcaseRequest, ShowcaseScenariosInner } from 'bc-wallet-openapi'
 
 export const useShowcaseAdapter = () => {
   const { 
@@ -35,8 +35,8 @@ export const useShowcaseAdapter = () => {
       const updatedShowcase = await updateShowcase(showcaseData)      
       setShowcase(showcaseData)
       
-      if (updatedShowcase && updatedShowcase.scenarios) {
-        const scenarioIds = updatedShowcase.scenarios.map((s: any) => s.id)
+      if (updatedShowcase && updatedShowcase.showcase?.scenarios) {
+        const scenarioIds = updatedShowcase.showcase.scenarios.map((s: ShowcaseScenariosInner) => s.id)
         setScenarioIds(scenarioIds)
       }
       

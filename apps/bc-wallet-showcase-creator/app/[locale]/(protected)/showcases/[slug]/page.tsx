@@ -1,13 +1,10 @@
-import React from 'react'
-
-import { PublishEdit } from '@/components/publish-screen/publish-edit'
 import TabsComponent from '@/components/Tabs-component'
 import { Pencil } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { Instructions } from '@/components/showcases-screen/instructions'
+import { ShowcaseEdit } from '@/components/publish-screen/showcase-edit'
 
-export default async function PublishPage({ params }: { 
-  params: Promise<{ slug: string, locale: string }>
-}) {
+export default async function PublishPage({ params }: { params: Promise<{ slug: string; locale: string }> }) {
   const { slug, locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations()
@@ -25,14 +22,15 @@ export default async function PublishPage({ params }: {
             </span>
           </div>
           {/* Tabs Section */}
-          <div className="flex space-x-1 text-lg font-semibold justify-start">
+          <div className="flex space-x-1 text-lg font-semibold justify-end">
             <TabsComponent slug={slug} />
           </div>
           <button className="text-gray-500 hover:text-gray-700"></button>
         </div>
         <div className="flex gap-4 p-4 h-fit-content">
+          <Instructions />
           <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
-            <PublishEdit />
+            <ShowcaseEdit slug={slug}/>
           </div>
         </div>
       </div>

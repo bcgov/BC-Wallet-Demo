@@ -210,7 +210,7 @@ export const ShowcaseList = () => {
                         <ButtonOutline
                           className="w-full"
                           // disabled
-                          onClick={() => deleteShowcase(showcase.slug)}
+                          // onClick={() => deleteShowcase(showcase.slug)}
                         >
                           {t('action.edit_label')}
                         </ButtonOutline>
