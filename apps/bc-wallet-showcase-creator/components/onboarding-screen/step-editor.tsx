@@ -45,6 +45,7 @@ import {
 } from '@/schemas/onboarding'
 import { z } from 'zod'
 import { StepActionRequestUnion } from '@/types'
+import { baseUrl } from '@/lib/utils'
 
 export const StepEditor = () => {
   const t = useTranslations()
@@ -452,7 +453,7 @@ export const StepEditor = () => {
               <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
                 <Image
-                  src={currentStep.asset}
+                  src={`${baseUrl}/assets/${currentStep.asset}/file` || '/assets/no-image.jpg'}
                   alt="Step icon"
                   className="w-full object-cover"
                   width={128}
