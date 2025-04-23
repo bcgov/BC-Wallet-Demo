@@ -31,8 +31,9 @@ import {
   StepRequest,
   StepType,
   StepActionType,
-  StepActionRequest,
   AcceptCredentialActionRequest,
+  ChooseWalletActionRequest,
+  SetupConnectionActionRequest,
 } from 'bc-wallet-openapi'
 import { sampleScenario, StepRequestUIActionTypes } from '@/lib/steps'
 import {
@@ -40,12 +41,10 @@ import {
   issueStepSchema,
   walletStepSchema,
   connectStepSchema,
-  BasicStepFormData,
-  IssueStepFormData,
-  WalletStepFormData,
-  ConnectStepFormData,
+  FormData
 } from '@/schemas/onboarding'
 import { z } from 'zod'
+import { StepActionRequestUnion } from '@/types'
 
 export const StepEditor = () => {
   const t = useTranslations()
@@ -64,15 +63,6 @@ export const StepEditor = () => {
   const currentStep = selectedStep !== null ? (screens[selectedStep.order] as StepRequestUIActionTypes) : null
   const stepType = currentStep?.type || StepType.HumanTask
 
-  const getCurrentAction = (): StepActionRequest | null => {
-    if (!currentStep || !currentStep.actions || currentStep.actions.length === 0) {
-      return null
-    }
-    return currentStep.actions[0] as StepActionRequest
-  }
-
-  const currentAction = getCurrentAction()
-
   const getSchemaForStep = () => {
     if (stepType === StepType.Service) {
       return issueStepSchema
@@ -86,7 +76,7 @@ export const StepEditor = () => {
           title: walletStepSchema.shape.title || z.string().min(1, 'Title is required'),
           description: walletStepSchema.shape.description || z.string().min(1, 'Description is required'),
           asset: z.any().optional(),
-          setupTitle1: z.string().optional(),
+          setupTitle: z.string().optional(),
           setupDescription1: z.string().optional(),
           setupTitle2: z.string().optional(),
           setupDescription2: z.string().optional(),
@@ -106,41 +96,72 @@ export const StepEditor = () => {
     }
   }
 
+  const getCurrentAction = (): StepActionRequestUnion | null => {
+    if (!currentStep || !currentStep.actions || currentStep.actions.length === 0) {
+      return null;
+    }
+    return currentStep.actions[0] as StepActionRequestUnion;
+  };
+
+  const currentAction = getCurrentAction();
+
   const getDefaultValues = () => {
     const baseDefaults = {
       title: currentStep?.title || '',
       description: currentStep?.description || '',
       asset: currentStep?.asset || '',
       credentials: currentStep?.credentials || [],
-    }
-
+    };
+  
     if (!currentAction) return baseDefaults
-
+  
     switch (currentAction.actionType) {
       case StepActionType.ChooseWallet:
         return {
           ...baseDefaults,
-          setupTitle1: '1. Download BC Wallet on your phone',
-          setupDescription1:
+          // @ts-expect-error - database still do not persist the setupTitle
+          setupTitle: currentAction.setupTitle || '1. Download BC Wallet on your phone',
+          // @ts-expect-error - database still do not persist the setupDescription1
+          setupDescription1: currentAction.setupDescription1 || 
             "To download, scan this QR code with your phone or select the app store icon below. You can also search for BC Wallet in your phone's app store.",
-          setupTitle2: '2. Complete the setup',
-          setupDescription2: 'Complete the onboarding process in the app.',
-          apple: 'https://apps.apple.com/ca/app/bc-wallet/id6444150782',
-          android: 'https://play.google.com/store/apps/details?id=ca.bc.gov.BCWallet',
-          ledgerImage:
+          // @ts-expect-error - database still do not persist 
+          setupTitle2: currentAction.setupTitle2 || '2. Complete the setup',
+          // @ts-expect-error - database still do not persist the setupDescription2
+          setupDescription2: currentAction.setupDescription2 || 'Complete the onboarding process in the app.',
+          // @ts-expect-error - database still do not persist the apple
+          apple: currentAction.apple || 'https://apps.apple.com/ca/app/bc-wallet/id6444150782',
+          // @ts-expect-error - database still do not persist the android
+          android: currentAction.android || 'https://play.google.com/store/apps/details?id=ca.bc.gov.BCWallet',
+          // @ts-expect-error - database still do not persist the ledgerImage
+          ledgerImage: currentAction.ledgerImage ||
             'https://play-lh.googleusercontent.com/eEYm6AaDGNFcE1riIW7W-R8RJvDgVVakjr2gnxdeUOngsb9EZWZ9p2zPDBHybiS0lUJu=w240-h480-rw',
-        }
+        };
+      
       case StepActionType.SetupConnection:
+        return {
+          ...baseDefaults,
+          // @ts-expect-error - database still do not persist the qrCodeTitle
+          qrCodeTitle: currentAction.qrCodeTitle || 'Scan this QR code with your BC Wallet app',
+        };
       case StepActionType.AriesOob:
         return {
           ...baseDefaults,
-        }
+        };
+      case StepActionType.AcceptCredential:
+        return {
+          ...baseDefaults,
+          credentialDefinitionId: currentAction.credentialDefinitionId || '',
+        };
+        
+      case StepActionType.Button:
+        return {
+          ...baseDefaults,
+        };
+        
       default:
-        return baseDefaults
+        return baseDefaults;
     }
-  }
-
-  type FormData = BasicStepFormData | IssueStepFormData | WalletStepFormData | ConnectStepFormData
+  };
 
   const form = useForm<FormData>({
     resolver: zodResolver(getSchemaForStep()),
@@ -159,9 +180,9 @@ export const StepEditor = () => {
     }
   }, [currentStep, form])
 
-  const autoSave = debounce((data: any) => {
-    if (!currentStep || !form.formState.isDirty) return
-
+  const autoSave = debounce((data: FormData) => {
+    if (!currentStep || !form.formState.isDirty) return;
+  
     const updatedStep: StepRequestUIActionTypes = {
       ...currentStep,
       title: data.title,
@@ -169,20 +190,69 @@ export const StepEditor = () => {
       asset: data.asset || undefined,
       type: currentStep.type || StepType.HumanTask,
       order: currentStep.order || 0,
-      actions: currentStep.actions || [],
+    };
+  
+    if (currentStep.actions && currentStep.actions.length > 0) {
+      const updatedActions = [...currentStep.actions];
+      const action = updatedActions[0] as StepActionRequestUnion;
+      
+      if (action) {
+        switch (action.actionType) {
+          case StepActionType.ChooseWallet:
+            updatedActions[0] = {
+              ...action,
+              title: data.title,
+              text: data.description,
+              setupTitle: data.setupTitle,
+              setupDescription1: data.setupDescription1,
+              setupTitle2: data.setupTitle2,
+              setupDescription2: data.setupDescription2,
+              apple: data.apple,
+              android: data.android,
+              ledgerImage: data.ledgerImage,
+            } as unknown as ChooseWalletActionRequest;
+            break;
+            
+          case StepActionType.SetupConnection:
+            updatedActions[0] = {
+              ...action,
+              title: data.title,
+              text: data.description,
+              qrCodeTitle: data.qrCodeTitle,
+            } as unknown as SetupConnectionActionRequest;
+            break;
+            
+          case StepActionType.AriesOob:
+            updatedActions[0] = {
+              ...action,
+              title: data.title,
+              text: data.description,
+            };
+            break;
+            
+          default:
+            updatedActions[0] = {
+              ...action,
+              title: data.title,
+              text: data.description,
+            };
+        }
+      }
+      
+      updatedStep.actions = updatedActions;
     }
-
-    updateStep(selectedStep?.order || 0, updatedStep as StepRequest)
-
+  
+    updateStep(selectedStep?.order || 0, updatedStep as StepRequest);
+  
     setTimeout(() => {
-      toast.success('Changes saved', { duration: 1000 })
-    }, 500)
-  }, 800)
+      toast.success('Changes saved', { duration: 1000 });
+    }, 500);
+  }, 800);
 
   useEffect(() => {
     const subscription = form.watch((value) => {
       if (form.formState.isDirty) {
-        autoSave(value)
+        autoSave(value as FormData)
       }
     })
     return () => subscription.unsubscribe()
@@ -194,7 +264,7 @@ export const StepEditor = () => {
     const credentialId = selectedCredential?.id || 
       (currentStep?.credentials && currentStep.credentials.length > 0 ? currentStep.credentials[0].id : undefined);
     
-    const ensureCredentialId = (actions: StepActionRequest[]): StepActionRequest[] => {
+    const ensureCredentialId = (actions: StepActionRequestUnion[]): StepActionRequestUnion[] => {
       return actions.map(action => {
         if (action.actionType === StepActionType.AcceptCredential) {
           const currentCredId = (action as AcceptCredentialActionRequest).credentialDefinitionId;
@@ -221,7 +291,7 @@ export const StepEditor = () => {
         scenarioForPersona.issuer = issuerId;
         
         scenarioForPersona.steps = screens.map((screen, index) => {
-          let actions = screen.actions as StepActionRequest[] || [];
+          let actions = screen.actions as StepActionRequestUnion[] || [];
           
           if (actions.length > 0) {
             try {
@@ -257,7 +327,7 @@ export const StepEditor = () => {
           
           if (currentActions.length > 0) {
             try {
-              currentActions = ensureCredentialId(currentActions as StepActionRequest[]);
+              currentActions = ensureCredentialId(currentActions as StepActionRequestUnion[]);
             } catch (error) {
               return null;
             }
@@ -269,7 +339,7 @@ export const StepEditor = () => {
             asset: data.asset || undefined,
             type: currentStep.type || StepType.HumanTask,
             order: currentStep.order || scenarioForPersona.steps.length,
-            actions: currentActions as StepActionRequest[],
+            actions: currentActions as StepActionRequestUnion[],
           });
         }
         
@@ -516,7 +586,7 @@ export const StepEditor = () => {
                 <FormTextInput
                   control={form.control}
                   label="Step Title"
-                  name="setupTitle1"
+                  name="setupTitle"
                   register={form.register}
                   readOnly={true}
                   disabled={true}
