@@ -1,11 +1,8 @@
 import {
-  CredentialDefinition,
   CredentialDefinitionImportRequest,
   CredentialDefinitionImportRequestToJSONTyped,
-  CredentialDefinitionToJSONTyped,
   CredentialSchema,
   CredentialSchemaToJSONTyped,
-  instanceOfCredentialDefinition,
   instanceOfCredentialDefinitionImportRequest,
   instanceOfCredentialSchema,
   instanceOfIssuer,

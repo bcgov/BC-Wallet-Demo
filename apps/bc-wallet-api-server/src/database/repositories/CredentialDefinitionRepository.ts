@@ -4,7 +4,7 @@ import { Service } from 'typedi'
 import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
 import { CredentialDefinition, IdentifierType, NewCredentialDefinition, RepositoryDefinition, Tx } from '../../types'
-import { credentialDefinitions, credentialRepresentations, credentialSchemas, revocationInfo } from '../schema'
+import { credentialDefinitions, credentialRepresentations, revocationInfo } from '../schema'
 import AssetRepository from './AssetRepository'
 import CredentialSchemaRepository from './CredentialSchemaRepository'
 
@@ -169,9 +169,18 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     }
   }
 
-  public async findByIdentifier(identifier: string, tx?: Tx): Promise<CredentialDefinition> {
+  public async findByIdentifier(
+    identifier: string,
+    identifierType?: IdentifierType,
+    tx?: Tx,
+  ): Promise<CredentialDefinition> {
+    const whereConditions = [eq(credentialDefinitions.identifier, identifier)]
+    if (identifierType !== undefined) {
+      whereConditions.push(eq(credentialDefinitions.identifierType, identifierType))
+    }
+
     const result = await (tx ?? (await this.databaseService.getConnection())).query.credentialDefinitions.findFirst({
-      where: eq(credentialSchemas.identifier, identifier),
+      where: and(...whereConditions),
       with: {
         icon: true,
         cs: {
@@ -219,26 +228,6 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
       credentialSchema: item.cs,
       approvedBy: item.approver,
     }))
-  }
-
-  public async findIdByIdentifier(identifier: string, identifierType?: IdentifierType): Promise<string> {
-    const whereConditions = [eq(credentialDefinitions.identifier, identifier)]
-
-    if (identifierType !== undefined) {
-      whereConditions.push(eq(credentialDefinitions.identifierType, identifierType))
-    }
-
-    const result = await (
-      await this.databaseService.getConnection()
-    ).query.credentialDefinitions.findFirst({
-      where: and(...whereConditions),
-    })
-
-    if (!result) {
-      return Promise.reject(new NotFoundError(`No credential definition found for identifier: ${identifier}`))
-    }
-
-    return result.id
   }
 
   public async findUnapproved(): Promise<CredentialDefinition[]> {
