@@ -2,6 +2,10 @@ import { Buffer } from 'buffer'
 import fetch from 'cross-fetch'
 import process from 'node:process'
 import { Action, UnauthorizedError } from 'routing-controllers'
+import Container from 'typedi'
+
+import { Claims } from '../types/auth/claims'
+import { ISessionServiceUpdater } from '../types/services/session'
 
 export function checkRoles(token: Token, roles: string[]) {
   if (token && !roles.length) return true
@@ -32,20 +36,30 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
 export async function isAccessTokenValid(token: string): Promise<boolean> {
   const authorization =
     'Basic ' + Buffer.from(`${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`).toString('base64')
-  return fetch(`${process.env.AUTH_SERVER_URL}/realms/${process.env.REALM}/protocol/openid-connect/token/introspect`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: authorization,
+  const response = await fetch(
+    `${process.env.AUTH_SERVER_URL}/realms/${process.env.REALM}/protocol/openid-connect/token/introspect`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: authorization,
+      },
+      body: new URLSearchParams({
+        token: token,
+        client_id: `${process.env.CLIENT_ID}`,
+        client_secret: `${process.env.CLIENT_SECRET}`,
+      }),
     },
-    body: new URLSearchParams({
-      token: token,
-      client_id: `${process.env.CLIENT_ID}`,
-      client_secret: `${process.env.CLIENT_SECRET}`,
-    }),
-  })
-    .then(checkResponse)
-    .then((response) => response.json().then((data) => data.active))
+  )
+
+  await checkResponse(response)
+  const claims = (await response.json()) as Claims
+  if (claims.active) {
+    const sessionUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+    sessionUpdater.setActiveClaims(claims)
+    return true
+  }
+  return false
 }
 
 async function checkResponse(response: Response) {
