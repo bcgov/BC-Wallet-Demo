@@ -32,7 +32,7 @@ services:
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
-      - ENCRYPTION_KEY=${RABBITMQ_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       # temp keycloak settings
       - REALM=${REALM}
       - CLIENT_ID=${CLIENT_ID}
@@ -96,7 +96,7 @@ services:
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
-      - ENCRYPTION_KEY=${RABBITMQ_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     depends_on:
       - rabbitmq  # Ensure RabbitMQ starts first
 
