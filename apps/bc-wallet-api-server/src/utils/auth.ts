@@ -1,5 +1,9 @@
 import { Buffer } from 'buffer'
 import fetch from 'cross-fetch'
+import { Action, UnauthorizedError } from 'routing-controllers'
+import Container from 'typedi'
+
+import TenantService from '../services/TenantService'
 
 type JwtPayload = {
   exp?: number
@@ -81,6 +85,32 @@ async function checkResponse(response: Response) {
     errorMessage += `\nNo error details available`
   }
   throw new Error(errorMessage)
+}
+
+export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
+  const authHeader: string = action.request.headers['authorization']
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new UnauthorizedError('Missing or malformed Authorization header')
+  }
+  const accessToken = authHeader.split(' ')[1]
+  const token = new Token(accessToken)
+
+  const tenantService = Container.get(TenantService)
+  const realm = token.payload.iss?.split('/').slice(-1)[0]
+  const clientId = token.payload.azp
+
+  if (!realm || !clientId) {
+    throw new UnauthorizedError('Realm and Client ID are required in token')
+  }
+  const tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
+
+  // Calls the introspection endpoint to validate the token
+  if (!(await isAccessTokenValid(accessToken, tenant.realm, tenant.clientId, tenant.clientSecret))) {
+    throw new UnauthorizedError('Invalid token')
+  }
+  // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
+  // User roles which at the moment we are not using, do not need any prefix.
+  return checkRoles(token, roles)
 }
 
 export class Token {

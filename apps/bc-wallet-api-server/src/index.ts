@@ -2,7 +2,7 @@ require('dotenv-flow').config()
 
 import 'reflect-metadata'
 import * as process from 'node:process'
-import { Action, createExpressServer, UnauthorizedError, useContainer } from 'routing-controllers'
+import { createExpressServer, useContainer } from 'routing-controllers'
 import Container from 'typedi'
 
 import ApprovalController from './controllers/ApprovalController'
@@ -19,8 +19,7 @@ import TenantController from './controllers/TenantController'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 import { RequestContextMiddleware } from './middleware/RequestContextMiddleware'
 import { registerServicesByInterface } from './services/RegisterServicesByInterface'
-import TenantService from './services/TenantService'
-import { checkRoles, isAccessTokenValid, Token } from './utils/auth'
+import { authorizationChecker } from './utils/auth'
 import { corsOptions } from './utils/cors'
 
 useContainer(Container)
@@ -44,31 +43,7 @@ async function bootstrap() {
         TenantController,
         ApprovalController,
       ],
-      authorizationChecker: async (action: Action, roles: string[]): Promise<boolean> => {
-        const authHeader: string = action.request.headers['authorization']
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          throw new UnauthorizedError('Missing or malformed Authorization header')
-        }
-        const accessToken = authHeader.split(' ')[1]
-        const token = new Token(accessToken)
-
-        const tenantService = Container.get(TenantService)
-        const realm = token.payload.iss?.split('/').slice(-1)[0]
-        const clientId = token.payload.azp
-
-        if (!realm || !clientId) {
-          throw new UnauthorizedError('Realm and Client ID are required in token')
-        }
-        const tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
-
-        // Calls the introspection endpoint to validate the token
-        if (!(await isAccessTokenValid(accessToken, tenant.realm, tenant.clientId, tenant.clientSecret))) {
-          throw new UnauthorizedError('Invalid token')
-        }
-        // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
-        // User roles which at the moment we are not using, do not need any prefix.
-        return checkRoles(token, roles)
-      },
+      authorizationChecker,
       middlewares: [RequestContextMiddleware, ExpressErrorHandler],
       defaultErrorHandler: false,
       cors: corsOptions,
