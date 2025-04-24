@@ -146,7 +146,7 @@ showcase_creator:
   port: 3050
   path: /
   env:
-    NEXT_PUBLIC_WALLET_URL: https://digital.gov.bc.ca/digital-trust/showcase
+    NEXT_PUBLIC_WALLET_URL: https://bcshowcase-demo-web.dev.nborbit.ca/digital-trust/showcase
     NEXT_PUBLIC_SHOWCASE_BACKEND: https://bcshowcase-api.dev.nborbit.ca
     AUTH_SECRET: SENSITIVE
     AUTH_KEYCLOAK_ID: "showcase-tenantA"
@@ -206,7 +206,7 @@ demo_web:
     tag: ""
   replicaCount: 1
   labelOverride: ""
-  port: 80
+  port: 3000
   path: /
   env:
     REACT_APP_INSIGHTS_PROJECT_ID: key
@@ -227,7 +227,7 @@ demo_web:
   containerSecurityContext: {}
   service:
     type: ClusterIP
-    port: 80
+    port: 3000
   affinity: {}
   nodeSelector: {}
   tolerations: []
