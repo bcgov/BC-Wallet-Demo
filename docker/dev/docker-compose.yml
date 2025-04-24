@@ -32,6 +32,10 @@ services:
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - AMQ_TRANSPORT=tcp # FIXME when tls is working
+      - REALM=${REALM}
+      - AUTH_SERVER_URL=${AUTH_SERVER_URL}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
 
     depends_on:
       - postgres  # Ensure Postgres starts first
