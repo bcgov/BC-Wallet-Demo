@@ -1,4 +1,5 @@
 import {
+  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -8,7 +9,7 @@ import {
   OnUndefined,
   Param,
   Post,
-  Put
+  Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
 import {
@@ -26,7 +27,7 @@ import { issuerDTOFrom } from '../utils/mappers'
 @JsonController('/roles/issuers')
 @Service()
 class IssuerController {
-  constructor(private issuerService: IssuerService) {}
+  public constructor(private issuerService: IssuerService) {}
 
   @Get('/')
   public async getAll(): Promise<IssuersResponse> {
@@ -55,7 +56,7 @@ class IssuerController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() issuerRequest: IssuerRequest): Promise<IssuerResponse> {
@@ -73,7 +74,7 @@ class IssuerController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() issuerRequest: IssuerRequest): Promise<IssuerResponse> {
     try {
@@ -90,7 +91,7 @@ class IssuerController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {
