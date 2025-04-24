@@ -36,7 +36,7 @@ services:
       - AUTH_SERVER_URL=${AUTH_SERVER_URL}
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
-
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     depends_on:
       - postgres  # Ensure Postgres starts first
     ports:
