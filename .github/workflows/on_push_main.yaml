@@ -198,6 +198,8 @@ jobs:
               --set demo_server.env.TENANT_ID=${{secrets.TENANT_ID}} \
               --set demo_server.env.WALLET_KEY=${{secrets.WALLET_KEY}} \
               --set api_server.env.ENCRYPTION_KEY=${{secrets.ENCRYPTION_KEY}} \
+              --set api_server.env.CLIENT_SECRET=${{secrets.CLIENT_SECRET}} \
+              --set api_server.env.AUTH_SERVER_URL=${{secrets.AUTH_SERVER_URL}} \
               --set demo_web.env.REACT_APP_SNOWPLOW_ENDPOINT=${{secrets.REACT_APP_SNOWPLOW_ENDPOINT}} \
               . --wait
             

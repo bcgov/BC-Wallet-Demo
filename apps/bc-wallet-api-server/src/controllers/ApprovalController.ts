@@ -1,5 +1,3 @@
-import { Get, JsonController, Param, Post } from 'routing-controllers'
-import { Service } from 'typedi'
 import {
   CredentialDefinitionResponse,
   CredentialDefinitionResponseFromJSONTyped,
@@ -8,19 +6,23 @@ import {
   ShowcaseResponse,
   ShowcaseResponseFromJSONTyped,
 } from 'bc-wallet-openapi'
-import CredentialDefinitionService from '../services/CredentialDefinitionService'
-import { credentialDefinitionDTOFrom, showcaseDTOFrom } from '../utils/mappers'
+import { Authorized, Get, JsonController, Param, Post } from 'routing-controllers'
+import { Service } from 'typedi'
+
 import { NotFoundError } from '../errors'
+import CredentialDefinitionService from '../services/CredentialDefinitionService'
 import ShowcaseService from '../services/ShowcaseService'
+import { credentialDefinitionDTOFrom, showcaseDTOFrom } from '../utils/mappers'
 
 @JsonController()
 @Service()
 export class ApprovalController {
-  constructor(
+  public constructor(
     private showcaseService: ShowcaseService,
     private credentialDefinitionService: CredentialDefinitionService,
   ) {}
 
+  @Authorized()
   @Post('/credentials/definitions/:definitionId/approve')
   public async approveCredentialDefinition(
     @Param('definitionId') definitionId: string,
@@ -40,6 +42,7 @@ export class ApprovalController {
     }
   }
 
+  @Authorized()
   @Post('/showcases/:slug/approve')
   public async approveShowcase(@Param('slug') slug: string): Promise<ShowcaseResponse> {
     try {
