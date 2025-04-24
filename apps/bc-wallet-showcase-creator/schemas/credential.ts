@@ -20,17 +20,6 @@ export const schema = z.object({
       name: z.string().min(1, "Attribute name is required"),
 			type: z.enum(["STRING", "DATE"]).default("STRING"),
 
-    }).superRefine((data, ctx) => {
-      if (data.type === 'DATE') {
-        const dateRegex = /^\d{8}$/;
-        if (!dateRegex.test(data.name)) {
-          ctx.addIssue({
-            path: ['name'],
-            message: "Invalid date format. Please use YYYYMMDD.",
-            code: z.ZodIssueCode.custom,
-          });
-				}
-			}	
     })
   ),
 });

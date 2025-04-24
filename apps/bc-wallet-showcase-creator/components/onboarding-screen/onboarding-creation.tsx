@@ -16,8 +16,17 @@ import { Screen } from '@/types'
 
 export const CreateOnboardingScreen = () => {
   const t = useTranslations()
-  const { steps, selectedStep, moveStep, setStepState, personas, activePersonaId, setActivePersonaId, activePersona } =
-    useOnboardingAdapter()
+  const { 
+    steps, 
+    selectedStep, 
+    moveStep: handleMoveStep, 
+    setStepState, 
+    personas, 
+    activePersonaId, 
+    setActivePersonaId, 
+    activePersona,
+  } = useOnboardingAdapter()
+  
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
 
@@ -27,9 +36,9 @@ export const CreateOnboardingScreen = () => {
 
     const oldIndex = steps.findIndex((step) => step.id === active.id)
     const newIndex = steps.findIndex((step) => step.id === over.id)
-
-    if (oldIndex !== newIndex) {
-      moveStep(oldIndex, newIndex)
+  
+    if (oldIndex !== newIndex && oldIndex >= 0 && newIndex >= 0) {
+      handleMoveStep(oldIndex, newIndex)
     }
   }
 
@@ -97,21 +106,20 @@ export const CreateOnboardingScreen = () => {
                 steps.map((step, index) => (
                   <div key={index} className="flex flex-row px-4 pt-4">
                     <SortableStep
-                      selectedStep={selectedStep}
+                      selectedStep={selectedStep?.order === index ? selectedStep : null}
                       myScreen={step as unknown as Screen}
                       stepIndex={index + 1}
-                      totalSteps={steps.length}
                     />
                   </div>
                 ))
               )}
 
               <DragOverlay>
-                {selectedStep !== null && steps[selectedStep] && (
+                {selectedStep !== null && selectedStep.order !== null && steps[selectedStep.order] && (
                   <div className="top-1">
-                    <p>{steps[selectedStep].title}</p>
+                    <p>{steps[selectedStep.order].title}</p>
                     <div className="highlight-container w-full flex flex-row justify-items-center items-center rounded p-3 unselected-item backdrop-blur">
-                      <p className="text-sm">{steps[selectedStep].description}</p>
+                      <p className="text-sm">{steps[selectedStep.order].description}</p>
                     </div>
                   </div>
                 )}

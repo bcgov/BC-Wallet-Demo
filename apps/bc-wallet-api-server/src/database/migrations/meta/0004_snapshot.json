@@ -1,5 +1,5 @@
 {
-  "id": "bc168a8a-5213-40d6-86bf-6c18a60961e9",
+  "id": "661803d7-6978-4e5e-9b9d-5a91d31e8f29",
   "prevId": "44d2596e-e903-48df-b561-c315cdd77a8b",
   "version": "7",
   "dialect": "postgresql",
@@ -279,14 +279,6 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
-        },
-        "source": {
-          "name": "source",
-          "type": "Source",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'CREATED'"
         },
         "approved_by": {
           "name": "approved_by",

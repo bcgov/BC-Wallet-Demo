@@ -1,13 +1,5 @@
 import {
-  instanceOfShowcaseRequest,
-  ShowcaseRequest,
-  ShowcaseRequestToJSONTyped,
-  ShowcaseResponse,
-  ShowcaseResponseFromJSONTyped,
-  ShowcasesResponse,
-  ShowcasesResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
-import {
+  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -19,6 +11,15 @@ import {
   Post,
   Put,
 } from 'routing-controllers'
+import {
+  instanceOfShowcaseRequest,
+  ShowcaseRequest,
+  ShowcaseRequestToJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
+  ShowcasesResponse,
+  ShowcasesResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
 import { Service } from 'typedi'
 
 import ShowcaseService from '../services/ShowcaseService'
@@ -57,7 +58,7 @@ class ShowcaseController {
     }
   }
 
-  //  @Authorized()
+  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(
@@ -77,7 +78,7 @@ class ShowcaseController {
     }
   }
 
-  //  @Authorized()
+  @Authorized()
   @Put('/:slug')
   public async put(
     @Param('slug') slug: string,
@@ -98,7 +99,7 @@ class ShowcaseController {
     }
   }
 
-  //  @Authorized()
+  @Authorized()
   @OnUndefined(204)
   @Delete('/:slug')
   public async delete(@Param('slug') slug: string): Promise<void> {

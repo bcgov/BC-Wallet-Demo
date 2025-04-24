@@ -38,6 +38,7 @@ describe('TenantController Integration Tests', () => {
     Container.get(TenantService)
     app = createExpressServer({
       controllers: [TenantController],
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })

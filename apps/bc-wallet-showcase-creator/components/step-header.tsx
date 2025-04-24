@@ -44,7 +44,13 @@ const StepHeader: React.FC<StepHeaderProps> = ({
           ? actions
           : showDropdown &&
             hasAnyAction && (
-              <button onClick={() => setIsOpen(!isOpen)} className="border p-2 rounded-md">
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsOpen(!isOpen)
+                }}
+                className="border p-2 rounded-md"
+              >
                 <EllipsisVertical size={22} />
               </button>
             )}
