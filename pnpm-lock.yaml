@@ -514,9 +514,6 @@ importers:
         specifier: ^5.0.3
         version: 5.0.3(@types/react@18.3.12)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.4.0(react@19.0.0))
     devDependencies:
-      '@auth/core':
-        specifier: ^0.37.2
-        version: 0.37.2
       '@eslint/eslintrc':
         specifier: ^3
         version: 3.3.1

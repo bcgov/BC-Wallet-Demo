@@ -1,0 +1,1 @@
+ALTER TABLE "credentialDefinition" ADD COLUMN "source" "Source" DEFAULT 'CREATED';
