@@ -34,6 +34,8 @@ describe('TenantController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
+    process.env.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+
     client = new PGlite()
     const database = drizzle(client, { schema }) as unknown as NodePgDatabase
     await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
