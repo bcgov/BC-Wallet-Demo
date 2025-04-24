@@ -9,13 +9,11 @@ import { useTranslations } from 'next-intl'
 import { NoSelection } from '../credentials/no-selection'
 import { StepType } from 'bc-wallet-openapi'
 import { useEffect } from 'react'
-import { createDefaultStep, createServiceStep } from '@/lib/steps'
+import { createDefaultStep, createAdvancedStep } from '@/lib/steps'
 
 export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
   const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter()
-
-  // Get the current step if available
 
   useEffect(() => {
     console.log('Component re-rendered with stepState:', stepState)
@@ -32,13 +30,13 @@ export const CreateScenariosStepsScreen = () => {
       setStepState('editing-basic')
     }else if(type == 'SERVICE'){
         createStep(
-          createServiceStep({
-            title: `Accept your student card`,
-            description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
+          createAdvancedStep({
+            title: `Confirm the information to send`,
+            description: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
             actions: [
               {
-                title: "Accept your student card",
-                text: 'You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose "Accept offer".',
+                title: "Confirm the information to send",
+                text: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
                 actionType: 'ARIES_OOB',
                 proofRequest: {
                   attributes:{},
