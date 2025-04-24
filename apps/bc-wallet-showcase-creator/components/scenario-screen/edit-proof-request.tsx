@@ -6,17 +6,18 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { ProofRequestFormData } from '@/schemas/scenario'
 import { proofRequestSchema } from '@/schemas/scenario'
-import type { ProofRequest, ShowcaseJSON } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus } from 'lucide-react'
 
 import { ProofAttribute } from './proof-attribute'
+import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
+import { StepActionType, StepRequest, CredentialDefinition } from 'bc-wallet-openapi'
+import { StepRequestUIActionTypes } from '@/lib/steps'
 
 interface EditProofRequestProps {
-  showcaseJSON: ShowcaseJSON
-  proofRequest: ProofRequest
+  credentials: CredentialDefinition;
+  updateCredentials?:(updatedCredentials: ProofRequestFormData) => void;
   credentialName: string
-  selectedCharacter: number
   selectedScenario: number
   selectedStep: number
   setEditingCredentials: (editingCredentials: number[]) => void
@@ -25,20 +26,24 @@ interface EditProofRequestProps {
 }
 
 export const EditProofRequest = ({
-  showcaseJSON,
-  proofRequest,
   credentialName,
-  selectedCharacter,
   setEditingCredentials,
   editingCredentials,
   editingIndex,
+  updateCredentials,
+  credentials
 }: EditProofRequestProps) => {
   const form = useForm<ProofRequestFormData>({
     resolver: zodResolver(proofRequestSchema),
-    defaultValues: proofRequest as ProofRequestFormData,
   })
 
-  const availableAttributes = showcaseJSON.personas[selectedCharacter].credentials[credentialName].attributes
+  const { selectedScenario, updateStep, selectedStep } = usePresentationAdapter()
+  const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
+  
+  const availableAttributes = (credentials.credentialSchema?.attributes || []).map(attr => ({
+    ...attr,
+    value: attr.value || ''
+  }))
 
   const handleAttributeChange = (index: number, value: string) => {
     const currentAttributes = form.getValues(`attributes.${credentialName}.attributes`) || []
@@ -48,11 +53,33 @@ export const EditProofRequest = ({
       shouldValidate: true,
       shouldDirty: true,
     })
+    if (updateCredentials) {
+      const formValues = form.getValues();
+      const updatedStep = structuredClone(currentStep);
+  
+      if (
+        updatedStep?.actions?.length &&
+        updatedStep?.actions[0]?.actionType === StepActionType.AriesOob &&
+
+        updatedStep?.actions[0]?.proofRequest?.attributes && updatedStep.actions[0].proofRequest.attributes[credentialName]
+      ) {
+
+        updatedStep.actions[0].proofRequest.attributes[credentialName].attributes = newAttributes;
+
+        updatedStep.actions[0].credentialDefinitionId = credentials.id;
+      }
+  
+      updateCredentials({
+        ...formValues,
+        attributes: formValues.attributes,
+        predicates: formValues.predicates,
+      });
+    }
   }
 
   const handleConditionTypeChange = (index: number, value: string) => {
     const currentAttributes = form.getValues(`attributes.${credentialName}.attributes`) || []
-    const attribute = currentAttributes[index]
+    const attribute = currentAttributes[0]
 
     if (value === 'none') {
       const predicates = form.getValues('predicates') || {}
@@ -64,7 +91,7 @@ export const EditProofRequest = ({
       }
     } else {
       const newPredicateKey = `${Date.now()}`
-      form.setValue(`predicates.${newPredicateKey}`, {
+      form.setValue(`predicates.${attribute}`, {
         name: attribute,
         type: value as '>=',
         value: 0,
@@ -91,20 +118,37 @@ export const EditProofRequest = ({
 
   const onSubmit = (data: ProofRequestFormData) => {
     setEditingCredentials(editingCredentials.filter((i) => i !== editingIndex))
-  }
 
-  const attributes = form.watch(`attributes.${credentialName}.attributes`) || []
+    if (!currentStep || !currentStep.actions || currentStep.actions.length === 0) return;
+
+    const updatedStep: StepRequest = {
+      ...currentStep,
+      actions: currentStep.actions.map((action, index) => {
+        if (index !== 0) return action;
+        return {
+          ...action,
+          proofRequest: {
+            ...action.proofRequest,
+            attributes: form.getValues().attributes,
+            predicates:form.getValues().predicates,
+          }
+        };
+      }),
+    };
+
+    updateStep(selectedStep?.stepIndex || 0, updatedStep);
+  }  
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <div className="space-y-6">
       <div className="space-y-4">
-        {attributes.map((attribute, index) => (
+        {availableAttributes.map((attribute, index) => (
           <ProofAttribute
             key={`${attribute}_${index}`}
             index={index}
             attribute={attribute}
             availableAttributes={availableAttributes}
-            currentValue={availableAttributes.find((a) => a.name === attribute)?.value || ''}
+            currentValue={attribute.value || ''}
             onAttributeChange={handleAttributeChange}
             onConditionTypeChange={handleConditionTypeChange}
             onRemove={handleRemoveAttribute}
@@ -113,15 +157,15 @@ export const EditProofRequest = ({
       </div>
 
       <div className={cn('flex flex-wrap gap-4', 'justify-between items-center', 'pt-4 border-t border-border')}>
-        <Button type="button" variant="outline" onClick={handleAddAttribute} className="gap-2">
+        <Button type="button" variant="outline" onClick={()=>handleAddAttribute()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Attribute2
+          Add Attribute
         </Button>
 
-        <Button type="submit" disabled={!form.formState.isDirty}>
+        <Button type="submit" disabled={!form.formState.isDirty} onClick={() => onSubmit(form.getValues())} className="gap-2">
           Save Changes
         </Button>
       </div>
-    </form>
+    </div>
   )
 }

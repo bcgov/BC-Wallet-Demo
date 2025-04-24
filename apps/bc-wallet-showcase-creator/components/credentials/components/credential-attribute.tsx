@@ -1,12 +1,11 @@
 import type { UseFormReturn } from 'react-hook-form'
-import { useFieldArray, useFormContext } from 'react-hook-form'
+import { useFieldArray } from 'react-hook-form'
 
 import { FormTextInput } from '@/components/text-input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { CredentialAttributeType } from '@/openapi-types'
-import { CredentialAttributeTypeEnum } from '@/openapi-types'
+import { CredentialAttribute, CredentialAttributeType } from 'bc-wallet-openapi'
 import { Plus, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
@@ -14,14 +13,14 @@ type FormData = {
   attributes: {
     name: string
     value: string
-    type: 'STRING' | 'DATE'
+    type: CredentialAttributeType
   }[]
 }
 
 interface SchemaAttributesProps {
   mode: 'create' | 'view'
   form: UseFormReturn<FormData>
-  attributes?: CredentialAttributeType[]
+  attributes?: CredentialAttribute[]
 }
 export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttributesProps) => {
   const t = useTranslations()
@@ -78,7 +77,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
             append({
               name: '',
               value: '',
-              type: CredentialAttributeTypeEnum.options[0],
+              type: CredentialAttributeType.String,
             })
           }
         >
@@ -99,7 +98,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
                 </label>
                 <Select
                   onValueChange={(value) => {
-                    form.setValue(`attributes.${index}.type`, value as typeof CredentialAttributeTypeEnum._type)
+                    form.setValue(`attributes.${index}.type`, value as CredentialAttributeType)
                   }}
                   defaultValue={field.type || 'STRING'}
                 >
@@ -107,7 +106,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CredentialAttributeTypeEnum.options.map((type) => (
+                    {Object.values(CredentialAttributeType).map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>

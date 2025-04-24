@@ -30,7 +30,7 @@ export const PublishInfo = ({
                 alt={char.headshotImage?.description || 'Character headshot'}
                 width={60}
                 height={60}
-                className="rounded-full"
+                className="rounded-full object-cover"
               />
               <div>
                 <h3 className="text-lg font-semibold text-foreground">{char.name}</h3>
@@ -50,7 +50,7 @@ export const PublishInfo = ({
                       alt={cred.icon?.description || 'Credential icon'}
                       width={40}
                       height={40}
-                      className="rounded-full"
+                      className="rounded-full object-cover"
                     />
                     <div>
                       <p className="font-semibold text-foreground">{cred.name}</p>

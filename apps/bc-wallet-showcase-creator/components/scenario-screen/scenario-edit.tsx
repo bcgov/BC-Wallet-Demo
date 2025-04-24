@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { FormTextInput, FormTextArea } from '@/components/text-input'
+import { FormTextInput } from '@/components/text-input'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -14,15 +14,26 @@ import DeleteModal from '../delete-modal'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { PresentationScenarioRequest, PresentationScenarioRequestType } from '@/openapi-types'
+import { PresentationScenarioRequest } from 'bc-wallet-openapi'
+import { z } from 'zod'
+
+const presentationScenarioRequestSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  steps: z.array(z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+  })),
+})  
+
 export const ScenarioEdit = () => {
   const t = useTranslations()
   const { selectedScenario, updateScenario, setStepState, removeScenario } = usePresentationCreation()
   const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const form = useForm<PresentationScenarioRequestType>({
-    resolver: zodResolver(PresentationScenarioRequest),
+  const form = useForm<PresentationScenarioRequest>({
+    resolver: zodResolver(presentationScenarioRequestSchema),
     mode: 'onChange',
   })
 
@@ -32,7 +43,7 @@ export const ScenarioEdit = () => {
     }
   }, [selectedScenario, form.reset])
 
-  const onSubmit = (data: PresentationScenarioRequestType) => {
+  const onSubmit = (data: PresentationScenarioRequest) => {
     if (selectedScenario === null) return
 
     // updateScenario(selectedScenario, updatedScenario)

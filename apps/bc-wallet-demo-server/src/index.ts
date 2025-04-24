@@ -20,9 +20,7 @@ const app: Express = createExpressServer({
 const server = http.createServer(app)
 
 const ws = new Server(server, {
-  cors: {
-    origin: true,
-  },
+  cors: corsOptions,
   path: `${baseRoute}/socket/`,
 })
 
@@ -88,7 +86,7 @@ const run = async () => {
     res.send(response.data)
   })
 
-  server.listen(process.env.NODE_PORT || 5000)
+  server.listen(process.env.NODE_PORT || 3000)
 }
 
 void run()

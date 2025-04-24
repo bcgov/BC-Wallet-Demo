@@ -1,4 +1,8 @@
-import { ScenarioType, StepActionType } from 'bc-wallet-openapi'
+import {
+  AriesProofRequest,
+  ScenarioType,
+  StepActionType
+} from 'bc-wallet-openapi'
 
 export interface RevocationRecord {
   connectionId: string
@@ -172,7 +176,7 @@ export interface Showcase {
   name: string
   slug: string
   description: string
-  scenarios: Scenario[]
+  scenarios: Array<IssuanceScenario | PresentationScenario>
 }
 
 export interface Scenario {
@@ -183,6 +187,15 @@ export interface Scenario {
   persona: Persona
   steps: Step[]
   issuer?: Issuer
+  relyingParty?: RelyingParty
+}
+
+export interface IssuanceScenario extends Scenario {
+  issuer: Issuer
+}
+
+export interface PresentationScenario extends Scenario {
+  relyingParty: RelyingParty
 }
 
 export interface Persona {
@@ -199,16 +212,26 @@ export interface Step {
   description: string
   asset?: string
   order: number
-  actions?: StepAction[]
+  actions?: Array<StepAction | AriesOOBStepAction | AcceptCredentialStepAction>
 }
 
 export interface StepAction {
   actionType: StepActionType
-  credentialDefinitions?: CredentialDefinition[]
+  title: string
+  text: string
+}
+
+export interface AriesOOBStepAction extends StepAction {
+  credentialDefinitions: CredentialDefinition[]
+}
+
+export interface AcceptCredentialStepAction extends StepAction {
+  credentialDefinitions: CredentialDefinition[]
 }
 
 export interface Issuer {
   name: string
+  logo?: string
 }
 
 export interface CredentialDefinition {
@@ -216,11 +239,23 @@ export interface CredentialDefinition {
   version: string
   name: string
   icon?: string
+  schema: CredentialSchema
+  identifier: string
+  proofRequest?: AriesProofRequest
+}
+
+export interface CredentialSchema {
   attributes: CredentialDefinitionAttribute[]
+  name: string
   identifier: string
 }
 
 export interface CredentialDefinitionAttribute {
   name: string
   value?: string
+}
+
+export interface RelyingParty {
+  name: string
+  logo?: string
 }

@@ -1,10 +1,8 @@
+'use client'
+
 import { useCallback } from 'react'
-import type { ShowcaseRequestType, StepRequestType } from '@/openapi-types'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import apiClient from '@/lib/apiService'
 import { usePresentationCreation } from './use-presentation-creation'
-import type {  Persona } from 'bc-wallet-openapi'
+import type { Persona, StepRequest } from 'bc-wallet-openapi'
 
 export const usePresentationAdapter = () => {
   const {
@@ -31,9 +29,6 @@ export const usePresentationAdapter = () => {
     selectStep,
   } = usePresentationCreation()
 
-  const { displayShowcase } = useShowcaseStore()
-  const queryClient = useQueryClient()
-
   const getCurrentSteps = useCallback(() => {
     if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
 
@@ -47,20 +42,18 @@ export const usePresentationAdapter = () => {
   const steps = getCurrentSteps()
 
   const createStep = useCallback(
-    (stepData: StepRequestType) => {
+    (stepData: StepRequest) => {
       if (!activePersonaId) return
 
       addStep(activePersonaId, activeScenarioIndex, stepData)
-      // Set the newly added step as selected
       setSelectedStep({ stepIndex: steps.length, scenarioIndex: activeScenarioIndex })
       setStepState('editing-basic')
     },
     [activePersonaId, activeScenarioIndex, addStep, steps.length],
   )
 
-  // Update step wrapper
   const handleUpdateStep = useCallback(
-    (index: number, stepData: StepRequestType) => {
+    (index: number, stepData: StepRequest) => {
       if (!activePersonaId) return
 
       updateStep(activePersonaId, activeScenarioIndex, index, stepData)
@@ -89,29 +82,10 @@ export const usePresentationAdapter = () => {
     [activePersonaId, activeScenarioIndex, moveStep],
   )
 
-  const updateShowcaseMutation = useMutation({
-    mutationFn: async (showcaseData: ShowcaseRequestType) => {
-      let response
-
-      if (displayShowcase.id) {
-        response = await apiClient.put(`/showcases/${displayShowcase.slug}`, showcaseData)
-      } else {
-        response = await apiClient.post('/showcases', showcaseData)
-      }
-
-      return response
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['showcases'] })
-    },
-  })
-
   const activePersona = activePersonaId ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null : null
 
   const handleSelectStep = useCallback(
-    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
-      console.log('handleSelectStep', { stepIndex, scenarioIndex });
-      
+    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {      
       selectStep(stepIndex, scenarioIndex);
     },
     [selectStep],
@@ -136,7 +110,6 @@ export const usePresentationAdapter = () => {
     scenarios:
       activePersonaId && personaScenarios.has(activePersonaId) ? personaScenarios.get(activePersonaId) || [] : [],
     personaScenarios,
-    isSaving: updateShowcaseMutation.isPending,
     duplicateScenario,
     activeScenarioIndex,
     setActiveScenarioIndex,

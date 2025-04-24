@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { trackPageView } from '@snowplow/browser-tracker'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -17,15 +17,14 @@ import { NavBar } from '../landing/components/Navbar'
 import { DemoCompletedModal } from './components/DemoCompletedModal'
 import { ProfileCard } from './components/ProfileCard'
 import { UseCaseContainer } from './components/UseCaseContainer'
-import { fetchPersonaBySlug, fetchShowcaseBySlug } from '../../slices/showcases/showcasesThunks';
-import { usePersonaSlug, useSlug } from '../../utils/SlugUtils';
-import { PageNotFound } from '../PageNotFound';
+import { fetchPersonaBySlug, fetchShowcaseBySlug } from '../../slices/showcases/showcasesThunks'
+import { usePersonaSlug, useSlug } from '../../utils/SlugUtils'
+import { PageNotFound } from '../PageNotFound'
+import { ScenarioType } from 'bc-wallet-openapi'
 import type { Scenario } from '../../slices/types'
-import {ScenarioType} from 'bc-wallet-openapi';
 
 export const DashboardPage: React.FC = () => {
   useTitle('Dashboard | BC Wallet Self-Sovereign Identity Demo')
-
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { revokableCredentials } = useCredentials()
@@ -77,7 +76,7 @@ export const DashboardPage: React.FC = () => {
   const ERROR_TITLE = `Woops...`
   const ERROR_DESCRIPTION = `That's not gone well. Please restart the demo.`
   const routeError = () => {
-    navigate(`${basePath}/demo`)
+    navigate(`${basePath}/`)
     dispatch({ type: 'demo/RESET' })
   }
 
@@ -110,12 +109,13 @@ export const DashboardPage: React.FC = () => {
       <div className="mx-8 my-4">
         <NavBar />
       </div>
-      {currentPersona ? (
+      {currentPersona && showcase ? (
         <>
           <div className="flex flex-col lg:flex-row mb-auto">
             <div className="w-full lg:w-2/3 order-last lg:order-first">
               <UseCaseContainer
-                  completedUseCaseSlugs={completedUseCaseSlugs} // FIXME we need to implement this later
+                  showcase={showcase}
+                  completedUseCaseSlugs={completedUseCaseSlugs}
                   currentPersona={currentPersona}
                   scenarios={scenarios}
               />
