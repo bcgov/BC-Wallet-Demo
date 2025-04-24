@@ -1,0 +1,111 @@
+name: Uninstall PR resources
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to uninstall'
+        required: true
+        type: string
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/bc-wallet-api-server/**"
+      - "packages/bc-wallet-traction-adapter/**"
+      - "apps/bc-wallet-showcase-creator/**"
+      - "apps/bc-wallet-demo-server/**"
+      - "apps/bc-wallet-demo-web/**"
+      - "charts/**"
+    types:
+      - closed
+
+jobs:
+          
+  uninstall:
+    name: Uninstall PR
+    environment: development
+    runs-on: ubuntu-22.04
+    if: github.repository_owner == 'bcgov'
+    steps:
+      # Set PR number based on event type
+      - name: Set PR number
+        id: pr_number
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "PR_NUM=${{ github.event.inputs.pr_number }}" >> $GITHUB_ENV
+          else
+            echo "PR_NUM=${{ github.event.number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: "4.14"
+
+      - name: Authenticate and set context
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+          certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
+          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      - name: Uninstall Credential Showcase resources via Helm
+        continue-on-error: true
+        run: |
+          helm uninstall pr-${{ env.PR_NUM }}-bc-wallet --namespace ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      - name: Remove Credential Showcase Openshift Objects
+        continue-on-error: true
+        run: |
+          oc delete secret,pvc,route,service,deployment,statefulset,configmap \
+            --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet"
+
+  clean-ghcr:
+    runs-on: ubuntu-22.04
+    name: Delete closed PR images
+    steps:
+      - name: Delete API Server Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-api-server
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Delete Traction Adapter Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-traction-adapter
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Showcase Creator Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-showcase-creator 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Demo Server Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-demo-server 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Demo Web Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-demo-web 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
