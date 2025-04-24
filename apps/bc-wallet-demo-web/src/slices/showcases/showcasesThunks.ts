@@ -131,6 +131,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
         scenarios: scenarios as Array<PresentationScenario | IssuanceScenario>,
       }
     } catch (e) {
+      console.error(e)
       return null
     }
   },
