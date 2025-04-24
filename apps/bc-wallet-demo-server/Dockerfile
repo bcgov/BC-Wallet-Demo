@@ -25,6 +25,7 @@ COPY apps/bc-wallet-demo-server apps/bc-wallet-demo-server
 # Install dependencies and build
 RUN rm -rf $(pnpm store path) && pnpm install -g typescript ts-node
 RUN pnpm install --frozen-lockfile
+RUN pnpm build:clean # FIXME turbo does not always build this correctly in docker compose for unknown reasons, so do a pre-build
 RUN pnpm build
 RUN pnpm deploy /deploy --filter bc-wallet-demo-server --prod --no-optional
 
@@ -34,7 +35,7 @@ FROM node:20-bookworm-slim
 WORKDIR /app
 COPY --from=builder /deploy /app
 ENV NODE_ENV=production
-RUN echo NODE_PORT=3000 > .env
-EXPOSE 3000
+#RUN echo NODE_PORT=3000 > .env
+#EXPOSE 3000
 
 CMD ["node", "build/src/index.js"]
