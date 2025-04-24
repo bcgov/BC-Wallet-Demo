@@ -1,0 +1,82 @@
+{{- if .Values.api_server.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bc-wallet.fullname" . }}-api-server
+  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: bc-wallet
+    {{- include "bc-wallet.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.api_server.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "bc-wallet.fullname" . }}-api-server
+  template:
+    metadata:
+      labels:
+        app: {{ include "bc-wallet.fullname" . }}-api-server
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: bc-wallet
+        {{- include "bc-wallet.labels" . | nindent 8 }}
+      {{- with .Values.api_server.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.api_server.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: api-server
+        image: "{{ .Values.api_server.image.repository }}:{{ .Values.api_server.image.tag }}"
+        imagePullPolicy: {{ .Values.api_server.image.pullPolicy }}
+        {{- with .Values.api_server.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.api_server.port }}
+          name: http
+        env:
+        - name: AMQ_HOST
+          value: {{.Release.Name}}-rabbitmq
+        - name: AMQ_PORT
+          value: {{ .Values.rabbitmq.port | quote }}
+        - name: AMQ_TRANSPORT
+          value: tcp
+        - name: AMQ_USER
+          value: {{ .Values.rabbitmq.auth.username | quote }}
+        - name: AMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
+              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+        - name: DB_HOST
+          value: {{ .Release.Name }}-postgresql
+        {{- range $key, $value := .Values.api_server.env }}
+        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- toYaml $value | nindent 12 }}
+        {{- else if ne $key "DB_HOST" }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.database.secret.name" . }}
+              key: {{ include "bc-wallet.database.userPasswordKey" . }}
+        - name: AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.authtoken.secret.name" . }}
+              key: token
+        resources:
+          {{- toYaml .Values.api_server.resources | nindent 12 }}
+      serviceAccountName: {{ if .Values.api_server.serviceAccount.create }}{{ if .Values.api_server.serviceAccount.name }}{{ .Values.api_server.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-api-server{{ end }}{{ end }}
+{{- end }}
