@@ -31,7 +31,8 @@ services:
       - AMQ_PORT=${RABBITMQ_PORT:-5672}
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
-      - AMQ_TRANSPORT=tcp # FIXME when tls is working
+      - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
+      - ENCRYPTION_KEY=${RABBITMQ_PASSWORD}
       # temp keycloak settings
       - REALM=${REALM}
       - CLIENT_ID=${CLIENT_ID}
@@ -94,7 +95,8 @@ services:
       - AMQ_PORT=${RABBITMQ_PORT:-5672}
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
-      - AMQ_TRANSPORT=tcp # FIXME when tls is working
+      - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
+      - ENCRYPTION_KEY=${RABBITMQ_PASSWORD}
     depends_on:
       - rabbitmq  # Ensure RabbitMQ starts first
 
