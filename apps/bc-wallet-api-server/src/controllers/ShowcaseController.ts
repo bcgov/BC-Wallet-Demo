@@ -1,4 +1,13 @@
 import {
+  instanceOfShowcaseRequest,
+  ShowcaseRequest,
+  ShowcaseRequestToJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
+  ShowcasesResponse,
+  ShowcasesResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -12,22 +21,14 @@ import {
   Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
-import {
-  instanceOfShowcaseRequest,
-  ShowcaseRequest,
-  ShowcaseRequestToJSONTyped,
-  ShowcaseResponse,
-  ShowcaseResponseFromJSONTyped,
-  ShowcasesResponse,
-  ShowcasesResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
+
 import ShowcaseService from '../services/ShowcaseService'
 import { showcaseDTOFrom } from '../utils/mappers'
 
 @JsonController('/showcases')
 @Service()
 class ShowcaseController {
-  constructor(private showcaseService: ShowcaseService) {}
+  public constructor(private showcaseService: ShowcaseService) {}
 
   @Get('/')
   public async getAll(): Promise<ShowcasesResponse> {
@@ -60,7 +61,9 @@ class ShowcaseController {
   @Authorized()
   @HttpCode(201)
   @Post('/')
-  public async post(@Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
+  public async post(
+    @Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest,
+  ): Promise<ShowcaseResponse> {
     try {
       if (!instanceOfShowcaseRequest(showcaseRequest)) {
         return Promise.reject(new BadRequestError())
@@ -77,7 +80,10 @@ class ShowcaseController {
 
   @Authorized()
   @Put('/:slug')
-  public async put(@Param('slug') slug: string, @Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest): Promise<ShowcaseResponse> {
+  public async put(
+    @Param('slug') slug: string,
+    @Body({ options: { limit: '250mb' } }) showcaseRequest: ShowcaseRequest,
+  ): Promise<ShowcaseResponse> {
     const id = await this.showcaseService.getIdBySlug(slug)
     try {
       if (!instanceOfShowcaseRequest(showcaseRequest)) {

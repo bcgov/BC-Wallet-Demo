@@ -1,4 +1,13 @@
 import {
+  CredentialSchemaRequest,
+  CredentialSchemaRequestToJSONTyped,
+  CredentialSchemaResponse,
+  CredentialSchemaResponseFromJSONTyped,
+  CredentialSchemasResponse,
+  CredentialSchemasResponseFromJSONTyped,
+  instanceOfCredentialSchemaRequest,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -12,21 +21,13 @@ import {
   Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
+
 import CredentialSchemaService from '../services/CredentialSchemaService'
-import {
-  CredentialSchemaRequest,
-  CredentialSchemaRequestToJSONTyped,
-  CredentialSchemaResponse,
-  CredentialSchemaResponseFromJSONTyped,
-  CredentialSchemasResponse,
-  CredentialSchemasResponseFromJSONTyped,
-  instanceOfCredentialSchemaRequest,
-} from 'bc-wallet-openapi'
 
 @JsonController('/credentials/schemas')
 @Service()
 export class CredentialSchemaController {
-  constructor(private credentialSchemaService: CredentialSchemaService) {}
+  public constructor(private credentialSchemaService: CredentialSchemaService) {}
 
   @Get('/')
   public async getAll(): Promise<CredentialSchemasResponse> {
@@ -62,7 +63,9 @@ export class CredentialSchemaController {
       if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const credentialSchema = await this.credentialSchemaService.createCredentialSchema(CredentialSchemaRequestToJSONTyped(credentialSchemaRequest))
+      const credentialSchema = await this.credentialSchemaService.createCredentialSchema(
+        CredentialSchemaRequestToJSONTyped(credentialSchemaRequest),
+      )
       return CredentialSchemaResponseFromJSONTyped({ credentialSchema }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -74,7 +77,10 @@ export class CredentialSchemaController {
 
   @Authorized()
   @Put('/:id')
-  public async put(@Param('id') id: string, @Body() credentialSchemaRequest: CredentialSchemaRequest): Promise<CredentialSchemaResponse> {
+  public async put(
+    @Param('id') id: string,
+    @Body() credentialSchemaRequest: CredentialSchemaRequest,
+  ): Promise<CredentialSchemaResponse> {
     try {
       if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
         return Promise.reject(new BadRequestError())

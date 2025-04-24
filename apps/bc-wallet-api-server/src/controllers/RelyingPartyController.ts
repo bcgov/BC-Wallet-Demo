@@ -1,4 +1,13 @@
 import {
+  instanceOfRelyingPartyRequest,
+  RelyingPartiesResponse,
+  RelyingPartiesResponseFromJSONTyped,
+  RelyingPartyRequest,
+  RelyingPartyRequestToJSONTyped,
+  RelyingPartyResponse,
+  RelyingPartyResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -12,22 +21,14 @@ import {
   Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
-import {
-  instanceOfRelyingPartyRequest,
-  RelyingPartiesResponse,
-  RelyingPartiesResponseFromJSONTyped,
-  RelyingPartyRequest,
-  RelyingPartyRequestToJSONTyped,
-  RelyingPartyResponse,
-  RelyingPartyResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
+
 import RelyingPartyService from '../services/RelyingPartyService'
 import { relyingPartyDTOFrom } from '../utils/mappers'
 
 @JsonController('/roles/relying-parties')
 @Service()
 class RelyingPartyController {
-  constructor(private relyingPartyService: RelyingPartyService) {}
+  public constructor(private relyingPartyService: RelyingPartyService) {}
 
   @Get('/')
   public async getAll(): Promise<RelyingPartiesResponse> {
@@ -64,7 +65,9 @@ class RelyingPartyController {
       if (!instanceOfRelyingPartyRequest(relyingPartyRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.relyingPartyService.createRelyingParty(RelyingPartyRequestToJSONTyped(relyingPartyRequest))
+      const result = await this.relyingPartyService.createRelyingParty(
+        RelyingPartyRequestToJSONTyped(relyingPartyRequest),
+      )
       return RelyingPartyResponseFromJSONTyped({ relyingParty: relyingPartyDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -76,12 +79,18 @@ class RelyingPartyController {
 
   @Authorized()
   @Put('/:id')
-  public async put(@Param('id') id: string, @Body() relyingPartyRequest: RelyingPartyRequest): Promise<RelyingPartyResponse> {
+  public async put(
+    @Param('id') id: string,
+    @Body() relyingPartyRequest: RelyingPartyRequest,
+  ): Promise<RelyingPartyResponse> {
     try {
       if (!instanceOfRelyingPartyRequest(relyingPartyRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const result = await this.relyingPartyService.updateRelyingParty(id, RelyingPartyRequestToJSONTyped(relyingPartyRequest))
+      const result = await this.relyingPartyService.updateRelyingParty(
+        id,
+        RelyingPartyRequestToJSONTyped(relyingPartyRequest),
+      )
       return RelyingPartyResponseFromJSONTyped({ relyingParty: relyingPartyDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {

@@ -1,4 +1,13 @@
 import {
+  instanceOfIssuerRequest,
+  IssuerRequest,
+  IssuerRequestToJSONTyped,
+  IssuerResponse,
+  IssuerResponseFromJSONTyped,
+  IssuersResponse,
+  IssuersResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -12,22 +21,14 @@ import {
   Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
-import {
-  instanceOfIssuerRequest,
-  IssuerRequest,
-  IssuerRequestToJSONTyped,
-  IssuerResponse,
-  IssuerResponseFromJSONTyped,
-  IssuersResponse,
-  IssuersResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
+
 import IssuerService from '../services/IssuerService'
 import { issuerDTOFrom } from '../utils/mappers'
 
 @JsonController('/roles/issuers')
 @Service()
 class IssuerController {
-  constructor(private issuerService: IssuerService) {}
+  public constructor(private issuerService: IssuerService) {}
 
   @Get('/')
   public async getAll(): Promise<IssuersResponse> {

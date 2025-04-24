@@ -1,4 +1,13 @@
 import {
+  instanceOfPersonaRequest,
+  PersonaRequest,
+  PersonaRequestToJSONTyped,
+  PersonaResponse,
+  PersonaResponseFromJSONTyped,
+  PersonasResponse,
+  PersonasResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -12,22 +21,14 @@ import {
   Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
-import {
-  instanceOfPersonaRequest,
-  PersonaRequest,
-  PersonaRequestToJSONTyped,
-  PersonaResponse,
-  PersonaResponseFromJSONTyped,
-  PersonasResponse,
-  PersonasResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
+
 import PersonaService from '../services/PersonaService'
 import { personaDTOFrom } from '../utils/mappers'
 
 @JsonController('/personas')
 @Service()
 class PersonaController {
-  constructor(private personaService: PersonaService) {}
+  public constructor(private personaService: PersonaService) {}
 
   @Get('/')
   public async getAll(): Promise<PersonasResponse> {

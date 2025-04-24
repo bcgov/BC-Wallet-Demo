@@ -1,4 +1,14 @@
 import {
+  instanceOfTenantRequest,
+  TenantRequest,
+  TenantRequestToJSONTyped,
+  TenantResponse,
+  TenantResponseFromJSONTyped,
+  TenantsResponse,
+  TenantsResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
+  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -11,21 +21,13 @@ import {
   Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
+
 import TenantService from '../services/TenantService'
-import {
-  instanceOfTenantRequest,
-  TenantRequest,
-  TenantRequestToJSONTyped,
-  TenantResponse,
-  TenantResponseFromJSONTyped,
-  TenantsResponse,
-  TenantsResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
 
 @JsonController('/tenants')
 @Service()
 class TenantController {
-  constructor(private tenantService: TenantService) {}
+  public constructor(private tenantService: TenantService) {}
 
   @Get('/')
   public async getAll(): Promise<TenantsResponse> {
@@ -53,6 +55,7 @@ class TenantController {
     }
   }
 
+  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
@@ -70,6 +73,7 @@ class TenantController {
     }
   }
 
+  @Authorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
     try {
@@ -86,6 +90,7 @@ class TenantController {
     }
   }
 
+  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {
