@@ -79,7 +79,7 @@ export const EditProofRequest = ({
 
   const handleConditionTypeChange = (index: number, value: string) => {
     const currentAttributes = form.getValues(`attributes.${credentialName}.attributes`) || []
-    const attribute = currentAttributes[index]
+    const attribute = currentAttributes[0]
 
     if (value === 'none') {
       const predicates = form.getValues('predicates') || {}
@@ -91,7 +91,7 @@ export const EditProofRequest = ({
       }
     } else {
       const newPredicateKey = `${Date.now()}`
-      form.setValue(`predicates.${newPredicateKey}`, {
+      form.setValue(`predicates.${attribute}`, {
         name: attribute,
         type: value as '>=',
         value: 0,
@@ -130,7 +130,7 @@ export const EditProofRequest = ({
           proofRequest: {
             ...action.proofRequest,
             attributes: form.getValues().attributes,
-            predicates:{}
+            predicates:form.getValues().predicates,
           }
         };
       }),
