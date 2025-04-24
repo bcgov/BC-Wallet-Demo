@@ -31,7 +31,8 @@ services:
       - AMQ_PORT=${RABBITMQ_PORT:-5672}
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
-      - AMQ_TRANSPORT=tcp # FIXME when tls is working
+      - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       # temp keycloak settings
       - REALM=${REALM}
       - CLIENT_ID=${CLIENT_ID}
@@ -95,7 +96,8 @@ services:
       - AMQ_PORT=${RABBITMQ_PORT:-5672}
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
-      - AMQ_TRANSPORT=tcp # FIXME when tls is working
+      - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     depends_on:
       - rabbitmq  # Ensure RabbitMQ starts first
 
@@ -172,7 +174,7 @@ services:
       - REACT_APP_BASE_ROUTE=${REACT_APP_BASE_ROUTE:-/digital-trust/showcase}
       - REACT_APP_INSIGHTS_PROJECT_ID=${REACT_APP_INSIGHTS_PROJECT_ID}
     ports:
-      - "${DEMO_WEB_PORT:-5002}:80" # Caddy uses port 80 by default
+      - "${DEMO_WEB_PORT:-5002}:3000" # The Caddy container port was moved to 3000, requested by BC
     depends_on:
       - bc-wallet-demo-server
       - bc-wallet-api-server
