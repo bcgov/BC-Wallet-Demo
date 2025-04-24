@@ -12,7 +12,6 @@ on:
         - "apps/bc-wallet-demo-server/**"
         - "apps/bc-wallet-demo-web/**"
         - "charts/**"
-        - ".github/**"
 
 jobs:
   build_api_server:
@@ -63,7 +62,7 @@ jobs:
         uses: ./.github/actions/build_docker
         id: builder
         with:
-          context: "."
+          context: "./apps/bc-wallet-showcase-creator"
           dockerfile: "./apps/bc-wallet-showcase-creator/Dockerfile"
           image_name: ${{ github.repository_owner}}/bc-wallet-showcase-creator
           registry: ghcr.io
@@ -82,7 +81,7 @@ jobs:
         uses: ./.github/actions/build_docker
         id: builder
         with:
-          context: "."
+          context: "./apps/bc-wallet-demo-server"
           dockerfile: "./apps/bc-wallet-demo-server/Dockerfile"
           image_name: ${{ github.repository_owner}}/bc-wallet-demo-server
           registry: ghcr.io
