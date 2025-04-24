@@ -32,11 +32,11 @@ services:
       - AMQ_USER=${RABBITMQ_USER}
       - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - AMQ_TRANSPORT=tcp # FIXME when tls is working
+      # temp keycloak settings
       - REALM=${REALM}
-      - AUTH_SERVER_URL=${AUTH_SERVER_URL}
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
-
+      - AUTH_SERVER_URL=${AUTH_SERVER_URL}
     depends_on:
       - postgres  # Ensure Postgres starts first
     ports:
@@ -63,6 +63,7 @@ services:
       - ALLOW_CREDENTIALS=${ALLOW_CREDENTIALS}
       # Application specific variables from .env
       - TENANT_ID=${TENANT_ID}
+      - API_KEY=${API_KEY}
       - WALLET_KEY=${WALLET_KEY}
       - TRACTION_URL=${TRACTION_URL}
       - TRACTION_DID=${TRACTION_DID}
