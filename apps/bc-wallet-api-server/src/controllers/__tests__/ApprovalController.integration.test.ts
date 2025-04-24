@@ -90,6 +90,7 @@ describe('ApprovalController Integration Tests', () => {
     // Setup Express Server with the controller
     app = createExpressServer({
       controllers: [ApprovalController, ShowcaseController, CredentialDefinitionController],
+      authorizationChecker: () => true,
     })
     request = supertest(app)
   })
