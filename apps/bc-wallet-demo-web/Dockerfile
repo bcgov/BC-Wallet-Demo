@@ -19,7 +19,7 @@ RUN pnpm --filter bc-wallet-demo-web build
 FROM ${runtime_image} as production-stage
 COPY --from=build-stage /app/apps/bc-wallet-demo-web/build /srv/digital-trust/showcase
 
-COPY apps/bc-wallet-demo-web/Caddyfile.template /etc/caddy/Caddyfile.template
+COPY apps/bc-wallet-demo-web/Caddyfile /etc/caddy/Caddyfile
 COPY apps/bc-wallet-demo-web/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
