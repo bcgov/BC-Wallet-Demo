@@ -14,7 +14,7 @@ RUN pnpm generate:models
 RUN pnpm --filter bc-wallet-openapi build:clean
 
 COPY apps/bc-wallet-showcase-creator/ ./apps/bc-wallet-showcase-creator/
-RUN cd apps/bc-wallet-showcase-creator && pnpm install
+RUN cd apps/bc-wallet-showcase-creator && rm -rf .next && pnpm install
 RUN pnpm run build --filter bc-wallet-showcase-creator
 
 #Runtime step
