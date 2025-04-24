@@ -25,6 +25,10 @@ api_server:
     ALLOW_CREDENTIALS: true
     API_KEY: SENSITIVE
     ENCRYPTION_KEY: SENSITIVE
+    REALM: BC
+    AUTH_SERVER_URL: SENSITIVE
+    CLIENT_ID: showcase-tenantA
+    CLIENT_SECRET: SENSITIVE
   resources:
     limits:
       cpu: 200m
