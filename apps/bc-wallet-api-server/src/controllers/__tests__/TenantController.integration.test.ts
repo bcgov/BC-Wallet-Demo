@@ -28,12 +28,16 @@ import TenantController from '../TenantController'
 import supertest = require('supertest')
 import { MockSessionService } from './MockSessionService'
 
+import { environment } from 'bc-wallet-adapter-client-api/dist/environment'
+
 describe('TenantController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
 
   beforeAll(async () => {
+    process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+
     client = new PGlite()
     const database = drizzle(client, { schema }) as unknown as NodePgDatabase
     await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
