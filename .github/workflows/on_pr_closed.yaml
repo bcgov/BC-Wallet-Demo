@@ -14,7 +14,7 @@ on:
       # - develop-4sure
     paths:
       - "apps/bc-wallet-api-server/**"
-      - "packages/bc-wallet-traction-adapter/**"
+      - "apps/bc-wallet-traction-adapter/**"
       - "apps/bc-wallet-showcase-creator/**"
       - "apps/bc-wallet-demo-server/**"
       - "apps/bc-wallet-demo-web/**"

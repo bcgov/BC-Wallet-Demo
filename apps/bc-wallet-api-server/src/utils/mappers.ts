@@ -73,6 +73,7 @@ export const credentialDefinitionDTOFrom = (credentialDefinition: CredentialDefi
     ...credentialDefinition,
     identifierType: credentialDefinition.identifierType || undefined,
     identifier: credentialDefinition.identifier || undefined,
+    source: credentialDefinition.source || undefined,
     credentialSchema: credentialSchemaDTOFrom(credentialDefinition.credentialSchema),
     representations: credentialDefinition.representations,
     revocation: credentialDefinition.revocation || undefined,

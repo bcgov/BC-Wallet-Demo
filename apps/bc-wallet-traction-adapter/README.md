@@ -87,7 +87,7 @@ pnpm start
 A temporary test for RabbitMQ is located at:
 
 ```
-packages/bc-wallet-traction-adapter/src/__tests__/rabbit-mq.test.ts
+apps/bc-wallet-traction-adapter/src/__tests__/rabbit-mq.test.ts
 ```
 
 We use **Jest** with **Testcontainers** to spin up RabbitMQ containers.

@@ -4,7 +4,7 @@ import { LRUCache } from 'lru-cache'
 import { environment } from '../environment'
 import { decryptBufferAsString } from '../util/CypherUtil'
 import { ShowcaseApiService } from './showcase-api-service'
-import { TractionService } from './traction-service'
+import { TractionService, UpdateBearerTokens } from './traction-service'
 
 class ServiceManager {
   private readonly services = new LRUCache<string, TractionService | ShowcaseApiService>({
@@ -22,6 +22,7 @@ class ServiceManager {
   ): Promise<TractionService> {
     const key = this.buildKey(tractionApiUrlBase, tenantId, walletId)
     const decodedToken = this.decodeToken(accessTokenEnc, accessTokenNonce)
+    const updateBearerTokens: UpdateBearerTokens = { showcaseApiToken: decodedToken }
 
     // Return existing service if it exists
     if (this.services.has(key)) {
@@ -35,10 +36,10 @@ class ServiceManager {
       }*/
       // -> Alternative logic
       if (!service.hasBearerToken() && environment.traction.FIXED_API_KEY) {
-        service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY), decodedToken)
-      } else if (!service.hasBearerToken() && decodedToken) {
-        service.updateBearerToken(decodedToken)
+        const freshTractionToken = await service.getTenantToken(environment.traction.FIXED_API_KEY)
+        updateBearerTokens.tractionToken = freshTractionToken
       }
+      service.updateBearerTokens(updateBearerTokens)
       return service
     }
 
@@ -51,16 +52,10 @@ class ServiceManager {
 */
     // -> Alternative logic
     if (environment.traction.FIXED_API_KEY) {
-      tractionService.updateBearerToken(
-        await tractionService.getTenantToken(environment.traction.FIXED_API_KEY),
-        decodedToken,
-      )
-    } else if (!tractionService.hasBearerToken() && decodedToken) {
-      tractionService.updateBearerToken(decodedToken)
-    } else {
-      return Promise.reject(Error('Access token for Traction is neither present nor could it be created'))
+      const freshTractionToken = await tractionService.getTenantToken(environment.traction.FIXED_API_KEY)
+      updateBearerTokens.tractionToken = freshTractionToken
     }
-
+    tractionService.updateBearerTokens(updateBearerTokens)
     this.services.set(key, tractionService)
     return tractionService
   }

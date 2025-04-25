@@ -10,7 +10,6 @@ import {
   createTestAsset,
   createTestCredentialDefinition,
   createTestCredentialSchema,
-  setupTestDatabase,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -20,6 +19,7 @@ import DatabaseService from '../../services/DatabaseService'
 import RelyingPartyService from '../../services/RelyingPartyService'
 import { CredentialType, IdentifierType, RelyingPartyType } from '../../types'
 import RelyingPartyController from '../RelyingPartyController'
+import { setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
 
 describe('RelyingPartyController Integration Tests', () => {

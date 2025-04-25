@@ -74,7 +74,6 @@ export const DisplayAddedCredentials = ({
           version: cred.credentialSchema.version,
           identifierType: cred.credentialSchema.identifierType || 'DID',
           source: cred.credentialSchema.source || 'CREATED',
-          identifier: cred.credentialSchema.identifier || 'did:sov:XUeUZauFLeBNofY3NhaZCB',
           attributes: updatedAttrs.map(attr => ({
             name: attr.name,
             value: attr.value,

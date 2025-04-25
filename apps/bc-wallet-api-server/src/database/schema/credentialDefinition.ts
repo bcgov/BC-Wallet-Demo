@@ -1,13 +1,15 @@
 import { relations } from 'drizzle-orm'
 import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+
+import { CredentialType, IdentifierType, Source } from '../../types'
 import { assets } from './asset'
-import { CredentialTypePg } from './credentialType'
 import { credentialRepresentations } from './credentialRepresentation'
-import { revocationInfo } from './revocationInfo'
-import { relyingPartiesToCredentialDefinitions } from './relyingPartiesToCredentialDefinitions'
-import { CredentialType, IdentifierType } from '../../types'
 import { credentialSchemas } from './credentialSchema'
+import { CredentialTypePg } from './credentialType'
 import { IdentifierTypePg } from './identifierType'
+import { relyingPartiesToCredentialDefinitions } from './relyingPartiesToCredentialDefinitions'
+import { revocationInfo } from './revocationInfo'
+import { SourcePg } from './sourceType'
 import { users } from './user'
 
 export const credentialDefinitions = pgTable(
@@ -23,6 +25,7 @@ export const credentialDefinitions = pgTable(
       .notNull(),
     icon: uuid('icon').references(() => assets.id),
     type: CredentialTypePg().notNull().$type<CredentialType>(),
+    source: SourcePg().$type<Source>().notNull().default(Source.CREATED),
     approvedBy: uuid('approved_by').references(() => users.id),
     approvedAt: timestamp('approved_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

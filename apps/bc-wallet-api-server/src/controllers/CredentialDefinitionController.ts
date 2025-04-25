@@ -1,10 +1,13 @@
 import {
+  CredentialDefinitionImportRequest,
+  CredentialDefinitionImportRequestToJSONTyped,
   CredentialDefinitionRequest,
   CredentialDefinitionRequestToJSONTyped,
   CredentialDefinitionResponse,
   CredentialDefinitionResponseFromJSONTyped,
   CredentialDefinitionsResponse,
   CredentialDefinitionsResponseFromJSONTyped,
+  instanceOfCredentialDefinitionImportRequest,
   instanceOfCredentialDefinitionRequest,
 } from 'bc-wallet-openapi'
 import {
@@ -81,6 +84,25 @@ export class CredentialDefinitionController {
       )
     } catch (e) {
       console.error('credentialDefinitionRequest post failed:', e)
+      return Promise.reject(e)
+    }
+  }
+
+  @Authorized()
+  @HttpCode(201)
+  @Post('/import')
+  public async importCredentialDefinition(
+    @Body() credentialDefinitionRequest: CredentialDefinitionImportRequest,
+  ): Promise<void> {
+    try {
+      if (!instanceOfCredentialDefinitionImportRequest(credentialDefinitionRequest)) {
+        return Promise.reject(new BadRequestError())
+      }
+      await this.credentialDefinitionService.importCredentialDefinition(
+        CredentialDefinitionImportRequestToJSONTyped(credentialDefinitionRequest),
+      )
+    } catch (e) {
+      console.error('importCredentialDefinition failed:', e)
       return Promise.reject(e)
     }
   }

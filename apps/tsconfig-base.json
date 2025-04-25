@@ -28,7 +28,7 @@
     "preserveConstEnums": true /* Prevents TypeScript from erasing const enum declarations. */,
     "declarationMap": true /* Generate .map files for .d.ts declarations. */,
     "composite": true /* Enables project references. */,
-    "types": ["jest"]
+    "types": ["node", "cypress", "jest"]
   },
   "exclude": ["**/__tests__/**/*", "**/dist/**/*"]
 }
