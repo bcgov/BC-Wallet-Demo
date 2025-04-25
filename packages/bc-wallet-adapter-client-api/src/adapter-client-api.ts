@@ -1,15 +1,27 @@
-import type { Issuer } from 'bc-wallet-openapi'
-import { instanceOfIssuer, IssuerToJSONTyped } from 'bc-wallet-openapi'
+import {
+  CredentialDefinitionImportRequest,
+  CredentialDefinitionImportRequestToJSONTyped,
+  CredentialSchema,
+  type CredentialSchemaImportRequest,
+  CredentialSchemaImportRequestToJSONTyped,
+  CredentialSchemaToJSONTyped,
+  instanceOfCredentialDefinitionImportRequest,
+  instanceOfCredentialSchema,
+  instanceOfCredentialSchemaImportRequest,
+  instanceOfIssuer,
+  Issuer,
+  IssuerToJSONTyped,
+} from 'bc-wallet-openapi'
 import { Connection, Sender } from 'rhea-promise'
 import { Service } from 'typedi'
 
 import { environment } from './environment'
-import { SendOptions } from './types'
+import { IAdapterClientApi, SendOptions } from './types'
 import { Action } from './types/adapter-backend'
 import { encryptBuffer } from './util/CypherUtil'
 
 @Service()
-export class AdapterClientApi {
+export class AdapterClientApi implements IAdapterClientApi {
   private readonly isInitComplete: Promise<void>
   private isConnected = false
   private connection: Connection
@@ -60,16 +72,30 @@ export class AdapterClientApi {
   private payloadToJson(payload: object) {
     if (instanceOfIssuer(payload)) {
       return IssuerToJSONTyped(payload, false)
+    } else if (instanceOfCredentialSchemaImportRequest(payload)) {
+      return CredentialSchemaImportRequestToJSONTyped(payload, false)
+    } else if (instanceOfCredentialDefinitionImportRequest(payload)) {
+      return CredentialDefinitionImportRequestToJSONTyped(payload, false)
     }
-    return JSON.stringify(payload)
+    throw Error('Unknown payload type')
   }
 
   public async publishIssuer(issuer: Issuer, options: SendOptions): Promise<void> {
-    try {
-      return this.send('publish-issuer-assets', issuer, options)
-    } catch (e) {
-      console.warn('publishIssuer failed', e) // FIXME remove after demo
-    }
+    return this.send('publish.issuer-assets', issuer, options)
+  }
+
+  public async importCredentialSchema(
+    importRequest: CredentialDefinitionImportRequest,
+    options: SendOptions,
+  ): Promise<void> {
+    return this.send('import.cred-schema', importRequest, options)
+  }
+
+  public async importCredentialDefinition(
+    credentialDefinition: CredentialDefinitionImportRequest,
+    options: SendOptions,
+  ): Promise<void> {
+    return this.send('import.cred-def', credentialDefinition, options)
   }
 
   public async close(): Promise<void> {

@@ -12,8 +12,8 @@
     "generate-key": "ts-node src/util/CypherUtil.ts generate-key"
   },
   "dependencies": {
-    "bc-wallet-traction-openapi": "workspace:*",
     "bc-wallet-openapi": "workspace:*",
+    "bc-wallet-traction-openapi": "workspace:*",
     "bs58": "^6.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -24,6 +24,7 @@
     "typedi": "^0.10.0"
   },
   "devDependencies": {
+    "@jridgewell/sourcemap-codec": "^1.5.0",
     "@testcontainers/rabbitmq": "^10.18.0",
     "@types/express": "^5.0.0",
     "@types/node": "^20.14.8",
