@@ -37,6 +37,7 @@ describe('TenantController Integration Tests', () => {
 
   beforeAll(async () => {
     process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+    process.env.NONCE_SIZE = `${environment.encryption.NONCE_SIZE ?? 12}`
 
     client = new PGlite()
     const database = drizzle(client, { schema }) as unknown as NodePgDatabase
