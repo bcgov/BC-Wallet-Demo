@@ -23,6 +23,7 @@ import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases'
 import { z } from 'zod'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { usePersonaAdapter } from '@/hooks/use-persona-adapter'
 
 const BannerImageUpload = ({
   text,
@@ -145,11 +146,13 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const router = useRouter()
   const { mutateAsync: updateShowcase } = useUpdateShowcase(slug)
   const { setShowcaseFromResponse } = useShowcaseStore()
+  const { setSelectedPersonaIds } = usePersonaAdapter()
   const { tenantId } = useHelpersStore()
   const [isLoading, setIsLoading] = useState(true)
 
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(slug)
   console.log('showcaseData', showcaseData)
+
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseFormSchema),
     mode: 'all',
@@ -166,6 +169,8 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
     },
   })
   
+  // Maybe create a hook to handle the form values and the global state updates
+  // on use-showcase adapter
   // Update form values when showcase data is loaded
   useEffect(() => {
     if (showcaseData && !isShowcaseLoading) {
@@ -190,7 +195,9 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
       setIsLoading(false)
       
       // Update global state if needed
+      setCurrentShowcaseSlug(showcase.slug)
       setShowcaseFromResponse(showcase)
+      setSelectedPersonaIds(showcase.personas?.map(p => typeof p === 'string' ? p : p.id) || [])
     }
   }, [showcaseData, isShowcaseLoading, form, tenantId, setShowcaseFromResponse])
 
