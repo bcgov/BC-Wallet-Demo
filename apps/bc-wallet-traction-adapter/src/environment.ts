@@ -53,8 +53,6 @@ export function validateTopic(topic?: string): Topic | undefined {
   return topic as Topic
 }
 
-console.debug('traction-adapter env:', process.env)
-
 export const environment = {
   messageBroker: {
     AMQ_HOST: process.env.AMQ_HOST || 'localhost',
@@ -86,3 +84,5 @@ export const environment = {
     AUTH_TAG_LENGTH: 16, // 128 bits, fixed for ChaCha20-Poly1305
   },
 }
+
+console.debug('traction-adapter env:', environment)
