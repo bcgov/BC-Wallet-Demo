@@ -87,8 +87,9 @@ async function checkResponse(response: Response) {
   throw new Error(errorMessage)
 }
 
-export function getBasePath(path: string): string {
-  return process.env.MODE === 'multitenant' ? `/:tenantId${path}` : path
+export function getBasePath(path?: string): string {
+  const basePath = path ?? ''
+  return process.env.MODE === 'multitenant' ? `/:tenantId${basePath}` : basePath
 }
 
 export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {

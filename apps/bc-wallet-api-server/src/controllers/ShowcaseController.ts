@@ -1,4 +1,13 @@
 import {
+  instanceOfShowcaseRequest,
+  ShowcaseRequest,
+  ShowcaseRequestToJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
+  ShowcasesResponse,
+  ShowcasesResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -11,21 +20,13 @@ import {
   Post,
   Put,
 } from 'routing-controllers'
-import {
-  instanceOfShowcaseRequest,
-  ShowcaseRequest,
-  ShowcaseRequestToJSONTyped,
-  ShowcaseResponse,
-  ShowcaseResponseFromJSONTyped,
-  ShowcasesResponse,
-  ShowcasesResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
 import { Service } from 'typedi'
 
 import ShowcaseService from '../services/ShowcaseService'
+import { getBasePath } from '../utils/auth'
 import { showcaseDTOFrom } from '../utils/mappers'
 
-@JsonController('/showcases')
+@JsonController(getBasePath('/showcases'))
 @Service()
 class ShowcaseController {
   public constructor(private showcaseService: ShowcaseService) {}

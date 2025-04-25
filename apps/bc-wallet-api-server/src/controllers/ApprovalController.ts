@@ -12,9 +12,10 @@ import { Service } from 'typedi'
 import { NotFoundError } from '../errors'
 import CredentialDefinitionService from '../services/CredentialDefinitionService'
 import ShowcaseService from '../services/ShowcaseService'
+import { getBasePath } from '../utils/auth'
 import { credentialDefinitionDTOFrom, showcaseDTOFrom } from '../utils/mappers'
 
-@JsonController()
+@JsonController(getBasePath())
 @Service()
 export class ApprovalController {
   public constructor(

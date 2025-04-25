@@ -25,8 +25,9 @@ import {
 import { Service } from 'typedi'
 
 import CredentialSchemaService from '../services/CredentialSchemaService'
+import { getBasePath } from '../utils/auth'
 
-@JsonController('/credentials/schemas')
+@JsonController(getBasePath('/credentials/schemas'))
 @Service()
 export class CredentialSchemaController {
   public constructor(private readonly credentialSchemaService: CredentialSchemaService) {}

@@ -23,9 +23,10 @@ import {
 import { Service } from 'typedi'
 
 import RelyingPartyService from '../services/RelyingPartyService'
+import { getBasePath } from '../utils/auth'
 import { relyingPartyDTOFrom } from '../utils/mappers'
 
-@JsonController('/roles/relying-parties')
+@JsonController(getBasePath('/roles/relying-parties'))
 @Service()
 class RelyingPartyController {
   public constructor(private relyingPartyService: RelyingPartyService) {}

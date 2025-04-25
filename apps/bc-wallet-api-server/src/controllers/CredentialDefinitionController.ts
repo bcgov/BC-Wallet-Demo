@@ -26,9 +26,10 @@ import {
 import { Service } from 'typedi'
 
 import CredentialDefinitionService from '../services/CredentialDefinitionService'
+import { getBasePath } from '../utils/auth'
 import { credentialDefinitionDTOFrom } from '../utils/mappers'
 
-@JsonController('/credentials/definitions')
+@JsonController(getBasePath('/credentials/definitions'))
 @Service()
 export class CredentialDefinitionController {
   public constructor(private credentialDefinitionService: CredentialDefinitionService) {}

@@ -23,9 +23,10 @@ import {
 import { Service } from 'typedi'
 
 import PersonaService from '../services/PersonaService'
+import { getBasePath } from '../utils/auth'
 import { personaDTOFrom } from '../utils/mappers'
 
-@JsonController('/personas')
+@JsonController(getBasePath('/personas'))
 @Service()
 class PersonaController {
   public constructor(private personaService: PersonaService) {}
