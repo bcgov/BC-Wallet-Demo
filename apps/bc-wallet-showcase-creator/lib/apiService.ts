@@ -1,28 +1,31 @@
 'use client'
 
-import { env } from "@/env";
-import { getSession } from "next-auth/react";
+import { env } from '@/env'
+import { getSession, signIn } from 'next-auth/react'
 
 class ApiService {
-  private baseUrl: string
+  private readonly baseUrl: string
 
   public constructor(baseUrl: string) {
     if (!baseUrl) {
-      throw new Error('API base URL is required');
+      throw new Error('API base URL is required')
     }
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl
   }
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
     const fullUrl = `${this.baseUrl}${url}`
-    const session = await getSession();
-    const accessToken = session?.accessToken
+    const accessToken = method !== 'GET' ? await this.getAuthToken() : undefined
+
+    if (!accessToken && method !== 'GET') {
+      return Promise.reject(Error('No access token found'))
+    }
 
     const options: RequestInit = {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
     }
 
@@ -69,6 +72,23 @@ class ApiService {
 
   public delete<T>(url: string): Promise<T | void> {
     return this.request<T>('DELETE', url)
+  }
+
+  private async getAuthToken(): Promise<string | null> {
+    const session = await getSession()
+
+    if (!session?.accessToken) {
+      void (await signIn('keycloak'))
+      return null
+    }
+
+    // Check for a refresh error
+    if (session?.error === 'RefreshAccessTokenError') {
+      void (await signIn('keycloak'))
+      return null
+    }
+
+    return session.accessToken
   }
 }
 

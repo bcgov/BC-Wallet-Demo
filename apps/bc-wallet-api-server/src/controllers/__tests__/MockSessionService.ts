@@ -1,6 +1,7 @@
 import { Service } from 'typedi'
 
 import type { Tenant, User } from '../../types'
+import { Claims } from '../../types/auth/claims'
 import type { ISessionService } from '../../types/services/session'
 
 @Service()
@@ -36,6 +37,10 @@ export class MockSessionService implements ISessionService {
 
   public getApiBaseUrl(): string | undefined {
     return undefined
+  }
+
+  public getActiveClaims(): Claims | undefined {
+    throw new Error('Method not implemented.')
   }
 
   /** Resets the mock state */
