@@ -16,6 +16,8 @@ rm -rf /var/lib/apt/lists/*
 WORKDIR /build
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json tsconfig.build.json tsconfig.eslint.json ./
 COPY packages packages
+COPY apps/bc-wallet-traction-adapter apps/bc-wallet-traction-adapter
+COPY apps/tsconfig-base.json apps/tsconfig-base.json
 RUN rm -rf $(pnpm store path) && pnpm install -g rimraf typescript tslib turbo
 RUN pnpm install
 RUN pnpm generate:models

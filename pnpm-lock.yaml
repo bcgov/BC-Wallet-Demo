@@ -144,6 +144,9 @@ importers:
       typedi:
         specifier: ^0.10.0
         version: 0.10.0
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
     devDependencies:
       '@electric-sql/pglite':
         specifier: ^0.2.17
@@ -566,6 +569,64 @@ importers:
         specifier: ^5
         version: 5.8.2
 
+  apps/bc-wallet-traction-adapter:
+    dependencies:
+      bc-wallet-openapi:
+        specifier: workspace:*
+        version: link:../../packages/bc-wallet-openapi
+      bc-wallet-traction-openapi:
+        specifier: workspace:*
+        version: link:../../packages/bc-wallet-traction-openapi
+      bs58:
+        specifier: ^6.0.0
+        version: 6.0.0
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
+      express:
+        specifier: ^4.21.2
+        version: 4.21.2
+      lru-cache:
+        specifier: ^11.0.2
+        version: 11.0.2
+      rhea:
+        specifier: ^3.0.3
+        version: 3.0.4
+      rhea-promise:
+        specifier: ^3.0.3
+        version: 3.0.3
+      supertest:
+        specifier: ^7.0.0
+        version: 7.1.0
+      typedi:
+        specifier: ^0.10.0
+        version: 0.10.0
+    devDependencies:
+      '@jridgewell/sourcemap-codec':
+        specifier: ^1.5.0
+        version: 1.5.0
+      '@testcontainers/rabbitmq':
+        specifier: ^10.18.0
+        version: 10.21.0
+      '@types/express':
+        specifier: ^5.0.0
+        version: 5.0.1
+      '@types/node':
+        specifier: ^20.14.8
+        version: 20.17.27
+      short-uuid:
+        specifier: ^5.2.0
+        version: 5.2.0
+      shortid:
+        specifier: ^2.2.17
+        version: 2.2.17
+      testcontainers:
+        specifier: ^10.18.0
+        version: 10.21.0
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
+
   packages/bc-wallet-adapter-client-api:
     dependencies:
       bc-wallet-openapi:
@@ -593,61 +654,6 @@ importers:
       supertest:
         specifier: ^7.0.0
         version: 7.1.0
-
-  packages/bc-wallet-traction-adapter:
-    dependencies:
-      bc-wallet-openapi:
-        specifier: workspace:*
-        version: link:../bc-wallet-openapi
-      bc-wallet-traction-openapi:
-        specifier: workspace:*
-        version: link:../bc-wallet-traction-openapi
-      bs58:
-        specifier: ^6.0.0
-        version: 6.0.0
-      dotenv:
-        specifier: ^16.4.7
-        version: 16.4.7
-      express:
-        specifier: ^4.21.2
-        version: 4.21.2
-      lru-cache:
-        specifier: ^11.0.2
-        version: 11.0.2
-      rhea:
-        specifier: ^3.0.3
-        version: 3.0.4
-      rhea-promise:
-        specifier: ^3.0.3
-        version: 3.0.3
-      supertest:
-        specifier: ^7.0.0
-        version: 7.1.0
-      typedi:
-        specifier: ^0.10.0
-        version: 0.10.0
-    devDependencies:
-      '@testcontainers/rabbitmq':
-        specifier: ^10.18.0
-        version: 10.21.0
-      '@types/express':
-        specifier: ^5.0.0
-        version: 5.0.1
-      '@types/node':
-        specifier: ^20.14.8
-        version: 20.17.27
-      short-uuid:
-        specifier: ^5.2.0
-        version: 5.2.0
-      shortid:
-        specifier: ^2.2.17
-        version: 2.2.17
-      testcontainers:
-        specifier: ^10.18.0
-        version: 10.21.0
-      uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
 
   packages/bc-wallet-traction-openapi: {}
 

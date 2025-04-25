@@ -25,7 +25,8 @@
     "routing-controllers": "^0.11.1",
     "slugify": "1.6.6",
     "supertest": "^7.0.0",
-    "typedi": "^0.10.0"
+    "typedi": "^0.10.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.2.17",

@@ -1,5 +1,6 @@
 {
   "preset": "ts-jest",
+  "globalTeardown": "<rootDir>/apps/bc-wallet-api-server/src/controllers/__tests__/globalTeardown.ts",
   "testTimeout": 60000,
   "moduleFileExtensions": [
     "ts",

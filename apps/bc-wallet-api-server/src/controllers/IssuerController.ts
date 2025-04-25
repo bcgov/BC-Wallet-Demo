@@ -93,6 +93,19 @@ class IssuerController {
   }
 
   @Authorized()
+  @Post('/:id/publish')
+  public async publish(@Param('id') id: string): Promise<void> {
+    try {
+      await this.issuerService.publishIssuer(id)
+    } catch (e) {
+      if (e.httpCode !== 404) {
+        console.error(`Update issuer id=${id} failed:`, e)
+      }
+      return Promise.reject(e)
+    }
+  }
+
+  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

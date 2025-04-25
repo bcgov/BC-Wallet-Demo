@@ -1,5 +1,4 @@
-import type { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
-import { RabbitMQContainer } from '@testcontainers/rabbitmq'
+import { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
 import type { CredentialAttributeType, CredentialDefinition } from 'bc-wallet-openapi'
 import { CredentialType, IssuerType } from 'bc-wallet-openapi'
 import type { Sender, SenderOptions } from 'rhea-promise'
@@ -13,6 +12,7 @@ import { ShowcaseApiService } from '../services/showcase-api-service'
 import type { Action } from '../types'
 import { Topic } from '../types'
 import { encryptBuffer } from '../util/CypherUtil'
+import { setupRabbitMQ } from './globalTestSetup'
 
 // Mock ShowcaseApiService
 jest.mock('../services/showcase-api-service')
@@ -38,7 +38,7 @@ async function waitForConsoleMessage(spy: jest.SpyInstance, messagePattern: stri
       }
     }, 100)
 
-    // Timeout after specified duration
+    // Timeout after a specified duration
     setTimeout(() => {
       clearInterval(checkInterval)
       resolve()
@@ -54,18 +54,11 @@ describe('MessageProcessor Integration Test', () => {
   let sender: Sender
   let processor: MessageProcessor
   let mockShowcaseApiService: jest.Mocked<ShowcaseApiService>
-  const testTopic: Topic = Topic.SHOWCASE_CMD_TESTING
+
+  const testTopic: Topic = 'showcase-cmd-testing'
 
   beforeAll(async () => {
-    // Start the RabbitMQ container
-    container = await new RabbitMQContainer('rabbitmq:4').start()
-
-    // Setup environment variables for the processor
-    process.env.AMQ_HOST = environment.messageBroker.AMQ_HOST = container.getHost()
-    environment.messageBroker.AMQ_PORT = container.getMappedPort(5672)
-    process.env.AMQ_PORT = environment.messageBroker.AMQ_PORT.toString()
-    process.env.AMQ_TRANSPORT = environment.messageBroker.AMQ_TRANSPORT = 'tcp'
-    process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+    container = await setupRabbitMQ()
 
     // Setup mock ShowcaseApiService
     mockShowcaseApiService = new ShowcaseApiService('') as jest.Mocked<ShowcaseApiService>
@@ -107,7 +100,7 @@ describe('MessageProcessor Integration Test', () => {
     jest.clearAllMocks()
   })
 
-  test('should process publish-issuer-assets message successfully', async () => {
+  test('should process publish.issuer-assets message successfully', async () => {
     // Create a sample issuer with credential definitions and schemas
     const issuer = {
       id: 'test-issuer-id',
@@ -197,7 +190,7 @@ describe('MessageProcessor Integration Test', () => {
       message_id: messageId,
       body: issuer,
       application_properties: {
-        action: 'publish-issuer-assets' as Action,
+        action: 'publish.issuer-assets' as Action,
         tenantId: 'test-tenant',
         tractionApiUrlBase: environment.traction.DEFAULT_API_BASE_PATH,
         showcaseApiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
@@ -306,7 +299,7 @@ describe('MessageProcessor Integration Test', () => {
       message_id: messageId,
       body: JSON.stringify(credDef),
       application_properties: {
-        action: 'publish-issuer-assets' as Action,
+        action: 'publish.issuer-assets' as Action,
         apiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
         walletId: 'test-wallet',
       },
@@ -330,7 +323,7 @@ describe('MessageProcessor Integration Test', () => {
       message_id: messageId,
       body: '{invalid payload}',
       application_properties: {
-        action: 'publish-issuer-assets' as Action,
+        action: 'publish.issuer-assets' as Action,
         tenantId: 'test-tenant',
         apiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
         walletId: 'test-wallet',
@@ -377,6 +370,69 @@ describe('MessageProcessor Integration Test', () => {
 
     // Verify the error was logged
     expect(logContains(consoleSpy, 'unsupported action')).toBeTruthy()
+
+    consoleSpy.mockRestore()
+  })
+
+  test('should process import.cred-schema message successfully', async () => {
+    // Create a sample credential schema
+    const credentialSchema = {
+      id: 'test-schema-id',
+      name: 'Test Schema',
+      version: '1.0',
+      identifier: 'ABCD:2:TestSchema:1.0',
+      attributes: [
+        {
+          id: 'attr1',
+          name: 'firstName',
+          type: 'STRING' as CredentialAttributeType,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'attr2',
+          name: 'lastName',
+          type: 'STRING' as CredentialAttributeType,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    // Spy on console.debug to detect when the message is processed
+    const consoleSpy = jest.spyOn(console, 'debug')
+
+    // Send a message with the credential schema
+    const messageId = uuidv4()
+    const { encrypted, nonce } = encryptBuffer(Buffer.from('test-token', 'utf8'))
+    void sender.send({
+      message_id: messageId,
+      body: credentialSchema,
+      application_properties: {
+        action: 'import.cred-schema' as Action,
+        tenantId: 'test-tenant',
+        tractionApiUrlBase: environment.traction.DEFAULT_API_BASE_PATH,
+        showcaseApiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        walletId: 'test-wallet',
+        accessTokenEnc: encrypted,
+        accessTokenNonce: nonce,
+      },
+    })
+
+    // Wait for the message to be processed
+    await waitForConsoleMessage(consoleSpy, 'Received credential schema')
+
+    // Verify that the getTractionService was called with the correct parameters
+    expect(await getTractionService).toHaveBeenCalledWith(
+      'test-tenant',
+      environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+      environment.traction.DEFAULT_API_BASE_PATH,
+      'test-wallet',
+      encrypted,
+      nonce,
+    )
 
     consoleSpy.mockRestore()
   })
