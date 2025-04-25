@@ -1,24 +1,9 @@
-'use client'
-
-import { PublishEdit } from '@/components/publish-screen/publish-edit'
-import { PublishInfo } from '@/components/publish-screen/publish-info'
 import TabsComponent from '@/components/Tabs-component'
-import { usePersonas } from '@/hooks/use-personas'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import { useTranslations } from 'next-intl'
-import { Persona } from 'bc-wallet-openapi'
+import { PublishInfoPage } from '@/components/publish-screen/publish-page'
 import { ShowcaseEditableHeader } from '@/components/showcases-screen/showcase-editable-header'
 
 export default async function CreateOnboardingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-
-  const t = useTranslations()
-  const { displayShowcase } = useShowcaseStore()
-  const { selectedPersonaIds } = useShowcaseStore()
-  const { data: personas } = usePersonas()
-
-  const personasToDisplay = (personas?.personas || []).filter((persona) => selectedPersonaIds.includes(persona.id))
-
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
       <div className="flex flex-col">
@@ -28,19 +13,7 @@ export default async function CreateOnboardingPage({ params }: { params: Promise
             <TabsComponent slug={slug} />
           </div>
         </div>
-
-        <div className="flex gap-4 p-4 h-fit-content">
-          <div className="w-1/3 bg-[white] dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
-            <div className="p-4 border-b shadow">
-              <h2 className="text-base font-bold text-foreground">{t('showcase.publish_info_title')}</h2>
-              <p className="w-full text-xs">{t('showcase.publish_info_subtitle')}</p>
-            </div>
-            <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={displayShowcase.credentialDefinitions} />
-          </div>
-          <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
-            <PublishEdit />
-          </div>
-        </div>
+        <PublishInfoPage />
       </div>
     </div>
   )
