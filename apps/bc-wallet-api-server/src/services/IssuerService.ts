@@ -37,6 +37,11 @@ class IssuerService extends AbstractAdapterClientService {
     return updatedIssuer
   }
 
+  public publishIssuer = async (id: string): Promise<void> => {
+    const issuer = await this.issuerRepository.findById(id)
+    void (await this.adapterClientApi.publishIssuer(issuerDTOFrom(issuer), this.buildSendOptions()))
+  }
+
   public deleteIssuer = async (id: string): Promise<void> => {
     return this.issuerRepository.delete(id)
   }

@@ -1045,7 +1045,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CredentialSchemaRequest'
+              $ref: '#/components/schemas/CredentialSchemaImportRequest'
         required: true
       responses:
         '201':
@@ -1510,6 +1510,34 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+/roles/issuers/{issuerId}/publish:
+  parameters:
+    - name: issuerId
+      in: path
+      required: true
+      schema:
+        type: string
+  post:
+    tags:
+      - Issuer Role
+    summary: Publish an issuer
+    operationId: publishIssuer
+    responses:
+      '200':
+        description: Successfully published
+      '400':
+        $ref: '#/components/responses/BadRequest'
+      '401':
+        $ref: '#/components/responses/Unauthorized'
+      '403':
+        $ref: '#/components/responses/Forbidden'
+      '404':
+        $ref: '#/components/responses/NotFound'
+      '500':
+        $ref: '#/components/responses/InternalServerError'
+    security:
+      - OAuth2: []
+      - OIDC: []
 
   /roles/relying-parties:
     get:
@@ -3399,6 +3427,28 @@ components:
       properties:
         credentialSchema:
           $ref: '#/components/schemas/CredentialSchema'
+    CredentialSchemaImportRequest:
+      type: object
+      required:
+        - name
+        - version
+        - identifierType
+        - identifier
+      properties:
+        name:
+          type: string
+          description: Name of the credential schema
+          example: Diploma Schema
+        version:
+          type: string
+          description: Version of the credential schema
+          example: '1.0'
+        identifierType:
+          $ref: '#/components/schemas/IdentifierType'
+        identifier:
+          type: string
+          description: External identifier of this schema
+          example: did:sov:XUeUZauFLeBNofY3NhaZCB
 
     Showcase:
       type: object

@@ -4,6 +4,7 @@ import {
   type CredentialDefinition,
   CredentialDefinitionImportRequest,
   CredentialSchema,
+  CredentialSchemaImportRequest,
   Issuer,
 } from 'bc-wallet-openapi'
 import type {
@@ -198,19 +199,28 @@ export class TractionService extends ApiService {
 
   /**
    * Imports an existing credential schema from the ledger
-   * @param credentialSchema The credential schema to import
+   * @param importRequest The credential schema to import
    * @returns A promise that resolves when the import is complete
    */
-  public async importCredentialSchema(credentialSchema: CredentialSchema): Promise<void> {
-    const schemaId = credentialSchema.identifier
+  public async importCredentialSchema(importRequest: CredentialSchemaImportRequest): Promise<void> {
+    const schemaId = importRequest.identifier
     if (!schemaId) {
-      return Promise.reject(Error(`Cannot import schema ${credentialSchema.id} without identifier`))
+      return Promise.reject(Error(`Cannot import schema ${importRequest.name} without identifier`))
     }
+    if (importRequest.identifierType !== 'DID') {
+      return Promise.reject(Error(`The Indy ledger only supports DID identifiers for schemas.`))
+    }
+
     const record = await this.schemaStorageApi.schemaStoragePost({ body: { schemaId } })
+    if (!record.schema) {
+      return Promise.reject(Error(`No schema was returned for identifier ${schemaId}.`))
+    }
+
     const rawAttrs = (record.schema as any)?.attrNames
     if (!Array.isArray(rawAttrs)) {
       return Promise.reject(Error(`Invalid schema returned for ${schemaId}`))
     }
+
     const attrs: CredentialAttributeRequest[] = rawAttrs.map((name) => {
       if (typeof name !== 'string') throw new Error(`Invalid attribute name for ${schemaId}: ${name}`)
       return {
@@ -220,23 +230,23 @@ export class TractionService extends ApiService {
       }
     })
 
-    await this.showcaseApiService.updateCredentialSchema(credentialSchema.id, attrs)
+    await this.showcaseApiService.createCredentialSchema(importRequest, record.schema, attrs)
   }
 
   /**
    * Imports an existing credential definition from the ledger
-   * @param credentialDefImportDefinition The credential definition to import
+   * @param importRequest The credential definition to import
    * @returns A promise that resolves when the import is complete
    */
-  public async importCredentialDefinition(
-    credentialDefImportDefinition: CredentialDefinitionImportRequest,
-  ): Promise<void> {
-    const definitionId = credentialDefImportDefinition.identifier
+  public async importCredentialDefinition(importRequest: CredentialDefinitionImportRequest): Promise<void> {
+    const definitionId = importRequest.identifier
     if (!definitionId) {
-      return Promise.reject(
-        Error(`Cannot import a credential definition ${credentialDefImportDefinition.name}  without an identifier`),
-      )
+      return Promise.reject(Error(`Cannot import a credential definition ${importRequest.name}  without an identifier`))
     }
+    if (importRequest.identifierType !== 'DID') {
+      return Promise.reject(Error(`The Indy ledger only supports DID identifiers for schemas.`))
+    }
+
     const record = await this.credentialDefApi.credentialDefinitionsCredDefIdGet({ credDefId: definitionId })
     if (record.credentialDefinition) {
       if (!record.credentialDefinition.schemaId) {
@@ -247,10 +257,7 @@ export class TractionService extends ApiService {
       const schema = await this.schemaApi.schemasSchemaIdGet({ schemaId: record.credentialDefinition.schemaId })
       record.credentialDefinition.schemaId = schema.schema?.id
 
-      await this.showcaseApiService.createCredentialDefinition(
-        credentialDefImportDefinition,
-        record.credentialDefinition,
-      )
+      await this.showcaseApiService.createCredentialDefinition(importRequest, record.credentialDefinition)
     } else {
       return Promise.reject(Error(`No credential definition returned for identifier ${definitionId}`))
     }

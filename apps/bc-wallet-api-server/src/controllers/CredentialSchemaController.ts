@@ -6,6 +6,9 @@ import {
   CredentialSchemasResponse,
   CredentialSchemasResponseFromJSONTyped,
   instanceOfCredentialSchemaRequest,
+  CredentialSchemaImportRequest,
+  CredentialSchemaImportRequestToJSONTyped,
+  ImportCredentialSchemaRequest,
 } from 'bc-wallet-openapi'
 import {
   Authorized,
@@ -75,30 +78,24 @@ export class CredentialSchemaController {
     }
   }
 
-    @Authorized()
+  @Authorized()
   @HttpCode(201)
   @Post('/import')
-  public async importSchema(
-    @Body() credentialSchemaRequest: CredentialSchemaRequest,
-  ): Promise<CredentialSchemaResponse> {
+  public async importSchema(@Body() importRequest: ImportCredentialSchemaRequest): Promise<void> {
     try {
-      if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
+      if (!instanceOfCredentialSchemaRequest(importRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      credentialSchemaRequest.source = 'IMPORTED'
-      const credentialSchema = await this.credentialSchemaService.importCredentialSchema(
-        CredentialSchemaRequestToJSONTyped(credentialSchemaRequest),
+      await this.credentialSchemaService.importCredentialSchema(
+        CredentialSchemaImportRequestToJSONTyped(importRequest.credentialSchemaImportRequest),
       )
-      return CredentialSchemaResponseFromJSONTyped({ credentialSchema }, false)
     } catch (e) {
-      if (e.httpCode !== 404) {
-        console.error('credentialSchemaRequest import failed:', e)
-      }
+      console.error('credentialSchemaRequest import failed:', e)
       return Promise.reject(e)
     }
   }
 
-  //  @Authorized()
+  @Authorized()
   @Put('/:id')
   public async put(
     @Param('id') id: string,

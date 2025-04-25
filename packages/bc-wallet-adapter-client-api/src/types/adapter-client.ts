@@ -7,7 +7,7 @@ import type {
 
 export interface IAdapterClientApi {
   publishIssuer(issuer: Issuer, options: SendOptions): Promise<void>
-  importCredentialSchema(credentialSchema: CredentialSchema, options: SendOptions): Promise<void>
+  importCredentialSchema(importRequest: CredentialDefinitionImportRequest, options: SendOptions): Promise<void>
   importCredentialDefinition(
     credentialDefinition: CredentialDefinitionImportRequest,
     options: SendOptions,

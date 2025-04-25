@@ -92,35 +92,33 @@ export class ShowcaseApiService extends ApiService {
   }
 
   /**
-   * Updates the attributes of a credential schema.
-   * @param id ID of the credential schema to update
-   * @param newAttrs New attributes to set for the schema
-   * @returns Promise resolving when update is complete
-   * @throws Error if no schema is found for the given ID
+   * Creates a new credential schema in the api-server DB
+   * @param importRequest The import request containing metadata such as name, version, identifier, and identifierType
+   * @param schema The schema definition object containing schema properties and structure
+   * @param newAttrs Array of credential attribute definitions specifying name, type, and default value for each attribute
+   * @returns Promise resolving when schema creation is complete
    */
-  public async updateCredentialSchema(id: string, newAttrs: CredentialAttributeRequest[]): Promise<void> {
-    const response = await this.credentialDefinitionsApi.getCredentialSchemaRaw({ credentialSchema: id })
-    const existing = await this.handleApiResponse(response)
-    const schema = existing.credentialSchema
-    if (!schema) {
-      return Promise.reject(Error(`No schema found in Showcase for id ${id}`))
-    }
-
-    await this.credentialDefinitionsApi.updateCredentialSchema({
-      credentialSchema: id,
+  public async createCredentialSchema(
+    importRequest: CredentialDefinitionImportRequest,
+    schema: { [key: string]: object },
+    newAttrs: CredentialAttributeRequest[],
+  ): Promise<void> {
+    const credentialSchemaResponse = await this.credentialDefinitionsApi.createCredentialSchema({
       credentialSchemaRequest: {
         ...schema,
-        source: 'IMPORTED',
+        ...importRequest,
+        version: importRequest.version ?? '1',
+        source: Source.Imported,
         attributes: newAttrs,
       },
     })
+    console.debug('Credential schema created. id:', credentialSchemaResponse.credentialSchema?.id)
   }
 
   /**
    * Create a new credential definition based on imported one
-   * @param id ID of the credential definition to update
+   * @param credDefImportDefinition
    * @param remoteCredDef Fetched CredentialDefinition
-   * @param source CREATED or IMPORTED. Defaults to IMPORTED.
    * @returns Promise resolving when update is complete
    * @returns Promise resolving when update is complete
    * @throws Error if no definition is found for the given ID
@@ -149,7 +147,7 @@ export class ShowcaseApiService extends ApiService {
         identifierType: credDefImportDefinition.identifierType,
         identifier: credDefImportDefinition.identifier,
         credentialSchema: schema.id,
-        version: credDefImportDefinition.version ?? '1.0',
+        version: credDefImportDefinition.version ?? '1',
         type: CredentialType.Anoncred, // FIXME we do not support external types like CL yet
         /*
           remoteCredDef.type && Object.keys(CredentialType).includes(remoteCredDef.type as any)

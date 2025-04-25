@@ -38,7 +38,7 @@ async function waitForConsoleMessage(spy: jest.SpyInstance, messagePattern: stri
       }
     }, 100)
 
-    // Timeout after specified duration
+    // Timeout after a specified duration
     setTimeout(() => {
       clearInterval(checkInterval)
       resolve()

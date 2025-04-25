@@ -1,5 +1,5 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
-import { CredentialSchemaFromJSONTyped } from 'bc-wallet-openapi'
+import { CredentialDefinitionImportRequest } from 'bc-wallet-openapi'
 import { Inject, Service } from 'typedi'
 import { validate as uuidValidate } from 'uuid'
 
@@ -83,21 +83,16 @@ class CredentialSchemaService extends AbstractAdapterClientService {
 
   /**
    * Imports a credential schema into the system and adapter.
-   * @param credentialSchema The credential schema to import
+   * @param importRequest The credential schema to import
    * @returns Promise resolving when import is complete
    * @throws Error if identifier type or identifier is missing
    */
-  public importCredentialSchema = async (credentialSchema: NewCredentialSchema): Promise<CredentialSchema> => {
-    if (!credentialSchema.identifierType || !credentialSchema.identifier) {
+  public importCredentialSchema = async (importRequest: CredentialDefinitionImportRequest): Promise<void> => {
+    if (!importRequest.identifierType || !importRequest.identifier) {
       return Promise.reject(Error('Identifier type and identifier are required for credential schema import.'))
     }
 
-    const savedSchema = await this.createCredentialSchema(credentialSchema)
-    await this.adapterClientApi.importCredentialSchema(
-      CredentialSchemaFromJSONTyped(savedSchema, false),
-      this.buildSendOptions(),
-    )
-    return savedSchema
+    await this.adapterClientApi.importCredentialSchema(importRequest, this.buildSendOptions())
   }
 }
 

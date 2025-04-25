@@ -25,7 +25,7 @@ export const credentialDefinitions = pgTable(
       .notNull(),
     icon: uuid('icon').references(() => assets.id),
     type: CredentialTypePg().notNull().$type<CredentialType>(),
-    source: SourcePg().$type<Source>().default(Source.CREATED),
+    source: SourcePg().$type<Source>().notNull().default(Source.CREATED),
     approvedBy: uuid('approved_by').references(() => users.id),
     approvedAt: timestamp('approved_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

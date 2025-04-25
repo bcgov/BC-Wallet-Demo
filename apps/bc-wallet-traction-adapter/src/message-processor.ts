@@ -1,8 +1,8 @@
 import {
   type CredentialDefinitionImportRequest,
-  CredentialSchema,
+  CredentialSchemaImportRequest,
   instanceOfCredentialDefinitionImportRequest,
-  instanceOfCredentialSchema,
+  instanceOfCredentialSchemaImportRequest,
   instanceOfIssuer,
   Issuer,
 } from 'bc-wallet-openapi'
@@ -184,26 +184,26 @@ export class MessageProcessor {
     context: any,
     headers: MessageHeaders,
   ): Promise<void> {
-    if (typeof payload !== 'object' || !instanceOfCredentialSchema(payload)) {
+    if (typeof payload !== 'object' || !instanceOfCredentialSchemaImportRequest(payload)) {
       return Promise.reject(Error('The message body did not contain a valid Issuer payload'))
     }
 
-    const credentialSchema = payload as CredentialSchema
+    const importRequest = payload as CredentialSchemaImportRequest
     try {
-      console.debug('Received credential schema', credentialSchema)
-      await service.importCredentialSchema(credentialSchema)
+      console.debug('Received credential schema import request', importRequest)
+      await service.importCredentialSchema(importRequest)
       if (context.delivery) {
         context.delivery.accept()
       }
     } catch (e) {
-      const errorMsg = `An error occurred while importing credential schema ${credentialSchema.id} / ${credentialSchema.name} with identifier ${credentialSchema.identifier} to Traction. Reason: ${e.message}`
+      const errorMsg = `An error occurred while importing credential schema ${importRequest.name} with identifier ${importRequest.identifier} to Traction. Reason: ${e.message}`
       console.error(errorMsg)
       if (context.delivery) {
         context.delivery.reject({
           info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
           condition: 'fatal error',
           description: errorMsg,
-          value: [credentialSchema],
+          value: [importRequest],
         }) // FIXME context.delivery.release() to redeliver ??
       }
     }
@@ -221,7 +221,7 @@ export class MessageProcessor {
 
     const credentialDefinition = payload as CredentialDefinitionImportRequest
     try {
-      console.debug('Received credential definition', credentialDefinition)
+      console.debug('Received credential definition import request', credentialDefinition)
       await service.importCredentialDefinition(credentialDefinition)
       if (context.delivery) {
         context.delivery.accept()

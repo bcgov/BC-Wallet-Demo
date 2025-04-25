@@ -1,8 +1,5 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
-import {
-  type CredentialDefinitionImportRequest,
-  CredentialDefinitionImportRequestFromJSONTyped,
-} from 'bc-wallet-openapi'
+import { type CredentialDefinitionImportRequest } from 'bc-wallet-openapi'
 import { Inject, Service } from 'typedi'
 import { validate as uuidValidate } from 'uuid'
 
@@ -99,10 +96,7 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
     if (!importRequest.identifierType || !importRequest.identifier) {
       return Promise.reject(Error('Identifier type and identifier are required for credential definition import.'))
     }
-    await this.adapterClientApi.importCredentialDefinition(
-      CredentialDefinitionImportRequestFromJSONTyped(importRequest, false),
-      this.buildSendOptions(),
-    )
+    await this.adapterClientApi.importCredentialDefinition(importRequest, this.buildSendOptions())
   }
 
   /**

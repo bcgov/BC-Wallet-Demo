@@ -88,7 +88,7 @@ export class CredentialDefinitionController {
     }
   }
 
-  //  @Authorized()
+  @Authorized()
   @HttpCode(201)
   @Post('/import')
   public async importCredentialDefinition(

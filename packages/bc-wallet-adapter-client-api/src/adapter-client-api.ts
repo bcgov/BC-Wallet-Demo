@@ -2,9 +2,12 @@ import {
   CredentialDefinitionImportRequest,
   CredentialDefinitionImportRequestToJSONTyped,
   CredentialSchema,
+  type CredentialSchemaImportRequest,
+  CredentialSchemaImportRequestToJSONTyped,
   CredentialSchemaToJSONTyped,
   instanceOfCredentialDefinitionImportRequest,
   instanceOfCredentialSchema,
+  instanceOfCredentialSchemaImportRequest,
   instanceOfIssuer,
   Issuer,
   IssuerToJSONTyped,
@@ -69,8 +72,8 @@ export class AdapterClientApi implements IAdapterClientApi {
   private payloadToJson(payload: object) {
     if (instanceOfIssuer(payload)) {
       return IssuerToJSONTyped(payload, false)
-    } else if (instanceOfCredentialSchema(payload)) {
-      return CredentialSchemaToJSONTyped(payload, false)
+    } else if (instanceOfCredentialSchemaImportRequest(payload)) {
+      return CredentialSchemaImportRequestToJSONTyped(payload, false)
     } else if (instanceOfCredentialDefinitionImportRequest(payload)) {
       return CredentialDefinitionImportRequestToJSONTyped(payload, false)
     }
@@ -81,8 +84,11 @@ export class AdapterClientApi implements IAdapterClientApi {
     return this.send('publish.issuer-assets', issuer, options)
   }
 
-  public async importCredentialSchema(credentialSchema: CredentialSchema, options: SendOptions): Promise<void> {
-    return this.send('import.cred-schema', credentialSchema, options)
+  public async importCredentialSchema(
+    importRequest: CredentialDefinitionImportRequest,
+    options: SendOptions,
+  ): Promise<void> {
+    return this.send('import.cred-schema', importRequest, options)
   }
 
   public async importCredentialDefinition(
