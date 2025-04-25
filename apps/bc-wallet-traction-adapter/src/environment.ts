@@ -53,6 +53,8 @@ export function validateTopic(topic?: string): Topic | undefined {
   return topic as Topic
 }
 
+console.debug('traction-adapter env:', process.env)
+
 export const environment = {
   messageBroker: {
     AMQ_HOST: process.env.AMQ_HOST || 'localhost',

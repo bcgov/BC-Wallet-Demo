@@ -35,7 +35,7 @@ class ServiceManager {
         service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY))
       }*/
       // -> Alternative logic
-      if (!service.hasBearerToken() && environment.traction.FIXED_API_KEY) {
+      if (!(await service.hasBearerToken()) && environment.traction.FIXED_API_KEY) {
         const freshTractionToken = await service.getTenantToken(environment.traction.FIXED_API_KEY)
         updateBearerTokens.tractionToken = freshTractionToken
       }
