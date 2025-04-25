@@ -24,9 +24,10 @@ import {
 import { Service } from 'typedi'
 
 import AssetService from '../services/AssetService'
+import { getBasePath } from '../utils/auth'
 import { assetDTOFrom, newAssetFrom } from '../utils/mappers'
 
-@JsonController('/assets')
+@JsonController(getBasePath('/assets'))
 @Service()
 class AssetController {
   public constructor(private assetService: AssetService) {}
