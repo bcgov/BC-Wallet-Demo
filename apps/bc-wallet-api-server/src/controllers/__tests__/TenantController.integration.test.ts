@@ -22,6 +22,7 @@ import { ShowcaseStatus } from '../../types'
 import TenantController from '../TenantController'
 import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
+import { environment } from 'bc-wallet-adapter-client-api/dist/environment'
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
@@ -29,6 +30,8 @@ describe('TenantController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
+    process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+    process.env.NONCE_SIZE = `${environment.encryption.NONCE_SIZE ?? 12}`
     await setupRabbitMQ()
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
