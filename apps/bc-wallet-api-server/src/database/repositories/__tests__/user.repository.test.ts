@@ -188,6 +188,7 @@ describe('Database user repository tests', (): void => {
         createdAt: expect.any(Date),
         deletedAt: null,
         id: 'test-tenant-id-1',
+        nonceBase64: null,
         realm: 'test_realm',
         updatedAt: expect.any(Date),
       },
