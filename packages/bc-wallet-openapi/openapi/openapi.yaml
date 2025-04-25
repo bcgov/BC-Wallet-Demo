@@ -3427,7 +3427,6 @@ components:
       type: object
       required:
         - name
-        - version
         - identifierType
         - identifier
       properties:
