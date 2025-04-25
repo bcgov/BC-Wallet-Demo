@@ -23,7 +23,8 @@
     "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine.",
         "publish_info_credentials": "Recevera les attestations suivantes:",
     "loading_label": "Chargement...",
-    "publish_info_title": "Réviser et publier la vitrine"
+    "publish_info_title": "Réviser et publier la vitrine",
+    "loading_showcase_data_label": "Chargement des données de la vitrine..."
   },
   "character": {
     "header_title": "Créez votre Personnage",

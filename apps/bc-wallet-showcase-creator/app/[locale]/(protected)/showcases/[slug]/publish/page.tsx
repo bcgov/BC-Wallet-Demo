@@ -7,8 +7,11 @@ import { usePersonas } from '@/hooks/use-personas'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useTranslations } from 'next-intl'
 import { Persona } from 'bc-wallet-openapi'
+import { ShowcaseEditableHeader } from '@/components/showcases-screen/showcase-editable-header'
 
-export default function CreateOnboardingPage() {
+export default async function CreateOnboardingPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+
   const t = useTranslations()
   const { displayShowcase } = useShowcaseStore()
   const { selectedPersonaIds } = useShowcaseStore()
@@ -19,10 +22,10 @@ export default function CreateOnboardingPage() {
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
       <div className="flex flex-col">
-        <div className="flex justify-between items-center px-6 py-2 mt-4">
-          <div className="flex items-center space-x-4"></div>
-          <div className="flex space-x-1 text-lg font-semibold justify-start">
-            <TabsComponent slug={'create'} />
+      <div className="flex justify-between items-center px-6 py-2 mt-4">
+          <ShowcaseEditableHeader />
+          <div className="flex space-x-1 text-lg font-semibold justify-end">
+            <TabsComponent slug={slug} />
           </div>
         </div>
 

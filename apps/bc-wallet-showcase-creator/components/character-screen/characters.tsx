@@ -23,7 +23,7 @@ import type { Persona } from 'bc-wallet-openapi'
 
 type CharacterFormData = z.infer<typeof characterSchema>
 
-export default function NewCharacterPage() {
+export default function NewCharacterPage({ slug }: { slug?: string }) {
   const t = useTranslations()
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -143,7 +143,11 @@ export default function NewCharacterPage() {
     setIsProceeding(true);
 
     try {
-      router.push('/showcases/create/onboarding');
+      if (slug) {
+        router.push(`/showcases/${slug}/onboarding`);
+      } else {
+        router.push('/showcases/create/onboarding');
+      }
     } catch (error) {
       toast.error(t('character.error_proceed_label'));
     } finally {

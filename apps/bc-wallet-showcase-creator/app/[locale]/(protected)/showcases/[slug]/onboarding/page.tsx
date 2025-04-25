@@ -1,15 +1,10 @@
 import { CreateOnboardingScreen } from '@/components/onboarding-screen/onboarding-creation'
 import { OnboardingSteps } from '@/components/onboarding-screen/onboarding-steps'
+import { ShowcaseEditableHeader } from '@/components/showcases-screen/showcase-editable-header'
 import TabsComponent from '@/components/Tabs-component'
-import { Pencil } from 'lucide-react'
-import { useTranslations } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
 
-export default async function CreateOnboardingPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function CreateOnboardingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const t = await getTranslations()
 
@@ -17,16 +12,8 @@ export default async function CreateOnboardingPage({
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
       <div className="flex flex-col">
         <div className="flex justify-between items-center px-6 py-2 mt-4">
-          {/* Left Header Section */}
-          <div className="flex items-center space-x-4">
-            <span className="text-light-text dark:text-dark-text font-medium text-sm">{slug}</span>
-            <Pencil size={16} />
-            <span className="rounded-[5px] bg-gray-500 px-3 py-1 min-w-24 text-center min-h-4 text-sm text-white">
-              {t('showcases.header_tab_draft')}
-            </span>
-          </div>
-          {/* Tabs Section */}
-          <div className="flex space-x-1 text-lg font-semibold justify-start">
+          <ShowcaseEditableHeader />
+          <div className="flex space-x-1 text-lg font-semibold justify-end">
             <TabsComponent slug={slug} />
           </div>
         </div>

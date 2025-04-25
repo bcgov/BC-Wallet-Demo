@@ -152,6 +152,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
 
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(slug)
   console.log('showcaseData', showcaseData)
+  // 
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseFormSchema),
@@ -171,7 +172,8 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   
   // Maybe create a hook to handle the form values and the global state updates
   // on use-showcase adapter
-  // Update form values when showcase data is loaded
+  // Update form values when showcase data is loaded.
+
   useEffect(() => {
     if (showcaseData && !isShowcaseLoading) {
       const { showcase } = showcaseData
@@ -202,14 +204,8 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   }, [showcaseData, isShowcaseLoading, form, tenantId, setShowcaseFromResponse])
 
   const onSubmit = async (formData: ShowcaseRequest) => {
-    try {
-      // Preserve any fields that shouldn't change during edit
-      const updateData = {
-        ...formData,
-        // Any fields that should be preserved from original data
-      }
-      
-      await updateShowcase(updateData,
+    try {      
+      await updateShowcase(formData,
         {
           onSuccess: (data: ShowcaseResponse) => {
             if (data.showcase) {
@@ -235,7 +231,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const handleCancel = () => router.back()
 
   if (isLoading || isShowcaseLoading) {
-    return <div className="p-6">Loading showcase data...</div>
+    return <div className="p-6">{t('showcases.loading_showcase_data_label')}</div>
   }
 
   return (

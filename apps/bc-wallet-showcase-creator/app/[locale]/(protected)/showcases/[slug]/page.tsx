@@ -3,6 +3,7 @@ import { Pencil } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Instructions } from '@/components/showcases-screen/instructions'
 import { ShowcaseEdit } from '@/components/publish-screen/showcase-edit'
+import { ShowcaseEditableHeader } from '@/components/showcases-screen/showcase-editable-header'
 
 export default async function PublishPage({ params }: { params: Promise<{ slug: string; locale: string }> }) {
   const { slug, locale } = await params
@@ -13,19 +14,10 @@ export default async function PublishPage({ params }: { params: Promise<{ slug: 
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
       <div className="flex flex-col h-full">
         <div className="flex justify-between items-center px-6 py-2 mt-4">
-          {/* Left Header Section */}
-          <div className="flex items-center space-x-4">
-            <span className="text-light-text dark:text-dark-text font-medium text-sm">Showcase1 </span>
-            <Pencil size={16} />
-            <span className="rounded-[5px] bg-gray-500 px-3 py-1 min-w-24 text-center min-h-4 text-sm text-white">
-              {t('showcases.header_tab_draft')}
-            </span>
-          </div>
-          {/* Tabs Section */}
+          <ShowcaseEditableHeader />
           <div className="flex space-x-1 text-lg font-semibold justify-end">
             <TabsComponent slug={slug} />
           </div>
-          <button className="text-gray-500 hover:text-gray-700"></button>
         </div>
         <div className="flex gap-4 p-4 h-fit-content">
           <Instructions />
