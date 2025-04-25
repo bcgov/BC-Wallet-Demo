@@ -145,6 +145,19 @@ export const useCreateIssuer = () => {
   })
 }
 
+export const useUpdateIssuer = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: IssuerRequest }) => {
+      const response = await apiClient.put(`/roles/issuers/${id}`, data)
+      return response as IssuerResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['issuer'] })
+    },
+  })
+}
+
 export const useRelyingPartyQuery = () => {
   return useQuery({
     queryKey: ['relying-parties'],
