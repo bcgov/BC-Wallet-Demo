@@ -129,7 +129,7 @@ export class MessageProcessor {
     context: any,
     headers: MessageHeaders,
   ): Promise<void> {
-    console.debug(`Received message ${context.message.message_id} with action ${action}`, headers, payload)
+    console.debug(`Received message with action ${action}`, headers, payload)
 
     switch (action) {
       case 'import.cred-schema':
