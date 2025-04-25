@@ -1510,34 +1510,34 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
-/roles/issuers/{issuerId}/publish:
-  parameters:
-    - name: issuerId
-      in: path
-      required: true
-      schema:
-        type: string
-  post:
-    tags:
-      - Issuer Role
-    summary: Publish an issuer
-    operationId: publishIssuer
-    responses:
-      '200':
-        description: Successfully published
-      '400':
-        $ref: '#/components/responses/BadRequest'
-      '401':
-        $ref: '#/components/responses/Unauthorized'
-      '403':
-        $ref: '#/components/responses/Forbidden'
-      '404':
-        $ref: '#/components/responses/NotFound'
-      '500':
-        $ref: '#/components/responses/InternalServerError'
-    security:
-      - OAuth2: []
-      - OIDC: []
+  /roles/issuers/{issuerId}/publish:
+    parameters:
+      - name: issuerId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Issuer Role
+      summary: Publish an issuer
+      operationId: publishIssuer
+      responses:
+        '200':
+          description: Successfully published
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - OAuth2: []
+        - OIDC: []
 
   /roles/relying-parties:
     get:
