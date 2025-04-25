@@ -1,14 +1,13 @@
 import {
+  CredentialSchemaImportRequestToJSONTyped,
   CredentialSchemaRequest,
   CredentialSchemaRequestToJSONTyped,
   CredentialSchemaResponse,
   CredentialSchemaResponseFromJSONTyped,
   CredentialSchemasResponse,
   CredentialSchemasResponseFromJSONTyped,
-  instanceOfCredentialSchemaRequest,
-  CredentialSchemaImportRequest,
-  CredentialSchemaImportRequestToJSONTyped,
   ImportCredentialSchemaRequest,
+  instanceOfCredentialSchemaRequest,
 } from 'bc-wallet-openapi'
 import {
   Authorized,
