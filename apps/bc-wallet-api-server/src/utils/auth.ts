@@ -96,16 +96,38 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
   const token = new Token(accessToken)
 
   const tenantService = Container.get(TenantService)
-  const realm = token.payload.iss?.split('/').slice(-1)[0]
+  const authServerUrl = token.payload.iss
+  const realm = authServerUrl?.split('/').slice(-1)[0]
   const clientId = token.payload.azp
 
   if (!realm || !clientId) {
     throw new UnauthorizedError('Realm and Client ID are required in token')
   }
-  const tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
+
+  let tenant
+
+  try {
+    tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
+  } catch (error) {
+    if (
+      action.request.url.includes('/tenants') &&
+      action.request.body.realm &&
+      action.request.body.clientId &&
+      action.request.body.clientSecret
+    ) {
+      tenant = await tenantService.createTenant({
+        id: action.request.body.clientId,
+        realm: action.request.body.realm,
+        clientId: action.request.body.clientId,
+        clientSecret: action.request.body.clientSecret,
+      })
+    } else {
+      throw new UnauthorizedError('Tenant not found')
+    }
+  }
 
   // Calls the introspection endpoint to validate the token
-  if (!(await isAccessTokenValid(accessToken, tenant.realm, tenant.clientId, tenant.clientSecret))) {
+  if (!(await isAccessTokenValid(accessToken, authServerUrl, tenant.clientId, tenant.clientSecret))) {
     throw new UnauthorizedError('Invalid token')
   }
   // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and

@@ -1,5 +1,5 @@
 {
-  "id": "edf12679-0813-4344-bd70-136a8a6e7e7b",
+  "id": "644a5f9d-7267-458c-85f0-9c5d7ef8dc6a",
   "prevId": "44d2596e-e903-48df-b561-c315cdd77a8b",
   "version": "7",
   "dialect": "postgresql",
@@ -1769,17 +1769,23 @@
           "primaryKey": false,
           "notNull": true
         },
-        "clientId": {
-          "name": "clientId",
+        "client_id": {
+          "name": "client_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "clientSecret": {
-          "name": "clientSecret",
+        "client_secret": {
+          "name": "client_secret",
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "nonce_base_64": {
+          "name": "nonce_base_64",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

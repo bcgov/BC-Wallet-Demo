@@ -75,6 +75,9 @@ describe('TenantController Integration Tests', () => {
     const createdTenant = createResponse.body.tenant
     expect(createdTenant).toHaveProperty('id')
     expect(createdTenant.id).toEqual('test-tenant-1')
+    expect(createdTenant.clientId).toEqual('test_client_id')
+    expect(createdTenant.realm).toEqual('test_realm')
+    expect(createdTenant.clientSecret).toBeDefined()
     expect(createdTenant.createdAt).toBeDefined()
 
     // 2. Retrieve all tenants

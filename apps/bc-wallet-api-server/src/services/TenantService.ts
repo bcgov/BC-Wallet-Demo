@@ -8,6 +8,7 @@ import { Tenant, NewTenant } from '../types'
 
 @Service()
 class TenantService {
+
   public constructor(private readonly tenantRepository: TenantRepository) {}
 
   public getTenants = async (): Promise<Tenant[]> => {
@@ -25,16 +26,22 @@ class TenantService {
     const tenant = await this.tenantRepository.findByRealmAndClientId(realm, clientId)
     return {
       ...tenant,
-      clientSecret: decryptString(tenant.clientSecret, process.env.ENCRYPTION_KEY),
+      clientSecret: decryptString(tenant.clientSecret, tenant.nonceBase64 as string),
     }
   }
 
   public createTenant = async (tenant: NewTenant): Promise<Tenant> => {
-    const newTenant = {
-      ...tenant,
-      clientSecret: encryptString(tenant.clientSecret).encryptedBase64,
+    if (process.env.NONCE_SIZE) {
+      const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, parseInt(process.env.NONCE_SIZE))
+      const newTenant = {
+        ...tenant,
+        clientSecret: encryptedBase64,
+        nonceBase64,
+      }
+      return this.tenantRepository.create(newTenant)
+    } else {
+      return Promise.reject(new InternalServerError(`No nonce size set: ${process.env.NONCE_SIZE}`))
     }
-    return this.tenantRepository.create(newTenant)
   }
 
   public updateTenant = async (id: string, tenant: NewTenant): Promise<Tenant> => {
