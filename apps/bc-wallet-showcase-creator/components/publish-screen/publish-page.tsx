@@ -8,7 +8,6 @@ import { useTranslations } from 'next-intl'
 import { Persona } from 'bc-wallet-openapi'
 
 export function PublishInfoPage() {
-
   const t = useTranslations()
   const { displayShowcase } = useShowcaseStore()
   const { selectedPersonaIds } = useShowcaseStore()

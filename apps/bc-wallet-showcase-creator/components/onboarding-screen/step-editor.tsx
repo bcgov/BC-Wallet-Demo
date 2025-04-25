@@ -47,7 +47,7 @@ import { z } from 'zod'
 import { StepActionRequestUnion } from '@/types'
 import { baseUrl } from '@/lib/utils'
 
-export const StepEditor = () => {
+export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
   const router = useRouter()
   const { mutateAsync, isPending } = useCreateScenario()
@@ -59,7 +59,7 @@ export const StepEditor = () => {
   const [showErrorModal, setErrorModal] = useState(false)
   const [isViewMode, setIsViewMode] = useState(false)
 
-  const { steps: screens, selectedStep, setSelectedStep, setStepState, updateStep, personas } = useOnboardingAdapter()
+  const { steps: screens, selectedStep, setSelectedStep, setStepState, updateStep, personas } = useOnboardingAdapter(showcaseSlug)
 
   const currentStep = selectedStep !== null ? (screens[selectedStep.order] as StepRequestUIActionTypes) : null
   const stepType = currentStep?.type || StepType.HumanTask

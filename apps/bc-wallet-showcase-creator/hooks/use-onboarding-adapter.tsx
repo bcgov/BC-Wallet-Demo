@@ -5,7 +5,7 @@ import { useOnboardingCreation } from './use-onboarding-creation'
 import type { Persona, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
 
-export const useOnboardingAdapter = () => {
+export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const {
     selectedPersonas,
     personaScenarios,
@@ -28,7 +28,7 @@ export const useOnboardingAdapter = () => {
     selectedStep,
     setSelectedStep: setSelectedStepInternal,
     selectStep,
-  } = useOnboardingCreation()
+  } = useOnboardingCreation(showcaseSlug)
 
   const getCurrentSteps = useCallback(() => {
     if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []

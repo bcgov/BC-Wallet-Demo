@@ -1,15 +1,18 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
 import type { Persona, IssuanceScenarioRequest, StepActionRequest } from 'bc-wallet-openapi'
 import { Screen } from '@/types'
 import { useOnboardingCreationStore } from './use-onboarding-store'
+import { useShowcase } from './use-showcases'
 
-export const useOnboardingCreation = () => {
+export const useOnboardingCreation = (showcaseSlug?: string) => {
   const { selectedPersonaIds } = useShowcaseStore()
   const { issuerId, selectedCredentialDefinitionIds } = useHelpersStore()
   const { data: personasData } = usePersonas()
+  const { data: showcaseData, isLoading: isLoadingShowcase } = useShowcase(showcaseSlug || '')
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const {
     personaScenariosMap,
@@ -34,9 +37,62 @@ export const useOnboardingCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
+    initializeWithScenarios
   } = useOnboardingCreationStore()
 
+   // Initialize with existing showcase data when editing
+   useEffect(() => {
+    const showcase = showcaseData?.showcase
+    if (showcase && showcaseSlug && showcaseData && !isInitialized) {
+      const issuanceScenarios = showcase.scenarios.filter(
+        scenario => scenario.type === 'ISSUANCE'
+      )
+      
+      if (issuanceScenarios.length > 0) {
+        const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
+        
+        // Group scenarios by persona
+        issuanceScenarios.forEach(scenario => {
+          scenario.personas.forEach(persona => {
+            if (!personaScenariosData[persona.id]) {
+              personaScenariosData[persona.id] = []
+            }
+            
+            // Convert to IssuanceScenarioRequest format
+            const scenarioRequest: IssuanceScenarioRequest = {
+              name: scenario.name,
+              description: scenario.description,
+              steps: scenario.steps.map(step => ({
+                ...step,
+                // Add any needed transformations here
+              })) as Screen[],
+              personas: scenario.personas.map(p => p.id),
+              hidden: scenario.hidden,
+              issuer: scenario.issuer?.id
+            }
+            
+            personaScenariosData[persona.id].push(scenarioRequest)
+          })
+        })
+        
+        // Initialize the store with existing data
+        initializeWithScenarios(personaScenariosData)
+        
+        // Set active persona if needed
+        if (!activePersonaId && Object.keys(personaScenariosData).length > 0) {
+          setActivePersonaId(Object.keys(personaScenariosData)[0])
+        }
+        
+        setIsInitialized(true)
+      }
+    }
+  }, [showcaseSlug, showcaseData, isInitialized, initializeWithScenarios, activePersonaId, setActivePersonaId])
+
+  // Handle new showcase creation (existing logic)
   useEffect(() => {
+    // Skip if we're editing an existing showcase and it's already initialized
+    if (showcaseSlug && isInitialized) return
+    
     const personas = (personasData?.personas || []).filter((persona: Persona) =>
       selectedPersonaIds.includes(persona.id),
     )
@@ -51,6 +107,8 @@ export const useOnboardingCreation = () => {
       setActivePersonaId(personas[0].id)
     }
   }, [
+    showcaseSlug,
+    isInitialized,
     personasData,
     selectedPersonaIds,
     personaScenariosMap,

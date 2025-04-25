@@ -14,8 +14,9 @@ interface OnboardingCreationState {
   stepState: 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new' | 'editing-scenario' | 'editing-connect' | 'editing-wallet'
   selectedScenarioId: string | null
   selectedStep: Screen | null
-
   // Actions
+  initializeWithScenarios: (scenariosMap: Record<string, IssuanceScenarioRequest[]>) => void
+
   setActivePersonaId: (id: string | null) => void
   setActiveScenarioIndex: (index: number) => void
   updatePersonaSteps: (personaId: string, scenarioIndex: number, steps: Screen[]) => void
@@ -69,6 +70,17 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
     stepState: 'no-selection' as OnboardingCreationState['stepState'],
     selectedScenarioId: null as string | null,
     selectedStep: null as Screen | null,
+
+    // Add to the store actions
+initializeWithScenarios: (scenariosMap) =>
+  set((state) => {
+    // Replace the entire map with the loaded data
+    state.personaScenariosMap = scenariosMap
+    
+    // Reset other state as needed
+    state.stepState = 'no-selection'
+    state.selectedStep = null
+  }),
 
     setSelectedScenarioId: (id) =>
       set((state) => {

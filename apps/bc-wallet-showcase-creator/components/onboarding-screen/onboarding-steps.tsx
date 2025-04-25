@@ -7,7 +7,7 @@ import { NoSelection } from '../credentials/no-selection'
 import { CreateNewStep } from './create-step'
 import { StepEditor } from './step-editor'
 
-export const OnboardingSteps = () => {
+export const OnboardingSteps = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
   const { activePersonaId, stepState, selectedStep } = useOnboardingAdapter()
 
@@ -21,7 +21,7 @@ export const OnboardingSteps = () => {
     }
     
     if (selectedStep !== null) {
-      return <StepEditor />
+      return <StepEditor showcaseSlug={showcaseSlug} />
     }
     
     return (

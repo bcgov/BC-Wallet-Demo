@@ -28,7 +28,7 @@ export default async function CreateOnboardingPage({ params }: { params: Promise
           </div>
 
           <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
-            <OnboardingSteps />
+            <OnboardingSteps showcaseSlug={slug} />
           </div>
         </div>
       </div>
