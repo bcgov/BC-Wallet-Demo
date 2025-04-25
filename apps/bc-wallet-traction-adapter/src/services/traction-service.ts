@@ -36,6 +36,7 @@ import {
   credentialSchemaToSchemaPostRequest,
 } from '../mappers/credential-definition'
 import type { CreateSchemaResult, PublishCredentialDefinitionResult } from '../types'
+import { isAccessTokenExpired, Token } from '../util/auth'
 import { ApiService } from './api-service'
 import { ShowcaseApiService } from './showcase-api-service'
 
@@ -108,8 +109,18 @@ export class TractionService extends ApiService {
    * Checks if the service has a bearer token configured
    * @returns True if a bearer token is available, false otherwise
    */
-  public hasBearerToken(): boolean {
-    return this.configOptions.apiKey !== undefined
+  public async hasBearerToken(): Promise<boolean> {
+    if (!this.configOptions.apiKey) {
+      return false
+    }
+
+    const apiKeyCallback = this.configOptions.apiKey as (name: string) => Promise<string>
+    const accessToken = await apiKeyCallback('Authorization')
+    if (!accessToken) {
+      return false
+    }
+    const token = new Token(accessToken)
+    return token && !isAccessTokenExpired(token)
   }
 
   /**
@@ -170,6 +181,7 @@ export class TractionService extends ApiService {
   public async createSchema(credentialSchema: CredentialSchema): Promise<CreateSchemaResult> {
     const schemaRequest = credentialSchemaToSchemaPostRequest(credentialSchema)
 
+    console.debug('Calling schemasPostRaw with', schemaRequest)
     let apiResponse: ApiResponse<TxnOrSchemaSendResult>
     try {
       apiResponse = await this.schemaApi.schemasPostRaw({

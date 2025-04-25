@@ -887,7 +887,7 @@ paths:
               $ref: '#/components/schemas/CredentialDefinitionImportRequest'
         required: true
       responses:
-        '201':
+        '204':
           description: Imported
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1048,12 +1048,8 @@ paths:
               $ref: '#/components/schemas/CredentialSchemaImportRequest'
         required: true
       responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CredentialSchemaResponse'
+        '204':
+          description: Imported
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3431,7 +3427,6 @@ components:
       type: object
       required:
         - name
-        - version
         - identifierType
         - identifier
       properties:
