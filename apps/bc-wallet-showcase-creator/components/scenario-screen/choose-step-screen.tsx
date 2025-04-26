@@ -54,7 +54,7 @@ export const CreateScenariosStepsScreen = () => {
   return (
     <div
       id="editStep"
-      className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
+      className="bg-background text-light-text dark:text-dark-text p-6 rounded-md"
     >
       {!activePersonaId && <NoSelection text={t('onboarding.select_persona_message')} />}
       {activePersonaId && stepState === 'no-selection' && (

@@ -37,7 +37,7 @@ export const OnboardingSteps = ({ showcaseSlug }: { showcaseSlug?: string }) => 
   return (
     <div
       id="editStep"
-      className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
+      className="bg-background text-light-text dark:text-dark-text p-6 rounded-md"
     >
       {renderComponent()}
     </div>

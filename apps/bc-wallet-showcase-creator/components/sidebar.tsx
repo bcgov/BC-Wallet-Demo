@@ -19,7 +19,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={` flex flex-col bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text shadow-lg transition-all ${
+      className={` flex flex-col bg-background text-light-text dark:text-dark-text shadow-lg transition-all ${
         isExpanded ? 'w-58' : 'w-20'
       }`}
     >

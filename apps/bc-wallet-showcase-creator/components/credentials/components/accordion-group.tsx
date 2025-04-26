@@ -157,7 +157,7 @@ const Accordion = () => {
   ]
 
   return (
-    <div className="bg-white dark:bg-dark-bg-secondary border border-gray-200  dark:border-dark-border">
+    <div className="bg-background border border-gray-200  dark:border-dark-border">
       <ul className="shadow-box">
         {accordionItems.map((item) => (
           <AccordionItem

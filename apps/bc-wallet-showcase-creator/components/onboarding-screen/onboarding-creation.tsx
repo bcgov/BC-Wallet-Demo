@@ -43,7 +43,7 @@ export const CreateOnboardingScreen = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text rounded-md border shadow-sm">
+    <div className="bg-background text-light-text dark:text-dark-text rounded-md border shadow-sm">
       {selectedPersonaIds.length === 0 ? (
         <div className="p-6 text-center">
           <h3 className="text-lg font-semibold mb-4">No personas selected</h3>

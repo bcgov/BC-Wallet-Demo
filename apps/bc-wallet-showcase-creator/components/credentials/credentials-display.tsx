@@ -49,7 +49,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
   }
 
   return (
-    <div className="w-full h-full bg-white dark:bg-dark-bg-secondary border-b dark:border-foreground/10 shadow-lg rounded-lg">
+    <div className="w-full h-full bg-background border-b dark:border-foreground/10 shadow-lg rounded-lg">
       <div className="p-4 border-b dark:border-dark-border">
         <h2 className="text-lg font-bold">
           {t('credentials.credential_title')} ({filteredCredentials.length})
@@ -99,7 +99,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   onClick={() => toggleDetails(item.id)}
                   key={item.id}
                   className={`relative p-4 flex flex-row items-center justify-between w-full transition-all duration-300 hover:bg-foreground/10 cursor-pointer ${
-                    openId === item.id ? 'bg-foreground/10' : 'bg-white dark:bg-dark-bg-secondary'
+                    openId === item.id ? 'bg-foreground/10' : 'bg-background'
                   }`}
                 >
                   <div className="flex items-center gap-3 w-full">

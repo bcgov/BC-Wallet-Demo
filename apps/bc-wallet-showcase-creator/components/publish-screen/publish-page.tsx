@@ -17,14 +17,14 @@ export function PublishInfoPage() {
 
   return (
     <div className="flex gap-4 p-4 h-fit-content">
-    <div className="w-1/3 bg-[white] dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
+    <div className="w-1/3 bg-background border shadow-md rounded-md flex flex-col">
       <div className="p-4 border-b shadow">
         <h2 className="text-base font-bold text-foreground">{t('showcases.publish_info_title')}</h2>
         <p className="w-full text-xs">{t('showcases.publish_info_subtitle')}</p>
       </div>
       <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={displayShowcase.credentialDefinitions} />
     </div>
-    <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
+    <div className="w-2/3 bg-background border shadow-md rounded-md flex flex-col">
       <PublishEdit />
     </div>
   </div>

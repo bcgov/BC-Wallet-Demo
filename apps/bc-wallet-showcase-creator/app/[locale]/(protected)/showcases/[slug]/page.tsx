@@ -21,7 +21,7 @@ export default async function PublishPage({ params }: { params: Promise<{ slug: 
         </div>
         <div className="flex gap-4 p-4 h-fit-content">
           <Instructions />
-          <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
+          <div className="w-2/3 bg-background border shadow-md rounded-md flex flex-col">
             <ShowcaseEdit slug={slug}/>
           </div>
         </div>
