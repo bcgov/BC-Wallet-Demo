@@ -103,11 +103,12 @@ export class ShowcaseApiService extends ApiService {
     schema: { [key: string]: object },
     newAttrs: CredentialAttributeRequest[],
   ): Promise<void> {
+    const schemaVersion = 'version' in schema && typeof schema.version === 'string' ? schema.version : undefined
     const credentialSchemaResponse = await this.credentialDefinitionsApi.createCredentialSchema({
       credentialSchemaRequest: {
         ...schema,
         ...importRequest,
-        version: importRequest.version ?? '1',
+        version: schemaVersion ?? importRequest.version ?? '1',
         source: Source.Imported,
         attributes: newAttrs,
       },

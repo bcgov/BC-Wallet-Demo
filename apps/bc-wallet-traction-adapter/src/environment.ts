@@ -84,3 +84,5 @@ export const environment = {
     AUTH_TAG_LENGTH: 16, // 128 bits, fixed for ChaCha20-Poly1305
   },
 }
+
+console.debug('traction-adapter env:', environment)
