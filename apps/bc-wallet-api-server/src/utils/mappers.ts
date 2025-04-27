@@ -55,7 +55,7 @@ export const assetDTOFrom = (asset: Asset): AssetDTO => {
     ...asset,
     fileName: asset.fileName || undefined,
     description: asset.description || undefined,
-    content: asset.content.toString(),
+    content: '', // remove the content field
   }
 }
 
