@@ -51,7 +51,7 @@ export default {
   				'5': 'hsl(var(--chart-5))'
   			},
   			'dark-bg': '#202223',
-  			'dark-bg-secondary': '#282828',
+  			'dark-bg-secondary': 'hsl(240deg 5.26% 14.9%)',
   			'dark-bg-tertiary': '#3A3B3B',
   			'light-bg': '#f5f5f5',
   			'light-bg-secondary': '#e5e5e5',

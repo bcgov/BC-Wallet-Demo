@@ -308,7 +308,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
                 disabled={!form.formState.isValid || !form.formState.isDirty} 
                 onClick={(e) => {
                   e.preventDefault()
-                  router.push(`/showcases/${slug}/onboarding`)
+                  router.push(`/showcases/${slug}/characters`)
                 }}
               >
                 {t('action.next_label')}
