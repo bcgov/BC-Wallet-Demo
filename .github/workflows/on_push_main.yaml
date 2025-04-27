@@ -173,6 +173,7 @@ jobs:
           host: ${{ secrets.K3S_HOST }}
           username: ${{ secrets.K3S_USERNAME }}
           key: ${{ secrets.K3S_SSH_KEY }}
+          command_timeout: "15m"
           script: |
             cd /home/ubuntu/pipeline/charts/bc-wallet
             

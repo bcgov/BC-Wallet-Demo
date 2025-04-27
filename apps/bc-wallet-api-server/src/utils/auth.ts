@@ -140,6 +140,17 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
   return checkRoles(token, roles)
 }
 
+export function isAccessTokenExpired(token: Token): boolean {
+  const currentTime = Math.floor(Date.now() / 1000)
+
+  if (!token.payload.exp) {
+    console.warn('Token does not contain an expiration date, assuming it is expired.')
+    return true
+  }
+
+  return currentTime > token.payload.exp
+}
+
 export class Token {
   private readonly _payload: JwtPayload
 
