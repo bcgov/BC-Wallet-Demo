@@ -86,13 +86,17 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   <span className="text-sm text-foreground/80">Created</span>
                   <div className="flex flex-wrap gap-2 mt-2 text-xs">
                     {item.credentialSchema?.attributes?.map((attr) => (
-                      <span
+                      <Badge
                         key={`${item.id}-${attr.id}-${attr.type || 'unknown'}`}
-                        className="text-sm bg-foreground/10 px-2 py-1 rounded transition-all duration-200 hover:bg-foreground/20"
                       >
-                        {attr.name}
-                      </span>
+                        {attr.name.charAt(0).toUpperCase() + attr.name.slice(1)}
+                      </Badge>
                     ))}
+                    {!item.approvedBy && 
+                        <Badge variant="destructiveOutline" className="text-center flex justify-center items-center">
+                          {t('credentials.pending_approval_label')}
+                        </Badge> 
+                    }
                   </div>
                 </div>
               ) : (
@@ -119,7 +123,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                     <div className="flex flex-col w-full">
                       <span className="text-lg font-semibold">{item.name}</span>
                       {!item.approvedBy ? 
-                        <Badge variant="destructive" className="text-center flex justify-center items-center">
+                        <Badge variant="destructiveOutline" className="text-center flex justify-center items-center">
                           {t('credentials.pending_approval_label')}
                         </Badge> : 
                         <span className="text-sm text-foreground/80">Version {item.version}</span>
