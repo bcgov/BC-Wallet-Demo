@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
 import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
 
 
 interface CredentialsDisplayProps {
@@ -117,7 +118,12 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                     />
                     <div className="flex flex-col w-full">
                       <span className="text-lg font-semibold">{item.name}</span>
-                      <span className="text-sm text-foreground/80">Version {item.version}</span>
+                      {!item.approvedBy ? 
+                        <Badge variant="destructive" className="text-center flex justify-center items-center">
+                          {t('credentials.pending_approval_label')}
+                        </Badge> : 
+                        <span className="text-sm text-foreground/80">Version {item.version}</span>
+                      }
                     </div>
                   </div>
                   <div className="ml-2">
