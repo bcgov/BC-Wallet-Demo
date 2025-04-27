@@ -14,15 +14,15 @@ import { FormTextArea, FormTextInput } from '../text-input'
 import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-import { AssetResponse, ShowcaseRequest, ShowcaseStatus } from 'bc-wallet-openapi'
+import { AssetResponse, ShowcaseRequest } from 'bc-wallet-openapi'
 
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { useUiStore } from '@/hooks/use-ui-store'
 import { useCreateShowcase } from '@/hooks/use-showcases'
-import { z } from 'zod'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { showcaseRequestFormData } from '@/schemas/showcase'
 
 const BannerImageUpload = ({
   text,
@@ -117,18 +117,6 @@ const BannerImageUpload = ({
     </div>
   )
 }
-
-const showcaseRequestFormData = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string().min(1, "Description is required"),
-  status: z.nativeEnum(ShowcaseStatus),
-  hidden: z.boolean().optional(),
-  scenarios: z.array(z.string()).optional(),
-  credentialDefinitions: z.array(z.string()).optional(),
-  personas: z.array(z.string()).optional(),
-  tenantId: z.string(),
-  bannerImage: z.string().min(1, "Banner image is required"),
-})
 
 export const ShowcaseCreate = () => {
   const t = useTranslations()

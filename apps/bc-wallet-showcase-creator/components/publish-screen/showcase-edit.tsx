@@ -20,10 +20,10 @@ import { toast } from 'sonner'
 import Image from 'next/image'
 import { useUiStore } from '@/hooks/use-ui-store'
 import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases'
-import { z } from 'zod'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonaAdapter } from '@/hooks/use-persona-adapter'
+import { showcaseRequestFormData } from '@/schemas/showcase'
 
 const BannerImageUpload = ({
   text,
@@ -127,19 +127,6 @@ const BannerImageUpload = ({
   )
 }
 
-const showcaseFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string().min(1, "Description is required"),
-  completionMessage: z.string().optional(),
-  status: z.nativeEnum(ShowcaseStatus),
-  hidden: z.boolean().optional(),
-  scenarios: z.array(z.string()).optional(),
-  credentialDefinitions: z.array(z.string()).optional(),
-  personas: z.array(z.string()).optional(),
-  tenantId: z.string(),
-  bannerImage: z.string().min(1, "Banner image is required"),
-})
-
 export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const t = useTranslations()
   const { setCurrentShowcaseSlug } = useUiStore()
@@ -153,7 +140,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(slug)
 
   const form = useForm<ShowcaseRequest>({
-    resolver: zodResolver(showcaseFormSchema),
+    resolver: zodResolver(showcaseRequestFormData),
     mode: 'onChange',
     defaultValues: {
       name: '',
@@ -199,7 +186,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
       setShowcaseFromResponse(showcase)
       setSelectedPersonaIds(showcase.personas?.map(p => typeof p === 'string' ? p : p.id) || [])
     }
-  }, [showcaseData, isShowcaseLoading, form, tenantId, setShowcaseFromResponse])
+  }, [showcaseData, isShowcaseLoading, form, tenantId, setShowcaseFromResponse, setCurrentShowcaseSlug, setSelectedPersonaIds])
 
   const onSubmit = async (formData: ShowcaseRequest) => {
     try {      
