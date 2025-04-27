@@ -137,7 +137,7 @@ const showcaseFormSchema = z.object({
   credentialDefinitions: z.array(z.string()).optional(),
   personas: z.array(z.string()).optional(),
   tenantId: z.string(),
-  bannerImage: z.string().optional(),
+  bannerImage: z.string().min(1, "Banner image is required"),
 })
 
 export const ShowcaseEdit = ({ slug }: { slug: string }) => {
@@ -151,12 +151,10 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(slug)
-  console.log('showcaseData', showcaseData)
-  // 
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseFormSchema),
-    mode: 'all',
+    mode: 'onChange',
     defaultValues: {
       name: '',
       description: '',
@@ -302,6 +300,9 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
                   })
                 }
               />
+              {form.formState.errors.bannerImage?.message &&
+                <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">{form.formState.errors.bannerImage?.message}</p>
+              } 
             </div>
           </div>
 
@@ -315,6 +316,16 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
               >
                 {t('action.save_label')}
               </ButtonOutline>
+
+              {slug && <ButtonOutline 
+                disabled={!form.formState.isValid || !form.formState.isDirty} 
+                onClick={(e) => {
+                  e.preventDefault()
+                  router.push(`/showcases/${slug}/onboarding`)
+                }}
+              >
+                {t('action.next_label')}
+              </ButtonOutline>}
             </div>
           </div>
         </form>

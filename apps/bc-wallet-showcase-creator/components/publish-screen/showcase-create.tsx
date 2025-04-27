@@ -127,7 +127,7 @@ const showcaseRequestFormData = z.object({
   credentialDefinitions: z.array(z.string()).optional(),
   personas: z.array(z.string()).optional(),
   tenantId: z.string(),
-  bannerImage: z.string().optional(),
+  bannerImage: z.string().min(1, "Banner image is required"),
 })
 
 export const ShowcaseCreate = () => {
@@ -140,7 +140,7 @@ export const ShowcaseCreate = () => {
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseRequestFormData),
-    mode: 'all',
+    mode: 'onChange',
     defaultValues: {
       name: '',
       description: '',
@@ -212,6 +212,7 @@ export const ShowcaseCreate = () => {
               <BannerImageUpload
                 text={t('onboarding.icon_label')}
                 value={form.watch('bannerImage')}
+                // error={form.formState.errors.bannerImage?.message}
                 onChange={(value) =>
                   form.setValue('bannerImage', value, {
                     shouldDirty: true,
@@ -220,6 +221,9 @@ export const ShowcaseCreate = () => {
                   })
                 }
               />
+              {form.formState.errors.bannerImage?.message &&
+               <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">{form.formState.errors.bannerImage?.message}</p>
+              }
             </div>
           </div>
 
