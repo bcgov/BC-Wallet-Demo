@@ -134,7 +134,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const { mutateAsync: updateShowcase } = useUpdateShowcase(slug)
   const { setShowcaseFromResponse } = useShowcaseStore()
   const { setSelectedPersonaIds } = usePersonaAdapter()
-  const { tenantId } = useHelpersStore()
+  const { tenantId, setTenantId } = useHelpersStore()
   const [isLoading, setIsLoading] = useState(true)
 
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(slug)
@@ -150,11 +150,15 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
       hidden: false,
       scenarios: [],
       personas: [],
-      tenantId: tenantId,
+      tenantId: '',
       bannerImage: '',
     },
   })
   
+  useEffect(() => {
+    setTenantId(showcaseData?.showcase?.tenantId || '')
+  }, [showcaseData, setTenantId])
+
   // Maybe create a hook to handle the form values and the global state updates
   // on use-showcase adapter
   // Update form values when showcase data is loaded.
@@ -175,13 +179,14 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
         hidden: showcase.hidden,
         scenarios: showcase.scenarios?.map(s => typeof s === 'string' ? s : s.id) || [],
         personas: showcase.personas?.map(p => typeof p === 'string' ? p : p.id) || [],
-        tenantId: showcase.tenantId || tenantId,
+        tenantId: showcase.tenantId || '',
         bannerImage: showcase.bannerImage?.id || '',
       })
       
       setIsLoading(false)
       
       // Update global state if needed
+      setTenantId(showcase.tenantId || '')
       setCurrentShowcaseSlug(showcase.slug)
       setShowcaseFromResponse(showcase)
       setSelectedPersonaIds(showcase.personas?.map(p => typeof p === 'string' ? p : p.id) || [])

@@ -2,9 +2,9 @@
 
 import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
-import type { ShowcaseRequest, ShowcasesResponse, Showcase, ShowcaseResponse } from "bc-wallet-openapi";
+import type { ShowcaseRequest, ShowcasesResponse, ShowcaseResponse } from "bc-wallet-openapi";
 
-const staleTime = 1000 * 60 * 5; // 5 minutes
+const staleTime = 1000 * 60 * 5
 
 export function useShowcases() {
   return useQuery({

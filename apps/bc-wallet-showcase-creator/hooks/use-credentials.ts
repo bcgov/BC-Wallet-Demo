@@ -110,10 +110,15 @@ export const useCreateCredentialDefinition = () => {
 }
 
 export const useApproveCredentialDefinition = () => {
+  const queryClient = useQueryClient()
+  
   return useMutation({
     mutationFn: async (credentialId: string) => {
       const response = await apiClient.post(`/credentials/definitions/${credentialId}/approve`)
       return response as CredentialDefinitionResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['credential'] })
     },
   })
 }
