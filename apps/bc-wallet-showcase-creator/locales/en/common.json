@@ -144,7 +144,8 @@
     "type_label": "Credential Type",
     "representations_label": "Representations",
     "icon_label": "Icon",
-    "timestamps_label": "Timestamps"
+    "timestamps_label": "Timestamps",
+    "pending_approval_label": "Pending Approval"
   },
   "onboarding": {
     "header_title": "Add Steps",
