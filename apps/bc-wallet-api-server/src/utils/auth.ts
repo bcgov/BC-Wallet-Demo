@@ -114,7 +114,10 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
   try {
     tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
   } catch (error) {
-    if (
+    // TODO: Remove this workaround when the issue is fixed in drizzle-orm: https://4sure.atlassian.net/browse/SHOWCASE-308
+    if (error.message.includes('already exists')) {
+      tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
+    } else if (
       action.request.url.includes('/tenants') &&
       action.request.body.realm &&
       action.request.body.clientId &&
