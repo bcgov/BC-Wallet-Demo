@@ -1,35 +1,44 @@
-import { ScenarioRequestType, StepRequestType } from "@/openapi-types";
+import { AcceptCredentialAction, PresentationScenarioRequest, AriesOOBAction, StepAction, ChooseWalletAction, IssuanceScenarioRequest, StepRequest, StepType, AriesOOBActionRequest, SetupConnectionAction, ButtonAction, StepActionRequest, ChooseWalletActionRequest, SetupConnectionActionRequest, ButtonActionRequest, AcceptCredentialActionRequest, CredentialDefinition } from "bc-wallet-openapi";
 
-export interface StepWithCredentials extends StepRequestType {
-  credentials?: string[];
+
+export type StepActionTypes =
+  | StepAction
+  | AcceptCredentialAction
+  | ButtonAction
+  | AriesOOBAction
+  | SetupConnectionAction
+  | ChooseWalletAction
+
+
+export type StepActionRequestTypes =
+| StepActionRequest
+| AcceptCredentialActionRequest
+| ButtonActionRequest
+| AriesOOBActionRequest
+| SetupConnectionActionRequest
+| ChooseWalletActionRequest
+  
+export interface StepRequestUIActionTypes extends StepRequest {
+  actions: StepActionRequest[];
+  credentials?: CredentialDefinition[];
 }
 
-export const sampleAction =  {
+// StepActionRequest
+
+export const sampleAction: AriesOOBActionRequest =  {
   title: "example_title",
-  actionType: "ARIES_OOB",
+  actionType: "ARIES_OOB" as "ARIES_OOB",
   text: "example_text",
   proofRequest: {
-    attributes: {
-      attribute1: {
-        attributes: ["attribute1", "attribute2"],
-        restrictions: ["restriction1", "restriction2"],
-      },
-    },
-    predicates: {
-      predicate1: {
-        name: "example_name",
-        type: "example_type",
-        value: "example_value",
-        restrictions: ["restriction1", "restriction2"],
-      },
-    },
+    attributes: {},
+    predicates: {},
   },
+  credentialDefinitionId: ""
 }
 
-export const sampleScenario: ScenarioRequestType = {
+export const sampleScenario: IssuanceScenarioRequest | PresentationScenarioRequest = {
   name: "example_name",
   description: "example_description",
-  type: "ISSUANCE" as "ISSUANCE" | "PRESENTATION",
   issuer: "3de59a17-222e-4c92-a22a-118eff7032b5",
   steps: [],
   personas: [],
@@ -43,7 +52,7 @@ export const createDefaultStep = ({
   title: string;
   description: string;
   asset?: string;
-}): StepRequestType => ({
+}): StepRequest => ({
   title,
   description,
   order: 0,
@@ -55,70 +64,29 @@ export const createDefaultStep = ({
   asset,
 });
 
-export const createServiceStep = ({
+export const createAdvancedStep = ({
   title,
   description,
   asset = "",
-  credentials = []
+  credentials = [],
+  actions = [],
+  type = StepType.Service,
 }: {
   title: string;
   description: string;
   asset?: string;
-  credentials?: string[];
-}): StepWithCredentials => ({
+  credentials?: CredentialDefinition[];
+  actions?: StepActionRequestTypes[];
+  type?: StepType;
+}): StepRequest => ({
   title,
   description,
   order: 0,
-  type: "SERVICE",
+  type,
   actions: [
-    sampleAction,
+    ...actions,
   ],
-  // subScenario: "",  
   asset,
-  credentials
+  // credentials: credentials || [],
 });
 
-// TODO create a local step state
-// TODO remove all the UI for a new component 
-// CREATE Steps and pass back to the parent?
-
-// before create a scenario we need to create each step inside of it
-// POST /scenarios/issuances
-// {
-//   "name": "example_name",
-//   "description": "example_description",
-//   "issuer": "{{issuerId}}",
-//   "steps": [
-//       {
-//           "title": "example_title",
-//           "description": "example_description",
-//           "order": 1,
-//           "type": "HUMAN_TASK",
-//           "asset": "{{assetId}}",
-//           "actions": [
-//               {
-//                   "title": "example_title",
-//                   "actionType": "ARIES_OOB",
-//                   "text": "example_text",
-//                   "proofRequest": {
-//                       "attributes": {
-//                           "attribute1": {
-//                               "attributes": ["attribute1", "attribute2"],
-//                               "restrictions": ["restriction1", "restriction2"]
-//                           }
-//                       },
-//                       "predicates": {
-//                           "predicate1": {
-//                               "name": "example_name",
-//                               "type": "example_type",
-//                               "value":"example_value",
-//                               "restrictions": ["restriction1","restriction2"]
-//                           }
-//                       }
-//                   }
-//               }
-//           ]
-//       }
-//   ],
-//   "personas": ["{{personaId}}"]
-// }

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -20,5 +24,12 @@
       "./src/showcase-api"
     ]
   },
-  "include": ["src"]
+  "references": [
+    {
+      "path": "../../packages/bc-wallet-openapi"
+    }
+  ],
+  "include": [
+    "src"
+  ]
 }

@@ -1,14 +1,21 @@
 'use client'
 
-import { ArrowRight, Monitor } from 'lucide-react'
+import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import StepHeader from '../step-header'
-import { createDefaultStep, createServiceStep } from '@/lib/steps'
+import { createDefaultStep, createAdvancedStep } from '@/lib/steps'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import StepButton from './step-button'
+import { 
+  StepActionType, 
+  AcceptCredentialActionRequest, 
+  ChooseWalletActionRequest,
+  SetupConnectionActionRequest,
+  StepType
+} from 'bc-wallet-openapi'
 
 export const CreateNewStep = () => {
-  const { createStep, setStepState, activePersona, setActivePersonaId } = useOnboardingAdapter()
+  const { createStep, activePersona } = useOnboardingAdapter()
   const t = useTranslations()
 
   const handleAddStep = (stepType: string) => {
@@ -17,12 +24,18 @@ export const CreateNewStep = () => {
     switch (stepType) {
       case 'issue':
         createStep(
-          createServiceStep({
+          createAdvancedStep({
             title: `Accept your student card`,
             description: `You should have received an offer in BC Wallet for a Student Card. Review what they are sending, and choose 'Accept offer'.`,
+            actions: [{
+              title: "Accept Credential",
+              actionType: StepActionType.AcceptCredential,
+              text: "Accept this credential",
+              credentialDefinitionId: "",
+            } as AcceptCredentialActionRequest],
+            type: StepType.Service,
           })
         )
-        setStepState('editing-basic')
         break
 
       case 'basic':
@@ -30,29 +43,38 @@ export const CreateNewStep = () => {
           createDefaultStep({
             title: 'Basic Step',
             description: 'This is a basic step in the onboarding journey.',
+            asset: "",
           })
         )
-        setStepState('editing-basic')
         break
 
       case 'wallet':
         createStep(
-          createDefaultStep({
+          createAdvancedStep({
             title: 'Install BC Wallet',
             description: "First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.",
+            actions: [{
+              title: "Choose a Wallet",
+              actionType: StepActionType.ChooseWallet,
+              text: "Select a wallet to use",
+            } as ChooseWalletActionRequest]
           })
         )
-        setStepState('editing-wallet')
         break
 
       case 'connect':
         createStep(
-          createDefaultStep({
+          createAdvancedStep({
             title: 'Connect with BC College',
-            description:`Imagine, as ${personaName}, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.` ,
+            description: `Imagine, as ${personaName}, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.`,
+            asset: "",
+            actions: [{
+              title: "Connect Wallet",
+              actionType: StepActionType.SetupConnection,
+              text: "Scan this QR code with your wallet to connect",
+            } as SetupConnectionActionRequest]
           })
         )
-        setStepState('editing-connect')
         break
 
       default:
@@ -113,4 +135,3 @@ export const CreateNewStep = () => {
     </>
   )
 }
-

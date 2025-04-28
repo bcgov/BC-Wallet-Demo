@@ -1,15 +1,13 @@
-import { ShowcaseJSON } from '@/types'
 import Image from 'next/image'
 import { Label } from '../ui/label'
 import { useTranslations } from 'next-intl'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { baseUrl } from '@/lib/utils'
-import { CredentialDefinition } from '@/openapi-types'
+import { CredentialDefinition } from 'bc-wallet-openapi'
 
 interface DisplaySearchResultsProps {
-  searchResults: any;
-  // searchResults: typeof CredentialDefinition._type[];
-  addCredential: (credentialId: string) => void;
+  searchResults: CredentialDefinition[];
+  addCredential: (credential: CredentialDefinition) => void;
 }
 
 export const DisplaySearchResults = ({
@@ -49,12 +47,12 @@ export const DisplaySearchResults = ({
                   alt={result.icon.description || 'default credential icon'}
                   width={50}
                   height={50}
-                  className="rounded-full"
                   unoptimized
                   onError={(e) => {
                     const target = e.currentTarget as HTMLImageElement
                     target.src = '/assets/no-image.jpg'
                   }}
+                  className="rounded-full object-cover"
                 />
                 <div className="space-y-1 ml-4 text-start">
                   <p className="font-semibold">{result.name}</p>

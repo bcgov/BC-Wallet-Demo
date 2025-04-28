@@ -30,6 +30,17 @@ class UserService {
   public deleteUser = async (id: string): Promise<void> => {
     return this.userRepository.delete(id)
   }
+
+  public insertIfNotExists = async (user: NewUser) => {
+    if (!user.id) {
+      throw new Error('User id is required')
+    }
+    try {
+      return await this.userRepository.findById(user.id)
+    } catch (e) {
+      return await this.userRepository.create(user)
+    }
+  }
 }
 
 export default UserService

@@ -21,6 +21,7 @@ import { z } from 'zod'
 import { ConfirmationDialog } from '@/components/confirmation-dialog'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useCreateAsset } from '@/hooks/use-asset' 
+import { useShowcaseAdapter } from '@/hooks/use-showcase-adapter'
 
 const BannerImageUpload = ({
   text,
@@ -131,7 +132,7 @@ export const PublishEdit = () => {
   const t = useTranslations()
   const { showcase, reset, setScenarioIds } = useShowcaseStore()
   const router = useRouter()
-  const { saveShowcase } = useOnboardingAdapter()
+  const { saveShowcase } = useShowcaseAdapter()
   const { personas } = useOnboardingAdapter()
   const { tenantId } = useHelpersStore()
 
@@ -140,7 +141,7 @@ export const PublishEdit = () => {
     defaultValues: {
       name: '',
       description: '',
-      status: 'PENDING',
+      status: 'ACTIVE',
       hidden: false,
       scenarios: [],
       personas: [],
@@ -154,7 +155,7 @@ export const PublishEdit = () => {
       name: showcase.name || '',
       description: showcase.description || '',
       personas: personas.map((persona) => persona.id) || [],
-      status: 'PENDING',
+      status: 'ACTIVE',
       tenantId,
     })
   }, [form, showcase])

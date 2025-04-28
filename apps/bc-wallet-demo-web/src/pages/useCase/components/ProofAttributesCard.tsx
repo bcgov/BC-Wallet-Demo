@@ -7,7 +7,8 @@ import { Loader } from '../../../components/Loader'
 import type { Attribute, CredentialRequest } from '../../../slices/types'
 import { isDataUrl } from '../../../utils/Helpers'
 import { getAttributesFromProof } from '../../../utils/ProofUtils'
-import { prependApiUrl } from '../../../utils/Url'
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
+import type { Attribute, CredentialRequest } from '../../../slices/types'
 
 export interface Props {
   entityName: string
@@ -39,7 +40,7 @@ export const ProofAttributesCard: React.FC<Props> = ({ entityName, requestedCred
         <div className="flex flex-1 flex-row">
           {item.icon && (
             <div className="bg-bcgov-lightgrey dark:bg-bcgov-darkgrey rounded-lg p-2 w-12">
-              <img className="h-8 m-auto" src={prependApiUrl(item.icon)} alt="icon" />
+              <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${item.icon}/file`} alt="icon" />
             </div>
           )}
           <div className="flex flex-1 flex-row justify-between px-4 dark:text-white m-auto">
