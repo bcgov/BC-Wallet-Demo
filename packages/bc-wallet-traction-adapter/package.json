@@ -1,0 +1,48 @@
+{
+  "name": "bc-wallet-traction-adapter",
+  "version": "0.1.0",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "dev": "ts-node-dev --transpile-only src/index.ts",
+    "build": "tsc",
+    "build:clean": "tsc --build --clean && tsc --build",
+    "generate-key": "ts-node src/util/CypherUtil.ts generate-key"
+  },
+  "dependencies": {
+    "bc-wallet-traction-openapi": "workspace:*",
+    "bc-wallet-openapi": "workspace:*",
+    "bs58": "^6.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "lru-cache": "^11.0.2",
+    "rhea": "^3.0.3",
+    "rhea-promise": "^3.0.3",
+    "supertest": "^7.0.0",
+    "typedi": "^0.10.0"
+  },
+  "devDependencies": {
+    "@testcontainers/rabbitmq": "^10.18.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.14.8",
+    "short-uuid": "^5.2.0",
+    "shortid": "^2.2.17",
+    "testcontainers": "^10.18.0",
+    "uuid": "^11.1.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": "git@github.com:4sure-tech/BC-Wallet-Demo.git",
+  "author": "4Sure",
+  "license": "Apache-2.0",
+  "keywords": []
+}
