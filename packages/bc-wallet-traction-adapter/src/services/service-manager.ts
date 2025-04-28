@@ -3,44 +3,66 @@ import { LRUCache } from 'lru-cache'
 
 import { environment } from '../environment'
 import { decryptBufferAsString } from '../util/CypherUtil'
+import { ShowcaseApiService } from './showcase-api-service'
 import { TractionService } from './traction-service'
 
 class ServiceManager {
-  private readonly services = new LRUCache<string, TractionService>({
+  private readonly services = new LRUCache<string, TractionService | ShowcaseApiService>({
     max: environment.traction.TENANT_SESSION_CACHE_SIZE,
     ttl: environment.traction.TENANT_SESSION_TTL_MINS * 60,
   })
 
   public async getTractionService(
     tenantId: string,
-    apiUrlBase?: string,
+    showcaseApiUrlBase: string,
+    tractionApiUrlBase?: string,
     walletId?: string,
     accessTokenEnc?: Buffer,
     accessTokenNonce?: Buffer,
   ): Promise<TractionService> {
-    const key = this.buildKey(apiUrlBase, tenantId, walletId)
+    const key = this.buildKey(tractionApiUrlBase, tenantId, walletId)
     const decodedToken = this.decodeToken(accessTokenEnc, accessTokenNonce)
 
     // Return existing service if it exists
     if (this.services.has(key)) {
-      const service = this.services.get(key)!
+      const service = this.services.get(key)! as TractionService
 
       // Update token if provided
-      if (decodedToken) {
+      /*if (decodedToken) {  TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
         service.updateBearerToken(decodedToken)
       } else if (!service.hasBearerToken() && environment.traction.FIXED_API_KEY) {
         service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY))
+      }*/
+      // -> Alternative logic
+      if (!service.hasBearerToken() && environment.traction.FIXED_API_KEY) {
+        service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY), decodedToken)
+      } else if (!service.hasBearerToken() && decodedToken) {
+        service.updateBearerToken(decodedToken)
       }
       return service
     }
 
-    const service = new TractionService(tenantId, apiUrlBase, walletId, decodedToken)
-    if (!decodedToken && environment.traction.FIXED_API_KEY) {
-      service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY))
+    const showcaseApiService = new ShowcaseApiService(showcaseApiUrlBase)
+    const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
+    /*
+    if (!decodedToken && environment.traction.FIXED_API_KEY) { TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
+      tractionService.updateBearerToken(await tractionService.getTenantToken(environment.traction.FIXED_API_KEY))
+    }
+*/
+    // -> Alternative logic
+    if (environment.traction.FIXED_API_KEY) {
+      tractionService.updateBearerToken(
+        await tractionService.getTenantToken(environment.traction.FIXED_API_KEY),
+        decodedToken,
+      )
+    } else if (!tractionService.hasBearerToken() && decodedToken) {
+      tractionService.updateBearerToken(decodedToken)
+    } else {
+      return Promise.reject(Error('Access token for Traction is neither present nor could it be created'))
     }
 
-    this.services.set(key, service)
-    return service
+    this.services.set(key, tractionService)
+    return tractionService
   }
 
   private decodeToken(accessTokenEnc?: Buffer, accessTokenNonce?: Buffer) {
@@ -69,7 +91,8 @@ const serviceRegistry = new ServiceManager()
 
 export async function getTractionService(
   tenantId: string,
-  apiUrlBase?: string,
+  showcaseApiUrlBase: string,
+  tractionApiUrlBase?: string,
   walletId?: string,
   accessTokenEnc?: Buffer,
   accessTokenNonce?: Buffer,
@@ -78,5 +101,12 @@ export async function getTractionService(
     throw new Error('tenantId is required')
   }
 
-  return await serviceRegistry.getTractionService(tenantId, apiUrlBase, walletId, accessTokenEnc, accessTokenNonce)
+  return await serviceRegistry.getTractionService(
+    tenantId,
+    showcaseApiUrlBase,
+    tractionApiUrlBase,
+    walletId,
+    accessTokenEnc,
+    accessTokenNonce,
+  )
 }

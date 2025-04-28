@@ -1,18 +1,10 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { produce } from 'immer'
-import { useForm } from 'react-hook-form'
-import { useState } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type {
-  ScenarioRequestType,
-  ScenarioTypeEnum,
-  StepRequestType,
-  StepResponse,
-  StepType,
-} from '@/openapi-types'
-import { ScenarioRequest, StepRequest } from '@/openapi-types'
+
+import { StepRequest, Step, StepResponse } from 'bc-wallet-openapi'
 import apiClient from '@/lib/apiService'
 import { PresentationScenarioRequest, PresentationScenarioResponse } from 'bc-wallet-openapi'
 
@@ -21,7 +13,7 @@ type StepState = 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-
 interface State {
   selectedStep: number | null
   stepState: StepState
-  screens: StepType[]
+  screens: Step[]
   scenarioId: string
   issuerId: string
   currentScenarioIndex: number
@@ -30,11 +22,11 @@ interface State {
 interface Actions {
   setSelectedStep: (index: number | null) => void
   setStepState: (state: StepState) => void
-  initializeScenarios: (screens: StepRequestType[]) => void
+  initializeScenarios: (screens: StepRequest[]) => void
   moveStep: (oldIndex: number, newIndex: number) => void
   removeStep: (index: number) => void
-  createStep: (step: StepRequestType) => void
-  updateStep: (index: number, step: StepRequestType) => void
+  createStep: (step: StepRequest) => void
+  updateStep: (index: number, step: StepRequest) => void
   setScenarioId: (id: string) => void
   setIssuerId: (id: string) => void
   reset: () => void
@@ -109,6 +101,7 @@ export const usePresentations = create<State & Actions>()(
         // @ts-expect-error: credentials is not present in the step
         state.screens = newScreens
         state.selectedStep = newScreens.length - 1
+        // @ts-expect-error: credentials is not present in the step
         state.stepState = step.credentials ? 'editing-issue' : 'editing-basic'
       }),
 
@@ -177,7 +170,7 @@ export const usePresentationStep = (slug: string) => {
   return useQuery({
     queryKey: ['presentationStep', slug],
     queryFn: async () => {
-      const response = (await apiClient.get(`/scenarios/presentations/${slug}/steps`)) as typeof StepResponse._type
+      const response = (await apiClient.get(`/scenarios/presentations/${slug}/steps`)) as StepResponse
       return response
     },
     staleTime,
@@ -188,7 +181,7 @@ export const useCreatePresentationStep = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ slug, data }: { slug: string; data: typeof StepRequest._type }) => {
+    mutationFn: async ({ slug, data }: { slug: string; data: StepRequest }) => {
       const response = await apiClient.post(`/scenarios/presentations/${slug}/steps`, data)
       return response
     },
@@ -208,7 +201,7 @@ export const useUpdatePresentationStep = () => {
     }: {
       slug: string
       stepSlug: string
-      data: typeof StepRequest._type
+      data: StepRequest
     }) => {
       const response = await apiClient.put(`/scenarios/presentations/${slug}/steps/${stepSlug}`, data)
       return response

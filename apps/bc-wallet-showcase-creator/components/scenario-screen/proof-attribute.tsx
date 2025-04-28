@@ -2,14 +2,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PREDICATE_OPTIONS } from '@/schemas/scenario'
-import type { Attribute } from '@/types'
+import { CredentialAttribute } from 'bc-wallet-openapi'
 import { Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 interface ProofAttributeProps {
   index: number
-  attribute: string
-  availableAttributes: Attribute[]
+  attribute: CredentialAttribute
+  availableAttributes: CredentialAttribute[]
   currentValue: string
   onAttributeChange: (index: number, value: string) => void
   onConditionTypeChange: (index: number, value: string) => void
@@ -34,7 +34,6 @@ export const ProofAttribute = ({
           onValueChange={(value) => {
             onAttributeChange(index, value as any)
           }}
-          defaultValue={attribute}
         >
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
@@ -56,7 +55,7 @@ export const ProofAttribute = ({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Condition</label>
-        <Select value="none" onValueChange={(value) => onConditionTypeChange(index, value)}>
+        <Select defaultValue='none' onValueChange={(value) => onConditionTypeChange(index, value)}>
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
           </SelectTrigger>

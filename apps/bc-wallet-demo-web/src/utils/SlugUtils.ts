@@ -21,3 +21,14 @@ export function usePersonaSlug(): string {
 
   return inputSlug
 }
+
+export function useScenarioSlug(): string {
+  const params = useParams()
+  const inputSlug = params['scenarioSlug']
+
+  if (!inputSlug) {
+    throw Error('No slug provided')
+  }
+
+  return inputSlug
+}

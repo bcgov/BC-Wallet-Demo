@@ -16,6 +16,9 @@ import { signOut } from 'next-auth/react'
 import { useRouter } from '@/i18n/routing'
 import { useTheme } from 'next-themes'
 import { usePersonaAdapter } from '@/hooks/use-persona-adapter'
+import { useCreateTenant } from '@/hooks/use-tenants'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { toast } from 'sonner'
 
 const menuItems = [
   {
@@ -40,7 +43,9 @@ export function CommandDialogMenu() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const { setSelectedPersonaIds } = usePersonaAdapter()
-  
+  const { setTenantId, tenantId } = useHelpersStore()
+  const { mutateAsync: createTenant } = useCreateTenant()
+
   const toggleDarkMode = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark')
     setOpen((open) => !open)
@@ -68,6 +73,12 @@ export function CommandDialogMenu() {
     setOpen(false)
   }
 
+  const handleCreateTenant = async () => {
+    await createTenant({ id: `test-tenant-id` })
+    setTenantId(`test-tenant-id`)
+    toast.success('Tenant created')
+  }
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput placeholder="Type a command or search..." />
@@ -78,10 +89,13 @@ export function CommandDialogMenu() {
             <Calendar />
             <span>Create credential</span>
           </CommandItem>
-          <CommandItem>
-            <Smile />
-            <span>Create tenant</span>
-          </CommandItem>
+
+          <div onClick={() => handleCreateTenant()}>
+            <CommandItem>
+              <Smile />
+              <span>Create tennant</span>
+            </CommandItem>
+          </div>
           <CommandItem>
             <Calculator />
             <span>Create credential schema</span>

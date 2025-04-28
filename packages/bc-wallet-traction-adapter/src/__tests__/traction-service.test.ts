@@ -3,7 +3,11 @@ import { CredentialType, IssuerType } from 'bc-wallet-openapi'
 import * as process from 'node:process'
 import short from 'short-uuid'
 
+import { ShowcaseApiService } from '../services/showcase-api-service'
 import { TractionService } from '../services/traction-service'
+
+// Mock for ShowcaseApiService
+jest.mock('../services/showcase-api-service')
 
 const isTractionAvailable = () => {
   const tractionAvailable = process.env.TRACTION_AVAILABLE
@@ -14,20 +18,30 @@ const describeIfTractionAvailable = isTractionAvailable() ? describe : describe.
 
 describeIfTractionAvailable('TractionService Integration Test', () => {
   let tractionService: TractionService
-  const apiBasePath = 'http://localhost:8031'
+  let mockShowcaseApiService: jest.Mocked<ShowcaseApiService>
+  const showcaseApiBasePath = 'http://localhost:5003'
+  const tractionApiBasePath = 'http://localhost:8031'
 
   beforeEach(async () => {
     // Get credentials from environment variables
-    const tenantId = process.env.TRACTION_TENANT_ID
-    const walletId = process.env.TRACTION_WALLET_ID
-    const apiKey = process.env.TRACTION_API_KEY
+    const tenantId = process.env.FIXED_TENANT_ID
+    const walletId = process.env.FIXED_WALLET_ID
+    const apiKey = process.env.FIXED_API_KEY
 
     if (!tenantId || !apiKey) {
-      throw new Error('Required environment variables TRACTION_TENANT_ID and TRACTION_API_KEY must be set')
+      throw new Error('Required environment variables FIXED_TENANT_ID and FIXED_API_KEY must be set')
     }
 
-    // Initialize service
-    tractionService = new TractionService(tenantId, apiBasePath, walletId)
+    // Initialize mock service
+    mockShowcaseApiService = new ShowcaseApiService(showcaseApiBasePath) as jest.Mocked<ShowcaseApiService>
+
+    // Mock the necessary methods
+    mockShowcaseApiService.updateBearerToken = jest.fn().mockResolvedValue(undefined)
+    mockShowcaseApiService.updateCredentialSchemaIdentifier = jest.fn().mockResolvedValue(undefined)
+    mockShowcaseApiService.updateCredentialDefIdentifier = jest.fn().mockResolvedValue(undefined)
+
+    // Initialize service with mock
+    tractionService = new TractionService(tenantId, tractionApiBasePath, mockShowcaseApiService, walletId)
 
     // Get and set token
     try {
@@ -37,6 +51,10 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
       console.error('Failed to get tenant token:', error)
       throw error
     }
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
   })
 
   it('should return undefined for non-existent schema', async () => {
@@ -82,7 +100,7 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     expect(result).toBeUndefined()
   })
 
-  it('should create a new schema', async () => {
+  it('should create a new schema and update showcase service', async () => {
     const testSchema: CredentialSchema = {
       id: 'test-schema-id',
       name: 'TestNewSchema_' + short.generate(),
@@ -119,6 +137,12 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     expect(schemaResult.schemaId).toBeTruthy()
     expect(typeof schemaResult.schemaId).toBe('string')
 
+    // Verify showcase service was updated with the schema identifier
+    expect(mockShowcaseApiService.updateCredentialSchemaIdentifier).toHaveBeenCalledWith(
+      testSchema.id,
+      schemaResult.schemaId,
+    )
+
     if (schemaResult.transactionId) {
       await tractionService.waitForTransactionsToComplete([schemaResult.transactionId])
     }
@@ -127,7 +151,7 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     expect(foundSchemaId).toBeTruthy()
   })
 
-  it('should publish issuer assets', async () => {
+  it('should publish issuer assets and update showcase service', async () => {
     const currentDate = new Date()
     const schemaName = 'PublishTestSchema_' + short.generate()
     const testIssuer: Issuer = {
@@ -218,6 +242,10 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     expect(publishResults).toBeTruthy()
     expect(publishResults.length).toBe(2)
 
+    // Verify showcase service was updated for both schema and credential definition
+    expect(mockShowcaseApiService.updateCredentialSchemaIdentifier).toHaveBeenCalled()
+    expect(mockShowcaseApiService.updateCredentialDefIdentifier).toHaveBeenCalled()
+
     await tractionService.waitForTransactionsToComplete(publishResults)
 
     const credDef = await tractionService.findExistingCredentialDefinition(testIssuer.credentialDefinitions[0])
@@ -300,10 +328,17 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
       updatedAt: currentDate,
     }
 
+    // Reset mock calls for this specific test
+    jest.clearAllMocks()
+
     // First publish approved credential definition and schema
     const firstPublishResults = await tractionService.publishIssuerAssets(issuer)
     expect(firstPublishResults).toBeTruthy()
     expect(firstPublishResults.length).toBe(2) // Schema + first cred def
+
+    // Verify showcase service was updated for both schema and credential definition
+    expect(mockShowcaseApiService.updateCredentialSchemaIdentifier).toHaveBeenCalledTimes(1)
+    expect(mockShowcaseApiService.updateCredentialDefIdentifier).toHaveBeenCalledTimes(1)
 
     await tractionService.waitForTransactionsToComplete(firstPublishResults)
 
@@ -384,10 +419,22 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     // Add the new credential definitions to the issuer
     issuer.credentialDefinitions.push(unapprovedCredDef, approvedCredDef)
 
+    // Reset mocks to track new calls
+    jest.clearAllMocks()
+
     // Second publish with all three cred defs
     const secondPublishResults = await tractionService.publishIssuerAssets(issuer)
     expect(secondPublishResults).toBeTruthy()
     expect(secondPublishResults.length).toBe(1) // Should only publish the new approved cred def
+
+    // Verify showcase service was updated only for the approved credential definition
+    // Schema already exists, so no new schema updates
+    expect(mockShowcaseApiService.updateCredentialSchemaIdentifier).not.toHaveBeenCalled()
+    expect(mockShowcaseApiService.updateCredentialDefIdentifier).toHaveBeenCalledTimes(1)
+    expect(mockShowcaseApiService.updateCredentialDefIdentifier).toHaveBeenCalledWith(
+      approvedCredDef.id,
+      expect.any(String),
+    )
 
     await tractionService.waitForTransactionsToComplete(secondPublishResults)
 

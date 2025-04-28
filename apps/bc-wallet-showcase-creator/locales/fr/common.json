@@ -97,7 +97,7 @@
     "schema_id_placeholder": "Identifiant du schéma",
     "checkbox_label": "Comment utiliserez-vous ce justificatif importé?",
     "schema_empty": "Schema non disponible",
-    "schema_id_label": "Identifiant du schéma: (obligatoire)",
+    "schema_id_label": "Identifiant du schéma",
     "first_checkbox_label": "Justificatif",
     "id_label": "Identifiant du schéma",
     "second_checkbox_label": "Demande de preuve",

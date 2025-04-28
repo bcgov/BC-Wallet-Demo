@@ -6,7 +6,9 @@ config:
 classDiagram
     class Tenant {
         +id : String
+        +users : List~User~
         +createdAt : DateTime
+        +updatedAt : DateTime
         +deletedAt : DateTime
     }
     class Showcase {
@@ -62,13 +64,10 @@ classDiagram
         +updatedAt : DateTime
     }
     class AriesOOBAction {
+        credentialDefinitionId: String
         proofRequest: AriesProofRequest
     }
     class AcceptCredentialAction {
-        credentialDefinitionId: String
-        connectionId: String
-    }
-    class ShareCredentialAction {
         credentialDefinitionId: String
         connectionId: String
     }
@@ -92,7 +91,7 @@ classDiagram
     class AriesRequestCredentialPredicates {
         name: String
         type: String
-        value: String
+        value: int
         restrictions: List~String~
     }
     class StepType {
@@ -274,7 +273,6 @@ classDiagram
     Step "1" *-- "0..*" StepAction: actions
     StepAction <|-- AriesOOBAction: Aries implementation
     StepAction <|-- AcceptCredentialAction: Accept credential
-    StepAction <|-- ShareCredentialAction: Share credential
     StepAction <|-- SetupConnectionAction: Setup connection
     StepAction <|-- ChooseWalletAction: Choose wallet
     StepAction <|-- ButtonAction: Button action

@@ -1,12 +1,12 @@
-import { useCredentials } from '@/hooks/use-credentials-store'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { cn, baseUrl } from '@/lib/utils'
-import type { StepType } from '@/openapi-types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Copy, GripVertical } from 'lucide-react'
+import { CredentialDefinition, StepRequest } from 'bc-wallet-openapi'
+import { Copy, GripVertical, TriangleAlert } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import { Screen } from '@/types'
 
 const MAX_CHARS = 50
 
@@ -15,17 +15,14 @@ export const SortableStep = ({
   myScreen,
   stepIndex,
   scenarioIndex,
-  totalSteps,
 }: {
   selectedStep: { stepIndex: number, scenarioIndex: number } | null
-  myScreen: StepType
+  myScreen: Screen
   stepIndex: number
-  totalSteps: number
   scenarioIndex: number
 }) => {
   const t = useTranslations()
-  const { handleSelectStep, duplicateStep, activePersonaId, setSelectedStep, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
-  const { selectedCredential } = useCredentials()
+  const { handleSelectStep, duplicateStep, activePersonaId, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: myScreen.id || `step-${scenarioIndex}-${stepIndex}`,
@@ -37,45 +34,23 @@ export const SortableStep = ({
   }
 
 const handleStepClick = () => {
-  const ScreenType = myScreen.type;
-
-  console.log('Step clicked!', { 
-    stepIndex, 
-    scenarioIndex,
-    myScreen: {
-      type: myScreen.type,
-      title: myScreen.title
-    }
-  });
-  
-  switch (ScreenType) {
-    case 'HUMAN_TASK':
-      setStepState('editing-basic')
-      break;
-    case 'SERVICE':
-      setStepState('editing-issue')
-  }
+  setStepState('editing-basic')
   handleSelectStep(stepIndex, scenarioIndex)
-  // setStepState('editing-issue');
 
   if (activeScenarioIndex !== scenarioIndex) {
     setActiveScenarioIndex(scenarioIndex);
   }
-  // setSelectedScenario(stepIndex);
 };
 
   const handleCopyStep = (stepIndex: number, scenarioIndex: number) => {
     try {
-      console.log('Duplicating step:', { stepIndex, scenarioIndex })
-
       if (!activePersonaId) {
-        console.error('Cannot duplicate - no active persona')
         return
       }
 
       duplicateStep(stepIndex)
 
-      handleSelectStep(stepIndex + 1, scenarioIndex)
+      handleSelectStep(stepIndex, scenarioIndex)
     } catch (error) {
       console.error('Error duplicating step:', error)
     }
@@ -111,7 +86,7 @@ const handleStepClick = () => {
       <div className="bg-light-bg dark:bg-dark-bg flex flex-col w-full cursor-pointer" onClick={handleStepClick}>
         <div
           className={cn(
-            'min-h-28  w-full hover:bg-light-btn-hover dark:hover:bg-dark-btn-hover',
+            'min-h-28 w-full hover:bg-light-btn-hover dark:hover:bg-dark-btn-hover',
             'flex flex-col justify-center rounded p-3',
             'border-b-2 border-light-border dark:border-dark-border',
             selectedStep?.stepIndex === stepIndex ? 'border-foreground' : 'border-light-bg-secondary',
@@ -130,34 +105,47 @@ const handleStepClick = () => {
           </p>
           {myScreen.type == 'SERVICE' && (
             <>
-              {!selectedCredential ? (
-                <>{/* Optional warning message could go here */}</>
-              ) : (
+              {(!myScreen.credentials || myScreen.credentials.length === 0) ? (
                 <>
-                  {selectedCredential && (
-                    <div className="bg-white dark:bg-dark-bg-secondary p-2 flex">
-                      <Image
-                        src={
-                          selectedCredential.icon?.id
-                            ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
-                            : '/assets/no-image.jpg'
-                        }
-                        alt={selectedCredential.icon?.description || 'Credential icon'}
-                        width={50}
-                        height={50}
-                        className="rounded-full"
-                      />
-                      <div className="ml-4 flex-col">
-                        <div className="font-semibold">{selectedCredential?.name}</div>
-                        {/* <div className="text-sm">{selectedCredential?.relyingParty?.name ?? 'Test college'}</div> */}
-                      </div>
-                      <div className="align-middle ml-auto">
-                        <div className="font-semibold">Attributes</div>
-                        {/* <div className="text-sm text-end">{Object.keys(selectedCredential.credentialSchema.attributes).length}</div> */}
+                <div className="bg-light-yellow mt-2 font-bold rounded gap-2 flex flex-row items-center justify-center">
+                  <TriangleAlert size={22} />
+                  {t('action.select_credential_label')}
+                </div>
+                </>
+              ) : (
+                myScreen.credentials.map((cred: CredentialDefinition, index:number) => (
+                  <div
+                    key={cred.id ?? index}
+                    className="bg-white dark:bg-dark-bg-secondary p-2 flex mt-2 rounded"
+                  >
+                    <Image
+                      src={
+                        cred?.icon?.id
+                          ? `${baseUrl}/assets/${cred.icon.id}/file`
+                          : '/assets/no-image.jpg'
+                      }
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement
+                        target.src = '/assets/no-image.jpg'
+                      }}
+                      alt={'Credential Icon'}
+                      width={50}
+                      height={50}
+                      className="rounded-full object-cover"
+                    />
+                    {/* <div className="ml-4 flex-col">
+                      <div className="font-semibold">{cred.name}</div>
+                      <div className="text-sm">{cred.issuer?.name ?? 'Test college'}</div>
+                    </div> */}
+                    <div className="align-middle ml-auto text-right">
+                      <div className="font-semibold">{t('credentials.attributes_label')}</div>
+                      <div className="text-sm text-end">
+                        {cred.credentialSchema?.attributes?.length ?? 0}
                       </div>
                     </div>
-                  )}
-                </>
+                  </div>
+                ))
               )}
             </>
           )}

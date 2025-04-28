@@ -1,4 +1,5 @@
 import {
+  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -8,7 +9,7 @@ import {
   OnUndefined,
   Param,
   Post,
-  Put
+  Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
 import {
@@ -26,7 +27,7 @@ import { relyingPartyDTOFrom } from '../utils/mappers'
 @JsonController('/roles/relying-parties')
 @Service()
 class RelyingPartyController {
-  constructor(private relyingPartyService: RelyingPartyService) {}
+  public constructor(private relyingPartyService: RelyingPartyService) {}
 
   @Get('/')
   public async getAll(): Promise<RelyingPartiesResponse> {
@@ -55,7 +56,7 @@ class RelyingPartyController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() relyingPartyRequest: RelyingPartyRequest): Promise<RelyingPartyResponse> {
@@ -73,7 +74,7 @@ class RelyingPartyController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() relyingPartyRequest: RelyingPartyRequest): Promise<RelyingPartyResponse> {
     try {
@@ -90,7 +91,7 @@ class RelyingPartyController {
     }
   }
 
-//  @Authorized()
+  @Authorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

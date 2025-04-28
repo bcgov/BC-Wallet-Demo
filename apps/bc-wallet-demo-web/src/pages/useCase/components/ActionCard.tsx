@@ -1,13 +1,6 @@
 import React from 'react'
-
 import { startCase } from 'lodash'
-
-import { prependApiUrl } from '../../../utils/Url'
-
-export interface Item {
-  icon: string
-  name: string
-}
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
 
 export interface Props {
   title: string
@@ -26,7 +19,7 @@ export const ActionCard: React.FC<Props> = ({ items, title }) => {
           <div className="flex-1 flex flex-row items-center justify-between my-2" key={item.name}>
             {item.icon && (
               <div className="bg-bcgov-lightgrey dark:bg-bcgov-darkgrey rounded-lg p-2 w-12">
-                <img className="h-8 m-auto" src={prependApiUrl(item.icon)} alt="icon" />
+                <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${item.icon}/file`} alt="icon" />
               </div>
             )}
             <div className="flex-1 px-4 justify-self-start dark:text-white">

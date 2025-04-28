@@ -8,22 +8,18 @@ interface ShowcaseStore {
   showcaseResponse: Showcase;  
   displayShowcase: any;
   
-  // Selection states
   selectedPersonaIds: string[];
   selectedCredentialDefinitionIds: string[];
 
-  // Basic setters
   setShowcase: (showcase: ShowcaseRequest) => void;
   setShowcaseFromResponse: (showcase: Showcase) => void;
   setPersonaIds: (personaIds: string[]) => void;
   setDisplayPersonas: (personas: PersonaRequest[]) => void;
   setScenarioIds: (scenarioIds: string[]) => void;
   
-  // Persona selection functions
   setSelectedPersonaIds: (ids: string[]) => void;
   clearSelectedPersonas: () => void;
   
-  // Credential definition functions
   setCredentialDefinitionIds: (ids: string[]) => void;
   setDisplayCredentialDefinitions: (definitions: any[]) => void;
   setSelectedCredentialDefinitionIds: (ids: string[]) => void;
@@ -125,11 +121,9 @@ export const useShowcaseStore = create<ShowcaseStore>()(
         showcase: { ...state.showcase, scenarios:  scenarioIds.length === 0 ? [] : [...state.showcase.scenarios ?? [] , ...scenarioIds] }
       })),
       
-      // Persona selection functions
       setSelectedPersonaIds: (ids) => set({ selectedPersonaIds: ids }),
       clearSelectedPersonas: () => set({ selectedPersonaIds: [] }),
       
-      // Credential definition functions
       setCredentialDefinitionIds: (ids) => set((state) => ({
         showcase: { ...state.showcase, credentialDefinitions: ids }
       })),

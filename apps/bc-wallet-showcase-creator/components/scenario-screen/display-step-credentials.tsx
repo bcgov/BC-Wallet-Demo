@@ -1,64 +1,33 @@
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import type { ProofRequest, ProofRequestAttributes, ProofRequestPredicates, ShowcaseJSON } from '@/types'
-import { Trash2, Edit } from 'lucide-react'
+import { baseUrl, cn } from '@/lib/utils'
+import { Trash2 } from 'lucide-react'
 import Image from 'next/image'
 
 import { NoSelection } from '../credentials/no-selection'
 import { EditProofRequest } from './edit-proof-request'
+import { ProofRequestFormData } from '@/schemas/scenario'
+import { CredentialDefinition } from 'bc-wallet-openapi'
 
 interface DisplayStepCredentialsProps {
-  selectedCharacter: number
-  showcaseJSON: ShowcaseJSON
-  localData: {
-    requestOptions?: {
-      proofRequest?: ProofRequest
-    }
-  }
+  credentials: CredentialDefinition[];
+  updateCredentials?:(updatedCredentials: ProofRequestFormData) => void;
   selectedStep: number | null
   selectedScenario: number | null
-  removeCredential: (credential: string) => void
+  removeCredential: (credential: CredentialDefinition) => void
 }
 
 export const DisplayStepCredentials = ({
-  selectedCharacter,
-  showcaseJSON,
-  localData,
   selectedStep,
   selectedScenario,
   removeCredential,
+  updateCredentials,
+  credentials
 }: DisplayStepCredentialsProps) => {
   const [editingCredentials, setEditingCredentials] = useState<number[]>([])
 
-  const getAllCredentials = (
-    attributes: { [key: string]: ProofRequestAttributes } = {},
-    predicates: { [key: string]: ProofRequestPredicates } = {}
-  ): string[] => {
-    const credentials = new Set<string>()
-
-    Object.values(attributes).forEach((value) => {
-      if (value.restrictions?.[0]) {
-        credentials.add(value.restrictions[0])
-      }
-    })
-
-    Object.values(predicates).forEach((value) => {
-      if (value.restrictions[0]) {
-        credentials.add(value.restrictions[0])
-      }
-    })
-
-    return Array.from(credentials)
-  }
-
-  const credentials = getAllCredentials(
-    localData.requestOptions?.proofRequest?.attributes,
-    localData.requestOptions?.proofRequest?.predicates
-  )
-
-  if (credentials.length === 0) {
+  if ((credentials || []).length === 0) {
     return (
       <div className="m-5 p-5 w-full h-60">
         <NoSelection text="No Credentials Added" />
@@ -69,15 +38,15 @@ export const DisplayStepCredentials = ({
   return (
     <div className="space-y-4">
       <p className="text-md font-bold">Credential(s) Added:</p>
+      {/* TODO: FIX credential type */}
+      {credentials.map((credential: CredentialDefinition, index) => {
 
-      {credentials.map((credential, index) => {
-        const credentialData = showcaseJSON.personas[selectedCharacter].credentials[credential]
-        if (!credentialData) return null
+        if (!credential) return null
 
         const isEditing = editingCredentials.includes(index)
 
         return (
-          <div key={credential} className="flex flex-col">
+          <div key={credential.id} className="flex flex-col">
             <div className="w-full border border-dark-border dark:border-light-border rounded-t-lg">
               {/* Credential Header */}
               <div
@@ -86,19 +55,24 @@ export const DisplayStepCredentials = ({
                   'bg-light-bg dark:bg-dark-bg'
                 )}
               >
-                <div className="w-fit flex items-center">
-                  <div>
-                    <Image
-                      src={require(`../../public/assets/NavBar/${'Joyce'}.png`)}
-                      alt={credentialData.name}
-                      width={50}
-                      height={50}
-                      className="rounded-full"
-                    />
-                  </div>
+                <div className="flex items-center flex-1">
+                  <Image
+                    src={credential.icon?.id ? `${baseUrl}/assets/${credential.icon.id}/file` : '/assets/no-image.jpg'}
+                    alt={credential?.icon?.description || 'default credential icon'}
+                    width={50}
+                    height={50}
+                     className="rounded-full object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement
+                      target.src = '/assets/no-image.jpg'
+                    }}
+                  />
                   <div className="space-y-1 ml-4">
-                    <p className="font-semibold">{credentialData.name}</p>
-                    <p className="text-sm text-muted-foreground">{credentialData.issuer_name}</p>
+                    <p className="font-semibold">{credential.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {'Test college'}
+                    </p>
                   </div>
                 </div>
 
@@ -118,14 +92,12 @@ export const DisplayStepCredentials = ({
               {/* Proof Request Section */}
               <div className={cn('p-3 rounded-b-lg', 'bg-white dark:bg-dark-bg')}>
                 {isEditing &&
-                localData.requestOptions?.proofRequest &&
                 selectedStep !== null &&
                 selectedScenario !== null ? (
                   <EditProofRequest
-                    showcaseJSON={showcaseJSON}
-                    proofRequest={localData.requestOptions.proofRequest}
-                    credentialName={credential}
-                    selectedCharacter={selectedCharacter}
+                    credentials={credential}
+                    updateCredentials={updateCredentials}
+                    credentialName={credential?.credentialSchema?.name}
                     selectedScenario={selectedScenario}
                     selectedStep={selectedStep}
                     setEditingCredentials={setEditingCredentials}

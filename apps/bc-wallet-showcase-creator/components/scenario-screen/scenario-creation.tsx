@@ -2,8 +2,7 @@
 
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { cn, baseUrl } from '@/lib/utils'
-import type {  ScenarioRequestType, StepRequestType } from '@/openapi-types'
-import type { Persona } from 'bc-wallet-openapi'
+import type { Persona, ScenarioRequest, StepRequest } from 'bc-wallet-openapi'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -123,7 +122,7 @@ export const CreateScenariosScreen = () => {
               </div>
             </div>
 
-            {scenarios.map((scenario: ScenarioRequestType, index: number) => (
+            {scenarios.map((scenario: ScenarioRequest, index: number) => (
               <div
                 key={index}
                 className={cn(
@@ -167,15 +166,13 @@ export const CreateScenariosScreen = () => {
                               <p>No steps created yet. Click the button below to add your first step.</p>
                             </div>
                           ) : (
-                            scenario.steps.map((step: StepRequestType, stepIndex: number) => {
-                              // console.log('step ==>', step)
+                            scenario.steps.map((step: StepRequest, stepIndex: number) => {
                               return (
                                 <div key={`step-${index}-${stepIndex}`} className="flex flex-row">
                                   <SortableStep
                                     selectedStep={selectedStep}
                                     myScreen={step as any}
                                     stepIndex={stepIndex}
-                                    totalSteps={scenario.steps.length}
                                     scenarioIndex={index}
                                   />
                                 </div>

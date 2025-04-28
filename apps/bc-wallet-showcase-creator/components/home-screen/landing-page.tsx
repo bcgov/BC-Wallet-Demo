@@ -118,7 +118,7 @@ export const LandingPage = () => {
                             alt={persona.headshotImage?.description || 'Character headshot'}
                             width={44}
                             height={44}
-                            className="rounded-full w-[44px] h-[44px]"
+                            className="rounded-full w-[44px] h-[44px] object-cover"
                           />
                           <div>
                             <p className="text-base text-foreground font-semibold">{persona.name}</p>

@@ -1,6 +1,6 @@
 'use client'
 
-import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useTranslations } from 'next-intl'
@@ -12,11 +12,21 @@ import { useRouter } from '@/i18n/routing'
 import { SortableStep } from '@/components/onboarding-screen/sortable-step'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { cn, baseUrl } from '@/lib/utils'
+import { Screen } from '@/types'
 
 export const CreateOnboardingScreen = () => {
   const t = useTranslations()
-  const { steps, selectedStep, moveStep, setStepState, personas, activePersonaId, setActivePersonaId, activePersona } =
-    useOnboardingAdapter()
+  const { 
+    steps, 
+    selectedStep, 
+    moveStep: handleMoveStep, 
+    setStepState, 
+    personas, 
+    activePersonaId, 
+    setActivePersonaId, 
+    activePersona,
+  } = useOnboardingAdapter()
+  
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
 
@@ -26,14 +36,10 @@ export const CreateOnboardingScreen = () => {
 
     const oldIndex = steps.findIndex((step) => step.id === active.id)
     const newIndex = steps.findIndex((step) => step.id === over.id)
-
-    if (oldIndex !== newIndex) {
-      moveStep(oldIndex, newIndex)
+  
+    if (oldIndex !== newIndex && oldIndex >= 0 && newIndex >= 0) {
+      handleMoveStep(oldIndex, newIndex)
     }
-  }
-
-  const handleDragStart = (event: DragStartEvent) => {
-    // Handle drag start if needed
   }
 
   return (
@@ -90,7 +96,7 @@ export const CreateOnboardingScreen = () => {
             </div>
           </div>
 
-          <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
               {steps.length === 0 ? (
                 <div className="text-center text-gray-500 p-4">
@@ -100,21 +106,20 @@ export const CreateOnboardingScreen = () => {
                 steps.map((step, index) => (
                   <div key={index} className="flex flex-row px-4 pt-4">
                     <SortableStep
-                      selectedStep={selectedStep}
-                      myScreen={step as any}
+                      selectedStep={selectedStep?.order === index ? selectedStep : null}
+                      myScreen={step as unknown as Screen}
                       stepIndex={index + 1}
-                      totalSteps={steps.length}
                     />
                   </div>
                 ))
               )}
 
               <DragOverlay>
-                {selectedStep !== null && steps[selectedStep] && (
+                {selectedStep !== null && selectedStep.order !== null && steps[selectedStep.order] && (
                   <div className="top-1">
-                    <p>{steps[selectedStep].title}</p>
+                    <p>{steps[selectedStep.order].title}</p>
                     <div className="highlight-container w-full flex flex-row justify-items-center items-center rounded p-3 unselected-item backdrop-blur">
-                      <p className="text-sm">{steps[selectedStep].description}</p>
+                      <p className="text-sm">{steps[selectedStep.order].description}</p>
                     </div>
                   </div>
                 )}
