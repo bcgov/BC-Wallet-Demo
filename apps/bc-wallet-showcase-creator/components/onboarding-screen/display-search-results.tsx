@@ -44,7 +44,7 @@ export const DisplaySearchResults = ({
               <div className="flex items-center flex-1">
                 <Image
                   src={result.icon?.id ? `${baseUrl}/assets/${result.icon.id}/file` : '/assets/no-image.jpg'}
-                  alt={result.icon.description || 'default credential icon'}
+                  alt={result?.icon?.description || 'default credential icon'}
                   width={50}
                   height={50}
                   unoptimized
