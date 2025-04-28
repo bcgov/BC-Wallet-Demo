@@ -178,7 +178,9 @@
     "search_credential_placeholder": "ex. Carte d'étudiant",
     "no_credentials_added_message": "Aucun justificatif ajouté",
     "go_back_to_select_personas": "Retour à la sélection des personnages",
-    "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration."
+    "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration.",
+    "no_step_selected_subtext": "Sélectionnez une étape de la liste ou créez une nouvelle étape",
+    "create_new_step_button_label": "Créer une nouvelle étape"
   },
   "scenario": {
     "header_title": "Créer des Scénarios",

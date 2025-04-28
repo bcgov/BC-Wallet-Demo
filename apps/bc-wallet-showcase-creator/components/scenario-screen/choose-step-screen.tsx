@@ -60,8 +60,7 @@ export const CreateScenariosStepsScreen = () => {
       {activePersonaId && stepState === 'no-selection' && (
         <NoSelection
           text={
-            t('onboarding.no_step_selected_message') ||
-            'No step selected. Please select a step from the left panel or create a new one.'
+            t('onboarding.no_step_selected_message')
           }
         />
       )}
