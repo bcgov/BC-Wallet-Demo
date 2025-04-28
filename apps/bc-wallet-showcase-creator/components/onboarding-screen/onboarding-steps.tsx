@@ -9,7 +9,7 @@ import { StepEditor } from './step-editor'
 
 export const OnboardingSteps = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
-  const { activePersonaId, stepState, selectedStep } = useOnboardingAdapter()
+  const { activePersonaId, stepState, selectedStep, setStepState } = useOnboardingAdapter()
 
   const renderComponent = () => {
     if (!activePersonaId) {
@@ -21,15 +21,19 @@ export const OnboardingSteps = ({ showcaseSlug }: { showcaseSlug?: string }) => 
     }
     
     if (selectedStep !== null) {
-      return <StepEditor showcaseSlug={showcaseSlug} />
+      return <StepEditor showcaseSlug={showcaseSlug}/>
     }
     
     return (
       <NoSelection
         text={
-          t('onboarding.no_step_selected_message') ||
-          'No step selected. Please select a step from the left panel or create a new one.'
+          t('onboarding.no_step_selected_message')
         }
+        subtext={
+          t('onboarding.no_step_selected_subtext')
+        }
+        handleNewStep={() => setStepState('creating-new')}
+        buttonText={t('onboarding.create_new_step_button_label')}
       />
     )
   }
