@@ -109,7 +109,7 @@ export const useImportCredentialDefinition = () => {
     },
     onSettled: () => {
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
+        queryClient.invalidateQueries({ queryKey: ['credential'] })
       }, 10000);
     }
   })
