@@ -13,7 +13,7 @@ const baseRoute = process.env.BASE_ROUTE
 console.log(`Starting server with BASE_ROUTE: ${baseRoute}`)
 console.log(
   `Environment variables loaded: ${JSON.stringify({
-    NODE_PORT: process.env.NODE_PORT,
+    PORT: process.env.PORT,
     BASE_ROUTE: process.env.BASE_ROUTE,
     CORS_DISABLED: process.env.CORS_DISABLED,
   })}`,
@@ -104,7 +104,7 @@ const run = async () => {
       }
     })
 
-    const port = process.env.NODE_PORT || 3000
+    const port = process.env.PORT || 3000
     server.listen(port, () => {
       console.log(`Server started on port ${port}`)
       console.log(`Full base URL: http://localhost:${port}${baseRoute}`)
