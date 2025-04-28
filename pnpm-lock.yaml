@@ -596,9 +596,6 @@ importers:
 
   packages/bc-wallet-traction-adapter:
     dependencies:
-      bc-wallet-openapi:
-        specifier: workspace:*
-        version: link:../bc-wallet-openapi
       bc-wallet-traction-openapi:
         specifier: workspace:*
         version: link:../bc-wallet-traction-openapi
@@ -636,6 +633,9 @@ importers:
       '@types/node':
         specifier: ^20.14.8
         version: 20.17.27
+      bc-wallet-openapi:
+        specifier: workspace:*
+        version: link:../bc-wallet-openapi
       short-uuid:
         specifier: ^5.2.0
         version: 5.2.0

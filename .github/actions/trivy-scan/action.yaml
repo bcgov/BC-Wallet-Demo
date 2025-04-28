@@ -1,0 +1,37 @@
+name: "Trivy Image Scan"
+description: "Scan Docker images using Trivy and output vulnerability summary"
+inputs:
+  images:
+    description: "Comma-separated list of Docker images to scan"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Scan Docker Images
+      run: |
+        IFS=',' read -ra IMAGES <<< "${{ inputs.images }}"
+        for IMAGE in "${IMAGES[@]}"; do
+          echo "Scanning $IMAGE"
+          docker pull $IMAGE
+          trivy image --format json --output scan-results.json $IMAGE
+
+          # Generate vulnerability summary
+          CRITICAL_COUNT=$(jq '.[].Vulnerabilities | map(select(.Severity == "CRITICAL")) | length' scan-results.json)
+          HIGH_COUNT=$(jq '.[].Vulnerabilities | map(select(.Severity == "HIGH")) | length' scan-results.json)
+          MEDIUM_COUNT=$(jq '.[].Vulnerabilities | map(select(.Severity == "MEDIUM")) | length' scan-results.json)
+          LOW_COUNT=$(jq '.[].Vulnerabilities | map(select(.Severity == "LOW")) | length' scan-results.json)
+
+          echo "Vulnerability Summary for $IMAGE:"
+          echo "| Severity  | Count |"
+          echo "|-----------|-------|"
+          echo "| Critical  | $CRITICAL_COUNT |"
+          echo "| High      | $HIGH_COUNT |"
+          echo "| Medium    | $MEDIUM_COUNT |"
+          echo "| Low       | $LOW_COUNT |"
+          echo ""
+          echo "---"
+        done
+      shell: bash 
