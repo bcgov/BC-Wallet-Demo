@@ -29,6 +29,7 @@ export class ShowcaseApiService extends ApiService {
    */
   public constructor(private apiBasePath: string) {
     super()
+    console.debug(`Creating Showcase API client targeting ${apiBasePath}`)
 
     this.configOptions = {
       basePath: this.apiBasePath,
@@ -45,13 +46,19 @@ export class ShowcaseApiService extends ApiService {
    * @throws Error if no schema is found for the given ID
    */
   public async updateCredentialSchemaIdentifier(id: string, identifier: string) {
+    const accessTokenCallback = this.configOptions.accessToken as (name?: string, scopes?: string[]) => Promise<string>
+    console.debug('Calling getCredentialSchemaRaw', {
+      credentialSchema: id,
+      accessToken: accessTokenCallback('OAuth2', []),
+      basePath: this.configOptions.basePath,
+    })
     const response = await this.credentialDefinitionsApi.getCredentialSchemaRaw({ credentialSchema: id })
     const existingSchema = await this.handleApiResponse(response)
     if (!existingSchema || !existingSchema.credentialSchema) {
-      return Promise.reject(`No schema is was returned for id ${id}`)
+      return Promise.reject(Error(`No schema is was returned for id ${id}`))
     }
 
-    void (await this.credentialDefinitionsApi.updateCredentialSchema({
+    const requestParameters = {
       credentialSchema: id,
       credentialSchemaRequest: {
         name: existingSchema.credentialSchema.name,
@@ -61,7 +68,10 @@ export class ShowcaseApiService extends ApiService {
         source: existingSchema.credentialSchema.source,
         attributes: existingSchema.credentialSchema.attributes as Array<CredentialAttributeRequest>,
       } satisfies CredentialSchemaRequest,
-    }))
+    }
+    console.debug('Calling updateCredentialSchema', requestParameters)
+    void (await this.credentialDefinitionsApi.updateCredentialSchema(requestParameters))
+    console.debug('updateCredentialSchema successful')
   }
 
   /**
@@ -75,9 +85,9 @@ export class ShowcaseApiService extends ApiService {
     const response = await this.credentialDefinitionsApi.getCredentialDefinitionRaw({ definitionId: id })
     const existingDefinition = await this.handleApiResponse(response)
     if (!existingDefinition || !existingDefinition.credentialDefinition) {
-      return Promise.reject(`No definition is was returned for id ${id}`)
+      return Promise.reject(Error(`No definition is was returned for id ${id}`))
     }
-
+    console.debug('Calling updateCredentialDefinition')
     void (await this.credentialDefinitionsApi.updateCredentialDefinition({
       definitionId: id,
       credentialDefinitionRequest: {
@@ -89,6 +99,7 @@ export class ShowcaseApiService extends ApiService {
         credentialSchema: existingDefinition.credentialDefinition.credentialSchema.id,
       } satisfies CredentialDefinitionRequest,
     }))
+    console.debug('updateCredentialDefinition successful')
   }
 
   /**

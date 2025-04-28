@@ -4,7 +4,7 @@ import { LRUCache } from 'lru-cache'
 import { environment } from '../environment'
 import { decryptBufferAsString } from '../util/CypherUtil'
 import { ShowcaseApiService } from './showcase-api-service'
-import { TractionService, UpdateBearerTokens } from './traction-service'
+import { ServiceUpdates, TractionService } from './traction-service'
 
 class ServiceManager {
   private readonly services = new LRUCache<string, TractionService | ShowcaseApiService>({
@@ -15,14 +15,18 @@ class ServiceManager {
   public async getTractionService(
     tenantId: string,
     showcaseApiUrlBase: string,
-    tractionApiUrlBase?: string,
+    tractionApiUrlBase: string,
     walletId?: string,
     accessTokenEnc?: Buffer,
     accessTokenNonce?: Buffer,
   ): Promise<TractionService> {
-    const key = this.buildKey(tractionApiUrlBase, tenantId, walletId)
+    const key = this.buildKey(tractionApiUrlBase, showcaseApiUrlBase, tenantId, walletId)
     const decodedToken = this.decodeToken(accessTokenEnc, accessTokenNonce)
-    const updateBearerTokens: UpdateBearerTokens = { showcaseApiToken: decodedToken }
+    const serviceUpdates: ServiceUpdates = {
+      tractionApiUrlBase,
+      showcaseApiToken: decodedToken,
+      showcaseApiUrlBase,
+    }
 
     // Return existing service if it exists
     if (this.services.has(key)) {
@@ -37,12 +41,13 @@ class ServiceManager {
       // -> Alternative logic
       if (!(await service.hasBearerToken()) && environment.traction.FIXED_API_KEY) {
         const freshTractionToken = await service.getTenantToken(environment.traction.FIXED_API_KEY)
-        updateBearerTokens.tractionToken = freshTractionToken
+        serviceUpdates.tractionToken = freshTractionToken
       }
-      service.updateBearerTokens(updateBearerTokens)
+      service.updateBearerTokens(serviceUpdates)
       return service
     }
 
+    console.log()
     const showcaseApiService = new ShowcaseApiService(showcaseApiUrlBase)
     const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
     /*
@@ -53,9 +58,9 @@ class ServiceManager {
     // -> Alternative logic
     if (environment.traction.FIXED_API_KEY) {
       const freshTractionToken = await tractionService.getTenantToken(environment.traction.FIXED_API_KEY)
-      updateBearerTokens.tractionToken = freshTractionToken
+      serviceUpdates.tractionToken = freshTractionToken
     }
-    tractionService.updateBearerTokens(updateBearerTokens)
+    tractionService.updateBearerTokens(serviceUpdates)
     this.services.set(key, tractionService)
     return tractionService
   }
@@ -73,11 +78,27 @@ class ServiceManager {
   }
 
   private buildKey(
-    apiUrlBase: string = environment.traction.DEFAULT_API_BASE_PATH,
+    tractionApiUrlBase: string,
+    showcaseApiUrlBase: string,
     tenantId: string,
     walletId?: string,
   ): string {
-    return walletId ? `${apiUrlBase}:${tenantId}:${walletId}` : `${apiUrlBase}:${tenantId}`
+    const tractionHash = this.simpleHashString(tractionApiUrlBase)
+    const showcaseHash = this.simpleHashString(showcaseApiUrlBase)
+    return walletId
+      ? `${tractionHash}:${showcaseHash}:${tenantId}:${walletId}`
+      : `${tractionHash}:${showcaseHash}:${tenantId}`
+  }
+
+  private simpleHashString(str: string): string {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = (hash << 5) - hash + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    // Convert to base36
+    return Math.abs(hash).toString(36)
   }
 }
 
@@ -87,7 +108,7 @@ const serviceRegistry = new ServiceManager()
 export async function getTractionService(
   tenantId: string,
   showcaseApiUrlBase: string,
-  tractionApiUrlBase?: string,
+  tractionApiUrlBase: string,
   walletId?: string,
   accessTokenEnc?: Buffer,
   accessTokenNonce?: Buffer,

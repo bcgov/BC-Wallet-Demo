@@ -54,9 +54,11 @@ const TRANSACTION_TERMINAL_STATES = new Set([
 const TRANSACTION_ERROR_STATES = new Set(['transaction_refused', 'transaction_cancelled'])
 const TX_DELAY_MS = 2000
 
-export type UpdateBearerTokens = {
+export type ServiceUpdates = {
   tractionToken?: string
+  tractionApiUrlBase?: string
   showcaseApiToken?: string
+  showcaseApiUrlBase?: string
 }
 
 export class TractionService extends ApiService {
@@ -127,7 +129,7 @@ export class TractionService extends ApiService {
    * Updates the bearer tokens used for authorization
    * @param args
    */
-  public updateBearerTokens(args: UpdateBearerTokens): void {
+  public updateBearerTokens(args: ServiceUpdates): void {
     if (args.tractionToken) {
       this.configOptions.apiKey = this.tokenCallback(args.tractionToken)
     }
@@ -204,7 +206,9 @@ export class TractionService extends ApiService {
     }
 
     const transactionId = result?.txn?.transactionId
+    console.debug('transactionId:', transactionId)
 
+    console.debug('calling updateCredentialSchemaIdentifier')
     void (await this.showcaseApiService.updateCredentialSchemaIdentifier(credentialSchema.id, schemaId))
     return { schemaId, transactionId }
   }
@@ -331,6 +335,11 @@ export class TractionService extends ApiService {
     let schemaId = dbCredentialDef.credentialSchema.identifier
     if (!schemaId) {
       try {
+        console.debug(
+          'Calling findExistingSchema',
+          dbCredentialDef.credentialSchema.name,
+          dbCredentialDef.credentialSchema.version,
+        )
         schemaId = await this.findExistingSchema(
           dbCredentialDef.credentialSchema.name,
           dbCredentialDef.credentialSchema.version,
@@ -347,6 +356,8 @@ export class TractionService extends ApiService {
     }
 
     try {
+      console.debug('Calling credentialDefinitionStorageGet')
+
       const credentialDefList = await this.credentialDefStorageApi.credentialDefinitionStorageGet()
       if (credentialDefList.results) {
         for (const result of credentialDefList.results) {
@@ -384,6 +395,7 @@ export class TractionService extends ApiService {
         if (!schemaId) {
           console.log(`Schema ${credentialSchema.name} v${credentialSchema.version} not found, creating...`)
           const createResult = await this.createSchema(credentialSchema)
+          console.debug('>>1')
           schemaId = createResult.schemaId
           if (!credentialSchema.identifier) {
             credentialSchema.identifierType = 'DID'
@@ -406,11 +418,14 @@ export class TractionService extends ApiService {
     }
 
     // 2. Publish Credential Definitions
+    console.debug('>>2')
     if (credentialDefs.length > 0) {
       if (transactionIds.length > 0) {
+        console.debug('>>3')
         await this.waitForTransactionsToComplete(transactionIds)
       }
       for (const credentialDef of credentialDefs) {
+        console.debug('>>4')
         let credDefId = await this.findExistingCredentialDefinition(credentialDef)
 
         if (!credDefId) {
@@ -429,6 +444,7 @@ export class TractionService extends ApiService {
               ),
             )
           }
+          console.debug('>>5')
 
           // Create new credential definition
           const createResult = await this.createCredentialDefinition(credentialDef, cdSchemaId, issuerId)
@@ -447,6 +463,8 @@ export class TractionService extends ApiService {
           if (!credentialDef.identifier) {
             credentialDef.identifierType = 'DID'
             credentialDef.identifier = credDefId
+            console.debug('>>1')
+
             void (await this.showcaseApiService.updateCredentialDefIdentifier(credentialDef.id, credDefId))
           }
         }
@@ -523,10 +541,12 @@ export class TractionService extends ApiService {
       walletKey, // Only required for unmanaged wallets
     }
 
-    const apiResponse = await this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw({
+    const requestParameters = {
       tenantId: this.tenantId,
       body: request,
-    })
+    }
+    console.debug('Calling multitenancyTenantTenantIdTokenPostRaw with', requestParameters)
+    const apiResponse = await this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw(requestParameters)
 
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
     if (!tokenResponse?.token) {
@@ -548,10 +568,12 @@ export class TractionService extends ApiService {
       walletKey,
     }
 
-    const apiResponse = await this.multitenancyApi.multitenancyWalletWalletIdTokenPostRaw({
+    const requestParameters = {
       walletId: this.walletId,
       body: request,
-    })
+    }
+    console.debug('Calling multitenancyWalletWalletIdTokenPostRaw with', requestParameters)
+    const apiResponse = await this.multitenancyApi.multitenancyWalletWalletIdTokenPostRaw(requestParameters)
 
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
     if (!tokenResponse?.token) {
@@ -592,6 +614,7 @@ export class TractionService extends ApiService {
 
       for (const tranId of Array.from(pendingTransactionIds)) {
         try {
+          console.debug('Calling transactionsTranIdGetRaw with', { tranId })
           const apiResponse = await this.endorseTransactionApi.transactionsTranIdGetRaw({ tranId })
           const transactionRecord = await this.handleApiResponse<TransactionRecord>(apiResponse)
 
