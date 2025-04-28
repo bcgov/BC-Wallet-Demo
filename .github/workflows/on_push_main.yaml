@@ -75,8 +75,6 @@ jobs:
     name: "Build Demo Server"
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs:
-      - ready
     steps:
       - uses: actions/checkout@v4
       - name: Build Demo Server Image
@@ -96,8 +94,6 @@ jobs:
     name: "Build Demo Web"
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs:
-      - ready
     steps:
       - uses: actions/checkout@v4
       - name: Build Demo Web Image
