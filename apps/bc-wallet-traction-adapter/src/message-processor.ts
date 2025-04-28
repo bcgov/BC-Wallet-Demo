@@ -86,7 +86,7 @@ export class MessageProcessor {
       const service = await getTractionService(
         headers.tractionTenantId ?? environment.traction.FIXED_TENANT_ID!,
         headers.showcaseApiUrlBase ?? environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
-        headers.tractionApiUrlBase,
+        headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH,
         headers.walletId ?? environment.traction.FIXED_WALLET_ID!,
         headers.accessTokenEnc,
         headers.accessTokenNonce,
@@ -167,8 +167,10 @@ export class MessageProcessor {
         context.delivery.accept()
       }
     } catch (e) {
-      const errorMsg = `An error occurred while publishing issuer ${issuer.id} / ${issuer.name} of type ${issuer.type} to Traction. Reason: ${e.message}`
+      const errorMsg = this.buildErrorMessage(issuer, e)
       console.error(errorMsg)
+      console.debug('Stack:', e.stack)
+
       if (context.delivery) {
         context.delivery.reject({
           info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
@@ -178,6 +180,23 @@ export class MessageProcessor {
         }) // FIXME context.delivery.release() to redeliver ??
       }
     }
+  }
+
+  private buildErrorMessage(issuer: Issuer, e: Error) {
+    const parts = []
+    parts.push(
+      `An error occurred while publishing issuer ${issuer.id} / ${issuer.name} of type ${issuer.type} to Traction. Reason: ${e.message}`,
+    )
+
+    if ('cause' in e && e.cause) {
+      parts.push(`Cause: ${e.cause}`)
+    }
+
+    if ('details' in e && e.details && Array.isArray(e.details) && e.details.length) {
+      parts.push(e.details.join('\r\n'))
+    }
+
+    return parts.join('\r\n')
   }
 
   private async handleImportCredentialSchema(
