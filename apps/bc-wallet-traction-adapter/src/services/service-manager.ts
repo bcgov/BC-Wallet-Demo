@@ -4,7 +4,7 @@ import { LRUCache } from 'lru-cache'
 import { environment } from '../environment'
 import { decryptBufferAsString } from '../util/CypherUtil'
 import { ShowcaseApiService } from './showcase-api-service'
-import { ServiceUpdates, TractionService } from './traction-service'
+import { UpdatedTokens, TractionService } from './traction-service'
 
 class ServiceManager {
   private readonly services = new LRUCache<string, TractionService | ShowcaseApiService>({
@@ -22,10 +22,8 @@ class ServiceManager {
   ): Promise<TractionService> {
     const key = this.buildKey(tractionApiUrlBase, showcaseApiUrlBase, tenantId, walletId)
     const decodedToken = this.decodeToken(accessTokenEnc, accessTokenNonce)
-    const serviceUpdates: ServiceUpdates = {
-      tractionApiUrlBase,
+    const updatedTokens: UpdatedTokens = {
       showcaseApiToken: decodedToken,
-      showcaseApiUrlBase,
     }
 
     // Return existing service if it exists
@@ -41,9 +39,9 @@ class ServiceManager {
       // -> Alternative logic
       if (!(await service.hasBearerToken()) && environment.traction.FIXED_API_KEY) {
         const freshTractionToken = await service.getTenantToken(environment.traction.FIXED_API_KEY)
-        serviceUpdates.tractionToken = freshTractionToken
+        updatedTokens.tractionToken = freshTractionToken
       }
-      service.updateBearerTokens(serviceUpdates)
+      service.updateBearerTokens(updatedTokens)
       return service
     }
 
@@ -58,9 +56,9 @@ class ServiceManager {
     // -> Alternative logic
     if (environment.traction.FIXED_API_KEY) {
       const freshTractionToken = await tractionService.getTenantToken(environment.traction.FIXED_API_KEY)
-      serviceUpdates.tractionToken = freshTractionToken
+      updatedTokens.tractionToken = freshTractionToken
     }
-    tractionService.updateBearerTokens(serviceUpdates)
+    tractionService.updateBearerTokens(updatedTokens)
     this.services.set(key, tractionService)
     return tractionService
   }

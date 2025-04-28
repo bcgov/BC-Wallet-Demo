@@ -54,11 +54,9 @@ const TRANSACTION_TERMINAL_STATES = new Set([
 const TRANSACTION_ERROR_STATES = new Set(['transaction_refused', 'transaction_cancelled'])
 const TX_DELAY_MS = 2000
 
-export type ServiceUpdates = {
+export type UpdatedTokens = {
   tractionToken?: string
-  tractionApiUrlBase?: string
   showcaseApiToken?: string
-  showcaseApiUrlBase?: string
 }
 
 export class TractionService extends ApiService {
@@ -129,7 +127,7 @@ export class TractionService extends ApiService {
    * Updates the bearer tokens used for authorization
    * @param args
    */
-  public updateBearerTokens(args: ServiceUpdates): void {
+  public updateBearerTokens(args: UpdatedTokens): void {
     if (args.tractionToken) {
       this.configOptions.apiKey = this.tokenCallback(args.tractionToken)
     }
