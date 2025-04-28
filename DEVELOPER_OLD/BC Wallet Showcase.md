@@ -21,7 +21,7 @@ One last thing that needs to be done is to ensure that your traction agent is se
 
 There are two .env files that you need to create and configure on the showcase. They go in the same folder as the .env.example file. In the server folder the .env file should look like this:
 ```bash
-TENANT_ID=<YOUR_TENANT_ID>
+TENANT_ID=<YOUR_TENNANT_ID>
 API_KEY=<YOUR_API_KEY>
 TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
 TRACTION_DID=<YOUR_AGENTS_DID>
@@ -52,7 +52,7 @@ As stated in the previous section, the application is split up in to a frontend 
 The are two main flows on the Client, the onboarding flow where a user gets their credentials, and the useCase where the user presents information about their credentials in proof requests. These are located in `client > src > pages > onboarding > steps`. Here's an overview of the steps and their role:
 - SetupConnection.tsx: generates a QR code to establish a connection with the user's wallet
 - AcceptCredential.tsx: issues the configured credential to the existing connection
-- StepView.tsx: displays the configured text and images for the current step
+- BasicSlide.tsx: displays the configured text and images for the current step
 - ChooseWallet.tsx: displays the choose wallet screen that instructs users to install BC Wallet
 - PickCharater.tsx: the character selection screen that allows you to select different characters based on the configuration
 - SetupStart.tsx: provides a preamble about what credentials you'll be receiving and the usecases

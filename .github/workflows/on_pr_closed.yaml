@@ -9,9 +9,7 @@ on:
         type: string
   pull_request:
     branches:
-      - random-branch # change this to main or your branch
-      # - main
-      # - develop-4sure
+      - main
     paths:
       - "apps/bc-wallet-api-server/**"
       - "apps/bc-wallet-traction-adapter/**"
@@ -51,34 +49,33 @@ jobs:
             echo "PR_NUM=${{ github.event.number }}" >> $GITHUB_ENV
           fi
 
-      # Uninstall resources via SSH to K3s server
-      - name: Uninstall resources from K3s
-        uses: appleboy/ssh-action@v0.1.10
+      - name: Install OpenShift CLI tools
+        uses: redhat-actions/openshift-tools-installer@v1
         with:
-          host: ${{ secrets.K3S_HOST }}
-          username: ${{ secrets.K3S_USERNAME }}
-          key: ${{ secrets.K3S_SSH_KEY }}
-          script: |
-            # Uninstall Helm release
-            helm uninstall pr-${{ env.PR_NUM }}-bc-wallet || true
-            
-            # Delete any remaining resources
-            kubectl delete secret,pvc,service,deployment,statefulset,configmap,ingress,ingressroute,certificate \
-              --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet" || true
-            
-            # Delete IngressRoutes specifically
-            kubectl delete ingressroute \
-              api-server-route-pr-${{ env.PR_NUM }} \
-              traction-adapter-route-pr-${{ env.PR_NUM }} \
-              showcase-creator-route-pr-${{ env.PR_NUM }} \
-              demo-web-route-pr-${{ env.PR_NUM }} \
-              demo-server-route-pr-${{ env.PR_NUM }} || true
-            
-            # Delete Certificate
-            kubectl delete certificate bc-wallet-tls-pr-${{ env.PR_NUM }} || true
+          oc: "4.14"
+
+      - name: Authenticate and set context
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+          certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
+          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      - name: Uninstall Credential Showcase resources via Helm
+        continue-on-error: true
+        run: |
+          helm uninstall pr-${{ env.PR_NUM }}-bc-wallet --namespace ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      - name: Remove Credential Showcase Openshift Objects
+        continue-on-error: true
+        run: |
+          oc delete secret,pvc,route,service,deployment,statefulset,configmap \
+            --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet"
+
 
   clean-ghcr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Delete closed PR images
     steps:
       - name: Delete API Server Image
@@ -88,7 +85,7 @@ jobs:
           image-names: bc-wallet-api-server
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Delete Traction Adapter Image
         uses: snok/container-retention-policy@v3.0.0
@@ -97,7 +94,7 @@ jobs:
           image-names: bc-wallet-traction-adapter
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Showcase Creator Image
         uses: snok/container-retention-policy@v3.0.0
@@ -106,7 +103,7 @@ jobs:
           image-names: bc-wallet-showcase-creator 
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Demo Server Image
         uses: snok/container-retention-policy@v3.0.0
@@ -115,7 +112,7 @@ jobs:
           image-names: bc-wallet-demo-server 
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Demo Web Image
         uses: snok/container-retention-policy@v3.0.0
@@ -124,4 +121,4 @@ jobs:
           image-names: bc-wallet-demo-web 
           image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
           cut-off: 1second
-          token: ${{ secrets.CR_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}

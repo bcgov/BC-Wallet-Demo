@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+  name: {{ include "bc-wallet.fullname" . }}-showcase-creator
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: creator
@@ -12,11 +12,11 @@ spec:
   replicas: {{ .Values.showcase_creator.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+      app: {{ include "bc-wallet.fullname" . }}-showcase-creator
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+        app: {{ include "bc-wallet.fullname" . }}-showcase-creator
         app.kubernetes.io/component: creator
         app.kubernetes.io/part-of: bc-wallet
         {{- include "bc-wallet.labels" . | nindent 8 }}
@@ -30,7 +30,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: {{ .Values.showcase_creator.name }}
+      - name: showcase-creator
         image: "{{ .Values.showcase_creator.image.repository }}:{{ .Values.showcase_creator.image.tag }}"
         imagePullPolicy: {{ .Values.showcase_creator.image.pullPolicy }}
         {{- with .Values.showcase_creator.containerSecurityContext }}
@@ -65,5 +65,5 @@ spec:
               key: token
         resources:
           {{- toYaml .Values.showcase_creator.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.showcase_creator.serviceAccount.create }}{{ if .Values.showcase_creator.serviceAccount.name }}{{ .Values.showcase_creator.serviceAccount.name }}{{ else }}{{ $.Release.Name }}-{{ .Values.showcase_creator.name }}{{ end }}{{ end }}
+      serviceAccountName: {{ if .Values.showcase_creator.serviceAccount.create }}{{ if .Values.showcase_creator.serviceAccount.name }}{{ .Values.showcase_creator.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-showcase-creator{{ end }}{{ end }}
 {{- end }} 

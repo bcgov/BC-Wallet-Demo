@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}-allow-external
+  name: {{ include "bc-wallet.fullname" . }}-showcase-creator-allow-external
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: creator
@@ -11,7 +11,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+      app: {{ include "bc-wallet.fullname" . }}-showcase-creator
   ingress:
   {{- if .Values.showcase_creator.networkPolicy.ingress.enabled }}
   - from:
@@ -51,11 +51,11 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ .Release.Name }}-{{ .Values.showcase_creator.name }}
+          app: {{ include "bc-wallet.fullname" . }}-showcase-creator
     ports:
     - protocol: TCP
       port: {{ .Values.postgresql.primary.service.ports.postgresql }}
 ---
-{{- $context := dict "componentName" .Values.showcase_creator.name "componentLabel" "creator" "servicePort" .Values.showcase_creator.service.port "Values" .Values "Release" .Release }}
+{{- $context := dict "componentName" "showcase-creator" "componentLabel" "creator" "servicePort" .Values.showcase_creator.service.port "Values" .Values "Release" .Release }}
 {{- include "bc-wallet.intra-release-network-policy" $context }}
 {{- end }} 

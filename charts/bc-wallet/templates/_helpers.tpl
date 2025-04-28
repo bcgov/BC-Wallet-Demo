@@ -27,7 +27,11 @@ If release name contains chart name it will be used as a full name.
 Create chart name and version as used by the chart label.
 */}}
 {{- define "bc-wallet.chart" -}}
+{{- if .Chart }}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" "bc-wallet" "0.1.0" | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -35,9 +39,8 @@ Common labels
 */}}
 {{- define "bc-wallet.labels" -}}
 helm.sh/chart: {{ include "bc-wallet.chart" . }}
-{{ include "bc-wallet.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- if .Release }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
@@ -78,75 +81,36 @@ Define database secret name - used to reference PostgreSQL generated secret
 {{- end -}}
 
 {{/*
-Get the admin-password key.
-*/}}
-{{- define "bc-wallet.database.adminPasswordKey" -}}
-{{- if .Values.postgresql.auth.secretKeys.adminPasswordKey -}}
-    {{- printf "%s" (tpl .Values.postgresql.auth.secretKeys.adminPasswordKey $) -}}
-{{- else -}}
-    {{- printf "postgres-password" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Get the user-password key.
+Define database user password key - used to reference PostgreSQL generated secret
 */}}
 {{- define "bc-wallet.database.userPasswordKey" -}}
 {{- if .Values.postgresql.auth.secretKeys.userPasswordKey -}}
-    {{- printf "%s" (tpl .Values.postgresql.auth.secretKeys.userPasswordKey $) -}}
+{{- printf "%s" .Values.postgresql.auth.secretKeys.userPasswordKey -}}
 {{- else -}}
-    {{- printf "password" -}}
+password
 {{- end -}}
 {{- end -}}
 
 {{/*
-Create a default fully qualified rabbitmq name.
+Define rabbitmq secret name - used to reference RabbitMQ generated secret
 */}}
 {{- define "bc-wallet.rabbitmq.secret.name" -}}
-{{- printf "%s-rabbitmq" .Release.Name -}}
+{{- if .Values.rabbitmq.auth.existingPasswordSecret -}}
+    {{- .Values.rabbitmq.auth.existingPasswordSecret -}}
+{{- else -}}
+    {{- printf "%s-rabbitmq" .Release.Name -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
-Get the password key to be retrieved from RabbitMQ secret.
+Return the RabbitMQ password key
 */}}
 {{- define "bc-wallet.rabbitmq.passwordKey" -}}
 {{- if .Values.rabbitmq.auth.existingSecretKey -}}
-    {{- .Values.rabbitmq.auth.existingSecretKey -}}
+{{- .Values.rabbitmq.auth.existingSecretKey -}}
 {{- else -}}
-    {{- print "rabbitmq-password" -}}
+{{- "rabbitmq-password" -}}
 {{- end -}}
-{{- end -}}
-
-{{/*
-Get the username key to be retrieved from RabbitMQ secret.
-*/}}
-{{- define "bc-wallet.rabbitmq.usernameKey" -}}
-{{- print "rabbitmq-username" -}}
-{{- end -}}
-
-{{/*
-Get the name of the RabbitMQ secret.
-*/}}
-{{- define "bc-wallet.rabbitmq.secretName" -}}
-{{- if .Values.rabbitmq.auth.existingSecret -}}
-    {{- .Values.rabbitmq.auth.existingSecret -}}
-{{- else -}}
-    {{- printf "%s-rabbitmq" (include "common.names.fullname" .) -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Get the RabbitMQ host.
-*/}}
-{{- define "bc-wallet.rabbitmq.host" -}}
-{{- printf "%s-rabbitmq" .Release.Name -}}
-{{- end -}}
-
-{{/*
-Get the RabbitMQ port.
-*/}}
-{{- define "bc-wallet.rabbitmq.port" -}}
-{{- print "5672" -}}
 {{- end -}}
 
 {{/*
@@ -167,33 +131,11 @@ Define a FIXED auth token secret name that can be shared between frontend and ba
 bc-wallet-authtoken
 {{- end -}}
 
-{{/* 
-Generate api-server openshift route tls config
-*/}}
-{{- define "bc-wallet.api-server.openshift.route.tls" -}}
-{{- if (.Values.api_server.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.api_server.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.api_server.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate traction-adapter openshift route tls config
-*/}}
-{{- define "bc-wallet.traction-adapter.openshift.route.tls" -}}
-{{- if (.Values.traction_adapter.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.traction_adapter.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.traction_adapter.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
 {{/*
 Generate API Server host if not overridden
 */}}
 {{- define "bc-wallet.api-server.host" -}}
-{{- if .Values.api_server.openshift.route.host -}}
+{{- if (and (hasKey .Values.api_server "openshift") (hasKey .Values.api_server.openshift "route") (hasKey .Values.api_server.openshift.route "host")) -}}
 {{- .Values.api_server.openshift.route.host -}}
 {{- else -}}
 {{- printf "%s-%s%s" .Release.Name "api-server" .Values.ingressSuffix -}}
@@ -204,7 +146,7 @@ Generate API Server host if not overridden
 Generate Traction Adapter host if not overridden
 */}}
 {{- define "bc-wallet.traction-adapter.host" -}}
-{{- if .Values.traction_adapter.openshift.route.host -}}
+{{- if (and (hasKey .Values.traction_adapter "openshift") (hasKey .Values.traction_adapter.openshift "route") (hasKey .Values.traction_adapter.openshift.route "host")) -}}
 {{- .Values.traction_adapter.openshift.route.host -}}
 {{- else -}}
 {{- printf "%s-%s%s" .Release.Name "traction-adapter" .Values.ingressSuffix -}}
@@ -215,7 +157,7 @@ Generate Traction Adapter host if not overridden
 Generate Demo Web host if not overridden
 */}}
 {{- define "bc-wallet.demo-web.host" -}}
-{{- if .Values.demo_web.openshift.route.host -}}
+{{- if (and (hasKey .Values.demo_web "openshift") (hasKey .Values.demo_web.openshift "route") (hasKey .Values.demo_web.openshift.route "host")) -}}
 {{- .Values.demo_web.openshift.route.host -}}
 {{- else -}}
 {{- printf "%s-%s%s" .Release.Name "demo-web" .Values.ingressSuffix -}}
@@ -226,7 +168,7 @@ Generate Demo Web host if not overridden
 Generate Showcase Creator host if not overridden
 */}}
 {{- define "bc-wallet.showcase-creator.host" -}}
-{{- if .Values.showcase_creator.openshift.route.host -}}
+{{- if (and (hasKey .Values.showcase_creator "openshift") (hasKey .Values.showcase_creator.openshift "route") (hasKey .Values.showcase_creator.openshift.route "host")) -}}
 {{- .Values.showcase_creator.openshift.route.host -}}
 {{- else -}}
 {{- printf "%s-%s%s" .Release.Name "showcase-creator" .Values.ingressSuffix -}}
@@ -237,78 +179,9 @@ Generate Showcase Creator host if not overridden
 Generate Demo Server host if not overridden
 */}}
 {{- define "bc-wallet.demo-server.host" -}}
-{{- if .Values.demo_server.openshift.route.host -}}
+{{- if (and (hasKey .Values.demo_server "openshift") (hasKey .Values.demo_server.openshift "route") (hasKey .Values.demo_server.openshift.route "host")) -}}
 {{- .Values.demo_server.openshift.route.host -}}
 {{- else -}}
 {{- printf "%s-%s%s" .Release.Name "demo-server" .Values.ingressSuffix -}}
 {{- end -}}
 {{- end -}}
-
-{{/*
-Generate demo-web openshift route tls config
-*/}}
-{{- define "bc-wallet.demo-web.openshift.route.tls" -}}
-{{- if (.Values.demo_web.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.demo_web.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.demo_web.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate showcase-creator openshift route tls config
-*/}}
-{{- define "bc-wallet.showcase-creator.openshift.route.tls" -}}
-{{- if (.Values.showcase_creator.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.showcase_creator.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.showcase_creator.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate demo-server openshift route tls config
-*/}}
-{{- define "bc-wallet.demo-server.openshift.route.tls" -}}
-{{- if (.Values.demo_server.openshift.route.tls.enabled) -}}
-tls:
-  insecureEdgeTerminationPolicy: {{ .Values.demo_server.openshift.route.tls.insecureEdgeTerminationPolicy }}
-  termination: {{ .Values.demo_server.openshift.route.tls.termination }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define a common template for allowing intra-release communication with namespace support
-*/}}
-{{- define "bc-wallet.intra-release-network-policy" -}}
-{{- $releaseName := .Release.Name -}}
-# Network policy to allow communication between services in the same release
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ $releaseName }}-{{ .componentName }}-allow-same-release
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
-  labels:
-    app.kubernetes.io/component: {{ .componentLabel }}
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-      app: {{ $releaseName }}-{{ .componentName }}
-  ingress:
-  - from:
-    - podSelector:
-        matchExpressions:
-        - key: app
-          operator: In
-          values:
-          - {{ $releaseName }}-{{ .Values.api_server.name }}
-          - {{ $releaseName }}-{{ .Values.traction_adapter.name }}
-          - {{ $releaseName }}-{{ .Values.demo_web.name }}
-          - {{ $releaseName }}-{{ .Values.showcase_creator.name }}
-          - {{ $releaseName }}-{{ .Values.demo_server.name }}
-    ports:
-    - protocol: TCP
-      port: {{ .servicePort }}
-{{- end -}} 

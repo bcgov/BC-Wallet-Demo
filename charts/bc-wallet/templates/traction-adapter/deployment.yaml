@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+  name: {{ include "bc-wallet.fullname" . }}-traction-adapter
   namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/component: adapter
@@ -12,11 +12,11 @@ spec:
   replicas: {{ .Values.traction_adapter.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+      app: {{ include "bc-wallet.fullname" . }}-traction-adapter
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-{{ .Values.traction_adapter.name }}
+        app: {{ include "bc-wallet.fullname" . }}-traction-adapter
         app.kubernetes.io/component: adapter
         app.kubernetes.io/part-of: bc-wallet
         {{- include "bc-wallet.labels" . | nindent 8 }}
@@ -30,7 +30,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: {{ .Values.traction_adapter.name }}
+      - name: traction-adapter
         image: "{{ .Values.traction_adapter.image.repository }}:{{ .Values.traction_adapter.image.tag }}"
         imagePullPolicy: {{ .Values.traction_adapter.image.pullPolicy }}
         {{- with .Values.traction_adapter.containerSecurityContext }}
@@ -41,30 +41,30 @@ spec:
         - containerPort: {{ .Values.traction_adapter.port }}
           name: http
         env:
-          - name: AMQ_HOST
-            value: {{ include "bc-wallet.rabbitmq.host" . | quote }}
-          - name: AMQ_PORT
-            value: {{ include "bc-wallet.rabbitmq.port" . | quote }}
-          - name: AMQ_TRANSPORT
-            value: tcp
-          - name: AMQ_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "bc-wallet.rabbitmq.secretName" . }}
-                key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
-          - name: AMQ_USER
-            value: {{ .Values.rabbitmq.auth.username | quote }}
-          {{- range $key, $value := .Values.traction_adapter.env }}
-          {{- if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") (kindIs "map" $value) }}
-          - name: {{ $key }}
-            valueFrom:
-              {{- toYaml $value | nindent 14 }}
-          {{- else if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") }}
-          - name: {{ $key }}
-            value: {{ $value | quote }}
-          {{- end }}
-          {{- end }}
+        - name: AMQ_HOST
+          value: {{.Release.Name}}-rabbitmq
+        - name: AMQ_PORT
+          value: {{ .Values.rabbitmq.port | quote }}
+        - name: AMQ_TRANSPORT
+          value: tcp
+        - name: AMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
+              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+        - name: AMQ_USER
+          value: {{ .Values.rabbitmq.auth.username | quote }}
+        {{- range $key, $value := .Values.traction_adapter.env }}
+        {{- if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") (kindIs "map" $value) }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- toYaml $value | nindent 14 }}
+        {{- else if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
         resources:
           {{- toYaml .Values.traction_adapter.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ $.Release.Name }}-{{ .Values.traction_adapter.name }}{{ end }}{{ end }}
+      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-traction-adapter{{ end }}{{ end }}
 {{- end }}
