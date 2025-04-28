@@ -37,7 +37,7 @@ jobs:
     name: Uninstall PR Resources
     environment: development
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: github.repository_owner == 'bcgov'
     steps:
       # Set PR number based on event type
       - name: Set PR number
@@ -72,3 +72,52 @@ jobs:
         run: |
           oc delete secret,pvc,route,service,deployment,statefulset,configmap \
             --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet"
+
+  clean-ghcr:
+    runs-on: ubuntu-latest
+    name: Delete closed PR images
+    steps:
+      - name: Delete API Server Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-api-server
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Delete Traction Adapter Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-traction-adapter
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Showcase Creator Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-showcase-creator 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Demo Server Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-demo-server 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Demo Web Image
+        uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: ${{ github.repository_owner }}
+          image-names: bc-wallet-demo-web 
+          image-tags: ${{ github.event.number != '' && format('pr-{0}', github.event.number) || format('pr-{0}', github.event.inputs.pr_number) }}
+          cut-off: 1second
+          token: ${{ secrets.GITHUB_TOKEN }}

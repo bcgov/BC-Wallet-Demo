@@ -113,7 +113,7 @@ jobs:
           image_name: ${{ github.repository_owner}}/bc-wallet-showcase-creator
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
-          registry_password: ${{ secrets.CR_PAT }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
           visibility: "public"
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
@@ -137,7 +137,7 @@ jobs:
           image_name: ${{ github.repository_owner}}/bc-wallet-demo-server
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
-          registry_password: ${{ secrets.CR_PAT }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
           visibility: "public"
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
@@ -161,7 +161,7 @@ jobs:
           image_name: ${{ github.repository_owner}}/bc-wallet-demo-web
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
-          registry_password: ${{ secrets.CR_PAT }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
           visibility: "public"
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
