@@ -294,7 +294,7 @@ BC Wallet services with PostgreSQL and RabbitMQ
 | traction_adapter.enabled | bool | `true` |  |
 | traction_adapter.env.APP_NAME | string | `"bc-wallet-traction-adapter"` |  |
 | traction_adapter.env.LOG_LEVEL | string | `"debug"` |  |
-| traction_adapter.env.NODE_PORT | int | `3000` |  |
+| traction_adapter.env.PORT | int | `3000` |  |
 | traction_adapter.env.RABBITMQ_HOST | string | `"rabbitmq"` |  |
 | traction_adapter.env.RABBITMQ_PORT | int | `5672` |  |
 | traction_adapter.env.RABBITMQ_USER | string | `"guest"` |  |

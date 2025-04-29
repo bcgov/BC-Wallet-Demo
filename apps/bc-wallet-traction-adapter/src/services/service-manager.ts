@@ -45,7 +45,6 @@ class ServiceManager {
       return service
     }
 
-    console.log()
     const showcaseApiService = new ShowcaseApiService(showcaseApiUrlBase)
     const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
     /*

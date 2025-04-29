@@ -2,6 +2,8 @@ import type { ConnectionOptions } from 'rhea-promise'
 
 import { Topic, TOPICS } from './types'
 
+export const DEBUG_ENABLED = process.env.DEBUG === 'true' || process.env.LOG_LEVEL === 'debug'
+
 const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
   // Default to 'tls' if not provided or invalid
   const validTransport = transport === 'tcp' || transport === 'tls' || transport === 'ssl' ? transport : 'tls'
@@ -75,7 +77,8 @@ export const environment = {
     FIXED_API_KEY: process.env.FIXED_API_KEY as string | undefined,
   },
   showcase: {
-    DEFAULT_SHOWCASE_API_BASE_PATH: process.env.DEFAULT_SHOWCASE_API_BASE_PATH ?? 'http://localhost:5003',
+    DEFAULT_SHOWCASE_API_BASE_PATH: process.env.DEFAULT_SHOWCASE_API_BASE_PATH ?? 'http://localhost:5005',
+    FIXED_SHOWCASE_API_BASE_PATH: process.env.FIXED_SHOWCASE_API_BASE_PATH, // Allows overriding the showcase API base path to i.e., a docker container service hostname
   },
   encryption: {
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
@@ -85,4 +88,6 @@ export const environment = {
   },
 }
 
-console.debug('traction-adapter env:', environment)
+if (DEBUG_ENABLED) {
+  console.debug('traction-adapter env:', environment)
+}

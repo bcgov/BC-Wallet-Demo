@@ -30,7 +30,7 @@ import {
   WalletApi,
 } from 'bc-wallet-traction-openapi'
 
-import { environment } from '../environment'
+import { DEBUG_ENABLED, environment } from '../environment'
 import {
   credentialDefinitionToCredentialDefinitionSendRequest,
   credentialSchemaToSchemaPostRequest,
@@ -180,8 +180,10 @@ export class TractionService extends ApiService {
    */
   public async createSchema(credentialSchema: CredentialSchema): Promise<CreateSchemaResult> {
     const schemaRequest = credentialSchemaToSchemaPostRequest(credentialSchema)
+    if (DEBUG_ENABLED) {
+      console.debug('Calling schemasPostRaw with', schemaRequest)
+    }
 
-    console.debug('Calling schemasPostRaw with', schemaRequest)
     let apiResponse: ApiResponse<TxnOrSchemaSendResult>
     try {
       apiResponse = await this.schemaApi.schemasPostRaw({
@@ -204,9 +206,10 @@ export class TractionService extends ApiService {
     }
 
     const transactionId = result?.txn?.transactionId
-    console.debug('transactionId:', transactionId)
-
-    console.debug('calling updateCredentialSchemaIdentifier')
+    if (DEBUG_ENABLED) {
+      console.debug('transactionId:', transactionId)
+      console.debug('calling updateCredentialSchemaIdentifier')
+    }
     void (await this.showcaseApiService.updateCredentialSchemaIdentifier(credentialSchema.id, schemaId))
     return { schemaId, transactionId }
   }
@@ -333,11 +336,13 @@ export class TractionService extends ApiService {
     let schemaId = dbCredentialDef.credentialSchema.identifier
     if (!schemaId) {
       try {
-        console.debug(
-          'Calling findExistingSchema',
-          dbCredentialDef.credentialSchema.name,
-          dbCredentialDef.credentialSchema.version,
-        )
+        if (DEBUG_ENABLED) {
+          console.debug(
+            'Calling findExistingSchema',
+            dbCredentialDef.credentialSchema.name,
+            dbCredentialDef.credentialSchema.version,
+          )
+        }
         schemaId = await this.findExistingSchema(
           dbCredentialDef.credentialSchema.name,
           dbCredentialDef.credentialSchema.version,
@@ -393,7 +398,6 @@ export class TractionService extends ApiService {
         if (!schemaId) {
           console.log(`Schema ${credentialSchema.name} v${credentialSchema.version} not found, creating...`)
           const createResult = await this.createSchema(credentialSchema)
-          console.debug('>>1')
           schemaId = createResult.schemaId
           if (!credentialSchema.identifier) {
             credentialSchema.identifierType = 'DID'
@@ -416,14 +420,11 @@ export class TractionService extends ApiService {
     }
 
     // 2. Publish Credential Definitions
-    console.debug('>>2')
     if (credentialDefs.length > 0) {
       if (transactionIds.length > 0) {
-        console.debug('>>3')
         await this.waitForTransactionsToComplete(transactionIds)
       }
       for (const credentialDef of credentialDefs) {
-        console.debug('>>4')
         let credDefId = await this.findExistingCredentialDefinition(credentialDef)
 
         if (!credDefId) {
@@ -442,9 +443,8 @@ export class TractionService extends ApiService {
               ),
             )
           }
-          console.debug('>>5')
 
-          // Create new credential definition
+          // Create a new credential definition
           const createResult = await this.createCredentialDefinition(credentialDef, cdSchemaId, issuerId)
           credDefId = createResult.credentialDefinitionId // May be undefined if only transactionId is returned
           if (createResult.transactionId) {
@@ -457,11 +457,10 @@ export class TractionService extends ApiService {
           }
         } else {
           console.log(`Credential Definition ${credentialDef.name} v${credentialDef.version} found: ${credDefId}`)
-          // Ensure identifier is set if it wasn't originally
+          // Ensure the identifier is set if it wasn't originally
           if (!credentialDef.identifier) {
             credentialDef.identifierType = 'DID'
             credentialDef.identifier = credDefId
-            console.debug('>>1')
 
             void (await this.showcaseApiService.updateCredentialDefIdentifier(credentialDef.id, credDefId))
           }
@@ -543,7 +542,9 @@ export class TractionService extends ApiService {
       tenantId: this.tenantId,
       body: request,
     }
-    console.debug('Calling multitenancyTenantTenantIdTokenPostRaw with', requestParameters)
+    if (DEBUG_ENABLED) {
+      console.debug('Calling multitenancyTenantTenantIdTokenPostRaw with', requestParameters)
+    }
     const apiResponse = await this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw(requestParameters)
 
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
@@ -570,7 +571,9 @@ export class TractionService extends ApiService {
       walletId: this.walletId,
       body: request,
     }
-    console.debug('Calling multitenancyWalletWalletIdTokenPostRaw with', requestParameters)
+    if (DEBUG_ENABLED) {
+      console.debug('Calling multitenancyWalletWalletIdTokenPostRaw with', requestParameters)
+    }
     const apiResponse = await this.multitenancyApi.multitenancyWalletWalletIdTokenPostRaw(requestParameters)
 
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
@@ -612,12 +615,16 @@ export class TractionService extends ApiService {
 
       for (const tranId of Array.from(pendingTransactionIds)) {
         try {
-          console.debug('Calling transactionsTranIdGetRaw with', { tranId })
+          if (DEBUG_ENABLED) {
+            console.debug('Calling transactionsTranIdGetRaw with', { tranId })
+          }
           const apiResponse = await this.endorseTransactionApi.transactionsTranIdGetRaw({ tranId })
           const transactionRecord = await this.handleApiResponse<TransactionRecord>(apiResponse)
 
           const state = transactionRecord.state
-          console.debug(`Transaction ${tranId} state: ${state}`)
+          if (DEBUG_ENABLED) {
+            console.debug(`Transaction ${tranId} state: ${state}`)
+          }
 
           if (state && TRANSACTION_TERMINAL_STATES.has(state)) {
             transactionStates.set(tranId, state)
@@ -629,7 +636,11 @@ export class TractionService extends ApiService {
 
               if (timeSinceUpdate < TX_DELAY_MS) {
                 // TODO after the transaction is acked, it's not available immediately. I do not know how long this could take in real life
-                console.debug(`Transaction ${tranId} was updated less than ${TX_DELAY_MS}ms ago. Skipping this cycle.`)
+                if (DEBUG_ENABLED) {
+                  console.debug(
+                    `Transaction ${tranId} was updated less than ${TX_DELAY_MS}ms ago. Skipping this cycle.`,
+                  )
+                }
                 continue
               }
             }
@@ -640,7 +651,9 @@ export class TractionService extends ApiService {
               return Promise.reject(Error(`Transaction ${tranId} failed with state: ${state}`))
             }
           } else if (!state) {
-            console.debug(`Transaction ${tranId} has no state information. Assuming pending.`)
+            if (DEBUG_ENABLED) {
+              console.debug(`Transaction ${tranId} has no state information. Assuming pending.`)
+            }
           }
         } catch (error) {
           console.error(`Error fetching status for transaction ${tranId}:`, error)
