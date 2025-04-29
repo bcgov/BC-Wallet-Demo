@@ -1,13 +1,19 @@
-import { instanceOfIssuer, Issuer } from 'bc-wallet-openapi'
+import {
+  type CredentialDefinitionImportRequest,
+  CredentialSchemaImportRequest,
+  instanceOfCredentialDefinitionImportRequest,
+  instanceOfCredentialSchemaImportRequest,
+  instanceOfIssuer,
+  Issuer,
+} from 'bc-wallet-openapi'
 import type { Buffer } from 'buffer'
 import type { Receiver, ReceiverOptions } from 'rhea-promise'
 import { Connection, ReceiverEvents } from 'rhea-promise'
 
-import { environment } from './environment'
+import { DEBUG_ENABLED, environment } from './environment'
 import { getTractionService } from './services/service-manager'
 import type { TractionService } from './services/traction-service'
-import type { Action } from './types'
-import { Topic } from './types'
+import { Action, Topic, TOPICS } from './types'
 
 interface MessageHeaders {
   action?: Action
@@ -25,8 +31,8 @@ export class MessageProcessor {
 
   public constructor(private topic: Topic) {
     // Validate that topic is a valid enum value
-    if (!Object.values(Topic).includes(topic)) {
-      throw new Error(`Invalid topic: ${topic}. Valid topics are: ${Object.values(Topic).join(', ')}`)
+    if (!TOPICS.includes(topic)) {
+      throw new Error(`Invalid topic: ${topic}. Valid topics are: ${TOPICS.join(', ')}`)
     }
 
     // Setup AMQ broker connection
@@ -79,8 +85,10 @@ export class MessageProcessor {
 
       const service = await getTractionService(
         headers.tractionTenantId ?? environment.traction.FIXED_TENANT_ID!,
-        headers.showcaseApiUrlBase ?? environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
-        headers.tractionApiUrlBase,
+        environment.showcase.FIXED_SHOWCASE_API_BASE_PATH ??
+          headers.showcaseApiUrlBase ??
+          environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH,
         headers.walletId ?? environment.traction.FIXED_WALLET_ID!,
         headers.accessTokenEnc,
         headers.accessTokenNonce,
@@ -123,8 +131,18 @@ export class MessageProcessor {
     context: any,
     headers: MessageHeaders,
   ): Promise<void> {
+    if (DEBUG_ENABLED) {
+      console.debug(`Received message with action ${action}`, headers, payload)
+    }
+
     switch (action) {
-      case 'publish-issuer-assets': {
+      case 'import.cred-schema':
+        await this.handleImportCredentialSchema(payload, service, context, headers)
+        break
+      case 'import.cred-def':
+        await this.handleImportCredentialDefinition(payload, service, context, headers)
+        break
+      case 'publish.issuer-assets': {
         await this.handlePublishIssuerAssets(payload, service, context, headers)
         break
       }
@@ -147,20 +165,107 @@ export class MessageProcessor {
 
     const issuer: Issuer = payload as Issuer
     try {
-      console.debug('Received issuer', issuer)
+      if (DEBUG_ENABLED) {
+        console.debug('Received issuer', issuer)
+      }
       await service.publishIssuerAssets(issuer)
       if (context.delivery) {
         context.delivery.accept()
       }
     } catch (e) {
-      const errorMsg = `An error occurred while publishing issuer ${issuer.id} / ${issuer.name} of type ${issuer.type} to Traction. Reason: ${e.message}`
+      const errorMsg = this.buildErrorMessage(issuer, e)
       console.error(errorMsg)
+      console.debug('Stack:', e.stack)
+
       if (context.delivery) {
         context.delivery.reject({
           info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
           condition: 'fatal error',
           description: errorMsg,
           value: [issuer],
+        }) // FIXME context.delivery.release() to redeliver ??
+      }
+    }
+  }
+
+  private buildErrorMessage(issuer: Issuer, e: Error) {
+    const parts = []
+    parts.push(
+      `An error occurred while publishing issuer ${issuer.id} / ${issuer.name} of type ${issuer.type} to Traction. Reason: ${e.message}`,
+    )
+
+    if ('cause' in e && e.cause) {
+      parts.push(`Cause: ${e.cause}`)
+    }
+
+    if ('details' in e && e.details && Array.isArray(e.details) && e.details.length) {
+      parts.push(e.details.join('\r\n'))
+    }
+
+    return parts.join('\r\n')
+  }
+
+  private async handleImportCredentialSchema(
+    payload: object,
+    service: TractionService,
+    context: any,
+    headers: MessageHeaders,
+  ): Promise<void> {
+    if (typeof payload !== 'object' || !instanceOfCredentialSchemaImportRequest(payload)) {
+      return Promise.reject(Error('The message body did not contain a valid Issuer payload'))
+    }
+
+    const importRequest = payload as CredentialSchemaImportRequest
+    try {
+      if (DEBUG_ENABLED) {
+        console.debug('Received credential schema import request', importRequest)
+      }
+      await service.importCredentialSchema(importRequest)
+      if (context.delivery) {
+        context.delivery.accept()
+      }
+    } catch (e) {
+      const errorMsg = `An error occurred while importing credential schema ${importRequest.name} with identifier ${importRequest.identifier} to Traction. Reason: ${e.message}`
+      console.error(errorMsg)
+      if (context.delivery) {
+        context.delivery.reject({
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
+          condition: 'fatal error',
+          description: errorMsg,
+          value: [importRequest],
+        }) // FIXME context.delivery.release() to redeliver ??
+      }
+    }
+  }
+
+  private async handleImportCredentialDefinition(
+    payload: object,
+    service: TractionService,
+    context: any,
+    headers: MessageHeaders,
+  ): Promise<void> {
+    if (typeof payload !== 'object' || !instanceOfCredentialDefinitionImportRequest(payload)) {
+      return Promise.reject(Error('The message body did not contain a valid Issuer payload'))
+    }
+
+    const credentialDefinition = payload as CredentialDefinitionImportRequest
+    try {
+      if (DEBUG_ENABLED) {
+        console.debug('Received credential definition import request', credentialDefinition)
+      }
+      await service.importCredentialDefinition(credentialDefinition)
+      if (context.delivery) {
+        context.delivery.accept()
+      }
+    } catch (e) {
+      const errorMsg = `An error occurred while importing credential definition ${credentialDefinition.name} / ${credentialDefinition.name} with identifier ${credentialDefinition.identifier} to Traction. Reason: ${e.message}`
+      console.error(errorMsg)
+      if (context.delivery) {
+        context.delivery.reject({
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
+          condition: 'fatal error',
+          description: errorMsg,
+          value: [credentialDefinition],
         }) // FIXME context.delivery.release() to redeliver ??
       }
     }

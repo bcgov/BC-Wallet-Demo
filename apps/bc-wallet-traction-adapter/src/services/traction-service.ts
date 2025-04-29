@@ -1,5 +1,12 @@
-import type { CredentialSchema, Issuer } from 'bc-wallet-openapi'
-import { type CredentialDefinition } from 'bc-wallet-openapi'
+import {
+  CredentialAttributeRequest,
+  CredentialAttributeType,
+  type CredentialDefinition,
+  CredentialDefinitionImportRequest,
+  CredentialSchema,
+  CredentialSchemaImportRequest,
+  Issuer,
+} from 'bc-wallet-openapi'
 import type {
   ApiResponse,
   ConfigurationParameters,
@@ -23,14 +30,20 @@ import {
   WalletApi,
 } from 'bc-wallet-traction-openapi'
 
-import { environment } from '../environment'
+import { DEBUG_ENABLED, environment } from '../environment'
 import {
   credentialDefinitionToCredentialDefinitionSendRequest,
   credentialSchemaToSchemaPostRequest,
 } from '../mappers/credential-definition'
 import type { CreateSchemaResult, PublishCredentialDefinitionResult } from '../types'
+import { isAccessTokenExpired, Token } from '../util/auth'
 import { ApiService } from './api-service'
 import { ShowcaseApiService } from './showcase-api-service'
+
+/**
+ * Service for interacting with the Traction API for credential issuance operations
+ * Handles schema and credential definition creation, transaction management, and endorsement
+ */
 
 const TRANSACTION_TERMINAL_STATES = new Set([
   'transaction_acked',
@@ -40,6 +53,11 @@ const TRANSACTION_TERMINAL_STATES = new Set([
 ])
 const TRANSACTION_ERROR_STATES = new Set(['transaction_refused', 'transaction_cancelled'])
 const TX_DELAY_MS = 2000
+
+export type UpdatedTokens = {
+  tractionToken?: string
+  showcaseApiToken?: string
+}
 
 export class TractionService extends ApiService {
   private readonly config: Configuration
@@ -52,6 +70,13 @@ export class TractionService extends ApiService {
   private walletApi: WalletApi
   private endorseTransactionApi: EndorseTransactionApi
 
+  /**
+   * Creates a new instance of the TractionService
+   * @param tenantId The ID of the tenant to use for API calls
+   * @param basePath The base path for the Traction API (defaults to environment settings)
+   * @param showcaseApiService The showcase API service to use for schema and credential definition updates
+   * @param walletId Optional wallet ID for subwallet operations
+   */
   public constructor(
     private tenantId: string,
     private basePath: string = environment.traction.DEFAULT_API_BASE_PATH,
@@ -80,15 +105,42 @@ export class TractionService extends ApiService {
     this.showcaseApiService = showcaseApiService
   }
 
-  public hasBearerToken(): boolean {
-    return this.configOptions.apiKey !== undefined
+  /**
+   * Checks if the service has a bearer token configured
+   * @returns True if a bearer token is available, false otherwise
+   */
+  public async hasBearerToken(): Promise<boolean> {
+    if (!this.configOptions.apiKey) {
+      return false
+    }
+
+    const apiKeyCallback = this.configOptions.apiKey as (name: string) => Promise<string>
+    const accessToken = await apiKeyCallback('Authorization')
+    if (!accessToken) {
+      return false
+    }
+    const token = new Token(accessToken)
+    return token && !isAccessTokenExpired(token)
   }
 
-  public updateBearerToken(tractionToken: string, showcaseApiToken?: string): void {
-    this.configOptions.apiKey = this.tokenCallback(tractionToken)
-    this.showcaseApiService.updateBearerToken(showcaseApiToken ?? tractionToken)
+  /**
+   * Updates the bearer tokens used for authorization
+   * @param args
+   */
+  public updateBearerTokens(args: UpdatedTokens): void {
+    if (args.tractionToken) {
+      this.configOptions.apiKey = this.tokenCallback(args.tractionToken)
+    }
+    if (args.showcaseApiToken) {
+      this.showcaseApiService.updateBearerToken(args.showcaseApiToken)
+    }
   }
 
+  /**
+   * Creates a token callback function for API authorization
+   * @param token The token to use for authorization
+   * @returns A callback function that provides the token for the specified header
+   */
   private tokenCallback(token: string) {
     return async (name: string) => {
       if (name === 'Authorization') {
@@ -102,7 +154,7 @@ export class TractionService extends ApiService {
    * Checks if a schema with the given name and version exists
    * @param name The schema name
    * @param version The schema version
-   * @returns The schema ID if found, otherwise null
+   * @returns The schema ID if found, otherwise undefined
    */
   public async findExistingSchema(name: string, version: string): Promise<string | undefined> {
     try {
@@ -128,6 +180,9 @@ export class TractionService extends ApiService {
    */
   public async createSchema(credentialSchema: CredentialSchema): Promise<CreateSchemaResult> {
     const schemaRequest = credentialSchemaToSchemaPostRequest(credentialSchema)
+    if (DEBUG_ENABLED) {
+      console.debug('Calling schemasPostRaw with', schemaRequest)
+    }
 
     let apiResponse: ApiResponse<TxnOrSchemaSendResult>
     try {
@@ -151,9 +206,78 @@ export class TractionService extends ApiService {
     }
 
     const transactionId = result?.txn?.transactionId
-
+    if (DEBUG_ENABLED) {
+      console.debug('transactionId:', transactionId)
+      console.debug('calling updateCredentialSchemaIdentifier')
+    }
     void (await this.showcaseApiService.updateCredentialSchemaIdentifier(credentialSchema.id, schemaId))
     return { schemaId, transactionId }
+  }
+
+  /**
+   * Imports an existing credential schema from the ledger
+   * @param importRequest The credential schema to import
+   * @returns A promise that resolves when the import is complete
+   */
+  public async importCredentialSchema(importRequest: CredentialSchemaImportRequest): Promise<void> {
+    const schemaId = importRequest.identifier
+    if (!schemaId) {
+      return Promise.reject(Error(`Cannot import schema ${importRequest.name} without identifier`))
+    }
+    if (importRequest.identifierType !== 'DID') {
+      return Promise.reject(Error(`The Indy ledger only supports DID identifiers for schemas.`))
+    }
+
+    const record = await this.schemaStorageApi.schemaStoragePost({ body: { schemaId } })
+    if (!record.schema) {
+      return Promise.reject(Error(`No schema was returned for identifier ${schemaId}.`))
+    }
+
+    const rawAttrs = (record.schema as any)?.attrNames
+    if (!Array.isArray(rawAttrs)) {
+      return Promise.reject(Error(`Invalid schema returned for ${schemaId}`))
+    }
+
+    const attrs: CredentialAttributeRequest[] = rawAttrs.map((name) => {
+      if (typeof name !== 'string') throw new Error(`Invalid attribute name for ${schemaId}: ${name}`)
+      return {
+        name,
+        type: name.endsWith('_dateint') ? CredentialAttributeType.Date : CredentialAttributeType.String,
+        value: '',
+      }
+    })
+
+    await this.showcaseApiService.createCredentialSchema(importRequest, record.schema, attrs)
+  }
+
+  /**
+   * Imports an existing credential definition from the ledger
+   * @param importRequest The credential definition to import
+   * @returns A promise that resolves when the import is complete
+   */
+  public async importCredentialDefinition(importRequest: CredentialDefinitionImportRequest): Promise<void> {
+    const definitionId = importRequest.identifier
+    if (!definitionId) {
+      return Promise.reject(Error(`Cannot import a credential definition ${importRequest.name}  without an identifier`))
+    }
+    if (importRequest.identifierType !== 'DID') {
+      return Promise.reject(Error(`The Indy ledger only supports DID identifiers for schemas.`))
+    }
+
+    const record = await this.credentialDefApi.credentialDefinitionsCredDefIdGet({ credDefId: definitionId })
+    if (record.credentialDefinition) {
+      if (!record.credentialDefinition.schemaId) {
+        return Promise.reject(
+          Error(`Cannot import credential definition ${record.credentialDefinition.id} because it has no an schema id`),
+        )
+      }
+      const schema = await this.schemaApi.schemasSchemaIdGet({ schemaId: record.credentialDefinition.schemaId })
+      record.credentialDefinition.schemaId = schema.schema?.id
+
+      await this.showcaseApiService.createCredentialDefinition(importRequest, record.credentialDefinition)
+    } else {
+      return Promise.reject(Error(`No credential definition returned for identifier ${definitionId}`))
+    }
   }
 
   /**
@@ -201,8 +325,8 @@ export class TractionService extends ApiService {
 
   /**
    * Checks if a credential definition with the given schema ID and tag exists
-   * @returns The credential definition ID if found, otherwise null
-   * @param dbCredentialDef
+   * @param dbCredentialDef The credential definition to check for
+   * @returns The credential definition ID if found, otherwise undefined
    */
   public async findExistingCredentialDefinition(dbCredentialDef: CredentialDefinition): Promise<string | undefined> {
     if (dbCredentialDef.identifier) {
@@ -212,6 +336,13 @@ export class TractionService extends ApiService {
     let schemaId = dbCredentialDef.credentialSchema.identifier
     if (!schemaId) {
       try {
+        if (DEBUG_ENABLED) {
+          console.debug(
+            'Calling findExistingSchema',
+            dbCredentialDef.credentialSchema.name,
+            dbCredentialDef.credentialSchema.version,
+          )
+        }
         schemaId = await this.findExistingSchema(
           dbCredentialDef.credentialSchema.name,
           dbCredentialDef.credentialSchema.version,
@@ -228,6 +359,8 @@ export class TractionService extends ApiService {
     }
 
     try {
+      console.debug('Calling credentialDefinitionStorageGet')
+
       const credentialDefList = await this.credentialDefStorageApi.credentialDefinitionStorageGet()
       if (credentialDefList.results) {
         for (const result of credentialDefList.results) {
@@ -247,8 +380,8 @@ export class TractionService extends ApiService {
   /**
    * Publishes schemas and credential definitions for an issuer if they don't already exist.
    * Only publishes approved credential definitions and their referenced schemas.
-   * @param issuer The issuer object containing schemas and definitions.
-   * @returns A promise resolving to an array of transaction IDs created during the process.
+   * @param issuer The issuer object containing schemas and definitions
+   * @returns A promise resolving to an array of transaction IDs created during the process
    */
   public async publishIssuerAssets(issuer: Issuer): Promise<string[]> {
     const transactionIds: string[] = []
@@ -311,7 +444,7 @@ export class TractionService extends ApiService {
             )
           }
 
-          // Create new credential definition
+          // Create a new credential definition
           const createResult = await this.createCredentialDefinition(credentialDef, cdSchemaId, issuerId)
           credDefId = createResult.credentialDefinitionId // May be undefined if only transactionId is returned
           if (createResult.transactionId) {
@@ -324,10 +457,11 @@ export class TractionService extends ApiService {
           }
         } else {
           console.log(`Credential Definition ${credentialDef.name} v${credentialDef.version} found: ${credDefId}`)
-          // Ensure identifier is set if it wasn't originally
+          // Ensure the identifier is set if it wasn't originally
           if (!credentialDef.identifier) {
             credentialDef.identifierType = 'DID'
             credentialDef.identifier = credDefId
+
             void (await this.showcaseApiService.updateCredentialDefIdentifier(credentialDef.id, credDefId))
           }
         }
@@ -368,6 +502,11 @@ export class TractionService extends ApiService {
     }
   }
 
+  /**
+   * Gets the public DID for the current issuer
+   * @returns The issuer's DID
+   * @throws Error if the tenant is not registered as an issuer or has no public DID
+   */
   public async getIssuerDID(): Promise<string> {
     const apiResponse = await this.walletApi.walletDidPublicGetRaw()
     const result = await this.handleApiResponse<DIDResult>(apiResponse)
@@ -383,6 +522,12 @@ export class TractionService extends ApiService {
     return result.result.did
   }
 
+  /**
+   * Gets a tenant token for the current tenant
+   * @param apiKey The API key to use for authentication
+   * @param walletKey Optional wallet key for unmanaged wallets
+   * @returns The tenant token
+   */
   public async getTenantToken(apiKey: string, walletKey?: string): Promise<string> {
     if (!this.tenantId) {
       return Promise.reject(Error('In order to get a tenant token, tenantId must be set'))
@@ -393,10 +538,14 @@ export class TractionService extends ApiService {
       walletKey, // Only required for unmanaged wallets
     }
 
-    const apiResponse = await this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw({
+    const requestParameters = {
       tenantId: this.tenantId,
       body: request,
-    })
+    }
+    if (DEBUG_ENABLED) {
+      console.debug('Calling multitenancyTenantTenantIdTokenPostRaw with', requestParameters)
+    }
+    const apiResponse = await this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw(requestParameters)
 
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
     if (!tokenResponse?.token) {
@@ -405,6 +554,11 @@ export class TractionService extends ApiService {
     return tokenResponse.token
   }
 
+  /**
+   * Gets a token for a sub-wallet
+   * @param walletKey The wallet key to use for authentication
+   * @returns The wallet token
+   */
   public async getSubWalletToken(walletKey: string): Promise<string> {
     if (!this.walletId) {
       return Promise.reject(Error('In order to get a wallet token, walletId must be set'))
@@ -413,10 +567,14 @@ export class TractionService extends ApiService {
       walletKey,
     }
 
-    const apiResponse = await this.multitenancyApi.multitenancyWalletWalletIdTokenPostRaw({
+    const requestParameters = {
       walletId: this.walletId,
       body: request,
-    })
+    }
+    if (DEBUG_ENABLED) {
+      console.debug('Calling multitenancyWalletWalletIdTokenPostRaw with', requestParameters)
+    }
+    const apiResponse = await this.multitenancyApi.multitenancyWalletWalletIdTokenPostRaw(requestParameters)
 
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
     if (!tokenResponse?.token) {
@@ -427,11 +585,10 @@ export class TractionService extends ApiService {
 
   /**
    * Polls the status of given transaction IDs until they reach a terminal state.
-   * @param transactionIds Array of transaction IDs to monitor.
-   * @param pollIntervalMs Interval between status checks in milliseconds.
-   * @param timeoutMs Maximum time to wait for all transactions in milliseconds.
-   * @returns A Promise resolving to a Map mapping transaction IDs to their final states.
-   *          Rejects if timeout is reached or an unrecoverable error occurs.
+   * @param transactionIds Array of transaction IDs to monitor
+   * @param pollIntervalMs Interval between status checks in milliseconds
+   * @param timeoutMs Maximum time to wait for all transactions in milliseconds
+   * @returns A Promise resolving to a Map mapping transaction IDs to their final states
    */
   public async waitForTransactionsToComplete(
     transactionIds: string[],
@@ -458,11 +615,16 @@ export class TractionService extends ApiService {
 
       for (const tranId of Array.from(pendingTransactionIds)) {
         try {
+          if (DEBUG_ENABLED) {
+            console.debug('Calling transactionsTranIdGetRaw with', { tranId })
+          }
           const apiResponse = await this.endorseTransactionApi.transactionsTranIdGetRaw({ tranId })
           const transactionRecord = await this.handleApiResponse<TransactionRecord>(apiResponse)
 
           const state = transactionRecord.state
-          console.log(`Transaction ${tranId} state: ${state}`)
+          if (DEBUG_ENABLED) {
+            console.debug(`Transaction ${tranId} state: ${state}`)
+          }
 
           if (state && TRANSACTION_TERMINAL_STATES.has(state)) {
             transactionStates.set(tranId, state)
@@ -474,7 +636,11 @@ export class TractionService extends ApiService {
 
               if (timeSinceUpdate < TX_DELAY_MS) {
                 // TODO after the transaction is acked, it's not available immediately. I do not know how long this could take in real life
-                console.debug(`Transaction ${tranId} was updated less than ${TX_DELAY_MS}ms ago. Skipping this cycle.`)
+                if (DEBUG_ENABLED) {
+                  console.debug(
+                    `Transaction ${tranId} was updated less than ${TX_DELAY_MS}ms ago. Skipping this cycle.`,
+                  )
+                }
                 continue
               }
             }
@@ -485,7 +651,9 @@ export class TractionService extends ApiService {
               return Promise.reject(Error(`Transaction ${tranId} failed with state: ${state}`))
             }
           } else if (!state) {
-            console.debug(`Transaction ${tranId} has no state information. Assuming pending.`)
+            if (DEBUG_ENABLED) {
+              console.debug(`Transaction ${tranId} has no state information. Assuming pending.`)
+            }
           }
         } catch (error) {
           console.error(`Error fetching status for transaction ${tranId}:`, error)
@@ -510,6 +678,14 @@ export class TractionService extends ApiService {
   }
 }
 
+/**
+ * Factory function to create a new TractionService instance
+ * @param apiBase The base URL for the Traction API
+ * @param tenantId The tenant ID to use for operations
+ * @param showcaseApiService The showcase API service to use
+ * @param walletId Optional wallet ID for subwallet operations
+ * @returns A new TractionService instance
+ */
 export function createTractionService(
   apiBase: string,
   tenantId: string,

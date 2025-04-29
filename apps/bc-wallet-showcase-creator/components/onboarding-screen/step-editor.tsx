@@ -34,6 +34,7 @@ import {
   AcceptCredentialActionRequest,
   ChooseWalletActionRequest,
   SetupConnectionActionRequest,
+  Source
 } from 'bc-wallet-openapi'
 import { sampleScenario, StepRequestUIActionTypes } from '@/lib/steps'
 import {
@@ -395,7 +396,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
     }
 
     const results = credentials.credentialDefinitions.filter((cred: CredentialDefinition) =>
-      cred.name.toUpperCase().includes(searchUpper),
+      cred.source === Source.Created && cred.name.toUpperCase().includes(searchUpper),
     )
 
     setSearchResults(results)

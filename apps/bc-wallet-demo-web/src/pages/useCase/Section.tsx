@@ -1,26 +1,27 @@
-import React, { FC, useEffect, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
 import { useNavigate } from 'react-router-dom'
+
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
+import { StepActionType } from 'bc-wallet-openapi'
 import { motion, AnimatePresence } from 'framer-motion'
+
 import { BackButton } from '../../components/BackButton'
 import { Button } from '../../components/Button'
 import { Modal } from '../../components/Modal'
 import { SmallButton } from '../../components/SmallButton'
 import { fadeExit } from '../../FramerAnimations'
 import { useAppDispatch } from '../../hooks/hooks'
+import type { ConnectionState } from '../../slices/connection/connectionSlice'
 import { useCaseCompleted } from '../../slices/preferences/preferencesSlice'
+import { AriesOOBStepAction } from '../../slices/types'
+import type { Persona, Showcase, PresentationScenario } from '../../slices/types'
+import { useUseCaseState } from '../../slices/useCases/useCasesSelectors'
 import { nextStep, prevStep, resetStep } from '../../slices/useCases/useCasesSlice'
 import { basePath } from '../../utils/BasePath'
 import { isConnected } from '../../utils/Helpers'
-import { StartContainer } from './components/StartContainer'
 import { SideView } from './SideView'
 import { StepInformation } from './steps/StepInformation'
-import { StepActionType } from 'bc-wallet-openapi'
-import { useUseCaseState } from '../../slices/useCases/useCasesSelectors'
-import { AriesOOBStepAction } from '../../slices/types'
-import type { ConnectionState } from '../../slices/connection/connectionSlice'
-import type { Persona, Showcase, PresentationScenario } from '../../slices/types'
 
 export interface Props {
   showcase: Showcase
@@ -31,13 +32,7 @@ export interface Props {
 }
 
 export const Section: FC<Props> = (props: Props) => {
-  const {
-    showcase,
-    currentPersona,
-    currentScenario,
-    connection,
-    proof
-  } = props
+  const { showcase, currentPersona, currentScenario, connection, proof } = props
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { stepCount, isLoading } = useUseCaseState()
@@ -81,9 +76,9 @@ export const Section: FC<Props> = (props: Props) => {
 
   useEffect(() => {
     const result =
-        (proof?.state as string) === 'presentation_received' ||
-        (proof?.state as string) === 'verified' ||
-        proof?.state === 'done'
+      (proof?.state as string) === 'presentation_received' ||
+      (proof?.state as string) === 'verified' ||
+      proof?.state === 'done'
     setIsProofCompleted(result)
   }, [proof])
 
@@ -112,7 +107,7 @@ export const Section: FC<Props> = (props: Props) => {
   }, [completed, dispatch, currentScenario])
 
   useEffect(() => {
-    if (currentStep.actions?.some(action => action.actionType === StepActionType.SetupConnection)) {
+    if (currentStep.actions?.some((action) => action.actionType === StepActionType.SetupConnection)) {
       if (isConnectionCompleted) {
         setIsForwardDisabled(false)
       } else {
@@ -120,7 +115,7 @@ export const Section: FC<Props> = (props: Props) => {
       }
     }
 
-    if (currentStep.actions?.some(action => action.actionType === StepActionType.AriesOob)) {
+    if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob)) {
       if (isProofCompleted) {
         setIsForwardDisabled(false)
       } else {
@@ -131,7 +126,10 @@ export const Section: FC<Props> = (props: Props) => {
 
   useEffect(() => {
     // automatically go to next step if connection is set up
-    if (currentStep.actions?.some(action => action.actionType === StepActionType.SetupConnection) && isConnectionCompleted) {
+    if (
+      currentStep.actions?.some((action) => action.actionType === StepActionType.SetupConnection) &&
+      isConnectionCompleted
+    ) {
       next()
       trackSelfDescribingEvent({
         event: {
@@ -149,7 +147,7 @@ export const Section: FC<Props> = (props: Props) => {
   useEffect(() => {
     if (isMobile) {
       // reset mobile scroll on first & last step
-      if (currentStep.order === 1 || currentScenario?.steps.length === currentStep.order ) {
+      if (currentStep.order === 1 || currentScenario?.steps.length === currentStep.order) {
         window.scrollTo(0, 0)
       }
     }
@@ -160,10 +158,12 @@ export const Section: FC<Props> = (props: Props) => {
       return
     }
 
-    const requestedCredentials = currentScenario.steps.flatMap(step =>
-        step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
-            (action as AriesOOBStepAction).credentialDefinitions ?? []
-        ) ?? [])
+    const requestedCredentials = currentScenario.steps.flatMap(
+      (step) =>
+        step.actions
+          ?.filter((action) => action.actionType === StepActionType.AriesOob)
+          ?.flatMap((action) => (action as AriesOOBStepAction).credentialDefinitions ?? []) ?? [],
+    )
 
     // FIXME disabled for now because of the showcase builder not supporting this step structure
     // if (!currentStep || currentStep.order === 1) {
@@ -177,86 +177,86 @@ export const Section: FC<Props> = (props: Props) => {
     //       />
     //   )
     // } else {
-      return (
-          <>
-            <div className="flex flex-col lg:flex-row w-full h-full">
-              <SideView
-                  key={'sideView'}
-                  steps={currentScenario.steps}
-                  currentStep={currentStep.order}
-                  entity={currentScenario.relyingParty}
-                  showLeaveModal={showLeaveModal}
-                  requestedCredentials={requestedCredentials}
+    return (
+      <>
+        <div className="flex flex-col lg:flex-row w-full h-full">
+          <SideView
+            key={'sideView'}
+            steps={currentScenario.steps}
+            currentStep={currentStep.order}
+            entity={currentScenario.relyingParty}
+            showLeaveModal={showLeaveModal}
+            requestedCredentials={requestedCredentials}
+          />
+          <motion.div
+            key={'mainContentDiv'}
+            variants={fadeExit}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            className="flex flex-col w-auto lg:w-2/3 p-8 bg-white dark:bg-bcgov-darkgrey rounded-lg shadow"
+            style={style}
+            data-cy="section"
+          >
+            <AnimatePresence initial={false} mode="wait" onExitComplete={() => null}>
+              <StepInformation
+                title={currentStep.title}
+                description={currentStep.description}
+                asset={currentStep.asset}
+                connection={connection}
+                actions={currentStep.actions}
+                proof={proof}
+                currentPersona={currentPersona}
+                verifier={currentScenario.relyingParty}
               />
-              <motion.div
-                  key={'mainContentDiv'}
-                  variants={fadeExit}
-                  initial="hidden"
-                  animate="show"
-                  exit="exit"
-                  className="flex flex-col w-auto lg:w-2/3 p-8 bg-white dark:bg-bcgov-darkgrey rounded-lg shadow"
-                  style={style}
-                  data-cy="section"
-              >
-                <AnimatePresence initial={false} mode="wait" onExitComplete={() => null}>
-                  <StepInformation
-                      title={currentStep.title}
-                      description={currentStep.description}
-                      asset={currentStep.asset}
-                      connection={connection}
-                      actions={currentStep.actions}
-                      proof={proof}
-                      currentPersona={currentPersona}
-                      verifier={currentScenario.relyingParty}
-                  />
-                </AnimatePresence>
-                <div className="flex justify-between items-center">
-                  <BackButton
-                      onClick={() => {
-                        prev()
-                        trackSelfDescribingEvent({
-                          event: {
-                            schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
-                            data: {
-                              action: 'back',
-                              path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
-                              step: currentStep.title,
-                            },
-                          },
-                        })
-                      }}
-                      disabled={isBackDisabled}
-                  />
-                  {currentScenario.steps.length === currentStep.order ? (
-                      <Button text="COMPLETE" onClick={() => setCompleted(true)} />
-                  ) : (
-                      <SmallButton
-                          text="NEXT"
-                          onClick={() => {
-                            next()
-                            trackSelfDescribingEvent({
-                              event: {
-                                schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
-                                data: {
-                                  action: 'next',
-                                  path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
-                                  step: currentStep.title,
-                                },
-                              },
-                            })
-                          }}
-                          disabled={isForwardDisabled}
-                          data-cy="use-case-next"
-                      />
-                  )}
-                </div>
-              </motion.div>
+            </AnimatePresence>
+            <div className="flex justify-between items-center">
+              <BackButton
+                onClick={() => {
+                  prev()
+                  trackSelfDescribingEvent({
+                    event: {
+                      schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+                      data: {
+                        action: 'back',
+                        path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
+                        step: currentStep.title,
+                      },
+                    },
+                  })
+                }}
+                disabled={isBackDisabled}
+              />
+              {currentScenario.steps.length === currentStep.order ? (
+                <Button text="COMPLETE" onClick={() => setCompleted(true)} />
+              ) : (
+                <SmallButton
+                  text="NEXT"
+                  onClick={() => {
+                    next()
+                    trackSelfDescribingEvent({
+                      event: {
+                        schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+                        data: {
+                          action: 'next',
+                          path: `${currentPersona?.role.toLowerCase()}_${currentScenario.slug}`,
+                          step: currentStep.title,
+                        },
+                      },
+                    })
+                  }}
+                  disabled={isForwardDisabled}
+                  data-cy="use-case-next"
+                />
+              )}
             </div>
-            {leaveModal && (
-                <Modal title={LEAVE_MODAL_TITLE} description={LEAVE_MODAL_DESCRIPTION} onOk={leave} onCancel={closeLeave} />
-            )}
-          </>
-      )
+          </motion.div>
+        </div>
+        {leaveModal && (
+          <Modal title={LEAVE_MODAL_TITLE} description={LEAVE_MODAL_DESCRIPTION} onOk={leave} onCancel={closeLeave} />
+        )}
+      </>
+    )
     // }
   }
 

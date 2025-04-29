@@ -53,16 +53,16 @@ export const StepInformation: FC<Props> = (props: Props) => {
                   />
               }
               case StepActionType.AriesOob: {
-                  if (!connection?.id) {
-                      throw new Error('A connection id is required for a present credential action')
-                  }
+                //   if (!connection?.id) {
+                //       throw new Error('A connection id is required for a present credential action')
+                //   }
                   return <PresentCredentialAction
                       title={title}
                       entityName={verifier?.name ?? 'UNKNOWN'}
                       characterType={currentPersona.role.toLowerCase()}
                       proof={proof}
-                      connectionId={connection.id}
-                      requestedCredentials={(action as AriesOOBStepAction).credentialDefinitions.map(credentialDefinition => ({
+                      connectionId={connection?.id ?? ''}
+                      requestedCredentials={((action as AriesOOBStepAction).credentialDefinitions || []).map(credentialDefinition => ({
                           name: credentialDefinition.name,
                           icon: credentialDefinition.icon,
                           schema_id: credentialDefinition.schema.identifier,

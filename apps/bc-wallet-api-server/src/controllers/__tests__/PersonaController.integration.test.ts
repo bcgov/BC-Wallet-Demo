@@ -5,16 +5,13 @@ import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
-import {
-  createMockDatabaseService,
-  createTestAsset,
-  setupTestDatabase,
-} from '../../database/repositories/__tests__/dbTestData'
+import { createMockDatabaseService, createTestAsset } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import PersonaRepository from '../../database/repositories/PersonaRepository'
 import DatabaseService from '../../services/DatabaseService'
 import PersonaService from '../../services/PersonaService'
 import PersonaController from '../PersonaController'
+import { setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
 
 describe('PersonaController Integration Tests', () => {

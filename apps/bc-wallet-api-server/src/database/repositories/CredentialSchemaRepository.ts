@@ -1,28 +1,38 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { Service } from 'typedi'
 
 import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
-import { CredentialSchema, NewCredentialAttribute, NewCredentialSchema, RepositoryDefinition } from '../../types'
+import {
+  CredentialAttribute,
+  CredentialSchema,
+  IdentifierType,
+  NewCredentialAttribute,
+  NewCredentialSchema,
+  RepositoryDefinition,
+} from '../../types'
 import { credentialAttributes, credentialSchemas } from '../schema'
 
 @Service()
 class CredentialSchemaRepository implements RepositoryDefinition<CredentialSchema, NewCredentialSchema> {
-  constructor(private readonly databaseService: DatabaseService) {}
+  public constructor(private readonly databaseService: DatabaseService) {}
 
-  async create(credentialSchema: NewCredentialSchema): Promise<CredentialSchema> {
+  public async create(credentialSchema: NewCredentialSchema): Promise<CredentialSchema> {
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<CredentialSchema> => {
       const [credentialSchemaResult] = await tx.insert(credentialSchemas).values(credentialSchema).returning()
 
-      const credentialAttributesResult = await tx
-        .insert(credentialAttributes)
-        .values(
-          credentialSchema.attributes.map((attribute: NewCredentialAttribute) => ({
-            ...attribute,
-            credentialSchema: credentialSchemaResult.id,
-          })),
-        )
-        .returning()
+      let credentialAttributesResult: CredentialAttribute[] = []
+      if (credentialSchema.attributes && credentialSchema.attributes.length > 0) {
+        credentialAttributesResult = await tx
+          .insert(credentialAttributes)
+          .values(
+            credentialSchema.attributes.map((attribute: NewCredentialAttribute) => ({
+              ...attribute,
+              credentialSchema: credentialSchemaResult.id,
+            })),
+          )
+          .returning()
+      }
 
       return {
         ...credentialSchemaResult,
@@ -31,12 +41,12 @@ class CredentialSchemaRepository implements RepositoryDefinition<CredentialSchem
     })
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.findById(id)
     await (await this.databaseService.getConnection()).delete(credentialSchemas).where(eq(credentialSchemas.id, id))
   }
 
-  async update(id: string, credentialSchema: NewCredentialSchema): Promise<CredentialSchema> {
+  public async update(id: string, credentialSchema: NewCredentialSchema): Promise<CredentialSchema> {
     await this.findById(id)
 
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<CredentialSchema> => {
@@ -65,7 +75,7 @@ class CredentialSchemaRepository implements RepositoryDefinition<CredentialSchem
     })
   }
 
-  async findById(id: string): Promise<CredentialSchema> {
+  public async findById(id: string): Promise<CredentialSchema> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialSchemas.findFirst({
@@ -82,11 +92,17 @@ class CredentialSchemaRepository implements RepositoryDefinition<CredentialSchem
     return result
   }
 
-  async findByIdentifier(identifier: string): Promise<CredentialSchema> {
+  public async findByIdentifier(identifier: string, identifierType?: IdentifierType): Promise<CredentialSchema> {
+    const whereConditions = [eq(credentialSchemas.identifier, identifier)]
+
+    if (identifierType !== undefined) {
+      whereConditions.push(eq(credentialSchemas.identifierType, identifierType))
+    }
+
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialSchemas.findFirst({
-      where: eq(credentialSchemas.identifier, identifier),
+      where: and(...whereConditions),
       with: {
         attributes: true,
       },
@@ -99,7 +115,7 @@ class CredentialSchemaRepository implements RepositoryDefinition<CredentialSchem
     return result
   }
 
-  async findAll(): Promise<CredentialSchema[]> {
+  public async findAll(): Promise<CredentialSchema[]> {
     return (await this.databaseService.getConnection()).query.credentialSchemas.findMany({
       with: {
         attributes: true,

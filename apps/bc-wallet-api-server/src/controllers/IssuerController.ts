@@ -1,4 +1,13 @@
 import {
+  instanceOfIssuerRequest,
+  IssuerRequest,
+  IssuerRequestToJSONTyped,
+  IssuerResponse,
+  IssuerResponseFromJSONTyped,
+  IssuersResponse,
+  IssuersResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -12,15 +21,7 @@ import {
   Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
-import {
-  instanceOfIssuerRequest,
-  IssuerRequest,
-  IssuerRequestToJSONTyped,
-  IssuerResponse,
-  IssuerResponseFromJSONTyped,
-  IssuersResponse,
-  IssuersResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
+
 import IssuerService from '../services/IssuerService'
 import { issuerDTOFrom } from '../utils/mappers'
 
@@ -83,6 +84,19 @@ class IssuerController {
       }
       const result = await this.issuerService.updateIssuer(id, IssuerRequestToJSONTyped(issuerRequest))
       return IssuerResponseFromJSONTyped({ issuer: issuerDTOFrom(result) }, false)
+    } catch (e) {
+      if (e.httpCode !== 404) {
+        console.error(`Update issuer id=${id} failed:`, e)
+      }
+      return Promise.reject(e)
+    }
+  }
+
+  @Authorized()
+  @Post('/:id/publish')
+  public async publish(@Param('id') id: string): Promise<void> {
+    try {
+      await this.issuerService.publishIssuer(id)
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Update issuer id=${id} failed:`, e)

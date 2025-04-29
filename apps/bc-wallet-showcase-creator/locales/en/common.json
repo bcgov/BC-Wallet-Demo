@@ -80,6 +80,7 @@
     "issuer_name_label": "Issuer Name",
     "issuer_name_placeholder": "Enter Issuer Name",
     "version_label": "Version",
+    "source_label":"Source",
     "version_placeholder": "Enter Version",
     "attributes_label": "Attributes",
     "add_attributes_label": "Add Attributes",

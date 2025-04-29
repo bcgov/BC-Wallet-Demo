@@ -6,11 +6,11 @@ services:
     restart: unless-stopped
     networks:
       - public_net
+      - api_net
       - messagebroker_net
       - db_net
     environment:
-      # Only include variables this service needs
-      - NODE_PORT=3000
+      - PORT=5005
       # - DATABASE_URL=${DATABASE_URL} uncomment when using URL instead of vars above
       - DB_HOST=postgres
       - DB_PORT=${DB_PORT:-5432}
@@ -42,7 +42,7 @@ services:
     depends_on:
       - postgres  # Ensure Postgres starts first
     ports:
-      - "${API_SERVER_PORT:-5005}:3000" # remove when using a proxy on the same docker network
+      - "${API_SERVER_PORT:-5005}:5005" # remove when using a proxy on the same docker network
 
   bc-wallet-demo-server:
     build:
@@ -54,7 +54,7 @@ services:
     networks:
       - public_net
     environment:
-      - NODE_PORT=5000
+      - PORT=5000
       - APP_NAME=${APP_NAME}
       - LOG_LEVEL=${LOG_LEVEL}
       # cors settings
@@ -81,13 +81,14 @@ services:
   bc-wallet-traction-adapter:
     build:
       context: ../..
-      dockerfile: ./packages/bc-wallet-traction-adapter/Dockerfile
+      dockerfile: ./apps/bc-wallet-traction-adapter/Dockerfile
     restart: unless-stopped
     networks:
       - messagebroker_net
+      - api_net
 
     environment:
-      - NODE_PORT=3000
+      - PORT=3000
       - APP_NAME=${APP_NAME}
       - LOG_LEVEL=${LOG_LEVEL}
         # active-mq settings
@@ -99,7 +100,8 @@ services:
       - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - API_SERVER_URL=${API_SERVER_URL}
-      - TENANT_ID=${TENANT_ID}
+      - DEFAULT_API_BASE_PATH=${TRACTION_URL}
+      - FIXED_SHOWCASE_API_BASE_PATH=${FIXED_SHOWCASE_API_BASE_PATH}
       - FIXED_TENANT_ID=${FIXED_TENANT_ID}
       - FIXED_WALLET_ID=${FIXED_WALLET_ID}
       - FIXED_API_KEY=${FIXED_API_KEY}
@@ -196,6 +198,10 @@ networks:
   messagebroker_net:
     driver: bridge
     name: messagebroker_net
+    internal: false         # set to false to be able to expose for debugging
+  api_net: # for traction adapter -> api-server
+    driver: bridge
+    name: api_net
     internal: false         # set to false to be able to expose for debugging
   db_net:
     driver: bridge

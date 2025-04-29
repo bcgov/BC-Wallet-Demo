@@ -1,6 +1,8 @@
 import type { ConnectionOptions } from 'rhea-promise'
 
-import { Topic } from './types'
+import { Topic, TOPICS } from './types'
+
+export const DEBUG_ENABLED = process.env.DEBUG === 'true' || process.env.LOG_LEVEL === 'debug'
 
 const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
   // Default to 'tls' if not provided or invalid
@@ -43,12 +45,12 @@ const parsePositiveInt = (value: string | undefined, defaultValue: number): numb
   return parsed
 }
 
-const validateTopic = (topic?: string): Topic | undefined => {
+export function validateTopic(topic?: string): Topic | undefined {
   if (!topic) {
     return undefined
   }
-  if (!Object.values(Topic).includes(topic as Topic)) {
-    throw new Error(`Invalid topic: ${topic}. Valid topics are: ${Object.values(Topic).join(', ')}`)
+  if (!TOPICS.includes(topic as Topic)) {
+    throw new Error(`Invalid topic: ${topic}. Valid topics are: ${TOPICS.join(', ')}`)
   }
   return topic as Topic
 }
@@ -64,7 +66,7 @@ export const environment = {
         ? process.env.AMQ_TRANSPORT
         : 'tls',
     getConnectionOptions: () => createAmqConnectionOptions(process.env.AMQ_TRANSPORT),
-    MESSAGE_PROCESSOR_TOPIC: validateTopic(process.env.MESSAGE_PROCESSOR_TOPIC) ?? Topic.SHOWCASE_CMD,
+    MESSAGE_PROCESSOR_TOPIC: validateTopic(process.env.MESSAGE_PROCESSOR_TOPIC) ?? 'showcase-cmd',
   },
   traction: {
     DEFAULT_API_BASE_PATH: process.env.DEFAULT_API_BASE_PATH ?? 'http://localhost:8032',
@@ -75,7 +77,8 @@ export const environment = {
     FIXED_API_KEY: process.env.FIXED_API_KEY as string | undefined,
   },
   showcase: {
-    DEFAULT_SHOWCASE_API_BASE_PATH: process.env.DEFAULT_SHOWCASE_API_BASE_PATH ?? 'http://localhost:5003',
+    DEFAULT_SHOWCASE_API_BASE_PATH: process.env.DEFAULT_SHOWCASE_API_BASE_PATH ?? 'http://localhost:5005',
+    FIXED_SHOWCASE_API_BASE_PATH: process.env.FIXED_SHOWCASE_API_BASE_PATH, // Allows overriding the showcase API base path to i.e., a docker container service hostname
   },
   encryption: {
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
@@ -83,4 +86,8 @@ export const environment = {
     NONCE_SIZE: parsePositiveInt(process.env.ENCRYPTION_NONCE_SIZE, 12), // 96 bits for ChaCha20-Poly1305
     AUTH_TAG_LENGTH: 16, // 128 bits, fixed for ChaCha20-Poly1305
   },
+}
+
+if (DEBUG_ENABLED) {
+  console.debug('traction-adapter env:', environment)
 }

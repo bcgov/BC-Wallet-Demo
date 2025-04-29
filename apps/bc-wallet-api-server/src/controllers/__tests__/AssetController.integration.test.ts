@@ -4,11 +4,12 @@ import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
-import { createMockDatabaseService, setupTestDatabase } from '../../database/repositories/__tests__/dbTestData'
+import { createMockDatabaseService } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import AssetService from '../../services/AssetService'
 import DatabaseService from '../../services/DatabaseService'
 import AssetController from '../AssetController'
+import { setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
 
 describe('AssetController Integration Tests', () => {

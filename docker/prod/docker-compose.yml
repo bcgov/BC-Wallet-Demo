@@ -8,7 +8,7 @@ services:
       - db_net
     environment:
       # Only include variables this service needs
-      - NODE_PORT=3000
+      - PORT=5005
       - DB_HOST=postgres
       - DB_PORT=${DB_PORT:-5432}
       - DB_USERNAME=${DB_USER}
@@ -36,7 +36,7 @@ services:
     networks:
       - messagebroker_net
     environment:
-      - NODE_PORT=3000
+      - PORT=3000
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_USER=${RABBITMQ_USER}

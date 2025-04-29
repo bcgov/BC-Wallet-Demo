@@ -874,6 +874,29 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /credentials/definitions/import:
+    post:
+      tags:
+        - Credential Definitions
+      summary: Import a credential definition (for RP only)
+      operationId: importCredentialDefinition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialDefinitionImportRequest'
+        required: true
+      responses:
+        '204':
+          description: Imported
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /credentials/definitions/{definitionId}:
     parameters:
       - name: definitionId
@@ -1004,6 +1027,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CredentialSchemaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /credentials/schemas/import:
+    post:
+      tags:
+        - Credential Definitions
+      summary: Import a credential schema
+      operationId: importCredentialSchema
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialSchemaImportRequest'
+        required: true
+      responses:
+        '204':
+          description: Imported
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1460,6 +1506,34 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /roles/issuers/{issuerId}/publish:
+    parameters:
+      - name: issuerId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Issuer Role
+      summary: Publish an issuer
+      operationId: publishIssuer
+      responses:
+        '200':
+          description: Successfully published
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - OAuth2: []
+        - OIDC: []
 
   /roles/relying-parties:
     get:
@@ -2992,6 +3066,8 @@ components:
           example: '1.0'
         type:
           $ref: '#/components/schemas/CredentialType'
+        source:
+          $ref: '#/components/schemas/Source'
         representations:
           type: array
           items:
@@ -3048,6 +3124,8 @@ components:
           example: '1.0'
         type:
           $ref: '#/components/schemas/CredentialType'
+        source:
+          $ref: '#/components/schemas/Source'
         credentialSchema:
           type: string
           description: Reference to the associated credential schema
@@ -3094,7 +3172,35 @@ components:
       properties:
         credentialDefinition:
           $ref: '#/components/schemas/CredentialDefinition'
-
+    CredentialDefinitionImportRequest:
+      type: object
+      required:
+        - name
+        - identifierType
+        - identifier
+      properties:
+        identifierType:
+          $ref: '#/components/schemas/IdentifierType'
+        identifier:
+          type: string
+          description: External identifier of this credential definition
+          example: did:sov:XUeUZauFLeBNofY3NhaZCB
+        name:
+          type: string
+          description: Name of the credential definition
+          example: Credential Definition Name
+        version:
+          type: string
+          description: Version of the credential schema
+          example: '1.0'
+        icon:
+          type: string
+          description: Reference to an asset ID for the icon
+          example: 123e4567-e89b-12d3-a456-426614174469
+        approvedBy:
+          type: string
+          description: Reference to the user ID who approved this definition
+          example: 456e4567-e89b-12d3-a456-426614174789
     CredentialAttribute:
       type: object
       required:
@@ -3317,6 +3423,27 @@ components:
       properties:
         credentialSchema:
           $ref: '#/components/schemas/CredentialSchema'
+    CredentialSchemaImportRequest:
+      type: object
+      required:
+        - name
+        - identifierType
+        - identifier
+      properties:
+        name:
+          type: string
+          description: Name of the credential schema
+          example: Diploma Schema
+        version:
+          type: string
+          description: Version of the credential schema
+          example: '1.0'
+        identifierType:
+          $ref: '#/components/schemas/IdentifierType'
+        identifier:
+          type: string
+          description: External identifier of this schema
+          example: did:sov:XUeUZauFLeBNofY3NhaZCB
 
     Showcase:
       type: object

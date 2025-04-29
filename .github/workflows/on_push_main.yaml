@@ -8,7 +8,7 @@ on:
       - develop-4sure
     paths:
         - "apps/bc-wallet-api-server/**"
-        - "packages/bc-wallet-traction-adapter/**"
+        - "apps/bc-wallet-traction-adapter/**"
         - "apps/bc-wallet-showcase-creator/**"
         - "apps/bc-wallet-demo-server/**"
         - "apps/bc-wallet-demo-web/**"
@@ -65,7 +65,7 @@ jobs:
         id: builder
         with:
           context: "."
-          dockerfile: "./packages/bc-wallet-traction-adapter/Dockerfile"
+          dockerfile: "./apps/bc-wallet-traction-adapter/Dockerfile"
           image_name: ${{ github.repository_owner}}/bc-wallet-traction-adapter
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
@@ -173,6 +173,7 @@ jobs:
           host: ${{ secrets.K3S_HOST }}
           username: ${{ secrets.K3S_USERNAME }}
           key: ${{ secrets.K3S_SSH_KEY }}
+          command_timeout: "15m"
           script: |
             cd /home/ubuntu/pipeline/charts/bc-wallet
             

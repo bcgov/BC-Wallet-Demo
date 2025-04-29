@@ -87,7 +87,7 @@ jobs:
         id: builder
         with:
           context: "."
-          dockerfile: "./packages/bc-wallet-traction-adapter/Dockerfile"
+          dockerfile: "./apps/bc-wallet-traction-adapter/Dockerfile"
           image_name: ${{ github.repository_owner}}/bc-wallet-traction-adapter
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}

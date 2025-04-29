@@ -44,8 +44,8 @@ class ApiService {
       }
 
       if (response.status === 204) {
-        console.log('No Content (204), returning void.')
-        return
+        console.log('No Content (204), returning status object.')
+        return { status: 204 } as unknown as T
       }
 
       const jsonData = await response.json()

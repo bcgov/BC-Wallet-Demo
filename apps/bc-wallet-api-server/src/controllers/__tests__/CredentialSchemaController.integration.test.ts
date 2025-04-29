@@ -5,10 +5,8 @@ import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
-import { createMockDatabaseService, setupTestDatabase } from '../../database/repositories/__tests__/dbTestData'
-import DatabaseService from '../../services/DatabaseService'
 import { CredentialSchemaController } from '../CredentialSchemaController'
-
+import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
 
 describe('CredentialSchemaController Integration Tests', () => {
@@ -17,10 +15,10 @@ describe('CredentialSchemaController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
+    await setupRabbitMQ()
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
-    const mockDatabaseService = await createMockDatabaseService(database)
-    Container.set(DatabaseService, mockDatabaseService)
+    await registerMockServicesByInterface(database)
     useContainer(Container)
     app = createExpressServer({
       controllers: [CredentialSchemaController],

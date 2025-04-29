@@ -15,7 +15,6 @@ RUN apt-get update && \
 WORKDIR /build
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json tsconfig.build.json tsconfig.eslint.json ./
 COPY packages packages
-RUN rm -rf packages/bc-wallet-traction-adapter # TODO This package has to be moved to apps because it's not a lib and has special needs to build
 RUN rm -rf packages/bc-wallet-adapter-client-api # We are not generating the models for this one
 COPY apps/tsconfig-base.json apps/
 COPY apps/bc-wallet-demo-server apps/bc-wallet-demo-server
@@ -35,7 +34,7 @@ FROM node:20-bookworm-slim
 WORKDIR /app
 COPY --from=builder /deploy /app
 ENV NODE_ENV=production
-RUN echo NODE_PORT=3000 > .env
+RUN echo PORT=3000 > .env
 EXPOSE 3000
 
 CMD ["node", "build/src/index.js"]
