@@ -89,7 +89,7 @@ async function checkResponse(response: Response) {
 
 export function getBasePath(path?: string): string {
   const basePath = path ?? ''
-  return process.env.MODE === 'multitenant' ? `/:tenantId${basePath}` : basePath
+  return process.env.MULTITENANCY_MODE === 'multitenant' ? `/:tenantId${basePath}` : basePath
 }
 
 export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
@@ -117,18 +117,6 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
     // TODO: Remove this workaround when the issue is fixed in drizzle-orm: https://4sure.atlassian.net/browse/SHOWCASE-308
     if (error.message.includes('already exists')) {
       tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
-    } else if (
-      action.request.url.includes('/tenants') &&
-      action.request.body.realm &&
-      action.request.body.clientId &&
-      action.request.body.clientSecret
-    ) {
-      tenant = await tenantService.createTenant({
-        id: action.request.body.clientId,
-        realm: action.request.body.realm,
-        clientId: action.request.body.clientId,
-        clientSecret: action.request.body.clientSecret,
-      })
     } else {
       throw new UnauthorizedError('Tenant not found')
     }

@@ -39,7 +39,7 @@ services:
       - CLIENT_SECRET=${CLIENT_SECRET}
       - AUTH_SERVER_URL=${AUTH_SERVER_URL}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - MODE=${MODE}
+      - MULTITENANCY_MODE=${MULTITENANCY_MODE}
     depends_on:
       - postgres  # Ensure Postgres starts first
     ports:
