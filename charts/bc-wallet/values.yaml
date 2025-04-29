@@ -92,7 +92,7 @@ traction_adapter:
   env:
     APP_NAME: bc-wallet-traction-adapter
     LOG_LEVEL: debug
-    NODE_PORT: 3000
+    PORT: 3000
     DEFAULT_API_BASE_PATH: https://admin.traction.test.sphereon.com
     FIXED_SHOWCASE_BACKEND: https://bcshowcase-api.dev.nborbit.ca
     ENCRYPTION_KEY: SENSITIVE
