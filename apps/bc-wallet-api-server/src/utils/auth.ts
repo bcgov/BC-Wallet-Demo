@@ -155,7 +155,7 @@ export class Token {
       if (parts.length !== 3) {
         throw new Error('Invalid token string')
       }
-      this._payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
+      this._payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
     } else {
       throw Error('token is required')
     }

@@ -1,6 +1,7 @@
 import NextAuth, { User } from 'next-auth'
 import Keycloak from 'next-auth/providers/keycloak'
 import { env } from '@/env'
+import { Buffer } from 'buffer'
 
 declare module 'next-auth' {
   interface Session {
@@ -88,3 +89,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: 'jwt',
   },
 })
+
+export const decodeJwt = (token?: string) => {
+  if (token) {
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      throw new Error('Invalid token string')
+    }
+    return JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+  } else {
+    throw Error('token is required')
+  }
+}
