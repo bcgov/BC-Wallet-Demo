@@ -10,7 +10,7 @@ import type { Buffer } from 'buffer'
 import type { Receiver, ReceiverOptions } from 'rhea-promise'
 import { Connection, ReceiverEvents } from 'rhea-promise'
 
-import { environment } from './environment'
+import { DEBUG_ENABLED, environment } from './environment'
 import { getTractionService } from './services/service-manager'
 import type { TractionService } from './services/traction-service'
 import { Action, Topic, TOPICS } from './types'
@@ -85,7 +85,9 @@ export class MessageProcessor {
 
       const service = await getTractionService(
         headers.tractionTenantId ?? environment.traction.FIXED_TENANT_ID!,
-        headers.showcaseApiUrlBase ?? environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        environment.showcase.FIXED_SHOWCASE_API_BASE_PATH ??
+          headers.showcaseApiUrlBase ??
+          environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
         headers.tractionApiUrlBase ?? environment.traction.DEFAULT_API_BASE_PATH,
         headers.walletId ?? environment.traction.FIXED_WALLET_ID!,
         headers.accessTokenEnc,
@@ -129,7 +131,9 @@ export class MessageProcessor {
     context: any,
     headers: MessageHeaders,
   ): Promise<void> {
-    console.debug(`Received message with action ${action}`, headers, payload)
+    if (DEBUG_ENABLED) {
+      console.debug(`Received message with action ${action}`, headers, payload)
+    }
 
     switch (action) {
       case 'import.cred-schema':
@@ -161,7 +165,9 @@ export class MessageProcessor {
 
     const issuer: Issuer = payload as Issuer
     try {
-      console.debug('Received issuer', issuer)
+      if (DEBUG_ENABLED) {
+        console.debug('Received issuer', issuer)
+      }
       await service.publishIssuerAssets(issuer)
       if (context.delivery) {
         context.delivery.accept()
@@ -211,7 +217,9 @@ export class MessageProcessor {
 
     const importRequest = payload as CredentialSchemaImportRequest
     try {
-      console.debug('Received credential schema import request', importRequest)
+      if (DEBUG_ENABLED) {
+        console.debug('Received credential schema import request', importRequest)
+      }
       await service.importCredentialSchema(importRequest)
       if (context.delivery) {
         context.delivery.accept()
@@ -242,7 +250,9 @@ export class MessageProcessor {
 
     const credentialDefinition = payload as CredentialDefinitionImportRequest
     try {
-      console.debug('Received credential definition import request', credentialDefinition)
+      if (DEBUG_ENABLED) {
+        console.debug('Received credential definition import request', credentialDefinition)
+      }
       await service.importCredentialDefinition(credentialDefinition)
       if (context.delivery) {
         context.delivery.accept()
