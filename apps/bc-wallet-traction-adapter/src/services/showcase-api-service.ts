@@ -11,6 +11,7 @@ import {
 } from 'bc-wallet-openapi'
 import { CredentialDefinition } from 'bc-wallet-traction-openapi'
 
+import { DEBUG_ENABLED } from '../environment'
 import { ApiService } from './api-service'
 
 /**
@@ -29,7 +30,9 @@ export class ShowcaseApiService extends ApiService {
    */
   public constructor(private apiBasePath: string) {
     super()
-    console.debug(`Creating Showcase API client targeting ${apiBasePath}`)
+    if (DEBUG_ENABLED) {
+      console.debug(`Creating Showcase API client targeting ${apiBasePath}`)
+    }
 
     this.configOptions = {
       basePath: this.apiBasePath,
@@ -46,12 +49,12 @@ export class ShowcaseApiService extends ApiService {
    * @throws Error if no schema is found for the given ID
    */
   public async updateCredentialSchemaIdentifier(id: string, identifier: string) {
-    const accessTokenCallback = this.configOptions.accessToken as (name?: string, scopes?: string[]) => Promise<string>
-    console.debug('Calling getCredentialSchemaRaw', {
-      credentialSchema: id,
-      accessToken: accessTokenCallback('OAuth2', []),
-      basePath: this.configOptions.basePath,
-    })
+    if (DEBUG_ENABLED) {
+      console.debug('Calling getCredentialSchemaRaw', {
+        credentialSchema: id,
+        basePath: this.configOptions.basePath,
+      })
+    }
     const response = await this.credentialDefinitionsApi.getCredentialSchemaRaw({ credentialSchema: id })
     const existingSchema = await this.handleApiResponse(response)
     if (!existingSchema || !existingSchema.credentialSchema) {
@@ -69,7 +72,9 @@ export class ShowcaseApiService extends ApiService {
         attributes: existingSchema.credentialSchema.attributes as Array<CredentialAttributeRequest>,
       } satisfies CredentialSchemaRequest,
     }
-    console.debug('Calling updateCredentialSchema', requestParameters)
+    if (DEBUG_ENABLED) {
+      console.debug('Calling updateCredentialSchema', requestParameters)
+    }
     void (await this.credentialDefinitionsApi.updateCredentialSchema(requestParameters))
     console.debug('updateCredentialSchema successful')
   }
@@ -124,7 +129,9 @@ export class ShowcaseApiService extends ApiService {
         attributes: newAttrs,
       },
     })
-    console.debug('Credential schema created. id:', credentialSchemaResponse.credentialSchema?.id)
+    if (DEBUG_ENABLED) {
+      console.debug('Credential schema created. id:', credentialSchemaResponse.credentialSchema?.id)
+    }
   }
 
   /**

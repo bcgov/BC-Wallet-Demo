@@ -82,7 +82,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   />
                   <span className="text-lg font-semibold mt-2">{item.name}</span>
                   <span className="text-sm text-foreground/80">Version {item.version}</span>
-                  <span className="text-sm text-foreground/80">Created</span>
+                  <span className="text-sm text-foreground/80">{item.source}</span>
                   <div className="flex flex-wrap gap-2 mt-2 text-xs">
                     {item.credentialSchema?.attributes?.map((attr) => (
                       <span

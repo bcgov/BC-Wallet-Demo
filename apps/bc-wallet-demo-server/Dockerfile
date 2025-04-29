@@ -34,7 +34,7 @@ FROM node:20-bookworm-slim
 WORKDIR /app
 COPY --from=builder /deploy /app
 ENV NODE_ENV=production
-RUN echo NODE_PORT=3000 > .env
+RUN echo PORT=3000 > .env
 EXPOSE 3000
 
 CMD ["node", "build/src/index.js"]
