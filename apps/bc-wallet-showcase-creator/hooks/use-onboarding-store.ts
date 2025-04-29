@@ -425,7 +425,7 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
         const personaId = state.activePersonaId
         if (!personaId || !state.personaScenariosMap[personaId]) {
           console.error('[selectStep] No active persona or scenarios')
-          return // Don't modify state if we can't find persona/scenarios
+          return //
         }
 
         const scenarios = state.personaScenariosMap[personaId]
@@ -444,12 +444,9 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
 
         const step = steps[stepIndex] as Screen
 
-        // IMPORTANT FIX: Create a consistent selectedStep object
-        // that preserves all Screen properties
         state.selectedStep = {
-          ...step, // Preserve all original Screen properties including id and credentials
-          order: stepIndex, // Make sure we have the order property
-          // Add any missing properties that the Screen interface requires
+          ...step,
+          order: stepIndex,
           id: step.id || `temp-step-${Date.now()}-${stepIndex}`,
           credentials: step.credentials || [],
         }

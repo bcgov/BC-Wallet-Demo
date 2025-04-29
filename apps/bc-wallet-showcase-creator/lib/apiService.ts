@@ -3,6 +3,12 @@
 import { env } from '@/env'
 import { getSession, signIn } from 'next-auth/react'
 
+const debugLog = (...args: any[]) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(...args);
+  }
+};
+
 class ApiService {
   private readonly baseUrl: string
 
@@ -36,7 +42,7 @@ class ApiService {
     try {
       const response = await fetch(fullUrl, options)
 
-      console.log('Response Status:', response.status)
+      debugLog('Response Status:', response.status)
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -44,15 +50,15 @@ class ApiService {
       }
 
       if (response.status === 204) {
-        console.log('No Content (204), returning status object.')
+        debugLog('No Content (204), returning status object.')
         return { status: 204 } as unknown as T
       }
 
       const jsonData = await response.json()
-      console.log('API Response JSON:', jsonData)
+      debugLog('API Response JSON:', jsonData)
       return jsonData
     } catch (error) {
-      console.error('Fetch Error:', error)
+      debugLog('Fetch Error:', error)
       throw error
     }
   }

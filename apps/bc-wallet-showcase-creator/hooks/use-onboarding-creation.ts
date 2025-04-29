@@ -64,7 +64,9 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
               })) as Screen[],
               personas: scenario.personas.map(p => p.id),
               hidden: scenario.hidden,
-              issuer: scenario.issuer?.id
+              issuer: scenario.issuer?.id,
+            // @ts-expect-error: slug is not required
+              slug: scenario.slug
             }
             
             personaScenariosData[persona.id].push(scenarioRequest)

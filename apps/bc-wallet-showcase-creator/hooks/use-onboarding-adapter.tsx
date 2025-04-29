@@ -331,7 +331,11 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
               type: step.type || 'HUMAN_TASK',
               order: index,
               screenId: 'INFO',
-              actions: step.actions || [],
+              actions: step.actions?.map(action => ({
+                ...action,
+                createdAt: undefined,
+                updatedAt: undefined,
+              })) || [],
             }))
           }));
         })
@@ -348,7 +352,8 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
         if (!scenario) continue;
         try {
           const result = await updateScenarioAsync({
-            slug,
+            // @ts-expect-error: slug is not required
+            slug: scenario.slug,
             data: scenario
           });
           
