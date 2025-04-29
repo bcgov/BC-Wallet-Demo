@@ -8,7 +8,7 @@ export default async function CreateOnboardingPage({ params }: { params: Promise
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
       <div className="flex flex-col">
       <div className="flex justify-between items-center px-6 py-2 mt-4">
-          <ShowcaseEditableHeader />
+          <ShowcaseEditableHeader showcaseSlug={slug} />
           <div className="flex space-x-1 text-lg font-semibold justify-end">
             <TabsComponent slug={slug} />
           </div>

@@ -6,12 +6,23 @@ import { toast } from 'sonner'
 import { useCreateScenario, useUpdateScenario } from '@/hooks/use-onboarding'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import type { Persona, StepRequest } from 'bc-wallet-openapi'
+import type { Persona, Showcase, ShowcaseRequest, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
+import { useUpdateShowcase } from './use-showcases'
+
+const showcaseToShowcaseRequest = (showcase: Showcase): ShowcaseRequest => {
+  return {
+    ...showcase,
+    scenarios: showcase.scenarios.map((scenario) => scenario.id),
+    personas: showcase.personas.map((persona) => persona.id),
+    bannerImage: showcase.bannerImage?.id,
+  }
+}
 
 export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: createScenarioAsync } = useCreateScenario()
   const { mutateAsync: updateScenarioAsync } = useUpdateScenario()
+  const { mutateAsync: updateShowcaseAsync } = useUpdateShowcase(showcaseSlug || '')
   const { setScenarioIds } = useShowcaseStore()
   const { issuerId } = useHelpersStore()
   
@@ -375,6 +386,29 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     }
   }, [selectedPersonas, personaScenarios, issuerId, updateScenarioAsync, setScenarioIds]);
 
+  const updateShowcaseName = useCallback(async (name: string, showcase: Showcase) => {
+    const showcaseRequest = showcaseToShowcaseRequest(showcase);
+    try {
+      const result = await updateShowcaseAsync({
+        ...showcaseRequest,
+        name
+      });
+
+      if (result && result.showcase) {
+        toast.success('Showcase name updated');
+        return { 
+          success: true, 
+          message: 'Showcase name updated successfully',
+          slug: result.showcase.slug
+        };
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      return { success: false, message: 'Error in showcase update', error };
+    }
+  }, [showcaseSlug, updateShowcaseAsync]);  
+
   return {
     steps,
     selectedStep: effectiveSelectedStep,
@@ -405,6 +439,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     removeScenario,    
     createScenarios,
     updateScenarios,
-    isEditMode: !!showcaseSlug
+    isEditMode: !!showcaseSlug,
+    updateShowcaseName
   }
 }

@@ -15,6 +15,7 @@
     "header_tab_draft": "Brouillon",
     "header_tab_under_review": "En cours d’examen",
     "header_tab_published": "Publié",
+    "header_tab_active": "Publié",
     "create_new_showcase_label": "CRÉER UNE NOUVELLE VITRINE",
     "created_by_label": "Créé par {name}",
     "description_label": "Description",
@@ -24,7 +25,9 @@
         "publish_info_credentials": "Recevera les attestations suivantes:",
     "loading_label": "Chargement...",
     "publish_info_title": "Réviser et publier la vitrine",
-    "loading_showcase_data_label": "Chargement des données de la vitrine..."
+    "loading_showcase_data_label": "Chargement des données de la vitrine...",
+    "name_placeholder": "Nom de la vitrine",
+    "edit_name_tooltip": "Modifier le nom de la vitrine"
   },
   "character": {
     "header_title": "Créez votre Personnage",

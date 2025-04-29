@@ -15,6 +15,7 @@
     "header_tab_draft": "Draft",
     "header_tab_under_review": "Under Review",
     "header_tab_published": "Published",
+    "header_tab_active": "Published",
     "create_new_showcase_label": "CREATE NEW SHOWCASE",
     "created_by_label": "Created By {name}",
     "description_label": "Description",
@@ -24,7 +25,9 @@
     "publish_info_title": "Review and Publish Showcase",
 "publish_info_subtitle": "Enter and review the showcase details.",
     "publish_info_credentials": "Will receive the following credential(s):",
-    "loading_showcase_data_label": "Loading showcase data..."
+    "loading_showcase_data_label": "Loading showcase data...",
+    "name_placeholder": "Showcase Name",
+    "edit_name_tooltip": "Edit the name of the showcase"
   },
   "character": {
     "header_title": "Create your Character",

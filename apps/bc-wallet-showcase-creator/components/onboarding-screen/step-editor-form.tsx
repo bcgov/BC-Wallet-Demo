@@ -427,15 +427,13 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
             </>
           )}
 
-          <p>showCredentialSelection: {showCredentialSelection()}</p>
-          <p>currentStepCredentials ==: {JSON.stringify(currentStep)}</p>
-          {/* {showCredentialSelection() && ( */}
+          {showCredentialSelection() && (
             <StepCredentialManager
               currentStepCredentials={[]}
               // currentStepCredentials={currentStep?.credentials as CredentialDefinition[]}
               onUpdateCredentials={handleUpdateCredentials}
             />
-          {/* )} */}
+          )}
         </div>
 
         <div className="mt-auto pt-4 border-t flex justify-end gap-3">
