@@ -57,3 +57,17 @@ export const useIssuanceStep = (slug: string): UseQueryResult<StepsResponse> => 
     staleTime,
   });
 };
+
+export const useUpdateScenario = (): UseMutationResult<IssuanceScenarioResponse, Error, {slug: string, data: IssuanceScenarioRequest}> => {
+  const queryClient = useQueryClient()
+
+  return useMutation<IssuanceScenarioResponse, Error, {slug: string, data: IssuanceScenarioRequest}>({
+    mutationFn: async ({slug, data}: {slug: string, data: IssuanceScenarioRequest}): Promise<IssuanceScenarioResponse> => {
+      const response = await apiClient.put(`/scenarios/issuances/${slug}`, data)
+      return response as IssuanceScenarioResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['issuanceScenario'] })
+    },
+  })
+}

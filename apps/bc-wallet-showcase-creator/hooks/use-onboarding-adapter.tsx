@@ -1,11 +1,23 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useOnboardingCreation } from './use-onboarding-creation'
+import { toast } from 'sonner'
+import { useCreateScenario, useUpdateScenario } from '@/hooks/use-onboarding'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import type { Persona, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
 
 export const useOnboardingAdapter = (showcaseSlug?: string) => {
+  const { mutateAsync: createScenarioAsync } = useCreateScenario()
+  const { mutateAsync: updateScenarioAsync } = useUpdateScenario()
+  const { setScenarioIds } = useShowcaseStore()
+  const { issuerId } = useHelpersStore()
+  
+  const [localSelectedStep, setLocalSelectedStep] = useState<Screen | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
   const {
     selectedPersonas,
     personaScenarios,
@@ -29,7 +41,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     setSelectedStep: setSelectedStepInternal,
     selectStep,
   } = useOnboardingCreation(showcaseSlug)
-
+  
   const getCurrentSteps = useCallback(() => {
     if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
 
@@ -40,7 +52,20 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     return scenarioList[activeScenarioIndex].steps as Screen[]
   }, [activePersonaId, personaScenarios, activeScenarioIndex])
 
-  const steps = getCurrentSteps()
+  const steps = getCurrentSteps();
+
+  useEffect(() => {
+    if (isInitialized || !showcaseSlug || personaScenarios.size === 0) return;
+    
+    if (activePersonaId && personaScenarios.has(activePersonaId)) {
+      const currentSteps = getCurrentSteps();
+      
+      if (currentSteps.length > 0) {
+        handleSelectStepImpl(0, activeScenarioIndex);
+        setIsInitialized(true);
+      }
+    }
+  }, [showcaseSlug, personaScenarios, activePersonaId, activeScenarioIndex, isInitialized]);
 
   const getStepActionType = useCallback((step: Screen): string | null => {
     if (!step.actions || step.actions.length === 0) return null;
@@ -55,11 +80,9 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
     switch (actionType) {
       case 'CHOOSE_WALLET':
-        // setStepState('editing-wallet');
         break;
       case 'SETUP_CONNECTION':
       case 'ARIES_OOB':
-        // setStepState('editing-connect');
         break;
       case 'ACCEPT_CREDENTIAL':
         setStepState('editing-issue');
@@ -69,118 +92,287 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     }
   }, [setStepState]);
 
-  const setSelectedStep = useCallback((indexOrNull: number | null) => {
-    if (indexOrNull === null) {
-      // Reset selection
+  const handleSelectStepImpl = (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
+    if (stepIndex < 0 || !steps || stepIndex >= steps.length) {
+      return;
+    }
+    
+    const step = steps[stepIndex];
+    
+    if (scenarioIndex !== activeScenarioIndex) {
+      setActiveScenarioIndex(scenarioIndex);
+    }
+    
+    selectStep(stepIndex, scenarioIndex);
+    
+    const enhancedStep = {
+      ...step,
+      order: stepIndex,
+      id: step.id || `temp-step-${Date.now()}-${stepIndex}`,
+      credentials: step.credentials || []
+    };
+    setLocalSelectedStep(enhancedStep);
+    
+    const newState = step.type === 'SERVICE' ? 'editing-issue' : 'editing-basic';
+    setStepState(newState);
+  };
+
+  const handleSelectStep = useCallback(
+    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
+      handleSelectStepImpl(stepIndex, scenarioIndex);
+    },
+    [
+      activeScenarioIndex,
+      steps
+    ]
+  );
+
+  const setSelectedStep = useCallback((stepOrIndex: Screen | number | null) => {
+    if (stepOrIndex === null) {
       setSelectedStepInternal(null);
+      setLocalSelectedStep(null);
       setStepState('no-selection');
       return;
     }
     
-    // Get the step at the given index
-    const step = steps[indexOrNull];
-    if (!step) {
-      console.error(`No step found at index ${indexOrNull}`);
-      return;
+    if (typeof stepOrIndex === 'number') {
+      handleSelectStepImpl(stepOrIndex, activeScenarioIndex);
+    } else {
+      const stepIndex = steps.findIndex(s => 
+        (s.id && stepOrIndex.id) ? s.id === stepOrIndex.id : 
+        (s.title === stepOrIndex.title && s.description === stepOrIndex.description)
+      );
+      
+      if (stepIndex >= 0) {
+        handleSelectStepImpl(stepIndex, activeScenarioIndex);
+      } else {
+        setSelectedStepInternal(stepOrIndex);
+        setLocalSelectedStep(stepOrIndex);
+        
+        const newState = stepOrIndex.type === 'SERVICE' ? 'editing-issue' : 'editing-basic';
+        setStepState(newState);
+      }
     }
-    
-    // Set the selected step to be the actual step object
-    setSelectedStepInternal(step);
-    
-    // Get the action type and set appropriate state
-    const actionType = getStepActionType(step);
-    setStepStateFromAction(actionType);
-  }, [setSelectedStepInternal, steps, setStepState, getStepActionType, setStepStateFromAction]);
+  }, [steps, activeScenarioIndex, setSelectedStepInternal, setStepState]);
 
   const createStep = useCallback(
     (stepData: StepRequest) => {
       if (!activePersonaId) return
 
-      addStep(activePersonaId, activeScenarioIndex, stepData as Screen)
+      addStep(activePersonaId, activeScenarioIndex, stepData as Screen)      
       
-      // After adding, the new step will be at the end of the list
       const newStepIndex = steps.length;
-      
-      // Get the newly added step
-      const newStep = getCurrentSteps()[newStepIndex];
-      if (newStep) {
-        setSelectedStepInternal(newStep);
-        
-        // Set state based on action type
-        const actionType = getStepActionType(newStep);
-        setStepStateFromAction(actionType);
-      }
+      setTimeout(() => {
+        const updatedSteps = getCurrentSteps();        
+        if (updatedSteps.length > newStepIndex) {
+          handleSelectStepImpl(newStepIndex, activeScenarioIndex);
+        }
+      }, 0);
     },
     [
       activePersonaId, 
       activeScenarioIndex, 
       addStep, 
       steps.length, 
-      setSelectedStepInternal, 
-      getCurrentSteps, 
-      getStepActionType, 
-      setStepStateFromAction
-    ],
-  )
+      getCurrentSteps
+    ]
+  );
 
   const handleUpdateStep = useCallback(
     (index: number, stepData: StepRequest) => {
       if (!activePersonaId) return
 
-      updateStep(activePersonaId, activeScenarioIndex, index, stepData as Screen)
+      updateStep(activePersonaId, activeScenarioIndex, index, stepData as Screen);
+      
+      const effectiveSelectedStep = selectedStep || localSelectedStep;
+      
+      if (effectiveSelectedStep && (
+          (effectiveSelectedStep.id && (stepData as Screen).id && effectiveSelectedStep.id === (stepData as Screen).id) ||
+          ('order' in effectiveSelectedStep && effectiveSelectedStep.order === index)
+        )) {
+        setLocalSelectedStep({
+          ...(stepData as Screen),
+          order: index,
+          id: (stepData as Screen).id || effectiveSelectedStep.id
+        });
+      }
     },
-    [activePersonaId, activeScenarioIndex, updateStep],
-  )
+    [activePersonaId, activeScenarioIndex, updateStep, selectedStep, localSelectedStep],
+  );
 
   const handleDuplicateStep = useCallback(
     (stepIndex: number) => {
       if (!activePersonaId) {
-        console.error('Cannot duplicate - no active persona')
-        return
+        return;
       }
 
-      duplicateStep(activePersonaId, activeScenarioIndex, stepIndex)
+      duplicateStep(activePersonaId, activeScenarioIndex, stepIndex);
     },
     [activePersonaId, activeScenarioIndex, duplicateStep],
-  )
+  );
 
   const handleMoveStep = useCallback(
     (oldIndex: number, newIndex: number) => {
-      if (!activePersonaId) return
+      if (!activePersonaId) return;
 
-      moveStep(activePersonaId, activeScenarioIndex, oldIndex, newIndex)
+      moveStep(activePersonaId, activeScenarioIndex, oldIndex, newIndex);
+      
+      const effectiveSelectedStep = selectedStep || localSelectedStep;
+      
+      if (effectiveSelectedStep && 'order' in effectiveSelectedStep && effectiveSelectedStep.order === oldIndex) {
+        setTimeout(() => {
+          handleSelectStepImpl(newIndex, activeScenarioIndex);
+        }, 0);
+      }
     },
-    [activePersonaId, activeScenarioIndex, moveStep],
-  )
+    [activePersonaId, activeScenarioIndex, moveStep, selectedStep, localSelectedStep],
+  );
 
   const activePersona = activePersonaId 
     ? selectedPersonas.find((p: Persona) => p.id === activePersonaId) || null 
-    : null
+    : null;
 
-  const handleSelectStep = useCallback(
-    (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {      
-      selectStep(stepIndex, scenarioIndex);
-      
-      const step = steps[stepIndex];
-      if (step) {
-        const actionType = getStepActionType(step);
-        setStepStateFromAction(actionType);
+  const effectiveSelectedStep = selectedStep || localSelectedStep;
+  
+  const selectedStepIndex = useCallback(() => {
+    if (!effectiveSelectedStep || !steps.length) return null;
+    
+    if ('order' in effectiveSelectedStep && typeof effectiveSelectedStep.order === 'number') {
+      return effectiveSelectedStep.order;
+    }
+    
+    if (effectiveSelectedStep.id) {
+      const index = steps.findIndex(step => step.id === effectiveSelectedStep.id);
+      if (index >= 0) return index;
+    }
+    
+    return steps.findIndex(step => 
+      step.title === effectiveSelectedStep.title && 
+      step.description === effectiveSelectedStep.description
+    );
+  }, [effectiveSelectedStep, steps])();
+
+  const selectedStepActionType = effectiveSelectedStep 
+    ? getStepActionType(effectiveSelectedStep) 
+    : null;
+
+  const createScenarios = useCallback(async () => {
+    try {
+      const personaScenariosList = selectedPersonas
+        .map((persona) => {
+          if (!personaScenarios.has(persona.id)) return null;
+          
+          const scenarioList = personaScenarios.get(persona.id)!;
+          if (!scenarioList.length) return null;
+          
+          return scenarioList.map(scenario => ({
+            ...scenario,
+            personas: [persona.id],
+            issuer: issuerId,
+            steps: scenario.steps.map((step, index) => ({
+              title: step.title,
+              description: step.description,
+              asset: step.asset || undefined,
+              type: step.type || 'HUMAN_TASK',
+              order: index,
+              screenId: 'INFO',
+              actions: step.actions || [],
+            }))
+          }));
+        })
+        .filter(Boolean)
+        .flat();
+
+      if (personaScenariosList.length === 0) {
+        return { success: false, message: 'No scenarios to create' };
       }
-    },
-    [selectStep, activeScenarioIndex, steps, getStepActionType, setStepStateFromAction],
-  );
 
-  const selectedStepIndex = selectedStep 
-    ? steps.findIndex(step => step.id === selectedStep.id)
-    : null;
+      const scenarioIds = [];
 
-  const selectedStepActionType = selectedStep 
-    ? getStepActionType(selectedStep) 
-    : null;
+      for (const scenario of personaScenariosList) {
+        if (!scenario) continue;
+        try {
+          const result = await createScenarioAsync(scenario);
+          if (result && result.issuanceScenario) {
+            scenarioIds.push(result.issuanceScenario.id);
+            toast.success(`Scenario created for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
+          } else {
+            throw new Error('Invalid response format');
+          }
+        } catch (error) {
+          return { success: false, message: 'Error creating scenario', error };
+        }
+      }
+
+      setScenarioIds(scenarioIds);
+      return { success: true, scenarioIds };
+    } catch (error) {
+      return { success: false, message: 'Error in scenario creation', error };
+    }
+  }, [selectedPersonas, personaScenarios, issuerId, createScenarioAsync, setScenarioIds]);
+
+  const updateScenarios = useCallback(async (slug: string) => {
+    try {
+      const personaScenariosList = selectedPersonas
+        .map((persona) => {
+          if (!personaScenarios.has(persona.id)) return null;
+          
+          const scenarioList = personaScenarios.get(persona.id)!;
+          if (!scenarioList.length) return null;
+          
+          return scenarioList.map(scenario => ({
+            ...scenario,
+            personas: [persona.id],
+            issuer: issuerId,
+            steps: scenario.steps.map((step, index) => ({
+              title: step.title,
+              description: step.description,
+              asset: step.asset || undefined,
+              type: step.type || 'HUMAN_TASK',
+              order: index,
+              screenId: 'INFO',
+              actions: step.actions || [],
+            }))
+          }));
+        })
+        .filter(Boolean)
+        .flat();
+
+      if (personaScenariosList.length === 0) {
+        return { success: false, message: 'No scenarios to update' };
+      }
+
+      const scenarioIds = [];
+
+      for (const scenario of personaScenariosList) {
+        if (!scenario) continue;
+        try {
+          const result = await updateScenarioAsync({
+            slug,
+            data: scenario
+          });
+          
+          if (result && result.issuanceScenario) {
+            scenarioIds.push(result.issuanceScenario.id);
+            toast.success(`Scenario updated for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
+          } else {
+            throw new Error('Invalid response format');
+          }
+        } catch (error) {
+          return { success: false, message: 'Error updating scenario', error };
+        }
+      }
+
+      setScenarioIds(scenarioIds);
+      return { success: true, scenarioIds };
+    } catch (error) {
+      return { success: false, message: 'Error in scenario update', error };
+    }
+  }, [selectedPersonas, personaScenarios, issuerId, updateScenarioAsync, setScenarioIds]);
 
   return {
     steps,
-    selectedStep,
+    selectedStep: effectiveSelectedStep,
     selectedStepIndex,
     selectedStepActionType,
     setSelectedStep,
@@ -205,6 +397,9 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     deleteScenario,
     selectedScenario,
     updateScenario,
-    removeScenario,
+    removeScenario,    
+    createScenarios,
+    updateScenarios,
+    isEditMode: !!showcaseSlug
   }
 }

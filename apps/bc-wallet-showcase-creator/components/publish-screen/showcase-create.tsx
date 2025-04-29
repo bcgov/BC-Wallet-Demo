@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useCreateAsset } from '@/hooks/use-asset'
@@ -123,8 +123,12 @@ export const ShowcaseCreate = () => {
   const { setCurrentShowcaseSlug } = useUiStore()
   const router = useRouter()
   const { mutateAsync: createShowcase } = useCreateShowcase()
-  const { setShowcase } = useShowcaseStore()
+  const { setShowcase, reset: resetCreateShowcase } = useShowcaseStore()
   const { tenantId } = useHelpersStore()
+
+  useEffect(() => {
+    resetCreateShowcase()
+  }, [])
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseRequestFormData),

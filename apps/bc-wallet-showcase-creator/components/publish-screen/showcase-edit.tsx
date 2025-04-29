@@ -133,7 +133,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const router = useRouter()
   const { mutateAsync: updateShowcase } = useUpdateShowcase(slug)
   const { setShowcaseFromResponse } = useShowcaseStore()
-  const { setSelectedPersonaIds } = usePersonaAdapter()
+  const { setSelectedPersonaIds, setScenarioIds } = useShowcaseStore()
   const { tenantId, setTenantId } = useHelpersStore()
   const [isLoading, setIsLoading] = useState(true)
 
@@ -184,12 +184,11 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
       })
       
       setIsLoading(false)
-      
-      // Update global state if needed
       setTenantId(showcase.tenantId || '')
       setCurrentShowcaseSlug(showcase.slug)
       setShowcaseFromResponse(showcase)
       setSelectedPersonaIds(showcase.personas?.map(p => typeof p === 'string' ? p : p.id) || [])
+      setScenarioIds(showcase.scenarios?.map(s => typeof s === 'string' ? s : s.id) || [])
     }
   }, [showcaseData, isShowcaseLoading, form, tenantId, setShowcaseFromResponse, setCurrentShowcaseSlug, setSelectedPersonaIds])
 

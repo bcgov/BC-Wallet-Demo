@@ -59,10 +59,14 @@ export const useCreateShowcase = () => {
 }
 
 export const useDeleteShowcase = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (slug: string) => {
       const response = await apiClient.delete(`/showcases/${slug}`);
       return response;
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['showcases'] });
+    }
   })
 }

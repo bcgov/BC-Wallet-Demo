@@ -11,7 +11,14 @@ interface OnboardingCreationState {
   personaScenariosMap: Record<string, IssuanceScenarioRequest[]>
   activePersonaId: string | null
   activeScenarioIndex: number
-  stepState: 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new' | 'editing-scenario' | 'editing-connect' | 'editing-wallet'
+  stepState:
+    | 'editing-basic'
+    | 'editing-issue'
+    | 'no-selection'
+    | 'creating-new'
+    | 'editing-scenario'
+    | 'editing-connect'
+    | 'editing-wallet'
   selectedScenarioId: string | null
   selectedStep: Screen | null
   // Actions
@@ -30,7 +37,14 @@ interface OnboardingCreationState {
   moveStep: (personaId: string, scenarioIndex: number, oldIndex: number, newIndex: number) => void
   duplicateStep: (personaId: string, scenarioIndex: number, stepIndex: number) => void
   setStepState: (
-    state: 'editing-basic' | 'editing-issue' | 'no-selection' | 'creating-new' | 'editing-scenario' | 'editing-connect' | 'editing-wallet',
+    state:
+      | 'editing-basic'
+      | 'editing-issue'
+      | 'no-selection'
+      | 'creating-new'
+      | 'editing-scenario'
+      | 'editing-connect'
+      | 'editing-wallet',
   ) => void
   setSelectedScenarioId: (id: string | null) => void
   updateScenario: (personaId: string, scenarioIndex: number, scenarioData: IssuanceScenarioRequest) => void
@@ -41,26 +55,26 @@ interface OnboardingCreationState {
 
 // Helper function to determine step state based on action type
 const getStepStateFromAction = (step: Screen): OnboardingCreationState['stepState'] => {
-  if (!step) return 'no-selection';
-  
+  if (!step) return 'no-selection'
+
   if (!step.actions || step.actions.length === 0) {
-    return 'editing-basic';
+    return 'editing-basic'
   }
-  
-  const actionType = step.actions[0].actionType;
-  
+
+  const actionType = step.actions[0].actionType
+
   switch (actionType) {
     case StepActionType.ChooseWallet:
-      return 'editing-wallet';
+      return 'editing-wallet'
     case StepActionType.SetupConnection:
     case StepActionType.AriesOob:
-      return 'editing-connect';
+      return 'editing-connect'
     case StepActionType.AcceptCredential:
-      return 'editing-issue';
+      return 'editing-issue'
     default:
-      return 'editing-basic';
+      return 'editing-basic'
   }
-};
+}
 
 export const useOnboardingCreationStore = create<OnboardingCreationState>()(
   immer((set) => ({
@@ -72,15 +86,15 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
     selectedStep: null as Screen | null,
 
     // Add to the store actions
-initializeWithScenarios: (scenariosMap) =>
-  set((state) => {
-    // Replace the entire map with the loaded data
-    state.personaScenariosMap = scenariosMap
-    
-    // Reset other state as needed
-    state.stepState = 'no-selection'
-    state.selectedStep = null
-  }),
+    initializeWithScenarios: (scenariosMap) =>
+      set((state) => {
+        // Replace the entire map with the loaded data
+        state.personaScenariosMap = scenariosMap
+
+        // Reset other state as needed
+        state.stepState = 'no-selection'
+        state.selectedStep = null
+      }),
 
     setSelectedScenarioId: (id) =>
       set((state) => {
@@ -129,7 +143,7 @@ initializeWithScenarios: (scenariosMap) =>
         if (state.personaScenariosMap[persona.id]) return
 
         const defaultOnboarding: IssuanceScenarioRequest = {
-          name: "Get your student credential",
+          name: 'Get your student credential',
           description: `Issuance scenario for ${persona.name}`,
           steps: [
             {
@@ -393,36 +407,57 @@ initializeWithScenarios: (scenariosMap) =>
 
     setSelectedStep: (selectedStep) =>
       set((state) => {
-        state.selectedStep = selectedStep;
-        
-        // If a step is selected, set the step state based on action
+        state.selectedStep = selectedStep
+
         if (selectedStep) {
-          state.stepState = getStepStateFromAction(selectedStep);
+          state.stepState = getStepStateFromAction(selectedStep)
         } else {
-          state.stepState = 'no-selection';
+          state.stepState = 'no-selection'
         }
       }),
 
-    selectStep: (stepIndex, scenarioIndex) =>
+    selectStep: (stepIndex: number, scenarioIndex: number) =>
       set((state) => {
         if (state.activeScenarioIndex !== scenarioIndex) {
           state.activeScenarioIndex = scenarioIndex
         }
 
-        if (state.activePersonaId && state.personaScenariosMap[state.activePersonaId]) {
-          const scenarios = state.personaScenariosMap[state.activePersonaId]
+        const personaId = state.activePersonaId
+        if (!personaId || !state.personaScenariosMap[personaId]) {
+          console.error('[selectStep] No active persona or scenarios')
+          return // Don't modify state if we can't find persona/scenarios
+        }
 
-          if (scenarioIndex >= 0 && scenarioIndex < scenarios.length) {
-            const steps = scenarios[scenarioIndex].steps
+        const scenarios = state.personaScenariosMap[personaId]
+        if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) {
+          console.error(`[selectStep] Invalid scenario index: ${scenarioIndex}`)
+          return
+        }
 
-            if (stepIndex >= 0 && stepIndex < steps.length) {
-              const currentStep = steps[stepIndex] as Screen;
-              state.selectedStep = currentStep;
-              
-              // Set state based on action type of the selected step
-              state.stepState = getStepStateFromAction(currentStep);
-            }
-          }
+        const scenario = scenarios[scenarioIndex]
+        const steps = scenario.steps
+
+        if (stepIndex < 0 || stepIndex >= steps.length) {
+          console.error(`[selectStep] Invalid step index: ${stepIndex}`)
+          return
+        }
+
+        const step = steps[stepIndex] as Screen
+
+        // IMPORTANT FIX: Create a consistent selectedStep object
+        // that preserves all Screen properties
+        state.selectedStep = {
+          ...step, // Preserve all original Screen properties including id and credentials
+          order: stepIndex, // Make sure we have the order property
+          // Add any missing properties that the Screen interface requires
+          id: step.id || `temp-step-${Date.now()}-${stepIndex}`,
+          credentials: step.credentials || [],
+        }
+
+        if (step.type === 'SERVICE') {
+          state.stepState = 'editing-issue'
+        } else {
+          state.stepState = 'editing-basic'
         }
       }),
   })),

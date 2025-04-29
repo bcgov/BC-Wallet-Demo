@@ -157,7 +157,7 @@ export const ShowcaseList = () => {
                         <div className="flex-shrink-0">
                           <DeleteButton
                             onClick={() => {
-                              console.log('delete', showcase.id)
+                              deleteShowcase(showcase.slug)
                             }}
                           />
 
@@ -212,8 +212,6 @@ export const ShowcaseList = () => {
                       <Link className="w-1/2" href={`/showcases/${showcase.slug}`}>
                         <ButtonOutline
                           className="w-full"
-                          // disabled
-                          // onClick={() => deleteShowcase(showcase.slug)}
                         >
                           {t('action.edit_label')}
                         </ButtonOutline>

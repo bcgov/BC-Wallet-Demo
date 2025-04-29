@@ -11,7 +11,7 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
   const { selectedPersonaIds } = useShowcaseStore()
   const { issuerId, selectedCredentialDefinitionIds } = useHelpersStore()
   const { data: personasData } = usePersonas()
-  const { data: showcaseData, isLoading: isLoadingShowcase } = useShowcase(showcaseSlug || '')
+  const { data: showcaseData } = useShowcase(showcaseSlug || '')
   const [isInitialized, setIsInitialized] = useState(false)
 
   const {
@@ -40,7 +40,6 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     initializeWithScenarios
   } = useOnboardingCreationStore()
 
-   // Initialize with existing showcase data when editing
    useEffect(() => {
     const showcase = showcaseData?.showcase
     if (showcase && showcaseSlug && showcaseData && !isInitialized) {
@@ -51,20 +50,17 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
       if (issuanceScenarios.length > 0) {
         const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
         
-        // Group scenarios by persona
         issuanceScenarios.forEach(scenario => {
           scenario.personas.forEach(persona => {
             if (!personaScenariosData[persona.id]) {
               personaScenariosData[persona.id] = []
             }
             
-            // Convert to IssuanceScenarioRequest format
             const scenarioRequest: IssuanceScenarioRequest = {
               name: scenario.name,
               description: scenario.description,
               steps: scenario.steps.map(step => ({
                 ...step,
-                // Add any needed transformations here
               })) as Screen[],
               personas: scenario.personas.map(p => p.id),
               hidden: scenario.hidden,
@@ -88,9 +84,7 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     }
   }, [showcaseSlug, showcaseData, isInitialized, initializeWithScenarios, activePersonaId, setActivePersonaId])
 
-  // Handle new showcase creation (existing logic)
   useEffect(() => {
-    // Skip if we're editing an existing showcase and it's already initialized
     if (showcaseSlug && isInitialized) return
     
     const personas = (personasData?.personas || []).filter((persona: Persona) =>
