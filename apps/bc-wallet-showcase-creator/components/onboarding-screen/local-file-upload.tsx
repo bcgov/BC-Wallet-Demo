@@ -24,16 +24,13 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
     isLoading: boolean
   }
 
-  // Safely extract asset ID, handling different possible shapes
   const getDirectAssetId = (): string => {
     if (!existingAssetId) return '';
     
-    // Case 1: Asset ID is directly a string
     if (typeof existingAssetId === 'string') {
       return existingAssetId;
     }
     
-    // Case 2: Asset ID is an object with an id property
     if (typeof existingAssetId === 'object' && existingAssetId !== null && 'id' in existingAssetId) {
       return (existingAssetId as { id: string }).id;
     }
@@ -41,33 +38,17 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
     return '';
   };
   
-  // Get the actual ID to use
   const directAssetId = getDirectAssetId();
-  
-  // Debug log
-  useEffect(() => {
-    console.log(`LocalFileUpload for ${element}:`, {
-      existingAssetId,
-      directAssetId,
-      hasResponse: !!response
-    });
-  }, [existingAssetId, directAssetId, element, response]);
 
-  // Reset preview when asset id is removed
   useEffect(() => {
     if (!directAssetId) {
-      console.log(`Resetting preview for ${element} - no asset ID`);
       setPreview(null);
       setImageError(false);
-    } else {
-      console.log(`Asset ID for ${element}:`, directAssetId);
-    }
+    } 
   }, [directAssetId, element]);
 
-  // Set preview from response when available
   useEffect(() => {
     if (response?.asset?.content) {
-      console.log(`Setting preview from response content for ${element}`);
       setPreview(response.asset.content);
       setImageError(false);
     }
@@ -78,7 +59,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {
-          console.log(`Creating new asset for ${element}`);
+          
           await createAsset(
             {
               content: base64,
@@ -88,7 +69,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
             {
               onSuccess: (data: unknown) => {
                 const response = data as AssetResponse
-                console.log(`Asset creation successful for ${element}:`, response.asset.id);
+                
                 setPreview(base64);
                 setImageError(false);
                 handleLocalUpdate(element, response.asset.id);
@@ -105,7 +86,6 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
         setImageError(true);
       }
     } else {
-      console.log(`Clearing asset for ${element}`);
       setPreview(null);
       setImageError(false);
       handleLocalUpdate(element, '');
@@ -114,17 +94,14 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
 
   const handleRemove = (e: React.MouseEvent) => {
     e.preventDefault();
-    console.log(`Removing asset for ${element}`);
     setPreview(null);
     setImageError(false);
     handleLocalUpdate(element, '');
   }
 
-  // Generate the image URL with a timestamp to avoid caching issues
   const getImageUrl = () => {
     if (!directAssetId) return '';
-    const timestamp = new Date().getTime();
-    return `${baseUrl}/assets/${directAssetId}/file?t=${timestamp}`;
+    return `${baseUrl}/assets/${directAssetId}/file`;
   };
   
   return (
@@ -159,7 +136,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                 unoptimized={true}
                 onError={() => {
-                  console.log(`Image error for ${element}`);
+                  
                   setImageError(true);
                 }}
               />

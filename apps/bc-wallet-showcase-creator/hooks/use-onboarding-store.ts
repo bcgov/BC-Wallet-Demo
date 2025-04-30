@@ -51,6 +51,8 @@ interface OnboardingCreationState {
   removeScenario: (personaId: string, scenarioIndex: number) => void
   setSelectedStep: (selectedStep: Screen | null) => void
   selectStep: (stepIndex: number, scenarioIndex: number) => void
+
+  reset: () => void
 }
 
 // Helper function to determine step state based on action type
@@ -456,6 +458,13 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
         } else {
           state.stepState = 'editing-basic'
         }
+      }),
+
+    reset: () =>
+      set((state) => {
+        state.personaScenariosMap = {}
+        state.activePersonaId = null
+        state.activeScenarioIndex = 0
       }),
   })),
 )

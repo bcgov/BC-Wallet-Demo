@@ -16,7 +16,7 @@ class ApiService {
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
     const fullUrl = `${this.baseUrl}${url}`
-    const accessToken = method !== 'GET' ? await this.getAuthToken() : undefined
+    const accessToken = await this.getAuthToken()
 
     if (!accessToken && method !== 'GET') {
       return Promise.reject(Error('No access token found'))
@@ -77,19 +77,16 @@ class ApiService {
 
   private async getAuthToken(): Promise<string | null> {
     const session = await getSession()
-
-    if (!session?.accessToken) {
-      void (await signIn('keycloak'))
-      return null
+    if (session?.accessToken) {
+      return session.accessToken
     }
 
-    // Check for a refresh error
     if (session?.error === 'RefreshAccessTokenError') {
-      void (await signIn('keycloak'))
+      debugLog('RefreshAccessTokenError detected')
       return null
     }
 
-    return session.accessToken
+    return null
   }
 }
 

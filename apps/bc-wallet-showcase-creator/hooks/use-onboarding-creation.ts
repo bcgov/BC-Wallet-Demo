@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
@@ -37,30 +39,25 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     selectedStep,
     setSelectedStep,
     selectStep,
-    initializeWithScenarios
+    initializeWithScenarios,
+    reset
   } = useOnboardingCreationStore()
 
   useEffect(() => {
-    // Only process initialization if we have a showcase slug and the showcase data has loaded
     if (showcaseSlug && showcaseData && !isInitialized && !isShowcaseLoading) {
       const showcase = showcaseData?.showcase
       
-      // Initialize with empty scenarios map if the showcase exists but has no scenarios
       if (showcase) {
-        // Filter issuance scenarios
         const issuanceScenarios = showcase.scenarios?.filter(
           scenario => scenario.type === 'ISSUANCE'
         ) || []
-        
-        // If there are no issuance scenarios, initialize with an empty map but
-        // DON'T create default scenarios - we'll handle that in the adapter
+
         if (issuanceScenarios.length === 0) {
           initializeWithScenarios({})
           setIsInitialized(true)
           return
         }
         
-        // Otherwise process the existing scenarios
         const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
         
         issuanceScenarios.forEach(scenario => {
@@ -88,10 +85,8 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
           }
         })
         
-        // Initialize the store with existing data
         initializeWithScenarios(personaScenariosData)
         
-        // Set active persona if needed
         if (!activePersonaId && Object.keys(personaScenariosData).length > 0) {
           setActivePersonaId(Object.keys(personaScenariosData)[0])
         }
@@ -109,7 +104,6 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     setActivePersonaId
   ])
 
-  // Only run the default initialization if we're not in edit mode or initialization has failed
   useEffect(() => {
     if (showcaseSlug && isInitialized) return
     
@@ -183,6 +177,7 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     setSelectedStep,
     selectStep,
     isShowcaseLoading,
-    isInitialized
+    isInitialized,
+    reset,
   }
 }

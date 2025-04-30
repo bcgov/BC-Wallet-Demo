@@ -24,6 +24,7 @@ import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { showcaseRequestFormData } from '@/schemas/showcase'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { useOnboardingCreation } from '@/hooks/use-onboarding-creation'
 
 const BannerImageUpload = ({
   text,
@@ -126,11 +127,13 @@ export const ShowcaseCreate = () => {
   const { mutateAsync: createShowcase } = useCreateShowcase()
   const { setShowcase, reset: resetCreateShowcase } = useShowcaseStore()
   const { reset: resetPresentationCreation } = usePresentationCreation()
+  const { reset: resetOnboardingCreation } = useOnboardingCreation()
   const { tenantId } = useHelpersStore()
 
   useEffect(() => {
     resetCreateShowcase()
     resetPresentationCreation()
+    resetOnboardingCreation()
   }, [])
 
   const form = useForm<ShowcaseRequest>({
@@ -207,7 +210,6 @@ export const ShowcaseCreate = () => {
               <BannerImageUpload
                 text={t('onboarding.icon_label')}
                 value={form.watch('bannerImage')}
-                // error={form.formState.errors.bannerImage?.message}
                 onChange={(value) =>
                   form.setValue('bannerImage', value, {
                     shouldDirty: true,
