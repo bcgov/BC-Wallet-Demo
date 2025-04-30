@@ -267,7 +267,7 @@ export const CredentialsForm = () => {
                 value: selectedCredential?.source,
               },
             ].map((item, index) => (
-              <div key={index} className="flex flex-col p-4 dark:bg-dark-bg-secondary space-y-2">
+              <div key={index} className="flex flex-col p-4 space-y-2">
                 <h6 className="text-md font-semibold dark:text-white text-black">{item.label}</h6>
                 <p className="text-sm font-medium text-gray-900 dark:text-white break-words">{item.value || '—'}</p>
               </div>

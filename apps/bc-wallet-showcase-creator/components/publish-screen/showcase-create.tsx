@@ -23,6 +23,7 @@ import { useCreateShowcase } from '@/hooks/use-showcases'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { showcaseRequestFormData } from '@/schemas/showcase'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
 
 const BannerImageUpload = ({
   text,
@@ -124,10 +125,12 @@ export const ShowcaseCreate = () => {
   const router = useRouter()
   const { mutateAsync: createShowcase } = useCreateShowcase()
   const { setShowcase, reset: resetCreateShowcase } = useShowcaseStore()
+  const { reset: resetPresentationCreation } = usePresentationCreation()
   const { tenantId } = useHelpersStore()
 
   useEffect(() => {
     resetCreateShowcase()
+    resetPresentationCreation()
   }, [])
 
   const form = useForm<ShowcaseRequest>({

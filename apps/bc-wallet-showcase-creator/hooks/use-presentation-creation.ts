@@ -44,6 +44,8 @@ interface PresentationCreationState {
   removeScenario: (personaId: string, scenarioIndex: number) => void
   setSelectedStep: (selectedStep: SelectedStep) => void
   selectStep: (stepIndex: number, scenarioIndex: number) => void
+
+  reset: () => void
 }
 
 const usePresentationCreationStore = create<PresentationCreationState>()(
@@ -354,6 +356,14 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         }
       }),
 
+    reset: () => {
+      set((state) => {
+        state.personaScenariosMap = {}
+        state.activePersonaId = null
+        state.activeScenarioIndex = 0
+      })
+    },
+
   })),
 )
 
@@ -387,6 +397,7 @@ export const usePresentationCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
+    reset,
   } = usePresentationCreationStore()
 
   useEffect(() => {
@@ -455,6 +466,7 @@ export const usePresentationCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
-    personaScenariosMap
+    personaScenariosMap,
+    reset,
   }
 }
