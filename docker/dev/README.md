@@ -30,22 +30,21 @@ cp .env.example .env
 API_PORT=5002                   # Port for the API server
 
 # Database Configuration
-DB_HOST=postgres
-DB_PORT=5232
-DB_USER=postgres
-DB_PASSWORD=s3cH9KK1Lo0opzPo
-DB_NAME=postgres
+SHOWCASE_DB_HOST=postgres
+SHOWCASE_DB_PORT=5232
+SHOWCASE_DB_USERNAME=postgres
+SHOWCASE_DB_PASSWORD=s3cH9KK1Lo0opzPo
+SHOWCASE_DB_NAME=postgres
 
 # RabbitMQ Configuration
-RABBITMQ_HOST=rabbitmq
-RABBITMQ_PORT=5672
+AMQ_HOST=rabbitmq
+AMQ_PORT=5672
 RABBITMQ_MGMT_PORT=15672
-RABBITMQ_USER=guest
-RABBITMQ_PASSWORD=guest
+AMQ_USERNAME=guest
+AMQ_PASSWORD=guest
 RABBITMQ_VHOST=/
 
 # Application settings
-APP_NAME=bc-wallet-api
 LOG_LEVEL=info
 ```
 

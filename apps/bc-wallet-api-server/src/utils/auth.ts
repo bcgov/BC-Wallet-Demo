@@ -24,7 +24,7 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
     if (!(await isAccessTokenValid(accessToken))) {
       return false
     }
-    const token = new Token(accessToken, `${process.env.CLIENT_ID}`)
+    const token = new Token(accessToken, `${process.env.OIDC_CLIENT_ID}`)
     // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
     // User roles which at the moment we are not using, do not need any prefix.
     return checkRoles(token, roles)
@@ -35,9 +35,9 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
 
 export async function isAccessTokenValid(token: string): Promise<boolean> {
   const authorization =
-    'Basic ' + Buffer.from(`${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`).toString('base64')
+    'Basic ' + Buffer.from(`${process.env.OIDC_CLIENT_ID}:${process.env.OIDC_CLIENT_SECRET}`).toString('base64')
   const response = await fetch(
-    `${process.env.AUTH_SERVER_URL}/realms/${process.env.REALM}/protocol/openid-connect/token/introspect`,
+    `${process.env.OIDC_SERVER_URL}/realms/${process.env.OIDC_REALM}/protocol/openid-connect/token/introspect`,
     {
       method: 'POST',
       headers: {
@@ -46,8 +46,8 @@ export async function isAccessTokenValid(token: string): Promise<boolean> {
       },
       body: new URLSearchParams({
         token: token,
-        client_id: `${process.env.CLIENT_ID}`,
-        client_secret: `${process.env.CLIENT_SECRET}`,
+        client_id: `${process.env.OIDC_CLIENT_ID}`,
+        client_secret: `${process.env.OIDC_CLIENT_SECRET}`,
       }),
     },
   )
@@ -89,7 +89,7 @@ async function checkResponse(response: Response) {
 // TODO Check if this is correct, or even necessary
 export function isAccessTokenAudienceValid(token: Token): boolean {
   const audienceData = Array.isArray(token.payload.aud) ? token.payload.aud : [token.payload.aud]
-  return audienceData.includes(process.env.CLIENT_ID)
+  return audienceData.includes(process.env.OIDC_CLIENT_ID)
 }
 
 export function isAccessTokenExpired(token: Token): boolean {

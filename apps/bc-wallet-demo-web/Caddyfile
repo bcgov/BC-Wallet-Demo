@@ -51,7 +51,7 @@
             header Upgrade websocket
         }
 
-        reverse_proxy @websockets {$REACT_APP_HOST_BACKEND}
+        reverse_proxy @websockets {$REACT_APP_DEMO_API_URL}
 
         # Required for SPA router to work
         @spa_router {
@@ -69,7 +69,7 @@
         }
 
         # Proxy requests to API service
-        reverse_proxy @pass {$REACT_APP_HOST_BACKEND} {
+        reverse_proxy @pass {$REACT_APP_DEMO_API_URL} {
             trusted_proxies 0.0.0.0/0
             header_up Host {upstream_hostport}
             header_up X-Forwarded-Host {host}

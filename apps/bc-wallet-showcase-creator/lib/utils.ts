@@ -30,5 +30,5 @@ export function parseSchemaId(schemaId: string) {
   };
 }
 
-export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_BACKEND;
+export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_API_URL;
 

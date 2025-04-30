@@ -54,7 +54,7 @@ export default async function RootLayout({ children, params }: Params) {
   // Get environment variables from server
   const envVars = {
     WALLET_URL: process.env.NEXT_PUBLIC_WALLET_URL,
-    SHOWCASE_BACKEND: process.env.NEXT_PUBLIC_SHOWCASE_BACKEND,
+    SHOWCASE_API_URL: process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
   }
 
   return (

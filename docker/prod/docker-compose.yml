@@ -9,13 +9,12 @@ services:
     environment:
       # Only include variables this service needs
       - PORT=5005
-      - DB_HOST=postgres
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USERNAME=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
+      - SHOWCASE_DB_HOST=postgres
+      - SHOWCASE_DB_PORT=${SHOWCASE_DB_PORT:-5432}
+      - SHOWCASE_DB_USERNAME=${SHOWCASE_DB_USERNAME}
+      - SHOWCASE_DB_PASSWORD=${SHOWCASE_DB_PASSWORD}
+      - SHOWCASE_DB_NAME=${SHOWCASE_DB_NAME}
       # - DATABASE_URL=${DATABASE_URL} uncomment when using URL instead of vars above
-      - APP_NAME=${APP_NAME}
       - LOG_LEVEL=${LOG_LEVEL}
     depends_on:
       - postgres  # Ensure Postgres starts first
@@ -37,12 +36,11 @@ services:
       - messagebroker_net
     environment:
       - PORT=3000
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=${RABBITMQ_USER}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - AMQ_HOST=rabbitmq
+      - AMQ_PORT=5672
+      - AMQ_USERNAME=${AMQ_USERNAME}
+      - AMQ_PASSWORD=${AMQ_PASSWORD}
       - RABBITMQ_VHOST=${RABBITMQ_VHOST}
-      - APP_NAME=${APP_NAME}
       - LOG_LEVEL=${LOG_LEVEL}
     depends_on:
       - rabbitmq  # Ensure RabbitMQ starts first
@@ -53,13 +51,13 @@ services:
     networks:
       - db_net
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${SHOWCASE_DB_USERNAME}
+      - POSTGRES_PASSWORD=${SHOWCASE_DB_PASSWORD}
+      - POSTGRES_DB=${SHOWCASE_DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${DB_USER}" ]
+      test: [ "CMD", "pg_isready", "-U", "${SHOWCASE_DB_USERNAME}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -70,8 +68,8 @@ services:
     networks:
       - messagebroker_net
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_USER=${AMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${AMQ_PASSWORD}
     ports:
       - "${RABBITMQ_EXPOSED_PORT:-5672}:5672"
       - "${RABBITMQ_MGMT_EXPOSED_PORT:-15672}:15672"

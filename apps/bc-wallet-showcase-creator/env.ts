@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const runtimeClientSchema = {
   NEXT_PUBLIC_WALLET_URL: z.string().min(1),
-  NEXT_PUBLIC_SHOWCASE_BACKEND: z.string().min(1),
+  NEXT_PUBLIC_SHOWCASE_API_URL: z.string().min(1),
 };
 
 const runtimeClientProcess = {
@@ -11,10 +11,10 @@ const runtimeClientProcess = {
     typeof window !== "undefined" && window.__env?.WALLET_URL 
       ? window.__env.WALLET_URL 
       : process.env.NEXT_PUBLIC_WALLET_URL,
-  NEXT_PUBLIC_SHOWCASE_BACKEND: 
-    typeof window !== "undefined" && window.__env?.SHOWCASE_BACKEND 
-      ? window.__env.SHOWCASE_BACKEND 
-      : process.env.NEXT_PUBLIC_SHOWCASE_BACKEND,
+  NEXT_PUBLIC_SHOWCASE_API_URL: 
+    typeof window !== "undefined" && window.__env?.SHOWCASE_API_URL 
+      ? window.__env.SHOWCASE_API_URL 
+      : process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
 };
 
 export const env = createEnv({
@@ -29,15 +29,15 @@ export const env = createEnv({
   },
   client: runtimeClientSchema,
   runtimeEnv: {
-    AUTH_SECRET: process.env.AUTH_SECRET,
-    AUTH_KEYCLOAK_ID: process.env.AUTH_KEYCLOAK_ID,
-    AUTH_KEYCLOAK_SECRET: process.env.AUTH_KEYCLOAK_SECRET,
-    AUTH_KEYCLOAK_ISSUER: process.env.AUTH_KEYCLOAK_ISSUER,
-    AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,
-    AUTH_REDIRECT_PROXY_URL: process.env.AUTH_REDIRECT_PROXY_URL,
-    AUTH_URL: process.env.AUTH_URL,
+    AUTH_SECRET: process.env.OIDC_CLIENT_SECRET,
+    AUTH_KEYCLOAK_ID: process.env.OIDC_CLIENT_ID,
+    AUTH_KEYCLOAK_SECRET: process.env.OIDC_CLIENT_SECRET,
+    AUTH_KEYCLOAK_ISSUER: process.env.OIDC_ISSUER_URL,
+    AUTH_TRUST_HOST: process.env.OIDC_TRUST_HOST,
+    AUTH_REDIRECT_PROXY_URL: process.env.OIDC_REDIRECT_PROXY_URL,
+    AUTH_URL: process.env.OIDC_SERVER_URL,
     NEXT_PUBLIC_WALLET_URL: runtimeClientProcess.NEXT_PUBLIC_WALLET_URL,
-    NEXT_PUBLIC_SHOWCASE_BACKEND: runtimeClientProcess.NEXT_PUBLIC_SHOWCASE_BACKEND,
+    NEXT_PUBLIC_SHOWCASE_API_URL: runtimeClientProcess.NEXT_PUBLIC_SHOWCASE_API_URL,
   },
   skipValidation: process.env.NODE_ENV === "production" || !!process.env.SKIP_ENV_VALIDATION,
 });
@@ -46,7 +46,7 @@ declare global {
   interface Window {
     __env?: {
       WALLET_URL?: string;
-      SHOWCASE_BACKEND?: string;
+      SHOWCASE_API_URL?: string;
     };
   }
 }

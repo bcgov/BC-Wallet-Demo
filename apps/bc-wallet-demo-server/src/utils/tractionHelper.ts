@@ -4,11 +4,11 @@ import moment from 'moment'
 
 export let agentKey = ''
 
-export const tractionBaseUrl = process.env.TRACTION_URL ?? ''
+export const tractionBaseUrl = process.env.TRACTION_API_URL ?? ''
 
 export const tractionApiKeyUpdaterInit = async () => {
   // get traction api key
-  const tractionBaseUrl = process.env.TRACTION_URL
+  const tractionBaseUrl = process.env.TRACTION_API_URL
   const tenantId = process.env.TENANT_ID
   const apiKey = process.env.API_KEY
   const walletKey = process.env.WALLET_KEY
@@ -16,7 +16,7 @@ export const tractionApiKeyUpdaterInit = async () => {
   try {
     // Check if required environment variables are defined
     if (!tractionBaseUrl) {
-      return Promise.reject(new Error('TRACTION_URL environment variable is not defined'))
+      return Promise.reject(new Error('TRACTION_API_URL environment variable is not defined'))
     }
     if (!tenantId) {
       return Promise.reject(new Error('TENANT_ID environment variable is not defined'))
@@ -48,21 +48,21 @@ export const tractionApiKeyUpdaterInit = async () => {
 
 export const tractionRequest = {
   get: (url: string, config?: AxiosRequestConfig) => {
-    return axios.get(`${process.env.TRACTION_URL}${url}`, {
+    return axios.get(`${process.env.TRACTION_API_URL}${url}`, {
       ...config,
       timeout: 80000,
       headers: { ...config?.headers, Authorization: `Bearer ${agentKey}` },
     })
   },
   delete: (url: string, config?: AxiosRequestConfig) => {
-    return axios.delete(`${process.env.TRACTION_URL}${url}`, {
+    return axios.delete(`${process.env.TRACTION_API_URL}${url}`, {
       ...config,
       timeout: 80000,
       headers: { ...config?.headers, Authorization: `Bearer ${agentKey}` },
     })
   },
   post: (url: string, data: Record<string, unknown> | undefined, config?: AxiosRequestConfig) => {
-    return axios.post(`${process.env.TRACTION_URL}${url}`, data, {
+    return axios.post(`${process.env.TRACTION_API_URL}${url}`, data, {
       ...config,
       timeout: 80000,
       headers: { ...config?.headers, Authorization: `Bearer ${agentKey}` },
