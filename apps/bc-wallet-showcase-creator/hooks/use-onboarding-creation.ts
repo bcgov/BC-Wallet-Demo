@@ -11,7 +11,7 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
   const { selectedPersonaIds } = useShowcaseStore()
   const { issuerId, selectedCredentialDefinitionIds } = useHelpersStore()
   const { data: personasData } = usePersonas()
-  const { data: showcaseData } = useShowcase(showcaseSlug || '')
+  const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
   const [isInitialized, setIsInitialized] = useState(false)
 
   const {
@@ -40,43 +40,50 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     initializeWithScenarios
   } = useOnboardingCreationStore()
 
-   useEffect(() => {
-    const showcase = showcaseData?.showcase
-    if (showcase && showcaseSlug && showcaseData && !isInitialized) {
-      const issuanceScenarios = showcase.scenarios.filter(
-        scenario => scenario.type === 'ISSUANCE'
-      )
+  useEffect(() => {
+    if (showcaseSlug && showcaseData && !isInitialized && !isShowcaseLoading) {
+      const showcase = showcaseData?.showcase
       
-      if (issuanceScenarios.length > 0) {
+      if (showcase) {
+        const issuanceScenarios = showcase.scenarios?.filter(
+          scenario => scenario.type === 'ISSUANCE'
+        ) || []
+        
+        if (issuanceScenarios.length === 0) {
+          initializeWithScenarios({})
+          setIsInitialized(true)
+          return
+        }
+        
         const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
         
         issuanceScenarios.forEach(scenario => {
-          scenario.personas.forEach(persona => {
-            if (!personaScenariosData[persona.id]) {
-              personaScenariosData[persona.id] = []
-            }
-            
-            const scenarioRequest: IssuanceScenarioRequest = {
-              name: scenario.name,
-              description: scenario.description,
-              steps: scenario.steps.map(step => ({
-                ...step,
-              })) as Screen[],
-              personas: scenario.personas.map(p => p.id),
-              hidden: scenario.hidden,
-              issuer: scenario.issuer?.id,
-            // @ts-expect-error: slug is not required
-              slug: scenario.slug
-            }
-            
-            personaScenariosData[persona.id].push(scenarioRequest)
-          })
+          if (scenario.personas && scenario.personas.length > 0) {
+            scenario.personas.forEach(persona => {
+              if (!personaScenariosData[persona.id]) {
+                personaScenariosData[persona.id] = []
+              }
+              
+              const scenarioRequest: IssuanceScenarioRequest = {
+                name: scenario.name,
+                description: scenario.description,
+                steps: scenario.steps?.map(step => ({
+                  ...step,
+                })) as Screen[] || [],
+                personas: scenario.personas.map(p => p.id),
+                hidden: scenario.hidden,
+                issuer: scenario.issuer?.id,
+              // @ts-expect-error: slug is not required
+                slug: scenario.slug
+              }
+              
+              personaScenariosData[persona.id].push(scenarioRequest)
+            })
+          }
         })
         
-        // Initialize the store with existing data
         initializeWithScenarios(personaScenariosData)
         
-        // Set active persona if needed
         if (!activePersonaId && Object.keys(personaScenariosData).length > 0) {
           setActivePersonaId(Object.keys(personaScenariosData)[0])
         }
@@ -84,7 +91,15 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
         setIsInitialized(true)
       }
     }
-  }, [showcaseSlug, showcaseData, isInitialized, initializeWithScenarios, activePersonaId, setActivePersonaId])
+  }, [
+    showcaseSlug, 
+    showcaseData, 
+    isShowcaseLoading, 
+    isInitialized, 
+    initializeWithScenarios, 
+    activePersonaId, 
+    setActivePersonaId
+  ])
 
   useEffect(() => {
     if (showcaseSlug && isInitialized) return
@@ -158,5 +173,7 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     selectedStep,
     setSelectedStep,
     selectStep,
+    isShowcaseLoading,
+    isInitialized
   }
 }

@@ -24,7 +24,7 @@ export default async function CreateOnboardingPage({ params }: { params: Promise
               <h2 className="text-base font-bold text-foreground">{t('onboarding.header_title')}</h2>
               <p className="w-full text-xs">{t('onboarding.header_subtitle')}</p>
             </div>
-            <CreateOnboardingScreen />
+            <CreateOnboardingScreen showcaseSlug={slug} />
           </div>
 
           <div className="w-2/3 bg-background border shadow-md rounded-md flex flex-col">

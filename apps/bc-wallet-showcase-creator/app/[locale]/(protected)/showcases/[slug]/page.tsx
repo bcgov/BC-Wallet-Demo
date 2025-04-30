@@ -8,7 +8,6 @@ import { ShowcaseEditableHeader } from '@/components/showcases-screen/showcase-e
 export default async function PublishPage({ params }: { params: Promise<{ slug: string; locale: string }> }) {
   const { slug, locale } = await params
   setRequestLocale(locale)
-  const t = await getTranslations()
 
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">

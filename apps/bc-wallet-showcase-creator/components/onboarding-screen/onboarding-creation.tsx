@@ -14,7 +14,7 @@ import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { cn, baseUrl } from '@/lib/utils'
 import { Screen } from '@/types'
 
-export const CreateOnboardingScreen = () => {
+export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
   const { 
     steps, 
@@ -25,7 +25,7 @@ export const CreateOnboardingScreen = () => {
     activePersonaId, 
     setActivePersonaId, 
     activePersona,
-  } = useOnboardingAdapter()
+  } = useOnboardingAdapter(showcaseSlug)
   
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()

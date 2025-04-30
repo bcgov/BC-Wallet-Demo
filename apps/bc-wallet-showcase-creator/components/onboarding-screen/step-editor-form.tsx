@@ -429,8 +429,8 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
 
           {showCredentialSelection() && (
             <StepCredentialManager
-              currentStepCredentials={[]}
-              // currentStepCredentials={currentStep?.credentials as CredentialDefinition[]}
+              // @ts-expect-error - database still do not persist the credentials
+              currentStepCredentials={currentStep?.credentials || []}
               onUpdateCredentials={handleUpdateCredentials}
             />
           )}

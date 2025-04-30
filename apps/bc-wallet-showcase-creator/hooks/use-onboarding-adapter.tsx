@@ -8,7 +8,7 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import type { Persona, Showcase, ShowcaseRequest, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
-import { useUpdateShowcase } from './use-showcases'
+import { useUpdateShowcase, useShowcase } from './use-showcases'
 
 const showcaseToShowcaseRequest = (showcase: Showcase): ShowcaseRequest => {
   return {
@@ -23,11 +23,13 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: createScenarioAsync } = useCreateScenario()
   const { mutateAsync: updateScenarioAsync } = useUpdateScenario()
   const { mutateAsync: updateShowcaseAsync } = useUpdateShowcase(showcaseSlug || '')
+  const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
   const { setScenarioIds } = useShowcaseStore()
   const { issuerId } = useHelpersStore()
   
   const [localSelectedStep, setLocalSelectedStep] = useState<Screen | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [hasNoScenarios, setHasNoScenarios] = useState(false);
 
   const {
     selectedPersonas,
@@ -51,9 +53,22 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     selectedStep,
     setSelectedStep: setSelectedStepInternal,
     selectStep,
+    isShowcaseLoading: isCreationLoading,
+    isInitialized: isCreationInitialized
   } = useOnboardingCreation(showcaseSlug)
   
+  useEffect(() => {
+    if (showcaseSlug && showcaseData && !isShowcaseLoading) {
+      const showcase = showcaseData?.showcase
+      if (showcase && (!showcase.scenarios || showcase.scenarios.length === 0)) {
+        setHasNoScenarios(true)
+      }
+    }
+  }, [showcaseSlug, showcaseData, isShowcaseLoading])
+
   const getCurrentSteps = useCallback(() => {
+    if (hasNoScenarios) return []
+    
     if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
 
     const scenarioList = personaScenarios.get(activePersonaId)!
@@ -61,7 +76,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     if (activeScenarioIndex < 0 || activeScenarioIndex >= scenarioList.length) return []
 
     return scenarioList[activeScenarioIndex].steps as Screen[]
-  }, [activePersonaId, personaScenarios, activeScenarioIndex])
+  }, [activePersonaId, personaScenarios, activeScenarioIndex, hasNoScenarios])
 
   const steps = getCurrentSteps();
 
@@ -74,9 +89,21 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
       if (currentSteps.length > 0) {
         handleSelectStepImpl(0, activeScenarioIndex);
         setIsInitialized(true);
+      } else {
+        setIsInitialized(true);
       }
+    } else if (isCreationInitialized) {
+      setIsInitialized(true);
     }
-  }, [showcaseSlug, personaScenarios, activePersonaId, activeScenarioIndex, isInitialized]);
+  }, [
+    showcaseSlug, 
+    personaScenarios, 
+    activePersonaId, 
+    activeScenarioIndex, 
+    isInitialized, 
+    isCreationInitialized, 
+    getCurrentSteps
+  ]);
 
   const getStepActionType = useCallback((step: Screen): string | null => {
     if (!step.actions || step.actions.length === 0) return null;
@@ -132,10 +159,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
       handleSelectStepImpl(stepIndex, scenarioIndex);
     },
-    [
-      activeScenarioIndex,
-      steps
-    ]
+    [activeScenarioIndex, steps]
   );
 
   const setSelectedStep = useCallback((stepOrIndex: Screen | number | null) => {
@@ -407,7 +431,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     } catch (error) {
       return { success: false, message: 'Error in showcase update', error };
     }
-  }, [showcaseSlug, updateShowcaseAsync]);  
+  }, [updateShowcaseAsync]);  
 
   return {
     steps,
@@ -440,6 +464,9 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     createScenarios,
     updateScenarios,
     isEditMode: !!showcaseSlug,
-    updateShowcaseName
+    updateShowcaseName,
+    isLoading: isShowcaseLoading || isCreationLoading,
+    isInitialized: isInitialized && isCreationInitialized,
+    hasNoScenarios
   }
 }

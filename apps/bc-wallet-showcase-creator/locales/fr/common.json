@@ -16,6 +16,7 @@
     "header_tab_under_review": "En cours d’examen",
     "header_tab_published": "Publié",
     "header_tab_active": "Publié",
+    "header_tab_archived": "Archivé",
     "create_new_showcase_label": "CRÉER UNE NOUVELLE VITRINE",
     "created_by_label": "Créé par {name}",
     "description_label": "Description",

@@ -16,6 +16,7 @@
     "header_tab_under_review": "Under Review",
     "header_tab_published": "Published",
     "header_tab_active": "Published",
+    "header_tab_archived": "Archived",
     "create_new_showcase_label": "CREATE NEW SHOWCASE",
     "created_by_label": "Created By {name}",
     "description_label": "Description",

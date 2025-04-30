@@ -12,6 +12,7 @@ import { StepType } from 'bc-wallet-openapi'
 import { StepEditorForm } from './step-editor-form'
 import { StepPreview } from './step-preview'
 import { baseUrl } from '@/lib/utils'
+import { useShowcase } from '@/hooks/use-showcases'
 
 export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
@@ -20,6 +21,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const [showErrorModal, setErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isViewMode, setIsViewMode] = useState(false)
+  const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
 
   const {
     steps: screens,
