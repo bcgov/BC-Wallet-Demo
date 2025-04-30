@@ -2,12 +2,7 @@
 
 import { env } from '@/env'
 import { getSession, signIn } from 'next-auth/react'
-
-const debugLog = (...args: any[]) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log(...args);
-  }
-};
+import { debugLog } from './utils'
 
 class ApiService {
   private readonly baseUrl: string

@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { env } from '@/env'
+import { ShowcaseRequest } from 'bc-wallet-openapi'
+import { Showcase } from 'bc-wallet-openapi'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -32,3 +34,17 @@ export function parseSchemaId(schemaId: string) {
 
 export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_BACKEND;
 
+export const debugLog = (...args: any[]) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(...args);
+  }
+};
+
+export const showcaseToShowcaseRequest = (showcase: Showcase): ShowcaseRequest => {
+  return {
+    ...showcase,
+    scenarios: showcase.scenarios.map((scenario) => scenario.id),
+    personas: showcase.personas.map((persona) => persona.id),
+    bannerImage: showcase.bannerImage?.id,
+  }
+}

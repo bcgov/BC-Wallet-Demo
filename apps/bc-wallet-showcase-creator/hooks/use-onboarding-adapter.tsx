@@ -6,18 +6,11 @@ import { toast } from 'sonner'
 import { useCreateScenario, useUpdateScenario } from '@/hooks/use-onboarding'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import type { Persona, Showcase, ShowcaseRequest, StepRequest } from 'bc-wallet-openapi'
+import type { Persona, Showcase, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
 import { useUpdateShowcase, useShowcase } from './use-showcases'
-
-const showcaseToShowcaseRequest = (showcase: Showcase): ShowcaseRequest => {
-  return {
-    ...showcase,
-    scenarios: showcase.scenarios.map((scenario) => scenario.id),
-    personas: showcase.personas.map((persona) => persona.id),
-    bannerImage: showcase.bannerImage?.id,
-  }
-}
+import { showcaseToShowcaseRequest, debugLog } from '@/lib/utils'
+import { useQueryClient } from '@tanstack/react-query'
 
 export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: createScenarioAsync } = useCreateScenario()
@@ -30,6 +23,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const [localSelectedStep, setLocalSelectedStep] = useState<Screen | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [hasNoScenarios, setHasNoScenarios] = useState(false);
+  const queryClient = useQueryClient()
 
   const {
     selectedPersonas,
@@ -54,7 +48,8 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     setSelectedStep: setSelectedStepInternal,
     selectStep,
     isShowcaseLoading: isCreationLoading,
-    isInitialized: isCreationInitialized
+    isInitialized: isCreationInitialized,
+    addPersonaScenario,
   } = useOnboardingCreation(showcaseSlug)
   
   useEffect(() => {
@@ -65,6 +60,17 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
       }
     }
   }, [showcaseSlug, showcaseData, isShowcaseLoading])
+  
+  useEffect(() => {
+    if (!showcaseSlug && personaScenarios.size === 0 && selectedPersonas.length > 0 && !isInitialized) {
+      const firstPersona = selectedPersonas[0];
+      if (firstPersona && !activePersonaId) {
+        debugLog('Initial setup: selecting first persona', firstPersona.name);
+        setActivePersonaId(firstPersona.id);
+        setIsInitialized(true);
+      }
+    }
+  }, [showcaseSlug, personaScenarios, selectedPersonas, activePersonaId, isInitialized, setActivePersonaId])
 
   const getCurrentSteps = useCallback(() => {
     if (hasNoScenarios) return []
@@ -192,9 +198,68 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
   const createStep = useCallback(
     (stepData: StepRequest) => {
-      if (!activePersonaId) return
+      if (!activePersonaId) {
+        console.error('Cannot create step: No active persona selected');
+        
+        if (selectedPersonas.length > 0) {
+          const firstPersona = selectedPersonas[0];
+          debugLog('Auto-selecting persona:', firstPersona.name);
+          setActivePersonaId(firstPersona.id);
+          
+          if (!personaScenarios.has(firstPersona.id) || personaScenarios.get(firstPersona.id)?.length === 0) {
+            debugLog('Creating default scenario for persona');
+            addPersonaScenario(firstPersona);
+            setActiveScenarioIndex(0);
+            
+            setTimeout(() => {
+              debugLog('Now adding step to new scenario');
+              addStep(firstPersona.id, 0, stepData as Screen);
+              
+              setTimeout(() => {
+                const updatedSteps = getCurrentSteps();
+                if (updatedSteps.length > 0) {
+                  handleSelectStepImpl(0, 0);
+                }
+              }, 0);
+            }, 0);
+            
+            return;
+          }
+        } else {
+          console.error('No personas available to create steps for');
+          return;
+        }
+      }
 
-      addStep(activePersonaId, activeScenarioIndex, stepData as Screen)      
+      if (!activePersonaId) {
+        console.error('No active persona selected');
+        return;
+      }
+
+      if (!personaScenarios.has(activePersonaId) || personaScenarios.get(activePersonaId)?.length === 0) {
+        const activePersona = selectedPersonas.find(p => p.id === activePersonaId);
+        if (activePersona) {
+          debugLog('Creating default scenario for active persona');
+          addPersonaScenario(activePersona);
+          setActiveScenarioIndex(0);
+          
+          setTimeout(() => {
+            debugLog('Now adding step to new scenario');
+            addStep(activePersonaId, 0, stepData as Screen);
+            
+            setTimeout(() => {
+              const updatedSteps = getCurrentSteps();
+              if (updatedSteps.length > 0) {
+                handleSelectStepImpl(0, 0);
+              }
+            }, 0);
+          }, 0);
+          
+          return;
+        }
+      }
+
+      addStep(activePersonaId, activeScenarioIndex, stepData as Screen);      
       
       const newStepIndex = steps.length;
       setTimeout(() => {
@@ -205,9 +270,14 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
       }, 0);
     },
     [
-      activePersonaId, 
-      activeScenarioIndex, 
-      addStep, 
+      activePersonaId,
+      selectedPersonas,
+      setActivePersonaId,
+      personaScenarios,
+      activeScenarioIndex,
+      setActiveScenarioIndex,
+      addPersonaScenario,
+      addStep,
       steps.length, 
       getCurrentSteps
     ]
@@ -390,11 +460,14 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
             // @ts-expect-error: slug is not required
             slug: scenario.slug,
             data: scenario
+          }, {
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: ['showcase', showcaseSlug] })
+            }
           });
           
           if (result && result.issuanceScenario) {
             scenarioIds.push(result.issuanceScenario.id);
-            toast.success(`Scenario updated for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
           } else {
             throw new Error('Invalid response format');
           }

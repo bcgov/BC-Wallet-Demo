@@ -24,7 +24,6 @@ export const SortableStep = ({
   const t = useTranslations();
   const { handleSelectStep, duplicateStep, activeScenarioIndex } = useOnboardingAdapter();
   
-  // Ensure we have a stable ID for the sortable item
   const itemId = myScreen.id || `step-${stepIndex}-${activeScenarioIndex}`;
   
   const { 
