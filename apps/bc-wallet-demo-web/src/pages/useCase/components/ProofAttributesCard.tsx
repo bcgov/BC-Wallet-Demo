@@ -4,7 +4,6 @@ import { startCase } from 'lodash'
 
 import { CheckMark } from '../../../components/Checkmark'
 import { Loader } from '../../../components/Loader'
-import type { Attribute, CredentialRequest } from '../../../slices/types'
 import { isDataUrl } from '../../../utils/Helpers'
 import { getAttributesFromProof } from '../../../utils/ProofUtils'
 import { showcaseServerBaseUrl } from '../../../api/BaseUrl'

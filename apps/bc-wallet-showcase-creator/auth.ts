@@ -77,6 +77,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return refreshAccessToken(token)
     },
     async session({ session, token }) {
+      // @ts-expect-error: token.user is not typed
+      session.user = token.user
       session.accessToken = token.accessToken as string | undefined
       session.error = token.error as 'RefreshAccessTokenError' | undefined
       return session

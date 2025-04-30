@@ -46,9 +46,9 @@ export const fetchShowcaseBySlug = createAsyncThunk(
                     ).data.credentialDefinition
                   : undefined
 
-              if (credentialDefinition && !credentialDefinition.identifier) {
-                throw new Error('No identifier found in credential definition')
-              }
+              // if (credentialDefinition && !credentialDefinition.identifier) {
+              //   throw new Error('No identifier found in credential definition. (Not registered in Traction?')
+              // }
 
               return {
                 actionType: action.actionType,
@@ -131,6 +131,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
         scenarios: scenarios as Array<PresentationScenario | IssuanceScenario>,
       }
     } catch (e) {
+      console.error(e)
       return null
     }
   },

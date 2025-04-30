@@ -6,14 +6,12 @@ import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
 import {
-  createMockDatabaseService,
   createTestAsset,
   createTestCredentialDefinition,
   createTestCredentialSchema,
   createTestIssuer,
   createTestPersona,
   createTestTenant,
-  setupTestDatabase,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -23,14 +21,13 @@ import PersonaRepository from '../../database/repositories/PersonaRepository'
 import ScenarioRepository from '../../database/repositories/ScenarioRepository'
 import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
 import TenantRepository from '../../database/repositories/TenantRepository'
-import DatabaseService from '../../services/DatabaseService'
 import ShowcaseService from '../../services/ShowcaseService'
 import TenantService from '../../services/TenantService'
 import { ShowcaseStatus } from '../../types'
 import ShowcaseController from '../ShowcaseController'
 import { createApiFullTestData, createApiTestScenario } from './apiTestData'
+import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
-import { MockSessionService } from './MockSessionService'
 
 describe('ShowcaseController Integration Tests', () => {
   let client: PGlite
@@ -39,12 +36,11 @@ describe('ShowcaseController Integration Tests', () => {
   let tenantId: string
 
   beforeAll(async () => {
+    await setupRabbitMQ()
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
-    const mockDatabaseService = await createMockDatabaseService(database)
-    Container.set(DatabaseService, mockDatabaseService)
+    await registerMockServicesByInterface(database)
     useContainer(Container)
-    Container.set('ISessionService', Container.get(MockSessionService))
     Container.get(TenantRepository)
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)

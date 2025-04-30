@@ -1,4 +1,15 @@
 import {
+  CredentialSchemaImportRequest,
+  CredentialSchemaRequest,
+  CredentialSchemaRequestToJSONTyped,
+  CredentialSchemaResponse,
+  CredentialSchemaResponseFromJSONTyped,
+  CredentialSchemasResponse,
+  CredentialSchemasResponseFromJSONTyped,
+  instanceOfCredentialSchemaImportRequest,
+  instanceOfCredentialSchemaRequest,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -12,21 +23,13 @@ import {
   Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
+
 import CredentialSchemaService from '../services/CredentialSchemaService'
-import {
-  CredentialSchemaRequest,
-  CredentialSchemaRequestToJSONTyped,
-  CredentialSchemaResponse,
-  CredentialSchemaResponseFromJSONTyped,
-  CredentialSchemasResponse,
-  CredentialSchemasResponseFromJSONTyped,
-  instanceOfCredentialSchemaRequest,
-} from 'bc-wallet-openapi'
 
 @JsonController('/credentials/schemas')
 @Service()
 export class CredentialSchemaController {
-  public constructor(private credentialSchemaService: CredentialSchemaService) {}
+  public constructor(private readonly credentialSchemaService: CredentialSchemaService) {}
 
   @Get('/')
   public async getAll(): Promise<CredentialSchemasResponse> {
@@ -62,7 +65,9 @@ export class CredentialSchemaController {
       if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const credentialSchema = await this.credentialSchemaService.createCredentialSchema(CredentialSchemaRequestToJSONTyped(credentialSchemaRequest))
+      const credentialSchema = await this.credentialSchemaService.createCredentialSchema(
+        CredentialSchemaRequestToJSONTyped(credentialSchemaRequest),
+      )
       return CredentialSchemaResponseFromJSONTyped({ credentialSchema }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -73,8 +78,26 @@ export class CredentialSchemaController {
   }
 
   @Authorized()
+  @OnUndefined(204)
+  @Post('/import')
+  public async importSchema(@Body() importRequest: CredentialSchemaImportRequest): Promise<void> {
+    try {
+      if (!instanceOfCredentialSchemaImportRequest(importRequest)) {
+        return Promise.reject(new BadRequestError())
+      }
+      await this.credentialSchemaService.importCredentialSchema(importRequest)
+    } catch (e) {
+      console.error('credentialSchemaRequest import failed:', e)
+      return Promise.reject(e)
+    }
+  }
+
+  @Authorized()
   @Put('/:id')
-  public async put(@Param('id') id: string, @Body() credentialSchemaRequest: CredentialSchemaRequest): Promise<CredentialSchemaResponse> {
+  public async put(
+    @Param('id') id: string,
+    @Body() credentialSchemaRequest: CredentialSchemaRequest,
+  ): Promise<CredentialSchemaResponse> {
     try {
       if (!instanceOfCredentialSchemaRequest(credentialSchemaRequest)) {
         return Promise.reject(new BadRequestError())

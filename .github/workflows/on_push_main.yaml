@@ -6,16 +6,18 @@ on:
       - main
     paths:
         - "apps/bc-wallet-api-server/**"
-        - "packages/bc-wallet-traction-adapter/**"
+        - "apps/bc-wallet-traction-adapter/**"
         - "apps/bc-wallet-showcase-creator/**"
         - "apps/bc-wallet-demo-server/**"
         - "apps/bc-wallet-demo-web/**"
         - "charts/**"
+        - ".github/**"
 
 jobs:
   build_api_server:
     name: "Build API Server"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Build API Server Image
@@ -34,6 +36,7 @@ jobs:
   build_traction_adapter:
     name: "Build Traction Adapter"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Build Traction Adapter Image
@@ -41,7 +44,7 @@ jobs:
         id: builder
         with:
           context: "."
-          dockerfile: "./packages/bc-wallet-traction-adapter/Dockerfile"
+          dockerfile: "./apps/bc-wallet-traction-adapter/Dockerfile"
           image_name: ${{ github.repository_owner}}/bc-wallet-traction-adapter
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
@@ -52,13 +55,14 @@ jobs:
   build_showcase_creator:
     name: "Build Showcase Creator"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Build Showcase Creator Image
         uses: ./.github/actions/build_docker
         id: builder
         with:
-          context: "./apps/bc-wallet-showcase-creator"
+          context: "."
           dockerfile: "./apps/bc-wallet-showcase-creator/Dockerfile"
           image_name: ${{ github.repository_owner}}/bc-wallet-showcase-creator
           registry: ghcr.io
@@ -70,13 +74,14 @@ jobs:
   build_demo_server:
     name: "Build Demo Server"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Build Demo Server Image
         uses: ./.github/actions/build_docker
         id: builder
         with:
-          context: "./apps/bc-wallet-demo-server"
+          context: "."
           dockerfile: "./apps/bc-wallet-demo-server/Dockerfile"
           image_name: ${{ github.repository_owner}}/bc-wallet-demo-server
           registry: ghcr.io
@@ -88,6 +93,7 @@ jobs:
   build_demo_web:
     name: "Build Demo Web"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Build Demo Web Image
@@ -121,7 +127,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
-
+ 
       - name: Authenticate and set context
         uses: redhat-actions/oc-login@v1
         with:
@@ -235,7 +241,7 @@ jobs:
       - name: Deploy to OpenShift with Helm
         run: |
           cd charts/bc-wallet
-          
+      
           helm dependency update
           helm upgrade --install bc-wallet \
             --namespace ${{ secrets.OPENSHIFT_PROD_NAMESPACE }} -f ./values.yaml --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
@@ -282,3 +288,6 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-web:${{ needs.build_demo_web.outputs.image_tag }},
             ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-creator:${{ needs.build_showcase_creator.outputs.image_tag }},
             ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-server:${{ needs.build_demo_server.outputs.image_tag }}
+#          scan-ref: ''
+#          scan-title: ''
+#          scan-type: ''

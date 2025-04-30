@@ -1,6 +1,6 @@
 import type { ConnectionOptions } from 'rhea-promise'
 
-import { Topic } from './types/adapter-backend'
+import { Topic, TOPICS } from './types/adapter-backend'
 
 const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
   // Default to 'tls' if not provided or invalid
@@ -29,12 +29,12 @@ const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
   }
 }
 
-const validateTopic = (topic?: string): Topic | undefined => {
+export function validateTopic(topic?: string): Topic | undefined {
   if (!topic) {
     return undefined
   }
-  if (!Object.values(Topic).includes(topic as Topic)) {
-    throw new Error(`Invalid topic: ${topic}. Valid topics are: ${Object.values(Topic).join(', ')}`)
+  if (!TOPICS.includes(topic as Topic)) {
+    throw new Error(`Invalid topic: ${topic}. Valid topics are: ${TOPICS.join(', ')}`)
   }
   return topic as Topic
 }
@@ -64,7 +64,7 @@ export const environment = {
         ? process.env.AMQ_TRANSPORT
         : 'tls',
     getConnectionOptions: () => createAmqConnectionOptions(process.env.AMQ_TRANSPORT),
-    MESSAGE_PROCESSOR_TOPIC: validateTopic(process.env.MESSAGE_PROCESSOR_TOPIC) ?? Topic.SHOWCASE_CMD,
+    MESSAGE_PROCESSOR_TOPIC: validateTopic(process.env.MESSAGE_PROCESSOR_TOPIC) ?? 'showcase-cmd',
   },
   encryption: {
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',

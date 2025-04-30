@@ -35,7 +35,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@types/cors":  "^2.8.17",
+    "@types/cors": "^2.8.17",
     "dotenv": "^16.4.7",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5"

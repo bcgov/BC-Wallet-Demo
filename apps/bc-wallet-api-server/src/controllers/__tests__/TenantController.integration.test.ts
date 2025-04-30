@@ -1,9 +1,6 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
 import { TenantRequest } from 'bc-wallet-openapi'
-import { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import { drizzle } from 'drizzle-orm/pglite'
 import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
@@ -19,14 +16,12 @@ import {
 } from '../../database/repositories/__tests__/dbTestData'
 import ShowcaseRepository from '../../database/repositories/ShowcaseRepository'
 import TenantRepository from '../../database/repositories/TenantRepository'
-import * as schema from '../../database/schema'
-import DatabaseService from '../../services/DatabaseService'
 import ShowcaseService from '../../services/ShowcaseService'
 import TenantService from '../../services/TenantService'
 import { ShowcaseStatus } from '../../types'
 import TenantController from '../TenantController'
+import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
-import { MockSessionService } from './MockSessionService'
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
@@ -34,15 +29,11 @@ describe('TenantController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
-    client = new PGlite()
-    const database = drizzle(client, { schema }) as unknown as NodePgDatabase
-    await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
-    const mockDatabaseService = {
-      getConnection: jest.fn().mockResolvedValue(database),
-    }
-    Container.set(DatabaseService, mockDatabaseService)
+    await setupRabbitMQ()
+    const { client: pgClient, database } = await setupTestDatabase()
+    client = pgClient
+    await registerMockServicesByInterface(database)
     useContainer(Container)
-    Container.set('ISessionService', Container.get(MockSessionService))
     Container.get(TenantRepository)
     Container.get(TenantService)
     app = createExpressServer({

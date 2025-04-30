@@ -29,6 +29,7 @@ export class RequestContextMiddleware implements ExpressMiddlewareInterface {
     }
 
     if (forwardedPort) {
+      console.debug(`Forwared port: ${forwardedPort}`)
       let baseHost: string
 
       // Strip any existing port from the host value
@@ -40,13 +41,14 @@ export class RequestContextMiddleware implements ExpressMiddlewareInterface {
         // Handle IPv4 or hostname format like localhost:8080 by taking the part before the first colon
         baseHost = host.split(':')[0]
       }
-
+      console.debug(`Base host: ${baseHost}`)
       const isDefaultForProtocol =
         (protocol === 'https' && forwardedPort === '443') || (protocol === 'http' && forwardedPort === '80')
 
       host = isDefaultForProtocol ? baseHost : `${baseHost}:${forwardedPort}`
     }
 
+    console.debug(`buildApiBaseUrl result: ${protocol}://${host}${forwardedPrefix}`)
     return `${protocol}://${host}${forwardedPrefix}`
   }
 }

@@ -1,0 +1,209 @@
+services:
+  bc-wallet-api-server:
+    build:
+      context: ../..
+      dockerfile: ./apps/bc-wallet-api-server/Dockerfile
+    restart: unless-stopped
+    networks:
+      - public_net
+      - api_net
+      - messagebroker_net
+      - db_net
+    environment:
+      - PORT=5005
+      # - DATABASE_URL=${DATABASE_URL} uncomment when using URL instead of vars above
+      - DB_HOST=postgres
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USERNAME=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - APP_NAME=${APP_NAME}
+      - LOG_LEVEL=${LOG_LEVEL}
+      # cors settings
+      - CORS_DISABLED=${CORS_DISABLED}
+      - ALLOW_ORIGINS=${ALLOW_ORIGINS}
+      - ALLOW_METHODS=${ALLOW_METHODS}
+      - ALLOW_HEADERS=${ALLOW_HEADERS}
+      - ALLOW_CREDENTIALS=${ALLOW_CREDENTIALS}
+      # active-mq settings
+      - MESSAGE_PROCESSOR_TOPIC=${TRACTION_ADAPTER_MESSAGE_TOPIC}
+      - AMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
+      - AMQ_PORT=${RABBITMQ_PORT:-5672}
+      - AMQ_USER=${RABBITMQ_USER}
+      - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # temp keycloak settings
+      - REALM=${REALM}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - AUTH_SERVER_URL=${AUTH_SERVER_URL}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - postgres  # Ensure Postgres starts first
+    ports:
+      - "${API_SERVER_PORT:-5005}:5005" # remove when using a proxy on the same docker network
+
+  bc-wallet-demo-server:
+    build:
+      context: ../..
+      dockerfile: ./apps/bc-wallet-demo-server/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - bc-wallet-api-server
+    networks:
+      - public_net
+    environment:
+      - PORT=5000
+      - APP_NAME=${APP_NAME}
+      - LOG_LEVEL=${LOG_LEVEL}
+      # cors settings
+      - CORS_DISABLED=${CORS_DISABLED}
+      - ALLOW_ORIGINS=${ALLOW_ORIGINS}
+      - ALLOW_METHODS=${ALLOW_METHODS}
+      - ALLOW_HEADERS=${ALLOW_HEADERS}
+      - ALLOW_CREDENTIALS=${ALLOW_CREDENTIALS}
+      # Application specific variables from .env
+      - TENANT_ID=${TENANT_ID}
+      - API_KEY=${API_KEY}
+      - WALLET_KEY=${WALLET_KEY}
+      - TRACTION_URL=${TRACTION_URL}
+      - TRACTION_DID=${TRACTION_DID}
+      - BASE_ROUTE=${BASE_ROUTE}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - STUDENT_VERSION=${STUDENT_VERSION}
+      - LAWYER_VERSION=${LAWYER_VERSION}
+      - PERSON_VERSION=${PERSON_VERSION}
+      - BUSINESS_VERSION=${BUSINESS_VERSION}
+    ports:
+      - "${DEMO_SERVER_PORT:-5004}:5000"
+
+  bc-wallet-traction-adapter:
+    build:
+      context: ../..
+      dockerfile: ./apps/bc-wallet-traction-adapter/Dockerfile
+    restart: unless-stopped
+    networks:
+      - messagebroker_net
+      - api_net
+
+    environment:
+      - PORT=3000
+      - APP_NAME=${APP_NAME}
+      - LOG_LEVEL=${LOG_LEVEL}
+        # active-mq settings
+      - MESSAGE_PROCESSOR_TOPIC=${TRACTION_ADAPTER_MESSAGE_TOPIC}
+      - AMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
+      - AMQ_PORT=${RABBITMQ_PORT:-5672}
+      - AMQ_USER=${RABBITMQ_USER}
+      - AMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - AMQ_TRANSPORT=${RABBITMQ_TRANSPORT:-tcp}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - API_SERVER_URL=${API_SERVER_URL}
+      - DEFAULT_API_BASE_PATH=${TRACTION_URL}
+      - FIXED_SHOWCASE_API_BASE_PATH=${FIXED_SHOWCASE_API_BASE_PATH}
+      - FIXED_TENANT_ID=${FIXED_TENANT_ID}
+      - FIXED_WALLET_ID=${FIXED_WALLET_ID}
+      - FIXED_API_KEY=${FIXED_API_KEY}
+
+    depends_on:
+      - rabbitmq  # Ensure RabbitMQ starts first
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    networks:
+      - db_net
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "${DB_EXPOSED_PORT}:5432" # Expose Postgres port, default 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4-management  # Using RabbitMQ 4.x with management plugin
+    restart: unless-stopped
+    networks:
+      - messagebroker_net
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports:
+      - "${RABBITMQ_EXPOSED_PORT:-5672}:5672"
+      - "${RABBITMQ_MGMT_EXPOSED_PORT:-15672}:15672"
+
+  bc-wallet-showcase-creator:
+    build:
+      context: ../..
+      dockerfile: ./apps/bc-wallet-showcase-creator/Dockerfile
+    restart: unless-stopped
+    networks:
+      - public_net
+    environment:
+      - NODE_ENV=production
+      - PORT=3050
+      - NEXT_PUBLIC_SHOWCASE_BACKEND=${NEXT_PUBLIC_SHOWCASE_BACKEND:-http://localhost:5005}
+      - NEXT_PUBLIC_WALLET_URL=${NEXT_PUBLIC_WALLET_URL:-https://localhost3366:/digital-trust/showcase}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_KEYCLOAK_ID=${AUTH_KEYCLOAK_ID}
+      - AUTH_KEYCLOAK_SECRET=${AUTH_KEYCLOAK_SECRET}
+      - AUTH_KEYCLOAK_ISSUER=${AUTH_KEYCLOAK_ISSUER}
+      - AUTH_TRUST_HOST=${AUTH_TRUST_HOST:-true}
+      - AUTH_REDIRECT_PROXY_URL=${AUTH_REDIRECT_PROXY_URL}
+      - AUTH_URL=${AUTH_URL}
+    ports:
+      - "${SHOWCASE_CREATOR_PORT:-5003}:3050"
+    depends_on:
+      - bc-wallet-api-server
+
+  bc-wallet-demo-web:
+    build:
+      context: ../..
+      dockerfile: ./apps/bc-wallet-demo-web/Dockerfile
+    restart: unless-stopped
+    networks:
+      - public_net
+    environment:
+      - NODE_ENV=production
+      - APP_NAME=${APP_NAME}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - REACT_APP_DEFAULT_SLUG=${REACT_APP_DEFAULT_SLUG:-bd-test1}
+      - SNOWPLOW_ENDPOINT=${SNOWPLOW_ENDPOINT:-spm.apps.gov.bc.ca}
+      - REACT_APP_SHOWCASE_BACKEND=${REACT_APP_SHOWCASE_BACKEND:-http://localhost:5005}
+      - REACT_APP_HOST_BACKEND=${REACT_APP_HOST_BACKEND:-http://localhost:5004}
+      - REACT_APP_BASE_ROUTE=${REACT_APP_BASE_ROUTE:-/digital-trust/showcase}
+      - REACT_APP_INSIGHTS_PROJECT_ID=${REACT_APP_INSIGHTS_PROJECT_ID}
+    ports:
+      - "${DEMO_WEB_PORT:-5002}:3000" # The Caddy container port was moved to 3000, requested by BC
+    depends_on:
+      - bc-wallet-demo-server
+      - bc-wallet-api-server
+
+volumes:
+  postgres_data:  # Named volume for Postgres data persistence
+
+networks:
+  public_net:
+    driver: bridge
+    name: public_net
+    internal: false
+  messagebroker_net:
+    driver: bridge
+    name: messagebroker_net
+    internal: false         # set to false to be able to expose for debugging
+  api_net: # for traction adapter -> api-server
+    driver: bridge
+    name: api_net
+    internal: false         # set to false to be able to expose for debugging
+  db_net:
+    driver: bridge
+    name: db_net
+    internal: false         # set to false to be able to expose for debugging
