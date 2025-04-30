@@ -47,35 +47,43 @@ spec:
           value: {{ .Values.rabbitmq.port | quote }}
         - name: AMQ_TRANSPORT
           value: tcp
-        - name: AMQ_USER
+        - name: AMQ_USERNAME
           value: {{ .Values.rabbitmq.auth.username | quote }}
         - name: AMQ_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
               key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
-        - name: DB_HOST
+        - name: SHOWCASE_DB_PORT
+          value: {{ .Values.postgresql.primary.service.ports.postgresql | quote }}
+        - name: SHOWCASE_DB_USERNAME
+          value: {{ .Values.postgresql.auth.username | quote }}
+        - name: SHOWCASE_DB_NAME
+          value: {{ .Values.postgresql.auth.database | quote }}
+        - name: SHOWCASE_DB_HOST
           value: {{ .Release.Name }}-postgresql
-        {{- range $key, $value := .Values.api_server.env }}
-        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
-        - name: {{ $key }}
-          valueFrom:
-            {{- toYaml $value | nindent 12 }}
-        {{- else if ne $key "DB_HOST" }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{- end }}
-        {{- end }}
-        - name: DB_PASSWORD
+        - name: SHOWCASE_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ include "bc-wallet.database.secret.name" . }}
               key: {{ include "bc-wallet.database.userPasswordKey" . }}
-        - name: AUTH_TOKEN
+        - name: ENCRYPTION_KEY
           valueFrom:
             secretKeyRef:
               name: {{ include "bc-wallet.authtoken.secret.name" . }}
-              key: token
+              key: encryption-key
+        {{- range $key, $value := .Values.api_server.env }}
+        {{- if and (ne $key "DB_HOST") (ne $key "ENCRYPTION_KEY") (kindIs "map" $value) }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- toYaml $value | nindent 12 }}
+        {{- else if and (ne $key "DB_HOST") (ne $key "ENCRYPTION_KEY") }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        - name: CORS_ALLOW_ORIGINS
+          value: "https://{{ include "bc-wallet.showcase-creator.host" . }},https://{{ include "bc-wallet.demo-web.host" . }}"
         resources:
           {{- toYaml .Values.api_server.resources | nindent 12 }}
       serviceAccountName: {{ if .Values.api_server.serviceAccount.create }}{{ if .Values.api_server.serviceAccount.name }}{{ .Values.api_server.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-api-server{{ end }}{{ end }}

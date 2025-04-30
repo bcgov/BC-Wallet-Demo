@@ -52,18 +52,15 @@ api_server:
   port: 3000
   path: /
   env:
-    APP_NAME: bc-wallet-api
     LOG_LEVEL: debug
-    DB_PORT: "5432"
-    DB_NAME: showcase-db
-    DB_USERNAME: showcase-user
     CORS_DISABLED: true
-    ALLOW_ORIGINS: "*"
-    ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
-    ALLOW_HEADERS: "Content-Type, Authorization"
-    ALLOW_CREDENTIALS: "true"
-    API_KEY: SENSITIVE
-    ENCRYPTION_KEY: SENSITIVE
+    CORS_ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
+    CORS_ALLOW_HEADERS: "Content-Type, Authorization"
+    CORS_ALLOW_CREDENTIALS: "true"
+    OIDC_REALM: your_oidc_realm
+    OIDC_SERVER_URL: your_oidc_server_url
+    OIDC_CLIENT_ID: SENSITIVE
+    OIDC_CLIENT_SECRET: SENSITIVE
   resources:
     limits:
       cpu: 200m
@@ -120,17 +117,13 @@ traction_adapter:
   path: /traction
   env:
     APP_NAME: bc-wallet-traction-adapter
+    PORT: 3000
     LOG_LEVEL: debug
-    NODE_PORT: 3000
-    RABBITMQ_PORT: 5672
-    RABBITMQ_USER: guest
-    RABBITMQ_VHOST: /
-    DEFAULT_API_BASE_PATH: SENSITIVE # ADD TRACTION API BASE PATH HERE
-    FIXED_SHOWCASE_BACKEND: SENSITIVE # ADD SHOWCASE BACKEND HERE
-    ENCRYPTION_KEY: SENSITIVE
-    FIXED_API_KEY: SENSITIVE
-    FIXED_WALLET_ID: SENSITIVE
-    FIXED_TENANT_ID: SENSITIVE
+    TRACTION_ADAPTER_MESSAGE_TOPIC: "traction-adapter-message-topic" #OPTIONAL
+    TRACTION_DEFAULT_TENANT_ID: "your_tenant_id"
+    TRACTION_DEFAULT_WALLET_ID: "your_wallet_id"
+    TRACTION_DEFAULT_API_URL: "https://traction-sandbox-tenant-proxy.apps.silver.devops.gov.bc.ca"
+    TRACTION_DEFAULT_API_KEY: SENSITIVE
   resources:
     limits:
       cpu: 200m
@@ -179,12 +172,11 @@ demo_web:
   port: 3000
   path: /
   env:
-    REACT_APP_INSIGHTS_PROJECT_ID: SENSITIVE
-    REACT_APP_DEFAULT_SLUG: REACT_APP_DEFAULT_SLUG 
-    REACT_APP_HOST_BACKEND: SENSITIVE # ADD DEMO BACKEND HERE
+    NODE_ENV: production
+    LOG_LEVEL: debug
     REACT_APP_BASE_ROUTE: /digital-trust/showcase
-    REACT_APP_SHOWCASE_BACKEND: SENSITIVE # ADD SHOWCASE BACKEND HERE
-    REACT_APP_SNOWPLOW_ENDPOINT: SENSITIVE
+    DEMOWEB_SNOWPLOW_ENDPOINT: "spm.apps.gov.bc.ca"
+    DEMOWEB_INSIGHTS_PROJECT_ID: your_insights_project_id
   resources:
     limits:
       cpu: 200m
@@ -233,15 +225,10 @@ showcase_creator:
   port: 3050
   path: /
   env:
-    NEXT_PUBLIC_WALLET_URL: https://digital.gov.bc.ca/digital-trust/showcase
-    NEXT_PUBLIC_SHOWCASE_BACKEND: SENSITIVE # ADD SHOWCASE BACKEND HERE
-    AUTH_SECRET: SENSITIVE # ADD AUTH SECRET HERE
-    AUTH_KEYCLOAK_ID: SENSITIVE # ADD KEYCLOAK ID HERE
-    AUTH_KEYCLOAK_SECRET: SENSITIVE # ADD KEYCLOAK SECRET HERE
-    AUTH_KEYCLOAK_ISSUER: SENSITIVE # ADD KEYCLOAK ISSUER HERE
-    AUTH_TRUST_HOST: "true"
-    AUTH_REDIRECT_PROXY_URL: SENSITIVE # ADD REDIRECT PROXY URL HERE
-    AUTH_URL: SENSITIVE # ADD AUTH URL HERE
+    NODE_ENV: production
+    PORT: 3050
+    OIDC_ISSUER_URL: your_oidc_issuer_url # ADD KEYCLOAK ISSUER HERE
+    OIDC_TRUST_HOST: "true"
   resources:
     limits:
       cpu: 200m
@@ -290,12 +277,12 @@ demo_server:
   port: 3000
   path: /
   env:
-    APP_NAME: bc-wallet-demo-server
-    TENANT_ID: SENSITIVE # ADD TENANT ID HERE
-    API_KEY: SENSITIVE # ADD API KEY HERE
-    BASE_ROUTE: /digital-trust/showcase
-    WEBHOOK_SECRET: SENSITIVE # ADD WEBHOOK SECRET HERE
-    TRACTION_URL: SENSITIVE # ADD TRACTION URL HERE
+    LOG_LEVEL: debug
+    CORS_DISABLED: true
+    CORS_ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
+    CORS_ALLOW_HEADERS: "Content-Type, Authorization"
+    CORS_ALLOW_CREDENTIALS: "true"
+    TRACTION_WEBHOOK_SECRET: SENSITIVE
   resources:
     limits:
       cpu: 200m

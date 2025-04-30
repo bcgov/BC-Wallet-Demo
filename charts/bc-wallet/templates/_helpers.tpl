@@ -58,14 +58,18 @@ Returns a secret if it already exists in Kubernetes, otherwise creates
 it randomly.
 */}}
 {{- define "getOrGeneratePass" -}}
-{{- $len := (default 16 .Length) | int -}}
+{{- $len := (default 32 .Length) | int -}}
 {{- $obj := (lookup "v1" .Kind .Namespace .Name).data -}}
 {{- if $obj }}
 {{- index $obj .Key -}}
-{{- else if (eq (lower .Kind) "secret") -}}
-{{- randAlphaNum $len | b64enc -}}
 {{- else -}}
-{{- randAlphaNum $len -}}
+  {{- $randomBytes := randBytes $len -}}
+  {{- $base58Password := $randomBytes | b58enc -}}
+  {{- if (eq (lower .Kind) "secret") -}}
+    {{- $base58Password | b64enc -}}
+  {{- else -}}
+    {{- $base58Password -}}
+  {{- end -}}
 {{- end -}}
 {{- end }}
 
