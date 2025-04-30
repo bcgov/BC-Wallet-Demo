@@ -9,6 +9,7 @@ import {
   useCreateIssuer,
   useCreateRelyingParty,
   useDeleteCredentialDefinition,
+  useUpdateIssuer,
 } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
@@ -48,9 +49,10 @@ export const CredentialsForm = () => {
 
   const { mutateAsync: createCredentialDefinition } = useCreateCredentialDefinition()
   const { mutateAsync: createIssuer } = useCreateIssuer()
+  const { mutateAsync: updateIssuer } = useUpdateIssuer()
   const { mutateAsync: createRelyingParty } = useCreateRelyingParty()
 
-  const { setIssuerId, setSelectedCredentialDefinitionIds, setRelayerId } = useHelpersStore()
+  const { setIssuerId, setSelectedCredentialDefinitionIds, setRelayerId, issuerId } = useHelpersStore()
   const { mutateAsync: approveCredentialDefinition } = useApproveCredentialDefinition()
   const { mutateAsync: deleteCredentialDefinition } = useDeleteCredentialDefinition()
 
@@ -187,6 +189,16 @@ export const CredentialsForm = () => {
     if (selectedCredential) {
       try {
         await approveCredentialDefinition(selectedCredential.id)
+        await updateIssuer({
+          id: issuerId,
+          data: {
+            name: 'bc gov issuer',
+            type: IssuerType.Aries,
+            credentialDefinitions: [selectedCredential.id],
+            credentialSchemas: [selectedCredential.credentialSchema.id],
+            description: 'bc gov issuer created by showcase creator',
+          },
+        })
         toast.success('Credential approved successfully!')
       } catch (error) {
         toast.error('Failed to approve credential')

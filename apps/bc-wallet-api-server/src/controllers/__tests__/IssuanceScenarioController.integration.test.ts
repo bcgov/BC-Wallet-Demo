@@ -12,7 +12,6 @@ import {
   createTestCredentialSchema,
   createTestIssuer,
   createTestPersona,
-  setupTestDatabase,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -25,6 +24,7 @@ import ScenarioService from '../../services/ScenarioService'
 import { ScenarioType, StepActionType } from '../../types'
 import IssuanceScenarioController from '../IssuanceScenarioController'
 import { createApiIssuanceScenarioRequest, createApiStepRequest } from './apiTestData'
+import { setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
 
 describe('IssuanceScenarioController Integration Tests', () => {

@@ -1,7 +1,4 @@
-import { PGlite } from '@electric-sql/pglite'
 import { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
 
 import CredentialDefinitionService from '../../../services/CredentialDefinitionService'
@@ -28,7 +25,6 @@ import {
   Tenant,
   User,
 } from '../../../types'
-import * as schema from '../../schema'
 import AssetRepository from '../AssetRepository'
 import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../CredentialSchemaRepository'
@@ -38,13 +34,6 @@ import ScenarioRepository from '../ScenarioRepository'
 import ShowcaseRepository from '../ShowcaseRepository'
 import TenantRepository from '../TenantRepository'
 import UserRepository from '../UserRepository'
-
-export async function setupTestDatabase(): Promise<{ client: PGlite; database: NodePgDatabase }> {
-  const client = new PGlite()
-  const database = drizzle(client, { schema }) as unknown as NodePgDatabase
-  await migrate(database, { migrationsFolder: './apps/bc-wallet-api-server/src/database/migrations' })
-  return { client, database }
-}
 
 export async function createMockDatabaseService(database: NodePgDatabase): Promise<DatabaseService> {
   const mockDatabaseService = {

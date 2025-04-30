@@ -1,54 +1,36 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
-import type { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
-import { RabbitMQContainer } from '@testcontainers/rabbitmq'
 import { IssuerRequest } from 'bc-wallet-openapi'
 import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
 import {
-  createMockDatabaseService,
   createTestAsset,
   createTestCredentialDefinition,
   createTestCredentialSchema,
-  setupTestDatabase,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
 import IssuerRepository from '../../database/repositories/IssuerRepository'
-import DatabaseService from '../../services/DatabaseService'
 import IssuerService from '../../services/IssuerService'
 import { CredentialType, IdentifierType } from '../../types'
 import IssuerController from '../IssuerController'
 import { createApiIssuerRequest } from './apiTestData'
-import { MockSessionService } from './MockSessionService'
+import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
 
 describe('IssuerController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
-  let startedRabbitMQContainer: StartedRabbitMQContainer
-  let sessionService: MockSessionService
 
   beforeAll(async () => {
-    // Start the RabbitMQ container (for loading approve typedi inject classes
-    startedRabbitMQContainer = await new RabbitMQContainer('rabbitmq:4').start()
-
-    // Setup environment variables for the processor
-    process.env.AMQ_HOST = startedRabbitMQContainer.getHost()
-    process.env.AMQ_PORT = `${startedRabbitMQContainer.getMappedPort(5672)}`
-    process.env.AMQ_TRANSPORT = 'tcp'
-    process.env.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
-
+    await setupRabbitMQ()
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
-    const mockDatabaseService = await createMockDatabaseService(database)
-    Container.set(DatabaseService, mockDatabaseService)
-    sessionService = Container.get(MockSessionService)
-    Container.set('ISessionService', sessionService)
+    await registerMockServicesByInterface(database)
 
     useContainer(Container)
 

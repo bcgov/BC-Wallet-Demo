@@ -10,7 +10,6 @@ import { FailedRequestModal } from '../../../onboarding/components/FailedRequest
 import { ProofAttributesCard } from '../../components/ProofAttributesCard'
 import type { CredentialRequest } from '../../../../slices/types'
 
-
 export interface Props {
   proof?: any
   title: string
