@@ -1,4 +1,3 @@
-import { version } from "os";
 import { z } from "zod";
 
 export const schemaAttribute = z.object({
