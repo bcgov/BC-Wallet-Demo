@@ -67,17 +67,12 @@ spec:
             secretKeyRef:
               name: {{ include "bc-wallet.database.secret.name" . }}
               key: {{ include "bc-wallet.database.userPasswordKey" . }}
-        - name: ENCRYPTION_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bc-wallet.authtoken.secret.name" . }}
-              key: encryption-key
         {{- range $key, $value := .Values.api_server.env }}
-        {{- if and (ne $key "DB_HOST") (ne $key "ENCRYPTION_KEY") (kindIs "map" $value) }}
+        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
         - name: {{ $key }}
           valueFrom:
             {{- toYaml $value | nindent 12 }}
-        {{- else if and (ne $key "DB_HOST") (ne $key "ENCRYPTION_KEY") }}
+        {{- else if and (ne $key "DB_HOST") }}
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}

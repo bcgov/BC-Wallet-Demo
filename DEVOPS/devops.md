@@ -1,214 +1,245 @@
 # DevOps Documentation for BC Wallet Demo Project
 
-This document outlines the complete DevOps pipeline for the **BC Wallet Demo Project**, including CI/CD automation, ephemeral PR environments, Docker image builds, Helm-based deployments, and security scanning using Trivy. The pipeline is defined via GitHub Actions.
+This document outlines the DevOps practices for the **BC Wallet Demo Project**, covering the CI/CD pipelines managed by GitHub Actions and the Helm chart used for Kubernetes deployments.
 
 ---
 
-## Step-by-Step CI/CD Pipeline Flow
+**Table of Contents**
 
-The DevOps workflow is implemented using **GitHub Actions**, and kicks in automatically based on Git events such as PR creation, PR closure, or merging to `main`. Below is the chronological sequence of how the pipeline executes:
-
-### CI vs CD: When Do They Happen?
-
-- **CI (Continuous Integration)** kicks in when a **Pull Request is opened or updated**. It includes testing, security scanning, building Docker images, and pushing them to a container registry.
-- **CD (Continuous Deployment)** happens when the **CI passes successfully**, deploying those images into isolated ephemeral environments. A separate CD also occurs when code is **merged to the **main** branch**, deploying to permanent environments like development or staging.
-
-### What Is an Ephemeral PR Environment?
-
-An **ephemeral environment** is a short-lived, isolated Helm release created for each PR. It:
-
-- Allows developers/testers to validate changes live without impacting others.
-- Is automatically created when a PR is opened.
-- Is destroyed as soon as the PR is closed.
-
-Each PR gets:
-
-- Its **own Helm release name** to ensure isolation from other deployments.
-- Uses generic Docker images **tagged with the Git SHA**.
-- Helm deploys the release using `values-pr.yaml`, along with secrets, pods, services, and other Kubernetes resources.
-
----
-
-### Step 1: Developer Opens a Pull Request (PR)
-
-- **Workflow Triggered:** `on_pr_opened.yaml`
-- **Action:**
-  - Begins CI pipeline execution.
-  - Starts QA, build, scan, and push stages (see Step 2).
-
-### Step 2: Continuous Integration (CI)
-
-This is defined in the `cicd.yaml` workflow. Each PR triggers the following phases:
-
-#### 2.1 QA Phase
-
-- Runs unit tests.
-- (Optional) Static code analysis via SonarQube (planned).
-
-#### 2.2 Build Phase
-
-- Docker images are built using app-specific Dockerfiles located under `apps/<appname>/Dockerfile`.
-- The old `docker/` folder is deprecated and should be removed if unused.
-
-#### 2.3 Security Scan Phase
-
-- Images are scanned using [Trivy](https://github.com/aquasecurity/trivy) to identify vulnerabilities.
-- This happens before pushing the image.
-
-```yaml
-- name: Run Trivy vulnerability scanner
-  uses: aquasecurity/trivy-action@master
-  with:
-    image-ref: ghcr.io/org/project/service:${{ github.sha }}
-```
-
-#### 2.4 Push Phase
-
-- If all prior stages pass, the image is pushed to GHCR using a **Git SHA tag**.
-
-```yaml
-- name: Push to GHCR
-  run: docker push ghcr.io/org/project/service:${{ github.sha }}
-```
+1.  [CI/CD Pipelines (GitHub Actions)](#cicd-pipelines-github-actions)
+    *   [Overview](#overview)
+    *   [Workflow Triggers and Actions](#workflow-triggers-and-actions)
+        *   [Pull Request Opened/Updated (`on_pr_opened.yaml`)](#pull-request-openedupdated-on_pr_openedyaml)
+        *   [Pull Request Closed (`on_pr_closed.yaml`)](#pull-request-closed-on_pr_closedyaml)
+        *   [Push to `main` Branch (`on_push_main.yaml`)](#push-to-main-branch-on_push_mainyaml)
+    *   [Ephemeral PR Environments](#ephemeral-pr-environments)
+    *   [Docker Image Tagging](#docker-image-tagging)
+    *   [Security Scanning](#security-scanning)
+2.  [Helm Chart (`charts/bc-wallet`)](#helm-chart-chartsbc-wallet)
+    *   [Introduction to Helm](#introduction-to-helm)
+    *   [Chart Structure](#chart-structure)
+    *   [Prerequisites](#prerequisites)
+    *   [Configuration](#configuration)
+        *   [Key Configuration Values](#key-configuration-values)
+        *   [Environment Variables & Secrets](#environment-variables--secrets)
+    *   [Installation](#installation)
+    *   [Uninstallation](#uninstallation)
+    *   [Troubleshooting](#troubleshooting)
 
 ---
 
-### Step 3: Ephemeral PR Environment Deployment
+## 1. CI/CD Pipelines (GitHub Actions)
 
-- **Triggered by:** continuation of `on_pr_opened.yaml`
-- **How it works:**
-  - Helm uses the image tagged with `${{ github.sha }}` and deploys a new Helm release named uniquely per PR.
-  - The Kubernetes namespace is provided by the OpenShift runtime; no explicit `--namespace` is defined in the Helm command.
-  - Helm deploys application components (pods, secrets, services, deployments, etc.) using `charts/wallet` and `values-pr.yaml`.
+### Overview
+
+The project utilizes GitHub Actions for Continuous Integration (CI) and Continuous Deployment (CD). Workflows are defined in the `.github/workflows/` directory and trigger automatically based on Git events like pull requests and pushes to the `main` branch.
+
+### Workflow Triggers and Actions
+
+#### Pull Request Opened/Updated (`on_pr_opened.yaml`)
+
+*   **Trigger:** When a Pull Request targeting the `main` branch is opened, synchronized, reopened, or marked as ready for review (and not a draft).
+*   **CI Actions:**
+    *   Checks if the PR is ready for review and originates from the `bcgov` organization.
+    *   Runs automated tests (`/.github/actions/test`).
+    *   Builds Docker images for all application components (`api-server`, `traction-adapter`, `showcase-creator`, `demo-server`, `demo-web`) using `/.github/actions/build_docker`. Images are tagged with `pr-<PR_NUMBER>-<GIT_SHA>` and pushed to GitHub Container Registry (GHCR).
+    *   Scans the built Docker images for vulnerabilities using Trivy (`/.github/actions/trivy-scan`).
+*   **CD Actions:**
+    *   Logs into the OpenShift development environment.
+    *   Deploys the application suite using the `bc-wallet` Helm chart into an ephemeral environment.
+    *   Uses `helm upgrade --install` with the release name `pr-<PR_NUMBER>-bc-wallet`.
+    *   Overrides image tags in the Helm deployment to use the newly built PR-specific images.
+    *   Restarts the deployments to ensure the latest code is running.
+    *   Posts a comment on the PR with the URLs for the deployed ephemeral environment services.
+
+#### Pull Request Closed (`on_pr_closed.yaml`)
+
+*   **Trigger:** When a Pull Request targeting the `main` branch is closed (either merged or discarded). Also includes a `workflow_dispatch` trigger for manual uninstallation.
+*   **CD Actions (Cleanup):**
+    *   Logs into the OpenShift development environment.
+    *   Uninstalls the Helm release associated with the PR (`helm uninstall pr-<PR_NUMBER>-bc-wallet`).
+    *   Deletes any remaining Kubernetes objects (Secrets, PVCs, Routes, Services, Deployments, etc.) associated with the PR's Helm release using `oc delete ... --selector "app.kubernetes.io/instance=pr-<PR_NUMBER>-bc-wallet"`.
+    *   Deletes the PR-specific Docker images from GHCR using `snok/container-retention-policy`.
+
+#### Push to `main` Branch (`on_push_main.yaml`)
+
+*   **Trigger:** When code is pushed or merged to the `main` branch. Also includes a `workflow_dispatch` trigger.
+*   **CI Actions:**
+    *   Builds Docker images for all application components. Images are tagged with the Git SHA (`<GIT_SHA>`) and pushed to GHCR.
+    *   Scans the built Docker images for vulnerabilities using Trivy.
+*   **CD Actions:**
+    *   **Deploy to Development:**
+        *   Logs into the OpenShift development environment.
+        *   Updates Helm dependencies (`helm dependency update`).
+        *   Deploys/upgrades the `bc-wallet` release using `helm upgrade --install bc-wallet`.
+        *   Overrides image tags to use the latest SHA-tagged images.
+        *   Injects secrets required for the development environment via `--set` flags, pulling values from GitHub Actions secrets (`secrets.AUTH_SECRET`, `secrets.RABBITMQ_PASSWORD`, etc.).
+        *   Restarts deployments.
+    *   **Deploy to UAT (User Acceptance Testing):**
+        *   Triggered after successful development deployment.
+        *   Logs into the OpenShift UAT environment.
+        *   Deploys/upgrades the `bc-wallet` release similarly to development, using UAT-specific secrets and namespace (`secrets.OPENSHIFT_UAT_NAMESPACE`).
+        *   Restarts deployments.
+    *   **Deploy to Production:**
+        *   Triggered after successful UAT deployment.
+        *   Logs into the OpenShift Production environment.
+        *   Deploys/upgrades the `bc-wallet` release similarly to UAT, using Production-specific secrets and namespace (`secrets.OPENSHIFT_PROD_NAMESPACE`).
+        *   Restarts deployments.
+
+### Ephemeral PR Environments
+
+An **ephemeral environment** is a short-lived, isolated deployment created specifically for a Pull Request. Key characteristics:
+
+*   **Purpose:** Allows developers and testers to validate changes in a live, isolated environment without impacting permanent deployments (like Dev, UAT, Prod).
+*   **Lifecycle:** Automatically created when a relevant PR is opened/updated and destroyed when the PR is closed.
+*   **Isolation:** Each PR gets its own Helm release name (`pr-<PR_NUMBER>-bc-wallet`) and uses PR-specific Docker images, ensuring separation from other PRs and permanent environments.
+*   **Configuration:** Deployed using the standard Helm chart but with image tags overridden and potentially using PR-specific configurations if defined (though currently, it primarily uses `values.yaml` with image overrides).
+
+### Docker Image Tagging
+
+*   **Pull Requests:** Images built during PR workflows are tagged with `pr-<PR_NUMBER>-<GIT_SHA>` (e.g., `pr-123-a1b2c3d4`).
+*   **Main Branch:** Images built from the `main` branch are tagged with the Git commit SHA (e.g., `a1b2c3d4`). These tags represent stable builds deployed to permanent environments.
+
+### Security Scanning
+
+Docker images built in both PR and `main` branch workflows are scanned for known vulnerabilities using **Trivy**. The scan results are processed by the `/.github/actions/trivy-scan` action. While scanning occurs, the current workflows do not appear to enforce failure based on scan results but provide visibility.
+
+---
+
+## 2. Helm Chart (`charts/bc-wallet`)
+
+### Introduction to Helm
+
+[Helm](https://helm.sh/) is a package manager for Kubernetes. It helps manage Kubernetes applications through Helm Charts, which package configuration files and templates into a single, deployable unit. This project uses a Helm chart located in `charts/bc-wallet` to define, install, and upgrade the entire BC Wallet application suite and its dependencies (PostgreSQL, RabbitMQ) on Kubernetes (specifically OpenShift in this setup).
+
+### Chart Structure
+
+The `charts/bc-wallet` directory contains:
+
+*   `Chart.yaml`: Metadata about the chart (name, version, etc.).
+*   `values.yaml`: Default configuration values for the chart.
+*   `templates/`: Directory containing Kubernetes manifest templates (Deployments, Services, Secrets, Ingress/Routes, etc.) written in Go template language. These templates are rendered with values from `values.yaml` (and `--set` overrides) during deployment.
+*   `charts/`: Directory for chart dependencies (like PostgreSQL and RabbitMQ subcharts).
+
+*(The following sections are adapted from the chart's README)*
+
+### Prerequisites
+
+*   Kubernetes cluster (tested on OpenShift)
+*   Helm v3+ installed
+*   `kubectl` or `oc` configured to interact with your cluster
+
+### Configuration
+
+The chart uses `values.yaml` for configuration. You can modify this file directly or create a separate `my-values.yaml` file and use it during installation (`-f my-values.yaml`).
+
+#### Key Configuration Values
+
+Many configuration options are available in `values.yaml`. Here are some important ones you might need to customize:
+
+*   **`ingressSuffix`**: The base domain suffix used to generate public hostnames for the different services (e.g., `-dev.apps.silver.devops.gov.bc.ca`). The chart automatically constructs hostnames like `{{ .Release.Name }}-api-server{{ .Values.ingressSuffix }}`.
+*   **`global.namespaceOverride`**: Set this if you want to deploy the chart into a specific namespace different from the one Helm targets.
+*   **Log Levels**: Adjust `LOG_LEVEL` under `api_server.env`, `traction_adapter.env`, `demo_web.env`, and `demo_server.env` (e.g., `info`, `debug`, `warn`).
+*   **Resource Limits/Requests**: Modify `resources` sections for each component (`api_server`, `traction_adapter`, etc.) to adjust CPU and memory allocation based on your cluster's capacity and expected load.
+*   **Replica Counts**: Change `replicaCount` for components if you need more instances for high availability or load. Consider enabling `autoscaling` for components that support it.
+*   **Persistence**: PostgreSQL (`postgresql.primary.persistence`) and RabbitMQ (`rabbitmq.persistence`) have persistence enabled by default. You can adjust the `size` or disable it if needed.
+
+#### Environment Variables & Secrets
+
+The application components rely on several environment variables. Some are configured directly in `values.yaml`, while others involve sensitive information (secrets).
+
+**Non-Sensitive Environment Variables (Configure in `values.yaml` or custom values file):**
+
+*   `api_server.env.OIDC_REALM`: Your OIDC provider's realm name.
+*   `api_server.env.OIDC_SERVER_URL`: The base URL of your OIDC provider.
+*   `traction_adapter.env.TRACTION_DEFAULT_TENANT_ID`: The default Traction Tenant ID to use.
+*   `traction_adapter.env.TRACTION_DEFAULT_WALLET_ID`: The default Traction Wallet ID associated with the tenant.
+*   `traction_adapter.env.TRACTION_DEFAULT_API_URL`: The URL for the Traction Tenant API.
+*   `showcase_creator.env.OIDC_ISSUER_URL`: The full issuer URL for OIDC (often `OIDC_SERVER_URL`/realms/`OIDC_REALM`).
+*   `demo_web.env.DEMOWEB_SNOWPLOW_ENDPOINT`: Endpoint for Snowplow analytics (if used).
+*   `demo_web.env.DEMOWEB_INSIGHTS_PROJECT_ID`: Project ID for analytics (if used).
+*   `postgresql.auth.username`: Username for the application database user.
+*   `postgresql.auth.database`: Name of the application database.
+*   `rabbitmq.auth.username`: Username for RabbitMQ access.
+
+**Sensitive Environment Variables (Set via `--set` during installation or via GitHub Secrets in CI/CD):**
+
+These values are sensitive and should not be stored directly in version control. Use the `--set` flag during manual Helm installation/upgrade or configure them as GitHub Actions secrets for automated deployments.
+
+*   `api_server.env.OIDC_CLIENT_ID`: The Client ID for OIDC authentication.
+*   `api_server.env.OIDC_CLIENT_SECRET`: The Client Secret for OIDC authentication.
+*   `traction_adapter.env.TRACTION_DEFAULT_API_KEY`: The API key for accessing the Traction Tenant API.
+*   `demo_server.env.TRACTION_WEBHOOK_SECRET` (or `demo_server.env.WEBHOOK_SECRET` in `on_push_main.yaml`): A secret used to secure webhooks. *Note: Variable name consistency should be checked.*
+*   `rabbitmq.auth.password`: The password for the RabbitMQ user. (If not provided during manual install, the chart will generate one).
+*   `api_server.env.ENCRYPTION_KEY`: The encryption key for the API server. The Key should be 32 characters long and encoded in Base58.
+*   `postgresql.auth.secretKeys`: Passwords for PostgreSQL admin and application users. (If not provided during manual install, the chart will generate them).
+*   *Other secrets seen in `on_push_main.yaml`*: `AUTH_SECRET`, `AUTH_KEYCLOAK_SECRET`, `ENCRYPTION_KEY`, `FIXED_API_KEY`, `FIXED_WALLET_ID`, `FIXED_TENANT_ID`, `API_KEY`, `TENANT_ID`, `WALLET_KEY`, `REACT_APP_SNOWPLOW_ENDPOINT`. Ensure these are documented and managed securely.
+
+**Auto-Generated / Internal Variables:**
+
+*   **Database/RabbitMQ Connection:** Hostnames (`{{ .Release.Name }}-postgresql`, `{{ .Release.Name }}-rabbitmq`) and ports are automatically configured based on the deployed services within the chart.
+*   **Service URLs:** URLs like `REACT_APP_DEMO_API_URL`, `REACT_APP_SHOWCASE_API_URL`, `NEXT_PUBLIC_WALLET_URL`, `FIXED_SHOWCASE_BACKEND`, etc., are constructed dynamically using the generated ingress hosts.
+
+### Installation
+
+*(Manual Installation Example)*
+
+1.  **Customize Values:**
+    *   Edit `values.yaml` or create a `my-values.yaml` file with your non-sensitive overrides (like `ingressSuffix`, OIDC URLs, Traction IDs, etc.).
+    *   Prepare the sensitive values you need to set via the command line.
+
+2.  **Install/Upgrade:**
+    Use `helm upgrade --install` to deploy or update the chart. Replace `<your-release-name>` with a name for this deployment (e.g., `bc-wallet-dev`). Provide your sensitive values using `--set`.
+
+    ```bash
+    # Example for manual deployment - adapt secrets as needed
+    helm upgrade --install <your-release-name> ./charts/bc-wallet -f ./charts/bc-wallet/values.yaml \
+      --namespace <your-namespace> \
+      --set api_server.env.OIDC_CLIENT_ID='YOUR_OIDC_CLIENT_ID' \
+      --set api_server.env.OIDC_CLIENT_SECRET='YOUR_OIDC_CLIENT_SECRET' \
+      --set traction_adapter.env.TRACTION_DEFAULT_API_KEY='YOUR_TRACTION_API_KEY' \
+      --set demo_server.env.TRACTION_WEBHOOK_SECRET='YOUR_WEBHOOK_SECRET' \
+      --set api_server.env.ENCRYPTION_KEY='YOUR_ENCRYPTION_KEY' \
+      --set rabbitmq.auth.password='YOUR_RABBITMQ_PASSWORD'
+      # --set postgresql.auth.existingSecret=your-existing-pg-secret # Optionally provide existing PG secret
+      # Add -f my-values.yaml here if you created a custom values file
+      # Add other required --set flags for secrets if not using generated ones
+    ```
+
+    *   Replace placeholder values like `YOUR_OIDC_CLIENT_ID` with your actual secrets.
+    *   Specify the target `--namespace` for deployment.
+    *   If you don't provide `rabbitmq.auth.password` or configure `postgresql.auth.existingSecret`, the chart will generate random passwords/keys for you and store them in Kubernetes Secrets. You can retrieve these generated secrets using `kubectl get secret <secret-name> -o jsonpath='{.data.<key>}' | base64 -d`.
+
+*(Note: Automated deployments via GitHub Actions handle secret injection differently, using `${{ secrets.GITHUB_SECRET_NAME }}` syntax within the workflow files.)*
+
+### Uninstallation
+
+To remove a Helm deployment:
 
 ```bash
-helm upgrade --install bc-wallet-pr-123 ./charts/wallet \
-  -f values-pr.yaml \
-  --set image.tag=${{ github.sha }}
+helm uninstall <your-release-name> --namespace <your-namespace>
 ```
 
----
+For complete cleanup, especially after manual uninstallation or if Helm fails, you might need to manually delete associated resources:
 
-### Step 4: Developer Closes or Merges the PR
-
-- **Workflow Triggered:** `on_pr_closed.yaml`
-- **Action:**
-  - Deletes the Helm release associated with the PR.
-  - Removes the Docker image tagged with the Git SHA from GHCR.
-
----
-
-### Step 5: PR Merged to `main` Branch (Production CI/CD)
-
-- **Workflow Triggered:** `on_push_main.yaml`
-- **Action:**
-  - Reuses the same Dockerfiles under `apps/<appname>/Dockerfile`.
-  - Trivy scan is repeated for compliance.
-  - Tags images with `latest` and `<commit-sha>`.
-  - Pushes production-ready images to GHCR.
-  - Automatically deploys to the **Development** environment using Helm with `values-dev.yaml`.
-
----
-
-### Step 6: Manual Promotion to Staging/Production
-
-- **Action Required:** Manual approval in GitHub Actions UI.
-- Uses environment-specific Helm values (`values-staging.yaml`, `values-prod.yaml`).
-- Promotes tested build to Staging or Production environments.
-
----
-
-## Helm Charts Overview
-
-The `charts/bc-wallet` Helm chart is structured to deploy multiple services (API server, demo server, traction adapter, demo web, showcase creator, etc.) under a unified release. It follows a modular structure using a shared base while keeping each service's deployment logic isolated.
-
-The `templates/` directory includes the following service-specific folders:
-- `api-server/`
-- `demo-server/`
-- `demo-web/`
-- `showcase-creator/`
-- `traction-adapter/`
-
-These directories contain Kubernetes manifests such as `deployment.yaml`, `service.yaml`, `hpa.yaml`, `networkpolicy.yaml`, and `serviceaccount.yaml` for each component.
-
-There is also a `common/` directory for shared templates like `authtoken-secret.yaml`, `configmap.yaml`, and shared network policies.
-
-
-The `charts/bc-wallet` Helm chart is structured to deploy multiple services (API server, demo server, traction adapter, etc.) under a unified release. It follows a modular structure using a shared base while keeping each service's deployment logic isolated.
-
-Helm is used to package and deploy the Kubernetes resources for each environment. - A `Chart.yaml` file defining the chart name, version, and metadata.
-- A top-level `values.yaml` file defining default image tags, ports, and configuration.
-- A `templates/` directory, further divided by service (`api-server/`, `demo-server/`, `traction-adapter/`, etc.). Each service folder includes:
-  - `deployment.yaml`: Defines deployment logic, typically templated with `.Values.image.tag` and environment variables.
-  - `service.yaml`: Configures Kubernetes Service resources.
-  - `hpa.yaml`: Enables Horizontal Pod Autoscaler based on metrics.
-  - `networkpolicy.yaml`: Applies fine-grained network controls.
-  - `serviceaccount.yaml`: Manages RBAC and pod identities.
-- A `common/` folder used to share secrets (`authtoken-secret.yaml`), config maps, or policies used across multiple services.
-- `_helpers.tpl` provides reusable template functions for naming and labeling.
-- `ingress.yaml` controls public exposure and routes for HTTP traffic.
-
-At runtime, Helm reads from `values-<env>.yaml` files to inject environment-specific configurations. For example:
-- PR environments: `values-pr.yaml`
-- Development: `values-dev.yaml`
-- Staging: `values-staging.yaml`
-- Production: `values-prod.yaml`
-
-Helm's release name (e.g., `bc-wallet-pr-123`) is unique per environment or PR, ensuring each deployment is isolated. All Kubernetes resources—deployments, secrets, services—are managed as part of this release. The image tag is passed via `--set image.tag=<git-sha>` ensuring precise versioning for each deployable component.
-
----
-
-## Secrets Management
-
-- Secrets are managed using **GitHub Actions Secrets**.
-- Values are injected into the environment and accessible in the pipeline.
-
-```yaml
-- name: Set environment
-  run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+```bash
+# Example using oc for OpenShift
+oc delete secret,pvc,route,service,deployment,statefulset,configmap --selector "app.kubernetes.io/instance=<your-release-name>" -n <your-namespace>
 ```
 
----
+### Troubleshooting
 
-## Image Tagging Strategy
+If you encounter issues, check the logs of the affected pods:
 
-| Use Case         | Tag Format     |
-| ---------------- | -------------- |
-| Ephemeral PR     | `<commit-sha>` |
-| Development/Main | `latest`       |
-| Traceability     | `<commit-sha>` |
-
-Ephemeral images and Helm releases are deleted on PR closure.
-
----
-
-## Directory Structure (Relevant to DevOps)
-
-```
-.github/workflows/
-  |- cicd.yaml
-  |- on_pr_opened.yaml
-  |- on_pr_closed.yaml
-  |- on_push_main.yaml
-
-apps/
-  |- <appname>/
-     |- Dockerfile
-     |- (application code)
-
-charts/
-  |- bc-wallet/
-     |- Chart.yaml
-     |- templates/
-     |- values-dev.yaml
-     |- values-pr.yaml
-     |- values-staging.yaml
-     |- values-prod.yaml
+```bash
+# Example using oc for OpenShift
+oc logs <pod-name> -n <your-namespace>
+# Follow logs in real-time
+oc logs -f <pod-name> -n <your-namespace>
+# Check events for deployment issues
+oc get events -n <your-namespace> --sort-by='.lastTimestamp'
 ```
 
-
----
-
-This step-by-step document ensures developers and DevOps engineers understand the chronological order, event triggers, CI/CD boundaries, Helm-based deployments, image tagging conventions, and the role of GitHub Actions in orchestrating the pipeline.
+Common issues might relate to incorrect secret values, resource limits being too low, or network connectivity between components.
 
 

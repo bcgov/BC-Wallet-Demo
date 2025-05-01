@@ -64,11 +64,9 @@ it randomly.
 {{- index $obj .Key -}}
 {{- else -}}
   {{- $randomBytes := randBytes $len -}}
-  {{- $base58Password := $randomBytes | b58enc -}}
   {{- if (eq (lower .Kind) "secret") -}}
-    {{- $base58Password | b64enc -}}
   {{- else -}}
-    {{- $base58Password -}}
+    {{- $randomBytes -}}
   {{- end -}}
 {{- end -}}
 {{- end }}

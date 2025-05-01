@@ -58,11 +58,11 @@ spec:
         - name: OIDC_REDIRECT_PROXY_URL
           value: "https://{{ include "bc-wallet.showcase-creator.host" . }}/api/auth"
         - name: OIDC_SERVER_URL
-          value: "https://{{ include "bc-wallet.api-server.env.OIDC_SERVER_URL" . }}"
+          value: https://{{ .Values.api_server.env.OIDC_SERVER_URL | quote }}
         - name: OIDC_CLIENT_ID
-          value: "{{ include "bc-wallet.api-server.env.OIDC_CLIENT_ID" . }}"
+          value: {{ .Values.api_server.env.OIDC_CLIENT_ID | quote }}
         - name: OIDC_CLIENT_SECRET
-          value: "{{ include "bc-wallet.api-server.env.OIDC_CLIENT_SECRET" . }}"
+          value: {{ .Values.api_server.env.OIDC_CLIENT_SECRET | quote }}
         resources:
           {{- toYaml .Values.showcase_creator.resources | nindent 12 }}
       serviceAccountName: {{ if .Values.showcase_creator.serviceAccount.create }}{{ if .Values.showcase_creator.serviceAccount.name }}{{ .Values.showcase_creator.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-showcase-creator{{ end }}{{ end }}

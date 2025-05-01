@@ -59,6 +59,7 @@ api_server:
     CORS_ALLOW_CREDENTIALS: "true"
     OIDC_REALM: your_oidc_realm
     OIDC_SERVER_URL: your_oidc_server_url
+    ENCRYPTION_KEY: SENSITIVE
     OIDC_CLIENT_ID: SENSITIVE
     OIDC_CLIENT_SECRET: SENSITIVE
   resources:

@@ -61,13 +61,13 @@ spec:
               name: {{ include "bc-wallet.database.secret.name" . }}
               key: {{ include "bc-wallet.database.userPasswordKey" . }}
         - name: API_KEY
-          value: "{{ include "bc-wallet.traction-adapter.env.TRACTION_DEFAULT_API_KEY" . }}"
+          value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_API_KEY | quote }}
         - name: TENANT_ID
-          value: "{{ include "bc-wallet.traction-adapter.env.TRACTION_DEFAULT_TENANT_ID" . }}"
+          value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_TENANT_ID | quote }}
         - name: WALLET_ID
-          value: "{{ include "bc-wallet.traction-adapter.env.TRACTION_DEFAULT_WALLET_ID" . }}"
+          value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_WALLET_ID | quote }}
         - name: BASE_ROUTE
-          value: "{{ include "bc-wallet.demo-web.env.REACT_APP_BASE_ROUTE" . }}"
+          value: {{ .Values.demo_web.env.REACT_APP_BASE_ROUTE | quote }}
         resources:
           {{- toYaml .Values.demo_server.resources | nindent 12 }}
       serviceAccountName: {{ if .Values.demo_server.serviceAccount.create }}{{ if .Values.demo_server.serviceAccount.name }}{{ .Values.demo_server.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-demo-server{{ end }}{{ end }}

@@ -41,6 +41,8 @@ spec:
         - containerPort: {{ .Values.traction_adapter.port }}
           name: http
         env:
+        - name: TRACTION_FIXED_SHOWCASE_API_URL
+          value: "https://{{ include "bc-wallet.api-server.host" . }}"
         - name: AMQ_HOST
           value: {{.Release.Name}}-rabbitmq
         - name: AMQ_PORT
@@ -54,6 +56,8 @@ spec:
               key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
         - name: AMQ_USERNAME
           value: {{ .Values.rabbitmq.auth.username | quote }}
+        - name: ENCRYPTION_KEY
+          value: {{ .Values.api_server.env.ENCRYPTION_KEY | quote }}
         - name: FIXED_SHOWCASE_BACKEND
           value: "https://{{ include "bc-wallet.api-server.host" . }}"
         {{- range $key, $value := .Values.traction_adapter.env }}
@@ -62,13 +66,6 @@ spec:
           valueFrom:
             {{- toYaml $value | nindent 14 }}
         {{- else if and (ne $key "FIXED_SHOWCASE_BACKEND") (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") }}
-        - name: TRACTION_FIXED_SHOWCASE_API_URL
-          value: "https://{{ include "bc-wallet.api-server.host" . }}"
-        - name: ENCRYPTION_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bc-wallet.authtoken.secret.name" . }}
-              key: encryption-key
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
