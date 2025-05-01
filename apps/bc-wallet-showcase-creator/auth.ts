@@ -1,6 +1,8 @@
-import NextAuth, { User } from 'next-auth'
+import NextAuth, { NextAuthConfig, User } from 'next-auth'
 import Keycloak from 'next-auth/providers/keycloak'
 import { env } from '@/env'
+import type { NextRequest } from 'next/server'
+import type { Awaitable } from '@auth/core/types'
 
 declare module 'next-auth' {
   interface Session {
@@ -48,14 +50,24 @@ async function refreshAccessToken(token: any) {
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const keycloakConfig = {
+  clientId: env.AUTH_KEYCLOAK_ID!,
+  clientSecret: env.AUTH_KEYCLOAK_SECRET!,
+  issuer: env.AUTH_KEYCLOAK_ISSUER!,
+  authorization: {
+    params: {
+      redirect_uri: env.AUTH_URL
+    }
+  }
+}
+console.debug('Keycloak config', keycloakConfig)
+
+const nextAuthConfig: NextAuthConfig | ((request: NextRequest | undefined) => Awaitable<NextAuthConfig>) = {
   providers: [
-    Keycloak({
-      clientId: env.AUTH_KEYCLOAK_ID!,
-      clientSecret: env.AUTH_KEYCLOAK_SECRET!,
-      issuer: env.AUTH_KEYCLOAK_ISSUER!,
-    }),
+    Keycloak(keycloakConfig),
   ],
+  trustHost: env.AUTH_TRUST_HOST === 'true',
+  secret: env.AUTH_SECRET,
   callbacks: {
     jwt: async ({ token, user, account }) => {
       if (account && user) {
@@ -69,7 +81,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      if ('accessTokenExpires' in token && typeof token.accessTokenExpires === 'number' && Date.now() < token.accessTokenExpires) {
+      if (
+        'accessTokenExpires' in token &&
+        typeof token.accessTokenExpires === 'number' &&
+        Date.now() < token.accessTokenExpires
+      ) {
         return token
       }
 
@@ -82,9 +98,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.accessToken = token.accessToken as string | undefined
       session.error = token.error as 'RefreshAccessTokenError' | undefined
       return session
-    },
+    }
   },
   session: {
     strategy: 'jwt',
   },
-})
+}
+
+console.debug('Auth config', nextAuthConfig)
+export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig)

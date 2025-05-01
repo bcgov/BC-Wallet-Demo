@@ -169,7 +169,8 @@ OIDC_CLIENT_SECRET=your_client_secret
 OIDC_SERVER_URL=https://your-keycloak-server/auth
 OIDC_ISSUER_URL=https://your-keycloak-server/auth/realms/your_realm
 OIDC_TRUST_HOST=true
-OIDC_REDIRECT_PROXY_URL=http://localhost:5003
+OIDC_AUTH_URL=http://localhost:5003
+OIDC_REDIRECT_PROXY_URL=http://localhost:5003/api/auth
 ```
 
 
