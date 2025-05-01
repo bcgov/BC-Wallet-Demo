@@ -212,7 +212,7 @@ demo_web:
     REACT_APP_INSIGHTS_PROJECT_ID: key
     REACT_APP_DEMO_API_URL: https://bcshowcase-demo-server.dev.nborbit.ca
     REACT_APP_BASE_ROUTE: /digital-trust/showcase
-    REACT_APP_SHOWCASE_API_URL: https://bcshowcase-api.dev.nborbit.ca/
+    REACT_APP_SHOWCASE_API_URL: https://bcshowcase-api.dev.nborbit.ca
     REACT_APP_SNOWPLOW_ENDPOINT: SENSITIVE
   resources:
     limits:
