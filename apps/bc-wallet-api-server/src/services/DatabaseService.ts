@@ -15,7 +15,7 @@ export class DatabaseService {
   private getDbUrl(): string {
     return (
       process.env.DB_URL ??
-      `postgresql://${process.env.DB_USERNAME}${process.env.DB_PASSWORD && `:${process.env.DB_PASSWORD}`}${process.env.DB_HOST && `@${process.env.DB_HOST}`}${process.env.DB_PORT && `:${process.env.DB_PORT}`}/${process.env.DB_NAME}`
+      `postgresql://${process.env.SHOWCASE_DB_USERNAME}${process.env.SHOWCASE_DB_PASSWORD && `:${process.env.SHOWCASE_DB_PASSWORD}`}${process.env.SHOWCASE_DB_HOST && `@${process.env.SHOWCASE_DB_HOST}`}${process.env.SHOWCASE_DB_PORT && `:${process.env.SHOWCASE_DB_PORT}`}/${process.env.SHOWCASE_DB_NAME}`
     )
   }
 

@@ -192,8 +192,8 @@ describe('MessageProcessor Integration Test', () => {
       application_properties: {
         action: 'publish.issuer-assets' as Action,
         tenantId: 'test-tenant',
-        tractionApiUrlBase: environment.traction.DEFAULT_API_BASE_PATH,
-        showcaseApiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        tractionApiUrlBase: environment.traction.TRACTION_DEFAULT_API_URL,
+        showcaseApiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
         walletId: 'test-wallet',
         accessTokenEnc: encrypted,
         accessTokenNonce: nonce,
@@ -206,8 +206,8 @@ describe('MessageProcessor Integration Test', () => {
     // Verify that the getTractionService was called with the correct parameters
     expect(await getTractionService).toHaveBeenCalledWith(
       'test-tenant',
-      environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
-      environment.traction.DEFAULT_API_BASE_PATH,
+      environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
+      environment.traction.TRACTION_DEFAULT_API_URL,
       'test-wallet',
       encrypted,
       nonce,
@@ -239,7 +239,7 @@ describe('MessageProcessor Integration Test', () => {
       body: JSON.stringify(issuer),
       application_properties: {
         tenantId: 'test-tenant',
-        apiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        apiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
         walletId: 'test-wallet',
       },
     }))
@@ -293,14 +293,14 @@ describe('MessageProcessor Integration Test', () => {
 
     // Send a message without a tenant ID
     const messageId = uuidv4()
-    const tenantId = environment.traction.FIXED_TENANT_ID
-    environment.traction.FIXED_TENANT_ID = undefined // temporary clear the tenant, otherwise it will find the fixed tenant from the env and we cannot test the error message
+    const tenantId = environment.traction.TRACTION_DEFAULT_TENANT_ID
+    environment.traction.TRACTION_DEFAULT_TENANT_ID = undefined // temporary clear the tenant, otherwise it will find the fixed tenant from the env and we cannot test the error message
     void (await sender.send({
       message_id: messageId,
       body: JSON.stringify(credDef),
       application_properties: {
         action: 'publish.issuer-assets' as Action,
-        apiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        apiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
         walletId: 'test-wallet',
       },
     }))
@@ -308,7 +308,7 @@ describe('MessageProcessor Integration Test', () => {
     // Wait for the message to be processed
     await waitForConsoleMessage(consoleSpy, 'did not contain the tenant id')
 
-    environment.traction.FIXED_TENANT_ID = tenantId
+    environment.traction.TRACTION_DEFAULT_TENANT_ID = tenantId
 
     consoleSpy.mockRestore()
   })
@@ -325,7 +325,7 @@ describe('MessageProcessor Integration Test', () => {
       application_properties: {
         action: 'publish.issuer-assets' as Action,
         tenantId: 'test-tenant',
-        apiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        apiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
         walletId: 'test-wallet',
       },
     }))
@@ -361,7 +361,7 @@ describe('MessageProcessor Integration Test', () => {
         action: 'unsupported-action' as Action,
         tenantId: 'test-tenant',
         walletId: 'test-wallet',
-        apiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        apiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
       },
     }))
 
@@ -413,8 +413,8 @@ describe('MessageProcessor Integration Test', () => {
       application_properties: {
         action: 'import.cred-schema' as Action,
         tenantId: 'test-tenant',
-        tractionApiUrlBase: environment.traction.DEFAULT_API_BASE_PATH,
-        showcaseApiUrlBase: environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
+        tractionApiUrlBase: environment.traction.TRACTION_DEFAULT_API_URL,
+        showcaseApiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
         walletId: 'test-wallet',
         accessTokenEnc: encrypted,
         accessTokenNonce: nonce,
@@ -427,8 +427,8 @@ describe('MessageProcessor Integration Test', () => {
     // Verify that the getTractionService was called with the correct parameters
     expect(await getTractionService).toHaveBeenCalledWith(
       'test-tenant',
-      environment.showcase.DEFAULT_SHOWCASE_API_BASE_PATH,
-      environment.traction.DEFAULT_API_BASE_PATH,
+      environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
+      environment.traction.TRACTION_DEFAULT_API_URL,
       'test-wallet',
       encrypted,
       nonce,

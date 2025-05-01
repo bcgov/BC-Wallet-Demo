@@ -15,20 +15,20 @@ api_server:
   env:
     APP_NAME: bc-wallet-api
     LOG_LEVEL: debug
-    DB_PORT: "5432"
-    DB_NAME: wallet-db
-    DB_USERNAME: wallet-user
+    SHOWCASE_DB_PORT: "5432"
+    SHOWCASE_DB_NAME: wallet-db
+    SHOWCASE_DB_USERNAME: wallet-user
     CORS_DISABLED: false
-    ALLOW_ORIGINS: https://bcshowcase-ui.dev.nborbit.ca,http://localhost:3000,http://localhost:3003,https://editor.swagger.io,https://bcshowcase-demo-web.dev.nborbit.ca
-    ALLOW_METHODS: GET,POST,PUT,DELETE,OPTIONS
-    ALLOW_HEADERS: Content-Type,Authorization,X-Requested-With,Cache-Control,Pragma,Expires
-    ALLOW_CREDENTIALS: true
+    CORS_ALLOW_ORIGINS: https://bcshowcase-ui.dev.nborbit.ca,http://localhost:3000,http://localhost:3003,https://editor.swagger.io,https://bcshowcase-demo-web.dev.nborbit.ca
+    CORS_ALLOW_METHODS: GET,POST,PUT,DELETE,OPTIONS
+    CORS_ALLOW_HEADERS: Content-Type,Authorization,X-Requested-With,Cache-Control,Pragma,Expires
+    CORS_ALLOW_CREDENTIALS: true
     API_KEY: SENSITIVE
     ENCRYPTION_KEY: SENSITIVE
-    REALM: BC
-    AUTH_SERVER_URL: SENSITIVE
-    CLIENT_ID: showcase-tenantA
-    CLIENT_SECRET: SENSITIVE
+    OIDC_REALM: BC
+    OIDC_SERVER_URL: SENSITIVE
+    OIDC_CLIENT_ID: showcase-tenantA
+    OIDC_CLIENT_SECRET: SENSITIVE
   resources:
     limits:
       cpu: 200m
@@ -93,12 +93,12 @@ traction_adapter:
     APP_NAME: bc-wallet-traction-adapter
     LOG_LEVEL: debug
     PORT: 3000
-    DEFAULT_API_BASE_PATH: https://admin.traction.test.sphereon.com
-    FIXED_SHOWCASE_BACKEND: https://bcshowcase-api.dev.nborbit.ca
+    TRACTION_DEFAULT_API_URL: https://admin.traction.test.sphereon.com
+    FIXED_SHOWCASE_API_URL: https://bcshowcase-api.dev.nborbit.ca # TODO may not be needed for internet facing deployment
     ENCRYPTION_KEY: SENSITIVE
-    FIXED_API_KEY: SENSITIVE
-    FIXED_WALLET_ID: SENSITIVE
-    FIXED_TENANT_ID: SENSITIVE
+    TRACTION_DEFAULT_API_KEY: SENSITIVE
+    TRACTION_DEFAULT_TENANT_ID: SENSITIVE
+    TRACTION_DEFAULT_WALLET_ID: SENSITIVE
   resources:
     limits:
       cpu: 200m
@@ -147,14 +147,14 @@ showcase_creator:
   path: /
   env:
     NEXT_PUBLIC_WALLET_URL: https://bcshowcase-demo-web.dev.nborbit.ca/digital-trust/showcase
-    NEXT_PUBLIC_SHOWCASE_BACKEND: https://bcshowcase-api.dev.nborbit.ca
-    AUTH_SECRET: SENSITIVE
-    AUTH_KEYCLOAK_ID: "showcase-tenantA"
-    AUTH_KEYCLOAK_SECRET: SENSITIVE
-    AUTH_KEYCLOAK_ISSUER: "https://auth01.test.sphereon.com/auth/realms/BC"
-    AUTH_TRUST_HOST: "true"
-    AUTH_REDIRECT_PROXY_URL: "https://bcshowcase-ui.dev.nborbit.ca/api/auth"
-    AUTH_URL: "https://bcshowcase-ui.dev.nborbit.ca"
+    NEXT_PUBLIC_SHOWCASE_API_URL: https://bcshowcase-api.dev.nborbit.ca
+    OIDC_CLIENT_ID: "showcase-tenantA"
+    OIDC_CLIENT_SECRET: SENSITIVE
+    OIDC_ISSUER_URL: "https://auth01.test.sphereon.com/auth/realms/BC"
+    OIDC_TRUST_HOST: "true"
+    OIDC_AUTH_URL: "https://bcshowcase-ui.dev.nborbit.ca"
+    OIDC_REDIRECT_PROXY_URL: "https://bcshowcase-ui.dev.nborbit.ca/api/auth"
+    OIDC_SERVER_URL: "https://bcshowcase-ui.dev.nborbit.ca"
   resources:
     limits:
       cpu: 200m
@@ -210,10 +210,9 @@ demo_web:
   path: /
   env:
     REACT_APP_INSIGHTS_PROJECT_ID: key
-    REACT_APP_DEFAULT_SLUG: REACT_APP_DEFAULT_SLUG 
-    REACT_APP_HOST_BACKEND: https://bcshowcase-demo-server.dev.nborbit.ca
+    REACT_APP_DEMO_API_URL: https://bcshowcase-demo-server.dev.nborbit.ca
     REACT_APP_BASE_ROUTE: /digital-trust/showcase
-    REACT_APP_SHOWCASE_BACKEND: https://bcshowcase-api.dev.nborbit.ca/
+    REACT_APP_SHOWCASE_API_URL: https://bcshowcase-api.dev.nborbit.ca/
     REACT_APP_SNOWPLOW_ENDPOINT: SENSITIVE
   resources:
     limits:
@@ -273,8 +272,8 @@ demo_server:
     TENANT_ID: TENANT_ID 
     API_KEY: SENSITIVE 
     BASE_ROUTE: /digital-trust/showcase
-    WEBHOOK_SECRET: SENSITIVE
-    TRACTION_URL: https://admin.traction.test.sphereon.com
+    TRACTION_WEBHOOK_SECRET: SENSITIVE
+    TRACTION_API_URL: https://admin.traction.test.sphereon.com
   resources:
     limits:
       cpu: 200m
