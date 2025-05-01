@@ -41,19 +41,19 @@ spec:
         - containerPort: {{ .Values.demo_server.port }}
           name: http
         env:
-        - name: SHOWCASE_DB_HOST
+        - name: DB_HOST
           value: {{ .Release.Name }}-postgresql
         {{- range $key, $value := .Values.demo_server.env }}
-        {{- if and (ne $key "SHOWCASE_DB_HOST") (kindIs "map" $value) }}
+        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
         - name: {{ $key }}
           valueFrom:
             {{- toYaml $value | nindent 12 }}
-        {{- else if ne $key "SHOWCASE_DB_HOST" }}
+        {{- else if ne $key "DB_HOST" }}
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
         {{- end }}
-        - name: SHOWCASE_DB_PASSWORD
+        - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ include "bc-wallet.database.secret.name" . }}

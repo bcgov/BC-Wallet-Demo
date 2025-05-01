@@ -41,10 +41,10 @@ spec:
         - containerPort: {{ .Values.traction_adapter.port }}
           name: http
         env:
-          - name: AMQ_HOST
-            value: {{ include "bc-wallet.rabbitmq.host" . | quote }}
-          - name: AMQ_PORT
-            value: {{ include "bc-wallet.rabbitmq.port" . | quote }}
+        - name: AMQ_HOST
+          value: {{.Release.Name}}-rabbitmq
+        - name: AMQ_PORT
+          value: {{ .Values.rabbitmq.port | quote }}
         - name: AMQ_TRANSPORT
           value: tcp
         - name: AMQ_PASSWORD
@@ -52,14 +52,14 @@ spec:
             secretKeyRef:
               name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
               key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
-          - name: AMQ_USERNAME
+        - name: AMQ_USER
           value: {{ .Values.rabbitmq.auth.username | quote }}
         {{- range $key, $value := .Values.traction_adapter.env }}
-          {{- if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USERNAME") (kindIs "map" $value) }}
+        {{- if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") (kindIs "map" $value) }}
         - name: {{ $key }}
           valueFrom:
             {{- toYaml $value | nindent 14 }}
-          {{- else if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USERNAME") }}
+        {{- else if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") }}
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
