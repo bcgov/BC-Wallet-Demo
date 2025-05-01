@@ -1,8 +1,6 @@
-import NextAuth, { NextAuthConfig, User } from 'next-auth'
+import NextAuth, { User } from 'next-auth'
 import Keycloak from 'next-auth/providers/keycloak'
 import { env } from '@/env'
-import type { NextRequest } from 'next/server'
-import type { Awaitable } from '@auth/core/types'
 
 declare module 'next-auth' {
   interface Session {
@@ -50,24 +48,14 @@ async function refreshAccessToken(token: any) {
   }
 }
 
-const keycloakConfig = {
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    Keycloak({
   clientId: env.AUTH_KEYCLOAK_ID!,
   clientSecret: env.AUTH_KEYCLOAK_SECRET!,
   issuer: env.AUTH_KEYCLOAK_ISSUER!,
-  authorization: {
-    params: {
-      redirect_uri: env.AUTH_URL
-    }
-  }
-}
-console.debug('Keycloak config', keycloakConfig)
-
-const nextAuthConfig: NextAuthConfig | ((request: NextRequest | undefined) => Awaitable<NextAuthConfig>) = {
-  providers: [
-    Keycloak(keycloakConfig),
+    }),
   ],
-  trustHost: env.AUTH_TRUST_HOST === 'true',
-  secret: env.AUTH_SECRET,
   callbacks: {
     jwt: async ({ token, user, account }) => {
       if (account && user) {
@@ -98,12 +86,9 @@ const nextAuthConfig: NextAuthConfig | ((request: NextRequest | undefined) => Aw
       session.accessToken = token.accessToken as string | undefined
       session.error = token.error as 'RefreshAccessTokenError' | undefined
       return session
-    }
+    },
   },
   session: {
     strategy: 'jwt',
   },
-}
-
-console.debug('Auth config', nextAuthConfig)
-export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig)
+})

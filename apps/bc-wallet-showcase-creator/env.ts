@@ -1,3 +1,5 @@
+mapEnv()
+
 import { createEnv } from '@t3-oss/env-nextjs'
 import { z } from 'zod'
 
@@ -26,7 +28,6 @@ export const env = createEnv({
     AUTH_TRUST_HOST: z.string().default('true'),
     AUTH_REDIRECT_PROXY_URL: z.string().min(1),
     AUTH_URL: z.string().min(1),
-    NEXT_AUTH_URL: z.string().min(1),
   },
   client: runtimeClientSchema,
   runtimeEnv: {
@@ -39,14 +40,19 @@ export const env = createEnv({
     AUTH_REDIRECT_PROXY_URL: process.env.OIDC_REDIRECT_PROXY_URL,
     NEXT_PUBLIC_WALLET_URL: runtimeClientProcess.NEXT_PUBLIC_WALLET_URL,
     NEXT_PUBLIC_SHOWCASE_API_URL: runtimeClientProcess.NEXT_PUBLIC_SHOWCASE_API_URL,
-    NEXT_AUTH_URL: process.env.OIDC_AUTH_URL,
   },
   skipValidation: process.env.NODE_ENV === 'production' || !!process.env.SKIP_ENV_VALIDATION,
 })
 
-console.debug('env', env)
-console.debug('process.env', process.env)
-
+export function mapEnv() {
+  if (process.env.OIDC_AUTH_URL) process.env.NEXTAUTH_URL = process.env.OIDC_AUTH_URL
+  if (process.env.OIDC_CLIENT_SECRET) process.env.AUTH_SECRET = process.env.OIDC_CLIENT_SECRET
+  if (process.env.OIDC_CLIENT_ID) process.env.AUTH_KEYCLOAK_ID = process.env.OIDC_CLIENT_ID
+  if (process.env.OIDC_CLIENT_SECRET) process.env.AUTH_KEYCLOAK_SECRET = process.env.OIDC_CLIENT_SECRET
+  if (process.env.OIDC_ISSUER_URL) process.env.AUTH_KEYCLOAK_ISSUER = process.env.OIDC_ISSUER_URL
+  if (process.env.OIDC_TRUST_HOST) process.env.AUTH_TRUST_HOST = process.env.OIDC_TRUST_HOST
+  if (process.env.OIDC_REDIRECT_PROXY_URL) process.env.AUTH_REDIRECT_PROXY_URL = process.env.OIDC_REDIRECT_PROXY_URL
+}
 
 declare global {
   interface Window {
