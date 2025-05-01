@@ -41,28 +41,28 @@ spec:
         - containerPort: {{ .Values.showcase_creator.port }}
           name: http
         env:
-        - name: DB_HOST
-          value: {{ .Release.Name }}-postgresql
         {{- range $key, $value := .Values.showcase_creator.env }}
-        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
+        {{- if kindIs "map" $value }}
         - name: {{ $key }}
           valueFrom:
             {{- toYaml $value | nindent 12 }}
-        {{- else if ne $key "DB_HOST" }}
+        {{- else }}
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
         {{- end }}
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bc-wallet.database.secret.name" . }}
-              key: {{ include "bc-wallet.database.userPasswordKey" . }}
-        - name: AUTH_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bc-wallet.authtoken.secret.name" . }}
-              key: token
+        - name: NEXT_PUBLIC_WALLET_URL
+          value: "https://{{ include "bc-wallet.demo-web.host" . }}/digital-trust/showcase"
+        - name: NEXT_PUBLIC_SHOWCASE_API_URL
+          value: "https://{{ include "bc-wallet.api-server.host" . }}"
+        - name: OIDC_REDIRECT_PROXY_URL
+          value: "https://{{ include "bc-wallet.showcase-creator.host" . }}/api/auth"
+        - name: OIDC_SERVER_URL
+          value: https://{{ .Values.api_server.env.OIDC_SERVER_URL | quote }}
+        - name: OIDC_CLIENT_ID
+          value: {{ .Values.api_server.env.OIDC_CLIENT_ID | quote }}
+        - name: OIDC_CLIENT_SECRET
+          value: {{ .Values.api_server.env.OIDC_CLIENT_SECRET | quote }}
         resources:
           {{- toYaml .Values.showcase_creator.resources | nindent 12 }}
       serviceAccountName: {{ if .Values.showcase_creator.serviceAccount.create }}{{ if .Values.showcase_creator.serviceAccount.name }}{{ .Values.showcase_creator.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-showcase-creator{{ end }}{{ end }}

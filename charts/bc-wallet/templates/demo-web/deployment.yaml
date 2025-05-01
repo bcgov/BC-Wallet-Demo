@@ -51,8 +51,10 @@ spec:
           value: {{ $value | quote }}
         {{- end }}
         {{- end }}
-        - name: API_URL
-          value: "http://{{ include "bc-wallet.fullname" . }}-api-server:{{ $.Values.api_server.service.port }}"
+        - name: REACT_APP_DEMO_API_URL
+          value: "https://{{ include "bc-wallet.demo-server.host" . }}"
+        - name: REACT_APP_SHOWCASE_API_URL
+          value: "https://{{ include "bc-wallet.api-server.host" . }}"
         resources:
           {{- toYaml .Values.demo_web.resources | nindent 12 }}
       serviceAccountName: {{ if .Values.demo_web.serviceAccount.create }}{{ if .Values.demo_web.serviceAccount.name }}{{ .Values.demo_web.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-demo-web{{ end }}{{ end }}

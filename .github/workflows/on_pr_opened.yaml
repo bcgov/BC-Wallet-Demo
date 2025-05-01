@@ -216,9 +216,16 @@ jobs:
       - name: Deploy PR Environment with Helm
         run: |
           cd charts/bc-wallet
-  #           helm dependency update
+          helm dependency update
           helm upgrade --install pr-${{ github.event.number }}-bc-wallet --namespace ${{ secrets.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
-             --set api_server.image.repository=ghcr.io/${{ github.repository_owner }}/bc-wallet-api-server --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.repository=ghcr.io/${{ github.repository_owner }}/bc-wallet-traction-adapter --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} --set showcase_creator.image.repository=ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-creator --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.repository=ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-web --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.repository=ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-server --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} . --wait
+             --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
+             --set api_server.env.ENCRYPTION_KEY=${{secrets.ENCRYPTION_KEY}} \
+             --set api_server.env.OIDC_CLIENT_SECRET=${{secrets.OIDC_CLIENT_SECRET}} \
+             --set api_server.env.OIDC_CLIENT_ID=${{secrets.OIDC_CLIENT_ID}} \
+             --set traction_adapter.env.TRACTION_DEFAULT_API_KEY=${{secrets.TRACTION_DEFAULT_API_KEY}} \
+             --set demo_server.env.TRACTION_WEBHOOK_SECRET=${{secrets.TRACTION_WEBHOOK_SECRET}} \
+             --set rabbitmq.auth.password=${{secrets.RABBITMQ_PASSWORD}} \
+             . --wait
             
       - name: Restart PR Deployments
         run: |
