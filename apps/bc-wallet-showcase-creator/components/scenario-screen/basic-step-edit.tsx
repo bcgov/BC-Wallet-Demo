@@ -62,7 +62,7 @@ export const BasicStepEdit = () => {
       form.reset(defaultValues)
     }
   }, [currentStep, form])
-  console.log('currentStep', currentStep);
+
   const autoSave = debounce((data: BasicStepFormData) => {
     if (!currentStep || !form.formState.isDirty) return
 

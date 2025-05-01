@@ -30,7 +30,6 @@ import { sampleScenario } from '@/lib/steps'
 import { NoSelection } from '../credentials/no-selection'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { StepRequest } from 'bc-wallet-openapi'
-import { baseUrl } from '@/lib/utils'
 
 export const BasicStepAdd = () => {
   const t = useTranslations()
@@ -125,7 +124,6 @@ export const BasicStepAdd = () => {
         return step
       })
 
-      console.log('scenarioForPersona.steps', scenarioForPersona.steps)
       if (!currentStepExists) {
         scenarioForPersona.steps.push({
           title: data.title,

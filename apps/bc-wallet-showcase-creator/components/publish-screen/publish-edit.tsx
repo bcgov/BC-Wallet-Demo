@@ -155,6 +155,7 @@ export const PublishEdit = () => {
       name: showcase.name || '',
       description: showcase.description || '',
       personas: personas.map((persona) => persona.id) || [],
+      scenarios: showcase.scenarios || [],
       status: 'ACTIVE',
       tenantId,
     })

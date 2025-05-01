@@ -8,17 +8,21 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import type { Persona, Showcase, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
-import { useUpdateShowcase, useShowcase } from './use-showcases'
+import { useUpdateShowcase, useShowcase, useUpdateShowcaseScenarios } from './use-showcases'
 import { showcaseToShowcaseRequest, debugLog } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import { useUiStore } from '@/hooks/use-ui-store'
 
 export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: createScenarioAsync } = useCreateScenario()
   const { mutateAsync: updateScenarioAsync } = useUpdateScenario()
   const { mutateAsync: updateShowcaseAsync } = useUpdateShowcase(showcaseSlug || '')
+  const { mutateAsync: updateShowcaseScenariosAsync } = useUpdateShowcaseScenarios();
+
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
   const { setScenarioIds } = useShowcaseStore()
   const { issuerId } = useHelpersStore()
+  const {currentShowcaseSlug} = useUiStore()
   
   const [localSelectedStep, setLocalSelectedStep] = useState<Screen | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -398,6 +402,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
         if (!scenario) continue;
         try {
           const result = await createScenarioAsync(scenario);
+
           if (result && result.issuanceScenario) {
             scenarioIds.push(result.issuanceScenario.id);
             toast.success(`Scenario created for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
@@ -406,10 +411,28 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
           }
         } catch (error) {
           return { success: false, message: 'Error creating scenario', error };
+        } finally {
+          debugLog('set scenario ids createScenarioAsync result ==> ', scenarioIds, currentShowcaseSlug);
+          setScenarioIds(scenarioIds);
+          if (currentShowcaseSlug && scenarioIds.length > 0) {
+            debugLog('Directly updating showcase with scenario IDs:', scenarioIds);
+            
+            try {
+              await updateShowcaseScenariosAsync({ 
+                showcaseSlug: currentShowcaseSlug, 
+                scenarioIds 
+              });
+              
+              debugLog('Successfully updated showcase with scenario IDs');
+            } catch (updateError) {
+              console.error('Error updating showcase with scenarios:', updateError);
+            }
+          }
+          
+          queryClient.invalidateQueries({ queryKey: ['showcase', currentShowcaseSlug] });
         }
       }
 
-      setScenarioIds(scenarioIds);
       return { success: true, scenarioIds };
     } catch (error) {
       return { success: false, message: 'Error in scenario creation', error };
@@ -462,7 +485,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
             data: scenario
           }, {
             onSuccess: () => {
-              queryClient.invalidateQueries({ queryKey: ['showcase', showcaseSlug] })
+              queryClient.invalidateQueries({ queryKey: ['showcase', slug] })
             }
           });
           
@@ -476,6 +499,8 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
         }
       }
 
+      // add scenario ids to the store
+      // add scenario ids to the shwocase 
       setScenarioIds(scenarioIds);
       return { success: true, scenarioIds };
     } catch (error) {

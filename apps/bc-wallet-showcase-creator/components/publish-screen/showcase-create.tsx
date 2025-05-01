@@ -158,8 +158,6 @@ export const ShowcaseCreate = () => {
           setCurrentShowcaseSlug(data.showcase.slug)
           setShowcase({ ...formData, tenantId, bannerImage: formData.bannerImage })
           toast.success('Showcase created successfully')
-          // TODO: when dynamic URL is implemented
-          // router.push(`/showcases/${response.showcase.slug}/characters`)
           router.push(`/showcases/create/characters`)
         } else {
           toast.error('Error creating showcase')

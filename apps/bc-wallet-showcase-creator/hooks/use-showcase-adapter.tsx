@@ -85,6 +85,7 @@ export function useShowcaseAdapter(slug?: string) {
       }
       
       debugLog('Saving showcase:', data);
+      debugLog('StoreShowcase:', storeShowcase);
       
       const showcaseData = {
         name: data.name,
@@ -92,13 +93,12 @@ export function useShowcaseAdapter(slug?: string) {
         status: data.status || "ACTIVE",
         hidden: data.hidden || false,
         scenarios: storeShowcase.scenarios,
-        credentialDefinitions: selectedCredentialDefinitionIds,
         personas: data.personas || storeShowcase.personas,
         bannerImage: data.bannerImage,
         tenantId,
         completionMessage: data.completionMessage,
       };
-      
+      console.log('showcaseData ==> ', showcaseData);
       const updatedShowcase = await updateShowcase(showcaseData);
       setStoreShowcase(showcaseData);
       

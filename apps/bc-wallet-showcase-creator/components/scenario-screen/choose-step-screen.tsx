@@ -15,10 +15,6 @@ export const CreateScenariosStepsScreen = () => {
   const t = useTranslations()
   const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter()
 
-  useEffect(() => {
-    console.log('Component re-rendered with stepState:', stepState)
-  }, [stepState])
-
   const handleAddStep = (type: StepType) => {
     if(type == 'HUMAN_TASK'){
       createStep(
