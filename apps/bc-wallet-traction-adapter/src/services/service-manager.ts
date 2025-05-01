@@ -8,8 +8,8 @@ import { UpdatedTokens, TractionService } from './traction-service'
 
 class ServiceManager {
   private readonly services = new LRUCache<string, TractionService | ShowcaseApiService>({
-    max: environment.traction.TENANT_SESSION_CACHE_SIZE,
-    ttl: environment.traction.TENANT_SESSION_TTL_MINS * 60,
+    max: environment.traction.TRACTION_TENANT_SESSION_CACHE_SIZE,
+    ttl: environment.traction.TRACTION_TENANT_SESSION_TTL_MINS * 60,
   })
 
   public async getTractionService(
@@ -33,12 +33,12 @@ class ServiceManager {
       // Update token if provided
       /*if (decodedToken) {  TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
         service.updateBearerToken(decodedToken)
-      } else if (!service.hasBearerToken() && environment.traction.FIXED_API_KEY) {
-        service.updateBearerToken(await service.getTenantToken(environment.traction.FIXED_API_KEY))
+      } else if (!service.hasBearerToken() && environment.traction.TRACTION_DEFAULT_API_KEY) {
+        service.updateBearerToken(await service.getTenantToken(environment.traction.TRACTION_DEFAULT_API_KEY))
       }*/
       // -> Alternative logic
-      if (!(await service.hasBearerToken()) && environment.traction.FIXED_API_KEY) {
-        const freshTractionToken = await service.getTenantToken(environment.traction.FIXED_API_KEY)
+      if (!(await service.hasBearerToken()) && environment.traction.TRACTION_DEFAULT_API_KEY) {
+        const freshTractionToken = await service.getTenantToken(environment.traction.TRACTION_DEFAULT_API_KEY)
         updatedTokens.tractionToken = freshTractionToken
       }
       service.updateBearerTokens(updatedTokens)
@@ -48,13 +48,13 @@ class ServiceManager {
     const showcaseApiService = new ShowcaseApiService(showcaseApiUrlBase)
     const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
     /*
-    if (!decodedToken && environment.traction.FIXED_API_KEY) { TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
-      tractionService.updateBearerToken(await tractionService.getTenantToken(environment.traction.FIXED_API_KEY))
+    if (!decodedToken && environment.traction.TRACTION_DEFAULT_API_KEY) { TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
+      tractionService.updateBearerToken(await tractionService.getTenantToken(environment.traction.TRACTION_DEFAULT_API_KEY))
     }
 */
     // -> Alternative logic
-    if (environment.traction.FIXED_API_KEY) {
-      const freshTractionToken = await tractionService.getTenantToken(environment.traction.FIXED_API_KEY)
+    if (environment.traction.TRACTION_DEFAULT_API_KEY) {
+      const freshTractionToken = await tractionService.getTenantToken(environment.traction.TRACTION_DEFAULT_API_KEY)
       updatedTokens.tractionToken = freshTractionToken
     }
     tractionService.updateBearerTokens(updatedTokens)

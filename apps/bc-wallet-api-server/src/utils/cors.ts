@@ -2,7 +2,7 @@ import type { CorsOptions } from 'cors'
 
 export const corsOptions: CorsOptions = {
   origin: (requestOrigin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    const origins = process.env.ALLOW_ORIGINS?.replace(/\s+/g, '').split(/[,;]/).filter(Boolean) ?? ['*']
+    const origins = process.env.CORS_ALLOW_ORIGINS?.replace(/\s+/g, '').split(/[,;]/).filter(Boolean) ?? ['*']
 
     if (!requestOrigin || process.env.CORS_DISABLED === 'true') return callback(null, true)
     if (origins.includes('*') || origins.includes(requestOrigin)) {
@@ -12,11 +12,17 @@ export const corsOptions: CorsOptions = {
     return callback(new Error(msg), false)
   },
   methods: (() => {
-    const methods = process.env.ALLOW_METHODS?.replace(/\s+/g, '').split(/[,;]/).filter(Boolean) ?? ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    const methods = process.env.CORS_ALLOW_METHODS?.replace(/\s+/g, '').split(/[,;]/).filter(Boolean) ?? [
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+      'OPTIONS',
+    ]
     return methods.includes('*') ? '*' : methods
   })(),
   allowedHeaders: (() => {
-    const headers = process.env.ALLOW_HEADERS?.replace(/\s+/g, '').split(/[,;]/).filter(Boolean) ?? [
+    const headers = process.env.CORS_ALLOW_HEADERS?.replace(/\s+/g, '').split(/[,;]/).filter(Boolean) ?? [
       'Content-Type',
       'Authorization',
       'X-Requested-With',
@@ -26,5 +32,5 @@ export const corsOptions: CorsOptions = {
     ]
     return headers.includes('*') ? '*' : headers
   })(),
-  credentials: process.env.ALLOW_CREDENTIALS === 'true',
+  credentials: process.env.CORS_ALLOW_CREDENTIALS === 'true',
 }

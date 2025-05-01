@@ -23,19 +23,18 @@ There are two .env files that you need to create and configure on the showcase. 
 ```bash
 TENANT_ID=<YOUR_TENNANT_ID>
 API_KEY=<YOUR_API_KEY>
-TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
-TRACTION_DID=<YOUR_AGENTS_DID>
+TRACTION_API_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
 BASE_ROUTE=/digital-trust/showcase
 STUDENT_VERSION=1.6
 LAWYER_VERSION=1.54
 PERSON_VERSION=1.3
-WEBHOOK_SECRET=<YOUR_WEBHOOK_SECRET>
+TRACTION_WEBHOOK_SECRET=<YOUR_TRACTION_WEBHOOK_SECR>
 ```
 populate the values with the API key, and webhook secret that you made in the previous step. You'll also need you agent's DID which can be found under `Profile > Public DID` after clicking the wallet icon on the top right.  
 In the client folder the .env file should look like this:
 ```bash
 SNOWPLOW_ENDPOINT=spm.apps.gov.bc.ca
-REACT_APP_HOST_BACKEND=http://127.0.0.1:5000
+REACT_APP_DEMO_API_URL=http://127.0.0.1:5000
 REACT_APP_BASE_ROUTE=/digital-trust/showcase
 REACT_APP_INSIGHTS_PROJECT_ID=
 ```

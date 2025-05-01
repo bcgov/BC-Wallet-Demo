@@ -78,6 +78,7 @@
     "issuer_name_label": "Nom de l'Émetteur",
     "issuer_name_placeholder": "Entrez le Nom de l'Émetteur",
     "version_label": "Version",
+    "source_label":"Source",
     "version_placeholder": "Entrez la version",
     "attributes_label": "Attributs",
     "attribute_label": "Attribute",
