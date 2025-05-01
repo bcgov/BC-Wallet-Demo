@@ -5,9 +5,10 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { Footer } from '@/components/footer'
 import { SidebarInset } from '@/components/ui/sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import type { PageParams } from '@/types'
 import { SessionProvider } from 'next-auth/react'
 import { CommandDialogMenu } from '@/components/command/command-dialog-menu'
+import type { PageParams } from '@/types'
+
 type Params = PropsWithChildren<{
   params: PageParams
 }>

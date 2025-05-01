@@ -23,7 +23,7 @@ export const DisplayAddedCredentials = ({
 }: DisplayAddedCredentialsProps) => {
   const t = useTranslations();
   const hasCredentials = (credentials || []).length > 0;
-  const updateCredentialSchema = useUpdateCredentialSchema(); // no destructuring
+  const updateCredentialSchema = useUpdateCredentialSchema();
 
   const [isEditing, setIsEditing] = useState(false);
   if (!hasCredentials) {

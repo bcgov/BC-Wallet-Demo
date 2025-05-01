@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useCreateAsset } from '@/hooks/use-asset'
 import { useRouter } from '@/i18n/routing'
-import { convertBase64 } from '@/lib/utils'
+import { baseUrl, convertBase64 } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor, X } from 'lucide-react'
 import { Trash2 } from 'lucide-react'
@@ -14,17 +14,15 @@ import { FormTextArea, FormTextInput } from '../text-input'
 import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-import { AssetResponse, ShowcaseRequest } from 'bc-wallet-openapi'
+import { AssetResponse, ShowcaseRequest, ShowcaseResponse, ShowcaseStatus } from 'bc-wallet-openapi'
 
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { useUiStore } from '@/hooks/use-ui-store'
-import { useCreateShowcase } from '@/hooks/use-showcases'
+import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { showcaseRequestFormData } from '@/schemas/showcase'
-import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { useOnboardingCreation } from '@/hooks/use-onboarding-creation'
 
 const BannerImageUpload = ({
   text,
@@ -36,8 +34,16 @@ const BannerImageUpload = ({
   onChange: (value: string) => void
 }) => {
   const t = useTranslations()
-  const [preview, setPreview] = useState<string | null>(value || null)
+  const [preview, setPreview] = useState<string | null>(null)
   const { mutateAsync: createAsset } = useCreateAsset()
+
+  useEffect(() => {
+    if (value) {
+      setPreview(`${baseUrl}/assets/${value}/file`)
+    } else {
+      setPreview(null)
+    }
+  }, [value])
 
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
@@ -51,7 +57,7 @@ const BannerImageUpload = ({
             },
             {
               onSuccess: (data: unknown) => {
-                const response = data as AssetResponse                
+                const response = data as AssetResponse
                 setPreview(`data:${newValue.type};base64,${base64}`)
                 onChange(response.asset.id)
               },
@@ -99,7 +105,7 @@ const BannerImageUpload = ({
               src={preview}
               width={300}
               height={100}
-              style={{ width: '90%', height: '90%' }}
+              priority={true}
             />
           ) : (
             <p className="text-center text-xs lowercase">
@@ -120,21 +126,17 @@ const BannerImageUpload = ({
   )
 }
 
-export const ShowcaseCreate = () => {
+export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const t = useTranslations()
   const { setCurrentShowcaseSlug } = useUiStore()
   const router = useRouter()
-  const { mutateAsync: createShowcase } = useCreateShowcase()
-  const { setShowcase, reset: resetCreateShowcase } = useShowcaseStore()
-  const { reset: resetPresentationCreation } = usePresentationCreation()
-  const { reset: resetOnboardingCreation } = useOnboardingCreation()
-  const { tenantId } = useHelpersStore()
+  const { mutateAsync: updateShowcase } = useUpdateShowcase(slug)
+  const { setShowcaseFromResponse } = useShowcaseStore()
+  const { setSelectedPersonaIds, setScenarioIds } = useShowcaseStore()
+  const { tenantId, setTenantId } = useHelpersStore()
+  const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    resetCreateShowcase()
-    resetPresentationCreation()
-    resetOnboardingCreation()
-  }, [])
+  const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(slug)
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseRequestFormData),
@@ -142,40 +144,95 @@ export const ShowcaseCreate = () => {
     defaultValues: {
       name: '',
       description: '',
+      completionMessage: '',
       status: 'ACTIVE',
       hidden: false,
       scenarios: [],
       personas: [],
-      tenantId,
+      tenantId: '',
       bannerImage: '',
     },
   })
 
+  useEffect(() => {
+    setTenantId(showcaseData?.showcase?.tenantId || '')
+  }, [showcaseData, setTenantId])
+
+  useEffect(() => {
+    if (showcaseData && !isShowcaseLoading) {
+      const { showcase } = showcaseData
+
+      if (!showcase) {
+        return
+      }
+
+      const directBannerId =
+        typeof showcase.bannerImage === 'string'
+          ? showcase.bannerImage
+          : showcase.bannerImage && typeof showcase.bannerImage === 'object' && 'id' in showcase.bannerImage
+            ? showcase.bannerImage.id
+            : ''
+
+      form.reset({
+        name: showcase.name,
+        description: showcase.description,
+        completionMessage: showcase.completionMessage || '',
+        status: showcase.status,
+        hidden: showcase.hidden,
+        scenarios: showcase.scenarios?.map((s) => (typeof s === 'string' ? s : s.id)) || [],
+        personas: showcase.personas?.map((p) => (typeof p === 'string' ? p : p.id)) || [],
+        tenantId: showcase.tenantId || '',
+        bannerImage: directBannerId,
+      })
+
+      setIsLoading(false)
+      setTenantId(showcase.tenantId || '')
+      setCurrentShowcaseSlug(showcase.slug)
+      setShowcaseFromResponse(showcase)
+      setSelectedPersonaIds(showcase.personas?.map((p) => (typeof p === 'string' ? p : p.id)) || [])
+      setScenarioIds(showcase.scenarios?.map((s) => (typeof s === 'string' ? s : s.id)) || [])
+    }
+  }, [
+    showcaseData,
+    isShowcaseLoading,
+    form,
+    tenantId,
+    setShowcaseFromResponse,
+    setCurrentShowcaseSlug,
+    setSelectedPersonaIds,
+  ])
+
   const onSubmit = async (formData: ShowcaseRequest) => {
-    createShowcase(formData, {
-      onSuccess: (data) => {
-        if (data.showcase?.slug) {
-          setCurrentShowcaseSlug(data.showcase.slug)
-          setShowcase({ ...formData, tenantId, bannerImage: formData.bannerImage })
-          toast.success('Showcase created successfully')
-          router.push(`/showcases/create/characters`)
-        } else {
-          toast.error('Error creating showcase')
-        }
-      },
-      onError: () => {
-        toast.error('Error creating showcase')
-      },
-    })
+    try {
+      await updateShowcase(formData, {
+        onSuccess: (data: ShowcaseResponse) => {
+          if (data.showcase) {
+            toast.success('Showcase updated successfully')
+            router.push(`/showcases/${slug}`)
+          } else {
+            toast.error('Error updating showcase')
+          }
+        },
+        onError: (error) => {
+          console.error('Update error:', error)
+          toast.error('Error updating showcase')
+        },
+      })
+    } catch (error) {
+      console.error('Submit error:', error)
+      toast.error('Error updating showcase')
+    }
   }
 
-  const handleCancel = () => {
-    form.reset()
+  const handleCancel = () => router.back()
+
+  if (isLoading || isShowcaseLoading) {
+    return <div className="p-6">{t('showcases.loading_showcase_data_label')}</div>
   }
 
   return (
     <div className="flex flex-col p-6">
-      <StepHeader icon={<Monitor strokeWidth={3} />} title={'Create your showcase'} showDropdown={false} />
+      <StepHeader icon={<Monitor strokeWidth={3} />} title={'Edit Showcase'} showDropdown={false} />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-grow space-y-6">
@@ -204,6 +261,26 @@ export const ShowcaseCreate = () => {
               error={form.formState.errors.completionMessage?.message}
               placeholder="Add details here that should appear in the pop-up box that appears at completion of your showcase."
             />
+
+            <div className="flex items-center space-x-2 mt-2">
+              <input type="checkbox" id="hidden" {...form.register('hidden')} className="w-4 h-4" />
+              <label htmlFor="hidden" className="text-md font-medium text-foreground">
+                Hide from public view
+              </label>
+            </div>
+
+            <div className="space-y-2 mt-4">
+              <label className="text-md font-bold text-foreground">Status</label>
+              <select
+                {...form.register('status')}
+                className="w-full p-2 border rounded-md bg-light-bg dark:bg-dark-input"
+              >
+                <option value={ShowcaseStatus.Pending}>Pending</option>
+                <option value={ShowcaseStatus.Active}>Active</option>
+                <option value={ShowcaseStatus.Archived}>Archived</option>
+              </select>
+            </div>
+
             <div className="space-y-2">
               <BannerImageUpload
                 text={t('onboarding.icon_label')}
@@ -216,9 +293,11 @@ export const ShowcaseCreate = () => {
                   })
                 }
               />
-              {form.formState.errors.bannerImage?.message &&
-               <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">{form.formState.errors.bannerImage?.message}</p>
-              }
+              {form.formState.errors.bannerImage?.message && (
+                <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
+                  {form.formState.errors.bannerImage?.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -227,8 +306,19 @@ export const ShowcaseCreate = () => {
 
             <div className="flex gap-3">
               <ButtonOutline disabled={!form.formState.isValid || !form.formState.isDirty} type="submit">
-                {t('action.next_label')}
+                {t('action.save_label')}
               </ButtonOutline>
+
+              {slug && (
+                <ButtonOutline
+                  onClick={(e) => {
+                    e.preventDefault()
+                    router.push(`/showcases/${slug}/characters`)
+                  }}
+                >
+                  {t('action.next_label')}
+                </ButtonOutline>
+              )}
             </div>
           </div>
         </form>

@@ -11,13 +11,9 @@ import { StepType } from 'bc-wallet-openapi'
 import { useEffect } from 'react'
 import { createDefaultStep, createAdvancedStep } from '@/lib/steps'
 
-export const CreateScenariosStepsScreen = () => {
+export const CreateScenariosStepsScreen = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter()
-
-  useEffect(() => {
-    console.log('Component re-rendered with stepState:', stepState)
-  }, [stepState])
 
   const handleAddStep = (type: StepType) => {
     if(type == 'HUMAN_TASK'){
@@ -54,20 +50,19 @@ export const CreateScenariosStepsScreen = () => {
   return (
     <div
       id="editStep"
-      className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
+      className="bg-background text-light-text dark:text-dark-text p-6 rounded-md"
     >
       {!activePersonaId && <NoSelection text={t('onboarding.select_persona_message')} />}
       {activePersonaId && stepState === 'no-selection' && (
         <NoSelection
           text={
-            t('onboarding.no_step_selected_message') ||
-            'No step selected. Please select a step from the left panel or create a new one.'
+            t('onboarding.no_step_selected_message')
           }
         />
       )}
       {activePersonaId && stepState === 'creating-new' && <ChooseStepType addNewStep={handleAddStep} />}
-      {activePersonaId && stepState === 'editing-basic' && <BasicStepEdit />}
-      {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit />}
+      {activePersonaId && stepState === 'editing-basic' && <BasicStepEdit slug={slug} />}
+      {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit slug={slug} />}
     </div>
   )
 }
