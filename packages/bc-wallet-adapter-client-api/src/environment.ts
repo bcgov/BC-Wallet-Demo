@@ -11,7 +11,7 @@ const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
     host: process.env.AMQ_HOST || 'localhost',
     port: parseInt(process.env.AMQ_PORT || '5672', 10),
     reconnect: true,
-    username: process.env.AMQ_USER || 'guest',
+    username: process.env.AMQ_USERNAME || 'guest',
     password: process.env.AMQ_PASSWORD || 'guest',
   } satisfies ConnectionOptions
 
@@ -57,14 +57,14 @@ export const environment = {
   messageBroker: {
     AMQ_HOST: process.env.AMQ_HOST || 'localhost',
     AMQ_PORT: parsePositiveInt(process.env.AMQ_PORT, 5672),
-    AMQ_USER: process.env.AMQ_USER || 'guest',
+    AMQ_USERNAME: process.env.AMQ_USERNAME || 'guest',
     AMQ_PASSWORD: process.env.AMQ_PASSWORD || 'guest',
     AMQ_TRANSPORT:
       process.env.AMQ_TRANSPORT === 'tcp' || process.env.AMQ_TRANSPORT === 'tls' || process.env.AMQ_TRANSPORT === 'ssl'
         ? process.env.AMQ_TRANSPORT
         : 'tls',
     getConnectionOptions: () => createAmqConnectionOptions(process.env.AMQ_TRANSPORT),
-    MESSAGE_PROCESSOR_TOPIC: validateTopic(process.env.MESSAGE_PROCESSOR_TOPIC) ?? 'showcase-cmd',
+    MESSAGE_PROCESSOR_TOPIC: validateTopic(process.env.TRACTION_ADAPTER_MESSAGE_TOPIC) ?? 'showcase-cmd',
   },
   encryption: {
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',

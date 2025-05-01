@@ -90,6 +90,6 @@ class ApiService {
   }
 }
 
-const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_BACKEND)
+const apiClient = new ApiService(env.NEXT_PUBLIC_SHOWCASE_API_URL)
 
 export default apiClient
