@@ -83,22 +83,19 @@ export function useShowcaseAdapter(slug?: string) {
       if (!effectiveSlug) {
         throw new Error('No showcase slug available');
       }
-      
-      debugLog('Saving showcase:', data);
-      debugLog('StoreShowcase:', storeShowcase);
-      
+
       const showcaseData = {
         name: data.name,
         description: data.description,
         status: data.status || "ACTIVE",
         hidden: data.hidden || false,
-        scenarios: storeShowcase.scenarios,
+        scenarios: Array.from(new Set(storeShowcase.scenarios || [])),
         personas: data.personas || storeShowcase.personas,
         bannerImage: data.bannerImage,
         tenantId,
         completionMessage: data.completionMessage,
       };
-      console.log('showcaseData ==> ', showcaseData);
+
       const updatedShowcase = await updateShowcase(showcaseData);
       setStoreShowcase(showcaseData);
       

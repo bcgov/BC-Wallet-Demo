@@ -101,13 +101,14 @@ export const useUpdateShowcaseScenarios = () => {
 
       const existingScenarioIds = showcase?.scenarios?.map((s) => s.id) || []
 
-      const allScenarioIds = Array.from(new Set([...existingScenarioIds, ...scenarioIds]))
+      const scenarioIdSet = new Set([...existingScenarioIds, ...scenarioIds]);
+      const uniqueScenarioIds = Array.from(scenarioIdSet);
 
       const parsed = showcaseToShowcaseRequest(showcase)
 
       const updateData = {
         ...parsed,
-        scenarios: allScenarioIds,
+        scenarios: uniqueScenarioIds,
       }
 
       const updateResponse = await apiClient.put(`/showcases/${showcaseSlug}`, updateData)

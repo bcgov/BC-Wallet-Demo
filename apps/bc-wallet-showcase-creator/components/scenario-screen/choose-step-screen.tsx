@@ -11,7 +11,7 @@ import { StepType } from 'bc-wallet-openapi'
 import { useEffect } from 'react'
 import { createDefaultStep, createAdvancedStep } from '@/lib/steps'
 
-export const CreateScenariosStepsScreen = () => {
+export const CreateScenariosStepsScreen = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter()
 
@@ -61,8 +61,8 @@ export const CreateScenariosStepsScreen = () => {
         />
       )}
       {activePersonaId && stepState === 'creating-new' && <ChooseStepType addNewStep={handleAddStep} />}
-      {activePersonaId && stepState === 'editing-basic' && <BasicStepEdit />}
-      {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit />}
+      {activePersonaId && stepState === 'editing-basic' && <BasicStepEdit slug={slug} />}
+      {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit slug={slug} />}
     </div>
   )
 }

@@ -27,7 +27,7 @@ export default async function CreateScenariosPage({ params }: { params: Promise<
             <CreateScenariosScreen />
           </div>
           <div className="w-2/3 bg-background border shadow-md rounded-md flex flex-col">
-            <CreateScenariosStepsScreen />
+            <CreateScenariosStepsScreen slug={slug} />
           </div>
         </div>
       </div>
