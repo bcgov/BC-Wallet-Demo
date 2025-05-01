@@ -57,8 +57,8 @@ api_server:
     CORS_ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
     CORS_ALLOW_HEADERS: "Content-Type, Authorization"
     CORS_ALLOW_CREDENTIALS: "true"
-    OIDC_REALM: your_oidc_realm
-    OIDC_SERVER_URL: your_oidc_server_url
+    OIDC_REALM: "BC"
+    OIDC_SERVER_URL: "https://auth01.test.sphereon.com/auth"
     ENCRYPTION_KEY: SENSITIVE
     OIDC_CLIENT_ID: SENSITIVE
     OIDC_CLIENT_SECRET: SENSITIVE
@@ -283,7 +283,11 @@ demo_server:
     CORS_ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
     CORS_ALLOW_HEADERS: "Content-Type, Authorization"
     CORS_ALLOW_CREDENTIALS: "true"
+    TENANT_ID: TENANT_ID
+    API_KEY: SENSITIVE
+    BASE_ROUTE: /digital-trust/showcase
     TRACTION_WEBHOOK_SECRET: SENSITIVE
+    TRACTION_API_URL: https://admin.traction.test.sphereon.com
   resources:
     limits:
       cpu: 200m
