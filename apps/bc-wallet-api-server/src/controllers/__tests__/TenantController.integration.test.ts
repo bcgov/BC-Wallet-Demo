@@ -22,6 +22,7 @@ import { ShowcaseStatus } from '../../types'
 import TenantController from '../TenantController'
 import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
+import { environment } from 'bc-wallet-adapter-client-api/dist/environment'
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
@@ -29,6 +30,8 @@ describe('TenantController Integration Tests', () => {
   let request: any
 
   beforeAll(async () => {
+    process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
+    process.env.NONCE_SIZE = `${environment.encryption.NONCE_SIZE ?? 12}`
     await setupRabbitMQ()
     const { client: pgClient, database } = await setupTestDatabase()
     client = pgClient
@@ -52,6 +55,9 @@ describe('TenantController Integration Tests', () => {
     // 1. Create a tenant
     const tenantRequest: TenantRequest = {
       id: 'test-tenant-1',
+      realm: 'test_realm',
+      clientId: 'test_client_id',
+      clientSecret: 'super_secret',
     }
 
     const createResponse = await request.post('/tenants').send(tenantRequest).expect(201)
@@ -59,6 +65,9 @@ describe('TenantController Integration Tests', () => {
     const createdTenant = createResponse.body.tenant
     expect(createdTenant).toHaveProperty('id')
     expect(createdTenant.id).toEqual('test-tenant-1')
+    expect(createdTenant.clientId).toEqual('test_client_id')
+    expect(createdTenant.realm).toEqual('test_realm')
+    expect(createdTenant.clientSecret).toBeDefined()
     expect(createdTenant.createdAt).toBeDefined()
 
     // 2. Retrieve all tenants
@@ -73,6 +82,9 @@ describe('TenantController Integration Tests', () => {
     // 4. Update the tenant
     const updatedRequest = {
       id: 'updated-tenant-1',
+      realm: 'test_realm',
+      clientId: 'test_client_id',
+      clientSecret: 'super_secret',
     }
 
     const updateResponse = await request.put(`/tenants/${createdTenant.id}`).send(updatedRequest).expect(200)

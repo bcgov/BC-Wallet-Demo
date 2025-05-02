@@ -1,65 +1,66 @@
 import { Buffer } from 'buffer'
 import fetch from 'cross-fetch'
-import process from 'node:process'
 import { Action, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
 
-import { Claims } from '../types/auth/claims'
-import { ISessionServiceUpdater } from '../types/services/session'
+import TenantService from '../services/TenantService'
+
+type JwtPayload = {
+  exp?: number
+  iat?: number
+  jti?: string
+  iss?: string
+  aud?: string
+  sub?: string
+  typ?: string
+  azp?: string
+  sid?: string
+  acr?: string
+  'allowed-origins'?: string[]
+  realm_access?: {
+    roles: string[]
+  }
+  resource_access?: {
+    [key: string]: {
+      roles: string[]
+    }
+  }
+  scope?: string
+  email_verified?: boolean
+  name?: string
+  preferred_username?: string
+  given_name?: string
+  family_name?: string
+  email?: string
+  [key: string]: any
+}
 
 export function checkRoles(token: Token, roles: string[]) {
   if (token && !roles.length) return true
   return !!(token && roles.find((role) => token.hasRole(role)))
 }
 
-export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
-  const authHeader: string = action.request.headers['authorization']
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new UnauthorizedError('Missing or malformed Authorization header')
-  }
-
-  try {
-    const accessToken = authHeader.split(' ')[1]
-    // Introspect the access token
-    if (!(await isAccessTokenValid(accessToken))) {
-      return false
-    }
-    const token = new Token(accessToken, `${process.env.OIDC_CLIENT_ID}`)
-    // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
-    // User roles which at the moment we are not using, do not need any prefix.
-    return checkRoles(token, roles)
-  } catch (e) {
-    throw new UnauthorizedError(e.message)
-  }
-}
-
-export async function isAccessTokenValid(token: string): Promise<boolean> {
-  const authorization =
-    'Basic ' + Buffer.from(`${process.env.OIDC_CLIENT_ID}:${process.env.OIDC_CLIENT_SECRET}`).toString('base64')
-  const response = await fetch(
-    `${process.env.OIDC_SERVER_URL}/realms/${process.env.OIDC_REALM}/protocol/openid-connect/token/introspect`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: authorization,
-      },
-      body: new URLSearchParams({
-        token: token,
-        client_id: `${process.env.OIDC_CLIENT_ID}`,
-        client_secret: `${process.env.OIDC_CLIENT_SECRET}`,
-      }),
+export async function isAccessTokenValid(
+  token: string,
+  authServerUrl: string,
+  clientId: string,
+  clientSecret: string,
+): Promise<boolean> {
+  const authorization = 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+  return fetch(`${authServerUrl}/protocol/openid-connect/token/introspect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: authorization,
     },
-  )
-
-  await checkResponse(response)
-  const claims = (await response.json()) as Claims
-  if (claims.active) {
-    const sessionUpdater = Container.get('ISessionService') as ISessionServiceUpdater
-    sessionUpdater.setActiveClaims(claims)
-    return true
-  }
-  return false
+    body: new URLSearchParams({
+      token: token,
+      client_id: `${clientId}`,
+      client_secret: `${clientSecret}`,
+    }),
+  })
+    .then(checkResponse)
+    .then((response) => response.json().then((data) => data.active))
 }
 
 async function checkResponse(response: Response) {
@@ -86,10 +87,52 @@ async function checkResponse(response: Response) {
   throw new Error(errorMessage)
 }
 
-// TODO Check if this is correct, or even necessary
-export function isAccessTokenAudienceValid(token: Token): boolean {
-  const audienceData = Array.isArray(token.payload.aud) ? token.payload.aud : [token.payload.aud]
-  return audienceData.includes(process.env.OIDC_CLIENT_ID)
+export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
+  const authHeader: string = action.request.headers['authorization']
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new UnauthorizedError('Missing or malformed Authorization header')
+  }
+  const accessToken = authHeader.split(' ')[1]
+  const token = new Token(accessToken)
+
+  const tenantService = Container.get(TenantService)
+  const authServerUrl = token.payload.iss
+  const realm = authServerUrl?.split('/').slice(-1)[0]
+  const clientId = token.payload.azp
+
+  if (!realm || !clientId) {
+    throw new UnauthorizedError('Realm and Client ID are required in token')
+  }
+
+  let tenant
+
+  try {
+    tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
+  } catch (error) {
+    if (
+      action.request.url.includes('/tenants') &&
+      action.request.body.realm &&
+      action.request.body.clientId &&
+      action.request.body.clientSecret
+    ) {
+      tenant = await tenantService.createTenant({
+        id: action.request.body.clientId,
+        realm: action.request.body.realm,
+        clientId: action.request.body.clientId,
+        clientSecret: action.request.body.clientSecret,
+      })
+    } else {
+      throw new UnauthorizedError('Tenant not found')
+    }
+  }
+
+  // Calls the introspection endpoint to validate the token
+  if (!(await isAccessTokenValid(accessToken, authServerUrl, tenant.clientId, tenant.clientSecret))) {
+    throw new UnauthorizedError('Invalid token')
+  }
+  // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
+  // User roles which at the moment we are not using, do not need any prefix.
+  return checkRoles(token, roles)
 }
 
 export function isAccessTokenExpired(token: Token): boolean {
@@ -104,34 +147,31 @@ export function isAccessTokenExpired(token: Token): boolean {
 }
 
 export class Token {
-  private readonly _payload: any
+  private readonly _payload: JwtPayload
 
-  public constructor(
-    private token: string,
-    private clientId: string,
-  ) {
+  public constructor(private token: string) {
     if (this.token) {
       const parts = token.split('.')
       if (parts.length !== 3) {
         throw new Error('Invalid token string')
       }
-      this._payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
+      this._payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
     } else {
       throw Error('token is required')
     }
   }
 
-  public get payload() {
+  public get payload(): JwtPayload {
     return this._payload
   }
 
   public hasRole = (name: string) => {
-    if (!this.clientId) {
+    if (!this._payload?.azp) {
       return false
     }
     const parts = name.split(':')
     if (parts.length === 1) {
-      return this.hasApplicationRole(this.clientId, parts[0])
+      return this.hasApplicationRole(this._payload?.azp, parts[0])
     }
     if (parts[0] === 'realm') {
       return this.hasRealmRole(parts[1])

@@ -7,6 +7,9 @@ classDiagram
     class Tenant {
         +id : String
         +users : List~User~
+        +realm : String
+        +clientId : String
+        +clientSecret : String
         +createdAt : DateTime
         +updatedAt : DateTime
         +deletedAt : DateTime

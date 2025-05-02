@@ -1,4 +1,13 @@
 import {
+  instanceOfTenantRequest,
+  TenantRequest,
+  TenantRequestToJSONTyped,
+  TenantResponse,
+  TenantResponseFromJSONTyped,
+  TenantsResponse,
+  TenantsResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -9,19 +18,11 @@ import {
   OnUndefined,
   Param,
   Post,
-  Put
+  Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
+
 import TenantService from '../services/TenantService'
-import {
-  instanceOfTenantRequest,
-  TenantRequest,
-  TenantRequestToJSONTyped,
-  TenantResponse,
-  TenantResponseFromJSONTyped,
-  TenantsResponse,
-  TenantsResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
 
 @JsonController('/tenants')
 @Service()

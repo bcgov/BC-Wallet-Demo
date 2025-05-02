@@ -1,4 +1,13 @@
 import {
+  AssetResponse,
+  AssetResponseFromJSONTyped,
+  AssetRequest,
+  AssetsResponse,
+  AssetsResponseFromJSONTyped,
+  instanceOfAssetRequest,
+} from 'bc-wallet-openapi'
+import { Response } from 'express'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -13,15 +22,7 @@ import {
   Res,
 } from 'routing-controllers'
 import { Service } from 'typedi'
-import { Response } from 'express'
-import {
-  AssetResponse,
-  AssetResponseFromJSONTyped,
-  AssetRequest,
-  AssetsResponse,
-  AssetsResponseFromJSONTyped,
-  instanceOfAssetRequest,
-} from 'bc-wallet-openapi'
+
 import AssetService from '../services/AssetService'
 import { assetDTOFrom, newAssetFrom } from '../utils/mappers'
 
@@ -73,7 +74,10 @@ class AssetController {
 
   @Authorized()
   @Put('/:id')
-  public async put(@Param('id') id: string, @Body({ options: { limit: '250mb' } }) assetRequest: AssetRequest): Promise<AssetResponse> {
+  public async put(
+    @Param('id') id: string,
+    @Body({ options: { limit: '250mb' } }) assetRequest: AssetRequest,
+  ): Promise<AssetResponse> {
     try {
       if (!instanceOfAssetRequest(assetRequest)) {
         return Promise.reject(new BadRequestError())
