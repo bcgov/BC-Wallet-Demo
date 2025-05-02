@@ -36,9 +36,8 @@ const initialState = {
     status: ShowcaseStatus.Active,
     hidden: false,
     scenarios: [],
-    credentialDefinitions: [],
     personas: [],
-    tenantId: "test-tenant-1",
+    tenantId: "",
   },
 
   showcaseResponse: {
@@ -52,7 +51,6 @@ const initialState = {
     status: ShowcaseStatus.Active,
     hidden: false,
     scenarios: [],
-    credentialDefinitions: [],
     personas: [],
     bannerImage: undefined,
     completionMessage: "",
@@ -65,28 +63,6 @@ const initialState = {
     status: ShowcaseStatus.Active,
     hidden: false,
     scenarios: [],
-    credentialDefinitions: [{
-      "name": "example_name",
-      "credentialSchema": {
-        "name": "example_name",
-        "version": "example_version",
-        "identifierType": "DID",
-        "identifier": "did:sov:XUeUZauFLeBNofY3NhaZCB",
-        "source": "CREATED",
-        "attributes": [
-          {
-            "name": "example_attribute_name1",
-            "value": "example_attribute_value1",
-            "type": "STRING"
-          }
-        ]
-      },
-      "identifierType": "DID",
-      "identifier": "did:sov:XUeUZauFLeBNofY3NhaZCB",
-      "version": "example_version",
-      "type": "ANONCRED",
-      "representations": []
-    }],
     personas: [],
   },
 
@@ -105,6 +81,16 @@ export const useShowcaseStore = create<ShowcaseStore>()(
       })),
 
       setShowcaseFromResponse: (showcase: Showcase) => set((state) => ({
+        showcase: { ...state.showcase, 
+          tenantId: showcase.tenantId, 
+          slug: showcase.slug, 
+          name: showcase.name, 
+          description: showcase.description,
+          status: showcase.status,
+          hidden: showcase.hidden,
+          personas: showcase.personas.map(p => p.id),
+          scenarios: showcase.scenarios.map(s => s.id),
+        },
         showcaseResponse: { ...state.showcaseResponse, ...showcase },
         displayShowcase: { ...state.displayShowcase, ...showcase }
       })),
@@ -118,7 +104,13 @@ export const useShowcaseStore = create<ShowcaseStore>()(
       })),
       
       setScenarioIds: (scenarioIds) => set((state) => ({
-        showcase: { ...state.showcase, scenarios:  scenarioIds.length === 0 ? [] : [...state.showcase.scenarios ?? [] , ...scenarioIds] }
+        showcase: {
+          ...state.showcase, 
+          scenarios: scenarioIds.length === 0 ? [] : [
+            ...state.showcase.scenarios ?? [],
+            ...scenarioIds
+          ] 
+        }
       })),
       
       setSelectedPersonaIds: (ids) => set({ selectedPersonaIds: ids }),
@@ -131,9 +123,10 @@ export const useShowcaseStore = create<ShowcaseStore>()(
       setDisplayCredentialDefinitions: (definitions) => set((state) => ({
         displayShowcase: { ...state.displayShowcase, credentialDefinitions: definitions }
       })),
-      
+
+
       setSelectedCredentialDefinitionIds: (ids) => set({ selectedCredentialDefinitionIds: ids }),
-      
+
       toggleSelectedCredentialDefinition: (definitionId) => set((state) => {
         const newSelectedIds = state.selectedCredentialDefinitionIds.includes(definitionId)
           ? state.selectedCredentialDefinitionIds.filter(id => id !== definitionId)
@@ -146,8 +139,8 @@ export const useShowcaseStore = create<ShowcaseStore>()(
       
       reset: () => set(initialState),
     }),
-    {
-      name: 'showcase-store',
+    { 
+      name: 'showcase-store'
     }
   )
 );

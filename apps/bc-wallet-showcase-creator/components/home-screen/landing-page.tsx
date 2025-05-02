@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useShowcases } from '@/hooks/use-showcases'
+import { useDeleteShowcase, useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
 import type { Showcase } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
@@ -15,14 +15,13 @@ import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
 
-
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
-
 
 export const LandingPage = () => {
   const t = useTranslations()
   const [searchTerm, setSearchTerm] = useState('')
   const { data, isLoading } = useShowcases()
+  const { mutateAsync: deleteShowcase } = useDeleteShowcase()
 
   const searchFilter = (showcase: Showcase) => {
     if (searchTerm === '') {
@@ -80,7 +79,7 @@ export const LandingPage = () => {
                       <div className="flex-shrink-0">
                         <DeleteButton
                           onClick={() => {
-                            console.log('delete', showcase.id)
+                            deleteShowcase(showcase.slug)
                           }}
                         />
                         <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />

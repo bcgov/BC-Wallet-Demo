@@ -9,7 +9,7 @@ export class WebhookController {
   public async handlePostWhook(@Body() params: any, @Req() req: any) {
     const socketMap: Map<string, Socket> = req.app.get('sockets')
     const api_key = req.headers['x-api-key']
-    if (api_key !== process.env.WEBHOOK_SECRET) {
+    if (api_key !== process.env.TRACTION_WEBHOOK_SECRET) {
       return { message: 'Unauthorized', status: 401 }
     }
     const connectionId = params.connection_id

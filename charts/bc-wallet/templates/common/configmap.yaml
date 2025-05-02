@@ -20,12 +20,12 @@ metadata:
     {{- include "bc-wallet.labels" . | nindent 4 }}
 data:
   {{- if .Values.postgresql.enabled }}
-  DB_HOST: {{ .Release.Name }}-postgresql
-  DB_PORT: "{{ .Values.postgresql.primary.service.ports.postgresql }}"
+  SHOWCASE_DB_HOST: {{ .Release.Name }}-postgresql
+  SHOWCASE_DB_PORT: "{{ .Values.postgresql.primary.service.ports.postgresql }}"
   {{- end }}
   {{- if .Values.rabbitmq.enabled }}
-  RABBITMQ_HOST: {{ .Release.Name }}-rabbitmq
-  RABBITMQ_PORT: "{{ .Values.rabbitmq.service.port }}"
+  AMQ_HOST: {{ .Release.Name }}-rabbitmq
+  AMQ_PORT: "{{ .Values.rabbitmq.service.port }}"
   RABBITMQ_MANAGEMENT_PORT: "{{ .Values.rabbitmq.service.managerPort }}"
   {{- end }}
   {{- if .Values.configMapData }}

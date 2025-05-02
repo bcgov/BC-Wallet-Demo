@@ -52,14 +52,14 @@ spec:
               secretKeyRef:
                 name: {{ include "bc-wallet.rabbitmq.secretName" . }}
                 key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
-          - name: AMQ_USER
+          - name: AMQ_USERNAME
             value: {{ .Values.rabbitmq.auth.username | quote }}
           {{- range $key, $value := .Values.traction_adapter.env }}
-          {{- if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") (kindIs "map" $value) }}
+          {{- if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USERNAME") (kindIs "map" $value) }}
           - name: {{ $key }}
             valueFrom:
               {{- toYaml $value | nindent 14 }}
-          {{- else if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") }}
+          {{- else if and (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USERNAME") }}
           - name: {{ $key }}
             value: {{ $value | quote }}
           {{- end }}

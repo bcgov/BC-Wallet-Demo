@@ -29,7 +29,7 @@ import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { StepRequestUIActionTypes } from '@/lib/steps'
 
-export const BasicStepEdit = () => {
+export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const router = useRouter()
   const { mutateAsync } = useCreatePresentation()
@@ -62,7 +62,7 @@ export const BasicStepEdit = () => {
       form.reset(defaultValues)
     }
   }, [currentStep, form])
-  console.log('currentStep', currentStep);
+
   const autoSave = debounce((data: BasicStepFormData) => {
     if (!currentStep || !form.formState.isDirty) return
 
@@ -168,7 +168,11 @@ export const BasicStepEdit = () => {
     }
 
     setScenarioIds(scenarioIds)
-    router.push(`/showcases/create/publish`)
+    if (slug) {
+      router.push(`/showcases/${slug}/publish`)
+    } else {
+      router.push(`/showcases/create/publish`)
+    }
   }
 
   if (!currentStep) return null

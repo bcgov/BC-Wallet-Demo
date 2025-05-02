@@ -3,6 +3,26 @@ import Keycloak from 'next-auth/providers/keycloak'
 import { env } from '@/env'
 import { Buffer } from 'buffer'
 
+export interface JWT {
+  accessToken: string
+  accessTokenExpires: number
+  refreshToken: string
+  idToken: string
+  tokenType: string
+  user: JWTUser
+  iat: number
+  exp: number
+  jti: string
+  error: string
+}
+
+export interface JWTUser {
+  id: string
+  name: string
+  email: string
+}
+
+
 declare module 'next-auth' {
   interface Session {
     accessToken?: string | undefined
@@ -24,7 +44,7 @@ async function refreshAccessToken(token: any) {
         client_id: env.AUTH_KEYCLOAK_ID!,
         client_secret: env.AUTH_KEYCLOAK_SECRET!,
         grant_type: 'refresh_token',
-        ...('refreshToken' in token && { refresh_token: token.refreshToken }),
+        ...('refresh_token' in token && { refresh_token: token.refresh_token }),
       }),
     })
 
@@ -52,35 +72,70 @@ async function refreshAccessToken(token: any) {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Keycloak({
-      clientId: env.AUTH_KEYCLOAK_ID!,
-      clientSecret: env.AUTH_KEYCLOAK_SECRET!,
-      issuer: env.AUTH_KEYCLOAK_ISSUER!,
+  clientId: env.AUTH_KEYCLOAK_ID!,
+  clientSecret: env.AUTH_KEYCLOAK_SECRET!,
+  issuer: env.AUTH_KEYCLOAK_ISSUER!,
     }),
   ],
   callbacks: {
-    jwt: async ({ token, user, account }) => {
-      if (account && user) {
+    async jwt({ token, account }) {
+      if (account) {
         return {
-          accessToken: account.access_token,
-          accessTokenExpires: account.expires_at ? account.expires_at * 1000 : 0,
-          refreshToken: account.refresh_token,
-          idToken: account.id_token,
-          tokenType: account.token_type,
-          user,
+          ...token,
+          access_token: account.access_token,
+          expires_at: account.expires_at,
+          refresh_token: account.refresh_token,
         }
       }
-
-      if ('accessTokenExpires' in token && typeof token.accessTokenExpires === 'number' && Date.now() < token.accessTokenExpires) {
+      if (
+        'accessTokenExpires' in token &&
+        typeof token.accessTokenExpires === 'number' &&
+        Date.now() < token.accessTokenExpires
+      ) {
         return token
-      }
+      } else {
+        if (!token.refresh_token) throw new TypeError("Missing refresh_token")
+        try {
+          const url = `${env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/token`
 
-      // Access token has expired, try to refresh it
-      return refreshAccessToken(token)
+          const response = await fetch(url, {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            method: 'POST',
+            body: new URLSearchParams({
+              client_id: env.AUTH_KEYCLOAK_ID!,
+              client_secret: env.AUTH_KEYCLOAK_SECRET!,
+              grant_type: 'refresh_token',
+              ...(token.refresh_token && { refresh_token: String(token.refresh_token) }),
+            }),
+          })
+      
+          const tokensOrError = await response.json()
+          if (!response.ok) throw tokensOrError
+          const newTokens = tokensOrError as {
+            access_token: string
+            expires_in: number
+            refresh_token?: string
+          }
+          return {
+            ...token,
+            access_token: newTokens.access_token,
+            expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
+            refresh_token: newTokens.refresh_token
+              ? newTokens.refresh_token
+              : token.refresh_token,
+          }
+        } catch (error) {
+          console.error("Error refreshing access_token", error)
+          token.error = "RefreshTokenError"
+          return token
+        }
+      }
     },
     async session({ session, token }) {
-      // @ts-expect-error: token.user is not typed
-      session.user = token.user
-      session.accessToken = token.accessToken as string | undefined
+      session.user = session.user
+      session.accessToken = token.access_token as string | undefined
       session.error = token.error as 'RefreshAccessTokenError' | undefined
       return session
     },

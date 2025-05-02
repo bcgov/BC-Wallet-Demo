@@ -15,14 +15,14 @@ export function IssuanceState() {
       <CardContent>
         <div>
           <h2>Personas</h2>
-          {personas.map((persona) => (
-            <div key={persona.id}>{persona.id} - {persona.name}</div>
+          {personas.map((persona, idx) => (
+            <div key={idx}>{persona.id} - {persona.name}</div>
           ))}
         </div>
         <div>
           <h2>Steps</h2>
-          {steps.map((step) => (
-            <div key={step.id}>{step.id} - {step.type} - {step.title}</div>
+          {steps.map((step, idx) => (
+            <div key={idx}>{step.id} - {step.type} - {step.title}</div>
           ))}
         </div>
       </CardContent>

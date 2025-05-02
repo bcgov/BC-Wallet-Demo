@@ -23,7 +23,7 @@ import type { Persona } from 'bc-wallet-openapi'
 
 type CharacterFormData = z.infer<typeof characterSchema>
 
-export default function NewCharacterPage() {
+export default function NewCharacterPage({ slug }: { slug?: string }) {
   const t = useTranslations()
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -143,7 +143,11 @@ export default function NewCharacterPage() {
     setIsProceeding(true);
 
     try {
-      router.push('/showcases/create/onboarding');
+      if (slug) {
+        router.push(`/showcases/${slug}/onboarding`);
+      } else {
+        router.push('/showcases/create/onboarding');
+      }
     } catch (error) {
       toast.error(t('character.error_proceed_label'));
     } finally {
@@ -161,7 +165,7 @@ export default function NewCharacterPage() {
         <div className="flex flex-col">
           <div className="flex gap-4 p-4 h-[calc(100vh-225px)]">
             {/* Left panel - Character list */}
-            <div className="w-1/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
+            <div className="w-1/3 bg-background border shadow-md rounded-md flex flex-col">
               <div className="p-4">
                 <h2 className="text-lg font-bold">{t('character.create_your_character_title')}</h2>
                 <p className="text-sm">{t('character.create_your_character_subtitle')}</p>
@@ -181,7 +185,7 @@ export default function NewCharacterPage() {
                         className={cn("cursor-pointer transition-all duration-300 hover:bg-light-bg dark:hover:bg-dark-input-hover relative p-4 border-t border-b border-light-border-secondary dark:border-dark-border flex",
                           selectedPersonaId === persona.id
                             ? 'flex-col items-center bg-gray-100 dark:bg-dark-bg border border-light-border-secondary'
-                            : 'flex-row items-center bg-white dark:bg-dark-bg-secondary'
+                            : 'flex-row items-center bg-background'
                         )}
                         onClick={() => handlePersonaSelect(persona)}
                       >
@@ -237,7 +241,7 @@ export default function NewCharacterPage() {
             </div>
 
             {/* Right panel - Form */}
-            <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md p-6 flex flex-col">
+            <div className="w-2/3 bg-background border shadow-md rounded-md p-6 flex flex-col">
               {personaState === 'creating-new' || personaState === 'editing-persona' ? (
                 <div>
                   <StepHeader

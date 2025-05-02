@@ -41,25 +41,28 @@ export const ShowcaseList = () => {
     return showcase.name.toLowerCase().includes(searchTerm.toLowerCase())
   }
 
-  const createShowcase = async () => {
-    const response = await mutateAsync(
-      {
-        name: 'BC Gov Showcase',
-        description: 'Collection of credential usage scenarios',
-        status: 'ACTIVE',
-        hidden: false,
-        tenantId: 'test-tenant-1',
-        scenarios: ['8a9d9619-7522-453c-b068-3408ef4eca62', 'fee9c14d-b39b-460e-b4c7-20fb5ddc5c46'],
-        personas: ['b3f83345-4448-4d21-a3d3-5d7b719c45d8'],
-      },
-      {
-        onSuccess: (data: unknown) => {
-          console.log('Showcase Created:', data)
-        },
-      },
-    )
+  const createShowcase = async (
+    // TODO: Add a hook to handle the form values and the global state updates
+  ) => {
+    // on use-showcase adapter
+    // const response = await mutateAsync(
+    //   {
+    //     name: 'BC Gov Showcase',
+    //     description: 'Collection of credential usage scenarios',
+    //     status: 'ACTIVE',
+    //     hidden: false,
+    //     tenantId: 'test-tenant-1',
+    //     scenarios: ['8a9d9619-7522-453c-b068-3408ef4eca62', 'fee9c14d-b39b-460e-b4c7-20fb5ddc5c46'],
+    //     personas: ['b3f83345-4448-4d21-a3d3-5d7b719c45d8'],
+    //   },
+    //   {
+    //     onSuccess: (data: unknown) => {
+    //       console.log('Showcase Created:', data)
+    //     },
+    //   },
+    // )
 
-    return response
+    // return response
   }
 
   return (
@@ -154,7 +157,7 @@ export const ShowcaseList = () => {
                         <div className="flex-shrink-0">
                           <DeleteButton
                             onClick={() => {
-                              console.log('delete', showcase.id)
+                              deleteShowcase(showcase.slug)
                             }}
                           />
 
@@ -209,8 +212,6 @@ export const ShowcaseList = () => {
                       <Link className="w-1/2" href={`/showcases/${showcase.slug}`}>
                         <ButtonOutline
                           className="w-full"
-                          // disabled
-                          onClick={() => deleteShowcase(showcase.slug)}
                         >
                           {t('action.edit_label')}
                         </ButtonOutline>
