@@ -51,9 +51,9 @@ async function refreshAccessToken(token: any) {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Keycloak({
-      clientId: env.AUTH_KEYCLOAK_ID!,
-      clientSecret: env.AUTH_KEYCLOAK_SECRET!,
-      issuer: env.AUTH_KEYCLOAK_ISSUER!,
+  clientId: env.AUTH_KEYCLOAK_ID!,
+  clientSecret: env.AUTH_KEYCLOAK_SECRET!,
+  issuer: env.AUTH_KEYCLOAK_ISSUER!,
     }),
   ],
   callbacks: {
@@ -69,7 +69,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      if ('accessTokenExpires' in token && typeof token.accessTokenExpires === 'number' && Date.now() < token.accessTokenExpires) {
+      if (
+        'accessTokenExpires' in token &&
+        typeof token.accessTokenExpires === 'number' &&
+        Date.now() < token.accessTokenExpires
+      ) {
         return token
       }
 

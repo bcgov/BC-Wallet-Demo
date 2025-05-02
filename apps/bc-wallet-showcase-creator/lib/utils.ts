@@ -21,5 +21,14 @@ export const convertBase64 = (file: File): Promise<string> => {
   })
 }
 
-export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_BACKEND;
+export function parseSchemaId(schemaId: string) {
+
+  const parts = schemaId.split(':');
+  return {
+    schemaPrefix: parts[0],
+    schemaVersion: parts[3],
+  };
+}
+
+export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_API_URL;
 

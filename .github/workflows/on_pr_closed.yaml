@@ -60,12 +60,12 @@ jobs:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
-          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
+          namespace: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
 
       - name: Uninstall Credential Showcase resources via Helm
         continue-on-error: true
         run: |
-          helm uninstall pr-${{ env.PR_NUM }}-bc-wallet --namespace ${{ secrets.OPENSHIFT_NAMESPACE }}
+          helm uninstall pr-${{ env.PR_NUM }}-bc-wallet --namespace ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
 
       - name: Remove Credential Showcase Openshift Objects
         continue-on-error: true

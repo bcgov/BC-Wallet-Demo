@@ -15,7 +15,7 @@ export function credentialSchemaToSchemaPostRequest(credentialSchema: Credential
 
   const attributeNames = credentialSchema.attributes.map((attr) => attr.name)
   return {
-    schemaName: credentialSchema.name,
+    schemaName: credentialSchema.name.replace(' ', '_'),
     schemaVersion: credentialSchema.version,
     attributes: attributeNames,
   }
@@ -35,7 +35,7 @@ export function credentialDefinitionToCredentialDefinitionSendRequest(
 ): CredentialDefinitionSendRequest {
   return {
     schemaId: schemaId,
-    tag: credentialDef.version,
+    tag: credentialDef.name.replace(' ', '_'),
     supportRevocation: credentialDef.revocation !== undefined && credentialDef.revocation !== null,
     revocationRegistrySize: 1000,
   }
