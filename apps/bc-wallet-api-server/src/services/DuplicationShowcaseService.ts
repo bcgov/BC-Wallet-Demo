@@ -3,7 +3,7 @@ import { Inject, Service } from 'typedi'
 import PersonaRepository from '../database/repositories/PersonaRepository'
 import ScenarioRepository from '../database/repositories/ScenarioRepository'
 import ShowcaseRepository from '../database/repositories/ShowcaseRepository'
-import { NewShowcase, Scenario, ScenarioType, Showcase, ShowcaseStatus, StepActionTypes } from '../types'
+import { IssuanceScenario, NewShowcase, PresentationScenario, Scenario, ScenarioType, Showcase, ShowcaseStatus, StepActionTypes } from '../types'
 import { ISessionService } from '../types/services/session'
 
 /**
@@ -23,7 +23,7 @@ const extractId = (obj: any): string => {
  * @param fieldsToRemove Array of field names to remove
  * @returns A new object without the specified fields
  */
-const removeFields = <T extends Record<string, any>>(obj: T, fieldsToRemove: string[]): Partial<T> => {
+const removeFields = <T extends Record<string, unknown>>(obj: T, fieldsToRemove: string[]): Partial<T> => {
   const newObj: Partial<T> = {}
 
   for (const key in obj) {
@@ -107,7 +107,7 @@ class DuplicationShowcaseService {
           personas: mappedPersonaIds,
         }
 
-        let newScenario: Scenario | null = null
+        let newScenario: IssuanceScenario | PresentationScenario | null = null
 
         if (scenarioType === ScenarioType.ISSUANCE) {
           newScenario = await this.scenarioRepository.create({
