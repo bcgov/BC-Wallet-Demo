@@ -135,7 +135,7 @@ export async function createTestScenario(
 
 export async function createTestTenant(id = 'test-tenant'): Promise<Tenant> {
   const tenantRepository = Container.get(TenantRepository)
-  return tenantRepository.create({ id })
+  return tenantRepository.create({ id, realm: 'test_realm', clientId: 'test_client_id', clientSecret: 'super_secret' })
 }
 
 export async function createTestCredentialDefinition(

@@ -30,18 +30,4 @@ export const useTenant = (id: string) => {
 		},
 		staleTime,
 	});
-};
-
-export const useCreateTenant = () => {
-	const queryClient = useQueryClient();
-	return useMutation<TenantResponse, Error, TenantRequest>({
-		mutationFn: async (data: TenantRequest): Promise<TenantResponse> => { 
-			const response = await apiClient.post(`/tenants`, data);
-			return response as TenantResponse;
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ["tenants"] });
-		},
-	});
-};
-
+}

@@ -1,17 +1,18 @@
 'use client'
 
-import { signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { useCreateTenant, useTenants } from '@/hooks/use-tenants'
 import { getTenantId } from '@/providers/tenant-provider'
+import { useTenants } from '@/hooks/use-tenants'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { decodeJwt } from '@/auth'
 
 export const Tenant = () => {
   const { isLoading, error } = useTenants()
-  const { mutateAsync: createTenant } = useCreateTenant()
   const { setTenantId } = useHelpersStore()
   const tenantId = getTenantId();
+  const { data: session } = useSession()
 
   if (isLoading) {
     return <div>Loading...</div>
@@ -22,9 +23,8 @@ export const Tenant = () => {
   }
 
   const handleCreateTenant = async () => {
-    const generatedId = Math.random().toString(36).substring(2, 15)
-    await createTenant({ id: `tenant-${generatedId}` })
-    setTenantId(`tenant-${generatedId}`)
+    const token = decodeJwt(session?.accessToken)
+    setTenantId(token.azp)
   }
 
   return (
