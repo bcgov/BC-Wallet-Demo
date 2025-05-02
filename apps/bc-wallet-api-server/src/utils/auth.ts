@@ -87,10 +87,52 @@ async function checkResponse(response: Response) {
   throw new Error(errorMessage)
 }
 
-// TODO Check if this is correct, or even necessary
-export function isAccessTokenAudienceValid(token: Token): boolean {
-  const audienceData = Array.isArray(token.payload.aud) ? token.payload.aud : [token.payload.aud]
-  return audienceData.includes(process.env.CLIENT_ID)
+export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
+  const authHeader: string = action.request.headers['authorization']
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new UnauthorizedError('Missing or malformed Authorization header')
+  }
+  const accessToken = authHeader.split(' ')[1]
+  const token = new Token(accessToken)
+
+  const tenantService = Container.get(TenantService)
+  const authServerUrl = token.payload.iss
+  const realm = authServerUrl?.split('/').slice(-1)[0]
+  const clientId = token.payload.azp
+
+  if (!realm || !clientId) {
+    throw new UnauthorizedError('Realm and Client ID are required in token')
+  }
+
+  let tenant
+
+  try {
+    tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
+  } catch (error) {
+    if (
+      action.request.url.includes('/tenants') &&
+      action.request.body.realm &&
+      action.request.body.clientId &&
+      action.request.body.clientSecret
+    ) {
+      tenant = await tenantService.createTenant({
+        id: action.request.body.clientId,
+        realm: action.request.body.realm,
+        clientId: action.request.body.clientId,
+        clientSecret: action.request.body.clientSecret,
+      })
+    } else {
+      throw new UnauthorizedError('Tenant not found')
+    }
+  }
+
+  // Calls the introspection endpoint to validate the token
+  if (!(await isAccessTokenValid(accessToken, authServerUrl, tenant.clientId, tenant.clientSecret))) {
+    throw new UnauthorizedError('Invalid token')
+  }
+  // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
+  // User roles which at the moment we are not using, do not need any prefix.
+  return checkRoles(token, roles)
 }
 
 export function isAccessTokenExpired(token: Token): boolean {
