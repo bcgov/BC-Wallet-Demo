@@ -13,6 +13,8 @@ import type {
   CredentialDefinitionRequest,
   CredentialDefinitionsResponse,
 	CredentialSchemaResponse,
+  CredentialSchemaImportRequest,
+  CredentialDefinitionImportRequest,
 } from 'bc-wallet-openapi'
 
 const staleTime = 1000 * 60 * 5 // 5 minutes
@@ -80,6 +82,36 @@ export const useCreateCredentialSchema = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['credentialSchema'] })
     },
+  })
+}
+
+export const useImportCredentialSchema = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (data: CredentialSchemaImportRequest) => {
+      const response = await apiClient.post(`/credentials/schemas/import`, data)
+      return response;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentialSchema'] })
+    }
+  })
+}
+
+export const useImportCredentialDefinition = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (data: CredentialDefinitionImportRequest) => {
+      const response = await apiClient.post(`/credentials/definitions/import`, data)
+      return response;
+    },
+    onSettled: () => {
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['credential'] })
+      }, 10000);
+    }
   })
 }
 

@@ -24,12 +24,14 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
 
   beforeEach(async () => {
     // Get credentials from environment variables
-    const tenantId = process.env.FIXED_TENANT_ID
-    const walletId = process.env.FIXED_WALLET_ID
-    const apiKey = process.env.FIXED_API_KEY
+    const tenantId = process.env.TRACTION_DEFAULT_TENANT_ID
+    const walletId = process.env.TRACTION_DEFAULT_TENANT_ID
+    const apiKey = process.env.TRACTION_DEFAULT_API_KEY
 
     if (!tenantId || !apiKey) {
-      throw new Error('Required environment variables FIXED_TENANT_ID and FIXED_API_KEY must be set')
+      throw new Error(
+        'Required environment variables TRACTION_DEFAULT_TENANT_ID and TRACTION_DEFAULT_API_KEY must be set',
+      )
     }
 
     // Initialize mock service

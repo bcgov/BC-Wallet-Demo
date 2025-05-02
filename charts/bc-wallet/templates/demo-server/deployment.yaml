@@ -41,28 +41,23 @@ spec:
         - containerPort: {{ .Values.demo_server.port }}
           name: http
         env:
-        - name: DB_HOST
-          value: {{ .Release.Name }}-postgresql
-        {{- range $key, $value := .Values.demo_server.env }}
-        {{- if and (ne $key "DB_HOST") (kindIs "map" $value) }}
-        - name: {{ $key }}
-          valueFrom:
-            {{- toYaml $value | nindent 12 }}
-        {{- else if ne $key "DB_HOST" }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{- end }}
-        {{- end }}
-        - name: DB_PASSWORD
+        - name: CORS_ALLOW_ORIGINS
+          value: "https://{{ include "bc-wallet.showcase-creator.host" . }},https://{{ include "bc-wallet.demo-web.host" . }}"
+        - name: SHOWCASE_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ include "bc-wallet.database.secret.name" . }}
               key: {{ include "bc-wallet.database.userPasswordKey" . }}
-        - name: AUTH_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bc-wallet.authtoken.secret.name" . }}
-              key: token
+        - name: API_KEY
+          value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_API_KEY | quote }}
+        - name: TENANT_ID
+          value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_TENANT_ID | quote }}
+        - name: WALLET_ID
+          value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_WALLET_ID | quote }}
+        - name: TRACTION_API_URL
+          value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_API_URL | quote }}
+        - name: BASE_ROUTE
+          value: {{ .Values.demo_web.env.REACT_APP_BASE_ROUTE | quote }}
         resources:
           {{- toYaml .Values.demo_server.resources | nindent 12 }}
       serviceAccountName: {{ if .Values.demo_server.serviceAccount.create }}{{ if .Values.demo_server.serviceAccount.name }}{{ .Values.demo_server.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-demo-server{{ end }}{{ end }}

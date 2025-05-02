@@ -11,16 +11,19 @@ import { useTranslations } from 'next-intl'
 import { FormTextInput } from '../text-input'
 import ButtonOutline from '../ui/button-outline'
 import Accordion from './components/accordion-group'
+import { useImportCredentialDefinition, useImportCredentialSchema } from '@/hooks/use-credentials'
+import { CredentialDefinitionImportRequest, CredentialSchemaImportRequest, IdentifierType } from 'bc-wallet-openapi'
+import { toast } from 'sonner'
+import { parseSchemaId } from '@/lib/utils'
 
 export const CredentialsImport = () => {
   const t = useTranslations()
+  const { mutateAsync: importCredentialSchema } = useImportCredentialSchema()
+  const { mutateAsync: importCredentialDefinition } = useImportCredentialDefinition()
 
   const defaultValues: CredentialImportFormData = {
     credentialId: '',
-    schemaId: '',
-    icon: '',
-    proofRequestCheckbox: false,
-    issuanceCheckbox: false,
+    schemaId: ''
   }
 
   const form = useForm<CredentialImportFormData>({
@@ -29,11 +32,38 @@ export const CredentialsImport = () => {
     mode: 'onChange',
   })
 
-  // Fetch schema and credential data when schemaId or credentialId changes
+  const onSubmit = async (data: CredentialImportFormData) => {
+    try {
 
-  const onSubmit = (data: CredentialImportFormData) => {
-    form.reset()
-    // Optionally handle submission (e.g., send data to the backend)
+      const { schemaPrefix, schemaVersion } = parseSchemaId(data.schemaId);
+
+      const importSchemaPayload: CredentialSchemaImportRequest = {
+        name: schemaPrefix,
+        identifierType: IdentifierType.Did,
+        identifier: data.schemaId,
+        version: schemaVersion
+      }
+
+      const SchemaResponse = await importCredentialSchema(importSchemaPayload)
+      if (!SchemaResponse) toast.error('Failed to import schema')
+
+      const [ CredentialDefinitionPrefix ] = data.credentialId.split(':');
+
+      const importCredentialDefinitionPayload: CredentialDefinitionImportRequest = {
+        name: CredentialDefinitionPrefix,
+        identifierType: IdentifierType.Did,
+        identifier: data.credentialId
+      }
+      
+      const CredentialDefinitionResponse = await importCredentialDefinition(importCredentialDefinitionPayload)
+      if(!CredentialDefinitionResponse) toast.error('Failed to import CredentialDefinition');
+
+      form.reset()
+      toast.success('Credential imported successfully');
+
+    } catch (error) {
+      toast.error('Error importing schema or CredentialDefinition');
+    }
   }
 
   const handleCancel = () => {

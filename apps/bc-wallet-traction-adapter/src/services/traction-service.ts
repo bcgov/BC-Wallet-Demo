@@ -79,7 +79,7 @@ export class TractionService extends ApiService {
    */
   public constructor(
     private tenantId: string,
-    private basePath: string = environment.traction.DEFAULT_API_BASE_PATH,
+    private basePath: string = environment.traction.TRACTION_DEFAULT_API_URL,
     private showcaseApiService: ShowcaseApiService,
     private walletId?: string,
     //    private accessToken?: string, TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
