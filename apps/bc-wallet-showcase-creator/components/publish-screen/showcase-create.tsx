@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useCreateAsset } from '@/hooks/use-asset'
@@ -14,15 +14,17 @@ import { FormTextArea, FormTextInput } from '../text-input'
 import { Form } from '../ui/form'
 import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
-import { AssetResponse, ShowcaseRequest, ShowcaseStatus } from 'bc-wallet-openapi'
+import { AssetResponse, ShowcaseRequest } from 'bc-wallet-openapi'
 
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { useUiStore } from '@/hooks/use-ui-store'
 import { useCreateShowcase } from '@/hooks/use-showcases'
-import { z } from 'zod'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { showcaseRequestFormData } from '@/schemas/showcase'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { useOnboardingCreation } from '@/hooks/use-onboarding-creation'
 
 const BannerImageUpload = ({
   text,
@@ -118,29 +120,25 @@ const BannerImageUpload = ({
   )
 }
 
-const showcaseRequestFormData = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string().min(1, "Description is required"),
-  status: z.nativeEnum(ShowcaseStatus),
-  hidden: z.boolean().optional(),
-  scenarios: z.array(z.string()).optional(),
-  credentialDefinitions: z.array(z.string()).optional(),
-  personas: z.array(z.string()).optional(),
-  tenantId: z.string(),
-  bannerImage: z.string().optional(),
-})
-
 export const ShowcaseCreate = () => {
   const t = useTranslations()
   const { setCurrentShowcaseSlug } = useUiStore()
   const router = useRouter()
   const { mutateAsync: createShowcase } = useCreateShowcase()
-  const { setShowcase } = useShowcaseStore()
+  const { setShowcase, reset: resetCreateShowcase } = useShowcaseStore()
+  const { reset: resetPresentationCreation } = usePresentationCreation()
+  const { reset: resetOnboardingCreation } = useOnboardingCreation()
   const { tenantId } = useHelpersStore()
+
+  useEffect(() => {
+    resetCreateShowcase()
+    resetPresentationCreation()
+    resetOnboardingCreation()
+  }, [])
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseRequestFormData),
-    mode: 'all',
+    mode: 'onChange',
     defaultValues: {
       name: '',
       description: '',
@@ -160,8 +158,6 @@ export const ShowcaseCreate = () => {
           setCurrentShowcaseSlug(data.showcase.slug)
           setShowcase({ ...formData, tenantId, bannerImage: formData.bannerImage })
           toast.success('Showcase created successfully')
-          // TODO: when dynamic URL is implemented
-          // router.push(`/showcases/${response.showcase.slug}/characters`)
           router.push(`/showcases/create/characters`)
         } else {
           toast.error('Error creating showcase')
@@ -220,6 +216,9 @@ export const ShowcaseCreate = () => {
                   })
                 }
               />
+              {form.formState.errors.bannerImage?.message &&
+               <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">{form.formState.errors.bannerImage?.message}</p>
+              }
             </div>
           </div>
 

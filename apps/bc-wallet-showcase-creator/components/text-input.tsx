@@ -47,6 +47,7 @@ export const FormTextInput = <T extends FieldValues>({
               placeholder={placeholder}
               {...register(name)}
               {...field}
+              {...props}
             />
             {error && <FormMessage className="text-red-500 text-sm">{error}</FormMessage>}
           </div>

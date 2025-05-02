@@ -1,4 +1,3 @@
-import { version } from "os";
 import { z } from "zod";
 
 export const schemaAttribute = z.object({
@@ -11,10 +10,10 @@ export const schemaAttribute = z.object({
 
 export const schema = z.object({
   name: z.string().min(1, "Credential name is required"),
-  version: z.string().regex(
-	/^(\d+)(\.\d+)?$/,
-	"Version must be a number or decimal (e.g., 1, 1.0, 2.3)"
-  ),
+	version: z
+		.string()
+		.trim()
+		.regex(/^v?\d+\.\d+(\.\d+)?$/, "Version must be like 1.0, 1.0.1, v1.0, or v1.0.1"),
   attributes: z.array(
     z.object({
       name: z.string().min(1, "Attribute name is required"),

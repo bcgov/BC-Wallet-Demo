@@ -9,10 +9,12 @@ export const PublishInfo = ({
   characters,
   credentials,
 }: {
-    characters: Partial<Persona>[]
-    credentials: Partial<CredentialDefinition>[]
-  }) => {
-    const t = useTranslations()
+  characters: Partial<Persona>[]
+  credentials: Partial<CredentialDefinition>[]
+}) => {
+  const t = useTranslations()
+  const displayCreds = false
+
   return (
     <div className=" border rounded-md p-4">
       <div className="flex flex-col gap-4">
@@ -39,27 +41,29 @@ export const PublishInfo = ({
             </div>
 
             {/* Credential Section */}
-            <div className="mt-4 border-l-[10px] border  border-border-light border-l-light-yellow bg-foreground/10 rounded-md p-4">
-              <p className="font-semibold text-sm text-foreground">{t('showcases.publish_info_credentials')}</p>
+            {displayCreds && (
+              <div className="mt-4 border-l-[10px] border  border-border-light border-l-light-yellow bg-foreground/10 rounded-md p-4">
+                <p className="font-semibold text-sm text-foreground">{t('showcases.publish_info_credentials')}</p>
 
-              <div className="mt-3 space-y-3">
-                {credentials?.map((cred, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Image
-                      src={cred.icon?.id ? `${baseUrl}/assets/${cred.icon.id}/file` : '/assets/no-image.jpg'}
-                      alt={cred.icon?.description || 'Credential icon'}
-                      width={40}
-                      height={40}
-                      className="rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="font-semibold text-foreground">{cred.name}</p>
-                      <p className="text-foreground/60 text-sm">{'Test college'}</p>
+                <div className="mt-3 space-y-3">
+                  {credentials?.map((cred, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Image
+                        src={cred.icon?.id ? `${baseUrl}/assets/${cred.icon.id}/file` : '/assets/no-image.jpg'}
+                        alt={cred.icon?.description || 'Credential icon'}
+                        width={40}
+                        height={40}
+                        className="rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-semibold text-foreground">{cred.name}</p>
+                        <p className="text-foreground/60 text-sm">{'Test college'}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ))}
       </div>

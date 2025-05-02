@@ -60,7 +60,7 @@ const handleStepClick = () => {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex mb-2 flex-row items-center w-full bg-white dark:bg-dark-bg-secondary min-h-28"
+      className="flex mb-2 flex-row items-center w-full bg-background min-h-28"
     >
       <div
         className={`cursor-default h-full flex-shrink-0 flex items-center ${
@@ -116,7 +116,7 @@ const handleStepClick = () => {
                 myScreen.credentials.map((cred: CredentialDefinition, index:number) => (
                   <div
                     key={cred.id ?? index}
-                    className="bg-white dark:bg-dark-bg-secondary p-2 flex mt-2 rounded"
+                    className="bg-background p-2 flex mt-2 rounded"
                   >
                     <Image
                       src={

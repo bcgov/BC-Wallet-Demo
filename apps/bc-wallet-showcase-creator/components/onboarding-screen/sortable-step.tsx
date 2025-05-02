@@ -24,7 +24,6 @@ export const SortableStep = ({
   const t = useTranslations();
   const { handleSelectStep, duplicateStep, activeScenarioIndex } = useOnboardingAdapter();
   
-  // Ensure we have a stable ID for the sortable item
   const itemId = myScreen.id || `step-${stepIndex}-${activeScenarioIndex}`;
   
   const { 
@@ -62,7 +61,7 @@ export const SortableStep = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex flex-row items-center w-full bg-white dark:bg-dark-bg-secondary min-h-28",
+        "flex flex-row items-center w-full bg-background min-h-28",
         isDragging ? "opacity-80 shadow-lg" : ""
       )}
     >
@@ -132,7 +131,7 @@ export const SortableStep = ({
                 myScreen.credentials?.map((cred, index) => (
                   <div
                     key={cred.id ?? index}
-                    className="bg-white dark:bg-dark-bg-secondary p-2 flex mt-2 rounded"
+                    className="bg-background p-2 flex mt-2 rounded"
                   >
                     <Image
                       src={

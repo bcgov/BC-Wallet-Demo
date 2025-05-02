@@ -60,7 +60,21 @@ export const walletStepSchema = z.object({
   android: z.string().url('Android URL must be a valid URL'),
   ledgerImage: z.string().url('Ledger image URL must be a valid URL').optional(),
 })
-export type WalletStepFormData = z.infer<typeof walletStepSchema>
+
+export const walletStepFormSchema = z.object({
+  title: walletStepSchema.shape.title || z.string().min(1, 'Title is required'),
+  description: walletStepSchema.shape.description || z.string().min(1, 'Description is required'),
+  asset: z.any().optional(),
+  setupTitle: z.string().optional(),
+  setupDescription1: z.string().optional(),
+  setupTitle2: z.string().optional(),
+  setupDescription2: z.string().optional(),
+  apple: z.string().optional(),
+  android: z.string().optional(),
+  ledgerImage: z.string().optional(),
+})
+
+export type WalletStepFormData = z.infer<typeof walletStepFormSchema>
 export type BasicStepFormData = z.infer<typeof basicStepSchema>
 export type ConnectStepFormData = z.infer<typeof connectStepSchema>
 

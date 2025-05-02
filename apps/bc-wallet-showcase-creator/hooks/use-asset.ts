@@ -10,6 +10,14 @@ export const useAsset = () => {
 };
 
 export const useAssetById = (id: string) => {
+  if (typeof id === 'string') {
+    return id;
+  }
+  
+  if (typeof id === 'object' && id !== null && 'id' in id) {
+    return (id as { id: string }).id;
+  }
+  
   return useQuery({
     queryKey: ['assets', id],
     queryFn: async () => {
