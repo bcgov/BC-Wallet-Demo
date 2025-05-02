@@ -57,6 +57,8 @@ spec:
           value: "https://{{ include "bc-wallet.api-server.host" . }}"
         - name: OIDC_REDIRECT_PROXY_URL
           value: "https://{{ include "bc-wallet.showcase-creator.host" . }}/api/auth"
+        - name: OIDC_AUTH_URL
+          value: "https://{{ include "bc-wallet.showcase-creator.host" . }}"
         - name: OIDC_SERVER_URL
           value: https://{{ .Values.api_server.env.OIDC_SERVER_URL | quote }}
         - name: OIDC_CLIENT_ID
