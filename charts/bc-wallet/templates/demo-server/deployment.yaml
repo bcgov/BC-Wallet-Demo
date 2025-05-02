@@ -55,7 +55,7 @@ spec:
         - name: WALLET_ID
           value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_WALLET_ID | quote }}
         - name: TRACTION_API_URL
-          value: {{ .Values.traction_adapter.env.TRACTION_API_URL | quote }}
+          value: {{ .Values.traction_adapter.env.TRACTION_DEFAULT_API_URL | quote }}
         - name: BASE_ROUTE
           value: {{ .Values.demo_web.env.REACT_APP_BASE_ROUTE | quote }}
         resources:
