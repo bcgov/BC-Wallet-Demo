@@ -120,7 +120,6 @@ traction_adapter:
     APP_NAME: bc-wallet-traction-adapter
     PORT: 3000
     LOG_LEVEL: debug
-    TRACTION_ADAPTER_MESSAGE_TOPIC: "traction-adapter-message-topic" #OPTIONAL
     TRACTION_DEFAULT_TENANT_ID: "your_tenant_id"
     TRACTION_DEFAULT_WALLET_ID: "your_wallet_id"
     TRACTION_DEFAULT_API_URL: "https://traction-sandbox-tenant-proxy.apps.silver.devops.gov.bc.ca"
@@ -176,8 +175,8 @@ demo_web:
     NODE_ENV: production
     LOG_LEVEL: debug
     REACT_APP_BASE_ROUTE: /digital-trust/showcase
-    DEMOWEB_SNOWPLOW_ENDPOINT: "spm.apps.gov.bc.ca"
-    DEMOWEB_INSIGHTS_PROJECT_ID: your_insights_project_id
+    REACT_APP_SNOWPLOW_ENDPOINT: "spm.apps.gov.bc.ca"
+    REACT_APP_INSIGHTS_PROJECT_ID: your_insights_project_id
   resources:
     limits:
       cpu: 200m
