@@ -89,5 +89,5 @@ export const environment = {
 }
 
 if (DEBUG_ENABLED) {
-  console.debug('traction-adapter env:', environment)
+  console.debug('traction-adapter env:', environment) // TODO remove after debugging infra
 }
