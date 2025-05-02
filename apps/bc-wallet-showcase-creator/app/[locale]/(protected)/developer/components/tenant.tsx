@@ -4,12 +4,14 @@ import { signOut } from 'next-auth/react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useCreateTenant, useTenants } from '@/hooks/use-tenants'
+import { getTenantId } from '@/providers/tenant-provider'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 
 export const Tenant = () => {
   const { isLoading, error } = useTenants()
-  const { setTenantId, tenantId } = useHelpersStore()
   const { mutateAsync: createTenant } = useCreateTenant()
+  const { setTenantId } = useHelpersStore()
+  const tenantId = getTenantId();
 
   if (isLoading) {
     return <div>Loading...</div>

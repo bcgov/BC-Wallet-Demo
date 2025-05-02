@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge'
 import { env } from '@/env'
 import { ShowcaseRequest } from 'bc-wallet-openapi'
 import { Showcase } from 'bc-wallet-openapi'
+import { Buffer } from 'buffer'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -33,6 +34,24 @@ export function parseSchemaId(schemaId: string) {
 }
 
 export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_API_URL;
+export const decodeJwt = (token?: string) => {
+  if (token) {
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      throw new Error('Invalid token string')
+    }
+    const base64 = parts[1]
+    .replace(/-/g, '+')
+    .replace(/_/g, '/')
+    .padEnd(parts[1].length + (4 - (parts[1].length % 4)) % 4, '=');
+
+    const decoded = Buffer.from(base64, 'base64').toString('utf-8');
+    return JSON.parse(decoded);
+  } else {
+    throw Error('token is required')
+  }
+}
+
 
 export const debugLog = (...args: any[]) => {
   if (process.env.NODE_ENV === 'development') {

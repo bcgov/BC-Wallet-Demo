@@ -73,11 +73,11 @@ export function CommandDialogMenu() {
     setOpen(false)
   }
 
-  const handleCreateTenant = async () => {
-    await createTenant({ id: `test-tenant-id` })
-    setTenantId(`test-tenant-id`)
-    toast.success('Tenant created')
-  }
+  // const handleCreateTenant = async () => {
+  //   await createTenant({ id: `test-tenant-id` })
+  //   setTenantId(`test-tenant-id`)
+  //   toast.success('Tenant created')
+  // }
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
@@ -90,12 +90,12 @@ export function CommandDialogMenu() {
             <span>Create credential</span>
           </CommandItem>
 
-          <div onClick={() => handleCreateTenant()}>
+          {/* <div onClick={() => handleCreateTenant()}>
             <CommandItem>
               <Smile />
               <span>Create tennant</span>
             </CommandItem>
-          </div>
+          </div> */}
           <CommandItem>
             <Calculator />
             <span>Create credential schema</span>
