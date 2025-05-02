@@ -84,7 +84,7 @@ export function CommandDialogMenu() {
               <Smile />
               <span>Create tennant</span>
             </CommandItem>
-          </div> */}
+          </div>
           <CommandItem>
             <Calculator />
             <span>Create credential schema</span>
