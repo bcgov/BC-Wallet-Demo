@@ -175,7 +175,7 @@ demo_web:
     NODE_ENV: production
     LOG_LEVEL: debug
     REACT_APP_BASE_ROUTE: /digital-trust/showcase
-    DEMOWEB_SNOWPLOW_ENDPOINT: "spm.apps.gov.bc.ca"
+    REACT_APP_SNOWPLOW_ENDPOINT: "spm.apps.gov.bc.ca"
     REACT_APP_INSIGHTS_PROJECT_ID: your_insights_project_id
   resources:
     limits:
