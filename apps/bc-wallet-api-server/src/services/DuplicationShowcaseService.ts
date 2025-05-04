@@ -1,18 +1,18 @@
-import { Inject, Service } from 'typedi'
+import { Service } from 'typedi'
 
 import PersonaRepository from '../database/repositories/PersonaRepository'
-import ScenarioRepository from '../database/repositories/ScenarioRepository'
+// import ScenarioRepository from '../database/repositories/ScenarioRepository'
 import ShowcaseRepository from '../database/repositories/ShowcaseRepository'
 import {
-  IssuanceScenario,
+  // IssuanceScenario,
   NewShowcase,
-  PresentationScenario,
-  ScenarioType,
+  // PresentationScenario,
+  // ScenarioType,
   Showcase,
   ShowcaseStatus,
-  StepActionTypes,
+  // StepActionTypes,
 } from '../types'
-import { ISessionService } from '../types/services/session'
+// import { ISessionService } from '../types/services/session'
 
 /**
  * Extracts just the ID from an object or returns the ID if it's already a string
@@ -31,25 +31,25 @@ const extractId = (obj: any): string => {
  * @param fieldsToRemove Array of field names to remove
  * @returns A new object without the specified fields
  */
-const removeFields = <T extends Record<string, unknown>>(obj: T, fieldsToRemove: string[]): Partial<T> => {
-  const newObj: Partial<T> = {}
+// const removeFields = <T extends Record<string, unknown>>(obj: T, fieldsToRemove: string[]): Partial<T> => {
+//   const newObj: Partial<T> = {}
 
-  for (const key in obj) {
-    if (!fieldsToRemove.includes(key)) {
-      newObj[key] = obj[key]
-    }
-  }
+//   for (const key in obj) {
+//     if (!fieldsToRemove.includes(key)) {
+//       newObj[key] = obj[key]
+//     }
+//   }
 
-  return newObj
-}
+//   return newObj
+// }
 
 @Service()
 class DuplicationShowcaseService {
   public constructor(
     private readonly showcaseRepository: ShowcaseRepository,
     private readonly personaRepository: PersonaRepository,
-    private readonly scenarioRepository: ScenarioRepository,
-    @Inject('ISessionService') private readonly sessionService: ISessionService,
+    // private readonly scenarioRepository: ScenarioRepository,
+    // @Inject('ISessionService') private readonly sessionService: ISessionService,
   ) {}
 
   public duplicateShowcase = async (id: string, tenantId: string): Promise<Showcase> => {
@@ -58,10 +58,11 @@ class DuplicationShowcaseService {
     const newScenarioIds: string[] = []
     const personaIdMap: Record<string, string> = {}
 
-    const currentUser = await this.sessionService.getCurrentUser()
-    if (!currentUser) {
-      throw new Error('Could not determine current logged in user.')
-    }
+    const currentUserId = showcase.createdBy?.id
+    // const currentUserId = await this.sessionService.getCurrentUser()
+    // if (!currentUserId) {
+    //   throw new Error('Could not determine current logged in user.')
+    // }
 
     if (showcase.personas && showcase.personas.length > 0) {
       for (const personaObj of showcase.personas) {
@@ -82,69 +83,68 @@ class DuplicationShowcaseService {
       }
     }
 
-    if (showcase.scenarios && showcase.scenarios.length > 0) {
-      for (const scenarioObj of showcase.scenarios) {
-        const cleanedSteps = scenarioObj.steps.map((step) => {
-          const cleanedStep = removeFields(step, ['id', 'createdAt', 'updatedAt'])
+    // if (showcase.scenarios && showcase.scenarios.length > 0) {
+    //   console.log('showcase.scenarios', showcase.scenarios)
+    //   for (const scenarioObj of showcase.scenarios) {
+    //     const cleanedSteps = scenarioObj.steps.map((step) => {
+    //       const cleanedStep = removeFields(step, ['id', 'createdAt', 'updatedAt'])
 
-          if (cleanedStep.actions && Array.isArray(cleanedStep.actions)) {
-            cleanedStep.actions = cleanedStep.actions.map((action) => {
-              const cleanedAction = removeFields(action, ['id', 'createdAt', 'updatedAt'])
+    //       if (cleanedStep.actions && Array.isArray(cleanedStep.actions)) {
+    //         cleanedStep.actions = cleanedStep.actions.map((action) => {
+    //           const cleanedAction = removeFields(action, ['id', 'createdAt', 'updatedAt'])
 
-              // if (cleanedAction.proofRequest) {
-              //   cleanedAction.proofRequest = removeFields(cleanedAction.proofRequest, ['id', 'createdAt', 'updatedAt'])
-              // }
+    //           // if (cleanedAction.proofRequest) {
+    //           //   cleanedAction.proofRequest = removeFields(cleanedAction.proofRequest, ['id', 'createdAt', 'updatedAt'])
+    //           // }
 
-              return cleanedAction as StepActionTypes
-            })
-          }
+    //           return cleanedAction as StepActionTypes
+    //         })
+    //       }
 
-          return cleanedStep
-        })
+    //       return cleanedStep
+    //     })
 
-        const mappedPersonaIds = scenarioObj.personas.map((p) => personaIdMap[extractId(p)] || extractId(p))
+    //     const mappedPersonaIds = scenarioObj.personas.map((p) => personaIdMap[extractId(p)] || extractId(p))
 
-        const scenarioType = scenarioObj.scenarioType
+    //     const scenarioType = scenarioObj.scenarioType
 
-        const baseScenarioData = {
-          name: scenarioObj.name,
-          description: scenarioObj.description,
-          scenarioType,
-          steps: cleanedSteps,
-          hidden: scenarioObj.hidden,
-          personas: mappedPersonaIds,
-        }
+    //     const baseScenarioData = {
+    //       name: scenarioObj.name,
+    //       description: scenarioObj.description,
+    //       scenarioType,
+    //       steps: cleanedSteps,
+    //       hidden: scenarioObj.hidden,
+    //       personas: mappedPersonaIds,
+    //     }
 
-        let newScenario: IssuanceScenario | PresentationScenario | null = null
+    //     let newScenario: IssuanceScenario | PresentationScenario | null = null
 
-        if (scenarioType === ScenarioType.ISSUANCE) {
-          newScenario = await this.scenarioRepository.create({
-            ...baseScenarioData,
-            // @ts-expect-error: TODO SHOWCASE-81
-            issuer: scenarioObj.issuer ? extractId(scenarioObj.issuer) : null,
-            // @ts-expect-error: TODO SHOWCASE-81
-            relyingParty: null,
-          })
-        } else if (scenarioType === ScenarioType.PRESENTATION) {
-          newScenario = await this.scenarioRepository.create({
-            ...baseScenarioData,
-            issuer: null,
-            // @ts-expect-error: TODO SHOWCASE-81
-            relyingParty: scenarioObj.relyingParty ? extractId(scenarioObj.relyingParty) : null,
-          })
-        }
+    //     if (scenarioType === ScenarioType.ISSUANCE) {
+    //       newScenario = await this.scenarioRepository.create({
+    //         ...baseScenarioData,
+    //         // @ts-expect-error: TODO SHOWCASE-81
+    //         issuer: scenarioObj.issuer ? extractId(scenarioObj.issuer) : null,
+    //       })
+    //     } else if (scenarioType === ScenarioType.PRESENTATION) {
+    //       newScenario = await this.scenarioRepository.create({
+    //         ...baseScenarioData,
+    //         // issuer: null,
+    //         // @ts-expect-error: TODO SHOWCASE-81
+    //         relyingParty: scenarioObj.relyingParty ? extractId(scenarioObj.relyingParty) : null,
+    //       })
+    //     }
 
-        if (newScenario) {
-          newScenarioIds.push(newScenario.id)
-        }
-      }
-    }
+    //     if (newScenario) {
+    //       newScenarioIds.push(newScenario.id)
+    //     }
+    //   }
+    // }
 
     const newShowcase: NewShowcase = {
       name: `${showcase.name} (Copy)`,
       description: showcase.description,
       status: ShowcaseStatus.ACTIVE,
-      createdBy: currentUser.id,
+      createdBy: currentUserId,
       bannerImage: showcase.bannerImage ? extractId(showcase.bannerImage) : undefined,
       scenarios: newScenarioIds,
       personas: newPersonaIds,
