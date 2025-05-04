@@ -1,4 +1,13 @@
 import {
+  instanceOfShowcaseRequest,
+  ShowcaseRequest,
+  ShowcaseRequestToJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
+  ShowcasesResponse,
+  ShowcasesResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -11,20 +20,11 @@ import {
   Post,
   Put,
 } from 'routing-controllers'
-import {
-  instanceOfShowcaseRequest,
-  ShowcaseRequest,
-  ShowcaseRequestToJSONTyped,
-  ShowcaseResponse,
-  ShowcaseResponseFromJSONTyped,
-  ShowcasesResponse,
-  ShowcasesResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
 import { Service } from 'typedi'
 
+import DuplicationShowcaseService from '../services/DuplicationShowcaseService'
 import ShowcaseService from '../services/ShowcaseService'
 import { showcaseDTOFrom } from '../utils/mappers'
-import DuplicationShowcaseService from '../services/DuplicationShowcaseService'
 
 @JsonController('/showcases')
 @Service()
