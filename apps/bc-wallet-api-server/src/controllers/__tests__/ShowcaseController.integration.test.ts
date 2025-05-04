@@ -170,4 +170,32 @@ describe('ShowcaseController Integration Tests', () => {
 
     await request.post('/showcases').send(invalidTenantShowcaseRequest).expect(500)
   })
+
+  it('should duplicate a showcase', async () => {
+    const testData = await createApiFullTestData(tenantId)
+    const createResponse = await request.post('/showcases').send(testData.showcaseRequest).expect(201)
+    console.log('createResponse', createResponse.body)
+    const createdShowcase = createResponse.body.showcase
+
+    const duplicateResponse = await request
+      .post(`/showcases/${createdShowcase.slug}/duplicate`)
+      .send({ tenantId: tenantId })
+      .expect(201)
+    const duplicatedShowcase = duplicateResponse.body.showcase
+
+    expect(duplicatedShowcase.id).not.toEqual(createdShowcase.id)
+    expect(duplicatedShowcase.name).toEqual(createdShowcase.name)
+    expect(duplicatedShowcase.tenantId).toEqual(createdShowcase.tenantId)
+    expect(duplicatedShowcase.status).toEqual(createdShowcase.status)
+    expect(duplicatedShowcase.scenarios.length).toEqual(createdShowcase.scenarios.length)
+    expect(duplicatedShowcase.personas.length).toEqual(createdShowcase.personas.length)
+    expect(duplicatedShowcase.bannerImage).toEqual(createdShowcase.bannerImage)
+    expect(duplicatedShowcase.completionMessage).toEqual(createdShowcase.completionMessage)
+
+    // Delete the duplicated showcase
+    await request.delete(`/showcases/${duplicatedShowcase.slug}`).expect(204)
+
+    // Verify the showcase is deleted
+    await request.get(`/showcases/${duplicatedShowcase.slug}`).expect(404)
+  })
 })

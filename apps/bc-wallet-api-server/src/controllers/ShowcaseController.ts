@@ -118,11 +118,11 @@ class ShowcaseController {
     }
   }
 
-  @Put('/:slug/duplicate')
-  public async duplicate(@Param('slug') slug: string, @Param('tenantId') tenantId: string): Promise<ShowcaseResponse> {
+  @Post('/:slug/duplicate')
+  public async duplicate(@Param('slug') slug: string, @Body() body: { tenantId: string }): Promise<ShowcaseResponse> {
     const id = await this.showcaseService.getIdBySlug(slug)
     try {
-      const result = await this.duplicationShowcaseService.duplicateShowcase(id, tenantId)
+      const result = await this.duplicationShowcaseService.duplicateShowcase(id, body.tenantId)
       return ShowcaseResponseFromJSONTyped({ showcase: showcaseDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {

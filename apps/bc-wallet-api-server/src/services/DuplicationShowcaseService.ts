@@ -3,7 +3,15 @@ import { Inject, Service } from 'typedi'
 import PersonaRepository from '../database/repositories/PersonaRepository'
 import ScenarioRepository from '../database/repositories/ScenarioRepository'
 import ShowcaseRepository from '../database/repositories/ShowcaseRepository'
-import { IssuanceScenario, NewShowcase, PresentationScenario, Scenario, ScenarioType, Showcase, ShowcaseStatus, StepActionTypes } from '../types'
+import {
+  IssuanceScenario,
+  NewShowcase,
+  PresentationScenario,
+  ScenarioType,
+  Showcase,
+  ShowcaseStatus,
+  StepActionTypes,
+} from '../types'
 import { ISessionService } from '../types/services/session'
 
 /**

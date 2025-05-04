@@ -19,7 +19,7 @@ export default async function Credentials({ params }: { params: PageParams }) {
         <Helpers />
         <IssuanceState />
         <PresentationState />
-        <ShowcaseDev />
+        <ShowcaseDev /> 
       </div>
     </div>
   )

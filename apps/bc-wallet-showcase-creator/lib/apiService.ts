@@ -1,7 +1,7 @@
 'use client'
 
 import { env } from '@/env'
-import { getSession, signIn } from 'next-auth/react'
+import { getSession } from 'next-auth/react'
 import { debugLog } from './utils'
 
 class ApiService {
