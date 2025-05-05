@@ -122,3 +122,16 @@ export const useUpdateShowcaseScenarios = () => {
     },
   })
 }
+
+export const useDuplicateShowcase = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (slug: string) => {
+      const response = await apiClient.post(`/showcases/${slug}/duplicate`)
+      return response as ShowcaseResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['showcases'] })
+    },
+  })
+}

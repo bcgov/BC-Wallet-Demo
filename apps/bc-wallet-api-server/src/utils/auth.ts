@@ -118,7 +118,7 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
     if (error.message.includes('already exists')) {
       tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
     } else {
-      throw new UnauthorizedError('Tenant not found')
+      throw new UnauthorizedError('Tenant not found ' + error.message + ' ' + clientId + ' ' + realm)
     }
   }
 
