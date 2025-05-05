@@ -49,30 +49,28 @@ class TenantService {
   }
 
   public createTenant = async (tenant: NewTenant): Promise<Tenant> => {
-    if (process.env.NONCE_SIZE) {
-      const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, parseInt(process.env.NONCE_SIZE))
-      const newTenant = {
-        ...tenant,
-        clientSecret: encryptedBase64,
-        nonceBase64,
-      }
-      return this.tenantRepository.create(newTenant)
-    } else {
-      return Promise.reject(new InternalServerError(`No nonce size set: ${process.env.NONCE_SIZE}`))
+    const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
+    const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, NONCE_SIZE)
+    const newTenant = {
+      ...tenant,
+      clientSecret: encryptedBase64,
+      nonceBase64,
     }
+    return this.tenantRepository.create(newTenant)
   }
 
   public updateTenant = async (id: string, tenant: NewTenant): Promise<Tenant> => {
-    if (process.env.NONCE_SIZE) {
-      const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, parseInt(process.env.NONCE_SIZE))
+    try {
+      const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
+      const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, NONCE_SIZE)
       const newTenant = {
         ...tenant,
         clientSecret: encryptedBase64,
         nonceBase64,
       }
       return this.tenantRepository.update(id, newTenant)
-    } else {
-      return Promise.reject(new InternalServerError(`No nonce size set: ${process.env.NONCE_SIZE}`))
+    } catch (error) {
+      return Promise.reject(new InternalServerError(`Error updating tenant: ${error}`))
     }
   }
 

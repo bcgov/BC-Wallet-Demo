@@ -128,11 +128,13 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
   }
 
   public async findByRealmAndClientId(realm: string, clientId: string): Promise<Tenant> {
+    const statementName = `find_tenant_by_realm_and_clientId_${realm}_${clientId}`
+
     const prepared = (await this.databaseService.getConnection()).query.tenants
       .findFirst({
         where: and(eq(tenants.realm, realm), eq(tenants.clientId, clientId)),
       })
-      .prepare('statement_name')
+      .prepare(statementName)
 
     const tenant = await prepared.execute()
 
