@@ -28,6 +28,7 @@ import { DisplayStepCredentials } from './display-step-credentials'
 import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { StepRequestUIActionTypes } from '@/lib/steps'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
@@ -39,6 +40,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions();
   const { setSelectedCredential, selectedCredential } = useCredentials()
+  const { tenantId } = useTenant();
   const { personaScenarios } = usePresentationCreation()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
@@ -169,9 +171,9 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
 
     setScenarioIds(scenarioIds)
     if (slug) {
-      router.push(`/showcases/${slug}/publish`)
+      router.push(`/${tenantId}/showcases/${slug}/publish`)
     } else {
-      router.push(`/showcases/create/publish`)
+      router.push(`/${tenantId}/showcases/create/publish`)
     }
   }
 

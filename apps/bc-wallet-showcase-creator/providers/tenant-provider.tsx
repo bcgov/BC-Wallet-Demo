@@ -3,42 +3,46 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { decodeJwt } from '@/lib/utils';
+import { usePathname } from 'next/navigation'
 
 type TenantContextType = {
-  tenantId: string | null;
+  tenantId: string | undefined;
+  setTenantId: (id: string | undefined) => void;
 };
 
-const TenantContext = createContext<TenantContextType>({ tenantId: null });
+const TenantContext = createContext<TenantContextType>({ tenantId: undefined, setTenantId: () => {}, });
 
 let latestTenantId: string | undefined = undefined;
 
 export const TenantProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession();
-  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [tenantId, setTenantId] = useState<string | undefined>();
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    if (status === 'loading') return;
+  const pathname = usePathname()
 
-    if (session?.accessToken) {
-      try {
-        const token = decodeJwt(session.accessToken);
-        console.log('Decoded Token ==> ', token);
-        setTenantId(token.azp || null);
-        latestTenantId = token.azp || null;
-      } catch (error) {
-        console.error('Failed to decode token:', error);
-      }
+  useEffect(() => {
+    const pathParts = pathname?.split('/');
+    const tenantIdFromPath = pathParts?.[2];
+    
+    if (tenantIdFromPath && tenantIdFromPath !== tenantId) {
+      console.log('Setting tenantId from path:', tenantIdFromPath);
+      latestTenantId = tenantIdFromPath;
+      setTenantId(tenantIdFromPath);
     }
-    setReady(true);
-  }, [session, status]);
+    
+    // Only set ready to true once the session status is not "loading"
+    if (status !== 'loading') {
+      setReady(true);
+    }
+  }, [pathname, status, tenantId]);
 
   if (!ready) {
     return null;
   }
 
   return (
-    <TenantContext.Provider value={{ tenantId }}>
+    <TenantContext.Provider value={{ tenantId, setTenantId }}>
       {children}
     </TenantContext.Provider>
   );

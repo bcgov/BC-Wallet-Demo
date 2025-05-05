@@ -7,9 +7,30 @@ import { Button } from '@/components/ui/button'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { signIn } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const t = useTranslations('login')
+  const pathname = usePathname()
+  const parts = pathname.split('/')
+  console.log('parts',parts);
+  const locale = parts[1] || 'en'
+  const tenantId = parts[3]
+  console.log('tenantId in login form =====>', tenantId);
+  const handleLogin = () => {
+    // if (!tenantId) {
+    //   console.error('Tenant ID is missing in path')
+    //   return
+    // }
+
+    // document.cookie = `tenantId=${'showcase-tenantA'}; path=/`;
+
+    signIn('keycloak', {
+      callbackUrl: `/${locale}/${'showcase-tenantA'}`,
+      tenantId: 'showcase-tenantA',
+    })
+  }
+
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
@@ -25,7 +46,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             <h1 className="text-xl font-bold">{t('welcome_message')}</h1>
           </div>
           <div className="flex flex-col gap-6">
-            <Button className="w-full" onClick={() => signIn()}>
+            <Button className="w-full" onClick={() => handleLogin()}>
+            {/* <Button className="w-full" onClick={() => signIn()}> */}
               {t('login_label')}
             </Button>
           </div>

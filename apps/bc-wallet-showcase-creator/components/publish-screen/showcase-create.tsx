@@ -25,6 +25,7 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { showcaseRequestFormData } from '@/schemas/showcase'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
 import { useOnboardingCreation } from '@/hooks/use-onboarding-creation'
+import { useTenant } from '@/providers/tenant-provider'
 
 const BannerImageUpload = ({
   text,
@@ -128,7 +129,8 @@ export const ShowcaseCreate = () => {
   const { setShowcase, reset: resetCreateShowcase } = useShowcaseStore()
   const { reset: resetPresentationCreation } = usePresentationCreation()
   const { reset: resetOnboardingCreation } = useOnboardingCreation()
-  const { tenantId } = useHelpersStore()
+  // const { tenantId } = useHelpersStore()
+  const { tenantId } = useTenant();
 
   useEffect(() => {
     resetCreateShowcase()
@@ -146,7 +148,7 @@ export const ShowcaseCreate = () => {
       hidden: false,
       scenarios: [],
       personas: [],
-      tenantId,
+      tenantId: tenantId,
       bannerImage: '',
     },
   })
@@ -156,9 +158,9 @@ export const ShowcaseCreate = () => {
       onSuccess: (data) => {
         if (data.showcase?.slug) {
           setCurrentShowcaseSlug(data.showcase.slug)
-          setShowcase({ ...formData, tenantId, bannerImage: formData.bannerImage })
+          setShowcase({ ...formData, tenantId: formData.tenantId, bannerImage: formData.bannerImage })
           toast.success('Showcase created successfully')
-          router.push(`/showcases/create/characters`)
+          router.push(`/${tenantId}/showcases/create/characters`)
         } else {
           toast.error('Error creating showcase')
         }

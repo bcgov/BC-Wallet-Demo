@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Header from '../header'
 import { env } from '@/env'
+import { getTenantId } from '@/providers/tenant-provider'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -33,6 +34,8 @@ export const ShowcaseList = () => {
 
   const [activeTab, setActiveTab] = useState(tabs[0])
   const [searchTerm, setSearchTerm] = useState('')
+
+  const tenantId = getTenantId()
 
   const searchFilter = (showcase: Showcase) => {
     if (searchTerm === '') {
@@ -73,7 +76,8 @@ export const ShowcaseList = () => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         buttonLabel={t('showcases.create_new_showcase_label')}
-        buttonLink="/showcases/create"
+        // buttonLink="/showcases/create"
+        buttonLink={`/${tenantId}/showcases/create`}
       />
 
       {!isLoading && (
@@ -209,7 +213,7 @@ export const ShowcaseList = () => {
                     </div>
 
                     <div className="flex gap-4 mt-auto">
-                      <Link className="w-1/2" href={`/showcases/${showcase.slug}`}>
+                      <Link className="w-1/2" href={`/${tenantId}/showcases/${showcase.slug}`}>
                         <ButtonOutline
                           className="w-full"
                         >

@@ -20,6 +20,7 @@ import DeleteModal from '../delete-modal'
 import { FileUploadFull } from '../file-upload'
 import { useRouter } from '@/i18n/routing'
 import type { Persona } from 'bc-wallet-openapi'
+import { useTenant } from '@/providers/tenant-provider'
 
 type CharacterFormData = z.infer<typeof characterSchema>
 
@@ -28,6 +29,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isProceeding, setIsProceeding] = useState(false)
+  const { tenantId } = useTenant();
 
   const {
     // State
@@ -144,9 +146,9 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
 
     try {
       if (slug) {
-        router.push(`/showcases/${slug}/onboarding`);
+        router.push(`/${tenantId}/showcases/${slug}/onboarding`);
       } else {
-        router.push('/showcases/create/onboarding');
+        router.push(`/${tenantId}/showcases/create/onboarding`);
       }
     } catch (error) {
       toast.error(t('character.error_proceed_label'));

@@ -1,7 +1,7 @@
 import NextAuth, { User } from 'next-auth'
 import Keycloak from 'next-auth/providers/keycloak'
 import { env } from '@/env'
-import { Buffer } from 'buffer'
+import { cookies } from 'next/headers'
 
 export interface JWT {
   accessToken: string
@@ -69,78 +69,119 @@ async function refreshAccessToken(token: any) {
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [
-    Keycloak({
-  clientId: env.AUTH_KEYCLOAK_ID!,
-  clientSecret: env.AUTH_KEYCLOAK_SECRET!,
-  issuer: env.AUTH_KEYCLOAK_ISSUER!,
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, account }) {
-      if (account) {
-        return {
-          ...token,
-          access_token: account.access_token,
-          expires_at: account.expires_at,
-          refresh_token: account.refresh_token,
-        }
+async function getTenantConfig(tenantId: string) {
+  try {
+    const res = await fetch(`${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        // 'Authorization': `Bearer ${process.env.INTERNAL_API_KEY}`
       }
-      if (
-        'accessTokenExpires' in token &&
-        typeof token.accessTokenExpires === 'number' &&
-        Date.now() < token.accessTokenExpires
-      ) {
-        return token
-      } else {
-        if (!token.refresh_token) throw new TypeError("Missing refresh_token")
-        try {
-          const url = `${env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/token`
+    })
+  
+    if (!res.ok) console.log(`Tenant config not found for ${tenantId}`)
+  
+    return await res.json()
+  } catch (error) {
+    console.log('Error fetching tenant config:', error)
+  }
 
-          const response = await fetch(url, {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            method: 'POST',
-            body: new URLSearchParams({
-              client_id: env.AUTH_KEYCLOAK_ID!,
-              client_secret: env.AUTH_KEYCLOAK_SECRET!,
-              grant_type: 'refresh_token',
-              ...(token.refresh_token && { refresh_token: String(token.refresh_token) }),
-            }),
-          })
+}
+
+
+export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
+  const cookieStore = cookies()
+  console.log('cookie in auth ===>',  (await cookieStore).get('tenantId'));
+
+  const tenantId = (await cookies()).get('tenantId')?.value
+  if (!tenantId) throw new Error('Missing tenant ID in cookies')
+
+  const tenantConfig = await getTenantConfig(tenantId)
+
+  return {
+    providers: [
+      Keycloak({
+        // clientId: tenantConfig.clientId,
+        // clientSecret: tenantConfig.clientSecret,
+        // issuer: tenantConfig.issuer,
+          clientId: env.AUTH_KEYCLOAK_ID!,
+          clientSecret: env.AUTH_KEYCLOAK_SECRET!,
+          issuer: env.AUTH_KEYCLOAK_ISSUER!,
+      }),
+    ],
+    callbacks: {
       
-          const tokensOrError = await response.json()
-          if (!response.ok) throw tokensOrError
-          const newTokens = tokensOrError as {
-            access_token: string
-            expires_in: number
-            refresh_token?: string
-          }
+      async jwt({ token, account }) {
+        console.log('cookie in auth callback ===>',  (await cookieStore).get('tenantId'));
+        if (account) {
           return {
             ...token,
-            access_token: newTokens.access_token,
-            expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
-            refresh_token: newTokens.refresh_token
-              ? newTokens.refresh_token
-              : token.refresh_token,
+            access_token: account.access_token,
+            expires_at: account.expires_at,
+            refresh_token: account.refresh_token,
           }
-        } catch (error) {
-          console.error("Error refreshing access_token", error)
-          token.error = "RefreshTokenError"
-          return token
         }
-      }
+        if (
+          'accessTokenExpires' in token &&
+          typeof token.accessTokenExpires === 'number' &&
+          Date.now() < token.accessTokenExpires
+        ) {
+          return token
+        } else {
+          if (!token.refresh_token) throw new TypeError("Missing refresh_token")
+          try {
+            // const url = `${tenantConfig.issuer}/protocol/openid-connect/token`
+            const url = `${env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/token`
+
+            const response = await fetch(url, {
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              method: 'POST',
+              body: new URLSearchParams({
+                client_id: env.AUTH_KEYCLOAK_ID!,
+                client_secret: env.AUTH_KEYCLOAK_SECRET!,
+                grant_type: 'refresh_token',
+                ...(token.refresh_token && { refresh_token: String(token.refresh_token) }),
+              }),
+              // body: new URLSearchParams({
+              //   client_id: tenantConfig.clientId,
+              //   client_secret: tenantConfig.clientSecret,
+              //   grant_type: 'refresh_token',
+              //   ...(token.refresh_token && { refresh_token: String(token.refresh_token) }),
+              // }),
+            })
+
+            const tokensOrError = await response.json()
+            if (!response.ok) throw tokensOrError
+            const newTokens = tokensOrError as {
+              access_token: string
+              expires_in: number
+              refresh_token?: string
+            }
+            return {
+              ...token,
+              access_token: newTokens.access_token,
+              expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
+              refresh_token: newTokens.refresh_token ?? token.refresh_token,
+            }
+          } catch (error) {
+            console.error("Error refreshing access_token", error)
+            token.error = "RefreshTokenError"
+            return token
+          }
+        }
+      },
+      async session({ session, token }) {
+        session.user = session.user
+        session.accessToken = token.access_token as string | undefined
+        session.error = token.error as 'RefreshAccessTokenError' | undefined
+        return session
+      },
     },
-    async session({ session, token }) {
-      session.user = session.user
-      session.accessToken = token.access_token as string | undefined
-      session.error = token.error as 'RefreshAccessTokenError' | undefined
-      return session
+    session: {
+      strategy: 'jwt',
     },
-  },
-  session: {
-    strategy: 'jwt',
-  },
+    secret: env.AUTH_KEYCLOAK_SECRET,
+  }
 })
