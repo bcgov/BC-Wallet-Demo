@@ -1,16 +1,18 @@
 import { Service } from 'typedi'
 
 import PersonaRepository from '../database/repositories/PersonaRepository'
-// import ScenarioRepository from '../database/repositories/ScenarioRepository'
+import ScenarioRepository from '../database/repositories/ScenarioRepository'
 import ShowcaseRepository from '../database/repositories/ShowcaseRepository'
 import {
-  // IssuanceScenario,
+  IssuanceScenario,
+  NewIssuanceScenario,
+  NewPresentationScenario,
   NewShowcase,
-  // PresentationScenario,
-  // ScenarioType,
+  PresentationScenario,
+  ScenarioType,
   Showcase,
   ShowcaseStatus,
-  // StepActionTypes,
+  StepActionTypes,
 } from '../types'
 // import { ISessionService } from '../types/services/session'
 
@@ -31,24 +33,32 @@ const extractId = (obj: any): string => {
  * @param fieldsToRemove Array of field names to remove
  * @returns A new object without the specified fields
  */
-// const removeFields = <T extends Record<string, unknown>>(obj: T, fieldsToRemove: string[]): Partial<T> => {
-//   const newObj: Partial<T> = {}
+const removeFields = <T extends Record<string, any>>(obj: T, fieldsToRemove: string[]): Partial<T> => {
+  const newObj: Partial<T> = {}
 
-//   for (const key in obj) {
-//     if (!fieldsToRemove.includes(key)) {
-//       newObj[key] = obj[key]
-//     }
-//   }
+  for (const key in obj) {
+    if (!fieldsToRemove.includes(key)) {
+      newObj[key] = obj[key]
+    }
+  }
 
-//   return newObj
-// }
+  return newObj
+}
 
+/**
+ * Extracts the ID from an object or returns null if the object is null
+ * @param obj The object to extract the ID from
+ * @returns The ID of the object or null if the object is null
+ */
+const extractIdOrNull = (obj: any) => (obj ? extractId(obj) : null)
+
+@Service()
 @Service()
 class DuplicationShowcaseService {
   public constructor(
     private readonly showcaseRepository: ShowcaseRepository,
     private readonly personaRepository: PersonaRepository,
-    // private readonly scenarioRepository: ScenarioRepository,
+    private readonly scenarioRepository: ScenarioRepository,
     // @Inject('ISessionService') private readonly sessionService: ISessionService,
   ) {}
 
@@ -83,62 +93,70 @@ class DuplicationShowcaseService {
       }
     }
 
-    // if (showcase.scenarios && showcase.scenarios.length > 0) {
-    //   console.log('showcase.scenarios', showcase.scenarios)
-    //   for (const scenarioObj of showcase.scenarios) {
-    //     const cleanedSteps = scenarioObj.steps.map((step) => {
-    //       const cleanedStep = removeFields(step, ['id', 'createdAt', 'updatedAt'])
+    if (showcase.scenarios && showcase.scenarios.length > 0) {
+      for (const scenarioObj of showcase.scenarios) {
+        const cleanedSteps = scenarioObj.steps.map((step) => {
+          const cleanedStep = removeFields(step, ['id', 'createdAt', 'updatedAt'])
+          // @ts-expect-error: TODO SHOWCASE-81
+          cleanedStep.asset = cleanedStep.asset && 'id' in cleanedStep.asset ? extractIdOrNull(cleanedStep.asset) : null
 
-    //       if (cleanedStep.actions && Array.isArray(cleanedStep.actions)) {
-    //         cleanedStep.actions = cleanedStep.actions.map((action) => {
-    //           const cleanedAction = removeFields(action, ['id', 'createdAt', 'updatedAt'])
+          if (cleanedStep.actions && Array.isArray(cleanedStep.actions)) {
+            cleanedStep.actions = cleanedStep.actions.map((action) => {
+              const cleanedAction = removeFields(action, ['id', 'createdAt', 'updatedAt'])
 
-    //           // if (cleanedAction.proofRequest) {
-    //           //   cleanedAction.proofRequest = removeFields(cleanedAction.proofRequest, ['id', 'createdAt', 'updatedAt'])
-    //           // }
+              // if (cleanedAction.proofRequest as NewAriesProofRequest) {
+              //   cleanedAction.proofRequest = removeFields(cleanedAction.proofRequest, ['id', 'createdAt', 'updatedAt'])
+              // }
 
-    //           return cleanedAction as StepActionTypes
-    //         })
-    //       }
+              return cleanedAction as StepActionTypes
+            })
+          }
 
-    //       return cleanedStep
-    //     })
+          return cleanedStep
+        })
 
-    //     const mappedPersonaIds = scenarioObj.personas.map((p) => personaIdMap[extractId(p)] || extractId(p))
+        const mappedPersonaIds = scenarioObj.personas.map((p) => personaIdMap[extractId(p)] || extractId(p))
 
-    //     const scenarioType = scenarioObj.scenarioType
+        const scenarioType = scenarioObj.scenarioType
 
-    //     const baseScenarioData = {
-    //       name: scenarioObj.name,
-    //       description: scenarioObj.description,
-    //       scenarioType,
-    //       steps: cleanedSteps,
-    //       hidden: scenarioObj.hidden,
-    //       personas: mappedPersonaIds,
-    //     }
+        const baseScenarioData = {
+          name: scenarioObj.name,
+          description: scenarioObj.description || '',
+          scenarioType,
+          steps: cleanedSteps,
+          hidden: scenarioObj.hidden,
+          personas: mappedPersonaIds,
+        }
 
-    //     let newScenario: IssuanceScenario | PresentationScenario | null = null
+        let newScenario: IssuanceScenario | PresentationScenario | null = null
 
-    //     if (scenarioType === ScenarioType.ISSUANCE) {
-    //       newScenario = await this.scenarioRepository.create({
-    //         ...baseScenarioData,
-    //         // @ts-expect-error: TODO SHOWCASE-81
-    //         issuer: scenarioObj.issuer ? extractId(scenarioObj.issuer) : null,
-    //       })
-    //     } else if (scenarioType === ScenarioType.PRESENTATION) {
-    //       newScenario = await this.scenarioRepository.create({
-    //         ...baseScenarioData,
-    //         // issuer: null,
-    //         // @ts-expect-error: TODO SHOWCASE-81
-    //         relyingParty: scenarioObj.relyingParty ? extractId(scenarioObj.relyingParty) : null,
-    //       })
-    //     }
+        if (scenarioType === ScenarioType.ISSUANCE) {
+          if ('issuer' in scenarioObj && scenarioObj.issuer && 'id' in scenarioObj.issuer) {
+            const payload = {
+              ...baseScenarioData,
+              issuer: scenarioObj.issuer.id,
+            } as NewIssuanceScenario
+            newScenario = await this.scenarioRepository.create(payload)
+          } else {
+            throw new Error('Issuer not found in scenario')
+          }
+        } else if (scenarioType === ScenarioType.PRESENTATION) {
+          if ('relyingParty' in scenarioObj && scenarioObj.relyingParty && 'id' in scenarioObj.relyingParty) {
+            const payload = {
+              ...baseScenarioData,
+              relyingParty: scenarioObj.relyingParty.id,
+            } as NewPresentationScenario
+            newScenario = await this.scenarioRepository.create(payload)
+          } else {
+            throw new Error('Relying party not found in scenario')
+          }
+        }
 
-    //     if (newScenario) {
-    //       newScenarioIds.push(newScenario.id)
-    //     }
-    //   }
-    // }
+        if (newScenario) {
+          newScenarioIds.push(newScenario.id)
+        }
+      }
+    }
 
     const newShowcase: NewShowcase = {
       name: `${showcase.name} (Copy)`,

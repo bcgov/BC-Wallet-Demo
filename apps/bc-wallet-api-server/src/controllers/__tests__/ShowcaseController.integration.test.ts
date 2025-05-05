@@ -196,7 +196,7 @@ describe('ShowcaseController Integration Tests', () => {
     expect(duplicatedShowcase.name).toEqual(`${createdShowcase.name} (Copy)`)
     expect(duplicatedShowcase.tenantId).toEqual(createdShowcase.tenantId)
     expect(duplicatedShowcase.status).toEqual(createdShowcase.status)
-    // expect(duplicatedShowcase.scenarios.length).toEqual(createdShowcase.scenarios.length)
+    expect(duplicatedShowcase.scenarios.length).toEqual(createdShowcase.scenarios.length)
     expect(duplicatedShowcase.personas.length).toEqual(createdShowcase.personas.length)
     expect(duplicatedShowcase.bannerImage).toEqual(createdShowcase.bannerImage)
     expect(duplicatedShowcase.completionMessage).toEqual(createdShowcase.completionMessage)
