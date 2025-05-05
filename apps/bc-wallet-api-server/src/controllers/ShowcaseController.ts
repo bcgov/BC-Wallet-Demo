@@ -24,9 +24,10 @@ import { Service } from 'typedi'
 
 import DuplicationShowcaseService from '../services/DuplicationShowcaseService'
 import ShowcaseService from '../services/ShowcaseService'
+import { getBasePath } from '../utils/auth'
 import { showcaseDTOFrom } from '../utils/mappers'
 
-@JsonController('/showcases')
+@JsonController(getBasePath('/showcases'))
 @Service()
 class ShowcaseController {
   public constructor(

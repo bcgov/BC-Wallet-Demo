@@ -23,8 +23,9 @@ import {
 import { Service } from 'typedi'
 
 import TenantService from '../services/TenantService'
+import { getBasePath } from '../utils/auth'
 
-@JsonController('/tenants')
+@JsonController(getBasePath('/tenants'))
 @Service()
 class TenantController {
   public constructor(private tenantService: TenantService) {}
