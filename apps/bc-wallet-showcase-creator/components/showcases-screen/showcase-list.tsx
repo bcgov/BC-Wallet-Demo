@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import ButtonOutline from '@/components/ui/button-outline'
 import { Card } from '@/components/ui/card'
-import { useCreateShowcase, useDeleteShowcase, useShowcases } from '@/hooks/use-showcases'
+import { useCreateShowcase, useDeleteShowcase, useDuplicateShowcase, useShowcases } from '@/hooks/use-showcases'
 import { Link } from '@/i18n/routing'
 import { baseUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -16,14 +16,15 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Header from '../header'
 import { env } from '@/env'
+import { toast } from 'sonner'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
 export const ShowcaseList = () => {
   const t = useTranslations()
   const { data, isLoading } = useShowcases()
-  const { mutateAsync } = useCreateShowcase()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
   const tabs = [
     { label: t('showcases.header_tab_overview'), status: 'ALL' },
     { label: t('showcases.header_tab_draft'), status: 'PENDING' },
@@ -41,28 +42,17 @@ export const ShowcaseList = () => {
     return showcase.name.toLowerCase().includes(searchTerm.toLowerCase())
   }
 
-  const createShowcase = async (
-    // TODO: Add a hook to handle the form values and the global state updates
-  ) => {
-    // on use-showcase adapter
-    // const response = await mutateAsync(
-    //   {
-    //     name: 'BC Gov Showcase',
-    //     description: 'Collection of credential usage scenarios',
-    //     status: 'ACTIVE',
-    //     hidden: false,
-    //     tenantId: 'test-tenant-1',
-    //     scenarios: ['8a9d9619-7522-453c-b068-3408ef4eca62', 'fee9c14d-b39b-460e-b4c7-20fb5ddc5c46'],
-    //     personas: ['b3f83345-4448-4d21-a3d3-5d7b719c45d8'],
-    //   },
-    //   {
-    //     onSuccess: (data: unknown) => {
-    //       console.log('Showcase Created:', data)
-    //     },
-    //   },
-    // )
-
-    // return response
+  const handleDuplicateShowcase = async (showcaseSlug: string) => {
+    const newShowcase = await duplicateShowcase(showcaseSlug, {
+      onSuccess: (data: unknown) => {
+        console.log('Showcase Created:', data)
+        toast.success('Showcase Duplicated')
+      },
+      onError: (error: unknown) => {
+        toast.error('Error duplicating showcase: ' + error)
+      },
+    })
+    console.log('newShowcase', newShowcase)
   }
 
   return (
@@ -216,7 +206,7 @@ export const ShowcaseList = () => {
                           {t('action.edit_label')}
                         </ButtonOutline>
                       </Link>
-                      <ButtonOutline onClick={() => createShowcase()} disabled className="w-1/2">
+                      <ButtonOutline onClick={() => handleDuplicateShowcase(showcase.slug)} className="w-1/2">
                         {t('action.create_copy_label')}
                       </ButtonOutline>
                     </div>

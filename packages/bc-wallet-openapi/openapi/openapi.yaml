@@ -1933,6 +1933,36 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /showcases/{slug}/duplicate:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The slug of the showcase to duplicate.
+    post:
+      tags:
+        - Showcases
+      summary: Duplicate a specific showcase
+      description: Duplicates a specific showcase, creating a new showcase with the same content. Requires appropriate permissions.
+      operationId: duplicateShowcase
+      responses:
+        '200':
+          description: Showcase duplicated successfully. Returns the updated showcase.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowcaseResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /approvals/pending:
     get:
       tags:

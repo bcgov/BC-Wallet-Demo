@@ -14,8 +14,8 @@ export const User = () => {
       </CardHeader>
       <CardContent>
         <div className="p-4 bg-gray-100 dark:bg-foreground/10 rounded text-xs">
-          <pre className="mb-2 pre-wrap">Session: {JSON.stringify(session)}</pre>
-          <div className="mb-2">Status: {JSON.stringify(status)}</div>
+          <pre className="mb-2 pre-wrap text-xs text-gray-800 dark:text-gray-200 w-full">Session: {JSON.stringify(session, null, 2)}</pre>
+          <div className="mb-2">Status: {JSON.stringify(status, null, 2)}</div>
         </div>
       
       </CardContent>

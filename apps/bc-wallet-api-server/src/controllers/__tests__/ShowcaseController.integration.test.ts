@@ -12,6 +12,7 @@ import {
   createTestIssuer,
   createTestPersona,
   createTestTenant,
+  createTestUser,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -28,12 +29,14 @@ import ShowcaseController from '../ShowcaseController'
 import { createApiFullTestData, createApiTestScenario } from './apiTestData'
 import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
+import { MockSessionService } from './MockSessionService'
 
 describe('ShowcaseController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
   let tenantId: string
+  let sessionService: MockSessionService
 
   beforeAll(async () => {
     await setupRabbitMQ()
@@ -42,6 +45,7 @@ describe('ShowcaseController Integration Tests', () => {
     await registerMockServicesByInterface(database)
     useContainer(Container)
     Container.get(TenantRepository)
+    sessionService = Container.get(MockSessionService)
     Container.get(AssetRepository)
     Container.get(CredentialSchemaRepository)
     Container.get(CredentialDefinitionRepository)
@@ -56,6 +60,9 @@ describe('ShowcaseController Integration Tests', () => {
     // Create a tenant for testing
     const tenant = await createTestTenant('test-tenant')
     tenantId = tenant.id
+
+    sessionService.setCurrentTenant(tenant)
+    sessionService.setCurrentUser(await createTestUser('test-user'))
 
     app = createExpressServer({
       controllers: [ShowcaseController],
@@ -169,5 +176,33 @@ describe('ShowcaseController Integration Tests', () => {
     }
 
     await request.post('/showcases').send(invalidTenantShowcaseRequest).expect(500)
+  })
+
+  it('should duplicate a showcase', async () => {
+    const testData = await createApiFullTestData(tenantId)
+    const createResponse = await request.post('/showcases').send(testData.showcaseRequest).expect(201)
+    const createdShowcase = createResponse.body.showcase
+
+    const duplicateResponse = await request
+      .post(`/showcases/${createdShowcase.slug}/duplicate`)
+      .send({ tenantId: tenantId })
+      .expect(201)
+
+    const duplicatedShowcase = duplicateResponse.body.showcase
+
+    expect(duplicatedShowcase.id).not.toEqual(createdShowcase.id)
+    expect(duplicatedShowcase.name).toEqual(`${createdShowcase.name} (Copy)`)
+    expect(duplicatedShowcase.tenantId).toEqual(createdShowcase.tenantId)
+    expect(duplicatedShowcase.status).toEqual(createdShowcase.status)
+    expect(duplicatedShowcase.scenarios.length).toEqual(createdShowcase.scenarios.length)
+    expect(duplicatedShowcase.personas.length).toEqual(createdShowcase.personas.length)
+    expect(duplicatedShowcase.bannerImage).toEqual(createdShowcase.bannerImage)
+    expect(duplicatedShowcase.completionMessage).toEqual(createdShowcase.completionMessage)
+
+    // Delete the duplicated showcase
+    await request.delete(`/showcases/${duplicatedShowcase.slug}`).expect(204)
+
+    // Verify the showcase is deleted
+    await request.get(`/showcases/${duplicatedShowcase.slug}`).expect(404)
   })
 })
