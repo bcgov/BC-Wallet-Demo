@@ -87,6 +87,11 @@ async function checkResponse(response: Response) {
   throw new Error(errorMessage)
 }
 
+export function getBasePath(path?: string): string {
+  const basePath = path ?? ''
+  return process.env.MULTITENANCY_MODE === 'multitenant' ? `/:tenantId${basePath}` : basePath
+}
+
 export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
   const authHeader: string = action.request.headers['authorization']
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -98,7 +103,7 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
   const tenantService = Container.get(TenantService)
   const authServerUrl = token.payload.iss
   const realm = authServerUrl?.split('/').slice(-1)[0]
-  const clientId = token.payload.azp
+  const clientId = process.env.MODE === 'multitenant' ? action.request.url.split('/')[1] : token.payload.azp
 
   if (!realm || !clientId) {
     throw new UnauthorizedError('Realm and Client ID are required in token')
@@ -109,18 +114,9 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
   try {
     tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
   } catch (error) {
-    if (
-      action.request.url.includes('/tenants') &&
-      action.request.body.realm &&
-      action.request.body.clientId &&
-      action.request.body.clientSecret
-    ) {
-      tenant = await tenantService.createTenant({
-        id: action.request.body.clientId,
-        realm: action.request.body.realm,
-        clientId: action.request.body.clientId,
-        clientSecret: action.request.body.clientSecret,
-      })
+    // TODO: Remove this workaround when the issue is fixed in drizzle-orm: https://4sure.atlassian.net/browse/SHOWCASE-308
+    if (error.message.includes('already exists')) {
+      tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
     } else {
       throw new UnauthorizedError('Tenant not found')
     }

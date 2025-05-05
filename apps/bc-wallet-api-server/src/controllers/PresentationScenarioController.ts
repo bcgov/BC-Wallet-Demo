@@ -38,9 +38,10 @@ import { Service } from 'typedi'
 
 import ScenarioService from '../services/ScenarioService'
 import { PresentationScenario, ScenarioType } from '../types'
+import { getBasePath } from '../utils/auth'
 import { presentationScenarioDTOFrom, stepDTOFrom } from '../utils/mappers'
 
-@JsonController('/scenarios/presentations')
+@JsonController(getBasePath('/scenarios/presentations'))
 @Service()
 class PresentationScenarioController {
   public constructor(private scenarioService: ScenarioService) {}

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { getTenantId } from '@/providers/tenant-provider'
 import { useTenants } from '@/hooks/use-tenants'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
-import { decodeJwt } from '@/auth'
+import { browserDecodeJwt } from '@/lib/utils'
 
 export const Tenant = () => {
   const { isLoading, error } = useTenants()
@@ -23,7 +23,7 @@ export const Tenant = () => {
   }
 
   const handleCreateTenant = async () => {
-    const token = decodeJwt(session?.accessToken)
+    const token = browserDecodeJwt(session?.accessToken)
     setTenantId(token.azp)
   }
 
