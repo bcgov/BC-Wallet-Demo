@@ -104,9 +104,16 @@ class DuplicationShowcaseService {
             cleanedStep.actions = cleanedStep.actions.map((action) => {
               const cleanedAction = removeFields(action, ['id', 'createdAt', 'updatedAt'])
 
-              // if (cleanedAction.proofRequest as NewAriesProofRequest) {
-              //   cleanedAction.proofRequest = removeFields(cleanedAction.proofRequest, ['id', 'createdAt', 'updatedAt'])
-              // }
+              if ('proofRequest' in cleanedAction) {
+                cleanedAction.proofRequest = {
+                  attributes: {
+                    ...cleanedAction.proofRequest?.attributes,
+                  },
+                  predicates: {
+                    ...cleanedAction.proofRequest?.predicates,
+                  },
+                }
+              }
 
               return cleanedAction as NewStepActionTypes
             })
