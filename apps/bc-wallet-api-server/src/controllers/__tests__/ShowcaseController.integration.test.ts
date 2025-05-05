@@ -179,8 +179,6 @@ describe('ShowcaseController Integration Tests', () => {
   })
 
   it('should duplicate a showcase', async () => {
-    sessionService.setCurrentTenant(await createTestTenant('alt-tenant')) // To not find unapproved defs form other tests
-
     const testData = await createApiFullTestData(tenantId)
     const createResponse = await request.post('/showcases').send(testData.showcaseRequest).expect(201)
     const createdShowcase = createResponse.body.showcase

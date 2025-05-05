@@ -1,12 +1,10 @@
-import { Service } from 'typedi'
+import { Inject, Service } from 'typedi'
 
 import PersonaRepository from '../database/repositories/PersonaRepository'
 import ScenarioRepository from '../database/repositories/ScenarioRepository'
 import ShowcaseRepository from '../database/repositories/ShowcaseRepository'
 import {
   IssuanceScenario,
-  NewIssuanceScenario,
-  NewPresentationScenario,
   NewShowcase,
   NewStep,
   NewStepActionTypes,
@@ -15,7 +13,7 @@ import {
   Showcase,
   ShowcaseStatus,
 } from '../types'
-// import { ISessionService } from '../types/services/session'
+import { ISessionService } from '../types/services/session'
 
 /**
  * Extracts just the ID from an object or returns the ID if it's already a string
@@ -60,16 +58,22 @@ class DuplicationShowcaseService {
     private readonly showcaseRepository: ShowcaseRepository,
     private readonly personaRepository: PersonaRepository,
     private readonly scenarioRepository: ScenarioRepository,
-    // @Inject('ISessionService') private readonly sessionService: ISessionService,
+    @Inject('ISessionService') private readonly sessionService: ISessionService,
   ) {}
 
-  public duplicateShowcase = async (id: string, tenantId: string): Promise<Showcase> => {
+  public duplicateShowcase = async (id: string): Promise<Showcase> => {
     const showcase = await this.showcaseRepository.findById(id)
     const newPersonaIds: string[] = []
     const newScenarioIds: string[] = []
     const personaIdMap: Record<string, string> = {}
 
     const currentUserId = showcase.createdBy?.id
+    const tenant = await this.sessionService.getCurrentTenant()
+    
+    if (!tenant) {
+      throw new Error('Tenant not found')
+    }
+
     // const currentUserId = await this.sessionService.getCurrentUser()
     // if (!currentUserId) {
     //   throw new Error('Could not determine current logged in user.')
@@ -142,7 +146,7 @@ class DuplicationShowcaseService {
             const payload = {
               ...baseScenarioData,
               issuer: scenarioObj.issuer.id,
-            } as NewIssuanceScenario
+            }
             newScenario = await this.scenarioRepository.create(payload)
           } else {
             throw new Error('Issuer not found in scenario')
@@ -152,7 +156,7 @@ class DuplicationShowcaseService {
             const payload = {
               ...baseScenarioData,
               relyingParty: scenarioObj.relyingParty.id,
-            } as NewPresentationScenario
+            }
             newScenario = await this.scenarioRepository.create(payload)
           } else {
             throw new Error('Relying party not found in scenario')
@@ -173,7 +177,7 @@ class DuplicationShowcaseService {
       bannerImage: showcase.bannerImage ? extractId(showcase.bannerImage) : undefined,
       scenarios: newScenarioIds,
       personas: newPersonaIds,
-      tenantId: tenantId,
+      tenantId: tenant?.id!,
       hidden: showcase.hidden,
       completionMessage: showcase.completionMessage,
     }
