@@ -43,15 +43,12 @@ type Params = PropsWithChildren<{
 
 export default async function RootLayout({ children, params }: Params) {
   const { locale } = await params
-  // Ensure that the incoming `locale` is valid
   if (!routing.locales.includes(locale)) {
     notFound()
   }
 
-  // Providing all messages to the client
   const messages = await getMessages()
 
-  // Get environment variables from server
   const envVars = {
     WALLET_URL: process.env.NEXT_PUBLIC_WALLET_URL,
     SHOWCASE_API_URL: process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
