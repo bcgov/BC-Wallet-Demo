@@ -8,11 +8,12 @@ import {
   NewIssuanceScenario,
   NewPresentationScenario,
   NewShowcase,
+  NewStep,
+  NewStepActionTypes,
   PresentationScenario,
   ScenarioType,
   Showcase,
   ShowcaseStatus,
-  StepActionTypes,
 } from '../types'
 // import { ISessionService } from '../types/services/session'
 
@@ -96,9 +97,8 @@ class DuplicationShowcaseService {
     if (showcase.scenarios && showcase.scenarios.length > 0) {
       for (const scenarioObj of showcase.scenarios) {
         const cleanedSteps = scenarioObj.steps.map((step) => {
-          const cleanedStep = removeFields(step, ['id', 'createdAt', 'updatedAt'])
-          // @ts-expect-error: TODO SHOWCASE-81
-          cleanedStep.asset = cleanedStep.asset && 'id' in cleanedStep.asset ? extractIdOrNull(cleanedStep.asset) : null
+          const cleanedStep = removeFields(step, ['id', 'createdAt', 'updatedAt']) as NewStep
+          cleanedStep.asset = step.asset ? extractIdOrNull(step.asset) : null
 
           if (cleanedStep.actions && Array.isArray(cleanedStep.actions)) {
             cleanedStep.actions = cleanedStep.actions.map((action) => {
@@ -108,7 +108,7 @@ class DuplicationShowcaseService {
               //   cleanedAction.proofRequest = removeFields(cleanedAction.proofRequest, ['id', 'createdAt', 'updatedAt'])
               // }
 
-              return cleanedAction as StepActionTypes
+              return cleanedAction as NewStepActionTypes
             })
           }
 
