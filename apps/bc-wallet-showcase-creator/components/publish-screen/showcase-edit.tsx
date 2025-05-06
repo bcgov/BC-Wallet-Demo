@@ -14,7 +14,6 @@ import ButtonOutline from '../ui/button-outline'
 import {  ShowcaseRequest, ShowcaseResponse, ShowcaseStatus } from 'bc-wallet-openapi'
 
 import { toast } from 'sonner'
-import { useUiStore } from '@/hooks/use-ui-store'
 import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
@@ -23,11 +22,10 @@ import { BannerImageUpload } from './showcase-image-upload'
 
 export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const t = useTranslations()
-  const { setCurrentShowcaseSlug } = useUiStore()
   const router = useRouter()
   const { mutateAsync: updateShowcase } = useUpdateShowcase(slug)
   const { setShowcaseFromResponse } = useShowcaseStore()
-  const { setSelectedPersonaIds, setScenarioIds } = useShowcaseStore()
+  const { setSelectedPersonaIds, setScenarioIds, setCurrentShowcaseSlug } = useShowcaseStore()
   const { tenantId, setTenantId } = useHelpersStore()
   const [isLoading, setIsLoading] = useState(true)
 

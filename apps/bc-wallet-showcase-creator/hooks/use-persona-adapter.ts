@@ -7,7 +7,6 @@ import { useCreateAsset } from '@/hooks/use-asset';
 import { usePersonaStore } from '@/hooks/use-persona-store';
 import { useUpdateShowcase } from '@/hooks/use-showcases';
 import { Persona, AssetRequest, ShowcaseRequest, PersonaRequest } from "bc-wallet-openapi";
-import { useUiStore } from '@/hooks/use-ui-store';
 import { toast } from 'sonner';
 
 export const usePersonaAdapter = () => {
@@ -18,8 +17,7 @@ export const usePersonaAdapter = () => {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null);
   
   const { setEditMode, personaState, setStepState } = usePersonaStore();
-  const { selectedPersonaIds, setSelectedPersonaIds, showcase, setShowcase } = useShowcaseStore();
-  const { currentShowcaseSlug } = useUiStore();
+  const { selectedPersonaIds, setSelectedPersonaIds, showcase, setShowcase, currentShowcaseSlug } = useShowcaseStore();
 
   const { data: personasData, isLoading } = usePersonas();
   const { mutateAsync: createPersona } = useCreatePersona();

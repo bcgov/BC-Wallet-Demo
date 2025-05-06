@@ -11,7 +11,6 @@ import type { Screen } from '@/types'
 import { useUpdateShowcase, useShowcase, useUpdateShowcaseScenarios } from './use-showcases'
 import { showcaseToShowcaseRequest, debugLog } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
-import { useUiStore } from '@/hooks/use-ui-store'
 
 export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: createScenarioAsync } = useCreateScenario()
@@ -20,9 +19,8 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: updateShowcaseScenariosAsync } = useUpdateShowcaseScenarios();
 
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
-  const { setScenarioIds } = useShowcaseStore()
+  const { setScenarioIds, currentShowcaseSlug } = useShowcaseStore()
   const { issuerId } = useHelpersStore()
-  const {currentShowcaseSlug} = useUiStore()
   
   const [localSelectedStep, setLocalSelectedStep] = useState<Screen | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);

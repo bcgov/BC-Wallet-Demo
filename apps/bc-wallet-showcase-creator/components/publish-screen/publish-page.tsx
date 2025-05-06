@@ -9,7 +9,6 @@ import { Persona } from 'bc-wallet-openapi'
 
 export function PublishInfoPage() {
   const t = useTranslations()
-  const { displayShowcase } = useShowcaseStore()
   const { selectedPersonaIds } = useShowcaseStore()
   const { data: personas } = usePersonas()
 
@@ -22,7 +21,7 @@ export function PublishInfoPage() {
         <h2 className="text-base font-bold text-foreground">{t('showcases.publish_info_title')}</h2>
         <p className="w-full text-xs">{t('showcases.publish_info_subtitle')}</p>
       </div>
-      <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={displayShowcase.credentialDefinitions} />
+      <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={[]} />
     </div>
     <div className="w-2/3 bg-background border shadow-md rounded-md flex flex-col">
       <PublishEdit />

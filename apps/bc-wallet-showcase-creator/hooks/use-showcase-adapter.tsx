@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases'
-import { useUiStore } from '@/hooks/use-ui-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { Showcase, ShowcaseRequest, ShowcaseScenariosInner } from 'bc-wallet-openapi'
@@ -11,25 +10,21 @@ import { debugLog, showcaseToShowcaseRequest } from '@/lib/utils'
 export function useShowcaseAdapter(slug?: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [localShowcase, setLocalShowcase] = useState<Showcase | null>(null)  
-  const { currentShowcaseSlug } = useUiStore()
+  const { 
+    showcase: storeShowcase,
+    setShowcase: setStoreShowcase,
+    setShowcaseFromResponse, 
+    setSelectedPersonaIds, 
+    setScenarioIds,
+    setCurrentShowcaseSlug,
+    currentShowcaseSlug
+  } = useShowcaseStore()
   const effectiveSlug = slug || currentShowcaseSlug
   
   const { data: showcaseData, isLoading: isShowcaseLoading, refetch } = 
     useShowcase(effectiveSlug || '')
   const { mutateAsync: updateShowcase, isPending: isSaving } = 
     useUpdateShowcase(effectiveSlug || '')
-  
-  const { 
-    showcase: storeShowcase,
-    setShowcase: setStoreShowcase,
-    setShowcaseFromResponse, 
-    setSelectedPersonaIds, 
-    setScenarioIds 
-  } = useShowcaseStore()
-  
-  const { 
-    setCurrentShowcaseSlug,
-  } = useUiStore()
   
   const { 
     selectedCredentialDefinitionIds, 
@@ -118,21 +113,6 @@ export function useShowcaseAdapter(slug?: string) {
     updateShowcase, tenantId, setStoreShowcase, setScenarioIds, refetch
   ]);
 
-  const getBannerImageId = () => {
-    const showcase = localShowcase || storeShowcase;
-    if (!showcase) return null;
-    
-    if (typeof showcase.bannerImage === 'string') {
-      return showcase.bannerImage;
-    }
-    
-    if (showcase.bannerImage && typeof showcase.bannerImage === 'object' && 'id' in showcase.bannerImage) {
-      return showcase.bannerImage.id;
-    }
-    
-    return null;
-  };
-
   const effectiveShowcase = localShowcase || storeShowcase;
 
   return {
@@ -143,7 +123,6 @@ export function useShowcaseAdapter(slug?: string) {
     refetch,
     isSaving,
     selectedCredentialDefinitionIds,
-    bannerImageId: getBannerImageId(),
     slug: effectiveSlug
   };
 }
