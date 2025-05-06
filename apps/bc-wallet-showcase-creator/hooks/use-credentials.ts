@@ -123,9 +123,12 @@ export const useUpdateCredentialSchema = () => {
       const response = await apiClient.put(`/credentials/schemas/${credentialSchemaId}`, data)
       return response as CredentialSchemaResponse
     },
+    onSuccess: (_, { credentialSchemaId }) => {
+      queryClient.invalidateQueries({ queryKey: ['credentialSchema', credentialSchemaId] })
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['credentialSchema'] })
-    },
+    }
   })
 }
 
