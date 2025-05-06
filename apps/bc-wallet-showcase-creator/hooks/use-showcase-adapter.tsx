@@ -14,7 +14,6 @@ export function useShowcaseAdapter(slug?: string) {
   const { 
     showcase: storeShowcase,
     setShowcase: setStoreShowcase,
-    setShowcaseFromResponse, 
     setSelectedPersonaIds, 
     setScenarioIds,
     setCurrentShowcaseSlug,
@@ -53,7 +52,6 @@ export function useShowcaseAdapter(slug?: string) {
         setIsLoading(false);        
         setTenantId(showcaseResponse.tenantId || '');
         setCurrentShowcaseSlug(showcaseResponse.slug);
-        setShowcaseFromResponse(showcaseResponse);
         setStoreShowcase(showcaseToShowcaseRequest(showcaseResponse));
         
         const personaIds = showcaseResponse.personas?.map(p => 
@@ -69,7 +67,7 @@ export function useShowcaseAdapter(slug?: string) {
     }
   }, [
     effectiveSlug, showcaseData, isShowcaseLoading, 
-    setShowcaseFromResponse, setCurrentShowcaseSlug, 
+    setCurrentShowcaseSlug, 
     setSelectedPersonaIds, setScenarioIds, setTenantId,
     setStoreShowcase
   ]);

@@ -11,7 +11,6 @@ interface ShowcaseStore {
   currentShowcaseSlug: string;
 
   setShowcase: (showcase: ShowcaseRequest) => void;
-  setShowcaseFromResponse: (showcase: Showcase) => void;
   setPersonaIds: (personaIds: string[]) => void;
   setScenarioIds: (scenarioIds: string[]) => void;
   
@@ -52,22 +51,6 @@ export const useShowcaseStore = create<ShowcaseStore>()(
         showcase: { ...state.showcase, ...showcase },
       })),
 
-      setShowcaseFromResponse: (showcase: Showcase) => set((state) => ({
-        showcase: { 
-          ...state.showcase, 
-          tenantId: showcase.tenantId, 
-          slug: showcase.slug, 
-          name: showcase.name, 
-          completionMessage: showcase.completionMessage,
-          description: showcase.description,
-          status: showcase.status,
-          hidden: showcase.hidden,
-          personas: showcase.personas.map(p => p.id),
-          scenarios: showcase.scenarios.map(s => s.id),
-          bannerImage: showcase.bannerImage?.id,
-        }
-      })),
-      
       setPersonaIds: (personaIds) => set((state) => ({
         showcase: { ...state.showcase, personas: personaIds }
       })),

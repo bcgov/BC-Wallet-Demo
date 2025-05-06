@@ -19,13 +19,13 @@ import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { showcaseRequestFormData } from '@/schemas/showcase'
 import { BannerImageUpload } from './showcase-image-upload'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
 
 export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const t = useTranslations()
   const router = useRouter()
   const { mutateAsync: updateShowcase } = useUpdateShowcase(slug)
-  const { setShowcaseFromResponse } = useShowcaseStore()
-  const { setSelectedPersonaIds, setScenarioIds, setCurrentShowcaseSlug } = useShowcaseStore()
+  const { setSelectedPersonaIds, setScenarioIds, setCurrentShowcaseSlug, setShowcase } = useShowcaseStore()
   const { tenantId, setTenantId } = useHelpersStore()
   const [isLoading, setIsLoading] = useState(true)
 
@@ -81,7 +81,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
       setIsLoading(false)
       setTenantId(showcase.tenantId || '')
       setCurrentShowcaseSlug(showcase.slug)
-      setShowcaseFromResponse(showcase)
+      setShowcase(showcaseToShowcaseRequest(showcase))
       setSelectedPersonaIds(showcase.personas?.map((p) => (typeof p === 'string' ? p : p.id)) || [])
       setScenarioIds(showcase.scenarios?.map((s) => (typeof s === 'string' ? s : s.id)) || [])
     }
@@ -90,7 +90,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
     isShowcaseLoading,
     form,
     tenantId,
-    setShowcaseFromResponse,
+    setShowcase,
     setCurrentShowcaseSlug,
     setSelectedPersonaIds,
   ])
