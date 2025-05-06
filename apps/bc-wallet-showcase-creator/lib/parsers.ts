@@ -16,6 +16,8 @@ import {
   ChooseWalletActionRequest,
   SetupConnectionActionRequest,
   ButtonActionRequest,
+  PresentationScenario,
+  PresentationScenarioRequest,
 } from 'bc-wallet-openapi'
 
 export const showcaseToShowcaseRequest = (showcase: Showcase): ShowcaseRequest => {
@@ -103,4 +105,18 @@ export const actionToStepRequestAction = (
   }
 
   return {} as StepActionRequest
+}
+
+export const presentationScenarioToPresentationScenarioRequest = (
+  presentationScenario: PresentationScenario,
+): PresentationScenarioRequest & { slug: string } => {
+  return {
+    name: presentationScenario.name,
+    slug: presentationScenario.slug,
+    description: presentationScenario.description,
+    steps: presentationScenario.steps.map((step) => stepToStepRequest(step)),
+    personas: presentationScenario.personas.map((persona) => persona.id),
+    relyingParty: presentationScenario.relyingParty?.id,
+    hidden: false,
+  }
 }
