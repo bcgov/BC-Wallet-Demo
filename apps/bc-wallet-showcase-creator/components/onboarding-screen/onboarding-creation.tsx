@@ -30,7 +30,7 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
   
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
-    const { tenantId } = useTenant();
+  const { tenantId } = useTenant();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -73,7 +73,7 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
                     <Image
                       src={
                         persona.headshotImage?.id
-                          ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                           : '/assets/no-image.jpg'
                       }
                       alt={`${persona.name} || 'Character Headshot'`}

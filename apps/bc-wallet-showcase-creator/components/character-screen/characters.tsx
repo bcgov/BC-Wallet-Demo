@@ -202,7 +202,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                           <Image
                             src={
                               persona.headshotImage?.id
-                                ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                                 : '/assets/no-image.jpg'
                             }
                             alt={persona.headshotImage?.description || 'Character headshot'}
@@ -325,7 +325,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                 element={'headshot_image'}
                                 initialValue={
                                   selectedPersona?.headshotImage?.id
-                                    ? `${baseUrl}/assets/${selectedPersona.headshotImage.id}/file`
+                                    ? `${baseUrl}/${tenantId}/assets/${selectedPersona.headshotImage.id}/file`
                                     : undefined
                                 }
                                 handleJSONUpdate={(imageType, imageData) => {
@@ -340,7 +340,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                 element={'body_image'}
                                 initialValue={
                                   selectedPersona?.bodyImage?.id
-                                    ? `${baseUrl}/assets/${selectedPersona.bodyImage.id}/file`
+                                    ? `${baseUrl}/${tenantId}/assets/${selectedPersona.bodyImage.id}/file`
                                     : undefined
                                 }
                                 handleJSONUpdate={(imageType, imageData) => {

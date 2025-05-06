@@ -7,6 +7,7 @@ import { Copy, GripVertical, TriangleAlert } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { Screen } from '@/types'
+import { useTenant } from '@/providers/tenant-provider'
 
 const MAX_CHARS = 50
 
@@ -23,7 +24,7 @@ export const SortableStep = ({
 }) => {
   const t = useTranslations()
   const { handleSelectStep, duplicateStep, activePersonaId, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
-
+  const tenantId = useTenant()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: myScreen.id || `step-${scenarioIndex}-${stepIndex}`,
   })
@@ -121,7 +122,7 @@ const handleStepClick = () => {
                     <Image
                       src={
                         cred?.icon?.id
-                          ? `${baseUrl}/assets/${cred.icon.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${cred.icon.id}/file`
                           : '/assets/no-image.jpg'
                       }
                       unoptimized

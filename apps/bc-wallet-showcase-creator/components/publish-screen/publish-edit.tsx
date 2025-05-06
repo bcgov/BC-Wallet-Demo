@@ -35,6 +35,7 @@ const BannerImageUpload = ({
 }) => {
   const t = useTranslations()
   const { mutateAsync: createAsset } = useCreateAsset()
+  const { tenantId } = useTenant();
   
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
@@ -85,7 +86,7 @@ const BannerImageUpload = ({
               </button>
               <Image
                 alt="banner preview"
-                src={`${baseUrl}/assets/${value}/file`}
+                src={`${baseUrl}/${tenantId}/assets/${value}/file`}
                 width={240}
                 height={240}
                 className="rounded-lg shadow object-cover"

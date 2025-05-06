@@ -100,7 +100,7 @@ export const CreateScenariosScreen = () => {
                     <Image
                       src={
                         persona.headshotImage?.id
-                          ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                           : '/assets/no-image.jpg'
                       }
                       alt={`${persona.headshotImage?.description || 'Character headshot'} `}

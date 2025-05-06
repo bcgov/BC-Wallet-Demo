@@ -36,6 +36,7 @@ import {
   CredentialDefinitionRequest,
   CredentialSchemaRequest,
 } from 'bc-wallet-openapi'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const CredentialsForm = () => {
   const { selectedCredential, mode, setSelectedCredential, viewCredential } = useCredentials()
@@ -44,6 +45,7 @@ export const CredentialsForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [credentialLogo, setCredentialLogo] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
+  const { tenantId } = useTenant();
   const { mutateAsync: createAsset } = useCreateAsset()
   const { mutateAsync: createCredentialSchema } = useCreateCredentialSchema()
 
@@ -285,7 +287,7 @@ export const CredentialsForm = () => {
                         className="p-3 max-w-full max-h-full object-contain"
                         src={
                           selectedCredential?.icon?.id
-                            ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
+                            ? `${baseUrl}/${tenantId}/assets/${selectedCredential.icon.id}/file`
                             : '/assets/no-image.jpg'
                         }
                         width={150}

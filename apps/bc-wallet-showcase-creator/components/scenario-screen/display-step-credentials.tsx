@@ -9,6 +9,7 @@ import { NoSelection } from '../credentials/no-selection'
 import { EditProofRequest } from './edit-proof-request'
 import { ProofRequestFormData } from '@/schemas/scenario'
 import { CredentialDefinition } from 'bc-wallet-openapi'
+import { useTenant } from '@/providers/tenant-provider'
 
 interface DisplayStepCredentialsProps {
   credentials: CredentialDefinition[];
@@ -26,6 +27,7 @@ export const DisplayStepCredentials = ({
   credentials
 }: DisplayStepCredentialsProps) => {
   const [editingCredentials, setEditingCredentials] = useState<number[]>([])
+  const { tenantId } = useTenant();
 
   if ((credentials || []).length === 0) {
     return (
@@ -57,7 +59,7 @@ export const DisplayStepCredentials = ({
               >
                 <div className="flex items-center flex-1">
                   <Image
-                    src={credential.icon?.id ? `${baseUrl}/assets/${credential.icon.id}/file` : '/assets/no-image.jpg'}
+                    src={credential.icon?.id ? `${baseUrl}/${tenantId}/assets/${credential.icon.id}/file` : '/assets/no-image.jpg'}
                     alt={credential?.icon?.description || 'default credential icon'}
                     width={50}
                     height={50}

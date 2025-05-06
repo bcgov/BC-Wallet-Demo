@@ -9,6 +9,7 @@ import { Input } from "../ui/input";
 import ButtonOutline from "../ui/button-outline";
 import { useUpdateCredentialSchema } from "@/hooks/use-credentials";
 import type { CredentialSchemaRequest, CredentialAttribute, CredentialDefinition } from "bc-wallet-openapi";
+import { getTenantId } from "@/providers/tenant-provider";
 
 interface DisplayAddedCredentialsProps {
   credentials: CredentialDefinition[];
@@ -24,6 +25,7 @@ export const DisplayAddedCredentials = ({
   const t = useTranslations();
   const hasCredentials = (credentials || []).length > 0;
   const updateCredentialSchema = useUpdateCredentialSchema();
+  const tenantId = getTenantId()
 
   const [isEditing, setIsEditing] = useState(false);
   if (!hasCredentials) {
@@ -129,7 +131,7 @@ export const DisplayAddedCredentials = ({
                 {/* Left Section - Image and User Info */}
                 <div className="flex items-center flex-1">
                   <Image
-                    src={credential.icon?.id ? `${baseUrl}/assets/${credential.icon.id}/file` : '/assets/no-image.jpg'}
+                    src={credential.icon?.id ? `${baseUrl}/${tenantId}/assets/${credential.icon.id}/file` : '/assets/no-image.jpg'}
                     alt={credential?.icon?.description || 'default credential icon'}
                     width={50}
                     height={50}

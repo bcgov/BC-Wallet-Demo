@@ -37,10 +37,11 @@ const BannerImageUpload = ({
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(null)
   const { mutateAsync: createAsset } = useCreateAsset()
+  const { tenantId } = useTenant();
 
   useEffect(() => {
     if (value) {
-      setPreview(`${baseUrl}/assets/${value}/file`)
+      setPreview(`${baseUrl}/${tenantId}/assets/${value}/file`)
     } else {
       setPreview(null)
     }

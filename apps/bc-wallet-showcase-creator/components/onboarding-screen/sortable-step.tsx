@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl'
 import { Screen } from '@/types'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { StepRequest } from 'bc-wallet-openapi'
+import { useTenant } from '@/providers/tenant-provider'
 
 const MAX_CHARS = 50;
 
@@ -23,7 +24,7 @@ export const SortableStep = ({
 }) => {
   const t = useTranslations();
   const { handleSelectStep, duplicateStep, activeScenarioIndex } = useOnboardingAdapter();
-  
+  const { tenantId } = useTenant();
   const itemId = myScreen.id || `step-${stepIndex}-${activeScenarioIndex}`;
   
   const { 
@@ -136,7 +137,7 @@ export const SortableStep = ({
                     <Image
                       src={
                         cred.icon?.id
-                          ? `${baseUrl}/assets/${cred.icon.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${cred.icon.id}/file`
                           : '/assets/no-image.jpg'
                       }
                       unoptimized

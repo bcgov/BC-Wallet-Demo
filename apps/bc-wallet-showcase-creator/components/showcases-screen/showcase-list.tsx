@@ -124,7 +124,7 @@ export const ShowcaseList = () => {
                     style={{
                       backgroundImage: `url('${
                         showcase?.bannerImage?.id
-                          ? `${baseUrl}/assets/${showcase.bannerImage.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${showcase.bannerImage.id}/file`
                           : '/assets/NavBar/Showcase.jpeg'
                       }')`,
                     }}
@@ -155,8 +155,8 @@ export const ShowcaseList = () => {
                             }}
                           />
 
-                          <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />
-                          <OpenButton value={`${WALLET_URL}/${showcase.slug}`} />
+                          <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                          <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
                         </div>
                       </div>
                     </div>
@@ -185,7 +185,7 @@ export const ShowcaseList = () => {
                             <Image
                               src={
                                 persona.headshotImage?.id
-                                  ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                  ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                                   : '/assets/no-image.jpg'
                               }
                               alt={persona.headshotImage?.description || 'Character headshot'}
