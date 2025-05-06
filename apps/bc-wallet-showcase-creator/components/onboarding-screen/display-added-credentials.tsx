@@ -2,7 +2,7 @@ import { NoSelection } from '../credentials/no-selection'
 import { Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn, baseUrl } from '@/lib/utils'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -22,8 +22,16 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
   const t = useTranslations()
   const { mutateAsync: updateCredentialSchema } = useUpdateCredentialSchema()
   const [isEditing, setIsEditing] = useState(false)
+  
+  const [credentialAttributes, setCredentialAttributes] = useState<CredentialAttribute[]>([])
 
-  const { data, isLoading, error } = useCredentialDefinition(credentialId)
+  const { data, isLoading, error, refetch } = useCredentialDefinition(credentialId)
+
+  useEffect(() => {
+    if (data?.credentialDefinition?.credentialSchema?.attributes) {
+      setCredentialAttributes([...data.credentialDefinition.credentialSchema.attributes])
+    }
+  }, [data])
 
   if (isLoading) {
     return <Skeleton className="w-full h-full" />
@@ -38,46 +46,27 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
   }
 
   const handleAttributeChange = (attrIndex: number, newValue: string) => {
-    if (
-      !data ||
-      !data.credentialDefinition ||
-      !data.credentialDefinition.credentialSchema ||
-      !data.credentialDefinition.credentialSchema.attributes
-    ) {
-      return
-    }
-
-    const updatedCredential = {
-      ...data,
-      credentialSchema: {
-        ...data.credentialDefinition.credentialSchema,
-        attributes: data.credentialDefinition.credentialSchema.attributes.map((attr, i) =>
-          i === attrIndex ? { 
-            ...attr, 
-            value: newValue 
-          } : attr,
-        ),
-      },
-    }
+    setCredentialAttributes(currentAttributes => {
+      return currentAttributes.map((attr, i) => 
+        i === attrIndex ? { ...attr, value: newValue } : attr
+      )
+    })
   }
 
   const handleSaveAttributes = async () => {
-    if (!data || !data.credentialDefinition || !data.credentialDefinition.credentialSchema) return
-
-    const updatedAttrs =
-      data.credentialDefinition.credentialSchema.attributes?.map((attr) => ({
-        ...attr,
-        value: attr.value || '',
-      })) || []
+    if (!data || !data.credentialDefinition || !data.credentialDefinition.credentialSchema) {
+      console.error('Missing credential schema data')
+      return
+    }
 
     const schemaPayload: CredentialSchemaRequest = {
       name: data.credentialDefinition.credentialSchema.name,
       version: data.credentialDefinition.credentialSchema.version,
       identifierType: data.credentialDefinition.credentialSchema.identifierType || 'DID',
       source: data.credentialDefinition.credentialSchema.source || 'CREATED',
-      attributes: updatedAttrs.map((attr) => ({
+      attributes: credentialAttributes.map((attr) => ({
         name: attr.name,
-        value: attr.value,
+        value: attr.value || '',
         type: attr.type,
       })),
     }
@@ -89,18 +78,11 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
       })
       console.log(`Updated schema for credential ${data.credentialDefinition.id}`, schemaResponse)
 
-      const updatedCredential = {
-        ...data,
-        credentialSchema: {
-          ...data.credentialDefinition.credentialSchema,
-          attributes: updatedAttrs,
-        },
-      }
-
       if (onCredentialUpdate) {
-        // onCredentialUpdate(updatedCredential.credentialDefinition.id);
+        onCredentialUpdate(credentialId)
       }
 
+      refetch()
       setIsEditing(false)
     } catch (error) {
       console.error(`Failed to update schema for credential`, error)
@@ -134,13 +116,16 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
                 }}
               />
               <div className="space-y-1 ml-4">
-                <p className="font-semibold">{data.credentialDefinition?.credentialSchema?.name}</p>
+                <p className="font-semibold">{data.credentialDefinition?.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {data.credentialDefinition?.credentialSchema?.name}
+                </p>
               </div>
             </div>
 
             <div className="flex flex-col justify-center items-start">
               <p className="font-semibold">{t('credentials.attributes_label')}</p>
-              <p>{data.credentialDefinition?.credentialSchema?.attributes?.length}</p>
+              <p>{credentialAttributes.length}</p>
             </div>
 
             {removeCredential && (
@@ -166,14 +151,14 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
               className="text-xs font-semibold hover:bg-transparent hover:underline p-1"
               onClick={() => setIsEditing(!isEditing)}
             >
-              {isEditing ? 'HIDE ATTRIBUTES' : 'ADD ATTRIBUTE VALUES'}
+              {isEditing ? 'HIDE ATTRIBUTES' : 'EDIT ATTRIBUTE VALUES'}
             </Button>
           </div>
 
           {isEditing && (
             <>
               <div className="p-3 rounded-b-lg bg-white dark:bg-dark-bg">
-                {data.credentialDefinition?.credentialSchema?.attributes?.map(
+                {credentialAttributes.map(
                   (attr: CredentialAttribute, attrIndex: number) => (
                     <div key={attr.id || attrIndex} className="grid grid-cols-2 gap-4">
                       <div className="space-y-2 flex flex-col justify-center p-4">
@@ -198,7 +183,7 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
               </div>
 
               <div className="justify-self-center mb-2 flex justify-center">
-                <ButtonOutline type="button" onClick={() => handleSaveAttributes()}>
+                <ButtonOutline type="button" onClick={handleSaveAttributes}>
                   {t('action.save_label')}
                 </ButtonOutline>
               </div>

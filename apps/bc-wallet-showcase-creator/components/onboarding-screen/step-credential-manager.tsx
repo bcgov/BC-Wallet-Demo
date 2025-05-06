@@ -51,10 +51,7 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
   }
 
   const removeCredential = () => {
-    if (currentStepCredential) {
-      onUpdateCredentials('')
-    }
-    setSelectedCredential(null)
+    onUpdateCredentials('')
   }
 
   return (
