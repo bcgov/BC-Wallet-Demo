@@ -5,7 +5,8 @@ import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { Showcase, ShowcaseRequest, ShowcaseScenariosInner } from 'bc-wallet-openapi'
-import { debugLog, showcaseToShowcaseRequest } from '@/lib/utils'
+import { debugLog } from '@/lib/utils'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
 
 export function useShowcaseAdapter(slug?: string) {
   const [isLoading, setIsLoading] = useState(true)

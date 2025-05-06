@@ -9,8 +9,9 @@ import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import type { Persona, Showcase, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
 import { useUpdateShowcase, useShowcase, useUpdateShowcaseScenarios } from './use-showcases'
-import { showcaseToShowcaseRequest, debugLog } from '@/lib/utils'
+import { debugLog } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
 
 export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: createScenarioAsync } = useCreateScenario()
@@ -117,26 +118,6 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     if (!step.actions || step.actions.length === 0) return null;
     return step.actions[0].actionType || null;
   }, []);
-
-  const setStepStateFromAction = useCallback((actionType: string | null) => {
-    if (!actionType) {
-      setStepState('editing-basic');
-      return;
-    }
-
-    switch (actionType) {
-      case 'CHOOSE_WALLET':
-        break;
-      case 'SETUP_CONNECTION':
-      case 'ARIES_OOB':
-        break;
-      case 'ACCEPT_CREDENTIAL':
-        setStepState('editing-issue');
-        break;
-      default:
-        setStepState('editing-basic');
-    }
-  }, [setStepState]);
 
   const handleSelectStepImpl = (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {
     if (stepIndex < 0 || !steps || stepIndex >= steps.length) {
