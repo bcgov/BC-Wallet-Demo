@@ -1,60 +1,32 @@
-{{- if and .Values.demo_web.enabled .Values.demo_web.networkPolicy.enabled }}
+{{- if .Values.demoWeb.networkPolicy.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-demo-web-allow-external
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  name: {{ include "bc-wallet.fullname" . }}-demo-web
+  namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: web
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: demo-web
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-demo-web
+      app.kubernetes.io/component: demo-web
+      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
   ingress:
-  {{- if .Values.demo_web.networkPolicy.ingress.enabled }}
-  - from:
-    {{- if .Values.demo_web.networkPolicy.ingress.namespaceSelector }}
-    - namespaceSelector:
-        matchLabels:
-          {{- if kindIs "map" .Values.demo_web.networkPolicy.ingress.namespaceSelector }}
-          {{- toYaml .Values.demo_web.networkPolicy.ingress.namespaceSelector | nindent 10 }}
-          {{- end }}
-      {{- if .Values.demo_web.networkPolicy.ingress.podSelector }}
-      podSelector:
-        {{- toYaml .Values.demo_web.networkPolicy.ingress.podSelector | nindent 10 }}
+{{- if and .Values.ingress.enabled .Values.demoWeb.networkPolicy.ingress.enabled }}
+      {{- with .Values.demoWeb.networkPolicy.ingress.namespaceSelector }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+{{ toYaml . | indent 14 }}
       {{- end }}
-    {{- else }}
-    - {}  # Allow all ingress traffic if no selector specified
+      {{- with .Values.demoWeb.networkPolicy.ingress.podSelector }}
+    - from:
+        - podSelector:
+            matchLabels:
+{{ toYaml . | indent 14 }}
+      {{- end }}
     {{- end }}
-  {{- else }}
-  - {}  # Allow all ingress traffic
-  {{- end }}
----
-# Network policy for Web to API
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ include "bc-wallet.fullname" . }}-api-allow-web
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
-  labels:
-    app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-api-server
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: {{ include "bc-wallet.fullname" . }}-demo-web
-    ports:
-    - protocol: TCP
-      port: {{ .Values.api_server.service.port }}
----
-{{- $context := dict "componentName" "demo-web" "componentLabel" "web" "servicePort" .Values.demo_web.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet.intra-release-network-policy" $context }}
-{{- end }} 
+{{- end }}

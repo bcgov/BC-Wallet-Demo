@@ -1,317 +1,652 @@
+# Default values for bc-wallet.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This is to override the chart name.
 nameOverride: ""
 fullnameOverride: ""
 
 global:
-  namespaceOverride: ""
+  ingressSuffix: "-dev.apps.silver.devops.gov.bc.ca"
 
-# Add ingressSuffix for dynamic host generation
-ingressSuffix: "-dev.apps.silver.devops.gov.bc.ca"
-
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
   className: ""
   annotations:
-    kubernetes.io/ingress.class: openshift-default
     route.openshift.io/termination: edge
-  hosts:
-    - host: ""  
-      paths:
-        - path: /
-          pathType: Prefix
-          service: api-server
-    - host: ""  
-      paths:
-        - path: /
-          pathType: Prefix
-          service: traction-adapter
-    - host: ""  
-      paths:
-        - path: /
-          pathType: Prefix
-          service: demo-web
-    - host: "" 
-      paths:
-        - path: /
-          pathType: Prefix
-          service: showcase-creator
-    - host: "" 
-      paths:
-        - path: /
-          pathType: Prefix
-          service: demo-server
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
   tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
 
-api_server:
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+apiServer:
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
     repository: ghcr.io/bcgov/bc-wallet-api-server
+    # This sets the pull policy for images.
     pullPolicy: IfNotPresent
-    pullSecrets: []
+    # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
-  replicaCount: 1
-  labelOverride: ""
-  port: 3000
-  path: /
-  env:
-    LOG_LEVEL: debug
-    CORS_DISABLED: true
-    CORS_ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
-    CORS_ALLOW_HEADERS: "Content-Type, Authorization"
-    CORS_ALLOW_CREDENTIALS: "true"
-    OIDC_REALM: your_oidc_realm
-    OIDC_SERVER_URL: your_oidc_server_url
-    ENCRYPTION_KEY: SENSITIVE
-    OIDC_CLIENT_ID: SENSITIVE
-    OIDC_CLIENT_SECRET: SENSITIVE
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
+
+  # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  imagePullSecrets: []
+
+  # Name of ConfigMap with extra environment variables
+  extraEnvVarsCM: ""
+
+  # Name of Secret with extra environment variables
+  ## Secret must include the following ENVVars:
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
+  extraEnvVarsSecret: ""
+
+  # This is for setting Kubernetes Annotations to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   podAnnotations: {}
-  podSecurityContext: {}
-  containerSecurityContext: {}
+  # This is for setting Kubernetes Labels to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/1
+  podLabels: {}
+
+  podSecurityContext:
+    {}
+    # fsGroup: 2000
+
+  securityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
     port: 3000
-  affinity: {}
-  nodeSelector: {}
-  tolerations: []
-  networkPolicy:
-    enabled: true
-    ingress:
-      enabled: true
-      namespaceSelector: 
-        network.openshift.io/policy-group: ingress
-      podSelector: {}
-  enabled: true
-  serviceAccount:
-    create: false
-    name: ""
-    annotations: {}
-    automountServiceAccountToken: true
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 3
-    targetCPUUtilizationPercentage: 80
-    targetMemoryUtilizationPercentage: 80
-    stabilizationWindowSeconds: 300
 
-traction_adapter:
-  image:
-    repository: ghcr.io/bcgov/bc-wallet-traction-adapter
-    pullPolicy: IfNotPresent
-    pullSecrets: []
-    tag: "latest"
-  replicaCount: 1
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 3
-    targetCPUUtilizationPercentage: 80
-    targetMemoryUtilizationPercentage: 80
-    stabilizationWindowSeconds: 300
-  labelOverride: ""
-  port: 3000
-  path: /traction
-  env:
-    APP_NAME: bc-wallet-traction-adapter
-    PORT: 3000
-    LOG_LEVEL: debug
-    TRACTION_DEFAULT_TENANT_ID: "your_tenant_id"
-    TRACTION_DEFAULT_WALLET_ID: "your_wallet_id"
-    TRACTION_DEFAULT_API_URL: "https://traction-sandbox-tenant-proxy.apps.silver.devops.gov.bc.ca"
-    TRACTION_DEFAULT_API_KEY: SENSITIVE
   resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  podAnnotations: {}
-  podSecurityContext: {}
-  containerSecurityContext: {}
-  service:
-    type: ClusterIP
-    port: 3000
-  affinity: {}
-  nodeSelector: {}
-  tolerations: []
-  networkPolicy:
-    enabled: true
-    ingress:
-      enabled: true
-      namespaceSelector: 
-        network.openshift.io/policy-group: ingress
-      podSelector: {}
-  enabled: true
-  serviceAccount:
-    create: false
-    annotations: {}
-    automountServiceAccountToken: true
-    name: ""
+    {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
-demo_web:
-  image:
-    repository: ghcr.io/bcgov/bc-wallet-demo-web
-    pullPolicy: IfNotPresent
-    pullSecrets: []
-    tag: "latest"
-  replicaCount: 1
+  # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  livenessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+  readinessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+
+  # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
     enabled: false
     minReplicas: 1
-    maxReplicas: 3
+    maxReplicas: 100
     targetCPUUtilizationPercentage: 80
-    targetMemoryUtilizationPercentage: 80
-    stabilizationWindowSeconds: 300
-  labelOverride: ""
-  port: 3000
-  path: /
-  env:
-    NODE_ENV: production
-    LOG_LEVEL: debug
-    REACT_APP_BASE_ROUTE: /digital-trust/showcase
-    REACT_APP_SNOWPLOW_ENDPOINT: "spm.apps.gov.bc.ca"
-    REACT_APP_INSIGHTS_PROJECT_ID: your_insights_project_id
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  podAnnotations: {}
-  podSecurityContext: {}
-  containerSecurityContext: {}
-  service:
-    type: ClusterIP
-    port: 3000
-  affinity: {}
-  nodeSelector: {}
-  tolerations: []
+    # targetMemoryUtilizationPercentage: 80
+
   networkPolicy:
     enabled: true
     ingress:
       enabled: true
-      namespaceSelector: 
+      namespaceSelector:
         network.openshift.io/policy-group: ingress
       podSelector: {}
-  enabled: true
-  serviceAccount:
-    create: false
-    annotations: {}
-    automountServiceAccountToken: true
-    name: ""
 
-showcase_creator:
-  image:
-    repository: ghcr.io/bcgov/bc-wallet-showcase-creator
-    pullPolicy: IfNotPresent
-    pullSecrets: []
-    tag: "latest"
+  # Additional volumes on the output Deployment definition.
+  volumes: []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
+
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+demoServer:
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 3
-    targetCPUUtilizationPercentage: 80
-    targetMemoryUtilizationPercentage: 80
-    stabilizationWindowSeconds: 300
-  labelOverride: ""
-  port: 3050
-  path: /
-  env:
-    NODE_ENV: production
-    PORT: 3050
-    OIDC_ISSUER_URL: your_oidc_issuer_url # ADD KEYCLOAK ISSUER HERE
-    OIDC_TRUST_HOST: "true"
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  podAnnotations: {}
-  podSecurityContext: {}
-  containerSecurityContext: {}
-  service:
-    type: ClusterIP
-    port: 3050
-  affinity: {}
-  nodeSelector: {}
-  tolerations: []
-  networkPolicy:
-    enabled: true
-    ingress:
-      enabled: true
-      namespaceSelector: 
-        network.openshift.io/policy-group: ingress
-      podSelector: {}
-  enabled: true
-  serviceAccount:
-    create: false
-    annotations: {}
-    automountServiceAccountToken: true
-    name: ""
 
-demo_server:
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
     repository: ghcr.io/bcgov/bc-wallet-demo-server
+    # This sets the pull policy for images.
     pullPolicy: IfNotPresent
-    pullSecrets: []
+    # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
-  replicaCount: 1
+
+  # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  imagePullSecrets: []
+
+  logLevel: debug
+
+  # Name of ConfigMap with extra environment variables
+  extraEnvVarsCM: ""
+
+  # Name of Secret with extra environment variables
+  ## Secret must include the following ENVVars:
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
+  extraEnvVarsSecret: ""
+
+  # This is for setting Kubernetes Annotations to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  podAnnotations: {}
+  # This is for setting Kubernetes Labels to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/1
+  podLabels: {}
+
+  podSecurityContext:
+    {}
+    # fsGroup: 2000
+
+  securityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 3000
+
+  resources:
+    {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  livenessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+  readinessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+
+  # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
     enabled: false
     minReplicas: 1
-    maxReplicas: 3
+    maxReplicas: 100
     targetCPUUtilizationPercentage: 80
-    targetMemoryUtilizationPercentage: 80
-    stabilizationWindowSeconds: 300
-  labelOverride: ""
-  port: 3000
-  path: /
-  env:
-    LOG_LEVEL: debug
-    CORS_DISABLED: true
-    CORS_ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
-    CORS_ALLOW_HEADERS: "Content-Type, Authorization"
-    CORS_ALLOW_CREDENTIALS: "true"
-    TRACTION_WEBHOOK_SECRET: SENSITIVE
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  podAnnotations: {}
-  podSecurityContext: {}
-  containerSecurityContext: {}
-  service:
-    type: ClusterIP
-    port: 3000
-  affinity: {}
-  nodeSelector: {}
-  tolerations: []
+    # targetMemoryUtilizationPercentage: 80
+
   networkPolicy:
     enabled: true
     ingress:
       enabled: true
-      namespaceSelector: 
+      namespaceSelector:
         network.openshift.io/policy-group: ingress
       podSelector: {}
-  enabled: true
-  serviceAccount:
-    create: false
-    annotations: {}
-    automountServiceAccountToken: true
-    name: ""
+
+  # Additional volumes on the output Deployment definition.
+  volumes: []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
+
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+demoWeb:
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    repository: ghcr.io/bcgov/bc-wallet-demo-web
+    # This sets the pull policy for images.
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+
+  # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  imagePullSecrets: []
+
+  logLevel: debug
+  baseRoute: /digital-trust/showcase
+  snowplowEndpoint: spm.apps.gov.bc.ca
+  insightsProjectId: your_insights_project_id
+
+  # Name of ConfigMap with extra environment variables
+  extraEnvVarsCM: ""
+
+  # Name of Secret with extra environment variables
+  ## Secret must include the following ENVVars:
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
+  extraEnvVarsSecret: ""
+
+  # This is for setting Kubernetes Annotations to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  podAnnotations: {}
+  # This is for setting Kubernetes Labels to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/1
+  podLabels: {}
+
+  podSecurityContext:
+    {}
+    # fsGroup: 2000
+
+  securityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 3000
+
+  resources:
+    {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  livenessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+  readinessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+
+  # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  networkPolicy:
+    enabled: true
+    ingress:
+      enabled: true
+      namespaceSelector:
+        network.openshift.io/policy-group: ingress
+      podSelector: {}
+
+  # Additional volumes on the output Deployment definition.
+  volumes: []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
+
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+showcaseCreator:
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    repository: ghcr.io/bcgov/bc-wallet-showcase-creator
+    # This sets the pull policy for images.
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+
+  # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  imagePullSecrets: []
+
+  logLevel: debug
+
+  # Name of ConfigMap with extra environment variables
+  extraEnvVarsCM: ""
+
+  # Name of Secret with extra environment variables
+  ## Secret must include the following ENVVars:
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
+  extraEnvVarsSecret: ""
+
+  # This is for setting Kubernetes Annotations to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  podAnnotations: {}
+  # This is for setting Kubernetes Labels to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/1
+  podLabels: {}
+
+  podSecurityContext:
+    {}
+    # fsGroup: 2000
+
+  securityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 3000
+
+  resources:
+    {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  livenessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+  readinessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+
+  # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  networkPolicy:
+    enabled: true
+    ingress:
+      enabled: true
+      namespaceSelector:
+        network.openshift.io/policy-group: ingress
+      podSelector: {}
+
+  # Additional volumes on the output Deployment definition.
+  volumes: []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
+
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+tractionAdapter:
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    repository: ghcr.io/bcgov/bc-wallet-traction-adapter
+    # This sets the pull policy for images.
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+
+  # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  imagePullSecrets: []
+
+  # Name of ConfigMap with extra environment variables
+  extraEnvVarsCM: ""
+
+  # Name of Secret with extra environment variables
+  ## Secret must include the following ENVVars:
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
+  extraEnvVarsSecret: ""
+
+  # This is for setting Kubernetes Annotations to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  podAnnotations: {}
+  # This is for setting Kubernetes Labels to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/1
+  podLabels: {}
+
+  podSecurityContext:
+    {}
+    # fsGroup: 2000
+
+  securityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 3000
+
+  resources:
+    {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  livenessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+  readinessProbe:
+    {}
+    # httpGet:
+    #   path: /
+    #   port: http
+
+  # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  networkPolicy:
+    enabled: true
+    ingress:
+      enabled: true
+      namespaceSelector:
+        network.openshift.io/policy-group: ingress
+      podSelector: {}
+
+  # Additional volumes on the output Deployment definition.
+  volumes: []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
+
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
 
 postgresql:
   enabled: true
@@ -342,43 +677,49 @@ postgresql:
       enabled: false
   networkPolicy:
     enabled: true
+    extraIngress:
+      - from:
+          - podSelector:
+              - matchLabels:
+                  - app.kubernetes.io/name: bc-wallet
+                  - app.kubernetes.io/component: api-server
+          - podSelector:
+              - matchLabels:
+                  - app.kubernetes.io/name: bc-wallet
+                  - app.kubernetes.io/component: demo-server
+          - podSelector:
+              - matchLabels:
+                  - app.kubernetes.io/name: bc-wallet
+                  - app.kubernetes.io/component: showcase-creator
   fullnameOverride: ""
 
 rabbitmq:
   enabled: true
   auth:
-    username: "bc_user"
-    password: "some_password"
-    existingSecret: ""
-    existingSecretKey: "rabbitmq-password"
-    erlangCookie: ""
-    existingErlangSecret: ""
-    existingErlangSecretKey: "rabbitmq-erlang-cookie"
-  extraPlugins: "rabbitmq_management rabbitmq_amqp1_0"
+    username: bc_user
+    existingPasswordSecret: bc-wallet-rabbitmq-secret
+  extraPlugins: "rabbitmq_management"
   configuration: |-
     management.listener.port = 15672
     management.listener.ssl = false
     default_user = bc_user
-    default_pass = some_password
-  extraConfiguration: |-
-    default_user = bc_user
-    default_pass = some_password
   service:
     type: ClusterIP
     ports:
       amqp: 5672
       manager: 15672
   livenessProbe:
-    enabled: false
+    enabled: true
+    initialDelaySeconds: 300
   readinessProbe:
-    enabled: false
+    enabled: true
   persistence:
     enabled: true
     size: 1Gi
   resources:
     limits:
       cpu: 200m
-      memory: 256Mi
+      memory: 512Mi
     requests:
       cpu: 100m
       memory: 128Mi
@@ -392,4 +733,15 @@ rabbitmq:
     minAvailable: 1
   networkPolicy:
     enabled: true
-  fullnameOverride: ""
+    extraIngress:
+      - from:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: bc-wallet
+                app.kubernetes.io/component: api-server
+      - from:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: bc-wallet
+                app.kubernetes.io/component: traction-adapter
+    fullnameOverride: ""

@@ -1,36 +1,33 @@
-{{- if .Values.traction_adapter.enabled }}
-{{- if .Values.traction_adapter.autoscaling.enabled }}
+{{- if .Values.tractionAdapter.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "bc-wallet.fullname" . }}-traction-adapter
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: adapter
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: traction-adapter
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "bc-wallet.fullname" . }}-traction-adapter
-  minReplicas: {{ .Values.traction_adapter.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.traction_adapter.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.tractionAdapter.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.tractionAdapter.autoscaling.maxReplicas }}
   metrics:
+    {{- if .Values.tractionAdapter.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.traction_adapter.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.tractionAdapter.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.tractionAdapter.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.traction_adapter.autoscaling.targetMemoryUtilizationPercentage }}
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: {{ .Values.traction_adapter.autoscaling.stabilizationWindowSeconds }}
-{{- end }}
+          averageUtilization: {{ .Values.tractionAdapter.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
 {{- end }}

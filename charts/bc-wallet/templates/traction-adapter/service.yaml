@@ -1,20 +1,17 @@
-{{- if .Values.traction_adapter.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "bc-wallet.fullname" . }}-traction-adapter
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: adapter
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: traction-adapter
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.traction_adapter.service.type }}
+  type: {{ .Values.tractionAdapter.service.type }}
   ports:
-    - port: {{ .Values.traction_adapter.service.port }}
-      targetPort: {{ .Values.traction_adapter.port }}
+    - port: {{ .Values.tractionAdapter.service.port }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ include "bc-wallet.fullname" . }}-traction-adapter
-{{- end }}
+    app.kubernetes.io/component: traction-adapter
+    {{- include "bc-wallet.selectorLabels" . | nindent 4 }}

@@ -1,57 +1,37 @@
-{{- if and .Values.demo_server.enabled .Values.demo_server.networkPolicy.enabled }}
+{{- if .Values.demoServer.networkPolicy.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-demo-server-allow-external
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  name: {{ include "bc-wallet.fullname" . }}-demo-server
+  namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: server
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: demo-server
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-demo-server
+      app.kubernetes.io/component: demo-server
+      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
   ingress:
-  - from:
-    {{- if .Values.demo_server.networkPolicy.ingress.namespaceSelector }}
-    - namespaceSelector:
-        matchLabels:
-          {{- if kindIs "map" .Values.demo_server.networkPolicy.ingress.namespaceSelector }}
-          {{- toYaml .Values.demo_server.networkPolicy.ingress.namespaceSelector | nindent 10 }}
-          {{- end }}
-      {{- if .Values.demo_server.networkPolicy.ingress.podSelector }}
-      podSelector:
-        {{- toYaml .Values.demo_server.networkPolicy.ingress.podSelector | nindent 10 }}
+{{- if and .Values.ingress.enabled .Values.demoServer.networkPolicy.ingress.enabled }}
+      {{- with .Values.demoServer.networkPolicy.ingress.namespaceSelector }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+{{ toYaml . | indent 14 }}
       {{- end }}
-    {{- else }}
-    - {}  # Allow all ingress traffic if no selector specified
+      {{- with .Values.demoServer.networkPolicy.ingress.podSelector }}
+    - from:
+        - podSelector:
+            matchLabels:
+{{ toYaml . | indent 14 }}
+      {{- end }}
     {{- end }}
----
-# Network policy for Demo Server to database
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ .Release.Name }}-postgres-allow-demo-server
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
-  labels:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: postgresql
-      app.kubernetes.io/instance: {{ .Release.Name }}
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: {{ include "bc-wallet.fullname" . }}-demo-server
-    ports:
-    - protocol: TCP
-      port: {{ .Values.postgresql.primary.service.ports.postgresql }}
----
-{{- $context := dict "componentName" "demo-server" "componentLabel" "server" "servicePort" .Values.demo_server.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet.intra-release-network-policy" $context }}
-{{- end }} 
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: api-server
+              {{- include "bc-wallet.selectorLabels" . | nindent 14 }}
+{{- end }}
