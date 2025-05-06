@@ -1,13 +1,13 @@
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
-import { cn, baseUrl } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { CredentialDefinition, StepRequest } from 'bc-wallet-openapi'
+import { StepActionType } from 'bc-wallet-openapi'
 import { Copy, GripVertical, TriangleAlert } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import Image from 'next/image'
 import { Screen } from '@/types'
 
+import { CredCard } from '../onboarding-screen/cred-card'
 const MAX_CHARS = 50
 
 export const SortableStep = ({
@@ -32,6 +32,8 @@ export const SortableStep = ({
     transform: CSS.Transform.toString(transform),
     transition,
   }
+
+  console.log(myScreen.actions)
 
 const handleStepClick = () => {
   setStepState('editing-basic')
@@ -94,7 +96,7 @@ const handleStepClick = () => {
         >
           <span className="font-semibold">{myScreen.title}</span>
           <p>
-            {myScreen.description.length > MAX_CHARS ? (
+            {myScreen.description && myScreen.description.length > MAX_CHARS ? (
               <>
                 <span className="text-xs">{myScreen.description.slice(0, MAX_CHARS)}... </span>
                 <span className="text-xs">{t('action.see_more_label')}</span>
@@ -103,49 +105,15 @@ const handleStepClick = () => {
               myScreen.description
             )}
           </p>
-          {myScreen.type == 'SERVICE' && (
+          {myScreen.type === 'SERVICE' && myScreen.actions[0].actionType === StepActionType.AriesOob && (
             <>
-              {(!myScreen.credentials || myScreen.credentials.length === 0) ? (
-                <>
+              {!myScreen.actions[0].credentialDefinitionId || myScreen.actions[0].credentialDefinitionId === '' ? (
                 <div className="bg-light-yellow mt-2 font-bold rounded gap-2 flex flex-row items-center justify-center">
                   <TriangleAlert size={22} />
                   {t('action.select_credential_label')}
                 </div>
-                </>
               ) : (
-                myScreen.credentials.map((cred: CredentialDefinition, index:number) => (
-                  <div
-                    key={cred.id ?? index}
-                    className="bg-background p-2 flex mt-2 rounded"
-                  >
-                    <Image
-                      src={
-                        cred?.icon?.id
-                          ? `${baseUrl}/assets/${cred.icon.id}/file`
-                          : '/assets/no-image.jpg'
-                      }
-                      unoptimized
-                      onError={(e) => {
-                        const target = e.currentTarget as HTMLImageElement
-                        target.src = '/assets/no-image.jpg'
-                      }}
-                      alt={'Credential Icon'}
-                      width={50}
-                      height={50}
-                      className="rounded-full object-cover"
-                    />
-                    {/* <div className="ml-4 flex-col">
-                      <div className="font-semibold">{cred.name}</div>
-                      <div className="text-sm">{cred.issuer?.name ?? 'Test college'}</div>
-                    </div> */}
-                    <div className="align-middle ml-auto text-right">
-                      <div className="font-semibold">{t('credentials.attributes_label')}</div>
-                      <div className="text-sm text-end">
-                        {cred.credentialSchema?.attributes?.length ?? 0}
-                      </div>
-                    </div>
-                  </div>
-                ))
+                <CredCard definitionId={myScreen.actions[0].credentialDefinitionId ?? ''} />
               )}
             </>
           )}

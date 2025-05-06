@@ -63,5 +63,5 @@ export type UICredentialDefinition = Omit<CredentialDefinition, 'icon'> & {
 
 export interface Screen extends StepRequest {
   id: string
-  credentials?: CredentialDefinition[]
+  credentialDefinitionIds?: string[]
 }

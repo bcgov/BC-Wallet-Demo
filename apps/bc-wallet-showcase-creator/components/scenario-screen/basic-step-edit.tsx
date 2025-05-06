@@ -110,19 +110,25 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
 
   const addCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    const existing = currentStep.credentials || [];
-    if (!existing.includes(credential)) {
-      const updated = [...existing, credential];
-      updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
+    const existing = currentStep.actions[0].credentialDefinitionId || '';
+    if (!existing.includes(credential.id)) {
+      const updated = [
+        ...existing, 
+        {
+          ...currentStep.actions[0],
+          credentialDefinitionId: credential.id
+        }
+      ];
+      updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updated } as StepRequestUIActionTypes);
     }
     setSearchResults([]);
   }
 
-  const removeCredential = (credential: CredentialDefinition) => {
+  const removeCredential = (credentialId: string) => {
     if (!currentStep) return;
-    const updated = (currentStep.credentials || []).filter((id) => id !== credential);
+    const updated = currentStep.actions[0].credentialDefinitionId;
 
-    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
+    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updated } as unknown as StepRequestUIActionTypes);
     setSelectedCredential(null);
   }
 
@@ -275,10 +281,10 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
                   </div>
 
                   <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
-
+                  {/* <pre>{JSON.stringify(currentStep, null, 2)}</pre> */}
                   {currentStep && (
                     <DisplayStepCredentials
-                      credentials={currentStep?.credentials as unknown as CredentialDefinition[] ?? []}
+                      credentialId={currentStep?.actions[0].credentialDefinitionId}
                       selectedStep={selectedStep?.stepIndex || 0}
                       selectedScenario={selectedStep?.scenarioIndex || 0}
                       removeCredential={removeCredential}

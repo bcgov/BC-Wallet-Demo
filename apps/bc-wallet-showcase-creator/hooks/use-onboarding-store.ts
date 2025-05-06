@@ -450,7 +450,6 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
           ...step,
           order: stepIndex,
           id: step.id || `temp-step-${Date.now()}-${stepIndex}`,
-          credentials: step.credentials || [],
         }
 
         if (step.type === 'SERVICE') {

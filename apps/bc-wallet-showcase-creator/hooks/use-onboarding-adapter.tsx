@@ -136,7 +136,6 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
       ...step,
       order: stepIndex,
       id: step.id || `temp-step-${Date.now()}-${stepIndex}`,
-      credentials: step.credentials || []
     };
     setLocalSelectedStep(enhancedStep);
     

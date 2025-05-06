@@ -8,10 +8,10 @@ import Image from 'next/image'
 import { NoSelection } from '../credentials/no-selection'
 import { EditProofRequest } from './edit-proof-request'
 import { ProofRequestFormData } from '@/schemas/scenario'
-import { CredentialDefinition } from 'bc-wallet-openapi'
 import { useCredentialDefinition } from '@/hooks/use-credentials'
+
 interface DisplayStepCredentialsProps {
-  credential?: string
+  credentialId?: string
   updateCredentials?: (updatedCredentials: ProofRequestFormData) => void
   selectedStep: number | null
   selectedScenario: number | null
@@ -23,12 +23,12 @@ export const DisplayStepCredentials = ({
   selectedScenario,
   removeCredential,
   updateCredentials,
-  credential,
+  credentialId,
 }: DisplayStepCredentialsProps) => {
   const [editingCredentials, setEditingCredentials] = useState<number[]>([0])
-  const { data: cred, isLoading } = useCredentialDefinition(credential ?? '')
+  const { data: cred } = useCredentialDefinition(credentialId ?? '')
 
-  if (!credential) {
+  if (!credentialId) {
     return (
       <div className="m-5 p-5 w-full h-60">
         <NoSelection text="No Credentials Added" />
@@ -36,7 +36,7 @@ export const DisplayStepCredentials = ({
     )
   }
 
-  if (!credential) return null
+  if (!credentialId) return null
   const isEditing = editingCredentials.includes(0)
 
   return (
@@ -75,7 +75,7 @@ export const DisplayStepCredentials = ({
             size="icon"
             onClick={(e) => {
               e.preventDefault()
-              removeCredential(credential)
+              removeCredential(credentialId)
             }}
             className="hover:text-destructive hover:bg-destructive/10"
           >
@@ -87,7 +87,7 @@ export const DisplayStepCredentials = ({
         <div className={cn('p-3 rounded-b-lg', 'bg-white dark:bg-dark-bg')}>
           {isEditing && selectedStep !== null && selectedScenario !== null ? (
             <EditProofRequest
-              credentialId={credential}
+              credentialId={credentialId}
               updateCredentials={updateCredentials}
               selectedScenario={selectedScenario}
               selectedStep={selectedStep}
