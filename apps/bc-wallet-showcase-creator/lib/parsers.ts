@@ -20,12 +20,18 @@ import {
   PresentationScenarioRequest,
 } from 'bc-wallet-openapi'
 
-export const showcaseToShowcaseRequest = (showcase: Showcase): ShowcaseRequest => {
+export const showcaseToShowcaseRequest = (showcase: Showcase): ShowcaseRequest & { slug: string } => {
   return {
-    ...showcase,
+    name: showcase.name,
+    tenantId: showcase.tenantId,
+    slug: showcase.slug,
     scenarios: showcase.scenarios.map((scenario) => scenario.id),
     personas: showcase.personas.map((persona) => persona.id),
     bannerImage: showcase.bannerImage?.id,
+    description: showcase.description,
+    status: showcase.status,
+    hidden: showcase.hidden,
+    completionMessage: showcase.completionMessage,
   }
 }
 

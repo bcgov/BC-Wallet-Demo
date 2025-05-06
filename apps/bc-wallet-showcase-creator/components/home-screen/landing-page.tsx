@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useDeleteShowcase, useShowcases } from '@/hooks/use-showcases'
+import { useDeleteShowcase, useDuplicateShowcase, useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
 import type { Showcase } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
@@ -14,6 +14,7 @@ import { Card } from '../ui/card'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
+import { toast } from 'sonner'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -22,6 +23,7 @@ export const LandingPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const { data, isLoading } = useShowcases()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
 
   const searchFilter = (showcase: Showcase) => {
     if (searchTerm === '') {
@@ -36,9 +38,17 @@ export const LandingPage = () => {
     window.open(previewUrl, '_blank')
   }
 
-  const handleOpen = (slug: string) => {
-    const openUrl = `${WALLET_URL}/${slug}`
-    window.open(openUrl, '_blank')
+  const handleDuplicateShowcase = async (showcaseSlug: string) => {
+    const newShowcase = await duplicateShowcase(showcaseSlug, {
+      onSuccess: (data: unknown) => {
+        console.log('Showcase Created:', data)
+        toast.success('Showcase Duplicated')
+      },
+      onError: (error: unknown) => {
+        toast.error('Error duplicating showcase: ' + error)
+      },
+    })
+    console.log('newShowcase', newShowcase)
   }
 
   return (
@@ -132,7 +142,7 @@ export const LandingPage = () => {
                     <ButtonOutline className="w-1/2" onClick={() => handlePreview(showcase.slug)}>
                       {t('action.preview_label')}
                     </ButtonOutline>
-                    <ButtonOutline className="w-1/2" onClick={() => handleOpen(showcase.slug)}>
+                    <ButtonOutline className="w-1/2" onClick={() => handleDuplicateShowcase(showcase.slug)}>
                       {t('action.create_copy_label')}
                     </ButtonOutline>
                   </div>

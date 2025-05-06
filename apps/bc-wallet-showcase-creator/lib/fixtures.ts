@@ -1,4 +1,4 @@
-import { IssuanceScenario, PresentationScenario } from "bc-wallet-openapi"
+import { IssuanceScenario, PresentationScenario, Showcase } from "bc-wallet-openapi"
 
 export const presentationScenarioFixture = {
   "id": "c1242480-090c-4c11-b57e-e9974f95d0d3",
@@ -424,5 +424,241 @@ export const issuanceScenarioFixture = {
       createdAt: '2025-05-05T10:59:12.369Z',
       updatedAt: '2025-05-05T10:59:15.436Z',
     },
-  } as unknown as IssuanceScenario
+} as unknown as IssuanceScenario
   
+export const showcaseFixture = {
+  "id": "1ed7c687-9625-4815-b8ea-6d9e1067bfa4",
+  "tenantId": "tenant-bs599ndpygc",
+  "name": "new shwocase",
+  "slug": "new-shwocase",
+  "description": "new shwocase 23 123",
+  "status": "ARCHIVED",
+  "completionMessage": "new shwocase 23 123",
+  "hidden": true,
+  "scenarios": [
+      {
+          "id": "1123e5bc-2719-4684-90e6-6443e3bd97d1",
+          "name": "example_name",
+          "slug": "example-name",
+          "description": "example_description",
+          "type": "ISSUANCE",
+          "steps": [
+              {
+                  "id": "2dfe53ba-8e52-4bde-835b-99e8cc5f143e",
+                  "title": "Meet dwadwadwa",
+                  "description": "Welcome to this showcase. Here you'll learn about digital credentials with dwadwadwa.",
+                  "order": 0,
+                  "type": "HUMAN_TASK",
+                  "actions": [],
+                  "createdAt": "2025-04-25T12:11:17.190Z",
+                  "updatedAt": "2025-04-25T12:11:17.190Z"
+              },
+              {
+                  "id": "2c173e8c-521c-4740-94d6-dc2bd6a278c7",
+                  "title": "Let's get started!",
+                  "description": "BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. Using your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed. In this demo, you will use two credentials to prove who you are and access court materials online instead of in-person.",
+                  "order": 1,
+                  "type": "HUMAN_TASK",
+                  "actions": [],
+                  "createdAt": "2025-04-25T12:11:17.190Z",
+                  "updatedAt": "2025-04-25T12:11:17.190Z"
+              },
+              {
+                  "id": "f3460ff2-12ed-4e36-b90e-25f9dc746c48",
+                  "title": "Install BC Wallet",
+                  "description": "First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.",
+                  "order": 2,
+                  "type": "HUMAN_TASK",
+                  "actions": [
+                      {
+                          "id": "bbd7cc6e-28a5-46f8-bc12-794c4cf6007f",
+                          "actionType": "CHOOSE_WALLET",
+                          "title": "example_title",
+                          "text": "example_text",
+                          "createdAt": "2025-04-25T12:11:17.190Z",
+                          "updatedAt": "2025-04-25T12:11:17.190Z"
+                      }
+                  ],
+                  "createdAt": "2025-04-25T12:11:17.190Z",
+                  "updatedAt": "2025-04-25T12:11:17.190Z"
+              },
+              {
+                  "id": "5d8a08d6-2490-4331-9e56-7fe670d685ca",
+                  "title": "Connect with BC College",
+                  "description": "Imagine, as dwadwadwa, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.",
+                  "order": 3,
+                  "type": "HUMAN_TASK",
+                  "actions": [
+                      {
+                          "id": "afc2f8e8-094a-4fec-bc19-400aed79bf15",
+                          "actionType": "SETUP_CONNECTION",
+                          "title": "Download BC Wallet on your phone",
+                          "text": "To download, scan this QR code with your phone or select the app store icon below. You can also search for BC Wallet in your phone's app store.",
+                          "createdAt": "2025-04-25T12:11:17.190Z",
+                          "updatedAt": "2025-04-25T12:11:17.190Z"
+                      }
+                  ],
+                  "createdAt": "2025-04-25T12:11:17.190Z",
+                  "updatedAt": "2025-04-25T12:11:17.190Z"
+              },
+              {
+                  "id": "a306c392-ad0d-4a50-915f-2e0b82c451c2",
+                  "title": "Accept your student card",
+                  "description": "Your wallet now has a secure and private connection with BestBC College. You should have received an offer in BC Wallet for a Student Card.\nReview what they are sending, and choose 'Accept offer'.",
+                  "order": 4,
+                  "type": "SERVICE",
+                  "actions": [
+                      {
+                          "id": "371ebe86-b2d8-4e24-b1b0-ceb6563247db",
+                          "actionType": "ACCEPT_CREDENTIAL",
+                          "title": "Download BC Wallet on your phone",
+                          "text": "To download, scan this QR code with your phone or select the app store icon below. You can also search for BC Wallet in your phone's app store.",
+                          "createdAt": "2025-04-25T12:11:17.190Z",
+                          "updatedAt": "2025-04-25T12:11:17.190Z",
+                          "credentialDefinitionId": "a210c172-beb9-4bfa-a865-981014c4e3bc"
+                      }
+                  ],
+                  "createdAt": "2025-04-25T12:11:17.190Z",
+                  "updatedAt": "2025-04-25T12:11:17.190Z"
+              },
+              {
+                  "id": "a34af202-97ea-4d54-991a-b8d0f8c479f9",
+                  "title": "You're all set!",
+                  "description": "Congratulations, you've just received your first digital credentials. They are safely stored in your wallet and ready to be used. So, what are you waiting for? Let's go! We're done with this step. Next, we'll explore ways you can use your credentials.",
+                  "order": 5,
+                  "type": "HUMAN_TASK",
+                  "actions": [],
+                  "createdAt": "2025-04-25T12:11:17.190Z",
+                  "updatedAt": "2025-04-25T12:11:17.190Z"
+              }
+          ],
+          "personas": [
+              {
+                  "id": "1538c102-7044-44a6-856c-56d3d255ee3f",
+                  "name": "Ana",
+                  "slug": "ana-LBCyb8",
+                  "role": "Student",
+                  "description": "dwadwa",
+                  "headshotImage": {
+                      "id": "0049ffd8-a4c2-4012-8e00-c0cebb8e1ac6",
+                      "mediaType": "image/jpeg",
+                      "content": "base-64 image",
+                      "fileName": "Headshot.jpg",
+                      "description": "A headshot image",
+                      "createdAt": "2025-04-25T12:23:25.186Z",
+                      "updatedAt": "2025-04-25T12:23:25.186Z"
+                  },
+                  "bodyImage": {
+                      "id": "6f147ef9-d27c-4947-a735-48a0675ac987",
+                      "mediaType": "image/jpeg",
+                      "content": "base-64 image",
+                      "fileName": "Body.jpg",
+                      "description": "A full-body image",
+                      "createdAt": "2025-04-25T12:23:25.245Z",
+                      "updatedAt": "2025-04-25T12:23:25.245Z"
+                  },
+                  "hidden": false,
+                  "createdAt": "2025-04-25T12:11:01.471Z",
+                  "updatedAt": "2025-04-25T14:53:29.277Z"
+              }
+          ],
+          "hidden": false,
+          "createdAt": "2025-04-25T12:11:17.190Z",
+          "updatedAt": "2025-04-25T12:11:17.190Z",
+          "issuer": {
+              "id": "fd673f9f-0872-46ae-90c9-45392db18e64",
+              "name": "bc gov issuer",
+              "description": "bc gov issuer created by showcase creator",
+              "type": "ARIES",
+              "credentialDefinitions": [
+                  {
+                      "id": "a210c172-beb9-4bfa-a865-981014c4e3bc",
+                      "name": "cred",
+                      "credentialSchema": {
+                          "createdAt": null,
+                          "updatedAt": null
+                      },
+                      "version": "1",
+                      "type": "ANONCRED",
+                      "representations": [],
+                      "icon": {
+                          "id": "e7908184-c07c-448f-8e4d-218b500bb5d2",
+                          "mediaType": "image/jpeg",
+                          "content": "base-64 image",
+                          "fileName": "example.jpg",
+                          "description": "Example asset",
+                          "createdAt": "2025-04-25T12:09:51.036Z",
+                          "updatedAt": "2025-04-25T12:09:51.036Z"
+                      },
+                      "createdAt": "2025-04-25T12:09:51.107Z",
+                      "updatedAt": "2025-04-25T12:10:04.267Z",
+                      "approvedBy": {},
+                      "approvedAt": "2025-04-25T12:10:04.267Z"
+                  }
+              ],
+              "credentialSchemas": [
+                  {
+                      "id": "20ce0e9d-dce6-4509-9b90-0c012e7fd2b9",
+                      "name": "cred",
+                      "version": "1",
+                      "identifierType": "DID",
+                      "source": "CREATED",
+                      "attributes": [
+                          {
+                              "id": "cd3de881-3777-4be9-af90-f57b75550361",
+                              "name": "name",
+                              "value": "ana",
+                              "type": "STRING",
+                              "createdAt": "2025-04-25T12:11:16.160Z",
+                              "updatedAt": "2025-04-25T12:11:16.160Z"
+                          }
+                      ],
+                      "createdAt": "2025-04-25T12:09:50.958Z",
+                      "updatedAt": "2025-04-25T12:11:16.161Z"
+                  }
+              ],
+              "createdAt": "2025-04-25T12:09:51.176Z",
+              "updatedAt": "2025-04-25T12:10:04.347Z"
+          }
+      }
+  ],
+  "personas": [
+      {
+          "id": "1538c102-7044-44a6-856c-56d3d255ee3f",
+          "name": "Ana",
+          "slug": "ana-LBCyb8",
+          "role": "Student",
+          "description": "dwadwa",
+          "headshotImage": {
+              "id": "0049ffd8-a4c2-4012-8e00-c0cebb8e1ac6",
+              "mediaType": "image/jpeg",
+              "content": "base-64 image",
+              "fileName": "Headshot.jpg",
+              "description": "A headshot image",
+              "createdAt": "2025-04-25T12:23:25.186Z",
+              "updatedAt": "2025-04-25T12:23:25.186Z"
+          },
+          "bodyImage": {
+              "id": "6f147ef9-d27c-4947-a735-48a0675ac987",
+              "mediaType": "image/jpeg",
+              "content": "base-64 image",
+              "fileName": "Body.jpg",
+              "description": "A full-body image",
+              "createdAt": "2025-04-25T12:23:25.245Z",
+              "updatedAt": "2025-04-25T12:23:25.245Z"
+          },
+          "hidden": false,
+          "createdAt": "2025-04-25T12:11:01.471Z",
+          "updatedAt": "2025-04-25T14:53:29.277Z"
+      }
+  ],
+  "bannerImage": {
+      "id": "19f0df95-152e-4dca-aa8e-f3b8603a7e6f",
+      "mediaType": "image/jpeg",
+      "content": "base-64 image",
+      "createdAt": "2025-04-25T12:10:47.735Z",
+      "updatedAt": "2025-04-25T12:10:47.735Z"
+  },
+  "createdAt": "2025-04-25T12:10:49.290Z",
+  "updatedAt": "2025-04-25T13:17:18.649Z"
+} as unknown as Showcase

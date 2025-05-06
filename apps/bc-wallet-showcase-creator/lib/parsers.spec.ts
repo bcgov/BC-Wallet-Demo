@@ -1,6 +1,5 @@
-import { IssuanceScenario } from 'bc-wallet-openapi'
-import { actionToStepRequestAction, issuanceScenarioToIssuanceScenarioRequest, presentationScenarioToPresentationScenarioRequest, stepToStepRequest } from './parsers'
-import { issuanceScenarioFixture, presentationScenarioFixture } from './fixtures'
+import { actionToStepRequestAction, issuanceScenarioToIssuanceScenarioRequest, presentationScenarioToPresentationScenarioRequest, showcaseToShowcaseRequest, stepToStepRequest } from './parsers'
+import { issuanceScenarioFixture, presentationScenarioFixture, showcaseFixture } from './fixtures'
 
 describe('issuanceScenarioToIssuanceScenarioRequest', () => {
   it('should convert an issuance scenario to an issuance scenario request', () => {
@@ -53,7 +52,6 @@ describe('presentationScenarioToPresentationScenarioRequest', () => {
 
   it('should convert an presentation step to an presentation step request', () => {
     const result = stepToStepRequest(presentationScenarioFixture.steps[1])
-    console.log('stepToStepRequest', result)
     expect(result.asset).toStrictEqual(presentationScenarioFixture.steps[1].asset?.id)
     expect(result.description).toStrictEqual(presentationScenarioFixture.steps[1].description)
     expect(result.order).toStrictEqual(presentationScenarioFixture.steps[1].order)
@@ -77,5 +75,20 @@ describe('presentationScenarioToPresentationScenarioRequest', () => {
     expect(result.connectionId).toStrictEqual(presentationScenarioFixture.steps[1].actions[0].connectionId)
     // @ts-expect-error: presentationScenarioFixture.steps[1].actions[0] cannot be undefined
     expect(result.goToStep).toStrictEqual(presentationScenarioFixture.steps[1].actions[0].goToStep)
+  })
+})
+
+describe('showcaseToShowcaseRequest', () => {
+  it('should convert a showcase to a showcase request', () => {
+    const result = showcaseToShowcaseRequest(showcaseFixture)
+    expect(result.scenarios).toStrictEqual(showcaseFixture.scenarios.map((scenario) => scenario.id))
+    expect(result.personas).toStrictEqual(showcaseFixture.personas.map((persona) => persona.id))
+    expect(result.bannerImage).toStrictEqual(showcaseFixture.bannerImage?.id)
+    expect(result.name).toStrictEqual(showcaseFixture.name)
+    expect(result.tenantId).toStrictEqual(showcaseFixture.tenantId)
+    expect(result.slug).toStrictEqual(showcaseFixture.slug)
+    expect(result.status).toStrictEqual(showcaseFixture.status)
+    expect(result.hidden).toStrictEqual(showcaseFixture.hidden)
+    expect(result.completionMessage).toStrictEqual(showcaseFixture.completionMessage)
   })
 })
