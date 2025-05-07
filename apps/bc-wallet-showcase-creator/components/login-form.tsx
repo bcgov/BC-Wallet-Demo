@@ -13,21 +13,15 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   const t = useTranslations('login')
   const pathname = usePathname()
   const parts = pathname.split('/')
-  console.log('parts',parts);
   const locale = parts[1] || 'en'
-  const tenantId = parts[3]
-  console.log('tenantId in login form =====>', tenantId);
-  const handleLogin = () => {
-    // if (!tenantId) {
-    //   console.error('Tenant ID is missing in path')
-    //   return
-    // }
+  const tenantId = parts[2]
 
-    // document.cookie = `tenantId=${'showcase-tenantA'}; path=/`;
+  const handleLogin = () => {
+
+    document.cookie = `tenantId=${tenantId}; path=/; max-age=3600;` // 1 hour
 
     signIn('keycloak', {
-      callbackUrl: `/${locale}/${'showcase-tenantA'}`,
-      tenantId: 'showcase-tenantA',
+      callbackUrl: `/${locale}/${tenantId}`
     })
   }
 

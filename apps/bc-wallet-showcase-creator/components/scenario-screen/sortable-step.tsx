@@ -24,7 +24,7 @@ export const SortableStep = ({
 }) => {
   const t = useTranslations()
   const { handleSelectStep, duplicateStep, activePersonaId, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
-  const tenantId = useTenant()
+  const { tenantId } = useTenant()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: myScreen.id || `step-${scenarioIndex}-${stepIndex}`,
   })

@@ -18,7 +18,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(null)
   const { mutateAsync: createAsset } = useCreateAsset()
-  const tenantId = useTenant()
+  const { tenantId } = useTenant()
 
   const { data: response } = useAssetById(existingAssetId || '') as {
     data?: AssetResponse

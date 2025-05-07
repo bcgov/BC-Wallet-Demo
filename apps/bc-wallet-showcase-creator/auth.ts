@@ -31,51 +31,12 @@ declare module 'next-auth' {
   }
 }
 
-async function refreshAccessToken(token: any) {
-  try {
-    const url = `${env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/token`
-
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      method: 'POST',
-      body: new URLSearchParams({
-        client_id: env.AUTH_KEYCLOAK_ID!,
-        client_secret: env.AUTH_KEYCLOAK_SECRET!,
-        grant_type: 'refresh_token',
-        ...('refresh_token' in token && { refresh_token: token.refresh_token }),
-      }),
-    })
-
-    const refreshedTokens = await response.json()
-
-    if (!response.ok) {
-      throw refreshedTokens
-    }
-
-    return {
-      ...token,
-      accessToken: refreshedTokens.access_token,
-      accessTokenExpires: Date.now() + (refreshedTokens.expires_in - 5) * 1000, // Refresh 5 seconds early to avoid the token expiring during an active request
-      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to the old refresh token when failed to refresh
-    }
-  } catch (error) {
-    console.error('Error refreshing access token', error)
-    return {
-      ...token,
-      error: 'RefreshAccessTokenError',
-    }
-  }
-}
-
 async function getTenantConfig(tenantId: string) {
   try {
-    const res = await fetch(`${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`, {
+    const res = await fetch(`${env.NEXT_PUBLIC_SHOWCASE_API_URL}/${tenantId}/tenants/${tenantId}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        // 'Authorization': `Bearer ${process.env.INTERNAL_API_KEY}`
+        'Content-Type': 'application/json'
       }
     })
   
@@ -89,30 +50,31 @@ async function getTenantConfig(tenantId: string) {
 }
 
 
-export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
-  const cookieStore = cookies()
-  console.log('cookie in auth ===>',  (await cookieStore).get('tenantId'));
+export const { handlers, auth, signIn, signOut } = NextAuth(async (req) => {
 
   const tenantId = (await cookies()).get('tenantId')?.value
-  if (!tenantId) throw new Error('Missing tenant ID in cookies')
+
+  if (!tenantId) {
+    console.warn('No tenantId found in cookies');
+    return {
+      providers: [],
+      session: { strategy: 'jwt' },
+    };
+  }
 
   const tenantConfig = await getTenantConfig(tenantId)
 
   return {
     providers: [
       Keycloak({
-        // clientId: tenantConfig.clientId,
-        // clientSecret: tenantConfig.clientSecret,
-        // issuer: tenantConfig.issuer,
-          clientId: env.AUTH_KEYCLOAK_ID!,
-          clientSecret: env.AUTH_KEYCLOAK_SECRET!,
-          issuer: env.AUTH_KEYCLOAK_ISSUER!,
+        clientId: tenantConfig?.tenant.clientId,
+        clientSecret: tenantConfig?.tenant.clientSecret,
+        issuer: env.AUTH_KEYCLOAK_ISSUER!,
       }),
     ],
     callbacks: {
       
       async jwt({ token, account }) {
-        console.log('cookie in auth callback ===>',  (await cookieStore).get('tenantId'));
         if (account) {
           return {
             ...token,
@@ -130,7 +92,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
         } else {
           if (!token.refresh_token) throw new TypeError("Missing refresh_token")
           try {
-            // const url = `${tenantConfig.issuer}/protocol/openid-connect/token`
             const url = `${env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/token`
 
             const response = await fetch(url, {
@@ -139,17 +100,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
               },
               method: 'POST',
               body: new URLSearchParams({
-                client_id: env.AUTH_KEYCLOAK_ID!,
-                client_secret: env.AUTH_KEYCLOAK_SECRET!,
+                client_id: tenantConfig?.tenant.clientId!,
+                client_secret: tenantConfig?.tenant.clientSecret!,
                 grant_type: 'refresh_token',
                 ...(token.refresh_token && { refresh_token: String(token.refresh_token) }),
               }),
-              // body: new URLSearchParams({
-              //   client_id: tenantConfig.clientId,
-              //   client_secret: tenantConfig.clientSecret,
-              //   grant_type: 'refresh_token',
-              //   ...(token.refresh_token && { refresh_token: String(token.refresh_token) }),
-              // }),
             })
 
             const tokensOrError = await response.json()

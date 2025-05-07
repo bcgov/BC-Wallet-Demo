@@ -477,6 +477,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
   }
 
   async findById(id: string, tx?: Tx): Promise<Showcase> {
+    const findShowcaseById = `find_showcase_by_id_${id}`
     const prepared = (tx ?? (await this.databaseService.getConnection())).query.showcases
       .findFirst({
         where: eq(showcases.id, id),
@@ -575,7 +576,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
           approver: true,
         },
       })
-      .prepare('statement_name')
+      .prepare(findShowcaseById)
 
     const result = await prepared.execute()
 

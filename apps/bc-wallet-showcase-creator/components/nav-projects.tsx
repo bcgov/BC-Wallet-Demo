@@ -36,7 +36,6 @@ export function NavProjects() {
     },
   ]
 
-  console.log('Tenant ID in nav proj =====>', tenantId);
   const router = useRouter()
   return (
     <SidebarGroup>
