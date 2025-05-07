@@ -1,67 +1,64 @@
-{{- if and .Values.api_server.enabled .Values.api_server.networkPolicy.enabled }}
+{{- if .Values.apiServer.networkPolicy.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-api-server-allow-external
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
+  name: {{ include "bc-wallet.fullname" . }}-api-server
+  namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: api-server
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-api-server
+      app.kubernetes.io/component: api-server
+      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
   ingress:
-  - {}  # Allow all ingress traffic
----
-# Network policy for API server to database
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ .Release.Name }}-postgres-allow-api
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
-  labels:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: postgresql
-      app.kubernetes.io/instance: {{ .Release.Name }}
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: {{ include "bc-wallet.fullname" . }}-api-server
-    ports:
-    - protocol: TCP
-      port: {{ .Values.postgresql.primary.service.ports.postgresql }}
----
-# Network policy for UI to API
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ include "bc-wallet.fullname" . }}-api-allow-ui
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
-  labels:
-    app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet
-    {{- include "bc-wallet.labels" . | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-api-server
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app.kubernetes.io/component: creator
-    ports:
-    - protocol: TCP
-      port: {{ .Values.api_server.service.port }}
----
-{{- $context := dict "componentName" "api-server" "componentLabel" "api" "servicePort" .Values.api_server.service.port "Values" .Values "Release" .Release }}
-{{- include "bc-wallet.intra-release-network-policy" $context }}
+{{- if and .Values.ingress.enabled .Values.apiServer.networkPolicy.ingress.enabled }}
+      {{- with .Values.apiServer.networkPolicy.ingress.namespaceSelector }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+{{ toYaml . | indent 14 }}
+      {{- end }}
+      {{- with .Values.apiServer.networkPolicy.ingress.podSelector }}
+    - from:
+        - podSelector:
+            matchLabels:
+{{ toYaml . | indent 14 }}
+      {{- end }}
+    {{- end }}
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: showcase-creator
+              {{- include "bc-wallet.selectorLabels" . | nindent 14 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.apiServer.service.port }}
+
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: rabbitmq
+              app.kubernetes.io/instance: {{ .Release.Name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.rabbitmq.service.ports.amqp }}
+
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: demo-web
+              {{- include "bc-wallet.selectorLabels" . | nindent 14 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.apiServer.service.port }}
+
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: rabbitmq
+              app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}

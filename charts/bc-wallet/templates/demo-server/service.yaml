@@ -1,20 +1,17 @@
-{{- if .Values.demo_server.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "bc-wallet.fullname" . }}-demo-server
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: server
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: demo-server
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.demo_server.service.type }}
+  type: {{ .Values.demoServer.service.type }}
   ports:
-    - port: {{ .Values.demo_server.service.port }}
-      targetPort: {{ .Values.demo_server.port }}
+    - port: {{ .Values.demoServer.service.port }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ include "bc-wallet.fullname" . }}-demo-server
-{{- end }} 
+    app.kubernetes.io/component: demo-server
+    {{- include "bc-wallet.selectorLabels" . | nindent 4 }}

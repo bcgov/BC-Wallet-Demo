@@ -27,11 +27,7 @@ If release name contains chart name it will be used as a full name.
 Create chart name and version as used by the chart label.
 */}}
 {{- define "bc-wallet.chart" -}}
-{{- if .Chart }}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" "bc-wallet" "0.1.0" | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
 {{- end }}
 
 {{/*
@@ -39,10 +35,12 @@ Common labels
 */}}
 {{- define "bc-wallet.labels" -}}
 helm.sh/chart: {{ include "bc-wallet.chart" . }}
-{{- if .Release }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "bc-wallet.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/part-of: {{ .Release.Name }}
 {{- end }}
 
 {{/*
@@ -54,22 +52,50 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Returns a secret if it already exists in Kubernetes, otherwise creates
-it randomly.
+Create the name of the service account to use
 */}}
-{{- define "getOrGeneratePass" -}}
-{{- $len := (default 32 .Length) | int -}}
-{{- $obj := (lookup "v1" .Kind .Namespace .Name).data -}}
-{{- if $obj }}
-{{- index $obj .Key -}}
-{{- else -}}
-  {{- $randomBytes := randBytes $len -}}
-  {{- if (eq (lower .Kind) "secret") -}}
-  {{- else -}}
-    {{- $randomBytes -}}
-  {{- end -}}
-{{- end -}}
+{{- define "bc-wallet.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "bc-wallet.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
 {{- end }}
+{{- end }}
+
+{{/*
+generate api server host
+*/}}
+{{- define "bc-wallet.apiServer.host" -}}
+{{- include "bc-wallet.fullname" . }}-api-server{{ .Values.global.ingressSuffix -}}
+{{- end -}}
+
+{{/*
+generate demo server host
+*/}}
+{{- define "bc-wallet.demoServer.host" -}}
+{{- include "bc-wallet.fullname" . }}-demo-server{{ .Values.global.ingressSuffix -}}
+{{- end -}}
+
+{{/*
+generate demo web host
+*/}}
+{{- define "bc-wallet.demoWeb.host" -}}
+{{- include "bc-wallet.fullname" . }}-demo-web{{ .Values.global.ingressSuffix -}}
+{{- end -}}
+
+{{/*
+generate showcase creator host
+*/}}
+{{- define "bc-wallet.showcaseCreator.host" -}}
+{{- include "bc-wallet.fullname" . }}-showcase-creator{{ .Values.global.ingressSuffix -}}
+{{- end -}}
+
+{{/*
+generate traction adapter host
+*/}}
+{{- define "bc-wallet.tractionAdapter.host" -}}
+{{- include "bc-wallet.fullname" . }}-traction-adapter{{ .Values.global.ingressSuffix -}}
+{{- end -}}
 
 {{/*
 Define database secret name - used to reference PostgreSQL generated secret
@@ -112,78 +138,5 @@ Return the RabbitMQ password key
 {{- .Values.rabbitmq.auth.existingSecretKey -}}
 {{- else -}}
 {{- "rabbitmq-password" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Get the rabbitmq erlang cookie key.
-*/}}
-{{- define "bc-wallet.rabbitmq.erlangCookieKey" -}}
-{{- if .Values.rabbitmq.auth.secretKeys.erlangCookieKey -}}
-{{- printf "%s" .Values.rabbitmq.auth.secretKeys.erlangCookieKey -}}
-{{- else -}}
-rabbitmq-erlang-cookie
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define a FIXED auth token secret name that can be shared between frontend and backend
-*/}}
-{{- define "bc-wallet.authtoken.secret.name" -}}
-bc-wallet-authtoken
-{{- end -}}
-
-{{/*
-Generate API Server host if not overridden
-*/}}
-{{- define "bc-wallet.api-server.host" -}}
-{{- if (and (hasKey .Values.api_server "openshift") (hasKey .Values.api_server.openshift "route") (hasKey .Values.api_server.openshift.route "host")) -}}
-{{- .Values.api_server.openshift.route.host -}}
-{{- else -}}
-{{- printf "%s-%s%s" .Release.Name "api-server" .Values.ingressSuffix -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate Traction Adapter host if not overridden
-*/}}
-{{- define "bc-wallet.traction-adapter.host" -}}
-{{- if (and (hasKey .Values.traction_adapter "openshift") (hasKey .Values.traction_adapter.openshift "route") (hasKey .Values.traction_adapter.openshift.route "host")) -}}
-{{- .Values.traction_adapter.openshift.route.host -}}
-{{- else -}}
-{{- printf "%s-%s%s" .Release.Name "traction-adapter" .Values.ingressSuffix -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate Demo Web host if not overridden
-*/}}
-{{- define "bc-wallet.demo-web.host" -}}
-{{- if (and (hasKey .Values.demo_web "openshift") (hasKey .Values.demo_web.openshift "route") (hasKey .Values.demo_web.openshift.route "host")) -}}
-{{- .Values.demo_web.openshift.route.host -}}
-{{- else -}}
-{{- printf "%s-%s%s" .Release.Name "demo-web" .Values.ingressSuffix -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate Showcase Creator host if not overridden
-*/}}
-{{- define "bc-wallet.showcase-creator.host" -}}
-{{- if (and (hasKey .Values.showcase_creator "openshift") (hasKey .Values.showcase_creator.openshift "route") (hasKey .Values.showcase_creator.openshift.route "host")) -}}
-{{- .Values.showcase_creator.openshift.route.host -}}
-{{- else -}}
-{{- printf "%s-%s%s" .Release.Name "showcase-creator" .Values.ingressSuffix -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Generate Demo Server host if not overridden
-*/}}
-{{- define "bc-wallet.demo-server.host" -}}
-{{- if (and (hasKey .Values.demo_server "openshift") (hasKey .Values.demo_server.openshift "route") (hasKey .Values.demo_server.openshift.route "host")) -}}
-{{- .Values.demo_server.openshift.route.host -}}
-{{- else -}}
-{{- printf "%s-%s%s" .Release.Name "demo-server" .Values.ingressSuffix -}}
 {{- end -}}
 {{- end -}}

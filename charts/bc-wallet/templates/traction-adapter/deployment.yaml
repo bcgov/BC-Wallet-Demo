@@ -1,76 +1,110 @@
-{{- if .Values.traction_adapter.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "bc-wallet.fullname" . }}-traction-adapter
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: adapter
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: traction-adapter
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.traction_adapter.replicaCount }}
+  {{- if not .Values.tractionAdapter.autoscaling.enabled }}
+  replicas: {{ .Values.tractionAdapter.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      app: {{ include "bc-wallet.fullname" . }}-traction-adapter
+      app.kubernetes.io/component: traction-adapter
+      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      labels:
-        app: {{ include "bc-wallet.fullname" . }}-traction-adapter
-        app.kubernetes.io/component: adapter
-        app.kubernetes.io/part-of: bc-wallet
-        {{- include "bc-wallet.labels" . | nindent 8 }}
-      {{- with .Values.traction_adapter.podAnnotations }}
+      {{- with .Values.tractionAdapter.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      labels:
+        app.kubernetes.io/component: traction-adapter
+        {{- include "bc-wallet.labels" . | nindent 8 }}
+        {{- with .Values.tractionAdapter.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
-      {{- with .Values.traction_adapter.podSecurityContext }}
+      {{- with .Values.tractionAdapter.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "bc-wallet.serviceAccountName" . }}
+      {{- with .Values.tractionAdapter.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: traction-adapter
-        image: "{{ .Values.traction_adapter.image.repository }}:{{ .Values.traction_adapter.image.tag }}"
-        imagePullPolicy: {{ .Values.traction_adapter.image.pullPolicy }}
-        {{- with .Values.traction_adapter.containerSecurityContext }}
-        securityContext:
-          {{- toYaml . | nindent 12 }}
-        {{- end }}
-        ports:
-        - containerPort: {{ .Values.traction_adapter.port }}
-          name: http
-        env:
-        - name: TRACTION_FIXED_SHOWCASE_API_URL
-          value: "https://{{ include "bc-wallet.api-server.host" . }}"
-        - name: AMQ_HOST
-          value: {{.Release.Name}}-rabbitmq
-        - name: AMQ_PORT
-          value: {{ .Values.rabbitmq.port | quote }}
-        - name: AMQ_TRANSPORT
-          value: tcp
-        - name: AMQ_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
-              key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
-        - name: AMQ_USERNAME
-          value: {{ .Values.rabbitmq.auth.username | quote }}
-        - name: ENCRYPTION_KEY
-          value: {{ .Values.api_server.env.ENCRYPTION_KEY | quote }}
-        - name: FIXED_SHOWCASE_BACKEND
-          value: "https://{{ include "bc-wallet.api-server.host" . }}"
-        {{- range $key, $value := .Values.traction_adapter.env }}
-        {{- if and (ne $key "FIXED_SHOWCASE_BACKEND") (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") (kindIs "map" $value) }}
-        - name: {{ $key }}
-          valueFrom:
-            {{- toYaml $value | nindent 14 }}
-        {{- else if and (ne $key "FIXED_SHOWCASE_BACKEND") (ne $key "AMQ_HOST") (ne $key "AMQ_PORT") (ne $key "AMQ_TRANSPORT") (ne $key "AMQ_PASSWORD") (ne $key "AMQ_USER") }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{- end }}
-        {{- end }}
-        resources:
-          {{- toYaml .Values.traction_adapter.resources | nindent 12 }}
-      serviceAccountName: {{ if .Values.traction_adapter.serviceAccount.create }}{{ if .Values.traction_adapter.serviceAccount.name }}{{ .Values.traction_adapter.serviceAccount.name }}{{ else }}{{ include "bc-wallet.fullname" . }}-traction-adapter{{ end }}{{ end }}
-{{- end }}
+        - name: traction-adapter
+          {{- with .Values.tractionAdapter.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.tractionAdapter.image.repository }}:{{ .Values.tractionAdapter.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.tractionAdapter.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.tractionAdapter.service.port }}
+              protocol: TCP
+          env:
+          - name: TRACTION_FIXED_SHOWCASE_API_URL
+            value: "https://{{ include "bc-wallet.apiServer.host" . }}"
+          - name: AMQ_HOST
+            value: {{.Release.Name}}-rabbitmq
+          - name: AMQ_PORT
+            value: {{ .Values.rabbitmq.service.ports.amqp | quote }}
+          - name: AMQ_TRANSPORT
+            value: tcp
+          - name: AMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
+                key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+          - name: AMQ_USERNAME
+            value: {{ .Values.rabbitmq.auth.username | quote }}
+          - name: FIXED_SHOWCASE_BACKEND
+            value: "https://{{ include "bc-wallet.apiServer.host" . }}"
+          {{- if or .Values.tractionAdapter.extraEnvVarsCM .Values.tractionAdapter.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.tractionAdapter.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ .Values.tractionAdapter.extraEnvVarsCM | quote }}
+            {{- end }}
+            {{- if .Values.tractionAdapter.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ .Values.tractionAdapter.extraEnvVarsSecret | quote }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.tractionAdapter.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tractionAdapter.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tractionAdapter.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tractionAdapter.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.tractionAdapter.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tractionAdapter.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tractionAdapter.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tractionAdapter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

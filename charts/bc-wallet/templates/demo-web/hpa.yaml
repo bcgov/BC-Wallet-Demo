@@ -1,36 +1,33 @@
-{{- if .Values.demo_web.enabled }}
-{{- if .Values.demo_web.autoscaling.enabled }}
+{{- if .Values.demoWeb.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "bc-wallet.fullname" . }}-demo-web
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: web
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: demo-web
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "bc-wallet.fullname" . }}-demo-web
-  minReplicas: {{ .Values.demo_web.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.demo_web.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.demoWeb.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.demoWeb.autoscaling.maxReplicas }}
   metrics:
+    {{- if .Values.demoWeb.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.demo_web.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.demoWeb.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.demoWeb.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.demo_web.autoscaling.targetMemoryUtilizationPercentage }}
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: {{ .Values.demo_web.autoscaling.stabilizationWindowSeconds }}
+          averageUtilization: {{ .Values.demoWeb.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
 {{- end }}
-{{- end }} 

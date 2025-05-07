@@ -1,20 +1,17 @@
-{{- if .Values.api_server.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "bc-wallet.fullname" . }}-api-server
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: api-server
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.api_server.service.type }}
+  type: {{ .Values.apiServer.service.type }}
   ports:
-    - port: {{ .Values.api_server.service.port }}
-      targetPort: {{ .Values.api_server.port }}
+    - port: {{ .Values.apiServer.service.port }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ include "bc-wallet.fullname" . }}-api-server
-{{- end }}
+    app.kubernetes.io/component: api-server
+    {{- include "bc-wallet.selectorLabels" . | nindent 4 }}

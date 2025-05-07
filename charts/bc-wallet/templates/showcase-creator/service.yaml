@@ -1,20 +1,17 @@
-{{- if .Values.showcase_creator.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "bc-wallet.fullname" . }}-showcase-creator
-  namespace: {{ .Values.global.namespaceOverride | default .Release.Namespace }}
   labels:
-    app.kubernetes.io/component: creator
-    app.kubernetes.io/part-of: bc-wallet
+    app.kubernetes.io/component: showcase-creator
     {{- include "bc-wallet.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.showcase_creator.service.type }}
+  type: {{ .Values.showcaseCreator.service.type }}
   ports:
-    - port: {{ .Values.showcase_creator.service.port }}
-      targetPort: {{ .Values.showcase_creator.port }}
+    - port: {{ .Values.showcaseCreator.service.port }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ include "bc-wallet.fullname" . }}-showcase-creator
-{{- end }} 
+    app.kubernetes.io/component: showcase-creator
+    {{- include "bc-wallet.selectorLabels" . | nindent 4 }}
