@@ -10,6 +10,6 @@ export const showcaseRequestFormData = z.object({
   scenarios: z.array(z.string()).optional(),
   credentialDefinitions: z.array(z.string()).optional(),
   personas: z.array(z.string()).optional(),
-  tenantId: z.string(),
+  tenantId: z.string().min(1, "Tenant ID is required"),
   bannerImage: z.string().min(1, "Banner image is required"),
 })

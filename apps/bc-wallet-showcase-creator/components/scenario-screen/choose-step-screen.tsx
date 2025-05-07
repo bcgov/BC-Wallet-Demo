@@ -8,7 +8,6 @@ import { useTranslations } from 'next-intl'
 
 import { NoSelection } from '../credentials/no-selection'
 import { StepType } from 'bc-wallet-openapi'
-import { useEffect } from 'react'
 import { createDefaultStep, createAdvancedStep } from '@/lib/steps'
 
 export const CreateScenariosStepsScreen = ({ slug }: { slug?: string }) => {

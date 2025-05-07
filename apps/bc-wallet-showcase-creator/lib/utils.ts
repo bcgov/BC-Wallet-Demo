@@ -1,8 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { env } from '@/env'
-import { ShowcaseRequest } from 'bc-wallet-openapi'
-import { Showcase } from 'bc-wallet-openapi'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -24,49 +22,39 @@ export const convertBase64 = (file: File): Promise<string> => {
 }
 
 export function parseSchemaId(schemaId: string) {
-
-  const parts = schemaId.split(':');
+  const parts = schemaId.split(':')
   return {
     schemaPrefix: parts[0],
     schemaVersion: parts[3],
-  };
+  }
 }
 
-export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_API_URL;
+export const baseUrl = env.NEXT_PUBLIC_SHOWCASE_API_URL
 
 export const debugLog = (...args: any[]) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(...args);
-  }
-};
-
-export const showcaseToShowcaseRequest = (showcase: Showcase): ShowcaseRequest => {
-  return {
-    ...showcase,
-    scenarios: showcase.scenarios.map((scenario) => scenario.id),
-    personas: showcase.personas.map((persona) => persona.id),
-    bannerImage: showcase.bannerImage?.id,
+    console.log(...args)
   }
 }
 
 export const browserDecodeJwt = (token?: string) => {
   if (!token) {
-    throw Error('token is required');
+    throw Error('token is required')
   }
-  
-  const parts = token.split('.');
+
+  const parts = token.split('.')
   if (parts.length !== 3) {
-    throw new Error('Invalid token string');
+    throw new Error('Invalid token string')
   }
-  
-  const base64Url = parts[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+  const base64Url = parts[1]
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
   const jsonPayload = decodeURIComponent(
     atob(base64)
       .split('')
-      .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-      .join('')
-  );
-  
-  return JSON.parse(jsonPayload);
-};
+      .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+      .join(''),
+  )
+
+  return JSON.parse(jsonPayload)
+}

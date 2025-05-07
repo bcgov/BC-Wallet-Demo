@@ -10,7 +10,6 @@ import { useTranslations } from 'next-intl'
 
 export default function CreateOnboardingPage() {
   const t = useTranslations()
-  const { displayShowcase } = useShowcaseStore()
   const { selectedPersonaIds } = useShowcaseStore()
   const { data: personas } = usePersonas()
 
@@ -32,7 +31,7 @@ export default function CreateOnboardingPage() {
               <h2 className="text-base font-bold text-foreground">{t('showcases.publish_info_title')}</h2>
               <p className="w-full text-xs text-foreground/80">{t('showcases.publish_info_subtitle')}</p>
             </div>
-            <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={displayShowcase.credentialDefinitions as Partial<CredentialDefinition>[]} />
+            <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={[]} />
           </div>
           <div className="w-2/3 bg-background border shadow-md rounded-md flex flex-col">
             <PublishEdit />

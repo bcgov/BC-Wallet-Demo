@@ -7,7 +7,7 @@ import {
   type ShowcasesResponse,
   type ShowcaseResponse,
 } from 'bc-wallet-openapi'
-import { debugLog, showcaseToShowcaseRequest } from '@/lib/utils'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
 
 const staleTime = 1000 * 60 * 5
 
