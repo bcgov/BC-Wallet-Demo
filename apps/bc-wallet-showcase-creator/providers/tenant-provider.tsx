@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { decodeJwt } from '@/lib/utils';
 import { usePathname } from 'next/navigation'
 
 type TenantContextType = {
