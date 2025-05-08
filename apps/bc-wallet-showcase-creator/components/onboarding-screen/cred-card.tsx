@@ -5,11 +5,13 @@ import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useCredentialDefinition } from '@/hooks/use-credentials'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const CredCard = ({ definitionId }: { definitionId: string }) => {
   const { data: cred, isLoading } = useCredentialDefinition(definitionId)
 
   const t = useTranslations('credentials')
+  const { tenantId } = useTenant();
 
   if (isLoading) {
     return <Skeleton className="w-full h-20" />
@@ -18,7 +20,7 @@ export const CredCard = ({ definitionId }: { definitionId: string }) => {
   return (
     <div className="bg-background p-2 flex mt-2 rounded">
       <Image
-        src={`${baseUrl}/assets/${cred?.credentialDefinition?.icon?.id}/file`}
+        src={`${baseUrl}/${tenantId}/assets/${cred?.credentialDefinition?.icon?.id}/file`}
         unoptimized
         onError={(e) => {
           const target = e.currentTarget as HTMLImageElement
