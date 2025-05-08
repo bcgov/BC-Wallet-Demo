@@ -4,23 +4,24 @@ import React, { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { CredentialDefinition, Source } from 'bc-wallet-openapi'
 import { useCredentials } from '@/hooks/use-credentials-store'
-import { useCredentialDefinitions } from '@/hooks/use-credentials'
+import { useCredentialDefinition, useCredentialDefinitions } from '@/hooks/use-credentials'
 import { DisplaySearchResults } from './display-search-results'
-import { DisplayAddedCredentials } from './display-added-credentials'
+import { DisplayCredential } from './display-added-credentials'
 
 interface StepCredentialManagerProps {
-  currentStepCredentials: CredentialDefinition[] | undefined
-  onUpdateCredentials: (credentials: CredentialDefinition[]) => void
+  currentStepCredential: string | undefined
+  onUpdateCredentials: (credentialId: string) => void
 }
 
 export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
-  currentStepCredentials = [],
+  currentStepCredential,
   onUpdateCredentials,
 }) => {
   const t = useTranslations()
   const { setSelectedCredential } = useCredentials()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions()
+  const { data: credential } = useCredentialDefinition(currentStepCredential || '')
 
   const searchCredential = (searchText: string) => {
     setSearchResults([])
@@ -33,28 +34,24 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
       return
     }
 
-    const results = credentials.credentialDefinitions.filter((cred: CredentialDefinition) =>
-      cred.source === Source.Created && cred.name.toUpperCase().includes(searchUpper),
+    const results = credentials.credentialDefinitions.filter(
+      (cred: CredentialDefinition) => cred.source === Source.Created && cred.name.toUpperCase().includes(searchUpper),
     )
 
     setSearchResults(results)
   }
 
   const addCredential = (credential: CredentialDefinition) => {
-    if (!Array.isArray(currentStepCredentials)) {
-      onUpdateCredentials([credential])
-    } else if (!currentStepCredentials.some(cred => cred.id === credential.id)) {
-      onUpdateCredentials([...currentStepCredentials, credential])
+    if (!currentStepCredential) {
+      onUpdateCredentials(credential.id)
+    } else if (currentStepCredential !== credential.id) {
+      onUpdateCredentials(credential.id)
     }
     setSearchResults([])
   }
 
-  const removeCredential = (credential: CredentialDefinition) => {
-    if (Array.isArray(currentStepCredentials)) {
-      const updated = currentStepCredentials.filter((cred) => cred.id !== credential.id)
-      onUpdateCredentials(updated)
-    }
-    setSelectedCredential(null)
+  const removeCredential = () => {
+    onUpdateCredentials('')
   }
 
   return (
@@ -80,11 +77,13 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
 
       <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
 
-      <DisplayAddedCredentials
-        credentials={currentStepCredentials as CredentialDefinition[]}
-        removeCredential={removeCredential}
-        updateCredentials={onUpdateCredentials}
-      />
+      {currentStepCredential && (
+        <DisplayCredential
+          credentialId={currentStepCredential}
+          removeCredential={removeCredential}
+          onCredentialUpdate={onUpdateCredentials}
+        />
+      )}
     </div>
   )
 }

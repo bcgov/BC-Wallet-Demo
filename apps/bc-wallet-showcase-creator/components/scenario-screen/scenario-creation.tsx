@@ -14,6 +14,7 @@ import { Button } from '../ui/button'
 import { SortableStep } from './sortable-step'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { Copy } from 'lucide-react'
+import { Screen } from '@/types'
 import { useTenant } from '@/providers/tenant-provider'
 
 export const CreateScenariosScreen = () => {
@@ -173,7 +174,7 @@ export const CreateScenariosScreen = () => {
                                 <div key={`step-${index}-${stepIndex}`} className="flex flex-row">
                                   <SortableStep
                                     selectedStep={selectedStep}
-                                    myScreen={step as any}
+                                    myScreen={step as Screen}
                                     stepIndex={stepIndex}
                                     scenarioIndex={index}
                                   />

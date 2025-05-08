@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
-import type { Persona, IssuanceScenarioRequest, StepActionRequest } from 'bc-wallet-openapi'
+import { type Persona, type IssuanceScenarioRequest, type StepActionRequest } from 'bc-wallet-openapi'
 import { Screen } from '@/types'
 import { useOnboardingCreationStore } from './use-onboarding-store'
 import { useShowcase } from './use-showcases'
+import { issuanceScenarioToIssuanceScenarioRequest } from '@/lib/parsers'
 
 export const useOnboardingCreation = (showcaseSlug?: string) => {
   const { selectedPersonaIds } = useShowcaseStore()
@@ -66,19 +67,8 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
               if (!personaScenariosData[persona.id]) {
                 personaScenariosData[persona.id] = []
               }
-              
-              const scenarioRequest: IssuanceScenarioRequest = {
-                name: scenario.name,
-                description: scenario.description,
-                steps: scenario.steps?.map(step => ({
-                  ...step,
-                })) as Screen[] || [],
-                personas: scenario.personas.map(p => p.id),
-                hidden: scenario.hidden,
-                issuer: scenario.issuer?.id,
-              // @ts-expect-error: slug is not required
-                slug: scenario.slug
-              }
+
+              const scenarioRequest = issuanceScenarioToIssuanceScenarioRequest(scenario)
               
               personaScenariosData[persona.id].push(scenarioRequest)
             })

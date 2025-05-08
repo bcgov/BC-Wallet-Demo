@@ -1,4 +1,4 @@
-import { AcceptCredentialActionRequest, AriesOOBActionRequest, AriesProofRequestRequest, ButtonActionRequest, ChooseWalletActionRequest, CredentialDefinition, Persona, SetupConnectionActionRequest, StepActionRequest, StepRequest } from "bc-wallet-openapi";
+import { AcceptCredentialActionRequest, AriesOOBActionRequest, AriesProofRequestRequest, Asset, ButtonActionRequest, ChooseWalletActionRequest, CredentialDefinition, Persona, SetupConnectionActionRequest, StepActionRequest, StepActionType, StepRequest } from "bc-wallet-openapi";
 
 export interface ShowcaseJSON {
   personas: Persona[];
@@ -14,8 +14,22 @@ export type PageParams = Promise<{ locale: Locale }>
 
 declare module 'bc-wallet-openapi' {
   interface StepActionRequest {
+    asset?: string;
     proofRequest?: AriesProofRequestRequest;
     credentialDefinitionId?: string;
+    connectionId?: string;
+    goToStep?: string;
+  }
+
+  interface StepAction {
+    id: string;
+    actionType: StepActionType;
+    title: string;
+    text: string;
+    createdAt?: Date | undefined;
+    updatedAt?: Date | undefined;
+    credentialDefinitionId?: string;
+    asset?: Asset;
   }
 }
 
@@ -49,5 +63,5 @@ export type UICredentialDefinition = Omit<CredentialDefinition, 'icon'> & {
 
 export interface Screen extends StepRequest {
   id: string
-  credentials?: CredentialDefinition[]
+  credentialDefinitionIds?: string[]
 }

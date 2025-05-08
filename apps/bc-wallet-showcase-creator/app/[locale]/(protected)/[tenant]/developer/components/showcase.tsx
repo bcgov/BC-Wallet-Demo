@@ -5,17 +5,17 @@ import { Button } from '@/components/ui/button'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 
 export const ShowcaseDev = () => {
-  const { displayShowcase, reset } = useShowcaseStore()
+  const { showcase, reset } = useShowcaseStore()
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Showcase</CardTitle>
-        <CardDescription> {displayShowcase.name} </CardDescription>
+        <CardDescription> {showcase.name} </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="p-4 bg-gray-100 dark:bg-foreground/10 rounded text-xs">
-          <pre className="mb-2 pre-wrap">Showcase: {JSON.stringify(displayShowcase)}</pre>
+          <pre className="mb-2 pre-wrap">Showcase: {JSON.stringify(showcase)}</pre>
         </div>
       </CardContent>
       <CardFooter>

@@ -266,15 +266,15 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
     return currentAction && currentAction.actionType === StepActionType.AcceptCredential
   }
 
-  const handleUpdateCredentials = (credentials: CredentialDefinition[]) => {
+  const handleUpdateCredentials = (credentialId: string) => {
     if (!currentStep || !selectedStep) return;
   
     const updatedStep = {
       ...currentStep,
-      credentials,
+      credentials: credentialId,
     };
 
-    if (credentials.length > 0 && 
+    if (credentialId && 
         currentStep.actions && 
         currentStep.actions.length > 0 && 
         currentStep.actions[0].actionType === StepActionType.AcceptCredential) {
@@ -284,7 +284,7 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
       
       updatedActions[0] = {
         ...action,
-        credentialDefinitionId: credentials[0].id,
+        credentialDefinitionId: credentialId,
       };
       
       updatedStep.actions = updatedActions;
@@ -446,8 +446,7 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
 
           {showCredentialSelection() && (
             <StepCredentialManager
-              // @ts-expect-error - database still do not persist the credentials
-              currentStepCredentials={currentStep?.credentials || []}
+              currentStepCredential={currentStep?.actions[0].credentialDefinitionId}
               onUpdateCredentials={handleUpdateCredentials}
             />
           )}
