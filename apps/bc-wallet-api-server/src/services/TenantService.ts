@@ -1,10 +1,10 @@
-import { encryptString, decryptString } from 'bc-wallet-adapter-client-api'
+import { decryptString, encryptString } from 'bc-wallet-adapter-client-api'
 import * as process from 'node:process'
 import { InternalServerError } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import TenantRepository from '../database/repositories/TenantRepository'
-import { Tenant, NewTenant } from '../types'
+import { NewTenant, Tenant, TenantType } from '../types'
 
 @Service()
 class TenantService {
@@ -75,6 +75,31 @@ class TenantService {
 
   public deleteTenant = async (id: string): Promise<void> => {
     return this.tenantRepository.delete(id)
+  }
+
+  public async createRootTenant() {
+    const realm = process.env.OIDC_ROOT_REALM
+    const clientId = process.env.OIDC_ROOT_CLIENT_ID
+    const clientSecret = process.env.OIDC_ROOT_CLIENT_SECRET
+    if (!realm || !clientId || !clientSecret) {
+      throw new Error('OIDC_ROOT_REALM, OIDC_ROOT_CLIENT_ID and OIDC_ROOT_CLIENT_SECRET must be set')
+    }
+
+    const rootTenant = await this.getTenantByRealmAndClientId(realm, clientId)
+    if (rootTenant) {
+      if (rootTenant.tenantType !== TenantType.ROOT) {
+        return Promise.reject(Error('Configured root tenant is not actually a root tenant'))
+      }
+      return // It's already there
+    }
+
+    const newRootTenant: NewTenant = {
+      tenantType: TenantType.ROOT,
+      oidcRealm: realm,
+      oidcClientId: clientId,
+      oidcClientSecret: clientSecret,
+    }
+    return this.tenantRepository.create(newRootTenant)
   }
 }
 
