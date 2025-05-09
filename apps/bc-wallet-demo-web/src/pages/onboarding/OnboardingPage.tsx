@@ -24,6 +24,7 @@ import { PageNotFound } from '../PageNotFound'
 import { Stepper } from './components/Stepper'
 import { OnboardingContainer } from './OnboardingContainer'
 import { ScenarioType } from 'bc-wallet-openapi'
+import { getTenantIdFromPath } from '../../utils/Helpers'
 
 export const OnboardingPage: React.FC = () => {
   useTitle('Get Started | BC Wallet Self-Sovereign Identity Demo')
@@ -35,13 +36,14 @@ export const OnboardingPage: React.FC = () => {
   const { currentStep, isCompleted, scenario } = useOnboarding()
   const { state, invitationUrl, id } = useConnection()
   const { characterUploadEnabled } = usePreferences()
+  const tenantId = getTenantIdFromPath();
 
   useEffect(() => {
     if (isCompleted && showcase && currentPersona) {
       dispatch(completeOnboarding())
       dispatch(clearCredentials())
       dispatch(clearConnection())
-      navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
+      navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
     } else if (!isCompleted && !showcase) {
       dispatch(clearShowcase())
       dispatch(fetchWallets())
