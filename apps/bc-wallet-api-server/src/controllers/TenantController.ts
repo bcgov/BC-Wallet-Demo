@@ -8,7 +8,6 @@ import {
   TenantsResponseFromJSONTyped,
 } from 'bc-wallet-openapi'
 import {
-  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -24,7 +23,7 @@ import { Service } from 'typedi'
 
 import TenantService from '../services/TenantService'
 import { TenantType } from '../types'
-import { getBasePath } from '../utils/auth'
+import { getBasePath, RootTenantAuthorized } from '../utils/auth'
 
 @JsonController(getBasePath('/tenants'))
 @Service()
@@ -57,7 +56,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
@@ -76,7 +75,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
     try {
@@ -93,7 +92,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

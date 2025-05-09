@@ -4,38 +4,9 @@ import { Action, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
 
 import TenantService from '../services/TenantService'
+import { TenantType } from '../types'
 import { Claims } from '../types/auth/claims'
-import { ISessionServiceUpdater } from '../types/services/session'
-
-type JwtPayload = {
-  exp?: number
-  iat?: number
-  jti?: string
-  iss?: string
-  aud?: string
-  sub?: string
-  typ?: string
-  azp?: string
-  sid?: string
-  acr?: string
-  'allowed-origins'?: string[]
-  realm_access?: {
-    roles: string[]
-  }
-  resource_access?: {
-    [key: string]: {
-      roles: string[]
-    }
-  }
-  scope?: string
-  email_verified?: boolean
-  name?: string
-  preferred_username?: string
-  given_name?: string
-  family_name?: string
-  email?: string
-  [key: string]: any
-}
+import { ISessionService, ISessionServiceUpdater } from '../types/services/session'
 
 export function checkRoles(token: Token, roles: string[]) {
   if (token && !roles.length) return true
@@ -133,13 +104,13 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
     }
   }
 
+  const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+  sessionService.setCurrentTenant(tenant)
+
   // Calls the introspection endpoint to validate the token
   if (!(await isAccessTokenValid(accessToken, authServerUrl, tenant.oidcClientId, tenant.oidcClientSecret))) {
     throw new UnauthorizedError('Invalid token')
   }
-
-  const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
-  sessionService.setCurrentTenant(tenant)
 
   // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
   // User roles which at the moment we are not using, do not need any prefix.
@@ -158,7 +129,7 @@ export function isAccessTokenExpired(token: Token): boolean {
 }
 
 export class Token {
-  private readonly _payload: JwtPayload
+  private readonly _payload: Claims
 
   public constructor(private token: string) {
     if (this.token) {
@@ -172,7 +143,7 @@ export class Token {
     }
   }
 
-  public get payload(): JwtPayload {
+  public get payload(): Claims {
     return this._payload
   }
 
@@ -210,5 +181,22 @@ export class Token {
     }
 
     return this._payload.realm_access.roles.indexOf(roleName) >= 0
+  }
+}
+
+export function RootTenantAuthorized() {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value
+    descriptor.value = async function (...args: any[]) {
+      const sessionService = Container.get('ISessionService') as ISessionService
+      const currentTenant = sessionService.getCurrentTenant()
+
+      if (!currentTenant || currentTenant.tenantType !== TenantType.ROOT) {
+        throw new UnauthorizedError('Only ROOT tenant users can access this')
+      }
+
+      return originalMethod.apply(this, args)
+    }
+    return descriptor
   }
 }
