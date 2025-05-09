@@ -4,6 +4,7 @@ import { Action, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
 
 import TenantService from '../services/TenantService'
+import { ISessionServiceUpdater } from '../types/services/session'
 
 type JwtPayload = {
   exp?: number
@@ -126,6 +127,10 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
   if (!(await isAccessTokenValid(accessToken, authServerUrl, tenant.oidcClientId, tenant.oidcClientSecret))) {
     throw new UnauthorizedError('Invalid token')
   }
+
+  const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+  sessionService.setCurrentTenant(tenant)
+
   // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
   // User roles which at the moment we are not using, do not need any prefix.
   return checkRoles(token, roles)

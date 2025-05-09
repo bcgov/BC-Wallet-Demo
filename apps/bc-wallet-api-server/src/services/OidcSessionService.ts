@@ -1,4 +1,3 @@
-import { Promise } from 'cypress/types/cy-bluebird'
 import { Service } from 'typedi'
 
 import type { Tenant, User } from '../types'
@@ -18,20 +17,11 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
 
   public constructor(private readonly userService: UserService) {}
 
-  public async getCurrentUser(): Promise<User | null> {
-    if (this._user === null) {
-      try {
-        this._user = await this.userService.getUserByName('test-user') // FIXME after authentication is fully working
-      } catch (e) {
-        this._user = await this.userService.createUser({
-          userName: 'test-user',
-        })
-      }
-    }
+  public getCurrentUser(): User | null {
     return this._user
   }
 
-  public async getCurrentTenant(): Promise<Tenant | null> {
+  public getCurrentTenant(): Tenant | null {
     return this._tenant
   }
 
@@ -56,16 +46,20 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
     return this.activeClaims
   }
 
-  public async setCurrentUser(userName: string) {
+  public async setCurrentUser(userName: string): Promise<void> {
     if (this._user === null) {
+      if (this._tenant === null) {
+        throw new Error('Tenant is not set')
+      }
       try {
-        this._user = await this.userService.getUserByName(userName) // FIXME after authentication is fully working
+        this._user = await this.userService.getUserByNameAndTenantId(userName, this._tenant.id)
       } catch (e) {
         this._user = await this.userService.createUser({
           userName: 'test-user',
         })
       }
     }
+    return Promise.resolve()
   }
 
   public setCurrentTenant(value: Tenant) {

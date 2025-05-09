@@ -1,10 +1,10 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { Inject, Service } from 'typedi'
 
 import { NotFoundError } from '../../errors'
 import { DatabaseService } from '../../services/DatabaseService'
-import { NewUser, RepositoryDefinition, User, Tenant } from '../../types'
-import { users, tenantsToUsers, tenants } from '../schema'
+import { NewUser, RepositoryDefinition, Tenant, User } from '../../types'
+import { tenants, tenantsToUsers, users } from '../schema'
 import TenantRepository from './TenantRepository'
 
 @Service()
@@ -116,12 +116,14 @@ export class UserRepository implements RepositoryDefinition<User, NewUser> {
     }
   }
 
-  public async findByUserAndTenantId(userName: string, tenantId: string): Promise<User> {
+  public async findByUsernameAndTenantId(userName: string, tenantId: string): Promise<User> {
     const prepared = (await this.databaseService.getConnection()).query.users
       .findFirst({
-        where: and(eq(users.userName, userName), eq(users.tenant, tenantId))
+        where: eq(users.userName, userName),
         with: {
-          tenants: true,
+          tenants: {
+            where: eq(tenantsToUsers.tenant, tenantId),
+          },
         },
       })
       .prepare('find_user_by_username')
