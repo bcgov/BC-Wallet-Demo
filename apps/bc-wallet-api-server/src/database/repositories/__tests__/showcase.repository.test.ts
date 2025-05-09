@@ -226,9 +226,9 @@ describe('Database showcase repository tests', (): void => {
     const newTenant: NewTenant = {
       id: '79a56be5-89bd-40dc-a6a7-fc035487e437',
       tenantType: TenantType.SHOWCASE,
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
     tenant = await tenantRepository.create(newTenant)
   })
