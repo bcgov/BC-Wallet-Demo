@@ -23,6 +23,7 @@ import {
 import { Service } from 'typedi'
 
 import TenantService from '../services/TenantService'
+import { TenantType } from '../types'
 import { getBasePath } from '../utils/auth'
 
 @JsonController(getBasePath('/tenants'))
@@ -64,7 +65,8 @@ class TenantController {
       if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const tenant = await this.tenantService.createTenant(TenantRequestToJSONTyped(tenantRequest))
+      const newTenant = TenantRequestToJSONTyped(tenantRequest)
+      const tenant = await this.tenantService.createTenant({ ...newTenant, tenantType: TenantType.SHOWCASE }) // Do not allow ROOT tenant to be created externally
       return TenantResponseFromJSONTyped({ tenant }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
