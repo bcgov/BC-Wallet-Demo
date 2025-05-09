@@ -6,7 +6,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
 
 import DatabaseService from '../../../services/DatabaseService'
-import { NewTenant, NewUser } from '../../../types'
+import { NewTenant, NewUser, TenantType } from '../../../types'
 import * as schema from '../../schema'
 import TenantRepository from '../TenantRepository'
 import UserRepository from '../UserRepository'
@@ -38,9 +38,10 @@ describe('Database tenant repository tests', (): void => {
   it('Should save tenant to database', async (): Promise<void> => {
     const tenant: NewTenant = {
       id: 'test-tenant-id',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const savedTenant = await tenantRepository.create(tenant)
@@ -52,9 +53,10 @@ describe('Database tenant repository tests', (): void => {
   it('Should get tenant by id from database', async (): Promise<void> => {
     const tenant: NewTenant = {
       id: 'test-tenant-id',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const savedTenant = await tenantRepository.create(tenant)
@@ -69,16 +71,18 @@ describe('Database tenant repository tests', (): void => {
   it('Should get all tenants from database', async (): Promise<void> => {
     const tenant1: NewTenant = {
       id: 'test-tenant-id-1',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const tenant2: NewTenant = {
       id: 'test-tenant-id-2',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const savedTenant1 = await tenantRepository.create(tenant1)
@@ -95,9 +99,10 @@ describe('Database tenant repository tests', (): void => {
   it('Should delete tenant from database', async (): Promise<void> => {
     const tenant: NewTenant = {
       id: 'test-tenant-id',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const savedTenant = await tenantRepository.create(tenant)
@@ -113,9 +118,10 @@ describe('Database tenant repository tests', (): void => {
   it('Should update tenant in database', async (): Promise<void> => {
     const tenant: NewTenant = {
       id: 'test-tenant-id',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const savedTenant = await tenantRepository.create(tenant)
@@ -124,9 +130,10 @@ describe('Database tenant repository tests', (): void => {
     const newTenantId = 'updated-test-tenant-id'
     const updatedTenant = await tenantRepository.update(savedTenant.id, {
       id: newTenantId,
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     })
 
     expect(updatedTenant).toBeDefined()
@@ -142,10 +149,11 @@ describe('Database tenant repository tests', (): void => {
 
     const tenant: NewTenant = {
       id: 'test-tenant-id',
+      tenantType: TenantType.SHOWCASE,
       users: [user1.id!, user2.id!],
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const savedTenant = await tenantRepository.create(tenant)
@@ -184,20 +192,22 @@ describe('Database tenant repository tests', (): void => {
 
     const tenant: NewTenant = {
       id: 'test-tenant-id',
+      tenantType: TenantType.SHOWCASE,
       users: [user1.id!, user2.id!],
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const savedTenant = await tenantRepository.create(tenant)
 
     const updatedTenant = await tenantRepository.update(savedTenant.id, {
       id: savedTenant.id,
+      tenantType: TenantType.SHOWCASE,
       users: [user3.id!],
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     })
 
     expect(updatedTenant).toBeDefined()
@@ -213,5 +223,84 @@ describe('Database tenant repository tests', (): void => {
         userName: 'User 3',
       },
     ])
+  })
+
+  it('Should save tenant with Traction fields to database', async (): Promise<void> => {
+    const tenant: NewTenant = {
+      id: 'test-tenant-id',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
+      tractionTenantId: '550e8400-e29b-41d4-a716-446655440000',
+      tractionWalletId: '550e8400-e29b-41d4-a716-446655440001',
+      tractionApiUrl: 'https://api.traction.example.com',
+    }
+
+    const savedTenant = await tenantRepository.create(tenant)
+
+    expect(savedTenant).toBeDefined()
+    expect(savedTenant.id).toEqual(tenant.id)
+    expect(savedTenant.tractionTenantId).toEqual(tenant.tractionTenantId)
+    expect(savedTenant.tractionWalletId).toEqual(tenant.tractionWalletId)
+    expect(savedTenant.tractionApiUrl).toEqual(tenant.tractionApiUrl)
+  })
+
+  it('Should update Traction fields in tenant', async (): Promise<void> => {
+    const tenant: NewTenant = {
+      id: 'test-tenant-id',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
+    }
+
+    const savedTenant = await tenantRepository.create(tenant)
+    expect(savedTenant).toBeDefined()
+    expect(savedTenant.tractionTenantId).toBeNull()
+    expect(savedTenant.tractionWalletId).toBeNull()
+    expect(savedTenant.tractionApiUrl).toBeNull()
+
+    const updatedTenant = await tenantRepository.update(savedTenant.id, {
+      id: savedTenant.id,
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
+      tractionTenantId: '550e8400-e29b-41d4-a716-446655440000',
+      tractionWalletId: '550e8400-e29b-41d4-a716-446655440001',
+      tractionApiUrl: 'https://api.traction.example.com',
+    })
+
+    expect(updatedTenant).toBeDefined()
+    expect(updatedTenant.id).toEqual(savedTenant.id)
+    expect(updatedTenant.tractionTenantId).toEqual('550e8400-e29b-41d4-a716-446655440000')
+    expect(updatedTenant.tractionWalletId).toEqual('550e8400-e29b-41d4-a716-446655440001')
+    expect(updatedTenant.tractionApiUrl).toEqual('https://api.traction.example.com')
+  })
+
+  it('Should be able to update tenant with different tenantType', async (): Promise<void> => {
+    const tenant: NewTenant = {
+      id: 'test-tenant-id',
+      tenantType: TenantType.SHOWCASE,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
+    }
+
+    const savedTenant = await tenantRepository.create(tenant)
+    expect(savedTenant).toBeDefined()
+    expect(savedTenant.tenantType).toEqual(TenantType.SHOWCASE)
+
+    const updatedTenant = await tenantRepository.update(savedTenant.id, {
+      id: savedTenant.id,
+      tenantType: TenantType.ROOT,
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
+    })
+
+    expect(updatedTenant).toBeDefined()
+    expect(updatedTenant.tenantType).toEqual(TenantType.ROOT)
   })
 })
