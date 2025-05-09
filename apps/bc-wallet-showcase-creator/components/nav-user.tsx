@@ -23,6 +23,11 @@ export function NavUser() {
   const { data: session } = useSession()
   const { state } = useSidebar()
 
+  const Logout = () => {
+    document.cookie = 'tenantId=; path=/; max-age=0; SameSite=Lax';
+    signOut()
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -66,7 +71,7 @@ export function NavUser() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => Logout()}>
                 <LogOutIcon />
                 Log out
               </DropdownMenuItem>

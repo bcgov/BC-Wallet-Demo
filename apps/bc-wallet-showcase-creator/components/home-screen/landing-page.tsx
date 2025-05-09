@@ -36,7 +36,7 @@ export const LandingPage = () => {
 
   const handlePreview = (slug: string) => {
 
-    const previewUrl = `${WALLET_URL}/${slug}`
+    const previewUrl = `${WALLET_URL}/${tenantId}/${slug}`
     window.open(previewUrl, '_blank')
   }
 

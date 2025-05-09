@@ -64,6 +64,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (req) => {
 
   const tenantConfig = await getTenantConfig(tenantId)
 
+  if(tenantConfig.message === `No tenant found for id: ${tenantId}`) {
+    console.warn('No tenant config found for tenantId:', tenantId);
+    return {
+      providers: [],
+      session: { strategy: 'jwt' },
+    };
+  }
+
   return {
     providers: [
       Keycloak({

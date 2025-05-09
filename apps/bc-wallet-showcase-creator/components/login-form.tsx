@@ -18,7 +18,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 
   const handleLogin = () => {
 
-    document.cookie = `tenantId=${tenantId}; path=/; max-age=3600;` // 1 hour
+    document.cookie = `tenantId=${tenantId}; path=/; max-age=86400; SameSite=Lax`; //1 day
 
     signIn('keycloak', {
       callbackUrl: `/${locale}/${tenantId}`

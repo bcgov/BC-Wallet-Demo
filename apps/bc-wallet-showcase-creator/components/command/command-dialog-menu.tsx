@@ -27,8 +27,6 @@ export function CommandDialogMenu() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const { setSelectedPersonaIds } = usePersonaAdapter()
-  // const { setTenantId, tenantId } = useHelpersStore()
-
   const { tenantId } = useTenant();
 
   const menuItems = [
@@ -40,7 +38,7 @@ export function CommandDialogMenu() {
     {
       icon: <Key />,
       label: 'Credentials',
-      href: `/${tenantId}credentials`,
+      href: `/${tenantId}/credentials`,
     },
     {
       icon: <Plus />,
@@ -87,12 +85,6 @@ export function CommandDialogMenu() {
             <span>Create credential</span>
           </CommandItem>
 
-          <div onClick={() => console.log('Disabled')}>
-            <CommandItem>
-              <Smile />
-              <span>Create tenant</span>
-            </CommandItem>
-          </div>
           <CommandItem>
             <Calculator />
             <span>Create credential schema</span>

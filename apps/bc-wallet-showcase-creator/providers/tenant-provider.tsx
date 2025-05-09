@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation'
+import { debugLog } from '@/lib/utils';
 
 type TenantContextType = {
   tenantId: string | undefined;
@@ -25,7 +26,7 @@ export const TenantProvider = ({ children }: { children: React.ReactNode }) => {
     const tenantIdFromPath = pathParts?.[2];
     
     if (tenantIdFromPath && tenantIdFromPath !== tenantId) {
-      console.log('Setting tenantId from path:', tenantIdFromPath);
+      debugLog('Setting tenantId from path:', tenantIdFromPath);
       latestTenantId = tenantIdFromPath;
       setTenantId(tenantIdFromPath);
     }
