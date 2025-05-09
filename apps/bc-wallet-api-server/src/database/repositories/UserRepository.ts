@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import { Inject, Service } from 'typedi'
 
 import { NotFoundError } from '../../errors'
@@ -116,10 +116,10 @@ export class UserRepository implements RepositoryDefinition<User, NewUser> {
     }
   }
 
-  public async findByUserName(userName: string): Promise<User> {
+  public async findByUserAndTenantId(userName: string, tenantId: string): Promise<User> {
     const prepared = (await this.databaseService.getConnection()).query.users
       .findFirst({
-        where: eq(users.userName, userName),
+        where: and(eq(users.userName, userName), eq(users.tenant, tenantId))
         with: {
           tenants: true,
         },

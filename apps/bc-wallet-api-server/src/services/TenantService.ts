@@ -94,6 +94,7 @@ class TenantService {
     }
 
     const newRootTenant: NewTenant = {
+      id: clientId, // id and oidcClientId are the same for now, drizzle can't convert this to a random uuid unless we drop all migration files
       tenantType: TenantType.ROOT,
       oidcRealm: realm,
       oidcClientId: clientId,

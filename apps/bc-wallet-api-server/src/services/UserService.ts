@@ -16,7 +16,7 @@ class UserService {
   }
 
   public getUserByName = async (userName: string): Promise<User> => {
-    return this.userRepository.findByUserName(userName)
+    return this.userRepository.findByUserAndTenantId(userName)
   }
 
   public createUser = async (user: NewUser): Promise<User> => {
