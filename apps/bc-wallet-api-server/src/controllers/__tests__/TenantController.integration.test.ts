@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
+import { environment } from 'bc-wallet-adapter-client-api/dist/environment'
 import { TenantRequest } from 'bc-wallet-openapi'
 import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
@@ -22,7 +23,6 @@ import { ShowcaseStatus } from '../../types'
 import TenantController from '../TenantController'
 import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
-import { environment } from 'bc-wallet-adapter-client-api/dist/environment'
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
@@ -55,9 +55,9 @@ describe('TenantController Integration Tests', () => {
     // 1. Create a tenant
     const tenantRequest: TenantRequest = {
       id: 'test-tenant-1',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const createResponse = await request.post('/tenants').send(tenantRequest).expect(201)

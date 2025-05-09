@@ -1,10 +1,10 @@
-import { encryptString, decryptString } from 'bc-wallet-adapter-client-api'
+import { decryptString, encryptString } from 'bc-wallet-adapter-client-api'
 import * as process from 'node:process'
 import { InternalServerError } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import TenantRepository from '../database/repositories/TenantRepository'
-import { Tenant, NewTenant } from '../types'
+import { NewTenant, Tenant } from '../types'
 
 @Service()
 class TenantService {
