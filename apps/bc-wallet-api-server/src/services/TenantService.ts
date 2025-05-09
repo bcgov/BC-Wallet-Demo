@@ -19,7 +19,7 @@ class TenantService {
         }
         return {
           ...tenant,
-          clientSecret: decryptString(tenant.oidcClientSecret, tenant.nonceBase64 as string),
+          oidcClientSecret: decryptString(tenant.oidcClientSecret, tenant.nonceBase64 as string),
         }
       }),
     )
@@ -52,7 +52,7 @@ class TenantService {
     const { encryptedBase64, nonceBase64 } = encryptString(tenant.oidcClientSecret, NONCE_SIZE)
     const newTenant = {
       ...tenant,
-      clientSecret: encryptedBase64,
+      oidcClientSecret: encryptedBase64,
       nonceBase64,
     }
     return this.tenantRepository.create(newTenant)
@@ -60,11 +60,14 @@ class TenantService {
 
   public updateTenant = async (id: string, tenant: NewTenant): Promise<Tenant> => {
     try {
+      const currentTenant = await this.tenantRepository.findById(id)
+
       const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
       const { encryptedBase64, nonceBase64 } = encryptString(tenant.oidcClientSecret, NONCE_SIZE)
       const newTenant = {
         ...tenant,
-        clientSecret: encryptedBase64,
+        tenantType: currentTenant.tenantType,
+        oidcClientSecret: encryptedBase64,
         nonceBase64,
       }
       return this.tenantRepository.update(id, newTenant)

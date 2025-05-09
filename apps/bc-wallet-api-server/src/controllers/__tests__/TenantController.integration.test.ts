@@ -65,9 +65,9 @@ describe('TenantController Integration Tests', () => {
     const createdTenant = createResponse.body.tenant
     expect(createdTenant).toHaveProperty('id')
     expect(createdTenant.id).toEqual('test-tenant-1')
-    expect(createdTenant.clientId).toEqual('test_client_id')
-    expect(createdTenant.realm).toEqual('test_realm')
-    expect(createdTenant.clientSecret).toBeDefined()
+    expect(createdTenant.oidcClientId).toEqual('test_client_id')
+    expect(createdTenant.oidcRealm).toEqual('test_realm')
+    expect(createdTenant.oidcClientSecret).toBeDefined()
     expect(createdTenant.createdAt).toBeDefined()
 
     // 2. Retrieve all tenants
@@ -80,11 +80,11 @@ describe('TenantController Integration Tests', () => {
     expect(getResponse.body.tenant.id).toEqual('test-tenant-1')
 
     // 4. Update the tenant
-    const updatedRequest = {
+    const updatedRequest: TenantRequest = {
       id: 'updated-tenant-1',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      oidcRealm: 'test_realm',
+      oidcClientId: 'test_client_id',
+      oidcClientSecret: 'super_secret',
     }
 
     const updateResponse = await request.put(`/tenants/${createdTenant.id}`).send(updatedRequest).expect(200)
