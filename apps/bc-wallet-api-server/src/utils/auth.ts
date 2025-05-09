@@ -4,6 +4,7 @@ import { Action, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
 
 import TenantService from '../services/TenantService'
+import { Claims } from '../types/auth/claims'
 import { ISessionServiceUpdater } from '../types/services/session'
 
 type JwtPayload = {
@@ -48,7 +49,7 @@ export async function isAccessTokenValid(
   clientSecret: string,
 ): Promise<boolean> {
   const authorization = 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
-  return fetch(`${authServerUrl}/protocol/openid-connect/token/introspect`, {
+  const response = await fetch(`${authServerUrl}/protocol/openid-connect/token/introspect`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -60,8 +61,17 @@ export async function isAccessTokenValid(
       client_secret: `${clientSecret}`,
     }),
   })
-    .then(checkResponse)
-    .then((response) => response.json().then((data) => data.active))
+  await checkResponse(response)
+  const claims = (await response.json()) as Claims
+  if (claims.active) {
+    const sessionUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+    sessionUpdater.setActiveClaims(claims)
+    if (claims.preferred_username) {
+      void (await sessionUpdater.setCurrentUser(claims.preferred_username))
+    }
+    return true
+  }
+  return false
 }
 
 async function checkResponse(response: Response) {
