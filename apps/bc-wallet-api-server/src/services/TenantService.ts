@@ -1,14 +1,13 @@
-import { encryptString, decryptString } from 'bc-wallet-adapter-client-api'
+import { decryptString, encryptString } from 'bc-wallet-adapter-client-api'
 import * as process from 'node:process'
 import { InternalServerError } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import TenantRepository from '../database/repositories/TenantRepository'
-import { Tenant, NewTenant } from '../types'
+import { NewTenant, Tenant } from '../types'
 
 @Service()
 class TenantService {
-
   public constructor(private readonly tenantRepository: TenantRepository) {}
 
   public getTenants = async (): Promise<Tenant[]> => {
@@ -20,7 +19,7 @@ class TenantService {
         }
         return {
           ...tenant,
-          clientSecret: decryptString(tenant.clientSecret, tenant.nonceBase64 as string),
+          oidcClientSecret: decryptString(tenant.oidcClientSecret, tenant.nonceBase64 as string),
         }
       }),
     )
@@ -33,7 +32,7 @@ class TenantService {
     const tenant = await this.tenantRepository.findById(id)
     return {
       ...tenant,
-      clientSecret: decryptString(tenant.clientSecret, tenant.nonceBase64 as string),
+      oidcClientSecret: decryptString(tenant.oidcClientSecret, tenant.nonceBase64 as string),
     }
   }
 
@@ -44,16 +43,16 @@ class TenantService {
     const tenant = await this.tenantRepository.findByRealmAndClientId(realm, clientId)
     return {
       ...tenant,
-      clientSecret: decryptString(tenant.clientSecret, tenant.nonceBase64 as string),
+      oidcClientSecret: decryptString(tenant.oidcClientSecret, tenant.nonceBase64 as string),
     }
   }
 
   public createTenant = async (tenant: NewTenant): Promise<Tenant> => {
     const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
-    const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, NONCE_SIZE)
+    const { encryptedBase64, nonceBase64 } = encryptString(tenant.oidcClientSecret, NONCE_SIZE)
     const newTenant = {
       ...tenant,
-      clientSecret: encryptedBase64,
+      oidcClientSecret: encryptedBase64,
       nonceBase64,
     }
     return this.tenantRepository.create(newTenant)
@@ -61,11 +60,14 @@ class TenantService {
 
   public updateTenant = async (id: string, tenant: NewTenant): Promise<Tenant> => {
     try {
+      const currentTenant = await this.tenantRepository.findById(id)
+
       const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
-      const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, NONCE_SIZE)
+      const { encryptedBase64, nonceBase64 } = encryptString(tenant.oidcClientSecret, NONCE_SIZE)
       const newTenant = {
         ...tenant,
-        clientSecret: encryptedBase64,
+        tenantType: currentTenant.tenantType,
+        oidcClientSecret: encryptedBase64,
         nonceBase64,
       }
       return this.tenantRepository.update(id, newTenant)

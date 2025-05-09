@@ -123,7 +123,7 @@ export async function authorizationChecker(action: Action, roles: string[]): Pro
   }
 
   // Calls the introspection endpoint to validate the token
-  if (!(await isAccessTokenValid(accessToken, authServerUrl, tenant.clientId, tenant.clientSecret))) {
+  if (!(await isAccessTokenValid(accessToken, authServerUrl, tenant.oidcClientId, tenant.oidcClientSecret))) {
     throw new UnauthorizedError('Invalid token')
   }
   // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and

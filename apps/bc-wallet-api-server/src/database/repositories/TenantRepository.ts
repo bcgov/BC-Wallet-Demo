@@ -132,7 +132,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
 
     const prepared = (await this.databaseService.getConnection()).query.tenants
       .findFirst({
-        where: and(eq(tenants.realm, realm), eq(tenants.clientId, clientId)),
+        where: and(eq(tenants.oidcRealm, realm), eq(tenants.oidcClientId, clientId)),
       })
       .prepare(statementName)
 

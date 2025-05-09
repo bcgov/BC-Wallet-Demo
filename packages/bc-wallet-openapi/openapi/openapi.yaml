@@ -2011,18 +2011,30 @@ components:
           type: string
           description: Unique identifier for the tenant
           example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
-        realm:
+        oidcRealm:
           type: string
           description: The realm associated with the tenant
           example: example-realm
-        clientId:
+        oidcClientId:
           type: string
           description: The client ID for the tenant
           example: example-client-id
-        clientSecret:
+        oidcClientSecret:
           type: string
           description: The client secret for the tenant
           example: example-client-secret
+        tractionTenantId:
+          type: string
+          description: Unique identifier for the Traction tenant
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        tractionWalletId:
+          type: string
+          description: Unique identifier for the Traction wallet
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        tractionApiUrl:
+          type: string
+          description: Traction API URL
+          example: https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
         users:
           type: array
           items:
@@ -2046,23 +2058,23 @@ components:
       type: object
       required:
         - id
-        - realm
-        - clientId
-        - clientSecret
+        - oidcRealm
+        - oidcClientId
+        - oidcClientSecret
       properties:
         id:
           type: string
           description: Unique identifier for the tenant
           example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
-        realm:
+        oidcRealm:
           type: string
           description: The realm associated with the tenant
           example: example-realm
-        clientId:
+        oidcClientId:
           type: string
           description: The client ID for the tenant
           example: example-client-id
-        clientSecret:
+        oidcClientSecret:
           type: string
           description: The client secret for the tenant
           example: example-client-secret
