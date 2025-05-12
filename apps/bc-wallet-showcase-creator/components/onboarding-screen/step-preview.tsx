@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { StepRequest } from 'bc-wallet-openapi'
+import { useTenant } from '@/providers/tenant-provider'
 
 interface StepPreviewProps {
   currentStep: StepRequest
@@ -19,6 +20,7 @@ export const StepPreview: React.FC<StepPreviewProps> = ({
   baseUrl 
 }) => {
   const t = useTranslations()
+  const { tenantId } = useTenant();
 
   return (
     <div className="space-y-6">
@@ -50,7 +52,7 @@ export const StepPreview: React.FC<StepPreviewProps> = ({
             <h4 className="text-sm font-medium text-muted-foreground">{t('onboarding.icon_label')}</h4>
             <div className="w-32 h-32 rounded-lg overflow-hidden border">
               <Image
-                src={`${baseUrl}/assets/${currentStep.asset}/file` || '/assets/no-image.jpg'}
+                src={`${baseUrl}/${tenantId}/assets/${currentStep.asset}/file` || '/assets/no-image.jpg'}
                 alt="Step icon"
                 className="w-full object-cover"
                 width={128}

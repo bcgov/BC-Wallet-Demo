@@ -6,6 +6,7 @@ import { z } from 'zod'
 const runtimeClientSchema = {
   NEXT_PUBLIC_WALLET_URL: z.string().min(1),
   NEXT_PUBLIC_SHOWCASE_API_URL: z.string().min(1),
+  NEXT_PUBLIC_MULTI_TENANCY_MODE: z.string().optional(),
 }
 
 const runtimeClientProcess = {
@@ -17,6 +18,10 @@ const runtimeClientProcess = {
     typeof window !== 'undefined' && window.__env?.SHOWCASE_API_URL
       ? window.__env.SHOWCASE_API_URL
       : process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
+  NEXT_PUBLIC_MULTI_TENANCY_MODE:
+    typeof window !== 'undefined' && window.__env?.MULTI_TENANCY_MODE
+      ? window.__env.MULTI_TENANCY_MODE
+      : process.env.NEXT_PUBLIC_MULTI_TENANCY_MODE,
 }
 
 export const env = createEnv({
@@ -40,6 +45,7 @@ export const env = createEnv({
     AUTH_REDIRECT_PROXY_URL: process.env.OIDC_REDIRECT_PROXY_URL,
     NEXT_PUBLIC_WALLET_URL: runtimeClientProcess.NEXT_PUBLIC_WALLET_URL,
     NEXT_PUBLIC_SHOWCASE_API_URL: runtimeClientProcess.NEXT_PUBLIC_SHOWCASE_API_URL,
+    NEXT_PUBLIC_MULTI_TENANCY_MODE: runtimeClientProcess.NEXT_PUBLIC_MULTI_TENANCY_MODE,
   },
   skipValidation: process.env.NODE_ENV === 'production' || !!process.env.SKIP_ENV_VALIDATION,
 })
@@ -59,6 +65,7 @@ declare global {
     __env?: {
       WALLET_URL?: string
       SHOWCASE_API_URL?: string
+      MULTI_TENANCY_MODE?: string
     }
   }
 }

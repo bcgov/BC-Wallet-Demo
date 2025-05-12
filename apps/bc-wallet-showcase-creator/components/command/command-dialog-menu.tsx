@@ -16,30 +16,36 @@ import { signOut } from 'next-auth/react'
 import { useRouter } from '@/i18n/routing'
 import { useTheme } from 'next-themes'
 import { usePersonaAdapter } from '@/hooks/use-persona-adapter'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { toast } from 'sonner'
+import { useTenant } from '@/providers/tenant-provider'
 
-const menuItems = [
-  {
-    icon: <User />,
-    label: 'Developer',
-    href: '/developer',
-  },
-  {
-    icon: <Key />,
-    label: 'Credentials',
-    href: 'credentials',
-  },
-  {
-    icon: <Plus />,
-    label: 'Create showcase',
-    href: '/showcases/create',
-  },
-]
+
 
 export function CommandDialogMenu() {
   const [open, setOpen] = React.useState(false)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const { setSelectedPersonaIds } = usePersonaAdapter()
+  const { tenantId } = useTenant();
+
+  const menuItems = [
+    {
+      icon: <User />,
+      label: 'Developer',
+      href: `/${tenantId}/developer`,
+    },
+    {
+      icon: <Key />,
+      label: 'Credentials',
+      href: `/${tenantId}/credentials`,
+    },
+    {
+      icon: <Plus />,
+      label: 'Create showcase',
+      href: `/${tenantId}/showcases/create`,
+    },
+  ]
 
   const toggleDarkMode = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark')
@@ -79,12 +85,6 @@ export function CommandDialogMenu() {
             <span>Create credential</span>
           </CommandItem>
 
-          <div onClick={() => console.log('Disabled')}>
-            <CommandItem>
-              <Smile />
-              <span>Create tennant</span>
-            </CommandItem>
-          </div>
           <CommandItem>
             <Calculator />
             <span>Create credential schema</span>

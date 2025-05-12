@@ -8,6 +8,7 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { SessionProvider } from 'next-auth/react'
 import { CommandDialogMenu } from '@/components/command/command-dialog-menu'
 import type { PageParams } from '@/types'
+import { TenantProvider } from  '@/providers/tenant-provider'
 
 type Params = PropsWithChildren<{
   params: PageParams
@@ -16,6 +17,7 @@ type Params = PropsWithChildren<{
 export default async function RootLayout({ children }: Params) {
   return (
     <SessionProvider>
+      <TenantProvider>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -24,6 +26,7 @@ export default async function RootLayout({ children }: Params) {
           <CommandDialogMenu />
         </SidebarInset>
       </SidebarProvider>
+      </TenantProvider>
     </SessionProvider>
   )
 }

@@ -6,6 +6,7 @@ import { StepActionType } from 'bc-wallet-openapi'
 import { Copy, GripVertical, TriangleAlert } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Screen } from '@/types'
+import { useTenant } from '@/providers/tenant-provider'
 
 import { CredCard } from '../onboarding-screen/cred-card'
 const MAX_CHARS = 50
@@ -23,7 +24,7 @@ export const SortableStep = ({
 }) => {
   const t = useTranslations()
   const { handleSelectStep, duplicateStep, activePersonaId, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
-
+  const { tenantId } = useTenant()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: myScreen.id || `step-${scenarioIndex}-${stepIndex}`,
   })

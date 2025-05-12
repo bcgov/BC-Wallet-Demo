@@ -21,6 +21,7 @@ import { showcaseRequestFormData } from '@/schemas/showcase'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
 import { useOnboardingCreation } from '@/hooks/use-onboarding-creation'
 import { BannerImageUpload } from './showcase-image-upload'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const ShowcaseCreate = () => {
   const t = useTranslations()
@@ -29,7 +30,8 @@ export const ShowcaseCreate = () => {
   const { setShowcase, reset: resetCreateShowcase, setCurrentShowcaseSlug } = useShowcaseStore()
   const { reset: resetPresentationCreation } = usePresentationCreation()
   const { reset: resetOnboardingCreation } = useOnboardingCreation()
-  const { tenantId } = useHelpersStore()
+  // const { tenantId } = useHelpersStore()
+  const { tenantId } = useTenant();
 
   useEffect(() => {
     resetCreateShowcase()
@@ -58,9 +60,9 @@ export const ShowcaseCreate = () => {
       onSuccess: (data) => {
         if (data.showcase?.slug) {
           setCurrentShowcaseSlug(data.showcase.slug)
-          setShowcase({ ...formData, tenantId, bannerImage: formData.bannerImage })
+          setShowcase({ ...formData, tenantId: formData.tenantId, bannerImage: formData.bannerImage })
           toast.success('Showcase created successfully')
-          router.push(`/showcases/create/characters`)
+          router.push(`/${tenantId}/showcases/create/characters`)
         } else {
           toast.error('Error creating showcase')
         }

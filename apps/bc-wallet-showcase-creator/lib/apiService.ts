@@ -1,7 +1,8 @@
 'use client'
 
 import { env } from '@/env'
-import { getSession } from 'next-auth/react'
+import { getTenantId } from '@/providers/tenant-provider'
+import { getSession, signIn } from 'next-auth/react'
 import { debugLog } from './utils'
 
 class ApiService {
@@ -14,8 +15,18 @@ class ApiService {
     this.baseUrl = baseUrl
   }
 
+  private buildUrl(path: string): string {
+    const tenantId = getTenantId();
+    const isMultiTenant = env.NEXT_PUBLIC_MULTI_TENANCY_MODE === 'false' ? false : true;
+    const fullPath = isMultiTenant && tenantId ? `/${tenantId}${path}` : path;
+    debugLog('Full URL:', `${this.baseUrl}${fullPath}`)
+    debugLog('Tenant ID:', tenantId)
+    debugLog('Is Multi-Tenancy:', isMultiTenant)
+    return `${this.baseUrl}${fullPath}`;
+  }
+
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
-    const fullUrl = `${this.baseUrl}${url}`
+    const fullUrl = this.buildUrl(url);
     const accessToken = await this.getAuthToken()
 
     if (!accessToken && method !== 'GET') {

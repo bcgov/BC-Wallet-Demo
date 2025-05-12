@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { Screen } from '@/types'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
+import { useTenant } from '@/providers/tenant-provider'
 import { StepActionType, StepRequest } from 'bc-wallet-openapi'
 import { CredCard } from './cred-card'
 
@@ -23,7 +24,7 @@ export const SortableStep = ({
 }) => {
   const t = useTranslations()
   const { handleSelectStep, duplicateStep, activeScenarioIndex } = useOnboardingAdapter()
-
+  const { tenantId } = useTenant();
   const itemId = myScreen.id || `step-${stepIndex}-${activeScenarioIndex}`
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: itemId })
 

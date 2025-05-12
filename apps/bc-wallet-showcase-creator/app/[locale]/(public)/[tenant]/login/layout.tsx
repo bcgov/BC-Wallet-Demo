@@ -7,7 +7,7 @@ import { LanguageSelector } from '@/components/language-selector'
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }) {
   const locale = await params
   const t = await getTranslations({ locale, namespace: 'metadata' })
-
+  
   return {
     title: t('title'),
     description: t('description'),
