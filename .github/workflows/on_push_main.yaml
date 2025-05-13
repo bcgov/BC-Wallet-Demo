@@ -140,7 +140,6 @@ jobs:
       - name: Deploy to OpenShift with Helm
         run: |
           cd charts/bc-wallet
-          helm dependency update
           helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
             --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
@@ -181,7 +180,6 @@ jobs:
       - name: Deploy to OpenShift with Helm
         run: |
           cd charts/bc-wallet
-          helm dependency update
           helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
             --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
@@ -222,7 +220,6 @@ jobs:
       - name: Deploy to OpenShift with Helm
         run: |
           cd charts/bc-wallet
-          helm dependency update
           helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
             --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
