@@ -33,14 +33,6 @@ runs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Cache Docker layers
-      uses: actions/cache@v4
-      with:
-        path: /tmp/.${{ inputs.image_name }}
-        key: ${{ inputs.image_name }}-${{ github.sha }}
-        restore-keys: |
-          ${{ inputs.image_name }}-
-
     - name: Login to Container Registry
       uses: docker/login-action@v3
       with:
@@ -66,3 +58,5 @@ runs:
         file: ${{ inputs.dockerfile }}
         push: true
         tags: ${{ inputs.registry }}/${{ inputs.image_name }}:${{ steps.docker_build.outputs.image_tag }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
