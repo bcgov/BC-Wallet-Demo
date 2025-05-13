@@ -141,11 +141,11 @@ jobs:
         run: |
           cd charts/bc-wallet
           helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
-            --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
-            --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
-            --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
-            --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
-            --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
+            --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
+            --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
+            --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
+            --set demoWeb.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
+            --set demoServer.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
             . --wait
       
       - name: Restart Deployments
@@ -181,11 +181,11 @@ jobs:
         run: |
           cd charts/bc-wallet
           helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
-            --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
-            --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
-            --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
-            --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
-            --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
+            --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
+            --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
+            --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
+            --set demoWeb.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
+            --set demoServer.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
             . --wait
       
       - name: Restart Deployments
@@ -221,11 +221,11 @@ jobs:
         run: |
           cd charts/bc-wallet
           helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
-            --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
-            --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
-            --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
-            --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
-            --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
+            --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
+            --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
+            --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
+            --set demoWeb.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
+            --set demoServer.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
             . --wait
       
       - name: Restart Deployments
