@@ -55,9 +55,7 @@ describe('TenantController Integration Tests', () => {
     // 1. Create a tenant
     const tenantRequest: TenantRequest = {
       id: 'test-tenant-1',
-      oidcRealm: 'test_realm',
-      oidcClientId: 'test_client_id',
-      oidcClientSecret: 'super_secret',
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
 
     const createResponse = await request.post('/tenants').send(tenantRequest).expect(201)
@@ -66,7 +64,7 @@ describe('TenantController Integration Tests', () => {
     expect(createdTenant).toHaveProperty('id')
     expect(createdTenant.id).toEqual('test-tenant-1')
     expect(createdTenant.oidcClientId).toEqual('test_client_id')
-    expect(createdTenant.oidcRealm).toEqual('test_realm')
+    expect(createdTenant.oidcIssuer).toEqual('test_realm')
     expect(createdTenant.oidcClientSecret).toBeDefined()
     expect(createdTenant.createdAt).toBeDefined()
 
@@ -82,9 +80,7 @@ describe('TenantController Integration Tests', () => {
     // 4. Update the tenant
     const updatedRequest: TenantRequest = {
       id: 'updated-tenant-1',
-      oidcRealm: 'test_realm',
-      oidcClientId: 'test_client_id',
-      oidcClientSecret: 'super_secret',
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
 
     const updateResponse = await request.put(`/tenants/${createdTenant.id}`).send(updatedRequest).expect(200)

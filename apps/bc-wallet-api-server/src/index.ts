@@ -51,7 +51,7 @@ async function bootstrap() {
     })
 
     const tenantService = Container.get(TenantService)
-    tenantService.createRootTenant()
+    void (await tenantService.createRootTenant())
 
     // Start the server
     const port = Number(process.env.PORT)

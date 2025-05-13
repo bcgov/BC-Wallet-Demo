@@ -30,6 +30,7 @@ import { getBasePath, RootTenantAuthorized } from '../utils/auth'
 class TenantController {
   public constructor(private tenantService: TenantService) {}
 
+  @RootTenantAuthorized()
   @Get('/')
   public async getAll(): Promise<TenantsResponse> {
     try {
@@ -43,6 +44,7 @@ class TenantController {
     }
   }
 
+  @RootTenantAuthorized()
   @Get('/:id')
   public async getOne(@Param('id') id: string): Promise<TenantResponse> {
     try {

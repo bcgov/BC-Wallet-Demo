@@ -1,25 +1,42 @@
 import { Buffer } from 'buffer'
 import fetch from 'cross-fetch'
+import { LRUCache } from 'lru-cache'
+import process from 'node:process'
 import { Action, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
 
 import TenantService from '../services/TenantService'
-import { TenantType } from '../types'
 import { Claims } from '../types/auth/claims'
-import { ISessionService, ISessionServiceUpdater } from '../types/services/session'
+import { Token } from '../types/auth/token'
+import { ISessionServiceUpdater } from '../types/services/session'
+
+const oidcClientId = process.env.OIDC_ROOT_CLIENT_ID
+const oidcClientSecret = process.env.OIDC_ROOT_CLIENT_SECRET
+if (!oidcClientId || !oidcClientSecret) {
+  throw new Error('OIDC_ROOT_CLIENT_ID and OIDC_ROOT_CLIENT_SECRET must be set')
+}
+
+const tokenCache = new LRUCache<string, Token>({
+  max: 65535,
+  ttl: 0, // Default TTL - will be overridden by token expiration
+  allowStale: false,
+})
 
 export function checkRoles(token: Token, roles: string[]) {
   if (token && !roles.length) return true
   return !!(token && roles.find((role) => token.hasRole(role)))
 }
 
-export async function isAccessTokenValid(
-  token: string,
-  authServerUrl: string,
-  clientId: string,
-  clientSecret: string,
-): Promise<boolean> {
-  const authorization = 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+export async function isAccessTokenValid(token: Token, authServerUrl: string): Promise<boolean> {
+  const tokenHash = token.getSignatureHash()
+  const cachedToken = tokenCache.get(tokenHash)
+
+  if (cachedToken) {
+    // If token is in cache and not expired, it's valid
+    return !isAccessTokenExpired(cachedToken)
+  }
+
+  const authorization = 'Basic ' + Buffer.from(`${oidcClientId}:${oidcClientSecret}`).toString('base64')
   const response = await fetch(`${authServerUrl}/protocol/openid-connect/token/introspect`, {
     method: 'POST',
     headers: {
@@ -27,9 +44,9 @@ export async function isAccessTokenValid(
       Authorization: authorization,
     },
     body: new URLSearchParams({
-      token: token,
-      client_id: `${clientId}`,
-      client_secret: `${clientSecret}`,
+      token: token.getRawToken(),
+      client_id: `${oidcClientId}`,
+      client_secret: `${oidcClientSecret}`,
     }),
   })
   await checkResponse(response)
@@ -37,8 +54,13 @@ export async function isAccessTokenValid(
   if (claims.active) {
     const sessionUpdater = Container.get('ISessionService') as ISessionServiceUpdater
     sessionUpdater.setActiveClaims(claims)
-    if (claims.preferred_username) {
-      void (await sessionUpdater.setCurrentUser(claims.preferred_username))
+
+    // Cache the token with expiration based on the token's exp claim
+    if (token.payload.exp) {
+      const expiryMs = token.payload.exp * 1000 - Date.now()
+      if (expiryMs > 0) {
+        tokenCache.set(tokenHash, token, { ttl: expiryMs })
+      }
     }
     return true
   }
@@ -71,46 +93,76 @@ async function checkResponse(response: Response) {
 
 export function getBasePath(path?: string): string {
   const basePath = path ?? ''
-  return process.env.MULTITENANCY_MODE === 'multitenant' ? `/:tenantId${basePath}` : basePath
+  return `/:tenantId${basePath}`
+}
+
+function determineClientId(token: Token, action: Action | undefined) {
+  const clientAzp = token.payload.azp
+  if (!clientAzp) {
+    throw new UnauthorizedError('Client ID (azp) is required in token')
+  }
+
+  if (action) {
+    const path = action.request.url
+    const segments = path.split('/').filter(Boolean)
+    if (segments.length < 2) {
+      throw new UnauthorizedError(`Invalid request path: ${path} No tenant specified?`)
+    }
+    const routeTenant = segments[0]
+
+    // enforce match between URL and token
+    if (routeTenant !== clientAzp) {
+      throw new UnauthorizedError(`Tenant mismatch: URL="${routeTenant}" vs token.azp="${clientAzp}"`)
+    }
+
+    return routeTenant
+  } else {
+    return clientAzp
+  }
+}
+
+async function processAccessToken(authHeader?: string, action?: Action) {
+  const token = new Token(authHeader)
+  const issuerUrl = token.payload.iss
+  if (!issuerUrl) {
+    throw new UnauthorizedError('Issuer URL is required in token')
+  }
+  const clientId = determineClientId(token, action)
+  const tenantService = Container.get(TenantService)
+
+  if (!(await isAccessTokenValid(token, issuerUrl))) {
+    throw new UnauthorizedError('Invalid token')
+  }
+  const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+  sessionService.setCurrentTenant(await lookupTenant(tenantService, issuerUrl, clientId))
+
+  const activeClaims = sessionService.getActiveClaims()
+  if (!activeClaims) {
+    throw new UnauthorizedError('No active claims found for token, probably expired')
+  }
+  if (activeClaims.preferred_username) {
+    void (await sessionService.setCurrentUser(activeClaims.preferred_username))
+  }
+
+  return token
+}
+
+async function lookupTenant(tenantService: TenantService, issuerUrl: string, clientId: string) {
+  try {
+    return await tenantService.getTenantByIssuerAndClientId(issuerUrl, clientId)
+  } catch (error) {
+    // TODO: Remove this workaround when the issue is fixed in drizzle-orm: https://4sure.atlassian.net/browse/SHOWCASE-308
+    if (error.message.includes('already exists')) {
+      return await tenantService.getTenantByIssuerAndClientId(issuerUrl, clientId)
+    } else {
+      throw new UnauthorizedError(`Tenant not found for ${clientId} @ ${issuerUrl}: ${error.message}`)
+    }
+  }
 }
 
 export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
   const authHeader: string = action.request.headers['authorization']
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new UnauthorizedError('Missing or malformed Authorization header')
-  }
-  const accessToken = authHeader.split(' ')[1]
-  const token = new Token(accessToken)
-
-  const tenantService = Container.get(TenantService)
-  const authServerUrl = token.payload.iss
-  const realm = authServerUrl?.split('/').slice(-1)[0]
-  const clientId = process.env.MODE === 'multitenant' ? action.request.url.split('/')[1] : token.payload.azp
-
-  if (!realm || !clientId) {
-    throw new UnauthorizedError('Realm and Client ID are required in token')
-  }
-
-  let tenant
-
-  try {
-    tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
-  } catch (error) {
-    // TODO: Remove this workaround when the issue is fixed in drizzle-orm: https://4sure.atlassian.net/browse/SHOWCASE-308
-    if (error.message.includes('already exists')) {
-      tenant = await tenantService.getTenantByRealmAndClientId(realm, clientId)
-    } else {
-      throw new UnauthorizedError('Tenant not found ' + error.message + ' ' + clientId + ' ' + realm)
-    }
-  }
-
-  const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
-  sessionService.setCurrentTenant(tenant)
-
-  // Calls the introspection endpoint to validate the token
-  if (!(await isAccessTokenValid(accessToken, authServerUrl, tenant.oidcClientId, tenant.oidcClientSecret))) {
-    throw new UnauthorizedError('Invalid token')
-  }
+  const token = await processAccessToken(authHeader, action)
 
   // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
   // User roles which at the moment we are not using, do not need any prefix.
@@ -128,73 +180,14 @@ export function isAccessTokenExpired(token: Token): boolean {
   return currentTime > token.payload.exp
 }
 
-export class Token {
-  private readonly _payload: Claims
-
-  public constructor(private token: string) {
-    if (this.token) {
-      const parts = token.split('.')
-      if (parts.length !== 3) {
-        throw new Error('Invalid token string')
-      }
-      this._payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
-    } else {
-      throw Error('token is required')
-    }
-  }
-
-  public get payload(): Claims {
-    return this._payload
-  }
-
-  public hasRole = (name: string) => {
-    if (!this._payload?.azp) {
-      return false
-    }
-    const parts = name.split(':')
-    if (parts.length === 1) {
-      return this.hasApplicationRole(this._payload?.azp, parts[0])
-    }
-    if (parts[0] === 'realm') {
-      return this.hasRealmRole(parts[1])
-    }
-    return this.hasApplicationRole(parts[0], parts[1])
-  }
-
-  public hasApplicationRole = (appName: string, roleName: string): boolean => {
-    if (!this._payload.resource_access) {
-      return false
-    }
-
-    const appRoles = this._payload.resource_access[appName]
-
-    if (!appRoles) {
-      return false
-    }
-
-    return appRoles.roles.indexOf(roleName) >= 0
-  }
-
-  public hasRealmRole = (roleName: string) => {
-    if (!this._payload.realm_access || !this._payload.realm_access.roles) {
-      return false
-    }
-
-    return this._payload.realm_access.roles.indexOf(roleName) >= 0
-  }
-}
-
 export function RootTenantAuthorized() {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value
     descriptor.value = async function (...args: any[]) {
-      const sessionService = Container.get('ISessionService') as ISessionService
-      const currentTenant = sessionService.getCurrentTenant()
+      const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
 
-      if (!currentTenant || currentTenant.tenantType !== TenantType.ROOT) {
-        throw new UnauthorizedError('Only ROOT tenant users can access this')
-      }
-
+      const authHeader = sessionService.getBearerToken()
+      void (await processAccessToken(authHeader))
       return originalMethod.apply(this, args)
     }
     return descriptor

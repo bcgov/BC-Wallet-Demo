@@ -22,7 +22,6 @@ export interface JWTUser {
   email: string
 }
 
-
 declare module 'next-auth' {
   interface Session {
     accessToken?: string | undefined
@@ -31,57 +30,27 @@ declare module 'next-auth' {
   }
 }
 
-async function getTenantConfig(tenantId: string) {
-  try {
-    const res = await fetch(`${env.NEXT_PUBLIC_SHOWCASE_API_URL}/${tenantId}/tenants/${tenantId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-  
-    if (!res.ok) console.log(`Tenant config not found for ${tenantId}`)
-  
-    return await res.json()
-  } catch (error) {
-    console.log('Error fetching tenant config:', error)
-  }
-
-}
-
-
-export const { handlers, auth, signIn, signOut } = NextAuth(async (req) => {
-
-  const tenantId = (await cookies()).get('tenantId')?.value
+export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
+  const cookieStore = await cookies()
+  const tenantId = cookieStore.get('tenantId')?.value || env.OIDC_DEFAULT_TENANT
 
   if (!tenantId) {
-    console.warn('No tenantId found in cookies');
+    console.error('No tenantId found in cookies or OIDC_DEFAULT_TENANT environment variable')
     return {
       providers: [],
       session: { strategy: 'jwt' },
-    };
-  }
-
-  const tenantConfig = await getTenantConfig(tenantId)
-
-  if(tenantConfig.message === `No tenant found for id: ${tenantId}`) {
-    console.warn('No tenant config found for tenantId:', tenantId);
-    return {
-      providers: [],
-      session: { strategy: 'jwt' },
-    };
+    }
   }
 
   return {
+    secret: env.AUTH_SECRET,
     providers: [
       Keycloak({
-        clientId: tenantConfig?.tenant.clientId,
-        clientSecret: tenantConfig?.tenant.clientSecret,
+        clientId: tenantId, // clientId == tenantId to make it work
         issuer: env.AUTH_KEYCLOAK_ISSUER!,
       }),
     ],
     callbacks: {
-      
       async jwt({ token, account }) {
         if (account) {
           return {
@@ -98,7 +67,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (req) => {
         ) {
           return token
         } else {
-          if (!token.refresh_token) throw new TypeError("Missing refresh_token")
+          if (!token.refresh_token) {
+            return Promise.reject(Error('Missing refresh_token'))
+          }
+
           try {
             const url = `${env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/token`
 
@@ -108,15 +80,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (req) => {
               },
               method: 'POST',
               body: new URLSearchParams({
-                client_id: tenantConfig?.tenant.clientId!,
-                client_secret: tenantConfig?.tenant.clientSecret!,
+                client_id: tenantId,
                 grant_type: 'refresh_token',
                 ...(token.refresh_token && { refresh_token: String(token.refresh_token) }),
               }),
             })
 
             const tokensOrError = await response.json()
-            if (!response.ok) throw tokensOrError
+            if (!response.ok) {
+              throw tokensOrError
+            }
+
             const newTokens = tokensOrError as {
               access_token: string
               expires_in: number
@@ -129,9 +103,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (req) => {
               refresh_token: newTokens.refresh_token ?? token.refresh_token,
             }
           } catch (error) {
-            console.error("Error refreshing access_token", error)
-            token.error = "RefreshTokenError"
-            return token
+            console.error('Error refreshing access_token', error)
+            return {
+              ...token,
+              error: 'RefreshAccessTokenError',
+            }
           }
         }
       },
@@ -145,6 +121,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (req) => {
     session: {
       strategy: 'jwt',
     },
-    secret: env.AUTH_KEYCLOAK_SECRET,
   }
 })

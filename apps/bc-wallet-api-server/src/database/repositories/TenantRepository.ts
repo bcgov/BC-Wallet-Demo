@@ -127,19 +127,17 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
     }
   }
 
-  public async findByRealmAndClientId(realm: string, clientId: string): Promise<Tenant> {
-    const statementName = `find_tenant_by_realm_and_clientId_${realm}_${clientId}`
-
+  public async findByIssuerAndClientId(issuer: string, clientId: string): Promise<Tenant> {
     const prepared = (await this.databaseService.getConnection()).query.tenants
       .findFirst({
-        where: and(eq(tenants.oidcRealm, realm), eq(tenants.oidcClientId, clientId)),
+        where: and(eq(tenants.id, clientId), eq(tenants.oidcIssuer, issuer)),
       })
-      .prepare(statementName)
+      .prepare('find_tenant_by_issuer_and_clientId')
 
     const tenant = await prepared.execute()
 
     if (!tenant) {
-      return Promise.reject(new NotFoundError(`No tenant found for realm: ${realm} and clientId: ${clientId}`))
+      return Promise.reject(new NotFoundError(`No tenant found for issuer: ${issuer} and clientId: ${clientId}`))
     }
     return tenant
   }

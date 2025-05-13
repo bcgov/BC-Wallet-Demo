@@ -17,12 +17,7 @@ class ApiService {
 
   private buildUrl(path: string): string {
     const tenantId = getTenantId();
-    const isMultiTenant = env.NEXT_PUBLIC_MULTI_TENANCY_MODE === 'false' ? false : true;
-    const fullPath = isMultiTenant && tenantId ? `/${tenantId}${path}` : path;
-    debugLog('Full URL:', `${this.baseUrl}${fullPath}`)
-    debugLog('Tenant ID:', tenantId)
-    debugLog('Is Multi-Tenancy:', isMultiTenant)
-    return `${this.baseUrl}${fullPath}`;
+    return `${this.baseUrl}/${tenantId}${path}`;
   }
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {

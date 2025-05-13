@@ -1,10 +1,19 @@
 import { decryptString, encryptString } from 'bc-wallet-adapter-client-api'
 import * as process from 'node:process'
-import { InternalServerError } from 'routing-controllers'
+import { HttpError, InternalServerError } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import TenantRepository from '../database/repositories/TenantRepository'
 import { NewTenant, Tenant, TenantType } from '../types'
+
+const oidcIssuer = process.env.OIDC_ROOT_ISSUER_URL!
+const oidcClientId = process.env.OIDC_ROOT_CLIENT_ID!
+const oidcClientSecret = process.env.OIDC_ROOT_CLIENT_SECRET!
+if (!oidcIssuer || !oidcClientId || !oidcClientSecret) {
+  throw new Error('OIDC_ROOT_ISSUER_URL, OIDC_ROOT_CLIENT_ID and OIDC_ROOT_CLIENT_SECRET must be set')
+}
+
+const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
 
 @Service()
 class TenantService {
@@ -19,7 +28,9 @@ class TenantService {
         }
         return {
           ...tenant,
-          oidcClientSecret: decryptString(tenant.oidcClientSecret, tenant.nonceBase64 as string),
+          ...(tenant.tractionApiKey && {
+            tractionApiKey: decryptString(tenant.tractionApiKey, tenant.nonceBase64 as string),
+          }),
         }
       }),
     )
@@ -32,45 +43,54 @@ class TenantService {
     const tenant = await this.tenantRepository.findById(id)
     return {
       ...tenant,
-      oidcClientSecret: decryptString(tenant.oidcClientSecret, tenant.nonceBase64 as string),
+      ...(tenant.tractionApiKey && {
+        tractionApiKey: decryptString(tenant.tractionApiKey, tenant.nonceBase64 as string),
+      }),
     }
   }
 
-  public getTenantByRealmAndClientId = async (realm: string, clientId: string): Promise<Tenant> => {
+  public getTenantByIssuerAndClientId = async (issuer: string, clientId: string): Promise<Tenant> => {
     if (!process.env.ENCRYPTION_KEY) {
       return Promise.reject(new InternalServerError(`No encryption key set: ${process.env.ENCRYPTION_KEY}`))
     }
-    const tenant = await this.tenantRepository.findByRealmAndClientId(realm, clientId)
+    const tenant = await this.tenantRepository.findByIssuerAndClientId(issuer, clientId)
     return {
       ...tenant,
-      oidcClientSecret: decryptString(tenant.oidcClientSecret, tenant.nonceBase64 as string),
+      ...(tenant.tractionApiKey && {
+        tractionApiKey: decryptString(tenant.tractionApiKey, tenant.nonceBase64 as string),
+      }),
     }
   }
 
   public createTenant = async (tenant: NewTenant): Promise<Tenant> => {
-    const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
-    const { encryptedBase64, nonceBase64 } = encryptString(tenant.oidcClientSecret, NONCE_SIZE)
-    const newTenant = {
-      ...tenant,
-      oidcClientSecret: encryptedBase64,
-      nonceBase64,
+    if (!tenant.tractionApiKey) {
+      return this.tenantRepository.create(tenant)
+    } else {
+      const { encryptedApiKeyBase64, nonceBase64 } = encryptString(tenant.tractionApiKey, NONCE_SIZE)
+      const newTenant = {
+        ...tenant,
+        tractionApiKey: encryptedApiKeyBase64,
+        nonceBase64,
+      }
+      return this.tenantRepository.create(newTenant)
     }
-    return this.tenantRepository.create(newTenant)
   }
 
   public updateTenant = async (id: string, tenant: NewTenant): Promise<Tenant> => {
     try {
       const currentTenant = await this.tenantRepository.findById(id)
-
-      const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
-      const { encryptedBase64, nonceBase64 } = encryptString(tenant.oidcClientSecret, NONCE_SIZE)
-      const newTenant = {
-        ...tenant,
-        tenantType: currentTenant.tenantType,
-        oidcClientSecret: encryptedBase64,
-        nonceBase64,
+      if (!tenant.tractionApiKey) {
+        return this.tenantRepository.update(id, tenant)
+      } else {
+        const { encryptedApiKeyBase64, nonceBase64 } = encryptString(tenant.tractionApiKey, NONCE_SIZE)
+        const newTenant = {
+          ...tenant,
+          tenantType: currentTenant.tenantType,
+          oidcClientSecret: encryptedApiKeyBase64,
+          nonceBase64,
+        }
+        return this.tenantRepository.update(id, newTenant)
       }
-      return this.tenantRepository.update(id, newTenant)
     } catch (error) {
       return Promise.reject(new InternalServerError(`Error updating tenant: ${error}`))
     }
@@ -81,29 +101,25 @@ class TenantService {
   }
 
   public async createRootTenant() {
-    const realm = process.env.OIDC_ROOT_REALM
-    const clientId = process.env.OIDC_ROOT_CLIENT_ID
-    const clientSecret = process.env.OIDC_ROOT_CLIENT_SECRET
-    if (!realm || !clientId || !clientSecret) {
-      throw new Error('OIDC_ROOT_REALM, OIDC_ROOT_CLIENT_ID and OIDC_ROOT_CLIENT_SECRET must be set')
-    }
-
-    const rootTenant = await this.getTenantByRealmAndClientId(realm, clientId)
-    if (rootTenant) {
+    try {
+      const rootTenant = await this.getTenantByIssuerAndClientId(oidcIssuer, oidcClientId)
       if (rootTenant.tenantType !== TenantType.ROOT) {
         return Promise.reject(Error('Configured root tenant is not actually a root tenant'))
       }
-      return // It's already there
+      return rootTenant // Return the existing tenant instead of undefined
+    } catch (e) {
+      if (e instanceof HttpError && e.httpCode === 404) {
+        // Fixed type check syntax
+        const newRootTenant: NewTenant = {
+          id: oidcClientId,
+          tenantType: TenantType.ROOT,
+          oidcIssuer: oidcIssuer,
+        }
+        return this.tenantRepository.create(newRootTenant)
+      } else {
+        return Promise.reject(e)
+      }
     }
-
-    const newRootTenant: NewTenant = {
-      id: clientId, // id and oidcClientId are the same for now, drizzle can't convert this to a random uuid unless we drop all migration files
-      tenantType: TenantType.ROOT,
-      oidcRealm: realm,
-      oidcClientId: clientId,
-      oidcClientSecret: clientSecret,
-    }
-    return this.tenantRepository.create(newRootTenant)
   }
 }
 

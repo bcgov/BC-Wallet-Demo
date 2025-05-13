@@ -138,9 +138,8 @@ export async function createTestTenant(id = 'test-tenant'): Promise<Tenant> {
   const tenantRepository = Container.get(TenantRepository)
   return tenantRepository.create({
     id,
-    oidcRealm: 'test_realm',
-    oidcClientId: 'test_client_id',
-    oidcClientSecret: 'super_secret',
+    oidcIssuer: 'https://auth-server/auth/realms/test',
+
     tenantType: TenantType.ROOT,
   })
 }
