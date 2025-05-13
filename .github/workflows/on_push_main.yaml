@@ -39,12 +39,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ghcr.io/${{ github.repository_owner}}/bc-wallet-api-server:${{ steps.builder.outputs.image_tag }}
-          format: 'sarif'
-          output: 'trivy-bc-wallet-api-server.sarif'
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-bc-wallet-api-server.sarif'
+          format: github
+      
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
@@ -68,12 +64,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ghcr.io/${{ github.repository_owner}}/bc-wallet-traction-adapter:${{ steps.builder.outputs.image_tag }}
-          format: 'sarif'
-          output: 'trivy-bc-wallet-traction-adapter.sarif'
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-bc-wallet-traction-adapter.sarif'
+          format: github
+      
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
@@ -97,12 +89,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ghcr.io/${{ github.repository_owner}}/bc-wallet-showcase-creator:${{ steps.builder.outputs.image_tag }}
-          format: 'sarif'
-          output: 'trivy-bc-wallet-showcase-creator.sarif'
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-bc-wallet-showcase-creator.sarif'
+          format: github
+      
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
@@ -126,12 +114,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ghcr.io/${{ github.repository_owner}}/bc-wallet-demo-server:${{ steps.builder.outputs.image_tag }}
-          format: 'sarif'
-          output: 'trivy-bc-wallet-demo-server.sarif'
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-bc-wallet-demo-server.sarif'
+          format: github
+      
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
@@ -155,12 +139,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ghcr.io/${{ github.repository_owner}}/bc-wallet-demo-web:${{ steps.builder.outputs.image_tag }}
-          format: 'sarif'
-          output: 'trivy-bc-wallet-demo-web.sarif'
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-bc-wallet-demo-web.sarif'
+          format: github
+      
     outputs:
       image_tag: ${{ steps.builder.outputs.image_tag }}
 
