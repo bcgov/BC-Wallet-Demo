@@ -59,7 +59,7 @@ async function getTenantConfig(tenantId: string): Promise<Tenant> {
     const response = await fetch(`${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     })
 
