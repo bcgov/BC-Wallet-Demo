@@ -141,7 +141,7 @@ jobs:
         run: |
           cd charts/bc-wallet
           helm dependency update
-          helm upgrade --install bc-wallet-demo --namespace ${{ secrets.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
+          helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
             --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
@@ -182,7 +182,7 @@ jobs:
         run: |
           cd charts/bc-wallet
           helm dependency update
-          helm upgrade --install bc-wallet-demo --namespace ${{ secrets.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
+          helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
             --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
@@ -223,7 +223,7 @@ jobs:
         run: |
           cd charts/bc-wallet
           helm dependency update
-          helm upgrade --install bc-wallet-demo --namespace ${{ secrets.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
+          helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
             --set api_server.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set traction_adapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
