@@ -21,8 +21,6 @@ class ServiceManager {
     accessTokenNonce?: Buffer,
   ): Promise<TractionService> {
     const key = this.buildKey(tractionApiUrlBase, showcaseApiUrlBase, tenantId, walletId)
-    console.debug('showcaseApiUrlBase', showcaseApiUrlBase)
-    console.debug('key', key)
     const decodedToken = this.decodeToken(accessTokenEnc, accessTokenNonce)
     const updatedTokens: UpdatedTokens = {
       showcaseApiToken: decodedToken,
@@ -47,7 +45,6 @@ class ServiceManager {
       return service
     }
 
-    console.debug('ShowcaseApiService with', showcaseApiUrlBase)
     const showcaseApiService = new ShowcaseApiService(showcaseApiUrlBase)
     const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
     /*
