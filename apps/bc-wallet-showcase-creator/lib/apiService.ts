@@ -16,12 +16,12 @@ class ApiService {
   }
 
   private buildUrl(path: string): string {
-    const tenantId = getTenantId();
-    return `${this.baseUrl}/${tenantId}${path}`;
+    const tenantId = getTenantId()
+    return `${this.baseUrl}/${tenantId}${path}`
   }
 
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
-    const fullUrl = this.buildUrl(url);
+    const fullUrl = this.buildUrl(url)
     const accessToken = await this.getAuthToken()
 
     if (!accessToken && method !== 'GET') {
@@ -87,8 +87,9 @@ class ApiService {
       return session.accessToken
     }
 
-    if (session?.error === 'RefreshAccessTokenError') {
-      debugLog('RefreshAccessTokenError detected')
+    if (!session || session?.error === 'RefreshAccessTokenError') {
+      debugLog('No session or RefreshAccessTokenError detected')
+      void signIn('keycloak')
       return null
     }
 

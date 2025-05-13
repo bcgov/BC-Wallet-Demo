@@ -2,6 +2,7 @@ import { Service } from 'typedi'
 
 import type { Tenant, User } from '../../types'
 import { Claims } from '../../types/auth/claims'
+import { Token } from '../../types/auth/token'
 import type { ISessionService } from '../../types/services/session'
 
 @Service()
@@ -9,18 +10,18 @@ export class MockSessionService implements ISessionService {
   private user: User | null = null
   private tenant: Tenant | null = null
 
-  public async getCurrentUser(): Promise<User | null> {
+  public getCurrentUser(): User | null {
     console.log('[MockSession] getCurrentUser called')
-    return Promise.resolve(this.user)
+    return this.user
   }
 
-  public async getCurrentTenant(): Promise<Tenant | null> {
+  public getCurrentTenant(): Tenant | null {
     console.log('[MockSession] getCurrentTenant called')
-    return Promise.resolve(this.tenant)
+    return this.tenant
   }
 
-  public getBearerToken(): string {
-    return ''
+  public getBearerToken(): Token | undefined {
+    return undefined
   }
 
   // --- Test Control Methods ---

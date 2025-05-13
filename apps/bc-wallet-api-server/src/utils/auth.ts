@@ -2,7 +2,7 @@ import { Buffer } from 'buffer'
 import fetch from 'cross-fetch'
 import { LRUCache } from 'lru-cache'
 import process from 'node:process'
-import { Action, UnauthorizedError } from 'routing-controllers'
+import { Action, BadRequestError, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
 
 import TenantService from '../services/TenantService'
@@ -99,7 +99,7 @@ export function getBasePath(path?: string): string {
 function determineClientId(token: Token, action: Action | undefined) {
   const clientAzp = token.payload.azp
   if (!clientAzp) {
-    throw new UnauthorizedError('Client ID (azp) is required in token')
+    throw new BadRequestError('Client ID (azp) is required in token')
   }
 
   if (action) {
@@ -121,8 +121,10 @@ function determineClientId(token: Token, action: Action | undefined) {
   }
 }
 
-async function processAccessToken(authHeader?: string, action?: Action) {
-  const token = new Token(authHeader)
+async function processAccessToken(token?: Token, action?: Action) {
+  if (!token) {
+    throw new UnauthorizedError('Missing authorization / bearer token')
+  }
   const issuerUrl = token.payload.iss
   if (!issuerUrl) {
     throw new UnauthorizedError('Issuer URL is required in token')
@@ -162,7 +164,8 @@ async function lookupTenant(tenantService: TenantService, issuerUrl: string, cli
 
 export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
   const authHeader: string = action.request.headers['authorization']
-  const token = await processAccessToken(authHeader, action)
+  const inputToken = authHeader ? new Token(authHeader) : undefined
+  const token = await processAccessToken(inputToken, action)
 
   // Realm roles must be prefixed with 'realm:', client roles must be prefixed with the value of clientId + : and
   // User roles which at the moment we are not using, do not need any prefix.
@@ -188,6 +191,28 @@ export function RootTenantAuthorized() {
 
       const authHeader = sessionService.getBearerToken()
       void (await processAccessToken(authHeader))
+      return originalMethod.apply(this, args)
+    }
+    return descriptor
+  }
+}
+
+export function SoftTenantAuthorized() {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value
+    descriptor.value = async function (...args: any[]) {
+      const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+
+      try {
+        const authHeader = sessionService.getBearerToken()
+        if (authHeader) {
+          await processAccessToken(authHeader)
+        }
+      } catch (error) {
+        // ignore bad token, just clear the session vars
+        sessionService.clear()
+      }
+
       return originalMethod.apply(this, args)
     }
     return descriptor

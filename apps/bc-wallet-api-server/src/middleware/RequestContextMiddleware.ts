@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { ExpressMiddlewareInterface, Middleware } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
 
+import { Token } from '../types/auth/token'
 import { ISessionServiceUpdater } from '../types/services/session'
 
 @Service()
@@ -12,7 +13,8 @@ export class RequestContextMiddleware implements ExpressMiddlewareInterface {
   public use(request: Request, _: Response, next: NextFunction): void {
     const authHeader = request.headers['authorization']
     const apiBaseUrl = this.buildApiBaseUrl(request)
-    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : undefined
+    const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : undefined
+    const token = bearerToken ? new Token(bearerToken) : undefined
     this.sessionService.setRequestDetails(apiBaseUrl, token)
 
     next()
@@ -29,7 +31,6 @@ export class RequestContextMiddleware implements ExpressMiddlewareInterface {
     }
 
     if (forwardedPort) {
-      console.debug(`Forwared port: ${forwardedPort}`)
       let baseHost: string
 
       // Strip any existing port from the host value
@@ -41,14 +42,12 @@ export class RequestContextMiddleware implements ExpressMiddlewareInterface {
         // Handle IPv4 or hostname format like localhost:8080 by taking the part before the first colon
         baseHost = host.split(':')[0]
       }
-      console.debug(`Base host: ${baseHost}`)
       const isDefaultForProtocol =
         (protocol === 'https' && forwardedPort === '443') || (protocol === 'http' && forwardedPort === '80')
 
       host = isDefaultForProtocol ? baseHost : `${baseHost}:${forwardedPort}`
     }
 
-    console.debug(`buildApiBaseUrl result: ${protocol}://${host}${forwardedPrefix}`)
     return `${protocol}://${host}${forwardedPrefix}`
   }
 }

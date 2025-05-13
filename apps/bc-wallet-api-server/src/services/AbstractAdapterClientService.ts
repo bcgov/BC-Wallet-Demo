@@ -11,7 +11,7 @@ export abstract class AbstractAdapterClientService {
       throw new Error('Current tenant not set')
     }
     return {
-      authHeader: this.sessionService.getBearerToken(),
+      authHeader: this.sessionService.getBearerToken()?.getRawToken(),
       showcaseApiUrlBase: `${this.sessionService.getApiBaseUrl()}/${this.sessionService.getCurrentTenant()!.id}`,
     }
   }

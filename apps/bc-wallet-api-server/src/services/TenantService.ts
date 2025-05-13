@@ -1,10 +1,11 @@
 import { decryptString, encryptString } from 'bc-wallet-adapter-client-api'
 import * as process from 'node:process'
 import { HttpError, InternalServerError } from 'routing-controllers'
-import { Service } from 'typedi'
+import { Inject, Service } from 'typedi'
 
 import TenantRepository from '../database/repositories/TenantRepository'
 import { NewTenant, Tenant, TenantType } from '../types'
+import { ISessionService } from '../types/services/session'
 
 const oidcIssuer = process.env.OIDC_ROOT_ISSUER_URL!
 const oidcClientId = process.env.OIDC_ROOT_CLIENT_ID!
@@ -17,10 +18,24 @@ const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
 
 @Service()
 class TenantService {
-  public constructor(private readonly tenantRepository: TenantRepository) {}
+  public constructor(
+    private readonly tenantRepository: TenantRepository,
+    @Inject('ISessionService') private readonly sessionService: ISessionService,
+  ) {}
 
   public getTenants = async (): Promise<Tenant[]> => {
     const tenants = await this.tenantRepository.findAll()
+
+    // Non-root users can only read oidcIssuer
+    const currentTenant = this.sessionService.getCurrentTenant()
+    if (!currentTenant || currentTenant.tenantType !== TenantType.ROOT) {
+      return Promise.all(
+        tenants.map(async (tenant) => {
+          return this.redactedTenantFrom(tenant)
+        }),
+      )
+    }
+
     return Promise.all(
       tenants.map(async (tenant) => {
         if (!process.env.ENCRYPTION_KEY) {
@@ -37,10 +52,18 @@ class TenantService {
   }
 
   public getTenant = async (id: string): Promise<Tenant> => {
+    const tenant = await this.tenantRepository.findById(id)
+
+    // Non-root users can only read oidcIssuer
+    const currentTenant = this.sessionService.getCurrentTenant()
+    if (!currentTenant || currentTenant.tenantType !== TenantType.ROOT) {
+      return this.redactedTenantFrom(tenant)
+    }
+
     if (!process.env.ENCRYPTION_KEY) {
       return Promise.reject(new InternalServerError(`No encryption key set: ${process.env.ENCRYPTION_KEY}`))
     }
-    const tenant = await this.tenantRepository.findById(id)
+
     return {
       ...tenant,
       ...(tenant.tractionApiKey && {
@@ -120,6 +143,22 @@ class TenantService {
         return Promise.reject(e)
       }
     }
+  }
+
+  private redactedTenantFrom(tenant: Tenant) {
+    return {
+      id: tenant.id,
+      tenantType: tenant.tenantType,
+      oidcIssuer: tenant.oidcIssuer,
+      createdAt: tenant.createdAt,
+      updatedAt: tenant.updatedAt,
+      deletedAt: tenant.deletedAt,
+      tractionTenantId: null,
+      tractionApiUrl: null,
+      tractionWalletId: null,
+      tractionApiKey: null,
+      nonceBase64: null,
+    } satisfies Tenant
   }
 }
 

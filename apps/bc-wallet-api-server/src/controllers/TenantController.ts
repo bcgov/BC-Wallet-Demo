@@ -23,14 +23,14 @@ import { Service } from 'typedi'
 
 import TenantService from '../services/TenantService'
 import { TenantType } from '../types'
-import { getBasePath, RootTenantAuthorized } from '../utils/auth'
+import { RootTenantAuthorized, SoftTenantAuthorized } from '../utils/auth'
 
-@JsonController(getBasePath('/tenants'))
+@JsonController('/tenants')
 @Service()
 class TenantController {
   public constructor(private tenantService: TenantService) {}
 
-  @RootTenantAuthorized()
+  @SoftTenantAuthorized()
   @Get('/')
   public async getAll(): Promise<TenantsResponse> {
     try {
@@ -44,7 +44,7 @@ class TenantController {
     }
   }
 
-  @RootTenantAuthorized()
+  @SoftTenantAuthorized()
   @Get('/:id')
   public async getOne(@Param('id') id: string): Promise<TenantResponse> {
     try {

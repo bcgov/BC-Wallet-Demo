@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
+import { NotFoundError } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
 import {
   CredentialAttribute,

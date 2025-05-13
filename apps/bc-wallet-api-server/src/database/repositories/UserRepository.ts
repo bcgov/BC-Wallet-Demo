@@ -1,7 +1,7 @@
 import { eq, inArray } from 'drizzle-orm'
+import { NotFoundError } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
 
-import { NotFoundError } from '../../errors'
 import { DatabaseService } from '../../services/DatabaseService'
 import { NewUser, RepositoryDefinition, Tenant, User } from '../../types'
 import { tenants, tenantsToUsers, users } from '../schema'
