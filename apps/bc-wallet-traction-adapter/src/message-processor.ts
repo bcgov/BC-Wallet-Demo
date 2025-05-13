@@ -83,6 +83,11 @@ export class MessageProcessor {
         return
       }
 
+      console.debug(
+        'environment.showcase.TRACTION_FIXED_SHOWCASE_API_URL',
+        environment.showcase.TRACTION_FIXED_SHOWCASE_API_URL,
+      )
+      console.debug('headers.showcaseApiUrlBase', headers.showcaseApiUrlBase)
       const service = await getTractionService(
         headers.tractionTenantId ?? environment.traction.TRACTION_DEFAULT_TENANT_ID!,
         environment.showcase.TRACTION_FIXED_SHOWCASE_API_URL ??

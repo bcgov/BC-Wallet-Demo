@@ -187,6 +187,8 @@ export const CredentialsForm = () => {
     setCredentialLogo(undefined)
   }
 
+  // TODO Use localStorage to save form data while being redirect to login page after session timeout
+
   const handleApproveCredentialDefinition = async () => {
     if (selectedCredential) {
       try {

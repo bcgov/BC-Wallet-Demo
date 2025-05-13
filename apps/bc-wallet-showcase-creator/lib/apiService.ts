@@ -83,7 +83,9 @@ class ApiService {
 
   private async getAuthToken(): Promise<string | null> {
     const session = await getSession()
-    if (session?.accessToken) {
+    console.debug('Session:', session)
+    if (session?.accessToken && !session.error) {
+      console.debug('Session has access token, returning it.')
       return session.accessToken
     }
 
