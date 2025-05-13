@@ -708,6 +708,8 @@ rabbitmq:
     ports:
       amqp: 5672
       manager: 15672
+  rbac:
+    create: false
   livenessProbe:
     enabled: true
     initialDelaySeconds: 300
