@@ -120,11 +120,11 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
       ...token,
       access_token: newTokens.access_token,
       expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
-      accessTokenExpires: Date.now() + newTokens.expires_in * 1000, // in milliseconds
-      refresh_token: newTokens.refresh_token ?? token.refresh_token,
+      accessTokenExpires: Date.now() + newTokens.expires_in * 1000, // Refresh 5 seconds early to avoid the token expiring during an active request
+      refresh_token: newTokens.refresh_token ?? token.refresh_token, // Fall back to the old refresh token when failed to refresh
     }
   } catch (error) {
-    console.error('Error refreshing access_token', error)
+    console.error('Error refreshing access token', error)
     return {
       ...token,
       error: 'RefreshAccessTokenError',
