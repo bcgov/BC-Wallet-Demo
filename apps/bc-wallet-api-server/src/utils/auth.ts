@@ -10,6 +10,8 @@ import { Claims } from '../types/auth/claims'
 import { Token } from '../types/auth/token'
 import { ISessionServiceUpdater } from '../types/services/session'
 
+// TODO for now we introspect using the root tenant which is fine for the current setup,
+//  but when we need to support multiple issuer servers / realms for one DB, we need to store multiple client ids & secrets in the tenant record and look them up as well for the introspection calls
 const oidcClientId = process.env.OIDC_ROOT_CLIENT_ID
 const oidcClientSecret = process.env.OIDC_ROOT_CLIENT_SECRET
 if (!oidcClientId || !oidcClientSecret) {
