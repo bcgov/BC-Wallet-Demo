@@ -75,25 +75,28 @@ async function getTenantConfig(tenantId: string): Promise<Tenant> {
 }
 
 function getTenantIdFromCookie(req?: Request): string | undefined {
-  if (!req) {
+  const nextReq = req as NextRequest | undefined;
+  
+  if (!nextReq) {
     return undefined
   }
 
-  const cookieHeader = req.headers.get('cookie') || ''
-  const cookies = cookieHeader.split(';').reduce(
-    (acc, cookie) => {
-      const [key, value] = cookie.trim().split('=')
-      acc[key] = value
-      return acc
-    },
-    {} as Record<string, string>,
-  )
-  console.debug('Cookies:', cookies)
+  // const cookieHeader = req.headers.get('cookie') || ''
+  // const cookies = cookieHeader.split(';').reduce(
+  //   (acc, cookie) => {
+  //     const [key, value] = cookie.trim().split('=')
+  //     acc[key] = value
+  //     return acc
+  //   },
+  //   {} as Record<string, string>,
+  // )
+  // console.debug('Cookies:', cookies)
 
-  const referer = req.headers.get('referer') || ''
-  const trimmedPath = referer.endsWith('/') ? referer.slice(0, -1) : referer
-  const parts = trimmedPath.split('/').filter(Boolean)
-  return cookies['tenant-id'] || (parts.length > 2 ? parts[3] : '')
+  // const referer = req.headers.get('referer') || ''
+  // const trimmedPath = referer.endsWith('/') ? referer.slice(0, -1) : referer
+  // const parts = trimmedPath.split('/').filter(Boolean)
+  return nextReq?.cookies.get('tenantId')?.value
+  // return cookies['tenant-id'] || (parts.length > 2 ? parts[3] : '')
 }
 
 // Token refresh function
@@ -147,7 +150,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRe
   console.debug(`Auth using tenantId from cookie: ${tenantId}`)
 
   if (!tenantId) {
-    console.error('No tenantId found in request')
+    console.log('No tenantId found in request')
     return {
       providers: [],
       session: { strategy: 'jwt' },
