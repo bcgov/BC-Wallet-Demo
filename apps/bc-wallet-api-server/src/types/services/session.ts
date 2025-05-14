@@ -1,4 +1,5 @@
 import { Claims } from '../auth/claims'
+import type { OidcSession } from '../auth/session'
 import { Token } from '../auth/token'
 import type { Tenant, User } from '../schema'
 
@@ -12,6 +13,8 @@ export interface ISessionService {
   getApiBaseUrl(): string | undefined
 
   getActiveClaims(): Claims | undefined
+
+  getCachedSessionByTokenHash(tokenHash: string): OidcSession | undefined
 }
 
 export interface ISessionServiceUpdater extends ISessionService {
@@ -22,6 +25,8 @@ export interface ISessionServiceUpdater extends ISessionService {
   setCurrentTenant(value: Tenant): void
 
   setCurrentUser(userName: string): Promise<void>
+
+  cacheValidatedToken(tokenHash: string, token: Token, claims: Claims, ttlMs: number): void
 
   clear(): void
 }

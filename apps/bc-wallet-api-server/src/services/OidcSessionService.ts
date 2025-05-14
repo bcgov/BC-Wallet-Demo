@@ -11,7 +11,7 @@ import UserService from './UserService'
 
 const sessionCache = new LRUCache<string, OidcSession>({
   max: 65535,
-  ttl: 30 * 60 * 1000, // We toss sessions after 30 minutes to not build a too large map. After it expires, we just do new DB lookups
+  ttl: 5 * 60 * 1000, // We toss sessions after 5 minutes by default. This will be overridden by validated tokens.
   allowStale: false,
 })
 
@@ -51,10 +51,11 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
     let session = sessionCache.get(hash)
     if (!session) {
       session = { user: null, tenant: null }
+      // Add to cache with default TTL. If token is validated later, TTL will be updated.
+      sessionCache.set(hash, session)
     }
     session.apiBaseUrl = apiBaseUrl
-    session.bearerToken = token
-    sessionCache.set(hash, session)
+    session.bearerToken = token // Store the raw token, may not be validated yet
   }
 
   public setActiveClaims(claims: Claims): void {
@@ -65,11 +66,9 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
     }
     const session = this.getSession()
     session.activeClaims = claims
-    sessionCache.set(hash, session)
   }
 
   public async setCurrentUser(userName: string): Promise<void> {
-    const hash = this.getCurrentHash()
     const session = this.getSession()
     if (!session.user) {
       if (!session.tenant) {
@@ -78,23 +77,44 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
       try {
         session.user = await this.userService.getUserByNameAndTenantId(userName, session.tenant.id)
       } catch {
-        session.user = await this.userService.createUser({ userName: 'test-user' })
+        session.user = await this.userService.createUser({ userName })
       }
-      sessionCache.set(hash, session)
     }
   }
 
   public setCurrentTenant(value: Tenant): void {
-    const hash = this.getCurrentHash()
     const session = this.getSession()
     session.tenant = value
-    sessionCache.set(hash, session)
   }
 
   public clear(): void {
     const hash = this.getCurrentHash()
     sessionCache.delete(hash)
-    tokenHashStore.disable()
+    tokenHashStore.disable() // Clears the store for the current async execution path
+  }
+
+  public getCachedSessionByTokenHash(tokenHash: string): OidcSession | undefined {
+    return sessionCache.get(tokenHash)
+  }
+
+  public cacheValidatedToken(tokenHash: string, token: Token, claims: Claims, ttlMs: number): void {
+    if (ttlMs <= 0) {
+      // If TTL is not positive, don't cache it
+      let existingSession = sessionCache.get(tokenHash)
+      if (existingSession) {
+        existingSession.bearerToken = token
+        existingSession.activeClaims = claims
+      }
+      return
+    }
+
+    let session = sessionCache.get(tokenHash)
+    if (!session) {
+      session = { user: null, tenant: null }
+    }
+    session.bearerToken = token
+    session.activeClaims = claims
+    sessionCache.set(tokenHash, session, { ttl: ttlMs })
   }
 
   private getCurrentHash(): string {
