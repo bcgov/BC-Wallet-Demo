@@ -1,3 +1,5 @@
+import './setup-env'
+import './setup-mocks'
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
 import { StepAction } from 'bc-wallet-openapi'

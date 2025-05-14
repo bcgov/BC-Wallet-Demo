@@ -7,7 +7,7 @@ import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
 import type { Persona, PresentationScenarioRequest, StepActionRequest, StepRequest } from 'bc-wallet-openapi'
-import { StepType } from 'bc-wallet-openapi'
+import { StepActionType, StepType } from 'bc-wallet-openapi'
 
 enableMapSet()
 
@@ -114,7 +114,11 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
               description: `Open the BC Wallet app and scan the QR code on the College website to start sharing your teacher credential with College Test.`,
               order: 0,
               type: 'HUMAN_TASK',
-              actions: [sampleAction],
+              actions: [{
+                title: "Scan QR Code",
+                actionType: StepActionType.SetupConnection,
+                text: "Scan this QR code with your wallet to connect",
+              }],
             },
             {
               title: `Confirm the information to send`,

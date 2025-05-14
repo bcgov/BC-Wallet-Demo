@@ -1,7 +1,8 @@
 'use client'
 
 import { env } from '@/env'
-import { getSession } from 'next-auth/react'
+import { getTenantId } from '@/providers/tenant-provider'
+import { getSession, signIn } from 'next-auth/react'
 import { debugLog } from './utils'
 
 class ApiService {
@@ -14,8 +15,13 @@ class ApiService {
     this.baseUrl = baseUrl
   }
 
+  private buildUrl(path: string): string {
+    const tenantId = getTenantId()
+    return `${this.baseUrl}/${tenantId}${path}`
+  }
+
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
-    const fullUrl = `${this.baseUrl}${url}`
+    const fullUrl = this.buildUrl(url)
     const accessToken = await this.getAuthToken()
 
     if (!accessToken && method !== 'GET') {
@@ -77,12 +83,15 @@ class ApiService {
 
   private async getAuthToken(): Promise<string | null> {
     const session = await getSession()
-    if (session?.accessToken) {
+    console.debug('Session:', session)
+    if (session?.accessToken && !session.error) {
+      console.debug('Session has access token, returning it.')
       return session.accessToken
     }
 
-    if (session?.error === 'RefreshAccessTokenError') {
-      debugLog('RefreshAccessTokenError detected')
+    if (!session || session?.error === 'RefreshAccessTokenError') {
+      debugLog('No session or RefreshAccessTokenError detected')
+      void signIn('keycloak')
       return null
     }
 

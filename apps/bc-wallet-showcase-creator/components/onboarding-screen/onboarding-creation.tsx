@@ -13,6 +13,7 @@ import { SortableStep } from '@/components/onboarding-screen/sortable-step'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { cn, baseUrl } from '@/lib/utils'
 import { Screen } from '@/types'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
@@ -29,6 +30,7 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
   
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
+  const { tenantId } = useTenant();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -48,7 +50,7 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
         <div className="p-6 text-center">
           <h3 className="text-lg font-semibold mb-4">No personas selected</h3>
           <p className="mb-4">You need to select personas before creating onboarding steps.</p>
-          <Button variant="outlineAction" onClick={() => router.push('/showcases/create')}>
+          <Button variant="outlineAction" onClick={() => router.push(`/${tenantId}/showcases/create`)}>
             {t('onboarding.go_back_to_select_personas')}
           </Button>
         </div>
@@ -71,7 +73,7 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
                     <Image
                       src={
                         persona.headshotImage?.id
-                          ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                           : '/assets/no-image.jpg'
                       }
                       alt={`${persona.name} || 'Character Headshot'`}

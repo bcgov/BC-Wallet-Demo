@@ -1,5 +1,5 @@
 {
-  "id": "46b7c540-3bc0-4411-b657-b65343237519",
+  "id": "db3d9795-ca39-49da-91f9-48e296d6d29f",
   "prevId": "44d2596e-e903-48df-b561-c315cdd77a8b",
   "version": "7",
   "dialect": "postgresql",
@@ -1771,23 +1771,42 @@
           "primaryKey": true,
           "notNull": true
         },
-        "realm": {
-          "name": "realm",
+        "tenantType": {
+          "name": "tenantType",
+          "type": "TenantType",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "oidc_issuer": {
+          "name": "oidc_issuer",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "client_id": {
-          "name": "client_id",
-          "type": "text",
+        "traction_tenant_id": {
+          "name": "traction_tenant_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "client_secret": {
-          "name": "client_secret",
+        "traction_api_url": {
+          "name": "traction_api_url",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "traction_wallet_id": {
+          "name": "traction_wallet_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "traction_api_key": {
+          "name": "traction_api_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "nonce_base_64": {
           "name": "nonce_base_64",
@@ -2509,6 +2528,14 @@
       "values": [
         "ISSUANCE",
         "PRESENTATION"
+      ]
+    },
+    "public.TenantType": {
+      "name": "TenantType",
+      "schema": "public",
+      "values": [
+        "ROOT",
+        "SHOWCASE"
       ]
     },
     "public.ShowcaseStatus": {

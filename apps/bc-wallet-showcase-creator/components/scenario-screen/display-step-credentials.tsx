@@ -9,6 +9,7 @@ import { NoSelection } from '../credentials/no-selection'
 import { EditProofRequest } from './edit-proof-request'
 import { ProofRequestFormData } from '@/schemas/scenario'
 import { useCredentialDefinition } from '@/hooks/use-credentials'
+import { useTenant } from '@/providers/tenant-provider'
 
 interface DisplayStepCredentialsProps {
   credentialId?: string
@@ -27,6 +28,7 @@ export const DisplayStepCredentials = ({
 }: DisplayStepCredentialsProps) => {
   const [editingCredentials, setEditingCredentials] = useState<number[]>([0])
   const { data: cred } = useCredentialDefinition(credentialId ?? '')
+  const { tenantId } = useTenant();
 
   if (!credentialId) {
     return (
@@ -51,7 +53,7 @@ export const DisplayStepCredentials = ({
             <Image
               src={
                 cred?.credentialDefinition?.icon?.id
-                  ? `${baseUrl}/assets/${cred?.credentialDefinition?.icon?.id}/file`
+                  ? `${baseUrl}/${tenantId}/assets/${cred?.credentialDefinition?.icon?.id}/file`
                   : '/assets/no-image.jpg'
               }
               alt={cred?.credentialDefinition?.icon?.description || 'default credential icon'}

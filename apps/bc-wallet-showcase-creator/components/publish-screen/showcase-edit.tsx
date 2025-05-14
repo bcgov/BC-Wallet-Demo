@@ -20,14 +20,16 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { showcaseRequestFormData } from '@/schemas/showcase'
 import { BannerImageUpload } from './showcase-image-upload'
 import { showcaseToShowcaseRequest } from '@/lib/parsers'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const ShowcaseEdit = ({ slug }: { slug: string }) => {
   const t = useTranslations()
   const router = useRouter()
   const { mutateAsync: updateShowcase } = useUpdateShowcase(slug)
   const { setSelectedPersonaIds, setScenarioIds, setCurrentShowcaseSlug, setShowcase } = useShowcaseStore()
-  const { tenantId, setTenantId } = useHelpersStore()
+  // const { tenantId, setTenantId } = useHelpersStore()
   const [isLoading, setIsLoading] = useState(true)
+  const { tenantId, setTenantId } = useTenant();
 
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(slug)
 
@@ -101,7 +103,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
         onSuccess: (data: ShowcaseResponse) => {
           if (data.showcase) {
             toast.success('Showcase updated successfully')
-            router.push(`/showcases/${slug}`)
+            router.push(`/${tenantId}/showcases/${slug}`)
           } else {
             toast.error('Error updating showcase')
           }
@@ -208,7 +210,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
                 <ButtonOutline
                   onClick={(e) => {
                     e.preventDefault()
-                    router.push(`/showcases/${slug}/characters`)
+                    router.push(`/${tenantId}/showcases/${slug}/characters`)
                   }}
                 >
                   {t('action.next_label')}

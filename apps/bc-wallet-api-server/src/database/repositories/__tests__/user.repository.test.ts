@@ -125,9 +125,7 @@ describe('Database user repository tests', (): void => {
     const tenant: NewTenant = {
       tenantType: TenantType.SHOWCASE,
       id: 'test-tenant-id',
-      oidcRealm: 'test_realm',
-      oidcClientId: 'test_client_id',
-      oidcClientSecret: 'super_secret',
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
     const savedTenant = await tenantRepository.create(tenant)
     expect(savedTenant).toBeDefined()
@@ -158,16 +156,12 @@ describe('Database user repository tests', (): void => {
     const tenant1: NewTenant = {
       id: 'test-tenant-id-1',
       tenantType: TenantType.SHOWCASE,
-      oidcRealm: 'test_realm',
-      oidcClientId: 'test_client_id',
-      oidcClientSecret: 'super_secret',
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
     const tenant2: NewTenant = {
       id: 'test-tenant-id-2',
       tenantType: TenantType.SHOWCASE,
-      oidcRealm: 'test_realm',
-      oidcClientId: 'test_client_id',
-      oidcClientSecret: 'super_secret',
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
 
     const savedTenant1 = await tenantRepository.create(tenant1)
@@ -192,7 +186,7 @@ describe('Database user repository tests', (): void => {
         nonceBase64: null,
         oidcClientId: 'test_client_id',
         oidcClientSecret: 'super_secret',
-        oidcRealm: 'test_realm',
+        oidcIssuer: 'https://auth-server/auth/realms/test',
         tenantType: 'SHOWCASE',
         tractionApiUrl: null,
         tractionTenantId: null,

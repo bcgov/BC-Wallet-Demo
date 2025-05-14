@@ -22,6 +22,7 @@ import { ConfirmationDialog } from '@/components/confirmation-dialog'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useCreateAsset } from '@/hooks/use-asset' 
 import { useShowcaseAdapter } from '@/hooks/use-showcase-adapter'
+import { useTenant } from '@/providers/tenant-provider'
 
 const BannerImageUpload = ({
   text,
@@ -34,6 +35,7 @@ const BannerImageUpload = ({
 }) => {
   const t = useTranslations()
   const { mutateAsync: createAsset } = useCreateAsset()
+  const { tenantId } = useTenant();
   
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
@@ -84,7 +86,7 @@ const BannerImageUpload = ({
               </button>
               <Image
                 alt="banner preview"
-                src={`${baseUrl}/assets/${value}/file`}
+                src={`${baseUrl}/${tenantId}/assets/${value}/file`}
                 width={240}
                 height={240}
                 className="rounded-lg shadow object-cover"
@@ -135,6 +137,7 @@ export const PublishEdit = () => {
   const { saveShowcase } = useShowcaseAdapter()
   const { personas } = useOnboardingAdapter()
   const { tenantId } = useHelpersStore()
+    // const { tenantId } = useTenant();
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(ShowcaseRequestSchema),
@@ -167,7 +170,7 @@ export const PublishEdit = () => {
     toast.success('Showcase created successfully')
     reset()
     setScenarioIds([])
-    router.push('/showcases')
+    router.push(`/${tenantId}/showcases`)
   }
 
   const handleCancel = () => {

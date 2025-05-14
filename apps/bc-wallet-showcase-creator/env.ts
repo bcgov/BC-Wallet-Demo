@@ -22,22 +22,16 @@ const runtimeClientProcess = {
 export const env = createEnv({
   server: {
     AUTH_SECRET: z.string().min(1),
-    AUTH_KEYCLOAK_ID: z.string().min(1),
-    AUTH_KEYCLOAK_SECRET: z.string().min(1),
-    AUTH_KEYCLOAK_ISSUER: z.string().min(1),
     AUTH_TRUST_HOST: z.string().default('true'),
-    AUTH_REDIRECT_PROXY_URL: z.string().min(1),
     AUTH_URL: z.string().min(1),
+    OIDC_DEFAULT_TENANT: z.string().min(1),
   },
   client: runtimeClientSchema,
   runtimeEnv: {
-    AUTH_SECRET: process.env.OIDC_CLIENT_SECRET,
-    AUTH_KEYCLOAK_ID: process.env.OIDC_CLIENT_ID,
-    AUTH_KEYCLOAK_SECRET: process.env.OIDC_CLIENT_SECRET,
-    AUTH_KEYCLOAK_ISSUER: process.env.OIDC_ISSUER_URL,
+    AUTH_SECRET: process.env.NEXT_AUTH_SECRET,
     AUTH_TRUST_HOST: process.env.OIDC_TRUST_HOST,
     AUTH_URL: process.env.OIDC_AUTH_URL,
-    AUTH_REDIRECT_PROXY_URL: process.env.OIDC_REDIRECT_PROXY_URL,
+    OIDC_DEFAULT_TENANT: process.env.OIDC_DEFAULT_TENANT,
     NEXT_PUBLIC_WALLET_URL: runtimeClientProcess.NEXT_PUBLIC_WALLET_URL,
     NEXT_PUBLIC_SHOWCASE_API_URL: runtimeClientProcess.NEXT_PUBLIC_SHOWCASE_API_URL,
   },
@@ -45,13 +39,12 @@ export const env = createEnv({
 })
 
 export function mapEnv() {
-  if (process.env.OIDC_AUTH_URL) process.env.NEXTAUTH_URL = process.env.OIDC_AUTH_URL
-  if (process.env.OIDC_CLIENT_SECRET) process.env.AUTH_SECRET = process.env.OIDC_CLIENT_SECRET
-  if (process.env.OIDC_CLIENT_ID) process.env.AUTH_KEYCLOAK_ID = process.env.OIDC_CLIENT_ID
-  if (process.env.OIDC_CLIENT_SECRET) process.env.AUTH_KEYCLOAK_SECRET = process.env.OIDC_CLIENT_SECRET
-  if (process.env.OIDC_ISSUER_URL) process.env.AUTH_KEYCLOAK_ISSUER = process.env.OIDC_ISSUER_URL
-  if (process.env.OIDC_TRUST_HOST) process.env.AUTH_TRUST_HOST = process.env.OIDC_TRUST_HOST
-  if (process.env.OIDC_REDIRECT_PROXY_URL) process.env.AUTH_REDIRECT_PROXY_URL = process.env.OIDC_REDIRECT_PROXY_URL
+  if (process.env.OIDC_AUTH_URL) {
+    process.env.NEXTAUTH_URL = process.env.OIDC_AUTH_URL
+  }
+  if (process.env.OIDC_TRUST_HOST) {
+    process.env.AUTH_TRUST_HOST = process.env.OIDC_TRUST_HOST
+  }
 }
 
 declare global {

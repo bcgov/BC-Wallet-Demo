@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { baseUrl } from '@/lib/utils'
 import { CredentialDefinition } from 'bc-wallet-openapi'
+import { getTenantId } from '@/providers/tenant-provider'
 
 interface DisplaySearchResultsProps {
   searchResults: CredentialDefinition[];
@@ -18,6 +19,7 @@ export const DisplaySearchResults = ({
   const MAX_SEARCH_CREDENTIALS = 8;
   const visibleResults = searchResults.slice(0, MAX_SEARCH_CREDENTIALS);
   const { setSelectedCredential } = useCredentials();
+  const tenantId = getTenantId()
 
   return (
     <div className="mb-6">
@@ -43,7 +45,7 @@ export const DisplaySearchResults = ({
               {/* Left Section - Image and User Info */}
               <div className="flex items-center flex-1">
                 <Image
-                  src={result.icon?.id ? `${baseUrl}/assets/${result.icon.id}/file` : '/assets/no-image.jpg'}
+                  src={result.icon?.id ? `${baseUrl}/${tenantId}/assets/${result.icon.id}/file` : '/assets/no-image.jpg'}
                   alt={result?.icon?.description || 'default credential icon'}
                   width={50}
                   height={50}

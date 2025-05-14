@@ -8,7 +8,6 @@ import {
   TenantsResponseFromJSONTyped,
 } from 'bc-wallet-openapi'
 import {
-  Authorized,
   BadRequestError,
   Body,
   Delete,
@@ -24,13 +23,14 @@ import { Service } from 'typedi'
 
 import TenantService from '../services/TenantService'
 import { TenantType } from '../types'
-import { getBasePath } from '../utils/auth'
+import { RootTenantAuthorized, SoftTenantAuthorized } from '../utils/auth'
 
-@JsonController(getBasePath('/tenants'))
+@JsonController('/tenants')
 @Service()
 class TenantController {
   public constructor(private tenantService: TenantService) {}
 
+  @SoftTenantAuthorized()
   @Get('/')
   public async getAll(): Promise<TenantsResponse> {
     try {
@@ -44,6 +44,7 @@ class TenantController {
     }
   }
 
+  @SoftTenantAuthorized()
   @Get('/:id')
   public async getOne(@Param('id') id: string): Promise<TenantResponse> {
     try {
@@ -57,7 +58,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
@@ -76,7 +77,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
     try {
@@ -93,7 +94,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

@@ -85,11 +85,11 @@ export class MessageProcessor {
 
       const service = await getTractionService(
         headers.tractionTenantId ?? environment.traction.TRACTION_DEFAULT_TENANT_ID!,
-        environment.showcase.TRACTION_FIXED_SHOWCASE_API_URL ??
-          headers.showcaseApiUrlBase ??
+        environment.showcase.TRACTION_FIXED_SHOWCASE_API_URL ||
+          headers.showcaseApiUrlBase ||
           environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
-        headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL,
-        headers.walletId ?? environment.traction.TRACTION_DEFAULT_TENANT_ID!,
+        headers.tractionApiUrlBase || environment.traction.TRACTION_DEFAULT_API_URL,
+        headers.walletId || environment.traction.TRACTION_DEFAULT_TENANT_ID!,
         headers.accessTokenEnc,
         headers.accessTokenNonce,
       )

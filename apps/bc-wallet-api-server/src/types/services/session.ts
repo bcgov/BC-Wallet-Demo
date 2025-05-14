@@ -1,12 +1,13 @@
 import { Claims } from '../auth/claims'
+import { Token } from '../auth/token'
 import type { Tenant, User } from '../schema'
 
 export interface ISessionService {
-  getCurrentUser(): Promise<User | null>
+  getCurrentUser(): User | null
 
-  getCurrentTenant(): Promise<Tenant | null>
+  getCurrentTenant(): Tenant | null
 
-  getBearerToken(): string | undefined
+  getBearerToken(): Token | undefined
 
   getApiBaseUrl(): string | undefined
 
@@ -14,7 +15,13 @@ export interface ISessionService {
 }
 
 export interface ISessionServiceUpdater extends ISessionService {
-  setRequestDetails(apiBaseUrl: string, token?: string): void
+  setRequestDetails(apiBaseUrl: string, token?: Token): void
 
   setActiveClaims(claims: Claims): void
+
+  setCurrentTenant(value: Tenant): void
+
+  setCurrentUser(userName: string): Promise<void>
+
+  clear(): void
 }

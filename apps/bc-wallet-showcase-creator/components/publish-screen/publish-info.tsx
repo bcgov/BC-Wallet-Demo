@@ -1,6 +1,7 @@
 'use client'
 
 import { baseUrl } from '@/lib/utils'
+import { useTenant } from '@/providers/tenant-provider'
 import type { Persona, CredentialDefinition } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -14,6 +15,7 @@ export const PublishInfo = ({
 }) => {
   const t = useTranslations()
   const displayCreds = false
+  const { tenantId } = useTenant();
 
   return (
     <div className=" border rounded-md p-4">
@@ -27,7 +29,7 @@ export const PublishInfo = ({
             <div className="flex items-center gap-4">
               <Image
                 src={
-                  char.headshotImage?.id ? `${baseUrl}/assets/${char.headshotImage.id}/file` : '/assets/no-image.jpg'
+                  char.headshotImage?.id ? `${baseUrl}/${tenantId}/assets/${char.headshotImage.id}/file` : '/assets/no-image.jpg'
                 }
                 alt={char.headshotImage?.description || 'Character headshot'}
                 width={60}
@@ -49,7 +51,7 @@ export const PublishInfo = ({
                   {credentials?.map((cred, index) => (
                     <div key={index} className="flex items-center gap-3">
                       <Image
-                        src={cred.icon?.id ? `${baseUrl}/assets/${cred.icon.id}/file` : '/assets/no-image.jpg'}
+                        src={cred.icon?.id ? `${baseUrl}/${tenantId}/assets/${cred.icon.id}/file` : '/assets/no-image.jpg'}
                         alt={cred.icon?.description || 'Credential icon'}
                         width={40}
                         height={40}
