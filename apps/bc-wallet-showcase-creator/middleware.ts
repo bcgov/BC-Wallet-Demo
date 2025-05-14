@@ -38,7 +38,9 @@ export default async function middleware(request: NextRequest) {
 
   // Redirect to login if no session and not already on login page
   if (!session && !isLoginPage) {
-    const loginPath = `/${locale}/${tenantId}/login`
+    console.log('No session found, redirecting to login page')
+    const localeToNavigate = locale || routing.defaultLocale
+    const loginPath = `/${localeToNavigate}/${tenantId}/login`
     return NextResponse.redirect(new URL(loginPath, request.url))
   }
 
