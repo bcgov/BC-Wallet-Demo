@@ -169,7 +169,7 @@ async function lookupTenant(tenantService: TenantService, issuerUrl: string, cli
 }
 
 export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
-  const authHeader: string | undefined = action.request.headers['authorization'] // Ensure type consistency
+  const authHeader: string | undefined = action.request.headers['authorization']
   const inputToken = authHeader ? new Token(authHeader) : undefined
   const token = await processAccessToken(inputToken, action)
 
