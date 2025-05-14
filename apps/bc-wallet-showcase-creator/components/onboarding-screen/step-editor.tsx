@@ -13,6 +13,7 @@ import { StepEditorForm } from './step-editor-form'
 import { StepPreview } from './step-preview'
 import { baseUrl } from '@/lib/utils'
 import { useShowcase } from '@/hooks/use-showcases'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
@@ -33,6 +34,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
     updateScenarios,
     isEditMode
   } = useOnboardingAdapter(showcaseSlug)
+    const { tenantId } = useTenant();
 
   const currentStep = selectedStep !== null ? screens[selectedStep.order] : null
   const stepType = currentStep?.type || StepType.HumanTask
@@ -54,7 +56,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
         result = await updateScenarios(showcaseSlug)
         if (result.success) {
           toast.success('Scenarios updated successfully')
-          router.push(`/showcases/${showcaseSlug}/scenarios`)
+          router.push(`/${tenantId}/showcases/${showcaseSlug}/scenarios`)
         } else {
           throw new Error(result.message || 'Failed to update scenarios')
         }
@@ -62,7 +64,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
         result = await createScenarios()
         if (result.success) {
           toast.success('Scenarios created successfully')
-          router.push('/showcases/create/scenarios')
+          router.push(`/${tenantId}/showcases/create/scenarios`)
         } else {
           throw new Error(result.message || 'Failed to create scenarios')
         }

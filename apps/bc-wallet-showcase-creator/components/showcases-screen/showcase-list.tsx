@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Header from '../header'
 import { env } from '@/env'
+import { getTenantId } from '@/providers/tenant-provider'
 import { toast } from 'sonner'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
@@ -34,6 +35,8 @@ export const ShowcaseList = () => {
 
   const [activeTab, setActiveTab] = useState(tabs[0])
   const [searchTerm, setSearchTerm] = useState('')
+
+  const tenantId = getTenantId()
 
   const searchFilter = (showcase: Showcase) => {
     if (searchTerm === '') {
@@ -63,7 +66,8 @@ export const ShowcaseList = () => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         buttonLabel={t('showcases.create_new_showcase_label')}
-        buttonLink="/showcases/create"
+        // buttonLink="/showcases/create"
+        buttonLink={`/${tenantId}/showcases/create`}
       />
 
       {!isLoading && (
@@ -120,7 +124,7 @@ export const ShowcaseList = () => {
                     style={{
                       backgroundImage: `url('${
                         showcase?.bannerImage?.id
-                          ? `${baseUrl}/assets/${showcase.bannerImage.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${showcase.bannerImage.id}/file`
                           : '/assets/NavBar/Showcase.jpeg'
                       }')`,
                     }}
@@ -151,8 +155,8 @@ export const ShowcaseList = () => {
                             }}
                           />
 
-                          <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />
-                          <OpenButton value={`${WALLET_URL}/${showcase.slug}`} />
+                          <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                          <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
                         </div>
                       </div>
                     </div>
@@ -181,7 +185,7 @@ export const ShowcaseList = () => {
                             <Image
                               src={
                                 persona.headshotImage?.id
-                                  ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                  ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                                   : '/assets/no-image.jpg'
                               }
                               alt={persona.headshotImage?.description || 'Character headshot'}
@@ -199,7 +203,7 @@ export const ShowcaseList = () => {
                     </div>
 
                     <div className="flex gap-4 mt-auto">
-                      <Link className="w-1/2" href={`/showcases/${showcase.slug}`}>
+                      <Link className="w-1/2" href={`/${tenantId}/showcases/${showcase.slug}`}>
                         <ButtonOutline
                           className="w-full"
                         >

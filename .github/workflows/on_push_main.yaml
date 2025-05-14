@@ -186,7 +186,6 @@ jobs:
               --set showcase_creator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
               --set demo_web.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
               --set demo_server.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
-              --set showcase_creator.env.OIDC_CLIENT_SECRET=${{secrets.CLIENT_SECRET}} \
               --set traction_adapter.env.ENCRYPTION_KEY=${{secrets.ENCRYPTION_KEY}} \
               --set traction_adapter.env.TRACTION_DEFAULT_API_KEY=${{secrets.FIXED_API_KEY}} \
               --set traction_adapter.env.TRACTION_DEFAULT_TENANT_ID=${{secrets.FIXED_TENANT_ID}} \
@@ -195,13 +194,12 @@ jobs:
               --set rabbitmq.auth.password=${{secrets.RABBITMQ_PASSWORD}} \
               --set demo_server.env.TRACTION_WEBHOOK_SECRET=${{secrets.WEBHOOK_SECRET}} \
               --set demo_server.env.API_KEY=${{secrets.API_KEY}} \
+              --set api_server.env.API_KEY=${{secrets.API_KEY}} \
               --set demo_server.env.TENANT_ID=${{secrets.TENANT_ID}} \
               --set demo_server.env.WALLET_KEY=${{secrets.WALLET_KEY}} \
               --set api_server.env.ENCRYPTION_KEY=${{secrets.ENCRYPTION_KEY}} \
-              --set api_server.env.OIDC_CLIENT_SECRET=${{secrets.CLIENT_SECRET}} \
-              --set api_server.env.OIDC_SERVER_URL=${{secrets.AUTH_SERVER_URL}} \
+              --set api_server.env.OIDC_ROOT_CLIENT_SECRET=${{secrets.CLIENT_SECRET}} \
               --set demo_web.env.REACT_APP_SNOWPLOW_ENDPOINT=${{secrets.REACT_APP_SNOWPLOW_ENDPOINT}} \
-              --set api_server.env.OIDC_SERVER_URL=${{secrets.AUTH_SERVER_URL}} \
               . --wait
             
             # Create Certificate for TLS

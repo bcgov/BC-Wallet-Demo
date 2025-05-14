@@ -1,3 +1,4 @@
+import './setup-env'
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
 import { ShowcaseRequest } from 'bc-wallet-openapi'

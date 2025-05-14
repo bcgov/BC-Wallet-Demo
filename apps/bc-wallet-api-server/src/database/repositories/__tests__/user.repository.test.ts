@@ -6,7 +6,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
 
 import DatabaseService from '../../../services/DatabaseService'
-import { NewTenant, NewUser } from '../../../types'
+import { NewTenant, NewUser, TenantType } from '../../../types'
 import * as schema from '../../schema'
 import TenantRepository from '../TenantRepository'
 import UserRepository from '../UserRepository'
@@ -123,10 +123,9 @@ describe('Database user repository tests', (): void => {
 
   it('Should save user with tenants to database', async (): Promise<void> => {
     const tenant: NewTenant = {
+      tenantType: TenantType.SHOWCASE,
       id: 'test-tenant-id',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
     const savedTenant = await tenantRepository.create(tenant)
     expect(savedTenant).toBeDefined()
@@ -156,15 +155,13 @@ describe('Database user repository tests', (): void => {
   it('Should update user with tenants in database', async (): Promise<void> => {
     const tenant1: NewTenant = {
       id: 'test-tenant-id-1',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
     const tenant2: NewTenant = {
       id: 'test-tenant-id-2',
-      realm: 'test_realm',
-      clientId: 'test_client_id',
-      clientSecret: 'super_secret',
+      tenantType: TenantType.SHOWCASE,
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
 
     const savedTenant1 = await tenantRepository.create(tenant1)
@@ -183,13 +180,16 @@ describe('Database user repository tests', (): void => {
     expect(savedUser.tenants).toHaveLength(1)
     expect(savedUser.tenants).toEqual([
       {
-        clientId: 'test_client_id',
-        clientSecret: 'super_secret',
         createdAt: expect.any(Date),
         deletedAt: null,
         id: 'test-tenant-id-1',
         nonceBase64: null,
-        realm: 'test_realm',
+        oidcIssuer: 'https://auth-server/auth/realms/test',
+        tenantType: 'SHOWCASE',
+        tractionApiUrl: null,
+        tractionApiKey: null,
+        tractionTenantId: null,
+        tractionWalletId: null,
         updatedAt: expect.any(Date),
       },
     ])

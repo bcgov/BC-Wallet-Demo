@@ -89,5 +89,5 @@ export const environment = {
 }
 
 if (DEBUG_ENABLED) {
-  console.debug('traction-adapter env:', environment)
+  console.debug('traction-adapter env:', environment) // FIXME remove or redact secret values before going to production (When DEBUG_ENABLED is not set it won't log this anyway)
 }

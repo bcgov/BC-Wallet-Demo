@@ -9,6 +9,7 @@ import Image from 'next/image'
 
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
+import { useTenant } from '@/providers/tenant-provider'
 
 
 interface CredentialsDisplayProps {
@@ -20,6 +21,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
   const [openId, setOpenId] = useState<string | null>(null)
   const t = useTranslations()
   const { data: credentials, isLoading } = useCredentialDefinitions()
+  const { tenantId } = useTenant();
 
   const sanitizedSearchTerm = searchTerm?.toLowerCase() || ''
 
@@ -70,7 +72,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
               {openId === item.id ? (
                 <div className="p-3 bg-foreground/10 flex flex-col dark:bg-dark-bg items-center text-center transition-all duration-300">
                   <Image
-                    src={item.icon?.id?.trim() ? `${baseUrl}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
+                    src={item.icon?.id?.trim() ? `${baseUrl}/${tenantId}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
                     unoptimized
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement
@@ -109,7 +111,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                 >
                   <div className="flex items-center gap-3 w-full">
                     <Image
-                      src={item.icon?.id?.trim() ? `${baseUrl}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
+                      src={item.icon?.id?.trim() ? `${baseUrl}/${tenantId}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
                       unoptimized
                       onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement

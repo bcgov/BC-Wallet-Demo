@@ -11,6 +11,7 @@ import { useUpdateCredentialSchema } from '@/hooks/use-credentials'
 import { useCredentialDefinition } from '@/hooks/use-credentials'
 import type { CredentialSchemaRequest, CredentialAttribute } from 'bc-wallet-openapi'
 import { Skeleton } from '../ui/skeleton'
+import { useTenant } from '@/providers/tenant-provider'
 
 interface DisplayCredentialProps {
   credentialId: string
@@ -22,6 +23,7 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
   const t = useTranslations()
   const { mutateAsync: updateCredentialSchema } = useUpdateCredentialSchema()
   const [isEditing, setIsEditing] = useState(false)
+  const { tenantId } = useTenant()
   
   const [credentialAttributes, setCredentialAttributes] = useState<CredentialAttribute[]>([])
 
@@ -102,7 +104,7 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
               <Image
                 src={
                   data.credentialDefinition?.icon?.id
-                    ? `${baseUrl}/assets/${data.credentialDefinition?.icon?.id}/file`
+                    ? `${baseUrl}/${tenantId}/assets/${data.credentialDefinition?.icon?.id}/file`
                     : '/assets/no-image.jpg'
                 }
                 alt={data.credentialDefinition?.icon?.description || 'default credential icon'}

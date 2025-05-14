@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 
 import { AssetResponse } from 'bc-wallet-openapi'
 import Image from 'next/image'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const BannerImageUpload = ({
   text,
@@ -21,10 +22,11 @@ export const BannerImageUpload = ({
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(null)
   const { mutateAsync: createAsset } = useCreateAsset()
+  const { tenantId } = useTenant()
 
   useEffect(() => {
     if (value) {
-      setPreview(`${baseUrl}/assets/${value}/file`)
+      setPreview(`${baseUrl}/${tenantId}/assets/${value}/file`)
     } else {
       setPreview(null)
     }

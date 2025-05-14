@@ -76,7 +76,6 @@ TRACTION_WEBHOOK_SECRET=your_webhook_secret
 OIDC_REALM=your_realm
 OIDC_CLIENT_ID=your_client_id
 OIDC_CLIENT_SECRET=your_client_secret
-OIDC_SERVER_URL=https://your-keycloak-server/auth
 OIDC_ISSUER_URL=https://your-keycloak-server/auth/realms/your_realm
 ```
 
@@ -160,18 +159,22 @@ TRACTION_ADAPTER_MESSAGE_TOPIC=traction-adapter-messages
 
 ### Authentication Configuration
 
-For OIDC authentication (optional):
+The system uses OpenID Connect (OIDC) for authentication with separate configurations for the root tenant and showcase creator:
 
+#### Root Tenant Authentication
 ```
-OIDC_REALM=your_realm
-OIDC_CLIENT_ID=your_client_id
-OIDC_CLIENT_SECRET=your_client_secret
-OIDC_SERVER_URL=https://your-keycloak-server/auth
-OIDC_ISSUER_URL=https://your-keycloak-server/auth/realms/your_realm
-OIDC_TRUST_HOST=true
+OIDC_ROOT_ISSUER_URL=https://auth-server/auth/realms/BC
+OIDC_ROOT_CLIENT_ID=showcase-root
+OIDC_ROOT_CLIENT_SECRET=your_keycloak_root_client_secret
+```
+
+#### Showcase Creator Authentication
 OIDC_AUTH_URL=http://localhost:5003
-OIDC_REDIRECT_PROXY_URL=http://localhost:5003/api/auth
-```
+OIDC_DEFAULT_TENANT=showcase-tenantA # optional, but tenant should be in URL when not set
+OIDC_TRUST_HOST=true
+NEXT_AUTH_SECRET=your_secure_secret
+
+The `OIDC_DEFAULT_TENANT` setting is optional, but if not set, the tenant should be included in the URL. The `NEXT_AUTH_SECRET` is required for securing session cookies and tokens.
 
 
 ### Traction Configuration

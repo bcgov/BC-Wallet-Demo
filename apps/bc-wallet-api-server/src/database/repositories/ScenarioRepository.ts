@@ -1,8 +1,8 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import { BadRequestError } from 'routing-controllers'
+import { NotFoundError } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
 import {
   AcceptCredentialAction,
@@ -738,7 +738,11 @@ class ScenarioRepository implements RepositoryDefinition<Scenario, NewScenario> 
     return sortSteps(result as Step[])
   }
 
-  public async createStepAction(scenarioId: string, stepId: string, action: NewStepActionTypes): Promise<StepActionTypes> {
+  public async createStepAction(
+    scenarioId: string,
+    stepId: string,
+    action: NewStepActionTypes,
+  ): Promise<StepActionTypes> {
     await this.findByStepId(scenarioId, stepId)
 
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<StepActionTypes> => {

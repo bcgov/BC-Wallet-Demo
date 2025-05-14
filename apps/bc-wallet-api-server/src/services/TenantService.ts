@@ -1,18 +1,41 @@
-import { encryptString, decryptString } from 'bc-wallet-adapter-client-api'
+import { decryptString, encryptString } from 'bc-wallet-adapter-client-api'
 import * as process from 'node:process'
-import { InternalServerError } from 'routing-controllers'
-import { Service } from 'typedi'
+import { HttpError, InternalServerError } from 'routing-controllers'
+import { Inject, Service } from 'typedi'
 
 import TenantRepository from '../database/repositories/TenantRepository'
-import { Tenant, NewTenant } from '../types'
+import { NewTenant, Tenant, TenantType } from '../types'
+import { ISessionService } from '../types/services/session'
+
+const oidcIssuer = process.env.OIDC_ROOT_ISSUER_URL!
+const oidcClientId = process.env.OIDC_ROOT_CLIENT_ID!
+const oidcClientSecret = process.env.OIDC_ROOT_CLIENT_SECRET!
+if (!oidcIssuer || !oidcClientId || !oidcClientSecret) {
+  throw new Error('OIDC_ROOT_ISSUER_URL, OIDC_ROOT_CLIENT_ID and OIDC_ROOT_CLIENT_SECRET must be set')
+}
+
+const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
 
 @Service()
 class TenantService {
-
-  public constructor(private readonly tenantRepository: TenantRepository) {}
+  public constructor(
+    private readonly tenantRepository: TenantRepository,
+    @Inject('ISessionService') private readonly sessionService: ISessionService,
+  ) {}
 
   public getTenants = async (): Promise<Tenant[]> => {
     const tenants = await this.tenantRepository.findAll()
+
+    // Non-root users can only read oidcIssuer
+    const currentTenant = this.sessionService.getCurrentTenant()
+    if (!currentTenant || currentTenant.tenantType !== TenantType.ROOT) {
+      return Promise.all(
+        tenants.map(async (tenant) => {
+          return this.redactedTenantFrom(tenant)
+        }),
+      )
+    }
+
     return Promise.all(
       tenants.map(async (tenant) => {
         if (!process.env.ENCRYPTION_KEY) {
@@ -20,55 +43,77 @@ class TenantService {
         }
         return {
           ...tenant,
-          clientSecret: decryptString(tenant.clientSecret, tenant.nonceBase64 as string),
+          ...(tenant.tractionApiKey && {
+            tractionApiKey: decryptString(tenant.tractionApiKey, tenant.nonceBase64 as string),
+          }),
         }
       }),
     )
   }
 
   public getTenant = async (id: string): Promise<Tenant> => {
+    const tenant = await this.tenantRepository.findById(id)
+
+    // Non-root users can only read oidcIssuer
+    const currentTenant = this.sessionService.getCurrentTenant()
+    if (!currentTenant || currentTenant.tenantType !== TenantType.ROOT) {
+      return this.redactedTenantFrom(tenant)
+    }
+
     if (!process.env.ENCRYPTION_KEY) {
       return Promise.reject(new InternalServerError(`No encryption key set: ${process.env.ENCRYPTION_KEY}`))
     }
-    const tenant = await this.tenantRepository.findById(id)
+
     return {
       ...tenant,
-      clientSecret: decryptString(tenant.clientSecret, tenant.nonceBase64 as string),
+      ...(tenant.tractionApiKey && {
+        tractionApiKey: decryptString(tenant.tractionApiKey, tenant.nonceBase64 as string),
+      }),
     }
   }
 
-  public getTenantByRealmAndClientId = async (realm: string, clientId: string): Promise<Tenant> => {
+  public getTenantByIssuerAndClientId = async (issuer: string, clientId: string): Promise<Tenant> => {
     if (!process.env.ENCRYPTION_KEY) {
       return Promise.reject(new InternalServerError(`No encryption key set: ${process.env.ENCRYPTION_KEY}`))
     }
-    const tenant = await this.tenantRepository.findByRealmAndClientId(realm, clientId)
+    const tenant = await this.tenantRepository.findByIssuerAndClientId(issuer, clientId)
     return {
       ...tenant,
-      clientSecret: decryptString(tenant.clientSecret, tenant.nonceBase64 as string),
+      ...(tenant.tractionApiKey && {
+        tractionApiKey: decryptString(tenant.tractionApiKey, tenant.nonceBase64 as string),
+      }),
     }
   }
 
   public createTenant = async (tenant: NewTenant): Promise<Tenant> => {
-    const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
-    const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, NONCE_SIZE)
-    const newTenant = {
-      ...tenant,
-      clientSecret: encryptedBase64,
-      nonceBase64,
+    if (!tenant.tractionApiKey) {
+      return this.tenantRepository.create(tenant)
+    } else {
+      const { encryptedApiKeyBase64, nonceBase64 } = encryptString(tenant.tractionApiKey, NONCE_SIZE)
+      const newTenant = {
+        ...tenant,
+        tractionApiKey: encryptedApiKeyBase64,
+        nonceBase64,
+      }
+      return this.tenantRepository.create(newTenant)
     }
-    return this.tenantRepository.create(newTenant)
   }
 
   public updateTenant = async (id: string, tenant: NewTenant): Promise<Tenant> => {
     try {
-      const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
-      const { encryptedBase64, nonceBase64 } = encryptString(tenant.clientSecret, NONCE_SIZE)
-      const newTenant = {
-        ...tenant,
-        clientSecret: encryptedBase64,
-        nonceBase64,
+      const currentTenant = await this.tenantRepository.findById(id)
+      if (!tenant.tractionApiKey) {
+        return this.tenantRepository.update(id, tenant)
+      } else {
+        const { encryptedApiKeyBase64, nonceBase64 } = encryptString(tenant.tractionApiKey, NONCE_SIZE)
+        const newTenant = {
+          ...tenant,
+          tenantType: currentTenant.tenantType,
+          oidcClientSecret: encryptedApiKeyBase64,
+          nonceBase64,
+        }
+        return this.tenantRepository.update(id, newTenant)
       }
-      return this.tenantRepository.update(id, newTenant)
     } catch (error) {
       return Promise.reject(new InternalServerError(`Error updating tenant: ${error}`))
     }
@@ -76,6 +121,44 @@ class TenantService {
 
   public deleteTenant = async (id: string): Promise<void> => {
     return this.tenantRepository.delete(id)
+  }
+
+  public async createRootTenant() {
+    try {
+      const rootTenant = await this.getTenantByIssuerAndClientId(oidcIssuer, oidcClientId)
+      if (rootTenant.tenantType !== TenantType.ROOT) {
+        return Promise.reject(Error('Configured root tenant is not actually a root tenant'))
+      }
+      return rootTenant // Return the existing tenant instead of undefined
+    } catch (e) {
+      if (e instanceof HttpError && e.httpCode === 404) {
+        // Fixed type check syntax
+        const newRootTenant: NewTenant = {
+          id: oidcClientId,
+          tenantType: TenantType.ROOT,
+          oidcIssuer: oidcIssuer,
+        }
+        return this.tenantRepository.create(newRootTenant)
+      } else {
+        return Promise.reject(e)
+      }
+    }
+  }
+
+  private redactedTenantFrom(tenant: Tenant) {
+    return {
+      id: tenant.id,
+      tenantType: tenant.tenantType,
+      oidcIssuer: tenant.oidcIssuer,
+      createdAt: tenant.createdAt,
+      updatedAt: tenant.updatedAt,
+      deletedAt: tenant.deletedAt,
+      tractionTenantId: null,
+      tractionApiUrl: null,
+      tractionWalletId: null,
+      tractionApiKey: null,
+      nonceBase64: null,
+    } satisfies Tenant
   }
 }
 

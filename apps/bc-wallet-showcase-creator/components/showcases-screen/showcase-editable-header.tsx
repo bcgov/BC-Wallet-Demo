@@ -10,6 +10,7 @@ import { usePathname, useRouter } from '@/i18n/routing'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useShowcase } from '@/hooks/use-showcases'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const ShowcaseEditableHeader = ({ showcaseSlug }: { showcaseSlug: string }) => {
   const t = useTranslations()
@@ -21,6 +22,7 @@ export const ShowcaseEditableHeader = ({ showcaseSlug }: { showcaseSlug: string 
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const pathname = usePathname()
+    const { tenantId } = useTenant();
 
   useEffect(() => {
     if (showcaseData?.showcase?.name) {
@@ -61,7 +63,7 @@ export const ShowcaseEditableHeader = ({ showcaseSlug }: { showcaseSlug: string 
             const newPath = pathname.replace(pattern, `/showcases/${result.slug}$2`)
             router.push(newPath)
           } else {
-            router.push(`/showcases/${result.slug}`)
+            router.push(`/${tenantId}/showcases/${result.slug}`)
           }
           
           setIsEditing(false)

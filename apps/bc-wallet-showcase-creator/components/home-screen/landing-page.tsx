@@ -15,6 +15,7 @@ import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
 import { toast } from 'sonner'
+import { useTenant } from '@/providers/tenant-provider'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -23,6 +24,7 @@ export const LandingPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const { data, isLoading } = useShowcases()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { tenantId } = useTenant()
   const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
 
   const searchFilter = (showcase: Showcase) => {
@@ -34,7 +36,7 @@ export const LandingPage = () => {
 
   const handlePreview = (slug: string) => {
 
-    const previewUrl = `${WALLET_URL}/${slug}`
+    const previewUrl = `${WALLET_URL}/${tenantId}/${slug}`
     window.open(previewUrl, '_blank')
   }
 
@@ -74,7 +76,7 @@ export const LandingPage = () => {
                   className="relative min-h-[15rem] h-auto flex items-center justify-center bg-cover bg-center"
                   style={{
                     backgroundImage: `url('${
-                      showcase?.bannerImage?.id ? `${baseUrl}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
+                      showcase?.bannerImage?.id ? `${baseUrl}/${tenantId}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
                     }')`,
                   }}
                 >
@@ -92,8 +94,8 @@ export const LandingPage = () => {
                             deleteShowcase(showcase.slug)
                           }}
                         />
-                        <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />
-                        <OpenButton value={`${WALLET_URL}/${showcase.slug}`} />
+                        <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                        <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
                       </div>
                     </div>
                   </div>
@@ -121,7 +123,7 @@ export const LandingPage = () => {
                           <Image
                             src={
                               persona.headshotImage?.id
-                                ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                                 : '/assets/no-image.jpg'
                             }
                             alt={persona.headshotImage?.description || 'Character headshot'}

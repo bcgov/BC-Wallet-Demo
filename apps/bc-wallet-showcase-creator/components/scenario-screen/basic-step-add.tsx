@@ -30,6 +30,7 @@ import { sampleScenario } from '@/lib/steps'
 import { NoSelection } from '../credentials/no-selection'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { StepRequest } from 'bc-wallet-openapi'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const BasicStepAdd = () => {
   const t = useTranslations()
@@ -42,6 +43,7 @@ export const BasicStepAdd = () => {
   const { setScenarioIds } = useShowcaseStore()
   const { personas } = useOnboardingAdapter()
   const { relayerId } = useHelpersStore()
+    const { tenantId } = useTenant();
 
   const isEditMode = stepState === 'editing-basic'
   const [showErrorModal, setErrorModal] = useState(false)
@@ -155,7 +157,7 @@ export const BasicStepAdd = () => {
     }
 
     setScenarioIds(scenarioIds)
-    router.push(`/showcases/create/publish`)
+    router.push(`/${tenantId}/showcases/create/publish`)
   }
 
   const handleCancel = () => {
