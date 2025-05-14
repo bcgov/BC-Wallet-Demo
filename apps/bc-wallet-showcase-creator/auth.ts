@@ -2,7 +2,8 @@ import NextAuth, { NextAuthConfig, User } from 'next-auth'
 import Keycloak from 'next-auth/providers/keycloak'
 import { env } from '@/env'
 import { Tenant, TenantResponse } from 'bc-wallet-openapi'
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
 
 export interface JWT {
@@ -133,8 +134,9 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRequest) => {
-  const tenantId = getTenantIdFromCookie(req) || env.OIDC_DEFAULT_TENANT
+export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRequest, res?:NextResponse) => {
+
+  const tenantId = (await cookies()).get('tenant-id')?.value || env.OIDC_DEFAULT_TENANT
   console.debug(`Auth using tenantId from cookie: ${tenantId}`)
 
   if (!tenantId) {
