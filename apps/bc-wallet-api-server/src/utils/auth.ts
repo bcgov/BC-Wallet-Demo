@@ -1,6 +1,5 @@
 import { Buffer } from 'buffer'
 import fetch from 'cross-fetch'
-import { LRUCache } from 'lru-cache'
 import process from 'node:process'
 import { Action, BadRequestError, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
@@ -8,7 +7,7 @@ import Container from 'typedi'
 import TenantService from '../services/TenantService'
 import { Claims } from '../types/auth/claims'
 import { Token } from '../types/auth/token'
-import { ISessionServiceUpdater } from '../types/services/session'
+import { ISessionService, ISessionServiceUpdater } from '../types/services/session'
 
 // TODO for now we introspect using the root tenant which is fine for the current setup,
 //  but when we need to support multiple issuer servers / realms for one DB, we need to store multiple client ids & secrets in the tenant record and look them up as well for the introspection calls
@@ -18,24 +17,22 @@ if (!oidcClientId || !oidcClientSecret) {
   throw new Error('OIDC_ROOT_CLIENT_ID and OIDC_ROOT_CLIENT_SECRET must be set')
 }
 
-const tokenCache = new LRUCache<string, Token>({
-  max: 65535,
-  ttl: 0, // Default TTL - will be overridden by token expiration
-  allowStale: false,
-})
-
 export function checkRoles(token: Token, roles: string[]) {
-  if (token && !roles.length) return true
+  if (token && !roles.length) {
+    return true
+  }
   return !!(token && roles.find((role) => token.hasRole(role)))
 }
 
 export async function isAccessTokenValid(token: Token, authServerUrl: string): Promise<boolean> {
   const tokenHash = token.getSignatureHash()
-  const cachedToken = tokenCache.get(tokenHash)
+  const oidcSessionService = Container.get<ISessionService>('ISessionService')
+  const cachedSession = oidcSessionService.getCachedSessionByTokenHash(tokenHash)
 
-  if (cachedToken) {
-    // If token is in cache and not expired, it's valid
-    return !isAccessTokenExpired(cachedToken)
+  if (cachedSession && cachedSession.bearerToken && cachedSession.activeClaims) {
+    if (!isAccessTokenExpired(cachedSession.bearerToken)) {
+      return true
+    }
   }
 
   const authorization = 'Basic ' + Buffer.from(`${oidcClientId}:${oidcClientSecret}`).toString('base64')
@@ -53,16 +50,15 @@ export async function isAccessTokenValid(token: Token, authServerUrl: string): P
   })
   await checkResponse(response)
   const claims = (await response.json()) as Claims
+  const sessionUpdater = Container.get<ISessionServiceUpdater>('ISessionService')
+
   if (claims.active) {
-    const sessionUpdater = Container.get('ISessionService') as ISessionServiceUpdater
     sessionUpdater.setActiveClaims(claims)
 
-    // Cache the token with expiration based on the token's exp claim
+    // Cache the token and claims within the session object with expiration based on the token's exp claim
     if (token.payload.exp) {
       const expiryMs = token.payload.exp * 1000 - Date.now()
-      if (expiryMs > 0) {
-        tokenCache.set(tokenHash, token, { ttl: expiryMs })
-      }
+      sessionUpdater.cacheValidatedToken(tokenHash, token, claims, expiryMs)
     }
     return true
   }
@@ -142,15 +138,18 @@ async function processAccessToken(token?: Token, action?: Action) {
   if (!(await isAccessTokenValid(token, issuerUrl))) {
     throw new UnauthorizedError('Invalid token')
   }
-  const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+  const sessionService: ISessionServiceUpdater = Container.get<ISessionServiceUpdater>('ISessionService')
   sessionService.setCurrentTenant(await lookupTenant(tenantService, issuerUrl, clientId))
 
   const activeClaims = sessionService.getActiveClaims()
   if (!activeClaims) {
-    throw new UnauthorizedError('No active claims found for token, probably expired')
+    throw new UnauthorizedError(
+      'No active claims found for token, token might be expired or claims not set in session.',
+    )
   }
   if (activeClaims.preferred_username) {
-    void (await sessionService.setCurrentUser(activeClaims.preferred_username))
+    // `void` is used to indicate that we are intentionally not awaiting the promise here.
+    void sessionService.setCurrentUser(activeClaims.preferred_username)
   }
 
   return token
@@ -170,7 +169,7 @@ async function lookupTenant(tenantService: TenantService, issuerUrl: string, cli
 }
 
 export async function authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
-  const authHeader: string = action.request.headers['authorization']
+  const authHeader: string | undefined = action.request.headers['authorization']
   const inputToken = authHeader ? new Token(authHeader) : undefined
   const token = await processAccessToken(inputToken, action)
 
@@ -194,10 +193,10 @@ export function RootTenantAuthorized() {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value
     descriptor.value = async function (...args: any[]) {
-      const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+      const sessionService: ISessionServiceUpdater = Container.get<ISessionServiceUpdater>('ISessionService')
 
-      const authHeader = sessionService.getBearerToken()
-      void (await processAccessToken(authHeader))
+      const bearerToken = sessionService.getBearerToken()
+      void (await processAccessToken(bearerToken))
       return originalMethod.apply(this, args)
     }
     return descriptor
@@ -208,12 +207,12 @@ export function SoftTenantAuthorized() {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value
     descriptor.value = async function (...args: any[]) {
-      const sessionService: ISessionServiceUpdater = Container.get('ISessionService') as ISessionServiceUpdater
+      const sessionService: ISessionServiceUpdater = Container.get<ISessionServiceUpdater>('ISessionService')
 
       try {
-        const authHeader = sessionService.getBearerToken()
-        if (authHeader) {
-          await processAccessToken(authHeader)
+        const bearerToken = sessionService.getBearerToken()
+        if (bearerToken) {
+          await processAccessToken(bearerToken)
         }
       } catch (error) {
         // ignore bad token, just clear the session vars

@@ -20,7 +20,7 @@ interface MessageHeaders {
   showcaseApiUrlBase?: string
   tractionApiUrlBase?: string
   tractionTenantId?: string
-  walletId?: string
+  tractionWalletId?: string
   accessTokenEnc?: Buffer
   accessTokenNonce?: Buffer
 }
@@ -78,7 +78,7 @@ export class MessageProcessor {
         return
       }
 
-      if (!headers.walletId && !environment.traction.TRACTION_DEFAULT_TENANT_ID) {
+      if (!headers.tractionWalletId && !environment.traction.TRACTION_DEFAULT_TENANT_ID) {
         this.rejectDelivery(context, `message ${messageId} did not contain the wallet id`)
         return
       }
@@ -89,7 +89,7 @@ export class MessageProcessor {
           headers.showcaseApiUrlBase ||
           environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
         headers.tractionApiUrlBase || environment.traction.TRACTION_DEFAULT_API_URL,
-        headers.walletId || environment.traction.TRACTION_DEFAULT_TENANT_ID!,
+        headers.tractionWalletId || environment.traction.TRACTION_DEFAULT_TENANT_ID!,
         headers.accessTokenEnc,
         headers.accessTokenNonce,
       )
@@ -118,7 +118,7 @@ export class MessageProcessor {
       tractionTenantId: applicationProperties['tenantId'] as string | undefined,
       tractionApiUrlBase: applicationProperties['tractionApiUrlBase'] as string | undefined,
       showcaseApiUrlBase: applicationProperties['showcaseApiUrlBase'] as string | undefined,
-      walletId: applicationProperties['walletId'] as string | undefined,
+      tractionWalletId: applicationProperties['walletId'] as string | undefined,
       accessTokenEnc: applicationProperties['accessTokenEnc'] as Buffer | undefined,
       accessTokenNonce: applicationProperties['accessTokenNonce'] as Buffer | undefined,
     }
@@ -179,7 +179,7 @@ export class MessageProcessor {
 
       if (context.delivery) {
         context.delivery.reject({
-          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.tractionWalletId}`,
           condition: 'fatal error',
           description: errorMsg,
           value: [issuer],
@@ -229,7 +229,7 @@ export class MessageProcessor {
       console.error(errorMsg)
       if (context.delivery) {
         context.delivery.reject({
-          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.tractionWalletId}`,
           condition: 'fatal error',
           description: errorMsg,
           value: [importRequest],
@@ -262,7 +262,7 @@ export class MessageProcessor {
       console.error(errorMsg)
       if (context.delivery) {
         context.delivery.reject({
-          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`,
+          info: `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.tractionWalletId}`,
           condition: 'fatal error',
           description: errorMsg,
           value: [credentialDefinition],
@@ -277,7 +277,7 @@ export class MessageProcessor {
       const rejectOptions: any = { description: errorMsg }
 
       if (headers) {
-        rejectOptions.info = `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.walletId}`
+        rejectOptions.info = `apiBasePath: ${headers.tractionApiUrlBase ?? environment.traction.TRACTION_DEFAULT_API_URL}, tenantId: ${headers.tractionTenantId}, walletId: ${headers.tractionWalletId}`
         rejectOptions.condition = 'fatal error'
       }
 

@@ -2,6 +2,7 @@ import { Service } from 'typedi'
 
 import { Tenant, TenantType, User } from '../../types'
 import { Claims } from '../../types/auth/claims'
+import { OidcSession } from '../../types/auth/session'
 import { Token } from '../../types/auth/token'
 import type { ISessionService } from '../../types/services/session'
 
@@ -74,5 +75,9 @@ export class MockSessionService implements ISessionService {
     this.user = null
     this.tenant = null
     console.log('[MockSession] Cleared')
+  }
+
+  public getCachedSessionByTokenHash(tokenHash: string): OidcSession | undefined {
+    throw new Error('Method not implemented.')
   }
 }

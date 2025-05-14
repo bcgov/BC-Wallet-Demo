@@ -197,7 +197,7 @@ describe('Database tenant repository tests', (): void => {
       {
         clientId: null,
         createdAt: expect.any(Date),
-        id: 'c83e7b9817fe4d43aedcc071f64f0bf6',
+        id: 'c83e7b98-17fe-4d43-aedc-c071f64f0bf6',
         issuer: null,
         updatedAt: expect.any(Date),
         userName: 'User 3',
