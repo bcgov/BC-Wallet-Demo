@@ -29,12 +29,14 @@ import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { StepRequestUIActionTypes } from '@/lib/steps'
 import { useTenant } from '@/providers/tenant-provider'
+import { useUpdateShowcaseScenarios } from '@/hooks/use-showcases'
+import { debugLog } from '@/lib/utils'
 
 export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const router = useRouter()
   const { mutateAsync } = useCreatePresentation()
-  const { setScenarioIds } = useShowcaseStore()
+  const { setScenarioIds, currentShowcaseSlug } = useShowcaseStore()
   const { selectedScenario, updateStep, selectedStep, setStepState, deleteStep } =
     usePresentationAdapter()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
@@ -42,6 +44,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const { setSelectedCredential, selectedCredential } = useCredentials()
   const { tenantId } = useTenant();
   const { personaScenarios } = usePresentationCreation()
+  const { mutateAsync: updateShowcaseScenariosAsync } = useUpdateShowcaseScenarios();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
 
@@ -176,6 +179,16 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
     }
 
     setScenarioIds(scenarioIds)
+    try {
+      await updateShowcaseScenariosAsync({ 
+        showcaseSlug: currentShowcaseSlug, 
+        scenarioIds 
+      });
+              
+      debugLog('Successfully updated showcase with scenario IDs');
+    } catch (updateError) {
+      console.error('Error updating showcase with scenarios:', updateError);
+    }
     if (slug) {
       router.push(`/${tenantId}/showcases/${slug}/publish`)
     } else {
