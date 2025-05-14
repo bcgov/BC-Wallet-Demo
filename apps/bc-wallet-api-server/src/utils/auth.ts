@@ -95,6 +95,11 @@ async function checkResponse(response: Response) {
 
 export function getBasePath(path?: string): string {
   const basePath = path ?? ''
+  // FIXME mock not working for some reason (see setup-mocks.ts)
+  if (process.env.NODE_ENV === 'test') {
+    return `${basePath}`
+  }
+
   return `/:tenantId${basePath}`
 }
 

@@ -1,6 +1,6 @@
 import { Service } from 'typedi'
 
-import type { Tenant, User } from '../../types'
+import { Tenant, TenantType, User } from '../../types'
 import { Claims } from '../../types/auth/claims'
 import { Token } from '../../types/auth/token'
 import type { ISessionService } from '../../types/services/session'
@@ -12,12 +12,37 @@ export class MockSessionService implements ISessionService {
 
   public getCurrentUser(): User | null {
     console.log('[MockSession] getCurrentUser called')
-    return this.user
+    return (
+      this.user ??
+      ({
+        id: 'user-id',
+        userName: 'user-name',
+        issuer: null,
+        clientId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } satisfies User | null)
+    )
   }
 
   public getCurrentTenant(): Tenant | null {
     console.log('[MockSession] getCurrentTenant called')
-    return this.tenant
+    return (
+      this.tenant ??
+      ({
+        id: 'test-tenant',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        tenantType: TenantType.ROOT,
+        oidcIssuer: '',
+        tractionTenantId: null,
+        tractionApiUrl: null,
+        tractionWalletId: null,
+        tractionApiKey: null,
+        nonceBase64: null,
+        deletedAt: null,
+      } satisfies Tenant)
+    )
   }
 
   public getBearerToken(): Token | undefined {

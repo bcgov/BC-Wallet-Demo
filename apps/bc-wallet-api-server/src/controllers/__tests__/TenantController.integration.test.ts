@@ -1,3 +1,5 @@
+import './setup-env'
+import './setup-mocks'
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
 import { environment } from 'bc-wallet-adapter-client-api/dist/environment'
@@ -55,6 +57,7 @@ describe('TenantController Integration Tests', () => {
     // 1. Create a tenant
     const tenantRequest: TenantRequest = {
       id: 'test-tenant-1',
+      tractionTenantId: 'a7d9b6bd-f263-4cf6-9b6d-cbc5f0e9f0c6',
       oidcIssuer: 'https://auth-server/auth/realms/test',
     }
 
@@ -63,9 +66,8 @@ describe('TenantController Integration Tests', () => {
     const createdTenant = createResponse.body.tenant
     expect(createdTenant).toHaveProperty('id')
     expect(createdTenant.id).toEqual('test-tenant-1')
-    expect(createdTenant.oidcClientId).toEqual('test_client_id')
-    expect(createdTenant.oidcIssuer).toEqual('test_realm')
-    expect(createdTenant.oidcClientSecret).toBeDefined()
+    expect(createdTenant.tractionTenantId).toEqual('a7d9b6bd-f263-4cf6-9b6d-cbc5f0e9f0c6')
+    expect(createdTenant.oidcIssuer).toEqual('https://auth-server/auth/realms/test')
     expect(createdTenant.createdAt).toBeDefined()
 
     // 2. Retrieve all tenants
