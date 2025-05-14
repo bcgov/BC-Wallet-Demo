@@ -9,3 +9,11 @@ export const isDataUrl = (value?: string) => {
 export const isCredIssued = (state: string) => {
   return state === 'credential_issued' || state === 'done' || state === 'credential_acked'
 }
+
+export function getTenantIdFromPath(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const pathSegments = window.location.pathname.split('/');
+  const tenant = pathSegments[3];
+  return tenant
+}
