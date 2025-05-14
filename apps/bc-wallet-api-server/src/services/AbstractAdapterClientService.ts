@@ -6,13 +6,16 @@ export abstract class AbstractAdapterClientService {
   protected constructor(protected readonly sessionService: ISessionService) {}
 
   protected buildSendOptions(): SendOptions {
-    const currentTenant = !this.sessionService.getCurrentTenant()
-    if (currentTenant) {
+    const tenant = this.sessionService.getCurrentTenant()
+    if (!tenant) {
       throw new Error('Current tenant not set')
     }
     return {
       authHeader: this.sessionService.getBearerToken()?.getRawToken(),
-      showcaseApiUrlBase: `${this.sessionService.getApiBaseUrl()}/${this.sessionService.getCurrentTenant()!.id}`,
+      showcaseApiUrlBase: `${this.sessionService.getApiBaseUrl()}/${tenant.id}`,
+      ...(tenant.tractionApiUrl && { tractionApiUrlBase: tenant.tractionApiUrl }),
+      ...(tenant.tractionTenantId && { tractionTenantId: tenant.tractionTenantId }),
+      ...(tenant.tractionWalletId && { tractionWalletId: tenant.tractionWalletId }),
     }
   }
 }
