@@ -25,7 +25,7 @@ api_server:
     CORS_ALLOW_CREDENTIALS: true
     API_KEY: SENSITIVE
     ENCRYPTION_KEY: SENSITIVE
-    OIDC_ROOT_ISSUER_URL: SENSITIVE
+    OIDC_ROOT_ISSUER_URL: https://auth01.test.sphereon.com/auth/realms/BC
     OIDC_ROOT_CLIENT_ID: showcase-root
     OIDC_ROOT_CLIENT_SECRET: SENSITIVE
   resources:
