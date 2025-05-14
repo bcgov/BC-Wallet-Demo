@@ -5,7 +5,6 @@ import { Tenant, TenantResponse } from 'bc-wallet-openapi'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
-
 export interface JWT {
   accessToken: string
   accessTokenExpires: number
@@ -60,7 +59,7 @@ async function getTenantConfig(tenantId: string): Promise<Tenant> {
     const response = await fetch(`${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     })
 
@@ -76,16 +75,25 @@ async function getTenantConfig(tenantId: string): Promise<Tenant> {
 }
 
 function getTenantIdFromCookie(req?: Request): string | undefined {
-  if (!req) return undefined
+  if (!req) {
+    return undefined
+  }
 
   const cookieHeader = req.headers.get('cookie') || ''
-  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-    const [key, value] = cookie.trim().split('=')
-    acc[key] = value
-    return acc
-  }, {} as Record<string, string>)
+  const cookies = cookieHeader.split(';').reduce(
+    (acc, cookie) => {
+      const [key, value] = cookie.trim().split('=')
+      acc[key] = value
+      return acc
+    },
+    {} as Record<string, string>,
+  )
+  console.debug('Cookies:', cookies)
 
-  return cookies['tenant-id']
+  const referer = req.headers.get('referer') || ''
+  const trimmedPath = referer.endsWith('/') ? referer.slice(0, -1) : referer
+  const parts = trimmedPath.split('/').filter(Boolean)
+  return cookies['tenant-id'] || (parts.length > 2 ? parts[3] : '')
 }
 
 // Token refresh function
@@ -134,9 +142,8 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRequest, res?:NextResponse) => {
-
-  const tenantId = (await cookies()).get('tenant-id')?.value
+export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRequest, res?: NextResponse) => {
+  const tenantId = (await cookies()).get('tenant-id')?.value ?? getTenantIdFromCookie(req)
   console.debug(`Auth using tenantId from cookie: ${tenantId}`)
 
   if (!tenantId) {
