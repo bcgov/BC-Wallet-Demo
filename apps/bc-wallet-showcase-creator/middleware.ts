@@ -42,6 +42,17 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(loginPath, request.url))
   }
 
+  // Check if path is root or only contains locale
+  const path = request.nextUrl.pathname
+  const isRootPath = path === '/'
+  const isLocaleOnlyPath = routing.locales.some(loc => path === `/${loc}`)
+  if (isRootPath || isLocaleOnlyPath) {
+    // Redirect to the credentials page with default tenant
+    const defaultLocale = locale || routing.defaultLocale
+    const redirectUrl = `/${defaultLocale}/${tenantId}/credentials`
+    return NextResponse.redirect(new URL(redirectUrl, request.url))
+  }
+
   return handleI18nRouting(request)
 }
 
