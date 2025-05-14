@@ -8,6 +8,8 @@ export interface ISessionService {
 
   getCurrentTenant(): Tenant | null
 
+  getUrlTenantId(): string | null
+
   getBearerToken(): Token | undefined
 
   getApiBaseUrl(): string | undefined
@@ -18,7 +20,7 @@ export interface ISessionService {
 }
 
 export interface ISessionServiceUpdater extends ISessionService {
-  setRequestDetails(apiBaseUrl: string, token?: Token): void
+  setRequestDetails(apiBaseUrl: string, tenantId: string | null, token?: Token): void
 
   setActiveClaims(claims: Claims): void
 

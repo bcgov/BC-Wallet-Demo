@@ -136,11 +136,11 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
 
 export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRequest, res?:NextResponse) => {
 
-  const tenantId = (await cookies()).get('tenant-id')?.value || env.OIDC_DEFAULT_TENANT
+  const tenantId = (await cookies()).get('tenant-id')?.value
   console.debug(`Auth using tenantId from cookie: ${tenantId}`)
 
   if (!tenantId) {
-    console.error('No tenantId found in request or OIDC_DEFAULT_TENANT environment variable')
+    console.error('No tenantId found in request')
     return {
       providers: [],
       session: { strategy: 'jwt' },

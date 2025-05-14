@@ -46,6 +46,10 @@ export class MockSessionService implements ISessionService {
     )
   }
 
+  public getUrlTenantId(): string | null {
+    return null
+  }
+
   public getBearerToken(): Token | undefined {
     return undefined
   }

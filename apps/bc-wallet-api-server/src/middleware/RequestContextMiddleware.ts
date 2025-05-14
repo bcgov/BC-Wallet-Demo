@@ -15,9 +15,22 @@ export class RequestContextMiddleware implements ExpressMiddlewareInterface {
     const apiBaseUrl = this.buildApiBaseUrl(request)
     const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : undefined
     const token = bearerToken ? new Token(bearerToken) : undefined
-    this.sessionService.setRequestDetails(apiBaseUrl, token)
+    this.sessionService.setRequestDetails(apiBaseUrl, this.getUrlTokenId(request), token)
 
     next()
+  }
+
+  private getUrlTokenId(request: Request): string | null {
+    const path = request.path ?? ''
+    const segments = path.split('/').filter(Boolean)
+    if (segments.length < 2) {
+      return null
+    }
+    // /tenants are the only endpoints without tenant in its path
+    if (segments.length > 0 && segments[0] === 'tenants') {
+      return null
+    }
+    return segments[0]
   }
 
   private buildApiBaseUrl(request: Request): string {
