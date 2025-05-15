@@ -34,10 +34,10 @@ export const CredentialsPage = () => {
       />
 
       <div className="flex gap-4 p-4 ">
-        <div className="w-1/3 bg-[white] dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
+        <div className="w-1/3 bg-background border shadow-md rounded-md flex flex-col">
           <CredentialsDisplay searchTerm={searchTerm} />
         </div>
-        <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
+        <div className="w-2/3 bg-background border shadow-md rounded-md flex flex-col">
           {mode === 'import' ? <CredentialsImport /> : <CredentialsForm />}
         </div>
       </div>

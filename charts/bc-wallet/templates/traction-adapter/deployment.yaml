@@ -48,23 +48,23 @@ spec:
               containerPort: {{ .Values.tractionAdapter.service.port }}
               protocol: TCP
           env:
-          - name: TRACTION_FIXED_SHOWCASE_API_URL
-            value: "https://{{ include "bc-wallet.apiServer.host" . }}"
-          - name: AMQ_HOST
-            value: {{.Release.Name}}-rabbitmq
-          - name: AMQ_PORT
-            value: {{ .Values.rabbitmq.service.ports.amqp | quote }}
-          - name: AMQ_TRANSPORT
-            value: tcp
-          - name: AMQ_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
-                key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
-          - name: AMQ_USERNAME
-            value: {{ .Values.rabbitmq.auth.username | quote }}
-          - name: FIXED_SHOWCASE_BACKEND
-            value: "https://{{ include "bc-wallet.apiServer.host" . }}"
+            - name: TRACTION_FIXED_SHOWCASE_API_URL
+              value: "https://{{ include "bc-wallet.apiServer.host" . }}"
+            - name: AMQ_HOST
+              value: {{.Release.Name}}-rabbitmq
+            - name: AMQ_PORT
+              value: {{ .Values.rabbitmq.service.ports.amqp | quote }}
+            - name: AMQ_TRANSPORT
+              value: tcp
+            - name: AMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
+                  key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+            - name: AMQ_USERNAME
+              value: {{ .Values.rabbitmq.auth.username | quote }}
+            - name: FIXED_SHOWCASE_BACKEND
+              value: "https://{{ include "bc-wallet.apiServer.host" . }}"
           {{- if or .Values.tractionAdapter.extraEnvVarsCM .Values.tractionAdapter.extraEnvVarsSecret }}
           envFrom:
             {{- if .Values.tractionAdapter.extraEnvVarsCM }}

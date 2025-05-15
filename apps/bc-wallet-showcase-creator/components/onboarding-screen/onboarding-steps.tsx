@@ -7,29 +7,33 @@ import { NoSelection } from '../credentials/no-selection'
 import { CreateNewStep } from './create-step'
 import { StepEditor } from './step-editor'
 
-export const OnboardingSteps = () => {
+export const OnboardingSteps = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
-  const { activePersonaId, stepState, selectedStep } = useOnboardingAdapter()
+  const { activePersonaId, stepState, selectedStep, setStepState } = useOnboardingAdapter()
 
   const renderComponent = () => {
     if (!activePersonaId) {
       return <NoSelection text={t("onboarding.select_persona_message")} />
     }
-    
+
     if (stepState === 'creating-new') {
       return <CreateNewStep />
     }
-    
+
     if (selectedStep !== null) {
-      return <StepEditor />
+      return <StepEditor showcaseSlug={showcaseSlug}/>
     }
-    
+
     return (
       <NoSelection
         text={
-          t('onboarding.no_step_selected_message') ||
-          'No step selected. Please select a step from the left panel or create a new one.'
+          t('onboarding.no_step_selected_message')
         }
+        subtext={
+          t('onboarding.no_step_selected_subtext')
+        }
+        handleNewStep={() => setStepState('creating-new')}
+        buttonText={t('onboarding.create_new_step_button_label')}
       />
     )
   }
@@ -37,7 +41,7 @@ export const OnboardingSteps = () => {
   return (
     <div
       id="editStep"
-      className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
+      className="bg-background text-light-text dark:text-dark-text p-6 rounded-md"
     >
       {renderComponent()}
     </div>

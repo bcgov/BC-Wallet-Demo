@@ -7,7 +7,7 @@ import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
 import type { Persona, PresentationScenarioRequest, StepActionRequest, StepRequest } from 'bc-wallet-openapi'
-import { StepType } from 'bc-wallet-openapi'
+import { StepActionType, StepType } from 'bc-wallet-openapi'
 
 enableMapSet()
 
@@ -44,6 +44,8 @@ interface PresentationCreationState {
   removeScenario: (personaId: string, scenarioIndex: number) => void
   setSelectedStep: (selectedStep: SelectedStep) => void
   selectStep: (stepIndex: number, scenarioIndex: number) => void
+
+  reset: () => void
 }
 
 const usePresentationCreationStore = create<PresentationCreationState>()(
@@ -112,7 +114,11 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
               description: `Open the BC Wallet app and scan the QR code on the College website to start sharing your teacher credential with College Test.`,
               order: 0,
               type: 'HUMAN_TASK',
-              actions: [sampleAction],
+              actions: [{
+                title: "Scan QR Code",
+                actionType: StepActionType.SetupConnection,
+                text: "Scan this QR code with your wallet to connect",
+              }],
             },
             {
               title: `Confirm the information to send`,
@@ -354,6 +360,14 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         }
       }),
 
+    reset: () => {
+      set((state) => {
+        state.personaScenariosMap = {}
+        state.activePersonaId = null
+        state.activeScenarioIndex = 0
+      })
+    },
+
   })),
 )
 
@@ -387,6 +401,7 @@ export const usePresentationCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
+    reset,
   } = usePresentationCreationStore()
 
   useEffect(() => {
@@ -455,6 +470,7 @@ export const usePresentationCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
-    personaScenariosMap
+    personaScenariosMap,
+    reset,
   }
 }

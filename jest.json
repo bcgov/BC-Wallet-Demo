@@ -20,7 +20,9 @@
     "!**/packages/**/index.ts"
   ],
   "coveragePathIgnorePatterns": [
-    "packages/bc-wallet-openapi"
+    "packages/bc-wallet-openapi",
+    "packages/bc-wallet-traction-openapi",
+    "packages/bc-wallet-adapter-client-api"
   ],
   "coverageReporters": [
     "text",

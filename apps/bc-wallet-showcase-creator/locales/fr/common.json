@@ -15,15 +15,20 @@
     "header_tab_draft": "Brouillon",
     "header_tab_under_review": "En cours d’examen",
     "header_tab_published": "Publié",
+    "header_tab_active": "Publié",
+    "header_tab_archived": "Archivé",
     "create_new_showcase_label": "CRÉER UNE NOUVELLE VITRINE",
     "created_by_label": "Créé par {name}",
     "description_label": "Description",
     "character_label": "Personnage(s)",
     "description_version": "Version",
     "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine.",
-        "publish_info_credentials": "Recevera les attestations suivantes:",
+    "publish_info_credentials": "Recevera les attestations suivantes:",
     "loading_label": "Chargement...",
-    "publish_info_title": "Réviser et publier la vitrine"
+    "publish_info_title": "Réviser et publier la vitrine",
+    "loading_showcase_data_label": "Chargement des données de la vitrine...",
+    "name_placeholder": "Nom de la vitrine",
+    "edit_name_tooltip": "Modifier le nom de la vitrine"
   },
   "character": {
     "header_title": "Créez votre Personnage",
@@ -137,7 +142,8 @@
     "type_label": "Credential Type",
     "representations_label": "Representations",
     "icon_label": "Icon",
-    "timestamps_label": "Timestamps"
+    "timestamps_label": "Timestamps",
+    "pending_approval_label": "En attente d'approbation"
   },
   "onboarding": {
     "header_title": "Ajouter des étapes",
@@ -177,7 +183,9 @@
     "search_credential_placeholder": "ex. Carte d'étudiant",
     "no_credentials_added_message": "Aucun justificatif ajouté",
     "go_back_to_select_personas": "Retour à la sélection des personnages",
-    "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration."
+    "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration.",
+    "no_step_selected_subtext": "Sélectionnez une étape de la liste ou créez une nouvelle étape",
+    "create_new_step_button_label": "Créer une nouvelle étape"
   },
   "scenario": {
     "header_title": "Créer des Scénarios",
@@ -220,7 +228,7 @@
     "show_json_preview_label": "Afficher l'Aperçu JSON",
     "see_more_label": "voir plus",
     "preview_label": "Aperçu",
-    "create_copy_label": "CRÉER UNE COPIE",
+    "create_copy_label": "DUPLIQUER",
     "next_label": "PROCHAIN",
     "search_label": "Recherche",
     "clear_selection_label": "Effacer la sélection",

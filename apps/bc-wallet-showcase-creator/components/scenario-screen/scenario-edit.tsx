@@ -24,9 +24,9 @@ const presentationScenarioRequestSchema = z.object({
     title: z.string().min(1),
     description: z.string().min(1),
   })),
-})  
+})
 
-export const ScenarioEdit = () => {
+export const ScenarioEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const { selectedScenario, updateScenario, setStepState, removeScenario } = usePresentationCreation()
   const [isOpen, setIsOpen] = useState(false)

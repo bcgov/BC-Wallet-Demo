@@ -30,7 +30,7 @@ import { sampleScenario } from '@/lib/steps'
 import { NoSelection } from '../credentials/no-selection'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { StepRequest } from 'bc-wallet-openapi'
-import { baseUrl } from '@/lib/utils'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const BasicStepAdd = () => {
   const t = useTranslations()
@@ -43,6 +43,7 @@ export const BasicStepAdd = () => {
   const { setScenarioIds } = useShowcaseStore()
   const { personas } = useOnboardingAdapter()
   const { relayerId } = useHelpersStore()
+  const { tenantId } = useTenant();
 
   const isEditMode = stepState === 'editing-basic'
   const [showErrorModal, setErrorModal] = useState(false)
@@ -125,7 +126,6 @@ export const BasicStepAdd = () => {
         return step
       })
 
-      console.log('scenarioForPersona.steps', scenarioForPersona.steps)
       if (!currentStepExists) {
         scenarioForPersona.steps.push({
           title: data.title,
@@ -157,7 +157,7 @@ export const BasicStepAdd = () => {
     }
 
     setScenarioIds(scenarioIds)
-    router.push(`/showcases/create/publish`)
+    router.push(`/${tenantId}/showcases/create/publish`)
   }
 
   const handleCancel = () => {
@@ -250,7 +250,7 @@ export const BasicStepAdd = () => {
           </div>
 
           <div className="space-y-2">
-          <LocalFileUpload
+            <LocalFileUpload
               text={t("onboarding.icon_label")}
               element="asset"
               existingAssetId={form.watch("asset")}

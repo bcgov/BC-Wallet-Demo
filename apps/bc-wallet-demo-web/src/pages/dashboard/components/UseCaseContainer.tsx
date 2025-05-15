@@ -6,6 +6,7 @@ import { basePath } from '../../../utils/BasePath'
 import { UseCaseItem } from './UseCaseItem'
 import { StepActionType } from 'bc-wallet-openapi';
 import type { AriesOOBStepAction, Persona, Scenario, Showcase } from '../../../slices/types'
+import { getTenantIdFromPath } from '../../../utils/Helpers'
 
 export interface Props {
   showcase: Showcase
@@ -16,17 +17,17 @@ export interface Props {
 
 export const UseCaseContainer: FC<Props> = ({ showcase, currentPersona, completedUseCaseSlugs, scenarios }) => {
   const navigate = useNavigate()
-
+  const tenantId = getTenantIdFromPath();
   const startUseCase = (scenarioSlug: string) => {
-    navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations/${scenarioSlug}`)
+    navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations/${scenarioSlug}`)
   }
 
   const renderUseCases = scenarios.map(scenario => {
     const isCompleted = completedUseCaseSlugs.includes(scenario.slug)
     const credentialDefinitions = scenario.steps.flatMap(step =>
-        step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
-            (action as AriesOOBStepAction).credentialDefinitions ?? []
-        ) ?? []
+      step.actions?.filter(action => action.actionType === StepActionType.AriesOob)?.flatMap(action =>
+        (action as AriesOOBStepAction).credentialDefinitions ?? []
+      ) ?? []
     );
 
     return (

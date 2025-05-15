@@ -20,21 +20,23 @@ import { z } from 'zod'
 
 import { ConfirmationDialog } from '@/components/confirmation-dialog'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
-import { useCreateAsset } from '@/hooks/use-asset' 
+import { useCreateAsset } from '@/hooks/use-asset'
 import { useShowcaseAdapter } from '@/hooks/use-showcase-adapter'
+import { useTenant } from '@/providers/tenant-provider'
 
 const BannerImageUpload = ({
-  text,
-  value,
-  onChange,
-}: {
+                             text,
+                             value,
+                             onChange,
+                           }: {
   text: string
   value?: string
   onChange: (value: string) => void
 }) => {
   const t = useTranslations()
   const { mutateAsync: createAsset } = useCreateAsset()
-  
+  const { tenantId } = useTenant();
+
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
       try {
@@ -84,7 +86,7 @@ const BannerImageUpload = ({
               </button>
               <Image
                 alt="banner preview"
-                src={`${baseUrl}/assets/${value}/file`}
+                src={`${baseUrl}/${tenantId}/assets/${value}/file`}
                 width={240}
                 height={240}
                 className="rounded-lg shadow object-cover"
@@ -93,7 +95,7 @@ const BannerImageUpload = ({
             </div>
           </div>
         )}
-        
+
         {!value && (
           <label
             htmlFor="bannerImage"
@@ -107,7 +109,7 @@ const BannerImageUpload = ({
             </div>
           </label>
         )}
-        
+
         <input
           id="bannerImage"
           type="file"
@@ -135,6 +137,7 @@ export const PublishEdit = () => {
   const { saveShowcase } = useShowcaseAdapter()
   const { personas } = useOnboardingAdapter()
   const { tenantId } = useHelpersStore()
+  // const { tenantId } = useTenant();
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(ShowcaseRequestSchema),
@@ -155,6 +158,7 @@ export const PublishEdit = () => {
       name: showcase.name || '',
       description: showcase.description || '',
       personas: personas.map((persona) => persona.id) || [],
+      scenarios: showcase.scenarios || [],
       status: 'ACTIVE',
       tenantId,
     })
@@ -166,7 +170,7 @@ export const PublishEdit = () => {
     toast.success('Showcase created successfully')
     reset()
     setScenarioIds([])
-    router.push('/showcases')
+    router.push(`/${tenantId}/showcases`)
   }
 
   const handleCancel = () => {

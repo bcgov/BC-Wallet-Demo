@@ -1,7 +1,9 @@
 import { Service } from 'typedi'
 
-import type { Tenant, User } from '../../types'
+import { Tenant, TenantType, User } from '../../types'
 import { Claims } from '../../types/auth/claims'
+import { OidcSession } from '../../types/auth/session'
+import { Token } from '../../types/auth/token'
 import type { ISessionService } from '../../types/services/session'
 
 @Service()
@@ -9,18 +11,47 @@ export class MockSessionService implements ISessionService {
   private user: User | null = null
   private tenant: Tenant | null = null
 
-  public async getCurrentUser(): Promise<User | null> {
+  public getCurrentUser(): User | null {
     console.log('[MockSession] getCurrentUser called')
-    return Promise.resolve(this.user)
+    return (
+      this.user ??
+      ({
+        id: 'user-id',
+        userName: 'user-name',
+        issuer: null,
+        clientId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } satisfies User | null)
+    )
   }
 
-  public async getCurrentTenant(): Promise<Tenant | null> {
+  public getCurrentTenant(): Tenant | null {
     console.log('[MockSession] getCurrentTenant called')
-    return Promise.resolve(this.tenant)
+    return (
+      this.tenant ??
+      ({
+        id: 'test-tenant',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        tenantType: TenantType.ROOT,
+        oidcIssuer: '',
+        tractionTenantId: null,
+        tractionApiUrl: null,
+        tractionWalletId: null,
+        tractionApiKey: null,
+        nonceBase64: null,
+        deletedAt: null,
+      } satisfies Tenant)
+    )
   }
 
-  public getBearerToken(): string {
-    return ''
+  public getUrlTenantId(): string | null {
+    return null
+  }
+
+  public getBearerToken(): Token | undefined {
+    return undefined
   }
 
   // --- Test Control Methods ---
@@ -48,5 +79,9 @@ export class MockSessionService implements ISessionService {
     this.user = null
     this.tenant = null
     console.log('[MockSession] Cleared')
+  }
+
+  public getCachedSessionByTokenHash(tokenHash: string): OidcSession | undefined {
+    throw new Error('Method not implemented.')
   }
 }

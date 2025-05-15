@@ -8,14 +8,14 @@ This guide provides instructions for setting up and running the BC Wallet Demo s
 2. [Components](#components)
 3. [Prerequisites](#prerequisites)
 4. [Installation](#installation)
-   - [Setting Up Environment Variables](#setting-up-environment-variables)
-   - [Building and Starting Services](#building-and-starting-services)
+    - [Setting Up Environment Variables](#setting-up-environment-variables)
+    - [Building and Starting Services](#building-and-starting-services)
 5. [Accessing Services](#accessing-services)
 6. [Configuration Options](#configuration-options)
-   - [Port Configuration](#port-configuration)
-   - [Database Configuration](#database-configuration)
-   - [RabbitMQ Configuration](#rabbitmq-configuration)
-   - [Authentication Configuration](#authentication-configuration)
+    - [Port Configuration](#port-configuration)
+    - [Database Configuration](#database-configuration)
+    - [RabbitMQ Configuration](#rabbitmq-configuration)
+    - [Authentication Configuration](#authentication-configuration)
 7. [Development Workflow](#development-workflow)
 8. [Troubleshooting](#troubleshooting)
 
@@ -76,7 +76,6 @@ TRACTION_WEBHOOK_SECRET=your_webhook_secret
 OIDC_REALM=your_realm
 OIDC_CLIENT_ID=your_client_id
 OIDC_CLIENT_SECRET=your_client_secret
-OIDC_SERVER_URL=https://your-keycloak-server/auth
 OIDC_ISSUER_URL=https://your-keycloak-server/auth/realms/your_realm
 ```
 
@@ -160,18 +159,22 @@ TRACTION_ADAPTER_MESSAGE_TOPIC=traction-adapter-messages
 
 ### Authentication Configuration
 
-For OIDC authentication (optional):
+The system uses OpenID Connect (OIDC) for authentication with separate configurations for the root tenant and showcase creator:
 
+#### Root Tenant Authentication
 ```
-OIDC_REALM=your_realm
-OIDC_CLIENT_ID=your_client_id
-OIDC_CLIENT_SECRET=your_client_secret
-OIDC_SERVER_URL=https://your-keycloak-server/auth
-OIDC_ISSUER_URL=https://your-keycloak-server/auth/realms/your_realm
-OIDC_TRUST_HOST=true
+OIDC_ROOT_ISSUER_URL=https://auth-server/auth/realms/BC
+OIDC_ROOT_CLIENT_ID=showcase-root
+OIDC_ROOT_CLIENT_SECRET=your_keycloak_root_client_secret
+```
+
+#### Showcase Creator Authentication
 OIDC_AUTH_URL=http://localhost:5003
-OIDC_REDIRECT_PROXY_URL=http://localhost:5003/api/auth
-```
+OIDC_DEFAULT_TENANT=showcase-tenantA # optional, but tenant should be in URL when not set
+OIDC_TRUST_HOST=true
+NEXT_AUTH_SECRET=your_secure_secret
+
+The `OIDC_DEFAULT_TENANT` setting is optional, but if not set, the tenant should be included in the URL. The `NEXT_AUTH_SECRET` is required for securing session cookies and tokens.
 
 
 ### Traction Configuration
@@ -236,27 +239,27 @@ CORS_ALLOW_CREDENTIALS=true # Whether to allow credentials (cookies, authorizati
 ### Common Issues
 
 1. **Services fail to start**:
-   - Check container logs: `docker-compose logs [service-name]`
-   - Verify environment variables are set correctly in `.env`
-   - Ensure required ports are not already in use on your host machine
+    - Check container logs: `docker-compose logs [service-name]`
+    - Verify environment variables are set correctly in `.env`
+    - Ensure required ports are not already in use on your host machine
 
 2. **Database connection issues**:
-   - Verify PostgreSQL is running: `docker-compose ps postgres`
-   - Check database credentials in `.env` match what's in `docker-compose.yml`
-   - Try connecting manually: `docker exec -it bc-wallet-demo_postgres_1 psql -U postgres`
+    - Verify PostgreSQL is running: `docker-compose ps postgres`
+    - Check database credentials in `.env` match what's in `docker-compose.yml`
+    - Try connecting manually: `docker exec -it bc-wallet-demo_postgres_1 psql -U postgres`
 
 3. **RabbitMQ connection issues**:
-   - Verify RabbitMQ is running: `docker-compose ps rabbitmq`
-   - Check RabbitMQ management interface at http://localhost:15672
-   - Verify credentials in `.env` match what's in `docker-compose.yml`
+    - Verify RabbitMQ is running: `docker-compose ps rabbitmq`
+    - Check RabbitMQ management interface at http://localhost:15672
+    - Verify credentials in `.env` match what's in `docker-compose.yml`
 
 4. **Network connectivity between services**:
-   - Ensure all Docker networks are created: `docker network ls`
-   - Check that services are on the correct networks: `docker inspect [container_name]`
+    - Ensure all Docker networks are created: `docker network ls`
+    - Check that services are on the correct networks: `docker inspect [container_name]`
 
 5. **Permission issues with volumes**:
-   - Check volume permissions: `docker volume inspect postgres_data`
-   - Try recreating volumes: `docker-compose down -v && docker-compose up -d`
+    - Check volume permissions: `docker volume inspect postgres_data`
+    - Try recreating volumes: `docker-compose down -v && docker-compose up -d`
 
 ### Resetting the Environment
 

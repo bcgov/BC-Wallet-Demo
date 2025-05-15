@@ -12,4 +12,12 @@ export type RepositoryDefinition<T, U> = {
   delete(id: string): Promise<void>
 }
 
+export type TenantScopedRepositoryDefinition<T, U> = {
+  findById(id: string, tenantId?: string): Promise<T>
+  findAll(tenantId: string): Promise<T[]>
+  create(item: U): Promise<T>
+  update(id: string, item: U): Promise<T>
+  delete(id: string): Promise<void>
+}
+
 export type Tx = PgTransaction<NodePgQueryResultHKT, typeof schema, ExtractTablesWithRelations<typeof schema>>

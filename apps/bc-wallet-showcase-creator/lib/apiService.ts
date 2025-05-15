@@ -1,7 +1,9 @@
 'use client'
 
 import { env } from '@/env'
+import { getTenantId } from '@/providers/tenant-provider'
 import { getSession, signIn } from 'next-auth/react'
+import { debugLog } from './utils'
 
 class ApiService {
   private readonly baseUrl: string
@@ -13,9 +15,14 @@ class ApiService {
     this.baseUrl = baseUrl
   }
 
+  private buildUrl(path: string): string {
+    const tenantId = getTenantId()
+    return `${this.baseUrl}/${tenantId}${path}`
+  }
+
   private async request<T>(method: string, url: string, data?: Record<string, unknown>): Promise<T | void> {
-    const fullUrl = `${this.baseUrl}${url}`
-    const accessToken = method !== 'GET' ? await this.getAuthToken() : undefined
+    const fullUrl = this.buildUrl(url)
+    const accessToken = await this.getAuthToken()
 
     if (!accessToken && method !== 'GET') {
       return Promise.reject(Error('No access token found'))
@@ -36,7 +43,7 @@ class ApiService {
     try {
       const response = await fetch(fullUrl, options)
 
-      console.log('Response Status:', response.status)
+      debugLog('Response Status:', response.status)
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -44,15 +51,15 @@ class ApiService {
       }
 
       if (response.status === 204) {
-        console.log('No Content (204), returning status object.')
+        debugLog('No Content (204), returning status object.')
         return { status: 204 } as unknown as T
       }
 
       const jsonData = await response.json()
-      console.log('API Response JSON:', jsonData)
+      debugLog('API Response JSON:', jsonData)
       return jsonData
     } catch (error) {
-      console.error('Fetch Error:', error)
+      debugLog('Fetch Error:', error)
       throw error
     }
   }
@@ -76,19 +83,18 @@ class ApiService {
 
   private async getAuthToken(): Promise<string | null> {
     const session = await getSession()
+    if (session?.accessToken && !session.error) {
+      console.debug('Session has access token, returning it.')
+      return session.accessToken
+    }
 
-    if (!session?.accessToken) {
-      void (await signIn('keycloak'))
+    if (!session || session?.error === 'RefreshAccessTokenError') {
+      debugLog('No session or RefreshAccessTokenError detected')
+      void signIn('keycloak')
       return null
     }
 
-    // Check for a refresh error
-    if (session?.error === 'RefreshAccessTokenError') {
-      void (await signIn('keycloak'))
-      return null
-    }
-
-    return session.accessToken
+    return null
   }
 }
 

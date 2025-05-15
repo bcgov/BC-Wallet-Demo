@@ -1,4 +1,13 @@
 import {
+  instanceOfShowcaseRequest,
+  ShowcaseRequest,
+  ShowcaseRequestToJSONTyped,
+  ShowcaseResponse,
+  ShowcaseResponseFromJSONTyped,
+  ShowcasesResponse,
+  ShowcasesResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   Authorized,
   BadRequestError,
   Body,
@@ -11,24 +20,20 @@ import {
   Post,
   Put,
 } from 'routing-controllers'
-import {
-  instanceOfShowcaseRequest,
-  ShowcaseRequest,
-  ShowcaseRequestToJSONTyped,
-  ShowcaseResponse,
-  ShowcaseResponseFromJSONTyped,
-  ShowcasesResponse,
-  ShowcasesResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
 import { Service } from 'typedi'
 
+import DuplicationShowcaseService from '../services/DuplicationShowcaseService'
 import ShowcaseService from '../services/ShowcaseService'
+import { getBasePath } from '../utils/auth'
 import { showcaseDTOFrom } from '../utils/mappers'
 
-@JsonController('/showcases')
+@JsonController(getBasePath('/showcases'))
 @Service()
 class ShowcaseController {
-  public constructor(private showcaseService: ShowcaseService) {}
+  public constructor(
+    private showcaseService: ShowcaseService,
+    private duplicationShowcaseService: DuplicationShowcaseService,
+  ) {}
 
   @Get('/')
   public async getAll(): Promise<ShowcasesResponse> {
@@ -109,6 +114,22 @@ class ShowcaseController {
     } catch (e) {
       if (e.httpCode !== 404) {
         console.error(`Delete showcase id=${id} failed:`, e)
+      }
+      return Promise.reject(e)
+    }
+  }
+
+  @Authorized()
+  @HttpCode(201)
+  @Post('/:slug/duplicate')
+  public async duplicate(@Param('slug') slug: string): Promise<ShowcaseResponse> {
+    const id = await this.showcaseService.getIdBySlug(slug)
+    try {
+      const result = await this.duplicationShowcaseService.duplicateShowcase(id)
+      return ShowcaseResponseFromJSONTyped({ showcase: showcaseDTOFrom(result) }, false)
+    } catch (e) {
+      if (e.httpCode !== 404) {
+        console.error(`Duplicate showcase id=${id} failed:`, e)
       }
       return Promise.reject(e)
     }

@@ -26,6 +26,7 @@ import {
   StepActionType,
   StepType,
   Tenant,
+  TenantType,
   User,
 } from '../../../types'
 import * as schema from '../../schema'
@@ -224,6 +225,8 @@ describe('Database showcase repository tests', (): void => {
     const tenantRepository = Container.get(TenantRepository)
     const newTenant: NewTenant = {
       id: '79a56be5-89bd-40dc-a6a7-fc035487e437',
+      tenantType: TenantType.SHOWCASE,
+      oidcIssuer: 'https://auth-server/auth/realms/test',
     }
     tenant = await tenantRepository.create(newTenant)
   })
@@ -367,7 +370,7 @@ describe('Database showcase repository tests', (): void => {
     const savedShowcase2 = await repository.create(showcase)
     expect(savedShowcase2).toBeDefined()
 
-    const fromDb = await repository.findAll()
+    const fromDb = await repository.findAll(tenant.id)
 
     expect(fromDb).toBeDefined()
     expect(fromDb.length).toEqual(2)

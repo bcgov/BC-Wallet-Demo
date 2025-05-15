@@ -1,15 +1,21 @@
-import { useEffect } from 'react'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
-import type { Persona, IssuanceScenarioRequest, StepActionRequest } from 'bc-wallet-openapi'
+import { type Persona, type IssuanceScenarioRequest, type StepActionRequest } from 'bc-wallet-openapi'
 import { Screen } from '@/types'
 import { useOnboardingCreationStore } from './use-onboarding-store'
+import { useShowcase } from './use-showcases'
+import { issuanceScenarioToIssuanceScenarioRequest } from '@/lib/parsers'
 
-export const useOnboardingCreation = () => {
+export const useOnboardingCreation = (showcaseSlug?: string) => {
   const { selectedPersonaIds } = useShowcaseStore()
   const { issuerId, selectedCredentialDefinitionIds } = useHelpersStore()
   const { data: personasData } = usePersonas()
+  const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const {
     personaScenariosMap,
@@ -34,9 +40,63 @@ export const useOnboardingCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
+    initializeWithScenarios,
+    reset
   } = useOnboardingCreationStore()
 
   useEffect(() => {
+    if (showcaseSlug && showcaseData && !isInitialized && !isShowcaseLoading) {
+      const showcase = showcaseData?.showcase
+
+      if (showcase) {
+        const issuanceScenarios = showcase.scenarios?.filter(
+          scenario => scenario.type === 'ISSUANCE'
+        ) || []
+
+        if (issuanceScenarios.length === 0) {
+          initializeWithScenarios({})
+          setIsInitialized(true)
+          return
+        }
+
+        const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
+
+        issuanceScenarios.forEach(scenario => {
+          if (scenario.personas && scenario.personas.length > 0) {
+            scenario.personas.forEach(persona => {
+              if (!personaScenariosData[persona.id]) {
+                personaScenariosData[persona.id] = []
+              }
+
+              const scenarioRequest = issuanceScenarioToIssuanceScenarioRequest(scenario)
+
+              personaScenariosData[persona.id].push(scenarioRequest)
+            })
+          }
+        })
+
+        initializeWithScenarios(personaScenariosData)
+
+        if (!activePersonaId && Object.keys(personaScenariosData).length > 0) {
+          setActivePersonaId(Object.keys(personaScenariosData)[0])
+        }
+
+        setIsInitialized(true)
+      }
+    }
+  }, [
+    showcaseSlug,
+    showcaseData,
+    isShowcaseLoading,
+    isInitialized,
+    initializeWithScenarios,
+    activePersonaId,
+    setActivePersonaId
+  ])
+
+  useEffect(() => {
+    if (showcaseSlug && isInitialized) return
+
     const personas = (personasData?.personas || []).filter((persona: Persona) =>
       selectedPersonaIds.includes(persona.id),
     )
@@ -51,6 +111,8 @@ export const useOnboardingCreation = () => {
       setActivePersonaId(personas[0].id)
     }
   }, [
+    showcaseSlug,
+    isInitialized,
     personasData,
     selectedPersonaIds,
     personaScenariosMap,
@@ -80,9 +142,9 @@ export const useOnboardingCreation = () => {
     personaScenarios,
     activePersonaId,
     setActivePersonaId,
-    updatePersonaSteps: (personaId: string, steps: Screen[]) => 
+    updatePersonaSteps: (personaId: string, steps: Screen[]) =>
       updatePersonaSteps(personaId, activeScenarioIndex, steps),
-    addActionToStep: (personaId: string, stepIndex: number, action: StepActionRequest) => 
+    addActionToStep: (personaId: string, stepIndex: number, action: StepActionRequest) =>
       addActionToStep(personaId, activeScenarioIndex, stepIndex, action),
     addPersonaScenario: (persona: Persona) => addPersonaScenario(persona, issuerId),
     duplicateScenario,
@@ -104,5 +166,8 @@ export const useOnboardingCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
+    isShowcaseLoading,
+    isInitialized,
+    reset,
   }
 }

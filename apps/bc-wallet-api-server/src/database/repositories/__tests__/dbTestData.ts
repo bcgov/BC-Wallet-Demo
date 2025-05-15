@@ -23,6 +23,7 @@ import {
   StepActionType,
   StepType,
   Tenant,
+  TenantType,
   User,
 } from '../../../types'
 import AssetRepository from '../AssetRepository'
@@ -135,7 +136,12 @@ export async function createTestScenario(
 
 export async function createTestTenant(id = 'test-tenant'): Promise<Tenant> {
   const tenantRepository = Container.get(TenantRepository)
-  return tenantRepository.create({ id })
+  return tenantRepository.create({
+    id,
+    oidcIssuer: 'https://auth-server/auth/realms/test',
+
+    tenantType: TenantType.ROOT,
+  })
 }
 
 export async function createTestCredentialDefinition(

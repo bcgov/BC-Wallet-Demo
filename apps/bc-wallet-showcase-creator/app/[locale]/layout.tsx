@@ -59,21 +59,21 @@ export default async function RootLayout({ children, params }: Params) {
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <head>
-        <Script id="env-script" strategy="beforeInteractive">
-          {`window.__env = ${JSON.stringify(envVars)};`}
-        </Script>
-      </head>
-      <body className={`${montserrat.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <QueryProviders>
-            <NextIntlClientProvider messages={messages}>
-              {children}
-              <Toaster />
-            </NextIntlClientProvider>
-          </QueryProviders>
-        </ThemeProvider>
-      </body>
+    <head>
+      <Script id="env-script" strategy="beforeInteractive">
+        {`window.__env = ${JSON.stringify(envVars)};`}
+      </Script>
+    </head>
+    <body className={`${montserrat.variable} antialiased`}>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <QueryProviders>
+        <NextIntlClientProvider messages={messages}>
+          {children}
+          <Toaster />
+        </NextIntlClientProvider>
+      </QueryProviders>
+    </ThemeProvider>
+    </body>
     </html>
   )
 }

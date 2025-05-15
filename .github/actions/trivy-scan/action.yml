@@ -1,0 +1,102 @@
+name: 'Trivy Security Scanner'
+description: 'Runs Trivy scanner and generates vulnerability summary'
+
+inputs:
+  scan-type:
+    description: 'Type of scan to perform (fs/image)'
+    required: true
+  scan-ref:
+    description: 'Reference to scan (path or image)'
+    required: true
+  scan-title:
+    description: 'Title for the scan summary'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    # For filesystem scanning
+    - name: Run Trivy FS Scan
+      if: inputs.scan-type == 'fs'
+      shell: bash
+      run: |
+        # Scan the root directory for vulnerabilities
+        trivy fs \
+          --security-checks vuln \
+          --format json \
+          --output root-scan.json \
+          --severity CRITICAL,HIGH,MEDIUM,LOW \
+          --debug \
+          .
+
+        # Scan the specific package directory
+        trivy fs \
+          --security-checks vuln \
+          --format json \
+          --output package-scan.json \
+          --severity CRITICAL,HIGH,MEDIUM,LOW \
+          --debug \
+          ${{ inputs.scan-ref }}
+
+    # For image scanning
+    - name: Run Trivy Image Scan
+      if: inputs.scan-type == 'image'
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'image'
+        image-ref: ${{ inputs.scan-ref }}
+        format: 'json'
+        output: 'scan-results.json'
+        severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+        exit-code: '0'
+
+    - name: Generate Scan Summary
+      shell: bash
+      run: |
+        combine_results() {
+          local severity=$1
+          local total=0
+          
+          if [ "${{ inputs.scan-type }}" = "fs" ]; then
+            for file in root-scan.json package-scan.json; do
+              if [ -f "$file" ]; then
+                count=$(jq "([.Results[]?.Vulnerabilities[]? | select(.Severity==\"$severity\")] | length) // 0" "$file")
+                total=$((total + count))
+              fi
+            done
+            echo $total
+          else
+            jq "([.Results[]?.Vulnerabilities[]? | select(.Severity==\"$severity\")] | length) // 0" scan-results.json
+          fi
+        }
+        
+        CRITICAL_COUNT=$(combine_results "CRITICAL")
+        HIGH_COUNT=$(combine_results "HIGH")
+        MEDIUM_COUNT=$(combine_results "MEDIUM")
+        LOW_COUNT=$(combine_results "LOW")
+        UNKNOWN_COUNT=$(combine_results "UNKNOWN")
+        
+        {
+          echo "# ${{ inputs.scan-title }}"
+          echo ""
+          if [ "$CRITICAL_COUNT" = "0" ] && [ "$HIGH_COUNT" = "0" ] && [ "$MEDIUM_COUNT" = "0" ] && [ "$LOW_COUNT" = "0" ] && [ "$UNKNOWN_COUNT" = "0" ]; then
+            echo "No vulnerabilities found"
+            echo ""
+            echo "Debug Information:"
+            echo "\`\`\`"
+            echo "Scan Path: ${{ inputs.scan-ref }}"
+            echo "Scan Type: ${{ inputs.scan-type }}"
+            echo "Workspace Root: $(pwd)"
+            echo "\`\`\`"
+          else
+            echo "| Severity  | Count |"
+            echo "|-----------|-------|"
+            echo "| Critical  | $CRITICAL_COUNT |"
+            echo "| High      | $HIGH_COUNT |"
+            echo "| Medium    | $MEDIUM_COUNT |"
+            echo "| Low       | $LOW_COUNT |"
+            echo "| Unknown   | $UNKNOWN_COUNT |"
+          fi
+          echo ""
+          echo "---"
+        } >> $GITHUB_STEP_SUMMARY 

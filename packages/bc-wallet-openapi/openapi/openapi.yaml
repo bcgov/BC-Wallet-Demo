@@ -1933,6 +1933,36 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /showcases/{slug}/duplicate:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The slug of the showcase to duplicate.
+    post:
+      tags:
+        - Showcases
+      summary: Duplicate a specific showcase
+      description: Duplicates a specific showcase, creating a new showcase with the same content. Requires appropriate permissions.
+      operationId: duplicateShowcase
+      responses:
+        '200':
+          description: Showcase duplicated successfully. Returns the updated showcase.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowcaseResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /approvals/pending:
     get:
       tags:
@@ -1981,6 +2011,26 @@ components:
           type: string
           description: Unique identifier for the tenant
           example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        oidcIssuer:
+          type: string
+          description: The issuer / realm URL associated with the tenant
+          example: https://auth-server/auth/realms/test
+        tractionTenantId:
+          type: string
+          description: Unique identifier for the Traction tenant
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        tractionWalletId:
+          type: string
+          description: Unique identifier for the Traction wallet
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        tractionApiUrl:
+          type: string
+          description: Traction API URL
+          example: https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
+        tractionApiKey:
+          type: string
+          description: Traction API key
+          example: c83e7b9817fe4d43aedcc071f64f0bf6
         users:
           type: array
           items:
@@ -2004,11 +2054,32 @@ components:
       type: object
       required:
         - id
+        - oidcIssuer
       properties:
         id:
           type: string
           description: Unique identifier for the tenant
           example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        oidcIssuer:
+          type: string
+          description: The issuer / realm URL associated with the tenant
+          example: https://auth-server/auth/realms/test
+        tractionTenantId:
+          type: string
+          description: Unique identifier for the Traction tenant
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        tractionWalletId:
+          type: string
+          description: Unique identifier for the Traction wallet
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        tractionApiUrl:
+          type: string
+          description: Traction API URL
+          example: https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
+        tractionApiKey:
+          type: string
+          description: Traction API key
+          example: c83e7b9817fe4d43aedcc071f64f0bf6
         users:
           type: array
           items:
@@ -2732,8 +2803,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/Scenario'
         - type: object
-#         required:
-#           - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
+          #         required:
+          #           - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               $ref: '#/components/schemas/Issuer'
@@ -2747,8 +2818,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/ScenarioRequest'
         - type: object
-#          required:
-#            - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
+          #          required:
+          #            - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               type: string
