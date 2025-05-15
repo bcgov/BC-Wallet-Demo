@@ -169,8 +169,7 @@ demoServer:
 
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
-  # ENCRYPTION_KEY: ""
+  # TRACTION_API_URL: ""
   # TRACTION_WEBHOOK_SECRET: ""
   extraEnvVarsSecret: ""
 
@@ -286,12 +285,7 @@ demoWeb:
 
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
-  # ENCRYPTION_KEY: ""
-  # TENANT_ID: ""
-  # TRACTION_API_URL: ""
-  # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
+  # ? has env vars, no secrets
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -403,7 +397,7 @@ showcaseCreator:
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
   # NEXT_AUTH_SECRET: ""
-  # DEFAULT_TENANT: ""
+  # OIDC_DEFAULT_TENANT: ""
   # OIDC_AUTH_URL: ""
   # OIDC_TRUST_HOST: ""
   extraEnvVarsSecret: ""
@@ -515,7 +509,7 @@ tractionAdapter:
 
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
-  # ? : ""
+  # none
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
