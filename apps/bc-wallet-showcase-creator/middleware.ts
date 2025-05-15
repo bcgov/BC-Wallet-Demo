@@ -34,6 +34,7 @@ export default async function middleware(request: NextRequest) {
     sameSite: 'lax',
   })
 
+  /* FIXME ? (this causes too many redirects and not sure if we even need this)
   const sessionToken = await getToken({
     req: request,
     secret: env.AUTH_SECRET
@@ -46,6 +47,7 @@ export default async function middleware(request: NextRequest) {
     const loginPath = `/${localeToNavigate}/${tenantId}/login`
     return NextResponse.redirect(new URL(loginPath, request.url))
   }
+*/
 
   // Check if a path is root or only contains a locale
   const path = request.nextUrl.pathname
