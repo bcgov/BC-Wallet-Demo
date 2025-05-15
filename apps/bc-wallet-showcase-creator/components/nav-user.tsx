@@ -22,14 +22,13 @@ export function NavUser() {
   const { isMobile } = useSidebar()
   const { data: session } = useSession()
   const { state } = useSidebar()
-  const router = useRouter()
   const pathname = usePathname()
   const [locale, tenant] = pathname.split('/').filter(Boolean)
 
   const handleLogout = async () => {
     document.cookie = 'tenant-id=; path=/; max-age=0; SameSite=Lax'
 
-    // get issuer from backend
+    // fetch the issuer URL from the backend
     const response = await fetch(`/api/auth/issuer?locale=${locale}&tenant=${tenant}`, {
       credentials: 'include',
     })
@@ -41,9 +40,10 @@ export function NavUser() {
       const { issuer } = await response.json()
       const redirectUri = encodeURIComponent(`${window.location.origin}/${locale}/${tenant}/login`)
       window.location.href = `${issuer}/protocol/openid-connect/logout?post_logout_redirect_uri=${redirectUri}`
+    } else {
+      console.warn(`failed to log out from the authentication server: ${response.status} ${response.statusText}`)
     }
   }
-
 
   return (
     <SidebarMenu>
