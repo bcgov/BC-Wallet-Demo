@@ -18,7 +18,6 @@ This Helm chart is used to deploy the BC Wallet Showcase Builder.
       --from-literal=OIDC_ROOT_CLIENT_ID='Your OIDC Root Client ID' \
       --from-literal=OIDC_ROOT_CLIENT_SECRET='Your OIDC Root client secret' \
       --from-literal=OIDC_ROOT_ISSUER_URL='Your OIDC Root issuer URL' \
-      --from-literal=OIDC_REALM='Your OIDC realm' \
       --from-literal=OIDC_TRUST_HOST='Your OIDC trust host' \
       --from-literal=OIDC_DEFAULT_TENANT='Your OIDC default tenant ID' \
       --from-literal=NEXT_AUTH_SECRET='Your Next Auth secret' \
