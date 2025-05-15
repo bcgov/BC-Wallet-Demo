@@ -1,5 +1,5 @@
 import { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
-import type { CredentialAttributeType, CredentialDefinition } from 'bc-wallet-openapi'
+import { CredentialAttributeType, CredentialDefinition, IdentifierType } from 'bc-wallet-openapi'
 import { CredentialType, IssuerType } from 'bc-wallet-openapi'
 import type { Sender, SenderOptions } from 'rhea-promise'
 import { Connection } from 'rhea-promise'
@@ -382,6 +382,7 @@ describe('MessageProcessor Integration Test', () => {
       name: 'Test Schema',
       version: '1.0',
       identifier: 'ABCD:2:TestSchema:1.0',
+      identifierType: IdentifierType.Did,
       attributes: [
         {
           id: 'attr1',
