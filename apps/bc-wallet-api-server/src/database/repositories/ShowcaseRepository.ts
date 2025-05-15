@@ -54,7 +54,9 @@ class ShowcaseRepository implements TenantScopedRepositoryDefinition<Showcase, N
         .returning()
 
       if (showcase.scenarios.length > 0) {
-        const scenarioPromises = showcase.scenarios.map(async (scenario) => this.scenarioRepository.findById(scenario))
+        const scenarioPromises = showcase.scenarios.map(async (scenario) =>
+          this.scenarioRepository.findById(scenario, tx),
+        )
         await Promise.all(scenarioPromises)
 
         const showcasesToScenariosResult = await tx
@@ -201,7 +203,9 @@ class ShowcaseRepository implements TenantScopedRepositoryDefinition<Showcase, N
       }
 
       if (showcase.personas.length > 0) {
-        const personaPromises = showcase.personas.map(async (persona) => await this.personaRepository.findById(persona))
+        const personaPromises = showcase.personas.map(
+          async (persona) => await this.personaRepository.findById(persona, tx),
+        )
         await Promise.all(personaPromises)
 
         const showcasesToPersonasResult = await tx
@@ -284,7 +288,9 @@ class ShowcaseRepository implements TenantScopedRepositoryDefinition<Showcase, N
       await tx.delete(showcasesToScenarios).where(eq(showcasesToScenarios.showcase, id))
 
       if (showcase.scenarios.length > 0) {
-        const scenarioPromises = showcase.scenarios.map(async (scenario) => this.scenarioRepository.findById(scenario))
+        const scenarioPromises = showcase.scenarios.map(async (scenario) =>
+          this.scenarioRepository.findById(scenario, tx),
+        )
         await Promise.all(scenarioPromises)
 
         const showcasesToScenariosResult =
@@ -432,7 +438,9 @@ class ShowcaseRepository implements TenantScopedRepositoryDefinition<Showcase, N
       }
 
       if (showcase.personas.length > 0) {
-        const personaPromises = showcase.personas.map(async (persona) => await this.personaRepository.findById(persona))
+        const personaPromises = showcase.personas.map(
+          async (persona) => await this.personaRepository.findById(persona, tx),
+        )
         await Promise.all(personaPromises)
 
         const showcasesToPersonasResult = await tx
@@ -940,7 +948,7 @@ class ShowcaseRepository implements TenantScopedRepositoryDefinition<Showcase, N
           updatedAt: now,
         })
         .where(and(eq(showcases.id, id), eq(showcases.tenantId, tenantId)))
-      return await this.findById(id, tenantId)
+      return await this.findById(id, tenantId, tx)
     })
   }
 }

@@ -1,6 +1,6 @@
 {
-  "id": "c1b04a2a-7b37-45da-9883-9ed137b2587c",
-  "prevId": "661803d7-6978-4e5e-9b9d-5a91d31e8f29",
+  "id": "5c98b866-df93-4606-8f06-2d5facd91728",
+  "prevId": "db3d9795-ca39-49da-91f9-48e296d6d29f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -236,6 +236,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "tenant_id": {
+          "name": "tenant_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "name": {
           "name": "name",
           "type": "text",
@@ -363,6 +369,19 @@
         }
       },
       "foreignKeys": {
+        "credentialDefinition_tenant_id_tenant_id_fk": {
+          "name": "credentialDefinition_tenant_id_tenant_id_fk",
+          "tableFrom": "credentialDefinition",
+          "tableTo": "tenant",
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "credentialDefinition_credential_schema_credentialSchema_id_fk": {
           "name": "credentialDefinition_credential_schema_credentialSchema_id_fk",
           "tableFrom": "credentialDefinition",
@@ -1771,6 +1790,49 @@
           "primaryKey": true,
           "notNull": true
         },
+        "tenantType": {
+          "name": "tenantType",
+          "type": "TenantType",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "oidc_issuer": {
+          "name": "oidc_issuer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "traction_tenant_id": {
+          "name": "traction_tenant_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "traction_api_url": {
+          "name": "traction_api_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "traction_wallet_id": {
+          "name": "traction_wallet_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "traction_api_key": {
+          "name": "traction_api_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nonce_base_64": {
+          "name": "nonce_base_64",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1939,6 +2001,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "idx_tenant_slug_unique": {
+          "name": "idx_tenant_slug_unique",
+          "columns": [
+            {
+              "expression": "tenant_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -1996,15 +2079,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "showcase_slug_unique": {
-          "name": "showcase_slug_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -2485,6 +2560,14 @@
       "values": [
         "ISSUANCE",
         "PRESENTATION"
+      ]
+    },
+    "public.TenantType": {
+      "name": "TenantType",
+      "schema": "public",
+      "values": [
+        "ROOT",
+        "SHOWCASE"
       ]
     },
     "public.ShowcaseStatus": {

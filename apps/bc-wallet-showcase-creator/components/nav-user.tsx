@@ -12,20 +12,37 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
-import { useSession } from 'next-auth/react'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import { DarkModeToggle } from './dark-mode-toggle'
 import { LanguageSelector } from './language-selector'
 import { Separator } from './ui/separator'
+import { usePathname, useRouter } from 'next/navigation'
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { data: session } = useSession()
   const { state } = useSidebar()
+  const pathname = usePathname()
+  const [locale, tenant] = pathname.split('/').filter(Boolean)
 
-  const Logout = () => {
-    document.cookie = 'tenant-id=; path=/; max-age=0; SameSite=Lax';
-    signOut()
+  const handleLogout = async () => {
+    document.cookie = 'tenant-id=; path=/; max-age=0; SameSite=Lax'
+
+    // fetch the issuer URL from the backend
+    const response = await fetch(`/api/auth/issuer?locale=${locale}&tenant=${tenant}`, {
+      credentials: 'include',
+    })
+
+    // clear NextAuth session in-memory
+    await signOut({ redirect: false })
+
+    if (response.ok) {
+      const { issuer } = await response.json()
+      const redirectUri = encodeURIComponent(`${window.location.origin}/${locale}/${tenant}/login`)
+      window.location.href = `${issuer}/protocol/openid-connect/logout?post_logout_redirect_uri=${redirectUri}`
+    } else {
+      console.warn(`failed to log out from the authentication server: ${response.status} ${response.statusText}`)
+    }
   }
 
   return (
@@ -71,7 +88,7 @@ export function NavUser() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => Logout()}>
+              <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
                 <LogOutIcon />
                 Log out
               </DropdownMenuItem>

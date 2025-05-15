@@ -148,6 +148,7 @@ export const CredentialsForm = () => {
           createdAt: schemaResponse?.credentialSchema?.createdAt ?? new Date(),
           updatedAt: schemaResponse?.credentialSchema?.updatedAt ?? new Date(),
         },
+        tenantId: tenantId ?? '',
         icon: assetResponse.asset,
       }
 
