@@ -370,7 +370,7 @@ describe('Database showcase repository tests', (): void => {
     const savedShowcase2 = await repository.create(showcase)
     expect(savedShowcase2).toBeDefined()
 
-    const fromDb = await repository.findAll()
+    const fromDb = await repository.findAll(tenant.id)
 
     expect(fromDb).toBeDefined()
     expect(fromDb.length).toEqual(2)
