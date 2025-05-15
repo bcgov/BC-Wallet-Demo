@@ -147,7 +147,7 @@ export async function createTestTenant(id = 'test-tenant'): Promise<Tenant> {
 export async function createTestCredentialDefinition(
   asset: Asset,
   schema: CredentialSchema,
-  tenantId?: string,
+  tenantId: string,
 ): Promise<CredentialDefinition> {
   const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
   return credentialDefinitionRepository.create({
@@ -158,7 +158,7 @@ export async function createTestCredentialDefinition(
     icon: asset.id,
     type: CredentialType.ANONCRED,
     credentialSchema: schema.id,
-    tenantId: tenantId || (await createTestTenant()).id,
+    tenantId: tenantId,
   })
 }
 
@@ -201,7 +201,7 @@ export async function createTestShowcase(
   const persona = await createTestPersona(asset)
   const schema = await createTestCredentialSchema()
   // Use renamed db helper
-  const definition = await createTestCredentialDefinition(asset, schema)
+  const definition = await createTestCredentialDefinition(asset, schema, tenantId)
   const issuer = await createTestIssuer(asset, definition, schema)
   const scenario = await createTestScenario(asset, persona, issuer, definition.id)
 
@@ -228,10 +228,9 @@ export async function createTestShowcase(
 }
 
 // Helper to create a Credential Definition via the service for API testing
-export async function createUnapprovedCredDef(name: string, tenantId?: string): Promise<CredentialDefinition> {
+export async function createUnapprovedCredDef(name: string, tenantId: string): Promise<CredentialDefinition> {
   const asset = await createTestAsset()
   const schema = await createTestCredentialSchema()
-  const actualTenantId = tenantId || (await createTestTenant()).id
 
   // Use the CredentialDefinitionService
   const credDefService = Container.get(CredentialDefinitionService)
@@ -241,7 +240,7 @@ export async function createUnapprovedCredDef(name: string, tenantId?: string): 
     type: CredentialType.ANONCRED,
     credentialSchema: schema.id,
     icon: asset.id,
-    tenantId: actualTenantId,
+    tenantId: tenantId,
   }
   const created = await credDefService.createCredentialDefinition(newCredDef)
 

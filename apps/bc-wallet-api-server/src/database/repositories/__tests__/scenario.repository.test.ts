@@ -46,6 +46,7 @@ import {
 import CredentialSchemaRepository from '../CredentialSchemaRepository'
 import PersonaRepository from '../PersonaRepository'
 import RelyingPartyRepository from '../RelyingPartyRepository'
+import { createTestTenant } from './dbTestData'
 
 describe('Database scenario repository tests', (): void => {
   let client: PGlite
@@ -56,6 +57,7 @@ describe('Database scenario repository tests', (): void => {
   let persona1: Persona
   let persona2: Persona
   let credentialDefinition: CredentialDefinition
+  let tenantId: string
 
   beforeEach(async (): Promise<void> => {
     client = new PGlite()
@@ -66,6 +68,11 @@ describe('Database scenario repository tests', (): void => {
     }
     Container.set(DatabaseService, mockDatabaseService)
     repository = Container.get(ScenarioRepository)
+
+    // Create a tenant for testing
+    const tenant = await createTestTenant('test-tenant')
+    tenantId = tenant.id
+
     const issuerRepository = Container.get(IssuerRepository)
     const relyingPartyRepository = Container.get(RelyingPartyRepository)
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
@@ -100,8 +107,8 @@ describe('Database scenario repository tests', (): void => {
     const credentialSchema = await credentialSchemaRepository.create(newCredentialSchema)
 
     const newCredentialDefinition: NewCredentialDefinition = {
-      tenantId: tenant.id,
       name: 'example_name',
+      tenantId: tenantId,
       version: 'example_version',
       identifierType: IdentifierType.DID,
       identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
