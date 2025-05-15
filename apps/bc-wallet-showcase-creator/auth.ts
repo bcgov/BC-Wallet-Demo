@@ -3,7 +3,6 @@ import Keycloak from 'next-auth/providers/keycloak'
 import { env } from '@/env'
 import { Tenant, TenantResponse } from 'bc-wallet-openapi'
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 
 export interface JWT {
   accessToken: string
@@ -40,23 +39,22 @@ class TenantConfigError extends Error {
   }
 }
 
-// Create a config store for dynamic tenant configuration
+// Tenant map to avoid excessive tenant config fetching TODO do we need to clear this after an auth error (in case issuer URL was changed which typically does not happen.)
 const tenantConfigs = new Map()
 
-// Function to get or fetch tenant config
 async function getOrFetchTenantConfig(tenantId: string) {
   if (!tenantConfigs.has(tenantId)) {
-    const config = await getTenantConfig(tenantId)
+    const config = await fetchTenantConfig(tenantId)
     tenantConfigs.set(tenantId, config)
   }
   return tenantConfigs.get(tenantId)
 }
 
-// API client function
-async function getTenantConfig(tenantId: string): Promise<Tenant> {
+async function fetchTenantConfig(tenantId: string): Promise<Tenant> {
   try {
-    console.debug(`Fetching tenant config for ${tenantId}`)
-    const response = await fetch(`${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`, {
+    const endpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+    console.debug(`Fetching tenant config for ${tenantId}`, endpoint)
+    const response = await fetch(endpoint, {
       method: 'GET',
       headers: {
         Accept: 'application/json',
@@ -74,29 +72,47 @@ async function getTenantConfig(tenantId: string): Promise<Tenant> {
   }
 }
 
-function getTenantIdFromCookie(req?: Request): string | undefined {
-  const nextReq = req as NextRequest | undefined;
-  
+/**
+ * The tenant-id cookie can't usually be accessed from the auth request, so take it from authjs.callback-url or referer
+ * @param nextReq
+ */
+function getTenantIdFromRequest(nextReq?: NextRequest): string | undefined {
   if (!nextReq) {
     return undefined
   }
 
-  // const cookieHeader = req.headers.get('cookie') || ''
-  // const cookies = cookieHeader.split(';').reduce(
-  //   (acc, cookie) => {
-  //     const [key, value] = cookie.trim().split('=')
-  //     acc[key] = value
-  //     return acc
-  //   },
-  //   {} as Record<string, string>,
-  // )
-  // console.debug('Cookies:', cookies)
+  const cookies = nextReq.cookies
 
-  // const referer = req.headers.get('referer') || ''
-  // const trimmedPath = referer.endsWith('/') ? referer.slice(0, -1) : referer
-  // const parts = trimmedPath.split('/').filter(Boolean)
-  return nextReq?.cookies.get('tenantId')?.value
-  // return cookies['tenant-id'] || (parts.length > 2 ? parts[3] : '')
+  let tenantId: string | undefined
+  if (!tenantId) {
+    const callbackUrl = cookies.get('authjs.callback-url')?.value
+    if (callbackUrl) {
+      tenantId = extractTenantFromUrl(callbackUrl)
+    }
+  }
+
+  if (!tenantId) {
+    const referer = nextReq.headers.get('referer') || ''
+    tenantId = extractTenantFromUrl(referer)
+  }
+
+  if (!tenantId) {
+    tenantId = cookies.get('tenant-id')?.value
+  }
+
+  return tenantId
+}
+
+function extractTenantFromUrl(url: string): string | undefined {
+  const trimmedPath = url.endsWith('/') // remove the ending slash to avoid and extra empty part
+    ? url.slice(0, -1)
+    : url
+  const parts = trimmedPath.split('/').filter(Boolean)
+
+  if (parts.length > 2) {
+    return parts[3] // https://host/<language>/<tenant>/<path>
+  }
+  return undefined
 }
 
 // Token refresh function
@@ -146,11 +162,11 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRequest, res?: NextResponse) => {
-  const tenantId = (await cookies()).get('tenant-id')?.value ?? getTenantIdFromCookie(req)
+  const tenantId = getTenantIdFromRequest(req)
   console.debug(`Auth using tenantId from cookie: ${tenantId}`)
 
   if (!tenantId) {
-    console.log('No tenantId found in request')
+    console.warn(`No tenantId found in request. Req is ${req ? 'not empty' : 'empty'}`)
     return {
       providers: [],
       session: { strategy: 'jwt' },
@@ -158,7 +174,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRe
   }
 
   try {
-    const tenantConfig = await getTenantConfig(tenantId)
+    const tenantConfig = await getOrFetchTenantConfig(tenantId)
     return {
       secret: env.AUTH_SECRET,
       providers: [

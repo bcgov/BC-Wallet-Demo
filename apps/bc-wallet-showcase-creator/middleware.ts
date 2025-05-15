@@ -3,6 +3,7 @@ import createMiddleware from 'next-intl/middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { routing } from './i18n/routing'
 import { env } from '@/env'
+import { getToken } from '@auth/core/jwt'
 
 const handleI18nRouting = createMiddleware(routing)
 
@@ -33,23 +34,25 @@ export default async function middleware(request: NextRequest) {
     sameSite: 'lax',
   })
 
-  // Authentication check
-  const session = await auth()
+  const sessionToken = await getToken({
+    req: request,
+    secret: env.AUTH_SECRET
+  })
 
-  // Redirect to login if no session and not already on login page
-  if (!session && !isLoginPage) {
-    console.log('No session found, redirecting to login page')
+  // Redirect to login if no session and not already on the login page
+  if (!sessionToken && !isLoginPage) {
+    console.log('No valid session token found, redirecting to login page')
     const localeToNavigate = locale || routing.defaultLocale
     const loginPath = `/${localeToNavigate}/${tenantId}/login`
     return NextResponse.redirect(new URL(loginPath, request.url))
   }
 
-  // Check if path is root or only contains locale
+  // Check if a path is root or only contains a locale
   const path = request.nextUrl.pathname
   const isRootPath = path === '/'
   const isLocaleOnlyPath = routing.locales.some(loc => path === `/${loc}`)
   if (isRootPath || isLocaleOnlyPath) {
-    // Redirect to the credentials page with default tenant
+    // Redirect to the credentials' page with the default tenant
     const defaultLocale = locale || routing.defaultLocale
     const redirectUrl = `/${defaultLocale}/${tenantId}/credentials`
     return NextResponse.redirect(new URL(redirectUrl, request.url))
@@ -59,9 +62,8 @@ export default async function middleware(request: NextRequest) {
 }
 
 function extractPathComponents(request: NextRequest) {
-  const forwardedPath = request.headers.get('x-forwarded-prefix') || ''
-  const fullPath = forwardedPath + request.nextUrl.pathname
-  const trimmedPath = fullPath.endsWith('/') ? fullPath.slice(0, -1) : fullPath
+  const path = request.nextUrl.pathname
+  const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path
   const parts = trimmedPath.split('/').filter(Boolean)
 
   return {
