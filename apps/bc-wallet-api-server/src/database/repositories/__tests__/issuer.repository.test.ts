@@ -25,7 +25,6 @@ import AssetRepository from '../AssetRepository'
 import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../CredentialSchemaRepository'
 import IssuerRepository from '../IssuerRepository'
-import TenantRepository from '../TenantRepository'
 import { createTestTenant } from './dbTestData'
 
 describe('Database issuer repository tests', (): void => {
