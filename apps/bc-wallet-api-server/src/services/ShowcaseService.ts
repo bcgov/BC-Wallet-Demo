@@ -47,6 +47,7 @@ class ShowcaseService {
         `The showcase is being updated for tenant ${showcase.tenantId}, but the signed in tenant is ${tenantId}.`,
       )
     }
+
     return this.showcaseRepository.update(id, showcase)
   }
 
@@ -133,15 +134,11 @@ class ShowcaseService {
   }
 
   private getTenantId() {
-    const currentTenant = this.sessionService.getCurrentTenant()
-    if (!currentTenant) {
-      const urlTenantId = this.sessionService.getUrlTenantId()
-      if (!urlTenantId) {
-        throw new InternalServerError('Tenant details are missing')
-      }
-      return urlTenantId
+    const urlTenantId = this.sessionService.getUrlTenantId()
+    if (!urlTenantId) {
+      throw new InternalServerError('Tenant details are missing')
     }
-    return currentTenant.id
+    return urlTenantId
   }
 }
 

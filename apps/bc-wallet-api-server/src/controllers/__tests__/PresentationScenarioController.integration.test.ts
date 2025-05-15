@@ -13,6 +13,7 @@ import {
   createTestCredentialDefinition,
   createTestCredentialSchema,
   createTestPersona,
+  createTestTenant,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -38,6 +39,7 @@ describe('PresentationScenarioController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
+  let tenantId: string
 
   beforeAll(async () => {
     const { client: pgClient, database } = await setupTestDatabase()
@@ -51,6 +53,11 @@ describe('PresentationScenarioController Integration Tests', () => {
     Container.get(RelyingPartyRepository)
     Container.get(ScenarioRepository)
     Container.get(ScenarioService)
+
+    // Create a tenant for testing
+    const tenant = await createTestTenant('test-tenant')
+    tenantId = tenant.id
+
     app = createExpressServer({
       controllers: [PresentationScenarioController],
       authorizationChecker: () => true,
@@ -67,7 +74,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     // Create prerequisites using test utilities
     const asset = await createTestAsset()
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
     // Create relying party
     const relyingPartyRepository = Container.get(RelyingPartyRepository)
@@ -218,7 +225,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     // Try to create a step for a non-existent scenario
     const asset = await createTestAsset()
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
     const stepRequest = createApiStepRequest(asset.id, credentialDefinition.id)
     await request.post(`/scenarios/presentations/${nonExistentSlug}/steps`).send(stepRequest).expect(404)
@@ -236,7 +243,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     const asset = await createTestAsset()
     const persona = await createTestPersona(asset)
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
     // Attempt to create a scenario with a non-existent issuer
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
@@ -254,7 +261,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     // Set up assets and dependencies
     const asset = await createTestAsset()
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
     const relyingPartyRepository = Container.get(RelyingPartyRepository)
     const relyingParty = await relyingPartyRepository.create({

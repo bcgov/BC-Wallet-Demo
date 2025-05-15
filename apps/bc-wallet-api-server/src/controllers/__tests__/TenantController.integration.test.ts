@@ -25,11 +25,13 @@ import { ShowcaseStatus } from '../../types'
 import TenantController from '../TenantController'
 import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
+import { MockSessionService } from './MockSessionService'
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
+  let sessionService: MockSessionService
 
   beforeAll(async () => {
     process.env.ENCRYPTION_KEY = environment.encryption.ENCRYPTION_KEY = 'F5XH4zeMFB6nLKY7g15kpkVEcxFkGokGbAKSPbzaTEwe'
@@ -41,6 +43,7 @@ describe('TenantController Integration Tests', () => {
     useContainer(Container)
     Container.get(TenantRepository)
     Container.get(TenantService)
+    sessionService = Container.get(MockSessionService)
     app = createExpressServer({
       controllers: [TenantController],
       authorizationChecker: () => true,
@@ -120,12 +123,13 @@ describe('TenantController Integration Tests', () => {
 
     // Create test tenant
     const tenant = await createTestTenant('cascade-test-tenant')
+    sessionService.setCurrentTenant(tenant)
 
     // Create test data
     const asset = await createTestAsset()
     const persona = await createTestPersona(asset)
     const schema = await createTestCredentialSchema()
-    const definition = await createTestCredentialDefinition(asset, schema)
+    const definition = await createTestCredentialDefinition(asset, schema, tenant.id)
     const issuer = await createTestIssuer(asset, definition, schema)
     const scenario = await createTestScenario(asset, persona, issuer, definition.id)
 
@@ -146,7 +150,7 @@ describe('TenantController Integration Tests', () => {
     // Verify showcase was created
     const showcaseRepository = Container.get(ShowcaseRepository)
     // Get the showcase ID first, then use it to verify showcase exists
-    const showcaseId = await showcaseRepository.findIdBySlug(showcase.slug)
+    const showcaseId = await showcaseRepository.findIdBySlug(showcase.slug, tenant.id)
     const showcaseBeforeDelete = await showcaseRepository.findById(showcaseId)
     expect(showcaseBeforeDelete).toBeDefined()
 
@@ -158,7 +162,7 @@ describe('TenantController Integration Tests', () => {
 
     // Verify showcase was also deleted (cascade)
     try {
-      await showcaseRepository.findIdBySlug(showcase.slug)
+      await showcaseRepository.findIdBySlug(showcase.slug, tenant.id)
       // Should not reach here
       fail('Showcase should have been deleted')
     } catch (error) {

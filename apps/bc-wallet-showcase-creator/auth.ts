@@ -42,7 +42,7 @@ class TenantConfigError extends Error {
 // Tenant map to avoid excessive tenant config fetching TODO do we need to clear this after an auth error (in case issuer URL was changed which typically does not happen.)
 const tenantConfigs = new Map()
 
-async function getOrFetchTenantConfig(tenantId: string) {
+async function getOrFetchTenantConfig(tenantId: string): Promise<Tenant> {
   if (!tenantConfigs.has(tenantId)) {
     const config = await fetchTenantConfig(tenantId)
     tenantConfigs.set(tenantId, config)
@@ -62,13 +62,13 @@ async function fetchTenantConfig(tenantId: string): Promise<Tenant> {
     })
 
     if (!response.ok) {
-      throw new TenantConfigError(tenantId)
+      return Promise.reject(new TenantConfigError(tenantId))
     }
     const tenantResponse = (await response.json()) as TenantResponse
     return tenantResponse.tenant
   } catch (error) {
     console.error('Error fetching tenant config:', error)
-    throw error instanceof TenantConfigError ? error : new TenantConfigError(tenantId)
+    return Promise.reject(error instanceof TenantConfigError ? error : new TenantConfigError(tenantId))
   }
 }
 
@@ -109,7 +109,7 @@ function extractTenantFromUrl(url: string): string | undefined {
     : url
   const parts = trimmedPath.split('/').filter(Boolean)
 
-  if (parts.length > 2) {
+  if (parts.length > 3) {
     return parts[3] // https://host/<language>/<tenant>/<path>
   }
   return undefined
@@ -118,14 +118,14 @@ function extractTenantFromUrl(url: string): string | undefined {
 // Token refresh function
 async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: string) {
   if (!token.refresh_token) {
-    throw new Error('Missing refresh_token')
+    return Promise.reject(new Error('Missing refresh_token'))
   }
 
   try {
     const url = new URL(`${tenantConfig.oidcIssuer}/protocol/openid-connect/token`).toString()
     const response = await fetch(url, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         client_id: tenantId,
         grant_type: 'refresh_token',
@@ -135,7 +135,7 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
 
     const tokensOrError = await response.json()
     if (!response.ok) {
-      throw tokensOrError
+      return Promise.reject(tokensOrError)
     }
 
     const newTokens = tokensOrError as {
@@ -161,29 +161,52 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRequest, res?: NextResponse) => {
+async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<NextAuthConfig> {
   const tenantId = getTenantIdFromRequest(req)
   console.debug(`Auth using tenantId from cookie: ${tenantId}`)
 
+  // Basic configuration without tenant-specific settings
+  const baseConfig: NextAuthConfig = {
+    secret: env.AUTH_SECRET,
+    providers: [],
+    session: { strategy: 'jwt' },
+    callbacks: {
+      async redirect({ url, baseUrl }) {
+        if (url.startsWith(baseUrl)) {
+          return url
+        }
+        if (url.startsWith('/')) {
+          return `${baseUrl}${url}`
+        }
+        return baseUrl
+      },
+    },
+  }
+
   if (!tenantId) {
     console.warn(`No tenantId found in request. Req is ${req ? 'not empty' : 'empty'}`)
-    return {
-      providers: [],
-      session: { strategy: 'jwt' },
-    }
+    return baseConfig
   }
 
   try {
     const tenantConfig = await getOrFetchTenantConfig(tenantId)
+
     return {
-      secret: env.AUTH_SECRET,
+      ...baseConfig,
       providers: [
         Keycloak({
           clientId: tenantId,
           issuer: tenantConfig.oidcIssuer,
+          authorization: {
+            params: {
+              prompt: 'login',
+              max_age: 0,
+            },
+          },
         }),
       ],
       callbacks: {
+        ...baseConfig.callbacks,
         async jwt({ token, account }) {
           if (account) {
             return {
@@ -207,23 +230,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth((async (req?: NextRe
             return await refreshAccessToken(token, tenantConfig, tenantId)
           }
         },
-
         async session({ session, token }) {
-          session.user = session.user
           session.accessToken = token.access_token as string | undefined
           session.error = token.error as 'RefreshAccessTokenError' | undefined
           return session
         },
       },
-      session: {
-        strategy: 'jwt',
-      },
-    } as NextAuthConfig
+    }
   } catch (error) {
     console.error(`Failed to initialize auth for tenant ${tenantId}:`, error)
-    return {
-      providers: [],
-      session: { strategy: 'jwt' },
-    } as NextAuthConfig
+    return baseConfig
   }
-}) as unknown as NextAuthConfig)
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth(buildAuthConfig)

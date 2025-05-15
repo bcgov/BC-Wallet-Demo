@@ -159,7 +159,7 @@ describe('ShowcaseController Integration Tests', () => {
     const asset = await createTestAsset()
     const persona = await createTestPersona(asset)
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
     const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema)
 
     const scenario = await createApiTestScenario(asset.id, persona.id, issuer.id, credentialDefinition.id)
@@ -176,7 +176,7 @@ describe('ShowcaseController Integration Tests', () => {
       tenantId: 'non-existent-tenant',
     }
 
-    await request.post('/showcases').send(invalidTenantShowcaseRequest).expect(500)
+    await request.post('/showcases').send(invalidTenantShowcaseRequest).expect(403)
   })
 
   it('should duplicate a showcase', async () => {

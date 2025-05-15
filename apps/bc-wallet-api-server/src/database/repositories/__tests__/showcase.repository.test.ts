@@ -8,36 +8,26 @@ import { Container } from 'typedi'
 import DatabaseService from '../../../services/DatabaseService'
 import {
   Asset,
-  CredentialAttributeType,
   CredentialDefinition,
-  CredentialType,
-  IdentifierType,
   IssuanceScenario,
-  IssuerType,
-  NewCredentialDefinition,
-  NewCredentialSchema,
-  NewIssuanceScenario,
-  NewIssuer,
-  NewPersona,
   NewShowcase,
-  NewTenant,
   Persona,
   ShowcaseStatus,
-  StepActionType,
-  StepType,
   Tenant,
-  TenantType,
   User,
 } from '../../../types'
 import * as schema from '../../schema'
-import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import IssuerRepository from '../IssuerRepository'
-import PersonaRepository from '../PersonaRepository'
-import ScenarioRepository from '../ScenarioRepository'
 import ShowcaseRepository from '../ShowcaseRepository'
-import TenantRepository from '../TenantRepository'
-import { createTestAsset, createTestUser } from './dbTestData'
+import {
+  createTestAsset,
+  createTestCredentialDefinition,
+  createTestCredentialSchema,
+  createTestIssuer,
+  createTestPersona,
+  createTestScenario,
+  createTestTenant,
+  createTestUser,
+} from './dbTestData'
 
 describe('Database showcase repository tests', (): void => {
   let client: PGlite
@@ -61,174 +51,27 @@ describe('Database showcase repository tests', (): void => {
     }
     Container.set(DatabaseService, mockDatabaseService)
     repository = Container.get(ShowcaseRepository)
-    const issuerRepository = Container.get(IssuerRepository)
-    const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
-    const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
+
+    // Create test utilities using dbTestData helper functions
     user = await createTestUser('test-user-showcase')
     asset = await createTestAsset()
-    const newCredentialSchema: NewCredentialSchema = {
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        {
-          name: 'example_attribute_name1',
-          value: 'example_attribute_value1',
-          type: CredentialAttributeType.STRING,
-        },
-        {
-          name: 'example_attribute_name2',
-          value: 'example_attribute_value2',
-          type: CredentialAttributeType.STRING,
-        },
-      ],
-    }
-    const credentialSchema = await credentialSchemaRepository.create(newCredentialSchema)
-    const newCredentialDefinition: NewCredentialDefinition = {
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      icon: asset.id,
-      type: CredentialType.ANONCRED,
-      credentialSchema: credentialSchema.id,
-      // representations: [
-      //     { // TODO SHOWCASE-81 OCARepresentation
-      //
-      //     },
-      //     { // TODO SHOWCASE-81 OCARepresentation
-      //
-      //     }
-      // ],
-      // revocation: { // TODO SHOWCASE-80 AnonCredRevocation
-      //     title: 'example_revocation_title',
-      //     description: 'example_revocation_description'
-      // }
-    }
-    credentialDefinition1 = await credentialDefinitionRepository.create(newCredentialDefinition)
-    credentialDefinition2 = await credentialDefinitionRepository.create(newCredentialDefinition)
-    const newIssuer: NewIssuer = {
-      name: 'example_name',
-      type: IssuerType.ARIES,
-      credentialDefinitions: [credentialDefinition1.id],
-      credentialSchemas: [credentialSchema.id],
-      description: 'example_description',
-      organization: 'example_organization',
-      logo: asset.id,
-    }
-    const issuer = await issuerRepository.create(newIssuer)
-    const personaRepository = Container.get(PersonaRepository)
-    const newPersona: NewPersona = {
-      name: 'John Doe',
-      role: 'Software Engineer',
-      description: 'Experienced developer',
-      headshotImage: asset.id,
-      bodyImage: asset.id,
-      hidden: false,
-    }
-    persona1 = await personaRepository.create(newPersona)
-    persona2 = await personaRepository.create(newPersona)
-    const scenarioRepository = Container.get(ScenarioRepository)
-    const newIssuanceScenario: NewIssuanceScenario = {
-      name: 'example_name',
-      description: 'example_description',
-      issuer: issuer.id,
-      steps: [
-        {
-          title: 'example_title',
-          description: 'example_description',
-          order: 1,
-          type: StepType.HUMAN_TASK,
-          asset: asset.id,
-          actions: [
-            {
-              title: 'example_title',
-              actionType: StepActionType.ARIES_OOB,
-              text: 'example_text',
-              proofRequest: {
-                attributes: {
-                  attribute1: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  attribute2: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-                predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-              },
-            },
-          ],
-        },
-        {
-          title: 'example_title',
-          description: 'example_description',
-          order: 2,
-          type: StepType.HUMAN_TASK,
-          asset: asset.id,
-          actions: [
-            {
-              title: 'example_title',
-              actionType: StepActionType.ARIES_OOB,
-              text: 'example_text',
-              proofRequest: {
-                attributes: {
-                  attribute1: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  attribute2: {
-                    attributes: ['attribute1', 'attribute2'],
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-                predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                },
-              },
-            },
-          ],
-        },
-      ],
-      personas: [persona1.id, persona2.id],
-      bannerImage: null,
-      hidden: false,
-    }
-    issuanceScenario1 = await scenarioRepository.create(newIssuanceScenario)
-    issuanceScenario2 = await scenarioRepository.create(newIssuanceScenario)
-    const tenantRepository = Container.get(TenantRepository)
-    const newTenant: NewTenant = {
-      id: '79a56be5-89bd-40dc-a6a7-fc035487e437',
-      tenantType: TenantType.SHOWCASE,
-      oidcIssuer: 'https://auth-server/auth/realms/test',
-    }
-    tenant = await tenantRepository.create(newTenant)
+    tenant = await createTestTenant()
+
+    // Create credential schema and definitions
+    const credentialSchema = await createTestCredentialSchema()
+    credentialDefinition1 = await createTestCredentialDefinition(asset, credentialSchema, tenant.id)
+    credentialDefinition2 = await createTestCredentialDefinition(asset, credentialSchema, tenant.id)
+
+    // Create issuer
+    const issuer = await createTestIssuer(asset, credentialDefinition1, credentialSchema)
+
+    // Create personas
+    persona1 = await createTestPersona(asset)
+    persona2 = await createTestPersona(asset)
+
+    // Create scenarios
+    issuanceScenario1 = await createTestScenario(asset, persona1, issuer, credentialDefinition1.id)
+    issuanceScenario2 = await createTestScenario(asset, persona2, issuer, credentialDefinition2.id)
   })
 
   afterEach(async (): Promise<void> => {

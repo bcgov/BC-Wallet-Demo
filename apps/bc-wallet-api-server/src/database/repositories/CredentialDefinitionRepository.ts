@@ -3,13 +3,21 @@ import { NotFoundError } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import DatabaseService from '../../services/DatabaseService'
-import { CredentialDefinition, IdentifierType, NewCredentialDefinition, RepositoryDefinition, Tx } from '../../types'
+import {
+  CredentialDefinition,
+  IdentifierType,
+  NewCredentialDefinition,
+  TenantScopedRepositoryDefinition,
+  Tx,
+} from '../../types'
 import { credentialDefinitions, credentialRepresentations, revocationInfo } from '../schema'
 import AssetRepository from './AssetRepository'
 import CredentialSchemaRepository from './CredentialSchemaRepository'
 
 @Service()
-class CredentialDefinitionRepository implements RepositoryDefinition<CredentialDefinition, NewCredentialDefinition> {
+class CredentialDefinitionRepository
+  implements TenantScopedRepositoryDefinition<CredentialDefinition, NewCredentialDefinition>
+{
   public constructor(
     private readonly databaseService: DatabaseService,
     private readonly assetRepository: AssetRepository,
@@ -117,6 +125,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
       return {
         // Map direct columns from updatedRecord
         id: updatedRecord.id,
+        tenantId: updatedRecord.tenantId,
         name: updatedRecord.name,
         version: updatedRecord.version,
         identifierType: updatedRecord.identifierType,
@@ -141,9 +150,13 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     })
   }
 
-  public async findById(id: string, tx?: Tx): Promise<CredentialDefinition> {
+  public async findById(id: string, tenantId?: string, tx?: Tx): Promise<CredentialDefinition> {
+    const whereCondition = tenantId
+      ? and(eq(credentialDefinitions.id, id), eq(credentialDefinitions.tenantId, tenantId))
+      : eq(credentialDefinitions.id, id)
+
     const result = await (tx ?? (await this.databaseService.getConnection())).query.credentialDefinitions.findFirst({
-      where: eq(credentialDefinitions.id, id),
+      where: whereCondition,
       with: {
         icon: true,
         cs: {
@@ -206,10 +219,13 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     }
   }
 
-  public async findAll(): Promise<CredentialDefinition[]> {
+  public async findAll(tenantId?: string): Promise<CredentialDefinition[]> {
+    const whereCondition = tenantId ? eq(credentialDefinitions.tenantId, tenantId) : undefined
+
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialDefinitions.findMany({
+      where: whereCondition,
       with: {
         icon: true,
         cs: {
@@ -230,11 +246,15 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     }))
   }
 
-  public async findUnapproved(): Promise<CredentialDefinition[]> {
+  public async findUnapproved(tenantId?: string): Promise<CredentialDefinition[]> {
+    const whereCondition = tenantId
+      ? and(isNull(credentialDefinitions.approvedAt), eq(credentialDefinitions.tenantId, tenantId))
+      : isNull(credentialDefinitions.approvedAt)
+
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialDefinitions.findMany({
-      where: isNull(credentialDefinitions.approvedAt),
+      where: whereCondition,
       with: {
         icon: true,
         cs: {
@@ -264,7 +284,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
     )
   }
 
-  public async approve(id: string, userId: string): Promise<CredentialDefinition> {
+  public async approve(id: string, userId: string, tenantId?: string): Promise<CredentialDefinition> {
     const now = new Date()
 
     const connection = await this.databaseService.getConnection()
@@ -277,7 +297,7 @@ class CredentialDefinitionRepository implements RepositoryDefinition<CredentialD
           updatedAt: now,
         })
         .where(eq(credentialDefinitions.id, id))
-      return await this.findById(id, tx)
+      return await this.findById(id, tenantId, tx)
     })
   }
 }

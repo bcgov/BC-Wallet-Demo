@@ -14,6 +14,7 @@ import {
   createTestCredentialSchema,
   createTestIssuer,
   createTestPersona,
+  createTestTenant,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -33,6 +34,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
+  let tenantId: string
 
   beforeAll(async () => {
     const { client: pgClient, database } = await setupTestDatabase()
@@ -47,6 +49,11 @@ describe('IssuanceScenarioController Integration Tests', () => {
     Container.get(PersonaRepository)
     Container.get(ScenarioRepository)
     Container.get(ScenarioService)
+
+    // Create a tenant for testing
+    const tenant = await createTestTenant('test-tenant')
+    tenantId = tenant.id
+
     app = createExpressServer({
       controllers: [IssuanceScenarioController],
       authorizationChecker: () => true,
@@ -63,7 +70,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
     // Create prerequisites
     const asset = await createTestAsset()
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
     const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema)
     const persona = await createTestPersona(asset)
 
@@ -234,7 +241,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
     // Try to create a step for a non-existent scenario
     const asset = await createTestAsset()
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
     const stepRequest = createApiStepRequest(asset.id, credentialDefinition.id)
 
@@ -253,7 +260,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
     const asset = await createTestAsset()
     const persona = await createTestPersona(asset)
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
     // Attempt to create a scenario with a non-existent issuer
     const nonExistentId = '00000000-0000-0000-0000-000000000000'

@@ -1,12 +1,13 @@
-import { boolean, index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
-import { showcasesToPersonas } from './showcasesToPersonas'
-import { showcaseStatusPg } from './showcaseStatus'
+import { boolean, index, uniqueIndex, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+
 import { ShowcaseStatus } from '../../types'
-import { showcasesToScenarios } from './showcasesToScenarios'
 import { assets } from './asset'
-import { users } from './user'
+import { showcaseStatusPg } from './showcaseStatus'
+import { showcasesToPersonas } from './showcasesToPersonas'
+import { showcasesToScenarios } from './showcasesToScenarios'
 import { tenants } from './tenants'
+import { users } from './user'
 
 export const showcases = pgTable(
   'showcase',
@@ -16,7 +17,7 @@ export const showcases = pgTable(
       .references(() => tenants.id, { onDelete: 'cascade' })
       .notNull(),
     name: text().notNull(),
-    slug: text().notNull().unique(),
+    slug: text().notNull(),
     description: text().notNull(),
     completionMessage: text(),
     status: showcaseStatusPg().notNull().$type<ShowcaseStatus>(),
@@ -35,6 +36,7 @@ export const showcases = pgTable(
     index('idx_bannerImage').on(t.bannerImage),
     index('idx_tenant_id').on(t.tenantId),
     index('idx_sc_approvedBy').on(t.approvedBy),
+    uniqueIndex('idx_tenant_slug_unique').on(t.tenantId, t.slug),
   ],
 )
 
