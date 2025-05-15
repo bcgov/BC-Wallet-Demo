@@ -100,6 +100,7 @@ describe('Database scenario repository tests', (): void => {
     const credentialSchema = await credentialSchemaRepository.create(newCredentialSchema)
 
     const newCredentialDefinition: NewCredentialDefinition = {
+      tenantId: tenant.id,
       name: 'example_name',
       version: 'example_version',
       identifierType: IdentifierType.DID,
@@ -446,7 +447,9 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.predicates!.predicate1).toBeDefined()
         expect(action.proofRequest.predicates!.predicate1.name).toEqual(action.proofRequest.predicates!.predicate1.name)
         expect(action.proofRequest.predicates!.predicate1.type).toEqual(action.proofRequest.predicates!.predicate1.type)
-        expect(action.proofRequest.predicates!.predicate1.value).toEqual(action.proofRequest.predicates!.predicate1.value)
+        expect(action.proofRequest.predicates!.predicate1.value).toEqual(
+          action.proofRequest.predicates!.predicate1.value,
+        )
         expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
       }
     }

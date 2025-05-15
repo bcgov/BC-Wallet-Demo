@@ -246,11 +246,15 @@ class CredentialDefinitionRepository
     }))
   }
 
-  public async findUnapproved(): Promise<CredentialDefinition[]> {
+  public async findUnapproved(tenantId?: string): Promise<CredentialDefinition[]> {
+    const whereCondition = tenantId
+      ? and(isNull(credentialDefinitions.approvedAt), eq(credentialDefinitions.tenantId, tenantId))
+      : isNull(credentialDefinitions.approvedAt)
+
     const result = await (
       await this.databaseService.getConnection()
     ).query.credentialDefinitions.findMany({
-      where: isNull(credentialDefinitions.approvedAt),
+      where: whereCondition,
       with: {
         icon: true,
         cs: {

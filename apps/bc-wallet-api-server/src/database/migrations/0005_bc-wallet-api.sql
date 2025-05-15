@@ -1,2 +1,2 @@
-ALTER TABLE "credentialDefinition" ADD COLUMN "tenant_id" text;--> statement-breakpoint
+ALTER TABLE "credentialDefinition" ADD COLUMN "tenant_id" text NOT NULL;--> statement-breakpoint
 ALTER TABLE "credentialDefinition" ADD CONSTRAINT "credentialDefinition_tenant_id_tenant_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenant"("id") ON DELETE cascade ON UPDATE no action;

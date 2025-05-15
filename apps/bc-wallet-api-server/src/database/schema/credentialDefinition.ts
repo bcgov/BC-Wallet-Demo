@@ -17,7 +17,9 @@ export const credentialDefinitions = pgTable(
   'credentialDefinition',
   {
     id: uuid('id').notNull().primaryKey().defaultRandom(),
-    tenantId: text('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }), // TODO .notNull() but then we cannot migrate anymore because of the new relation
+    tenantId: text('tenant_id')
+      .references(() => tenants.id, { onDelete: 'cascade' })
+      .notNull(),
     name: text().notNull(),
     version: text().notNull(),
     identifierType: IdentifierTypePg('identifier_type').$type<IdentifierType>(),

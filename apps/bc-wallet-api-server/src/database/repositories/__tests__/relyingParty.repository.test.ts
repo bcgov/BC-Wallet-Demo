@@ -74,6 +74,7 @@ describe('Database relying party repository tests', (): void => {
     credentialSchema = await credentialSchemaRepository.create(newCredentialSchema)
 
     const newCredentialDefinition: NewCredentialDefinition = {
+      tenantId: tenant.id,
       name: 'example_name',
       version: 'example_version',
       identifierType: IdentifierType.DID,

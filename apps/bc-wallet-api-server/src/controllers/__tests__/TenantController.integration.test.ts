@@ -146,7 +146,7 @@ describe('TenantController Integration Tests', () => {
     // Verify showcase was created
     const showcaseRepository = Container.get(ShowcaseRepository)
     // Get the showcase ID first, then use it to verify showcase exists
-    const showcaseId = await showcaseRepository.findIdBySlug(showcase.slug)
+    const showcaseId = await showcaseRepository.findIdBySlug(showcase.slug, tenant.id)
     const showcaseBeforeDelete = await showcaseRepository.findById(showcaseId)
     expect(showcaseBeforeDelete).toBeDefined()
 
@@ -158,7 +158,7 @@ describe('TenantController Integration Tests', () => {
 
     // Verify showcase was also deleted (cascade)
     try {
-      await showcaseRepository.findIdBySlug(showcase.slug)
+      await showcaseRepository.findIdBySlug(showcase.slug, tenant.id)
       // Should not reach here
       fail('Showcase should have been deleted')
     } catch (error) {
