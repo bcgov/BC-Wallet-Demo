@@ -36,8 +36,17 @@ export class CredentialDefinitionController {
 
   @Get('/')
   public async getAll(): Promise<CredentialDefinitionsResponse> {
+    return await this.getInternal(false)
+  }
+
+  @Get('/issuance')
+  public async getAllForIssuance(): Promise<CredentialDefinitionsResponse> {
+    return await this.getInternal(true)
+  }
+
+  private async getInternal(filterTenant: boolean) {
     try {
-      const result = await this.credentialDefinitionService.getCredentialDefinitions()
+      const result = await this.credentialDefinitionService.getCredentialDefinitions(filterTenant)
       const credentialDefinitions = result.map((credentialDefinition) =>
         credentialDefinitionDTOFrom(credentialDefinition),
       )

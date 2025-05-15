@@ -874,6 +874,27 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /credentials/definitions/issuance:
+    get:
+      tags:
+        - Credential Definitions
+      summary: List credential definitions suitable for issuance (current tenant id, taken from base URL)
+      operationId: listCredentialDefinitionsForIssuance
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialDefinitionsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /credentials/definitions/import:
     post:
       tags:

@@ -9,13 +9,18 @@ import { CredentialTypePg } from './credentialType'
 import { IdentifierTypePg } from './identifierType'
 import { relyingPartiesToCredentialDefinitions } from './relyingPartiesToCredentialDefinitions'
 import { revocationInfo } from './revocationInfo'
+import { showcases } from './showcase'
 import { SourcePg } from './sourceType'
+import { tenants } from './tenants'
 import { users } from './user'
 
 export const credentialDefinitions = pgTable(
   'credentialDefinition',
   {
     id: uuid('id').notNull().primaryKey().defaultRandom(),
+    tenantId: text('tenant_id')
+      .references(() => tenants.id, { onDelete: 'cascade' })
+      .notNull(),
     name: text().notNull(),
     version: text().notNull(),
     identifierType: IdentifierTypePg('identifier_type').$type<IdentifierType>(),
@@ -49,6 +54,10 @@ export const credentialDefinitionRelations = relations(credentialDefinitions, ({
   icon: one(assets, {
     fields: [credentialDefinitions.icon],
     references: [assets.id],
+  }),
+  tenant: one(tenants, {
+    fields: [showcases.tenantId],
+    references: [tenants.id],
   }),
   approver: one(users, {
     fields: [credentialDefinitions.approvedBy],

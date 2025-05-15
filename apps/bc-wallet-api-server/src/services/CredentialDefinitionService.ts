@@ -27,7 +27,8 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * Retrieves all credential definitions.
    * @returns Promise resolving to an array of CredentialDefinition objects
    */
-  public getCredentialDefinitions = async (): Promise<CredentialDefinition[]> => {
+  public getCredentialDefinitions = async (filterTenant?: boolean = false): Promise<CredentialDefinition[]> => {
+    this.sessionService.getCurrentTenant()
     return this.credentialDefinitionRepository.findAll()
   }
 
