@@ -1,5 +1,6 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { type CredentialDefinitionImportRequest } from 'bc-wallet-openapi'
+import { ForbiddenError, InternalServerError } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
 import { validate as uuidValidate } from 'uuid'
 
@@ -27,9 +28,9 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * Retrieves all credential definitions.
    * @returns Promise resolving to an array of CredentialDefinition objects
    */
-  public getCredentialDefinitions = async (filterTenant?: boolean = false): Promise<CredentialDefinition[]> => {
+  public getCredentialDefinitions = async (filterTenant: boolean = false): Promise<CredentialDefinition[]> => {
     this.sessionService.getCurrentTenant()
-    return this.credentialDefinitionRepository.findAll()
+    return this.credentialDefinitionRepository.findAll(filterTenant ? this.getTenantId() : undefined)
   }
 
   /**
@@ -62,6 +63,15 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
   public createCredentialDefinition = async (
     credentialDefinition: NewCredentialDefinition,
   ): Promise<CredentialDefinition> => {
+    const tenantId = this.getTenantId()
+    if (!credentialDefinition.tenantId) {
+      credentialDefinition.tenantId = tenantId
+    } else if (credentialDefinition.tenantId !== tenantId) {
+      throw new ForbiddenError(
+        `The credential definition is being created for tenant ${credentialDefinition.tenantId}, but the signed in tenant is ${tenantId}.`,
+      )
+    }
+
     return this.credentialDefinitionRepository.create(credentialDefinition)
   }
 
@@ -75,6 +85,15 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
     id: string,
     credentialDefinition: NewCredentialDefinition,
   ): Promise<CredentialDefinition> => {
+    const tenantId = this.getTenantId()
+    if (!credentialDefinition.tenantId) {
+      credentialDefinition.tenantId = tenantId
+    } else if (credentialDefinition.tenantId !== tenantId) {
+      throw new ForbiddenError(
+        `The credentialDefinition is being updated for tenant ${credentialDefinition.tenantId}, but the signed in tenant is ${tenantId}.`,
+      )
+    }
+
     return this.credentialDefinitionRepository.update(id, credentialDefinition)
   }
 
@@ -126,6 +145,15 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
   public isApproved = async (id: string): Promise<boolean> => {
     const credentialDef = await this.credentialDefinitionRepository.findById(id)
     return credentialDef.approvedBy !== undefined && credentialDef.approvedBy !== null
+  }
+
+  private getTenantId() {
+    // TODO Deduplicate with showcase service
+    const urlTenantId = this.sessionService.getUrlTenantId()
+    if (!urlTenantId) {
+      throw new InternalServerError('Tenant details are missing')
+    }
+    return urlTenantId
   }
 }
 

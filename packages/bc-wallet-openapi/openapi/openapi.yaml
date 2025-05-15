@@ -3140,6 +3140,10 @@ components:
           type: string
           description: Unique identifier for the credential definition
           example: 123e4567-e89b-12d3-a456-426614174123
+        tenantId:
+          type: string
+          description: ID of the tenant that created this showcase
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         name:
           type: string
           description: Name of the credential definition

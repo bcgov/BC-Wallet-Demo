@@ -9,7 +9,6 @@ import { CredentialTypePg } from './credentialType'
 import { IdentifierTypePg } from './identifierType'
 import { relyingPartiesToCredentialDefinitions } from './relyingPartiesToCredentialDefinitions'
 import { revocationInfo } from './revocationInfo'
-import { showcases } from './showcase'
 import { SourcePg } from './sourceType'
 import { tenants } from './tenants'
 import { users } from './user'
@@ -18,9 +17,7 @@ export const credentialDefinitions = pgTable(
   'credentialDefinition',
   {
     id: uuid('id').notNull().primaryKey().defaultRandom(),
-    tenantId: text('tenant_id')
-      .references(() => tenants.id, { onDelete: 'cascade' })
-      .notNull(),
+    tenantId: text('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }), // TODO .notNull() but then we cannot migrate anymore because of the new relation
     name: text().notNull(),
     version: text().notNull(),
     identifierType: IdentifierTypePg('identifier_type').$type<IdentifierType>(),
@@ -56,7 +53,7 @@ export const credentialDefinitionRelations = relations(credentialDefinitions, ({
     references: [assets.id],
   }),
   tenant: one(tenants, {
-    fields: [showcases.tenantId],
+    fields: [credentialDefinitions.tenantId],
     references: [tenants.id],
   }),
   approver: one(users, {

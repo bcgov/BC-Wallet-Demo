@@ -101,6 +101,7 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
     const hash = this.getCurrentHash()
     sessionCache.delete(hash)
     tokenHashStore.disable() // Clears the store for the current async execution path
+    tenantUrlStore.disable()
   }
 
   public getCachedSessionByTokenHash(tokenHash: string): OidcSession | undefined {

@@ -147,6 +147,7 @@ export async function createTestTenant(id = 'test-tenant'): Promise<Tenant> {
 export async function createTestCredentialDefinition(
   asset: Asset,
   schema: CredentialSchema,
+  tenantId?: string,
 ): Promise<CredentialDefinition> {
   const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
   return credentialDefinitionRepository.create({
@@ -157,6 +158,7 @@ export async function createTestCredentialDefinition(
     icon: asset.id,
     type: CredentialType.ANONCRED,
     credentialSchema: schema.id,
+    tenantId: tenantId || (await createTestTenant()).id,
   })
 }
 
@@ -226,9 +228,10 @@ export async function createTestShowcase(
 }
 
 // Helper to create a Credential Definition via the service for API testing
-export async function createUnapprovedCredDef(name: string): Promise<CredentialDefinition> {
+export async function createUnapprovedCredDef(name: string, tenantId?: string): Promise<CredentialDefinition> {
   const asset = await createTestAsset()
   const schema = await createTestCredentialSchema()
+  const actualTenantId = tenantId || (await createTestTenant()).id
 
   // Use the CredentialDefinitionService
   const credDefService = Container.get(CredentialDefinitionService)
@@ -238,6 +241,7 @@ export async function createUnapprovedCredDef(name: string): Promise<CredentialD
     type: CredentialType.ANONCRED,
     credentialSchema: schema.id,
     icon: asset.id,
+    tenantId: actualTenantId,
   }
   const created = await credDefService.createCredentialDefinition(newCredDef)
 
