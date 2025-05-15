@@ -17,6 +17,7 @@ const sessionCache = new LRUCache<string, OidcSession>({
 
 // per-request store for current token hash
 export const tokenHashStore = new AsyncLocalStorage<string>()
+export const tenantUrlStore = new AsyncLocalStorage<string>()
 
 @Service()
 export class OidcSessionService implements ISessionService, ISessionServiceUpdater {
@@ -31,7 +32,7 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
   }
 
   public getUrlTenantId(): string | null {
-    return this.getSession().urlTenantId
+    return this.getSession().urlTenantId ?? (tenantUrlStore.getStore() as string)
   }
 
   public getBearerToken(): Token | undefined {
@@ -48,6 +49,10 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
 
   public setRequestDetails(apiBaseUrl: string, urlTenantId: string | null, token?: Token): void {
     if (!token) {
+      // We won't have a session if we don't have a bearer token, use a request scoped var instead
+      if (urlTenantId) {
+        tenantUrlStore.enterWith(urlTenantId)
+      }
       return
     }
     const hash = token.getSignatureHash()
