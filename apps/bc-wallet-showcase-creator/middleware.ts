@@ -1,9 +1,7 @@
-import { auth } from '@/auth'
 import createMiddleware from 'next-intl/middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { routing } from './i18n/routing'
 import { env } from '@/env'
-import { getToken } from '@auth/core/jwt'
 
 const handleI18nRouting = createMiddleware(routing)
 
@@ -13,6 +11,10 @@ function getTenantFromPath(path: string) {
 }
 
 export default async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname.includes('/login')) {
+    return NextResponse.next()
+  }
+
   const { locale, tenantIdFromPath, isLoginPage } = extractPathComponents(request)
   const cookieTenant = request.cookies.get('tenantId')?.value
   const tenantId = tenantIdFromPath ?? cookieTenant ?? env.OIDC_DEFAULT_TENANT
@@ -34,29 +36,15 @@ export default async function middleware(request: NextRequest) {
     sameSite: 'lax',
   })
 
-  /* FIXME ? (this causes too many redirects and not sure if we even need this)
-  const sessionToken = await getToken({
-    req: request,
-    secret: env.AUTH_SECRET
-  })
-
-  // Redirect to login if no session and not already on the login page
-  if (!sessionToken && !isLoginPage) {
-    console.log('No valid session token found, redirecting to login page')
-    const localeToNavigate = locale || routing.defaultLocale
-    const loginPath = `/${localeToNavigate}/${tenantId}/login`
-    return NextResponse.redirect(new URL(loginPath, request.url))
-  }
-*/
-
   // Check if a path is root or only contains a locale
   const path = request.nextUrl.pathname
   const isRootPath = path === '/'
-  const isLocaleOnlyPath = routing.locales.some(loc => path === `/${loc}`)
+  const isLocaleOnlyPath = routing.locales.some((loc) => path === `/${loc}`)
   if (isRootPath || isLocaleOnlyPath) {
     // Redirect to the credentials' page with the default tenant
     const defaultLocale = locale || routing.defaultLocale
     const redirectUrl = `/${defaultLocale}/${tenantId}/credentials`
+    console.debug('Redirecting to:', redirectUrl)
     return NextResponse.redirect(new URL(redirectUrl, request.url))
   }
 
@@ -76,5 +64,5 @@ function extractPathComponents(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/(fr|en)/:path*', '/((?!_next|_vercel|api|.*\\..*).*)'],
+  matcher: ['/', '/(fr|en)/:path*', '/:locale(fr|en)/:tenant((?!login)(?!api/auth)(?!_next)(?!_vercel|.*\\..*)/*)'],
 }
