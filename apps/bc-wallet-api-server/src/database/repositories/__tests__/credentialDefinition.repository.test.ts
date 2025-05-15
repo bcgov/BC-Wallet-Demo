@@ -6,7 +6,15 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { Container } from 'typedi'
 
 import DatabaseService from '../../../services/DatabaseService'
-import { CredentialType, IdentifierType, NewCredentialDefinition } from '../../../types'
+import {
+  Asset,
+  CredentialSchema,
+  CredentialType,
+  IdentifierType,
+  NewCredentialDefinition,
+  Tenant,
+  User,
+} from '../../../types'
 import * as schema from '../../schema'
 import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
 import { createTestAsset, createTestCredentialSchema, createTestTenant, createTestUser } from './dbTestData'
@@ -23,7 +31,7 @@ describe('Database credential definition repository tests', (): void => {
   let client: PGlite
   let database: NodePgDatabase
   let credentialDefinitionRepository: CredentialDefinitionRepository
-  let testUser, asset, credentialSchema, tenant
+  let testUser: User, asset: Asset, credentialSchema: CredentialSchema, tenant: Tenant
 
   beforeEach(async (): Promise<void> => {
     client = new PGlite()

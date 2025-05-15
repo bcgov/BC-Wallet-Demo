@@ -1,5 +1,5 @@
 {
-  "id": "14d535d7-ec6c-4db6-956a-cd8b190f70bb",
+  "id": "5c98b866-df93-4606-8f06-2d5facd91728",
   "prevId": "db3d9795-ca39-49da-91f9-48e296d6d29f",
   "version": "7",
   "dialect": "postgresql",
@@ -2001,6 +2001,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "idx_tenant_slug_unique": {
+          "name": "idx_tenant_slug_unique",
+          "columns": [
+            {
+              "expression": "tenant_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -2058,15 +2079,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "showcase_slug_unique": {
-          "name": "showcase_slug_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

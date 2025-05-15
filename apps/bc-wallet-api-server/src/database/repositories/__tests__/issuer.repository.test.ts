@@ -18,12 +18,15 @@ import {
   NewCredentialDefinition,
   NewCredentialSchema,
   NewIssuer,
+  Tenant,
 } from '../../../types'
 import * as schema from '../../schema'
 import AssetRepository from '../AssetRepository'
 import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../CredentialSchemaRepository'
 import IssuerRepository from '../IssuerRepository'
+import TenantRepository from '../TenantRepository'
+import { createTestTenant } from './dbTestData'
 
 describe('Database issuer repository tests', (): void => {
   let client: PGlite
@@ -32,6 +35,7 @@ describe('Database issuer repository tests', (): void => {
   let credentialDefinition1: CredentialDefinition
   let credentialDefinition2: CredentialDefinition
   let asset: Asset
+  let tenant: Tenant
 
   beforeEach(async (): Promise<void> => {
     client = new PGlite()
@@ -52,6 +56,9 @@ describe('Database issuer repository tests', (): void => {
     asset = await assetRepository.create(newAsset)
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     const credentialSchemaRepository = Container.get(CredentialSchemaRepository)
+
+    // Create test tenant using dbTestData utility
+    tenant = await createTestTenant()
 
     const newCredentialSchema: NewCredentialSchema = {
       name: 'example_name',

@@ -151,6 +151,7 @@ describe('RelyingPartyController Integration Tests', () => {
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     const credentialDefinition1 = await credentialDefinitionRepository.create({
       name: 'Test Definition 1',
+      tenantId: tenant.id,
       version: '1.0',
       identifierType: IdentifierType.DID,
       identifier: 'did:test:123',
@@ -161,6 +162,7 @@ describe('RelyingPartyController Integration Tests', () => {
 
     const credentialDefinition2 = await credentialDefinitionRepository.create({
       name: 'Test Definition 2',
+      tenantId: tenant.id,
       version: '1.0',
       identifierType: IdentifierType.DID,
       identifier: 'did:test:456',
