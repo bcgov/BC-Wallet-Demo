@@ -29,6 +29,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
     name: 'attributes',
   })
   const typeWatch = form.watch('attributes')
+  const allowedTypes: CredentialAttributeType[] = ["STRING", "DATE"];
 
   if (mode === 'view' && attributes) {
     return (
@@ -106,7 +107,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.values(CredentialAttributeType).map((type) => (
+                    {Object.values(allowedTypes).map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
