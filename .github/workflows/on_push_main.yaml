@@ -157,7 +157,7 @@ jobs:
         uses: redhat-actions/openshift-tools-installer@v1
         with:
           oc: "4.14"
-
+ 
       - name: Authenticate and set context
         uses: redhat-actions/oc-login@v1
         with:
@@ -165,7 +165,7 @@ jobs:
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
           namespace: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
-
+     
       - name: Deploy to OpenShift with Helm
         run: |
           cd charts/bc-wallet
@@ -176,7 +176,7 @@ jobs:
             --set demoWeb.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
             --set demoServer.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
             . --wait
-
+      
       - name: Restart Deployments
         run: |
           oc rollout restart deployment/bc-wallet-demo-api-server
@@ -187,7 +187,7 @@ jobs:
 
   deploy_uat:
     name: Deploy to UAT
-    environment: uat
+    environment: uat  
     runs-on: ubuntu-latest
     needs: deploy_dev
     steps:
@@ -205,7 +205,7 @@ jobs:
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
           namespace: ${{ secrets.OPENSHIFT_UAT_NAMESPACE }}
-
+     
       - name: Deploy to OpenShift with Helm
         run: |
           cd charts/bc-wallet
@@ -216,7 +216,7 @@ jobs:
             --set demoWeb.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
             --set demoServer.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
             . --wait
-
+      
       - name: Restart Deployments
         run: |
           oc rollout restart deployment/bc-wallet-demo-api-server
@@ -227,7 +227,7 @@ jobs:
 
   deploy_prod:
     name: Deploy to Production
-    environment: production
+    environment: production 
     runs-on: ubuntu-latest
     needs: deploy_uat
     steps:
@@ -245,7 +245,7 @@ jobs:
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
           namespace: ${{ secrets.OPENSHIFT_PROD_NAMESPACE }}
-
+     
       - name: Deploy to OpenShift with Helm
         run: |
           cd charts/bc-wallet
@@ -256,7 +256,7 @@ jobs:
             --set demoWeb.image.tag=${{ needs.build_demo_web.outputs.image_tag }} \
             --set demoServer.image.tag=${{ needs.build_demo_server.outputs.image_tag }} \
             . --wait
-
+      
       - name: Restart Deployments
         run: |
           oc rollout restart deployment/bc-wallet-demo-api-server

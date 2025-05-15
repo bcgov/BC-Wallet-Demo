@@ -182,9 +182,9 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-web:${{ needs.build_demo_web.outputs.image_tag }},
             ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-creator:${{ needs.build_showcase_creator.outputs.image_tag }},
             ghcr.io/${{ github.repository_owner }}/bc-wallet-demo-server:${{ needs.build_demo_server.outputs.image_tag }}
-  #          scan-ref: ''
-  #          scan-title: ''
-  #          scan-type: ''
+#          scan-ref: ''
+#          scan-title: ''
+#          scan-type: ''
   deploy:
     name: "Deploy PR Environment"
     environment: development
@@ -199,7 +199,7 @@ jobs:
     if: ${{ always() && fromJSON(needs.ready.outputs.deploy) == true && !(contains(needs.*.result, 'failure')) }}
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Install OpenShift CLI tools
         uses: redhat-actions/openshift-tools-installer@v1
         with:
@@ -212,7 +212,7 @@ jobs:
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           certificate_authority_data: ${{ secrets.OPENSHIFT_CA_CRT }}
           namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
-
+            
       - name: Deploy PR Environment with Helm
         run: |
           cd charts/bc-wallet
@@ -226,7 +226,7 @@ jobs:
              --set demo_server.env.TRACTION_WEBHOOK_SECRET=${{secrets.TRACTION_WEBHOOK_SECRET}} \
              --set rabbitmq.auth.password=${{secrets.RABBITMQ_PASSWORD}} \
              . --wait
-
+            
       - name: Restart PR Deployments
         run: |
           oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-api-server

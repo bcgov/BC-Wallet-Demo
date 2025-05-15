@@ -32,7 +32,7 @@ services:
       - AMQ_PASSWORD=${AMQ_PASSWORD}
       - AMQ_TRANSPORT=${AMQ_TRANSPORT:-tcp}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      # keycloak auth settings
+      # temp keycloak settings
       - OIDC_ROOT_ISSUER_URL=${OIDC_ROOT_ISSUER_URL}
       - OIDC_ROOT_CLIENT_ID=${OIDC_ROOT_CLIENT_ID}
       - OIDC_ROOT_CLIENT_SECRET=${OIDC_ROOT_CLIENT_SECRET}
@@ -81,7 +81,7 @@ services:
     environment:
       - PORT=3000
       - LOG_LEVEL=${LOG_LEVEL}
-      # active-mq settings
+        # active-mq settings
       - TRACTION_ADAPTER_MESSAGE_TOPIC=${TRACTION_ADAPTER_MESSAGE_TOPIC}
       - AMQ_HOST=${AMQ_HOST:-rabbitmq}
       - AMQ_PORT=${AMQ_PORT:-5672}

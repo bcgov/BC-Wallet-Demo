@@ -26,7 +26,7 @@ This Helm chart is used to deploy the BC Wallet Showcase Builder.
       --from-literal=TRACTION_WEBHOOK_SECRET='Your Traction webhook secret' \
       --from-literal=WALLET_ID='Your Wallet ID'
     ```
-   _Note: If necessary, you can create multiple secrets for different services. For example, `bc-wallet-api-secrets`, `bc-wallet-demo-server-secrets`, etc._
+    _Note: If necessary, you can create multiple secrets for different services. For example, `bc-wallet-api-secrets`, `bc-wallet-demo-server-secrets`, etc._
 2. **Customize Values**:  
    Edit `values.yaml` or create a custom `my-values.yaml` file with overrides.
    Make sure to update `extraEnvVarsSecret` values for each service.
