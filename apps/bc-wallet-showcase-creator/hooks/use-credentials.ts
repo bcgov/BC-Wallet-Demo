@@ -30,6 +30,17 @@ export const useCredentialDefinitions = () => {
   })
 }
 
+export const useCredentialDefinitionsForIssuance = () => {
+  return useQuery<CredentialDefinitionsResponse>({
+    queryKey: ['credentialDefinitionsForIssuance'],
+    queryFn: async () => {
+      const response = await apiClient.get('/credentials/definitions/issuance')
+      return response as CredentialDefinitionsResponse
+    },
+    staleTime
+  })
+}
+
 export const useCredentialDefinition = (definitionId: string) => {
   return useQuery<CredentialDefinitionResponse>({
     queryKey: ['credentialDefinition', definitionId],

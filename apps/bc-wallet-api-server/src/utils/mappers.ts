@@ -71,6 +71,7 @@ export const credentialSchemaDTOFrom = (credentialSchema: CredentialSchema): Cre
 export const credentialDefinitionDTOFrom = (credentialDefinition: CredentialDefinition): CredentialDefinitionDTO => {
   return {
     ...credentialDefinition,
+    tenantId: credentialDefinition.identifierType || undefined,
     identifierType: credentialDefinition.identifierType || undefined,
     identifier: credentialDefinition.identifier || undefined,
     source: credentialDefinition.source || undefined,
