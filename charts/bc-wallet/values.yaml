@@ -58,6 +58,12 @@ apiServer:
   # OIDC_ROOT_CLIENT_ID: ""
   # OIDC_ROOT_CLIENT_SECRET: ""
   # OIDC_ROOT_ISSUER_URL: ""
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -400,6 +406,12 @@ showcaseCreator:
   # OIDC_DEFAULT_TENANT: ""
   # OIDC_AUTH_URL: ""
   # OIDC_TRUST_HOST: ""
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
