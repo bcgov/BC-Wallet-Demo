@@ -1,9 +1,9 @@
-import { eq, inArray, isNull } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { NotFoundError } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import DatabaseService from '../../services/DatabaseService'
-import { NewShowcase, Persona, RepositoryDefinition, Scenario, Showcase, Step, Tx } from '../../types'
+import { NewShowcase, Persona, Scenario, Showcase, Step, TenantScopedRepositoryDefinition, Tx } from '../../types'
 import { generateSlug } from '../../utils/slug'
 import { sortSteps } from '../../utils/sort'
 import {
@@ -20,8 +20,8 @@ import ScenarioRepository from './ScenarioRepository'
 import UserRepository from './UserRepository'
 
 @Service()
-class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> {
-  constructor(
+class ShowcaseRepository implements TenantScopedRepositoryDefinition<Showcase, NewShowcase> {
+  public constructor(
     private readonly databaseService: DatabaseService,
     private readonly personaRepository: PersonaRepository,
     private readonly scenarioRepository: ScenarioRepository,
@@ -29,7 +29,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     private readonly userRepository: UserRepository,
   ) {}
 
-  async create(showcase: NewShowcase): Promise<Showcase> {
+  public async create(showcase: NewShowcase): Promise<Showcase> {
     let scenariosResult: Scenario[] = []
     let personasResult: Persona[] = []
 
@@ -54,9 +54,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
         .returning()
 
       if (showcase.scenarios.length > 0) {
-        const scenarioPromises = showcase.scenarios.map(async (scenario) =>
-          this.scenarioRepository.findById(scenario, tx),
-        )
+        const scenarioPromises = showcase.scenarios.map(async (scenario) => this.scenarioRepository.findById(scenario))
         await Promise.all(scenarioPromises)
 
         const showcasesToScenariosResult = await tx
@@ -203,9 +201,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       }
 
       if (showcase.personas.length > 0) {
-        const personaPromises = showcase.personas.map(
-          async (persona) => await this.personaRepository.findById(persona, tx),
-        )
+        const personaPromises = showcase.personas.map(async (persona) => await this.personaRepository.findById(persona))
         await Promise.all(personaPromises)
 
         const showcasesToPersonasResult = await tx
@@ -288,9 +284,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       await tx.delete(showcasesToScenarios).where(eq(showcasesToScenarios.showcase, id))
 
       if (showcase.scenarios.length > 0) {
-        const scenarioPromises = showcase.scenarios.map(async (scenario) =>
-          this.scenarioRepository.findById(scenario, tx),
-        )
+        const scenarioPromises = showcase.scenarios.map(async (scenario) => this.scenarioRepository.findById(scenario))
         await Promise.all(scenarioPromises)
 
         const showcasesToScenariosResult =
@@ -438,9 +432,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       }
 
       if (showcase.personas.length > 0) {
-        const personaPromises = showcase.personas.map(
-          async (persona) => await this.personaRepository.findById(persona, tx),
-        )
+        const personaPromises = showcase.personas.map(async (persona) => await this.personaRepository.findById(persona))
         await Promise.all(personaPromises)
 
         const showcasesToPersonasResult = await tx
@@ -476,11 +468,13 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     })
   }
 
-  async findById(id: string, tx?: Tx): Promise<Showcase> {
+  public async findById(id: string, tenantId?: string, tx?: Tx): Promise<Showcase> {
     const findShowcaseById = `find_showcase_by_id_${id}`
+    const whereCondition = tenantId ? and(eq(showcases.id, id), eq(showcases.tenantId, tenantId)) : eq(showcases.id, id)
+
     const prepared = (tx ?? (await this.databaseService.getConnection())).query.showcases
       .findFirst({
-        where: eq(showcases.id, id),
+        where: whereCondition,
         with: {
           scenarios: {
             with: {
@@ -623,12 +617,13 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     }
   }
 
-  async findAll(): Promise<Showcase[]> {
+  public async findAll(tenantId: string): Promise<Showcase[]> {
     const connection = await this.databaseService.getConnection()
-    const showcases = await connection.query.showcases.findMany({
+    const showcasesResult = await connection.query.showcases.findMany({
+      where: eq(showcases.tenantId, tenantId),
       with: { bannerImage: true },
     })
-    const showcaseIds = showcases.map((s: any) => s.id)
+    const showcaseIds = showcasesResult.map((s: any) => s.id)
 
     const [credDefData, scenariosData, personasData] = await Promise.all([
       connection.query.showcasesToCredentialDefinitions.findMany({
@@ -772,7 +767,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
       personasMap.get(key)!.push(item)
     }
 
-    return showcases.map((showcase: any) => {
+    return showcasesResult.map((showcase: any) => {
       return {
         ...showcase,
         scenarios: (scenariosMap.get(showcase.id) || []).map((s: any) => {
@@ -817,11 +812,11 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     })
   }
 
-  async findIdBySlug(slug: string): Promise<string> {
+  public async findIdBySlug(slug: string, tenantId: string): Promise<string> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.showcases.findFirst({
-      where: eq(showcases.slug, slug),
+      where: and(eq(showcases.slug, slug), eq(showcases.tenantId, tenantId)),
     })
 
     if (!result) {
@@ -831,11 +826,11 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     return result.id
   }
 
-  async findUnapproved(): Promise<Showcase[]> {
+  public async findUnapproved(tenantId: string): Promise<Showcase[]> {
     const results = await (
       await this.databaseService.getConnection()
     ).query.showcases.findMany({
-      where: isNull(showcases.approvedAt),
+      where: and(isNull(showcases.approvedAt), eq(showcases.tenantId, tenantId)),
       with: {
         scenarios: {
           with: {
@@ -933,7 +928,7 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
     }))
   }
 
-  async approve(id: string, userId: string): Promise<Showcase> {
+  public async approve(id: string, tenantId: string, userId: string): Promise<Showcase> {
     const now = new Date()
     const connection = await this.databaseService.getConnection()
     return await connection.transaction(async (tx) => {
@@ -944,8 +939,8 @@ class ShowcaseRepository implements RepositoryDefinition<Showcase, NewShowcase> 
           approvedAt: now,
           updatedAt: now,
         })
-        .where(eq(showcases.id, id))
-      return await this.findById(id, tx)
+        .where(and(eq(showcases.id, id), eq(showcases.tenantId, tenantId)))
+      return await this.findById(id, tenantId)
     })
   }
 }

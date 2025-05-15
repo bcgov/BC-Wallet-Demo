@@ -30,6 +30,10 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
     return this.getSession().tenant
   }
 
+  public getUrlTenantId(): string | null {
+    return this.getSession().urlTenantId
+  }
+
   public getBearerToken(): Token | undefined {
     return this.getSession().bearerToken
   }
@@ -42,7 +46,7 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
     return this.getSession().activeClaims
   }
 
-  public setRequestDetails(apiBaseUrl: string, token?: Token): void {
+  public setRequestDetails(apiBaseUrl: string, urlTenantId: string | null, token?: Token): void {
     if (!token) {
       return
     }
@@ -50,11 +54,12 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
     tokenHashStore.enterWith(hash)
     let session = sessionCache.get(hash)
     if (!session) {
-      session = { user: null, tenant: null }
+      session = { user: null, urlTenantId: urlTenantId, tenant: null }
       // Add to cache with default TTL. If token is validated later, TTL will be updated.
       sessionCache.set(hash, session)
     }
     session.apiBaseUrl = apiBaseUrl
+    session.urlTenantId = urlTenantId
     session.bearerToken = token // Store the raw token, may not be validated yet
   }
 
@@ -110,7 +115,7 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
 
     let session = sessionCache.get(tokenHash)
     if (!session) {
-      session = { user: null, tenant: null }
+      session = { user: null, urlTenantId: null, tenant: null }
     }
     session.bearerToken = token
     session.activeClaims = claims
@@ -128,11 +133,11 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
   private getSession(): OidcSession {
     const hash = tokenHashStore.getStore()
     if (!hash) {
-      return { user: null, tenant: null }
+      return { user: null, urlTenantId: null, tenant: null }
     }
     let session = sessionCache.get(hash)
     if (!session) {
-      session = { user: null, tenant: null }
+      session = { user: null, urlTenantId: null, tenant: null }
       sessionCache.set(hash, session)
     }
     return session

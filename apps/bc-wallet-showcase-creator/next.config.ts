@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
-import createNextIntlPlugin from "next-intl/plugin";
+import type { NextConfig } from 'next'
+import createNextIntlPlugin from 'next-intl/plugin'
 
-const withNextIntl = createNextIntlPlugin();
+const withNextIntl = createNextIntlPlugin()
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -9,26 +9,22 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: '*.dev.nborbit.ca',
+        protocol: 'https',
+        hostname: '**',
+        pathname: '**/assets/**',
       },
       {
         protocol: 'http',
-        hostname: 'localhost',
-        pathname: '/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '5005',
-        pathname: '/**',
+        hostname: '**',
+        pathname: '**/assets/**',
       },
     ],
     dangerouslyAllowSVG: true,
   },
-  transpilePackages: ["@t3-oss/env-nextjs", "@t3-oss/env-core"],
+  transpilePackages: ['@t3-oss/env-nextjs', '@t3-oss/env-core'],
   publicRuntimeConfig: {
     staticFolder: '/public',
   },
-};
+}
 
-export default withNextIntl(nextConfig);
+export default withNextIntl(nextConfig)

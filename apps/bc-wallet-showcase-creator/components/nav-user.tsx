@@ -24,7 +24,7 @@ export function NavUser() {
   const { state } = useSidebar()
 
   const Logout = () => {
-    document.cookie = 'tenantId=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'tenant-id=; path=/; max-age=0; SameSite=Lax';
     signOut()
   }
 

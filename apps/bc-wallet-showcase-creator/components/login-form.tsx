@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { signIn } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const t = useTranslations('login')
@@ -16,9 +17,14 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   const locale = parts[1] || 'en'
   const tenantId = parts[2]
 
+  useEffect(() => {
+    if (tenantId) {
+      document.cookie = `tenant-id=${tenantId}; path=/; max-age=86400; SameSite=Lax`;
+    }
+  }, [tenantId]);
+  
   const handleLogin = () => {
 
-    document.cookie = `tenantId=${tenantId}; path=/; max-age=86400; SameSite=Lax`; //1 day
 
     signIn('keycloak', {
       callbackUrl: `/${locale}/${tenantId}`
