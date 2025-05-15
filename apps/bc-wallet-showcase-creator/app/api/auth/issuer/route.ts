@@ -3,7 +3,12 @@ import { getToken } from 'next-auth/jwt'
 import { env } from '@/env'
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: env.AUTH_SECRET })
+  const secureCookie = req.nextUrl.protocol === 'https:'
+  const token = await getToken({
+    req,
+    secret: env.AUTH_SECRET,
+    secureCookie,
+  })
   if (!token || typeof token.access_token !== 'string') {
     throw new Error('Missing access_token in session')
   }
