@@ -85,7 +85,7 @@ function getTenantIdFromRequest(nextReq?: NextRequest): string | undefined {
 
   let tenantId: string | undefined
   if (!tenantId) {
-    const callbackUrl = cookies.get('authjs.callback-url')?.value
+    const callbackUrl = cookies.get('authjs.callback-url')?.value ?? cookies.get('__Secure-authjs.callback-url')?.value
     if (callbackUrl) {
       tenantId = extractTenantFromUrl(callbackUrl)
     }
