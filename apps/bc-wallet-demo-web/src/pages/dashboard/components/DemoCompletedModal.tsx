@@ -56,25 +56,10 @@ export const DemoCompletedModal: React.FC<Props> = ({ action, cancel }) => {
                     </a>
 
                     <br />
-                    <a href="https://animo.id/">
-                      Based on code by <u>Animo</u>
+                    <a href="https://4sure.tech/">
+                      Based on code by <u>4sure Technology Solutions</u>
                     </a>
                     <br />
-                    <a href="https://storyset.com/business">
-                      Business illustrations by <u>Storyset</u>
-                    </a>
-                    <div>
-                      Icons made by{' '}
-                      <u>
-                        <a href="https://www.freepik.com" title="Freepik">
-                          Freepik
-                        </a>
-                      </u>{' '}
-                      from{' '}
-                      <a href="https://www.flaticon.com/" title="Flaticon">
-                        <u>Flaticon.com</u>
-                      </a>
-                    </div>
                   </div>
                 </div>
               </div>
