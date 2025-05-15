@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { setupCache } from 'axios-cache-interceptor'
 import type { CacheOptions } from 'axios-cache-interceptor/src/cache/create'
+import { getTenantIdFromPath } from '../utils/Helpers'
 
 declare global {
   interface Window {
@@ -38,7 +39,10 @@ export const demoBackendApi = setupCache(
   cacheOptions,
 )
 
-export const showcaseServerBaseUrl = getEnv('REACT_APP_SHOWCASE_API_URL', '')
+const tenantId = getTenantIdFromPath();
+const base = getEnv('REACT_APP_SHOWCASE_API_URL', '');
+export const showcaseServerBaseUrl = tenantId ? `${base}/${tenantId}` : base;
+
 export const showcaseApi = setupCache(
   axios.create({
     baseURL: showcaseServerBaseUrl,

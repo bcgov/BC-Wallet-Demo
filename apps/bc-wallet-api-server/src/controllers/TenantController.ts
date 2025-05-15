@@ -1,5 +1,13 @@
 import {
-  Authorized,
+  instanceOfTenantRequest,
+  TenantRequest,
+  TenantRequestToJSONTyped,
+  TenantResponse,
+  TenantResponseFromJSONTyped,
+  TenantsResponse,
+  TenantsResponseFromJSONTyped,
+} from 'bc-wallet-openapi'
+import {
   BadRequestError,
   Body,
   Delete,
@@ -9,25 +17,20 @@ import {
   OnUndefined,
   Param,
   Post,
-  Put
+  Put,
 } from 'routing-controllers'
 import { Service } from 'typedi'
+
 import TenantService from '../services/TenantService'
-import {
-  instanceOfTenantRequest,
-  TenantRequest,
-  TenantRequestToJSONTyped,
-  TenantResponse,
-  TenantResponseFromJSONTyped,
-  TenantsResponse,
-  TenantsResponseFromJSONTyped,
-} from 'bc-wallet-openapi'
+import { TenantType } from '../types'
+import { RootTenantAuthorized, SoftTenantAuthorized } from '../utils/auth'
 
 @JsonController('/tenants')
 @Service()
 class TenantController {
   public constructor(private tenantService: TenantService) {}
 
+  @SoftTenantAuthorized()
   @Get('/')
   public async getAll(): Promise<TenantsResponse> {
     try {
@@ -41,6 +44,7 @@ class TenantController {
     }
   }
 
+  @SoftTenantAuthorized()
   @Get('/:id')
   public async getOne(@Param('id') id: string): Promise<TenantResponse> {
     try {
@@ -54,7 +58,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @HttpCode(201)
   @Post('/')
   public async post(@Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
@@ -62,7 +66,8 @@ class TenantController {
       if (!instanceOfTenantRequest(tenantRequest)) {
         return Promise.reject(new BadRequestError())
       }
-      const tenant = await this.tenantService.createTenant(TenantRequestToJSONTyped(tenantRequest))
+      const newTenant = TenantRequestToJSONTyped(tenantRequest)
+      const tenant = await this.tenantService.createTenant({ ...newTenant, tenantType: TenantType.SHOWCASE }) // Do not allow ROOT tenant to be created externally
       return TenantResponseFromJSONTyped({ tenant }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
@@ -72,7 +77,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @Put('/:id')
   public async put(@Param('id') id: string, @Body() tenantRequest: TenantRequest): Promise<TenantResponse> {
     try {
@@ -89,7 +94,7 @@ class TenantController {
     }
   }
 
-  @Authorized()
+  @RootTenantAuthorized()
   @OnUndefined(204)
   @Delete('/:id')
   public async delete(@Param('id') id: string): Promise<void> {

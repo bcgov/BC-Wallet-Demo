@@ -28,18 +28,23 @@ import { DisplayStepCredentials } from './display-step-credentials'
 import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { StepRequestUIActionTypes } from '@/lib/steps'
+import { useTenant } from '@/providers/tenant-provider'
+import { useUpdateShowcaseScenarios } from '@/hooks/use-showcases'
+import { debugLog } from '@/lib/utils'
 
-export const BasicStepEdit = () => {
+export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const router = useRouter()
   const { mutateAsync } = useCreatePresentation()
-  const { setScenarioIds } = useShowcaseStore()
+  const { setScenarioIds, currentShowcaseSlug } = useShowcaseStore()
   const { selectedScenario, updateStep, selectedStep, setStepState, deleteStep } =
     usePresentationAdapter()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions();
   const { setSelectedCredential, selectedCredential } = useCredentials()
+  const { tenantId } = useTenant();
   const { personaScenarios } = usePresentationCreation()
+  const { mutateAsync: updateShowcaseScenariosAsync } = useUpdateShowcaseScenarios();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
 
@@ -62,7 +67,7 @@ export const BasicStepEdit = () => {
       form.reset(defaultValues)
     }
   }, [currentStep, form])
-  console.log('currentStep', currentStep);
+
   const autoSave = debounce((data: BasicStepFormData) => {
     if (!currentStep || !form.formState.isDirty) return
 
@@ -110,19 +115,25 @@ export const BasicStepEdit = () => {
 
   const addCredential = (credential: CredentialDefinition) => {
     if (!currentStep) return;
-    const existing = currentStep.credentials || [];
-    if (!existing.includes(credential)) {
-      const updated = [...existing, credential];
-      updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
+    const existing = currentStep.actions[0].credentialDefinitionId || '';
+    if (!existing.includes(credential.id)) {
+      const updated = [
+        ...existing,
+        {
+          ...currentStep.actions[0],
+          credentialDefinitionId: credential.id
+        }
+      ];
+      updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updated } as StepRequestUIActionTypes);
     }
     setSearchResults([]);
   }
 
-  const removeCredential = (credential: CredentialDefinition) => {
+  const removeCredential = (credentialId: string) => {
     if (!currentStep) return;
-    const updated = (currentStep.credentials || []).filter((id) => id !== credential);
+    const updated = currentStep.actions[0].credentialDefinitionId;
 
-    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, credentials: updated } as StepRequestUIActionTypes);
+    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updated } as unknown as StepRequestUIActionTypes);
     setSelectedCredential(null);
   }
 
@@ -134,7 +145,7 @@ export const BasicStepEdit = () => {
         ...scenario,
         steps: scenario.steps.map((step, index) => {
           const { credentials, ...restStep } = step as StepRequestUIActionTypes;
-    
+
           return {
             ...restStep,
             order: index,
@@ -142,15 +153,15 @@ export const BasicStepEdit = () => {
             actions:
               step.type === StepType.Service
                 ? step.actions.map((action) => ({
-                    ...action,
-                    actionType: "ARIES_OOB",
-                    credentialDefinitionId: selectedCredential?.id,
-                  }))
+                  ...action,
+                  actionType: "ARIES_OOB",
+                  credentialDefinitionId: selectedCredential?.id,
+                }))
                 : step.actions,
           };
         }),
       })),
-    )    
+    )
     const scenarioIds = []
 
     for (const scenario of mappedScenarios) {
@@ -168,7 +179,21 @@ export const BasicStepEdit = () => {
     }
 
     setScenarioIds(scenarioIds)
-    router.push(`/showcases/create/publish`)
+    try {
+      await updateShowcaseScenariosAsync({
+        showcaseSlug: currentShowcaseSlug,
+        scenarioIds
+      });
+
+      debugLog('Successfully updated showcase with scenario IDs');
+    } catch (updateError) {
+      console.error('Error updating showcase with scenarios:', updateError);
+    }
+    if (slug) {
+      router.push(`/${tenantId}/showcases/${slug}/publish`)
+    } else {
+      router.push(`/${tenantId}/showcases/create/publish`)
+    }
   }
 
   if (!currentStep) return null
@@ -252,35 +277,35 @@ export const BasicStepEdit = () => {
 
           {currentStep?.type == StepType.Service && (
             <div className="space-y-4">
-                <h4 className="text-xl font-bold">Request Options</h4>
-                <hr />
+              <h4 className="text-xl font-bold">Request Options</h4>
+              <hr />
 
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-md font-bold">Search for a Credential:</p>
-                    <div className="flex flex-row justify-center items-center my-4">
-                      <div className="relative w-full">
-                        <input
-                          className="dark:text-dark-text dark:bg-dark-input border dark:border-dark-border rounded pl-2 pr-10 mb-2 w-full bg-light-bg"
-                          placeholder="ex. Student Card"
-                          type="text"
-                          onChange={(e) => searchCredential(e.target.value)}
-                        />
-                      </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-md font-bold">Search for a Credential:</p>
+                  <div className="flex flex-row justify-center items-center my-4">
+                    <div className="relative w-full">
+                      <input
+                        className="dark:text-dark-text dark:bg-dark-input border dark:border-dark-border rounded pl-2 pr-10 mb-2 w-full bg-light-bg"
+                        placeholder="ex. Student Card"
+                        type="text"
+                        onChange={(e) => searchCredential(e.target.value)}
+                      />
                     </div>
                   </div>
-
-                  <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
-
-                  {currentStep && (
-                    <DisplayStepCredentials
-                      credentials={currentStep?.credentials as unknown as CredentialDefinition[] ?? []}
-                      selectedStep={selectedStep?.stepIndex || 0}
-                      selectedScenario={selectedStep?.scenarioIndex || 0}
-                      removeCredential={removeCredential}
-                    />
-                  )}
                 </div>
+
+                <DisplaySearchResults searchResults={searchResults} addCredential={addCredential} />
+                {/* <pre>{JSON.stringify(currentStep, null, 2)}</pre> */}
+                {currentStep && (
+                  <DisplayStepCredentials
+                    credentialId={currentStep?.actions[0].credentialDefinitionId}
+                    selectedStep={selectedStep?.stepIndex || 0}
+                    selectedScenario={selectedStep?.scenarioIndex || 0}
+                    removeCredential={removeCredential}
+                  />
+                )}
+              </div>
             </div>
           )}
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">

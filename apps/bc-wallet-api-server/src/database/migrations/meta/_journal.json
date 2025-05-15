@@ -33,14 +33,14 @@
     {
       "idx": 4,
       "version": "7",
-      "when": 1745419371715,
+      "when": 1747090254184,
       "tag": "0004_bc-wallet-api",
       "breakpoints": true
     },
     {
       "idx": 5,
       "version": "7",
-      "when": 1745581954665,
+      "when": 1747333525632,
       "tag": "0005_bc-wallet-api",
       "breakpoints": true
     }

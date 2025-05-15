@@ -23,6 +23,7 @@ import {
   StepActionType,
   StepType,
   Tenant,
+  TenantType,
   User,
 } from '../../../types'
 import AssetRepository from '../AssetRepository'
@@ -135,12 +136,18 @@ export async function createTestScenario(
 
 export async function createTestTenant(id = 'test-tenant'): Promise<Tenant> {
   const tenantRepository = Container.get(TenantRepository)
-  return tenantRepository.create({ id })
+  return tenantRepository.create({
+    id,
+    oidcIssuer: 'https://auth-server/auth/realms/test',
+
+    tenantType: TenantType.ROOT,
+  })
 }
 
 export async function createTestCredentialDefinition(
   asset: Asset,
   schema: CredentialSchema,
+  tenantId: string,
 ): Promise<CredentialDefinition> {
   const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
   return credentialDefinitionRepository.create({
@@ -151,6 +158,7 @@ export async function createTestCredentialDefinition(
     icon: asset.id,
     type: CredentialType.ANONCRED,
     credentialSchema: schema.id,
+    tenantId: tenantId,
   })
 }
 
@@ -193,7 +201,7 @@ export async function createTestShowcase(
   const persona = await createTestPersona(asset)
   const schema = await createTestCredentialSchema()
   // Use renamed db helper
-  const definition = await createTestCredentialDefinition(asset, schema)
+  const definition = await createTestCredentialDefinition(asset, schema, tenantId)
   const issuer = await createTestIssuer(asset, definition, schema)
   const scenario = await createTestScenario(asset, persona, issuer, definition.id)
 
@@ -220,7 +228,7 @@ export async function createTestShowcase(
 }
 
 // Helper to create a Credential Definition via the service for API testing
-export async function createUnapprovedCredDef(name: string): Promise<CredentialDefinition> {
+export async function createUnapprovedCredDef(name: string, tenantId: string): Promise<CredentialDefinition> {
   const asset = await createTestAsset()
   const schema = await createTestCredentialSchema()
 
@@ -232,6 +240,7 @@ export async function createUnapprovedCredDef(name: string): Promise<CredentialD
     type: CredentialType.ANONCRED,
     credentialSchema: schema.id,
     icon: asset.id,
+    tenantId: tenantId,
   }
   const created = await credDefService.createCredentialDefinition(newCredDef)
 

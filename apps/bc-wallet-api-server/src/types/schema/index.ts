@@ -326,3 +326,8 @@ export enum ShowcaseStatus {
   ACTIVE = 'ACTIVE',
   ARCHIVED = 'ARCHIVED',
 }
+
+export enum TenantType {
+  ROOT = 'ROOT',
+  SHOWCASE = 'SHOWCASE',
+}

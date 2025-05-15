@@ -29,6 +29,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
     name: 'attributes',
   })
   const typeWatch = form.watch('attributes')
+  const allowedTypes: CredentialAttributeType[] = ["STRING", "DATE"];
 
   if (mode === 'view' && attributes) {
     return (
@@ -43,7 +44,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
               <TableHead className="w-1/2">{t('credentials.attribute_type_label')}</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="bg-white dark:bg-dark-bg-secondary border-b border-gray-200 dark:border-dark-border">
+          <TableBody className="bg-background border-b border-gray-200 dark:border-dark-border">
             {attributes.map((attr, index) => (
               <TableRow className='border-b border-foreground/10' key={attr.name || index}>
                 <TableCell className="font-semibold w-1/2 text-sm text-foreground py-2">{attr.name}</TableCell>
@@ -106,7 +107,7 @@ export const CredentialAttributes = ({ mode, form, attributes }: SchemaAttribute
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.values(CredentialAttributeType).map((type) => (
+                    {Object.values(allowedTypes).map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>

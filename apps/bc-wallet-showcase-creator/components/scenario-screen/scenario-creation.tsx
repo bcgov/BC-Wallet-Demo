@@ -14,6 +14,8 @@ import { Button } from '../ui/button'
 import { SortableStep } from './sortable-step'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { Copy } from 'lucide-react'
+import { Screen } from '@/types'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const CreateScenariosScreen = () => {
   const t = useTranslations()
@@ -32,6 +34,7 @@ export const CreateScenariosScreen = () => {
   } = usePresentationAdapter()
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
+  const { tenantId } = useTenant();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -70,12 +73,12 @@ export const CreateScenariosScreen = () => {
   const activeScenario = scenarios[activeScenarioIndex]
 
   return (
-    <div className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text rounded-md border shadow-sm">
+    <div className="bg-background text-light-text dark:text-dark-text rounded-md border shadow-sm">
       {selectedPersonaIds.length === 0 ? (
         <div className="p-6 text-center">
           <h3 className="text-lg font-semibold mb-4">No personas selected</h3>
           <p className="mb-4">You need to select personas before creating onboarding steps.</p>
-          <Button variant="outlineAction" onClick={() => router.push('/showcases/create')}>
+          <Button variant="outlineAction" onClick={() => router.push(`/${tenantId}/showcases/create`)}>
             Go Back to Select Personas
           </Button>
         </div>
@@ -98,7 +101,7 @@ export const CreateScenariosScreen = () => {
                     <Image
                       src={
                         persona.headshotImage?.id
-                          ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                           : '/assets/no-image.jpg'
                       }
                       alt={`${persona.headshotImage?.description || 'Character headshot'} `}
@@ -171,7 +174,7 @@ export const CreateScenariosScreen = () => {
                                 <div key={`step-${index}-${stepIndex}`} className="flex flex-row">
                                   <SortableStep
                                     selectedStep={selectedStep}
-                                    myScreen={step as any}
+                                    myScreen={step as Screen}
                                     stepIndex={stepIndex}
                                     scenarioIndex={index}
                                   />

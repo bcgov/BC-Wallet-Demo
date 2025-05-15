@@ -1,57 +1,127 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
-import { useUiStore } from '@/hooks/use-ui-store'
-import { useUpdateShowcase } from '@/hooks/use-showcases'
-import { ShowcaseRequest } from 'bc-wallet-openapi'
+import { Showcase, ShowcaseRequest, ShowcaseScenariosInner } from 'bc-wallet-openapi'
+import { debugLog } from '@/lib/utils'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
 
-export const useShowcaseAdapter = () => {
-  const { 
-    showcase,
-    setShowcase,
+export function useShowcaseAdapter(slug?: string) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [localShowcase, setLocalShowcase] = useState<Showcase | null>(null)
+  const {
+    showcase: storeShowcase,
+    setShowcase: setStoreShowcase,
+    setSelectedPersonaIds,
     setScenarioIds,
+    setCurrentShowcaseSlug,
+    currentShowcaseSlug
   } = useShowcaseStore()
-  
-  const { currentShowcaseSlug } = useUiStore()
-  const { mutateAsync: updateShowcase, isPending: isSaving } = useUpdateShowcase(currentShowcaseSlug)
-  const { selectedCredentialDefinitionIds, tenantId } = useHelpersStore()
+  const effectiveSlug = slug || currentShowcaseSlug
+
+  const { data: showcaseData, isLoading: isShowcaseLoading, refetch } =
+    useShowcase(effectiveSlug || '')
+  const { mutateAsync: updateShowcase, isPending: isSaving } =
+    useUpdateShowcase(effectiveSlug || '')
+
+  const {
+    selectedCredentialDefinitionIds,
+    tenantId,
+    setTenantId
+  } = useHelpersStore()
+
+  useEffect(() => {
+    if (!effectiveSlug) {
+      debugLog('No slug provided, skipping data fetch');
+      return;
+    }
+
+    if (showcaseData && !isShowcaseLoading) {
+      debugLog(`Showcase data loaded for slug: ${effectiveSlug}`, showcaseData);
+      const { showcase: showcaseResponse } = showcaseData
+
+      if (!showcaseResponse) {
+        debugLog('No showcase found in response');
+        return;
+      }
+
+      if (showcaseResponse.name) {
+        setLocalShowcase(showcaseResponse);
+        setIsLoading(false);
+        setTenantId(showcaseResponse.tenantId || '');
+        setCurrentShowcaseSlug(showcaseResponse.slug);
+        setStoreShowcase(showcaseToShowcaseRequest(showcaseResponse));
+
+        const personaIds = showcaseResponse.personas?.map(p =>
+          typeof p === 'string' ? p : p.id) || [];
+        const scenarioIds = showcaseResponse.scenarios?.map(s =>
+          typeof s === 'string' ? s : s.id) || [];
+
+        setSelectedPersonaIds(personaIds);
+        setScenarioIds(scenarioIds);
+      } else {
+        debugLog('Received empty showcase data');
+      }
+    }
+  }, [
+    effectiveSlug, showcaseData, isShowcaseLoading,
+    setCurrentShowcaseSlug,
+    setSelectedPersonaIds, setScenarioIds, setTenantId,
+    setStoreShowcase
+  ]);
 
   const saveShowcase = useCallback(async (data: ShowcaseRequest) => {
     try {
+      if (!effectiveSlug) {
+        throw new Error('No showcase slug available');
+      }
+
       const showcaseData = {
         name: data.name,
         description: data.description,
         status: data.status || "ACTIVE",
         hidden: data.hidden || false,
-        scenarios: showcase.scenarios,
-        credentialDefinitions: selectedCredentialDefinitionIds,
-        personas: data.personas || showcase.personas,
+        scenarios: Array.from(new Set(storeShowcase.scenarios || [])),
+        personas: data.personas || storeShowcase.personas,
         bannerImage: data.bannerImage,
         tenantId,
+        completionMessage: data.completionMessage,
+      };
+
+      const updatedShowcase = await updateShowcase(showcaseData);
+      setStoreShowcase(showcaseData);
+
+      if (updatedShowcase && updatedShowcase.showcase?.scenarios) {
+        const scenarioIds = updatedShowcase.showcase.scenarios.map(
+          (s: ShowcaseScenariosInner) => s.id
+        );
+        setScenarioIds(scenarioIds);
       }
-      
-      const updatedShowcase = await updateShowcase(showcaseData)      
-      setShowcase(showcaseData)
-      
-      if (updatedShowcase && updatedShowcase.scenarios) {
-        const scenarioIds = updatedShowcase.scenarios.map((s: any) => s.id)
-        setScenarioIds(scenarioIds)
-      }
-      
-      return updatedShowcase
+
+      await refetch();
+
+      return updatedShowcase;
     } catch (error) {
-      console.error("Error saving showcase:", error)
-      throw error
+      console.error("Error saving showcase:", error);
+      throw error;
     }
-  }, [showcase, selectedCredentialDefinitionIds, updateShowcase, tenantId, setShowcase, setScenarioIds])
+  }, [
+    effectiveSlug, storeShowcase, selectedCredentialDefinitionIds,
+    updateShowcase, tenantId, setStoreShowcase, setScenarioIds, refetch
+  ]);
+
+  const effectiveShowcase = localShowcase || storeShowcase;
 
   return {
-    showcase,
-    setShowcase,
+    showcase: effectiveShowcase,
+    setShowcase: setStoreShowcase,
+    isLoading: isLoading || isShowcaseLoading,
     saveShowcase,
+    refetch,
     isSaving,
     selectedCredentialDefinitionIds,
-  }
+    slug: effectiveSlug
+  };
 }

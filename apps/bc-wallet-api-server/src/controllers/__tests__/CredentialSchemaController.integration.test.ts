@@ -1,3 +1,5 @@
+import './setup-env'
+import './setup-mocks'
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
 import { CredentialAttributeType, CredentialSchemaRequest, IdentifierType, Source } from 'bc-wallet-openapi'

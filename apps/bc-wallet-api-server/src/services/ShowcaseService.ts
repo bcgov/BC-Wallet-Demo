@@ -1,24 +1,25 @@
+import { BadRequestError, ForbiddenError, InternalServerError } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
+
 import ShowcaseRepository from '../database/repositories/ShowcaseRepository'
 import { NewShowcase, Showcase } from '../types'
 import { ISessionService } from '../types/services/session'
 import CredentialDefinitionService from './CredentialDefinitionService'
-import { BadRequestError } from 'routing-controllers'
 
 @Service()
 class ShowcaseService {
-  constructor(
+  public constructor(
     private readonly showcaseRepository: ShowcaseRepository,
     private credentialDefinitionService: CredentialDefinitionService,
     @Inject('ISessionService') private readonly sessionService: ISessionService,
   ) {}
 
   public getShowcases = async (): Promise<Showcase[]> => {
-    return this.showcaseRepository.findAll()
+    return this.showcaseRepository.findAll(this.getTenantId())
   }
 
   public getUnapproved() {
-    return this.showcaseRepository.findUnapproved()
+    return this.showcaseRepository.findUnapproved(this.getTenantId())
   }
 
   public getShowcase = async (id: string): Promise<Showcase> => {
@@ -26,19 +27,50 @@ class ShowcaseService {
   }
 
   public createShowcase = async (showcase: NewShowcase): Promise<Showcase> => {
+    const tenantId = this.getTenantId()
+    if (!showcase.tenantId) {
+      showcase.tenantId = tenantId
+    } else if (showcase.tenantId !== tenantId) {
+      throw new ForbiddenError(
+        `The showcase is being created for tenant ${showcase.tenantId}, but the signed in tenant is ${tenantId}.`,
+      )
+    }
     return this.showcaseRepository.create(showcase)
   }
 
   public updateShowcase = async (id: string, showcase: NewShowcase): Promise<Showcase> => {
+    const tenantId = this.getTenantId()
+    if (!showcase.tenantId) {
+      showcase.tenantId = tenantId
+    } else if (showcase.tenantId !== tenantId) {
+      throw new ForbiddenError(
+        `The showcase is being updated for tenant ${showcase.tenantId}, but the signed in tenant is ${tenantId}.`,
+      )
+    }
+
     return this.showcaseRepository.update(id, showcase)
   }
 
   public deleteShowcase = async (id: string): Promise<void> => {
+    const tenantId = this.getTenantId()
+    const existingShowcase = await this.showcaseRepository.findById(id)
+    if (existingShowcase) {
+      if (existingShowcase.tenantId !== tenantId)
+        return Promise.reject(
+          new ForbiddenError(
+            `The showcase is being deleted for tenant ${existingShowcase.tenantId}, but the signed in tenant is ${tenantId}.`,
+          ),
+        )
+    } else {
+      return
+    }
+
     return this.showcaseRepository.delete(id)
   }
 
   public getIdBySlug = async (slug: string): Promise<string> => {
-    return this.showcaseRepository.findIdBySlug(slug)
+    const tenantId = this.getTenantId()
+    return this.showcaseRepository.findIdBySlug(slug, tenantId)
   }
 
   /**
@@ -53,8 +85,8 @@ class ShowcaseService {
     if (!currentUser) {
       return Promise.reject(new Error('Could not determine the approving user.'))
     }
-
-    return this.showcaseRepository.approve(id, currentUser.id)
+    const tenantId = this.getTenantId()
+    return this.showcaseRepository.approve(id, tenantId, currentUser.id)
   }
 
   /**
@@ -70,8 +102,9 @@ class ShowcaseService {
     if (!currentUser) {
       throw new Error('Could not determine the approving user.')
     }
+    const tenantId = this.getTenantId()
 
-    const showcaseId = await this.showcaseRepository.findIdBySlug(slug)
+    const showcaseId = await this.showcaseRepository.findIdBySlug(slug, tenantId)
     const showCase = await this.showcaseRepository.findById(showcaseId)
 
     for (const scenario of showCase.scenarios || []) {
@@ -92,12 +125,20 @@ class ShowcaseService {
       }
     }
 
-    return this.showcaseRepository.approve(showcaseId, currentUser.id)
+    return this.showcaseRepository.approve(showcaseId, tenantId, currentUser.id)
   }
 
   public isApproved = async (id: string): Promise<boolean> => {
     const showcase = await this.showcaseRepository.findById(id)
     return showcase.approvedBy !== undefined && showcase.approvedBy !== null
+  }
+
+  private getTenantId() {
+    const urlTenantId = this.sessionService.getUrlTenantId()
+    if (!urlTenantId) {
+      throw new InternalServerError('Tenant details are missing')
+    }
+    return urlTenantId
   }
 }
 

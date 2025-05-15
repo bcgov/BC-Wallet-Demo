@@ -1,3 +1,5 @@
+import './setup-env'
+import './setup-mocks'
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
 import { IssuerRequest } from 'bc-wallet-openapi'
@@ -9,6 +11,7 @@ import {
   createTestAsset,
   createTestCredentialDefinition,
   createTestCredentialSchema,
+  createTestTenant,
 } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
@@ -25,6 +28,7 @@ describe('IssuerController Integration Tests', () => {
   let client: PGlite
   let app: Application
   let request: any
+  let tenantId: string
 
   beforeAll(async () => {
     await setupRabbitMQ()
@@ -39,6 +43,10 @@ describe('IssuerController Integration Tests', () => {
     Container.get(CredentialDefinitionRepository)
     Container.get(IssuerRepository)
     Container.get(IssuerService)
+
+    // Create a tenant for testing
+    const tenant = await createTestTenant('test-tenant')
+    tenantId = tenant.id
 
     // Create Express server using routing-controllers
     app = createExpressServer({
@@ -58,7 +66,7 @@ describe('IssuerController Integration Tests', () => {
     // Create prerequisites using test utilities
     const asset = await createTestAsset()
     const credentialSchema = await createTestCredentialSchema()
-    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+    const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
     const issuerRequest = createApiIssuerRequest(asset.id, [credentialDefinition.id], [credentialSchema.id])
     // Add identifierType and identifier that aren't in the utility
@@ -145,6 +153,7 @@ describe('IssuerController Integration Tests', () => {
     const credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
     const credentialDefinition1 = await credentialDefinitionRepository.create({
       name: 'Test Definition 1',
+      tenantId: tenantId,
       version: '1.0',
       identifierType: IdentifierType.DID,
       identifier: 'did:test:123',
@@ -155,6 +164,7 @@ describe('IssuerController Integration Tests', () => {
 
     const credentialDefinition2 = await credentialDefinitionRepository.create({
       name: 'Test Definition 2',
+      tenantId: tenantId,
       version: '1.0',
       identifierType: IdentifierType.DID,
       identifier: 'did:test:456',

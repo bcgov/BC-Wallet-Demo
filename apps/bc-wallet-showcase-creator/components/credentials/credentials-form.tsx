@@ -36,6 +36,7 @@ import {
   CredentialDefinitionRequest,
   CredentialSchemaRequest,
 } from 'bc-wallet-openapi'
+import { useTenant } from '@/providers/tenant-provider'
 
 export const CredentialsForm = () => {
   const { selectedCredential, mode, setSelectedCredential, viewCredential } = useCredentials()
@@ -44,6 +45,7 @@ export const CredentialsForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [credentialLogo, setCredentialLogo] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
+  const { tenantId } = useTenant();
   const { mutateAsync: createAsset } = useCreateAsset()
   const { mutateAsync: createCredentialSchema } = useCreateCredentialSchema()
 
@@ -146,6 +148,7 @@ export const CredentialsForm = () => {
           createdAt: schemaResponse?.credentialSchema?.createdAt ?? new Date(),
           updatedAt: schemaResponse?.credentialSchema?.updatedAt ?? new Date(),
         },
+        tenantId: tenantId ?? '',
         icon: assetResponse.asset,
       }
 
@@ -184,6 +187,8 @@ export const CredentialsForm = () => {
     form.reset()
     setCredentialLogo(undefined)
   }
+
+  // TODO Use localStorage to save form data while being redirect to login page after session timeout
 
   const handleApproveCredentialDefinition = async () => {
     if (selectedCredential) {
@@ -267,7 +272,7 @@ export const CredentialsForm = () => {
                 value: selectedCredential?.source,
               },
             ].map((item, index) => (
-              <div key={index} className="flex flex-col p-4 dark:bg-dark-bg-secondary space-y-2">
+              <div key={index} className="flex flex-col p-4 space-y-2">
                 <h6 className="text-md font-semibold dark:text-white text-black">{item.label}</h6>
                 <p className="text-sm font-medium text-gray-900 dark:text-white break-words">{item.value || '—'}</p>
               </div>
@@ -285,7 +290,7 @@ export const CredentialsForm = () => {
                         className="p-3 max-w-full max-h-full object-contain"
                         src={
                           selectedCredential?.icon?.id
-                            ? `${baseUrl}/assets/${selectedCredential.icon.id}/file`
+                            ? `${baseUrl}/${tenantId}/assets/${selectedCredential.icon.id}/file`
                             : '/assets/no-image.jpg'
                         }
                         width={150}

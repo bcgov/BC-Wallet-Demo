@@ -19,7 +19,7 @@ import type { Persona, Showcase, PresentationScenario } from '../../slices/types
 import { useUseCaseState } from '../../slices/useCases/useCasesSelectors'
 import { nextStep, prevStep, resetStep } from '../../slices/useCases/useCasesSlice'
 import { basePath } from '../../utils/BasePath'
-import { isConnected } from '../../utils/Helpers'
+import { getTenantIdFromPath, isConnected } from '../../utils/Helpers'
 import { SideView } from './SideView'
 import { StepInformation } from './steps/StepInformation'
 
@@ -49,6 +49,7 @@ export const Section: FC<Props> = (props: Props) => {
 
   const showLeaveModal = () => setLeaveModal(true)
   const closeLeave = () => setLeaveModal(false)
+  const tenantId = getTenantIdFromPath();
 
   const currentStep = currentScenario.steps[stepCount]
 
@@ -69,7 +70,7 @@ export const Section: FC<Props> = (props: Props) => {
         },
       },
     })
-    navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
+    navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
     dispatch({ type: 'clearUseCase' })
     dispatch(resetStep())
   }
@@ -91,7 +92,7 @@ export const Section: FC<Props> = (props: Props) => {
     if (completed && currentScenario.slug) {
       dispatch(useCaseCompleted(currentScenario.slug))
       dispatch({ type: 'clearUseCase' })
-      navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
+      navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
       dispatch(resetStep())
       trackSelfDescribingEvent({
         event: {

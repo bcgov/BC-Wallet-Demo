@@ -1,8 +1,8 @@
 import { eq, inArray } from 'drizzle-orm'
 import { BadRequestError } from 'routing-controllers'
+import { NotFoundError } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import { NotFoundError } from '../../errors'
 import DatabaseService from '../../services/DatabaseService'
 import { NewRelyingParty, RelyingParty, RepositoryDefinition } from '../../types'
 import { credentialDefinitions, relyingParties, relyingPartiesToCredentialDefinitions } from '../schema'

@@ -15,6 +15,8 @@
     "header_tab_draft": "Draft",
     "header_tab_under_review": "Under Review",
     "header_tab_published": "Published",
+    "header_tab_active": "Published",
+    "header_tab_archived": "Archived",
     "create_new_showcase_label": "CREATE NEW SHOWCASE",
     "created_by_label": "Created By {name}",
     "description_label": "Description",
@@ -22,8 +24,11 @@
     "description_version": "Version",
     "loading_label": "Loading...",
     "publish_info_title": "Review and Publish Showcase",
-"publish_info_subtitle": "Enter and review the showcase details.",
-    "publish_info_credentials": "Will receive the following credential(s):"
+    "publish_info_subtitle": "Enter and review the showcase details.",
+    "publish_info_credentials": "Will receive the following credential(s):",
+    "loading_showcase_data_label": "Loading showcase data...",
+    "name_placeholder": "Showcase Name",
+    "edit_name_tooltip": "Edit the name of the showcase"
   },
   "character": {
     "header_title": "Create your Character",
@@ -144,7 +149,8 @@
     "type_label": "Credential Type",
     "representations_label": "Representations",
     "icon_label": "Icon",
-    "timestamps_label": "Timestamps"
+    "timestamps_label": "Timestamps",
+    "pending_approval_label": "Pending Approval"
   },
   "onboarding": {
     "header_title": "Add Steps",
@@ -184,7 +190,9 @@
     "search_credential_placeholder": "ex. Student Card",
     "no_credentials_added_message": "No Credentials Added",
     "go_back_to_select_personas": "Go Back to Select Personas",
-    "select_persona_message": "Please select a persona from the left to edit their onboarding steps."
+    "select_persona_message": "Please select a persona from the left to edit their onboarding steps.",
+    "no_step_selected_subtext": "Select a step from the list or create a new one",
+    "create_new_step_button_label": "Create New Step"
   },
   "scenario": {
     "header_title": "Create Scenarios",
@@ -228,7 +236,7 @@
     "show_json_preview_label": "Show JSON Preview",
     "see_more_label": "see more",
     "preview_label": "PREVIEW",
-    "create_copy_label": "CREATE A COPY",
+    "create_copy_label": "DUPLICATE",
     "next_label": "NEXT",
     "search_label": "Search",
     "clear_selection_label": "Clear Selection",

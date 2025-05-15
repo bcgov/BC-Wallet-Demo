@@ -147,10 +147,10 @@ export function decryptBuffer(encryptedData: Buffer, nonce: Buffer): Buffer {
 export function encryptString(
   text: string,
   nonceSize: number = envEnc.NONCE_SIZE,
-): { encryptedBase64: string; nonceBase64: string } {
+): { encryptedApiKeyBase64: string; nonceBase64: string } {
   const result = encryptBuffer(Buffer.from(text, 'utf8'), nonceSize)
   return {
-    encryptedBase64: result.encrypted.toString('base64'),
+    encryptedApiKeyBase64: result.encrypted.toString('base64'),
     nonceBase64: result.nonce.toString('base64'),
   }
 }

@@ -8,6 +8,8 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
 import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
+import { useTenant } from '@/providers/tenant-provider'
 
 
 interface CredentialsDisplayProps {
@@ -19,6 +21,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
   const [openId, setOpenId] = useState<string | null>(null)
   const t = useTranslations()
   const { data: credentials, isLoading } = useCredentialDefinitions()
+  const { tenantId } = useTenant();
 
   const sanitizedSearchTerm = searchTerm?.toLowerCase() || ''
 
@@ -49,7 +52,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
   }
 
   return (
-    <div className="w-full h-full bg-white dark:bg-dark-bg-secondary border-b dark:border-foreground/10 shadow-lg rounded-lg">
+    <div className="w-full h-full bg-background border-b dark:border-foreground/10 shadow-lg rounded-lg">
       <div className="p-4 border-b dark:border-dark-border">
         <h2 className="text-lg font-bold">
           {t('credentials.credential_title')} ({filteredCredentials.length})
@@ -69,7 +72,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
               {openId === item.id ? (
                 <div className="p-3 bg-foreground/10 flex flex-col dark:bg-dark-bg items-center text-center transition-all duration-300">
                   <Image
-                    src={item.icon?.id?.trim() ? `${baseUrl}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
+                    src={item.icon?.id?.trim() ? `${baseUrl}/${tenantId}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
                     unoptimized
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement
@@ -85,13 +88,17 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   <span className="text-sm text-foreground/80">{item.source}</span>
                   <div className="flex flex-wrap gap-2 mt-2 text-xs">
                     {item.credentialSchema?.attributes?.map((attr) => (
-                      <span
+                      <Badge
                         key={`${item.id}-${attr.id}-${attr.type || 'unknown'}`}
-                        className="text-sm bg-foreground/10 px-2 py-1 rounded transition-all duration-200 hover:bg-foreground/20"
                       >
-                        {attr.name}
-                      </span>
+                        {attr.name.charAt(0).toUpperCase() + attr.name.slice(1)}
+                      </Badge>
                     ))}
+                    {!item.approvedBy &&
+                      <Badge variant="destructiveOutline" className="text-center flex justify-center items-center">
+                        {t('credentials.pending_approval_label')}
+                      </Badge>
+                    }
                   </div>
                 </div>
               ) : (
@@ -99,12 +106,12 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   onClick={() => toggleDetails(item.id)}
                   key={item.id}
                   className={`relative p-4 flex flex-row items-center justify-between w-full transition-all duration-300 hover:bg-foreground/10 cursor-pointer ${
-                    openId === item.id ? 'bg-foreground/10' : 'bg-white dark:bg-dark-bg-secondary'
+                    openId === item.id ? 'bg-foreground/10' : 'bg-background'
                   }`}
                 >
                   <div className="flex items-center gap-3 w-full">
                     <Image
-                      src={item.icon?.id?.trim() ? `${baseUrl}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
+                      src={item.icon?.id?.trim() ? `${baseUrl}/${tenantId}/assets/${item.icon.id}/file` : '/assets/no-image.jpg'}
                       unoptimized
                       onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement
@@ -117,7 +124,12 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                     />
                     <div className="flex flex-col w-full">
                       <span className="text-lg font-semibold">{item.name}</span>
-                      <span className="text-sm text-foreground/80">Version {item.version}</span>
+                      {!item.approvedBy ?
+                        <Badge variant="destructiveOutline" className="text-center flex justify-center items-center">
+                          {t('credentials.pending_approval_label')}
+                        </Badge> :
+                        <span className="text-sm text-foreground/80">Version {item.version}</span>
+                      }
                     </div>
                   </div>
                   <div className="ml-2">

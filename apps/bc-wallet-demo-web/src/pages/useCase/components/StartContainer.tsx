@@ -18,6 +18,7 @@ import type {
   Step,
   PresentationScenario
 } from '../../../slices/types'
+import { getTenantIdFromPath } from '../../../utils/Helpers'
 
 export interface Props {
   showcase: Showcase
@@ -38,6 +39,7 @@ export const StartContainer: FC<Props> = (props: Props) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { slug } = useParams()
+  const tenantId = getTenantIdFromPath();
 
   const style = isMobile ? { minHeight: '85vh' } : { maxHeight: '940px' }
 
@@ -52,7 +54,7 @@ export const StartContainer: FC<Props> = (props: Props) => {
         },
       },
     })
-    navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
+    navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
   }
 
   const next = () => {

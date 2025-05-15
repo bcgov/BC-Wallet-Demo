@@ -12,32 +12,33 @@ import type {
   CredentialDefinitionResponse,
   CredentialDefinitionRequest,
   CredentialDefinitionsResponse,
-	CredentialSchemaResponse,
+  CredentialSchemaResponse,
   CredentialSchemaImportRequest,
   CredentialDefinitionImportRequest,
 } from 'bc-wallet-openapi'
 
 const staleTime = 1000 * 60 * 5 // 5 minutes
 
-export function useCredentialDefinitions() {
-  return useQuery({
-    queryKey: ['credential'],
+export const useCredentialDefinitions = () => {
+  return useQuery<CredentialDefinitionsResponse>({
+    queryKey: ['credentialDefinitions'],
     queryFn: async () => {
-      const response = (await apiClient.get('/credentials/definitions')) as CredentialDefinitionsResponse
-      return response
+      const response = await apiClient.get('/credentials/definitions')
+      return response as CredentialDefinitionsResponse
     },
-    staleTime,
+    staleTime
   })
 }
 
-export const useCredentialDefinition = (slug: string) => {
-  return useQuery({
-    queryKey: ['credential', slug],
+export const useCredentialDefinition = (definitionId: string) => {
+  return useQuery<CredentialDefinitionResponse>({
+    queryKey: ['credentialDefinition', definitionId],
     queryFn: async () => {
-      const response = (await apiClient.get(`/credential/definitions/${slug}`)) as CredentialDefinitionResponse
-      return response
+      const response = await apiClient.get(`/credentials/definitions/${definitionId}`)
+      return response as CredentialDefinitionResponse
     },
     staleTime,
+    enabled: !!definitionId
   })
 }
 
@@ -87,7 +88,7 @@ export const useCreateCredentialSchema = () => {
 
 export const useImportCredentialSchema = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (data: CredentialSchemaImportRequest) => {
       const response = await apiClient.post(`/credentials/schemas/import`, data)
@@ -101,7 +102,7 @@ export const useImportCredentialSchema = () => {
 
 export const useImportCredentialDefinition = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (data: CredentialDefinitionImportRequest) => {
       const response = await apiClient.post(`/credentials/definitions/import`, data)
@@ -122,30 +123,58 @@ export const useUpdateCredentialSchema = () => {
       const response = await apiClient.put(`/credentials/schemas/${credentialSchemaId}`, data)
       return response as CredentialSchemaResponse
     },
+    onSuccess: (_, { credentialSchemaId }) => {
+      queryClient.invalidateQueries({ queryKey: ['credentialSchema', credentialSchemaId] })
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['credentialSchema'] })
-    },
+    }
   })
 }
 
 export const useCreateCredentialDefinition = () => {
   const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async (data: CredentialDefinitionRequest) => {
-      const response = await apiClient.post(`/credentials/definitions`, data)
+
+  return useMutation<CredentialDefinitionResponse, Error, CredentialDefinitionRequest>({
+    mutationFn: async (data) => {
+      const response = await apiClient.post('/credentials/definitions', data)
       return response as CredentialDefinitionResponse
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['credential'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
+    }
+  })
+}
+
+export const useUpdateCredentialDefinition = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    CredentialDefinitionResponse,
+    Error,
+    { id: string; data: CredentialDefinitionRequest }
+  >({
+    mutationFn: async ({ id, data }) => {
+      const response = await apiClient.put(`/credentials/definitions/${id}`, data)
+      return response as CredentialDefinitionResponse
     },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
+      queryClient.invalidateQueries({ queryKey: ['credentialDefinition', variables.id] })
+    }
   })
 }
 
 export const useApproveCredentialDefinition = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: async (credentialId: string) => {
       const response = await apiClient.post(`/credentials/definitions/${credentialId}/approve`)
       return response as CredentialDefinitionResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
     },
   })
 }
@@ -153,14 +182,13 @@ export const useApproveCredentialDefinition = () => {
 export const useDeleteCredentialDefinition = () => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (slug: string) => {
-      const response = await apiClient.delete(`/credentials/definitions/${slug}`)
-      return response as CredentialDefinitionResponse
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/credentials/definitions/${id}`)
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['credential'] })
-    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
+    }
   })
 }
 

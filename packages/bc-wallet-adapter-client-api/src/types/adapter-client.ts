@@ -1,9 +1,4 @@
-import type {
-  CredentialDefinition,
-  CredentialDefinitionImportRequest,
-  CredentialSchema,
-  Issuer,
-} from 'bc-wallet-openapi'
+import type { CredentialDefinitionImportRequest, Issuer } from 'bc-wallet-openapi'
 
 export interface IAdapterClientApi {
   publishIssuer(issuer: Issuer, options: SendOptions): Promise<void>
@@ -22,4 +17,5 @@ export type SendOptions = {
   showcaseApiUrlBase?: string
   tractionApiUrlBase?: string
   tractionTenantId?: string
+  tractionWalletId?: string
 }

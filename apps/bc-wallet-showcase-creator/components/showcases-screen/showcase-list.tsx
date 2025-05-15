@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import ButtonOutline from '@/components/ui/button-outline'
 import { Card } from '@/components/ui/card'
-import { useCreateShowcase, useDeleteShowcase, useShowcases } from '@/hooks/use-showcases'
+import { useCreateShowcase, useDeleteShowcase, useDuplicateShowcase, useShowcases } from '@/hooks/use-showcases'
 import { Link } from '@/i18n/routing'
 import { baseUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -16,14 +16,16 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Header from '../header'
 import { env } from '@/env'
+import { getTenantId } from '@/providers/tenant-provider'
+import { toast } from 'sonner'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
 export const ShowcaseList = () => {
   const t = useTranslations()
   const { data, isLoading } = useShowcases()
-  const { mutateAsync } = useCreateShowcase()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
   const tabs = [
     { label: t('showcases.header_tab_overview'), status: 'ALL' },
     { label: t('showcases.header_tab_draft'), status: 'PENDING' },
@@ -34,6 +36,8 @@ export const ShowcaseList = () => {
   const [activeTab, setActiveTab] = useState(tabs[0])
   const [searchTerm, setSearchTerm] = useState('')
 
+  const tenantId = getTenantId()
+
   const searchFilter = (showcase: Showcase) => {
     if (searchTerm === '') {
       return true
@@ -41,25 +45,17 @@ export const ShowcaseList = () => {
     return showcase.name.toLowerCase().includes(searchTerm.toLowerCase())
   }
 
-  const createShowcase = async () => {
-    const response = await mutateAsync(
-      {
-        name: 'BC Gov Showcase',
-        description: 'Collection of credential usage scenarios',
-        status: 'ACTIVE',
-        hidden: false,
-        tenantId: 'test-tenant-1',
-        scenarios: ['8a9d9619-7522-453c-b068-3408ef4eca62', 'fee9c14d-b39b-460e-b4c7-20fb5ddc5c46'],
-        personas: ['b3f83345-4448-4d21-a3d3-5d7b719c45d8'],
+  const handleDuplicateShowcase = async (showcaseSlug: string) => {
+    const newShowcase = await duplicateShowcase(showcaseSlug, {
+      onSuccess: (data: unknown) => {
+        console.log('Showcase Created:', data)
+        toast.success('Showcase Duplicated')
       },
-      {
-        onSuccess: (data: unknown) => {
-          console.log('Showcase Created:', data)
-        },
+      onError: (error: unknown) => {
+        toast.error('Error duplicating showcase: ' + error)
       },
-    )
-
-    return response
+    })
+    console.log('newShowcase', newShowcase)
   }
 
   return (
@@ -70,7 +66,8 @@ export const ShowcaseList = () => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         buttonLabel={t('showcases.create_new_showcase_label')}
-        buttonLink="/showcases/create"
+        // buttonLink="/showcases/create"
+        buttonLink={`/${tenantId}/showcases/create`}
       />
 
       {!isLoading && (
@@ -127,7 +124,7 @@ export const ShowcaseList = () => {
                     style={{
                       backgroundImage: `url('${
                         showcase?.bannerImage?.id
-                          ? `${baseUrl}/assets/${showcase.bannerImage.id}/file`
+                          ? `${baseUrl}/${tenantId}/assets/${showcase.bannerImage.id}/file`
                           : '/assets/NavBar/Showcase.jpeg'
                       }')`,
                     }}
@@ -154,12 +151,12 @@ export const ShowcaseList = () => {
                         <div className="flex-shrink-0">
                           <DeleteButton
                             onClick={() => {
-                              console.log('delete', showcase.id)
+                              deleteShowcase(showcase.slug)
                             }}
                           />
 
-                          <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />
-                          <OpenButton value={`${WALLET_URL}/${showcase.slug}`} />
+                          <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                          <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
                         </div>
                       </div>
                     </div>
@@ -188,7 +185,7 @@ export const ShowcaseList = () => {
                             <Image
                               src={
                                 persona.headshotImage?.id
-                                  ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                  ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                                   : '/assets/no-image.jpg'
                               }
                               alt={persona.headshotImage?.description || 'Character headshot'}
@@ -206,16 +203,14 @@ export const ShowcaseList = () => {
                     </div>
 
                     <div className="flex gap-4 mt-auto">
-                      <Link className="w-1/2" href={`/showcases/${showcase.slug}`}>
+                      <Link className="w-1/2" href={`/${tenantId}/showcases/${showcase.slug}`}>
                         <ButtonOutline
                           className="w-full"
-                          // disabled
-                          onClick={() => deleteShowcase(showcase.slug)}
                         >
                           {t('action.edit_label')}
                         </ButtonOutline>
                       </Link>
-                      <ButtonOutline onClick={() => createShowcase()} disabled className="w-1/2">
+                      <ButtonOutline onClick={() => handleDuplicateShowcase(showcase.slug)} className="w-1/2">
                         {t('action.create_copy_label')}
                       </ButtonOutline>
                     </div>

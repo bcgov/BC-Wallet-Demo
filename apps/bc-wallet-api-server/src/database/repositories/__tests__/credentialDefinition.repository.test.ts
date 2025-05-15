@@ -8,18 +8,16 @@ import { Container } from 'typedi'
 import DatabaseService from '../../../services/DatabaseService'
 import {
   Asset,
-  CredentialAttributeType,
   CredentialSchema,
   CredentialType,
   IdentifierType,
   NewCredentialDefinition,
-  NewCredentialSchema,
+  Tenant,
   User,
 } from '../../../types'
 import * as schema from '../../schema'
 import CredentialDefinitionRepository from '../CredentialDefinitionRepository'
-import CredentialSchemaRepository from '../CredentialSchemaRepository'
-import { createTestAsset, createTestUser } from './dbTestData' // Import UserRepository
+import { createTestAsset, createTestCredentialSchema, createTestTenant, createTestUser } from './dbTestData'
 
 // Helper to check if a date is recent (within the last N seconds)
 const isRecentDate = (date: Date | null | undefined, seconds = 5): boolean => {
@@ -33,10 +31,7 @@ describe('Database credential definition repository tests', (): void => {
   let client: PGlite
   let database: NodePgDatabase
   let credentialDefinitionRepository: CredentialDefinitionRepository
-  let credentialSchemaRepository: CredentialSchemaRepository
-  let testUser: User
-  let asset: Asset
-  let credentialSchema: CredentialSchema
+  let testUser: User, asset: Asset, credentialSchema: CredentialSchema, tenant: Tenant
 
   beforeEach(async (): Promise<void> => {
     client = new PGlite()
@@ -48,23 +43,12 @@ describe('Database credential definition repository tests', (): void => {
     Container.set(DatabaseService, mockDatabaseService)
 
     credentialDefinitionRepository = Container.get(CredentialDefinitionRepository)
-    credentialSchemaRepository = Container.get(CredentialSchemaRepository)
 
+    // Use helper functions from dbTestData to create test dependencies
     testUser = await createTestUser('test-user')
     asset = await createTestAsset()
-
-    // Create a test credential schema
-    const newCredentialSchema: NewCredentialSchema = {
-      name: 'example_name',
-      version: 'example_version',
-      identifierType: IdentifierType.DID,
-      identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
-      attributes: [
-        { name: 'example_attribute_name1', value: 'example_attribute_value1', type: CredentialAttributeType.STRING },
-        { name: 'example_attribute_name2', value: 'example_attribute_value2', type: CredentialAttributeType.STRING },
-      ],
-    }
-    credentialSchema = await credentialSchemaRepository.create(newCredentialSchema)
+    tenant = await createTestTenant('test-tenant')
+    credentialSchema = await createTestCredentialSchema()
   })
 
   afterEach(async (): Promise<void> => {
@@ -82,6 +66,7 @@ describe('Database credential definition repository tests', (): void => {
       icon: asset.id,
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
       // representations: [
       //     { // TODO SHOWCASE-81 OCARepresentation
       //
@@ -104,6 +89,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(savedCredentialDefinition.version).toEqual(credentialDefinition.version)
     expect(savedCredentialDefinition.icon).toBeDefined()
     expect(savedCredentialDefinition.icon!.id).toEqual(asset.id)
+    expect(savedCredentialDefinition.tenantId).toEqual(tenant.id)
 
     // Verify approval fields are initially null/undefined
     expect(savedCredentialDefinition.approvedBy).toBeNull()
@@ -123,6 +109,7 @@ describe('Database credential definition repository tests', (): void => {
       version: '1.0',
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
       // representations: [
       //     { // TODO SHOWCASE-81 OCARepresentation
       //
@@ -148,7 +135,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(approvedDefinition.id).toEqual(savedCredentialDefinition.id)
     expect(approvedDefinition.approvedBy).toBeDefined()
     expect(approvedDefinition.approvedBy?.id).toEqual(testUser.id)
-    expect(approvedDefinition.approvedBy?.userName).toEqual(testUser.userName) // Check some user fields
+    expect(approvedDefinition.approvedBy?.userName).toEqual(testUser.userName)
     expect(approvedDefinition.approvedAt).toBeDefined()
     expect(isRecentDate(approvedDefinition.approvedAt)).toBe(true)
 
@@ -166,6 +153,7 @@ describe('Database credential definition repository tests', (): void => {
       icon: asset.id,
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
       // representations: [
       //     { // TODO SHOWCASE-81 OCARepresentation
       //
@@ -194,6 +182,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(fromDb.name).toEqual(credentialDefinition.name)
     expect(fromDb.icon).toBeDefined()
     expect(fromDb.icon!.id).toEqual(asset.id)
+    expect(fromDb.tenantId).toEqual(tenant.id)
     expect(fromDb.approvedBy).toBeDefined()
     expect(fromDb.approvedBy?.id).toEqual(testUser.id)
     expect(fromDb.approvedAt).toBeDefined()
@@ -207,6 +196,7 @@ describe('Database credential definition repository tests', (): void => {
       version: '1.0',
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
     }
     const savedCd1 = await credentialDefinitionRepository.create(cd1)
 
@@ -216,6 +206,7 @@ describe('Database credential definition repository tests', (): void => {
       version: '1.0',
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
     }
     let savedCd2 = await credentialDefinitionRepository.create(cd2)
     savedCd2 = await credentialDefinitionRepository.approve(savedCd2.id, testUser.id)
@@ -233,6 +224,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(fetchedCd1?.name).toEqual(cd1.name)
     expect(fetchedCd1?.approvedBy).toBeNull()
     expect(fetchedCd1?.approvedAt).toBeNull()
+    expect(fetchedCd1?.tenantId).toEqual(tenant.id)
 
     expect(fetchedCd2).toBeDefined()
     expect(fetchedCd2?.name).toEqual(cd2.name)
@@ -240,6 +232,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(fetchedCd2?.approvedBy?.id).toEqual(testUser.id)
     expect(fetchedCd2?.approvedAt).toBeDefined()
     expect(isRecentDate(fetchedCd2?.approvedAt)).toBe(true)
+    expect(fetchedCd2?.tenantId).toEqual(tenant.id)
   })
 
   it('Should find only unapproved credential definitions', async (): Promise<void> => {
@@ -249,6 +242,7 @@ describe('Database credential definition repository tests', (): void => {
       version: '1.0',
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
     }
     const savedCd1 = await credentialDefinitionRepository.create(cd1)
 
@@ -258,6 +252,7 @@ describe('Database credential definition repository tests', (): void => {
       version: '1.0',
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
     }
     let savedCd2 = await credentialDefinitionRepository.create(cd2)
     await credentialDefinitionRepository.approve(savedCd2.id, testUser.id)
@@ -271,6 +266,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(unapproved[0].name).toEqual(cd1.name)
     expect(unapproved[0].approvedBy).toBeNull()
     expect(unapproved[0].approvedAt).toBeNull()
+    expect(unapproved[0].tenantId).toEqual(tenant.id)
   })
 
   it('Should update credential definition without affecting existing approval status', async (): Promise<void> => {
@@ -281,6 +277,7 @@ describe('Database credential definition repository tests', (): void => {
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
       icon: asset.id,
+      tenantId: tenant.id,
       // representations: [
       //     { // TODO SHOWCASE-81 OCARepresentation
       //
@@ -305,6 +302,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(updatedDefinition.name).toEqual(newName) // Name is updated
     expect(updatedDefinition.version).toEqual(credentialDefinition.version) // Version is unchanged
     expect(updatedDefinition.icon?.id).toEqual(asset.id) // Icon is unchanged
+    expect(updatedDefinition.tenantId).toEqual(tenant.id) // TenantId is unchanged
 
     // Verify approval status is PERSISTED
     expect(updatedDefinition.approvedBy).toBeDefined()
@@ -321,6 +319,7 @@ describe('Database credential definition repository tests', (): void => {
       version: 'initial_version',
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
       // representations: [
       //     { // TODO SHOWCASE-81 OCARepresentation
       //
@@ -349,6 +348,7 @@ describe('Database credential definition repository tests', (): void => {
     // 3. Assert
     expect(updatedDefinition).toBeDefined()
     expect(updatedDefinition.name).toEqual(newName) // Name is updated
+    expect(updatedDefinition.tenantId).toEqual(tenant.id) // TenantId is unchanged
     // Verify approval status is still null/undefined
     expect(updatedDefinition.approvedBy).toBeNull()
     expect(updatedDefinition.approvedAt).toBeNull()
@@ -363,6 +363,7 @@ describe('Database credential definition repository tests', (): void => {
       identifier: 'did:sov:XUeUZauFLeBNofY3NhaZCB',
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
       // representations: [
       //     { // TODO SHOWCASE-81 OCARepresentation
       //
@@ -382,6 +383,7 @@ describe('Database credential definition repository tests', (): void => {
     expect(savedCredentialDefinition).toBeDefined()
     expect(savedCredentialDefinition.name).toEqual(credentialDefinition.name)
     expect(savedCredentialDefinition.icon).toBeUndefined()
+    expect(savedCredentialDefinition.tenantId).toEqual(tenant.id)
     expect(savedCredentialDefinition.approvedBy).toBeNull()
     expect(savedCredentialDefinition.approvedAt).toBeNull()
   })
@@ -394,6 +396,7 @@ describe('Database credential definition repository tests', (): void => {
       icon: unknownIconId,
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
     }
     await expect(credentialDefinitionRepository.create(credentialDefinition)).rejects.toThrowError(
       `No asset found for id: ${unknownIconId}`,
@@ -406,6 +409,7 @@ describe('Database credential definition repository tests', (): void => {
       version: '1.0',
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
     }
     const savedCredentialDefinition = await credentialDefinitionRepository.create(credentialDefinition)
     await credentialDefinitionRepository.delete(savedCredentialDefinition.id)
@@ -422,6 +426,7 @@ describe('Database credential definition repository tests', (): void => {
       icon: asset.id, // Start with a valid icon
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
     }
     const savedCredentialDefinition = await credentialDefinitionRepository.create(credentialDefinition)
     const updatePayload: NewCredentialDefinition = {
@@ -442,6 +447,7 @@ describe('Database credential definition repository tests', (): void => {
       icon: asset.id, // Start with an icon
       type: CredentialType.ANONCRED,
       credentialSchema: credentialSchema.id,
+      tenantId: tenant.id,
       // representations: [
       //     { // TODO SHOWCASE-81 OCARepresentation
       //
@@ -467,6 +473,7 @@ describe('Database credential definition repository tests', (): void => {
 
     expect(updatedDefinition).toBeDefined()
     expect(updatedDefinition.name).toEqual(credentialDefinition.name)
+    expect(updatedDefinition.tenantId).toEqual(tenant.id)
     expect(updatedDefinition.icon).toBeUndefined() // Icon should now be undefined
   })
 })
