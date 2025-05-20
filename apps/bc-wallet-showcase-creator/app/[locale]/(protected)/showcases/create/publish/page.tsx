@@ -10,11 +10,11 @@ import { useTranslations } from 'next-intl'
 
 export default function CreateOnboardingPage() {
   const t = useTranslations()
-  const { displayShowcase } = useShowcaseStore()
+  const { showcase, selectedCredentialDefinitionIds } = useShowcaseStore()
   const { selectedPersonaIds } = useShowcaseStore()
   const { data: personas } = usePersonas()
 
-  const personasToDisplay = personas?.personas?.filter((persona) => selectedPersonaIds.includes(persona.id))
+  const personasToDisplay = personas?.personas?.filter((persona: Persona) => selectedPersonaIds.includes(persona.id))
 
   return (
     <div className="flex bg-light-bg dark:bg-dark-bg flex-col h-full w-full">
@@ -32,7 +32,7 @@ export default function CreateOnboardingPage() {
               <h2 className="text-base font-bold text-foreground">{t('showcases.publish_info_title')}</h2>
               <p className="w-full text-xs text-foreground/80">{t('showcases.publish_info_subtitle')}</p>
             </div>
-            <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={displayShowcase.credentialDefinitions as Partial<CredentialDefinition>[]} />
+            <PublishInfo characters={personasToDisplay as Partial<Persona>[]} credentials={selectedCredentialDefinitionIds as Partial<CredentialDefinition>[]} />
           </div>
           <div className="w-2/3 bg-white dark:bg-dark-bg-secondary border shadow-md rounded-md flex flex-col">
             <PublishEdit />
