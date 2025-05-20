@@ -3,7 +3,8 @@ name: PR Build and Deploy
 on:
   pull_request:
     branches:
-      - main
+      # - main
+      - showcase-builder
     paths:
       - "apps/**"
       - "packages/**"
