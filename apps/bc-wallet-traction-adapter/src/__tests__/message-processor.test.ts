@@ -1,5 +1,5 @@
 import { StartedRabbitMQContainer } from '@testcontainers/rabbitmq'
-import type { CredentialAttributeType, CredentialDefinition } from 'bc-wallet-openapi'
+import { CredentialAttributeType, CredentialDefinition, IdentifierType } from 'bc-wallet-openapi'
 import { CredentialType, IssuerType } from 'bc-wallet-openapi'
 import type { Sender, SenderOptions } from 'rhea-promise'
 import { Connection } from 'rhea-promise'
@@ -257,6 +257,7 @@ describe('MessageProcessor Integration Test', () => {
     // Create a sample credential definition
     const credDef: CredentialDefinition = {
       id: 'test-id',
+      tenantId: 'test-tenant',
       name: 'Test Credential',
       version: '1.0',
       type: CredentialType.Anoncred,
@@ -294,7 +295,7 @@ describe('MessageProcessor Integration Test', () => {
     // Send a message without a tenant ID
     const messageId = uuidv4()
     const tenantId = environment.traction.TRACTION_DEFAULT_TENANT_ID
-    environment.traction.TRACTION_DEFAULT_TENANT_ID = undefined // temporary clear the tenant, otherwise it will find the fixed tenant from the env and we cannot test the error message
+    environment.traction.TRACTION_DEFAULT_TENANT_ID = undefined // temporarily clear the tenant, otherwise it will find the fixed tenant from the env and we cannot test the error message
     void (await sender.send({
       message_id: messageId,
       body: JSON.stringify(credDef),
@@ -381,6 +382,7 @@ describe('MessageProcessor Integration Test', () => {
       name: 'Test Schema',
       version: '1.0',
       identifier: 'ABCD:2:TestSchema:1.0',
+      identifierType: IdentifierType.Did,
       attributes: [
         {
           id: 'attr1',

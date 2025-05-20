@@ -1,18 +1,20 @@
 'use client'
 
 import { Link, usePathname } from '@/i18n/routing'
+import { useTenant } from '@/providers/tenant-provider'
 import { useTranslations } from 'next-intl'
 
 export default function TabsComponent({ slug }: { slug: string }) {
   const t = useTranslations()
   const pathname = usePathname()
+  const { tenantId } = useTenant();
 
   const tabs = [
-    { label: t('navigation.general_label'), path: `/showcases/${slug}` },
-    { label: t('navigation.character_label'), path: `/showcases/${slug}/characters` },
-    { label: t('navigation.onboarding_label'), path: `/showcases/${slug}/onboarding` },
-    { label: t('navigation.scenario_label'), path: `/showcases/${slug}/scenarios` },
-    { label: t('navigation.publish_label'), path: `/showcases/${slug}/publish` },
+    { label: t('navigation.general_label'), path: `/${tenantId}/showcases/${slug}` },
+    { label: t('navigation.character_label'), path: `/${tenantId}/showcases/${slug}/characters` },
+    { label: t('navigation.onboarding_label'), path: `/${tenantId}/showcases/${slug}/onboarding` },
+    { label: t('navigation.scenario_label'), path: `/${tenantId}/showcases/${slug}/scenarios` },
+    { label: t('navigation.publish_label'), path: `/${tenantId}/showcases/${slug}/publish` },
   ]
 
   return (

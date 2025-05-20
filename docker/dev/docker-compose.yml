@@ -33,10 +33,9 @@ services:
       - AMQ_TRANSPORT=${AMQ_TRANSPORT:-tcp}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       # temp keycloak settings
-      - OIDC_REALM=${OIDC_REALM}
-      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
-      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
-      - OIDC_SERVER_URL=${OIDC_SERVER_URL}
+      - OIDC_ROOT_ISSUER_URL=${OIDC_ROOT_ISSUER_URL}
+      - OIDC_ROOT_CLIENT_ID=${OIDC_ROOT_CLIENT_ID}
+      - OIDC_ROOT_CLIENT_SECRET=${OIDC_ROOT_CLIENT_SECRET}
     depends_on:
       - postgres  # Ensure Postgres starts first
     ports:
@@ -142,13 +141,10 @@ services:
       - PORT=3050
       - NEXT_PUBLIC_SHOWCASE_API_URL=${SHOWCASE_API_URL:-http://localhost:5005}
       - NEXT_PUBLIC_WALLET_URL=${DEMOWEB_WALLET_URL:-https://localhost3366:/digital-trust/showcase}
-      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
-      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
-      - OIDC_ISSUER_URL=${OIDC_ISSUER_URL}
-      - OIDC_SERVER_URL=${OIDC_SERVER_URL}
-      - OIDC_TRUST_HOST=${OIDC_TRUST_HOST:-true}
+      - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET}
       - OIDC_AUTH_URL=${OIDC_AUTH_URL}
-      - OIDC_REDIRECT_PROXY_URL=${OIDC_REDIRECT_PROXY_URL}
+      - OIDC_DEFAULT_TENANT=${OIDC_DEFAULT_TENANT}
+      - OIDC_TRUST_HOST=${OIDC_TRUST_HOST:-true}
     ports:
       - "${PORT_SHOWCASE_CREATOR:-5003}:3050"
     depends_on:

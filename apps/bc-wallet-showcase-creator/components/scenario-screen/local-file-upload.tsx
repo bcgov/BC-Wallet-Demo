@@ -98,7 +98,6 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
             <Image
               alt={`${text} preview`}
               className="right-auto top-auto p-3 w-3/4"
-              src={`${baseUrl}/assets/${existingAssetId}/file`}
               width={300}
               height={100}
               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}

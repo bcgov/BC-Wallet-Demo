@@ -23,9 +23,10 @@ import {
 import { Service } from 'typedi'
 
 import IssuerService from '../services/IssuerService'
+import { getBasePath } from '../utils/auth'
 import { issuerDTOFrom } from '../utils/mappers'
 
-@JsonController('/roles/issuers')
+@JsonController(getBasePath('/roles/issuers'))
 @Service()
 class IssuerController {
   public constructor(private issuerService: IssuerService) {}

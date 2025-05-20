@@ -146,7 +146,7 @@ export async function createApiFullTestData(tenantId: string): Promise<{ showcas
   const asset = await createTestAsset()
   const persona = await createTestPersona(asset)
   const credentialSchema = await createTestCredentialSchema()
-  const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema)
+  const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
   const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema)
   const scenario = await createTestScenario(asset, persona, issuer, credentialDefinition.id)
   const showcaseRequest = createApiShowcaseRequest(scenario.id, persona.id, asset.id, tenantId)

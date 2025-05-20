@@ -24,6 +24,7 @@ import { PageNotFound } from '../PageNotFound'
 import { Stepper } from './components/Stepper'
 import { OnboardingContainer } from './OnboardingContainer'
 import { ScenarioType } from 'bc-wallet-openapi'
+import { getTenantIdFromPath } from '../../utils/Helpers'
 
 export const OnboardingPage: React.FC = () => {
   useTitle('Get Started | BC Wallet Self-Sovereign Identity Demo')
@@ -35,13 +36,14 @@ export const OnboardingPage: React.FC = () => {
   const { currentStep, isCompleted, scenario } = useOnboarding()
   const { state, invitationUrl, id } = useConnection()
   const { characterUploadEnabled } = usePreferences()
+  const tenantId = getTenantIdFromPath();
 
   useEffect(() => {
     if (isCompleted && showcase && currentPersona) {
       dispatch(completeOnboarding())
       dispatch(clearCredentials())
       dispatch(clearConnection())
-      navigate(`${basePath}/${showcase.slug}/${currentPersona.slug}/presentations`)
+      navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
     } else if (!isCompleted && !showcase) {
       dispatch(clearShowcase())
       dispatch(fetchWallets())
@@ -62,31 +64,31 @@ export const OnboardingPage: React.FC = () => {
   }
 
   return (
-      <>
-        {characterUploadEnabled && <CustomUpload />}
-        <motion.div
-            variants={page}
-            initial="hidden"
-            animate="show"
-            exit="exit"
-            className="container flex flex-col items-center p-4"
-        >
-          {scenario?.steps !== undefined && scenario?.steps.length > 0 && currentStep && (
-              <Stepper steps={scenario.steps} currentStep={currentStep.order} />
-          )}
-          {showcase && (
-              <AnimatePresence mode="wait">
-                <OnboardingContainer
-                    scenarios={showcase.scenarios.filter(scenario => scenario.type === ScenarioType.Issuance)}
-                    currentPersona={currentPersona}
-                    currentStep={currentStep}
-                    connectionId={id}
-                    connectionState={state}
-                    invitationUrl={invitationUrl}
-                />
-              </AnimatePresence>
-          )}
-        </motion.div>
-      </>
+    <>
+      {characterUploadEnabled && <CustomUpload />}
+      <motion.div
+        variants={page}
+        initial="hidden"
+        animate="show"
+        exit="exit"
+        className="container flex flex-col items-center p-4"
+      >
+        {scenario?.steps !== undefined && scenario?.steps.length > 0 && currentStep && (
+          <Stepper steps={scenario.steps} currentStep={currentStep.order} />
+        )}
+        {showcase && (
+          <AnimatePresence mode="wait">
+            <OnboardingContainer
+              scenarios={showcase.scenarios.filter(scenario => scenario.type === ScenarioType.Issuance)}
+              currentPersona={currentPersona}
+              currentStep={currentStep}
+              connectionId={id}
+              connectionState={state}
+              invitationUrl={invitationUrl}
+            />
+          </AnimatePresence>
+        )}
+      </motion.div>
+    </>
   )
 }

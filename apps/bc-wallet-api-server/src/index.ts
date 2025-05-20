@@ -19,6 +19,7 @@ import TenantController from './controllers/TenantController'
 import { ExpressErrorHandler } from './middleware/ExpressErrorHandler'
 import { RequestContextMiddleware } from './middleware/RequestContextMiddleware'
 import { registerServicesByInterface } from './services/RegisterServicesByInterface'
+import TenantService from './services/TenantService'
 import { authorizationChecker } from './utils/auth'
 import { corsOptions } from './utils/cors'
 
@@ -48,6 +49,9 @@ async function bootstrap() {
       defaultErrorHandler: false,
       cors: corsOptions,
     })
+
+    const tenantService = Container.get(TenantService)
+    void (await tenantService.createRootTenant())
 
     // Start the server
     const port = Number(process.env.PORT)

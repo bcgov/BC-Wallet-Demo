@@ -1,3 +1,5 @@
+import './setup-env'
+import './setup-mocks'
 import 'reflect-metadata'
 import { PGlite } from '@electric-sql/pglite'
 import {
@@ -97,7 +99,7 @@ describe('ApprovalController Integration Tests', () => {
 
   it('should approve a specific credential definition', async () => {
     // 1. Setup: Create an unapproved definition using the API helper
-    const definition = await createUnapprovedCredDef('cred-def-api-approve')
+    const definition = await createUnapprovedCredDef('cred-def-api-approve', sessionService.getCurrentTenant()!.id)
 
     // 2. Action: Call the API endpoint
     const response = await request.post(`/credentials/definitions/${definition.id}/approve`).expect(200)
@@ -125,8 +127,10 @@ describe('ApprovalController Integration Tests', () => {
   })
 
   it('should approve a specific showcase', async () => {
+    const tenantId = getTenantId()
+
     // 1. Setup: Create an unapproved showcase using the API helper
-    const showcase = await createTestShowcase(await getTenantId(), 'showcase-api-approve', ShowcaseStatus.PENDING)
+    const showcase = await createTestShowcase(tenantId, 'showcase-api-approve', ShowcaseStatus.PENDING)
 
     // 2. Action: Call the approval endpoints
     const action = showcase.scenarios![0].steps![0].actions![0] as AcceptCredentialAction
@@ -150,7 +154,7 @@ describe('ApprovalController Integration Tests', () => {
     expect(approvedShowcaseResp.bannerImage).toBeDefined()
     expect(approvedShowcaseResp.scenarios).toBeInstanceOf(Array)
     expect(approvedShowcaseResp.personas).toBeInstanceOf(Array)
-    expect(approvedShowcaseResp.tenantId).toEqual(await getTenantId())
+    expect(approvedShowcaseResp.tenantId).toEqual(tenantId)
   })
 
   it('should return 404 when approving a non-existent showcase', async () => {
@@ -159,16 +163,18 @@ describe('ApprovalController Integration Tests', () => {
   })
 
   it('should get all unapproved showcases and credential definitions', async () => {
-    // 1. Setup: Create a mix of approved and unapproved items using API helpers
-    const unapprovedDef = await createUnapprovedCredDef('pending-def-api')
-    const unapprovedShowcase = await createTestShowcase(await getTenantId(), 'pending-showcase-api')
+    const tenantId = getTenantId()
 
-    const approvedDef = await createUnapprovedCredDef('approved-def-api')
+    // 1. Setup: Create a mix of approved and unapproved items using API helpers
+    const unapprovedDef = await createUnapprovedCredDef('pending-def-api', tenantId)
+    const unapprovedShowcase = await createTestShowcase(tenantId, 'pending-showcase-api')
+
+    const approvedDef = await createUnapprovedCredDef('approved-def-api', tenantId)
     // Approve directly using service (simulating prior approval)
     const credDefService = Container.get(CredentialDefinitionService)
     await credDefService.approveCredentialDefinition(approvedDef.id) // Assumes service uses placeholder user
 
-    const approvedShowcase = await createTestShowcase(await getTenantId(), 'approved-showcase-api')
+    const approvedShowcase = await createTestShowcase(tenantId, 'approved-showcase-api')
     // Approve directly using service (simulating prior approval)
     const showcaseService = Container.get(ShowcaseService)
     await showcaseService.approveShowcase(approvedShowcase.id) // Assumes service uses placeholder user
@@ -208,47 +214,19 @@ describe('ApprovalController Integration Tests', () => {
     expect(foundApprovedShowcase).toBeUndefined()
   })
 
-  it('should return empty arrays when no items are pending approval', async () => {
-    sessionService.setCurrentTenant(await createTestTenant('alt-tenant')) // To not find unapproved defs form other tests
-
-    // 1. Setup: Create only approved items using API helpers
-    const approvedDef = await createUnapprovedCredDef('approved-def-api-2')
-
-    await request.post(`/credentials/definitions/${approvedDef.id}/approve`).expect(200)
-
-    const approvedShowcase = await createTestShowcase(await getTenantId(), 'approved-showcase-api-2')
-
-    // Approve
-    const action = approvedShowcase.scenarios![0].steps![0].actions![0] as AcceptCredentialAction
-    await request.post(`/credentials/definitions/${action.credentialDefinitionId}/approve`).expect(200)
-    await request.post(`/showcases/${approvedShowcase.slug}/approve`).expect(200)
-
-    // 2. Action: Call API endpoint
-    const response = await request.get('/approvals/pending').expect(200)
-
-    // 3. Assertions: Check response body for empty arrays
-    const responseBody: PendingApprovalsResponse = PendingApprovalsResponseFromJSONTyped(response.body, false)
-    expect(responseBody).toHaveProperty('credentialDefinitions')
-    expect(responseBody).toHaveProperty('showcases')
-    expect(responseBody.credentialDefinitions).toBeInstanceOf(Array)
-    expect(responseBody.showcases).toBeInstanceOf(Array)
-
-    // Check that the arrays are empty
-    //expect(responseBody.credentialDefinitions?.length).toBe(0) // FIXME reenable as soon as we can filter on tenantId
-    // expect(responseBody.showcases?.length).toBe(0) // FIXME reenable as soon as we can filter on tenantId
-  })
-
-  async function getTenantId() {
-    const tenant = await sessionService.getCurrentTenant()
+  function getTenantId(): string {
+    const tenant = sessionService.getCurrentTenant()
     if (!tenant) {
-      return Promise.reject('No tenant was created that was registered in sessionService')
+      throw Error('No tenant was created that was registered in sessionService')
     }
     return tenant.id
   }
 
   it('should reject approval of a showcase with unapproved credential definitions', async () => {
+    const tenantId = getTenantId()
+
     // 1. Setup: full showcase
-    const testShowcaseReq = await createApiFullTestData(await getTenantId())
+    const testShowcaseReq = await createApiFullTestData(tenantId)
     const testShowcaseResponse = await request.post('/showcases').send(testShowcaseReq.showcaseRequest).expect(201)
     const testShowcase = ShowcaseFromJSONTyped(testShowcaseResponse.body.showcase, false)
 

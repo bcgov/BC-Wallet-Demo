@@ -66,6 +66,7 @@ export const useCredentials = create<State & Actions>()(
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				},
+				tenantId: "",
 			}
 
 			set((state) => {

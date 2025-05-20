@@ -1,4 +1,4 @@
-import type { CredentialSchema, CredentialSchemaImportRequest, Issuer } from 'bc-wallet-openapi'
+import type { CredentialDefinition, CredentialSchema, CredentialSchemaImportRequest, Issuer } from 'bc-wallet-openapi'
 import { CredentialAttributeType, CredentialType, IssuerType } from 'bc-wallet-openapi'
 import * as process from 'node:process'
 import short from 'short-uuid'
@@ -72,9 +72,10 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
 
   it('should return undefined for non-existent credential definition', async () => {
     const currentDate = new Date()
-    const nonExistentCredDef = {
+    const nonExistentCredDef: CredentialDefinition = {
       id: 'non-existent-cred-def',
       name: 'NonExistentCredDef_' + short.generate(),
+      tenantId: 'test-tenant',
       version: '99.99',
       type: CredentialType.Anoncred,
       credentialSchema: {
@@ -207,6 +208,7 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
       credentialDefinitions: [
         {
           id: 'test-publish-cred-def',
+          tenantId: 'test-tenant',
           name: 'PublishTestCredDef_' + short.generate(),
           version: '1.0',
           type: CredentialType.Anoncred,
@@ -304,6 +306,7 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
       credentialDefinitions: [
         {
           id: 'test-publish-cred-def-1',
+          tenantId: 'test-tenant',
           name: 'SchemaCredDef_' + uniqueSuffix,
           version: '1.0',
           type: CredentialType.Anoncred,
@@ -361,6 +364,7 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     // Add another credential definition that references the same schema
     const unapprovedCredDef = {
       id: 'test-publish-cred-def-2',
+      tenantId: 'test-tenant',
       name: 'UnapprovedCredDef_' + uniqueSuffix,
       version: '1.1',
       type: CredentialType.Anoncred,
@@ -396,11 +400,13 @@ describeIfTractionAvailable('TractionService Integration Test', () => {
     // Add another approved credential definition that references the same schema
     const approvedCredDef = {
       id: 'test-publish-cred-def-3',
+      tenantId: 'test-tenant',
       name: 'ApprovedCredDef_' + uniqueSuffix,
       version: '2.0',
       type: CredentialType.Anoncred,
       credentialSchema: {
         id: 'test-existing-schema',
+        tenantId: 'test-tenant',
         name: schemaName,
         version: '1.0',
         attributes: [

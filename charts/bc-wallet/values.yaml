@@ -54,14 +54,11 @@ apiServer:
 
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
   # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
+  # OIDC_ROOT_CLIENT_ID: ""
+  # OIDC_ROOT_CLIENT_SECRET: ""
+  # OIDC_ROOT_ISSUER_URL: ""
+  # API_KEY: ""
   # TENANT_ID: ""
   # TRACTION_API_URL: ""
   # TRACTION_WEBHOOK_SECRET: ""
@@ -77,7 +74,7 @@ apiServer:
 
   podSecurityContext:
     {}
-    # fsGroup: 2000
+  # fsGroup: 2000
 
   securityContext:
     {}
@@ -86,7 +83,7 @@ apiServer:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-    # runAsUser: 1000
+  # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -106,19 +103,19 @@ apiServer:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-    #   memory: 128Mi
+  #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /
-    #   port: http
+  #   port: http
   readinessProbe:
     {}
     # httpGet:
     #   path: /
-    #   port: http
+  #   port: http
 
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
@@ -177,18 +174,8 @@ demoServer:
 
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
-  # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
-  # TENANT_ID: ""
   # TRACTION_API_URL: ""
   # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -200,7 +187,7 @@ demoServer:
 
   podSecurityContext:
     {}
-    # fsGroup: 2000
+  # fsGroup: 2000
 
   securityContext:
     {}
@@ -209,7 +196,7 @@ demoServer:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-    # runAsUser: 1000
+  # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -229,19 +216,19 @@ demoServer:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-    #   memory: 128Mi
+  #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /
-    #   port: http
+  #   port: http
   readinessProbe:
     {}
     # httpGet:
     #   path: /
-    #   port: http
+  #   port: http
 
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
@@ -303,18 +290,7 @@ demoWeb:
 
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
-  # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
-  # TENANT_ID: ""
-  # TRACTION_API_URL: ""
-  # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
+  # ? has env vars, no secrets
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -326,7 +302,7 @@ demoWeb:
 
   podSecurityContext:
     {}
-    # fsGroup: 2000
+  # fsGroup: 2000
 
   securityContext:
     {}
@@ -335,7 +311,7 @@ demoWeb:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-    # runAsUser: 1000
+  # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -355,14 +331,14 @@ demoWeb:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-    #   memory: 128Mi
+  #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /health
-    #   port: http
+  #   port: http
   readinessProbe:
     httpGet:
       path: /health
@@ -425,18 +401,19 @@ showcaseCreator:
 
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
+  # NEXT_AUTH_SECRET: ""
+  # OIDC_DEFAULT_TENANT: ""
+  # OIDC_AUTH_URL: ""
+  # OIDC_TRUST_HOST: ""
   # API_KEY: ""
   # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
   # TENANT_ID: ""
   # TRACTION_API_URL: ""
   # TRACTION_WEBHOOK_SECRET: ""
   # WALLET_ID: ""
+  # OIDC_ROOT_CLIENT_ID: ""
+  # OIDC_ROOT_CLIENT_SECRET: ""
+  # OIDC_ROOT_ISSUER_URL: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -448,7 +425,7 @@ showcaseCreator:
 
   podSecurityContext:
     {}
-    # fsGroup: 2000
+  # fsGroup: 2000
 
   securityContext:
     {}
@@ -457,7 +434,7 @@ showcaseCreator:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-    # runAsUser: 1000
+  # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -477,19 +454,19 @@ showcaseCreator:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-    #   memory: 128Mi
+  #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /
-    #   port: http
+  #   port: http
   readinessProbe:
     {}
     # httpGet:
     #   path: /
-    #   port: http
+  #   port: http
 
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
@@ -546,18 +523,7 @@ tractionAdapter:
 
   # Name of Secret with extra environment variables
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
-  # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
-  # TENANT_ID: ""
-  # TRACTION_API_URL: ""
-  # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
+  # none
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -569,7 +535,7 @@ tractionAdapter:
 
   podSecurityContext:
     {}
-    # fsGroup: 2000
+  # fsGroup: 2000
 
   securityContext:
     {}
@@ -578,7 +544,7 @@ tractionAdapter:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-    # runAsUser: 1000
+  # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -598,19 +564,19 @@ tractionAdapter:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-    #   memory: 128Mi
+  #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /
-    #   port: http
+  #   port: http
   readinessProbe:
     {}
     # httpGet:
     #   path: /
-    #   port: http
+  #   port: http
 
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:

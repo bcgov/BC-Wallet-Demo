@@ -6,7 +6,7 @@ import {
   UseQueryResult,
 } from "@tanstack/react-query";
 import apiClient from "@/lib/apiService";
-import { IssuanceScenarioRequest, IssuanceScenarioResponse, StepResponse } from "bc-wallet-openapi";
+import { IssuanceScenarioRequest, IssuanceScenarioResponse, StepsResponse } from "bc-wallet-openapi";
 
 export type StepState =
   | "editing-basic"
@@ -38,22 +38,36 @@ export const useScenario = (slug: string): UseQueryResult<IssuanceScenarioRespon
     queryFn: async (): Promise<IssuanceScenarioResponse> => {
       const response = (await apiClient.get(
         `/scenarios/issuances/${slug}`
-      )) as IssuanceScenarioResponse;
-      return response;
+      ));
+      return response as IssuanceScenarioResponse;
     },
     staleTime,
   });
 };
 
-export const useIssuanceStep = (slug: string): UseQueryResult<StepResponse> => {
+export const useIssuanceStep = (slug: string): UseQueryResult<StepsResponse> => {
   return useQuery({
     queryKey: ["issuanceStep", slug],
-    queryFn: async (): Promise<StepResponse> => {
+    queryFn: async (): Promise<StepsResponse> => {
       const response = (await apiClient.get(
         `/scenarios/issuances/${slug}/steps`
-      )) as StepResponse;
-      return response;
+      ));
+      return response as StepsResponse;
     },
     staleTime,
   });
 };
+
+export const useUpdateScenario = (): UseMutationResult<IssuanceScenarioResponse, Error, {slug: string, data: IssuanceScenarioRequest}> => {
+  const queryClient = useQueryClient()
+
+  return useMutation<IssuanceScenarioResponse, Error, {slug: string, data: IssuanceScenarioRequest}>({
+    mutationFn: async ({slug, data}: {slug: string, data: IssuanceScenarioRequest}): Promise<IssuanceScenarioResponse> => {
+      const response = await apiClient.put(`/scenarios/issuances/${slug}`, data)
+      return response as IssuanceScenarioResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['issuanceScenario'] })
+    },
+  })
+}

@@ -1,5 +1,6 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { type CredentialDefinitionImportRequest } from 'bc-wallet-openapi'
+import { ForbiddenError, InternalServerError } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
 import { validate as uuidValidate } from 'uuid'
 
@@ -28,7 +29,8 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * @returns Promise resolving to an array of CredentialDefinition objects
    */
   public getCredentialDefinitions = async (): Promise<CredentialDefinition[]> => {
-    return this.credentialDefinitionRepository.findAll()
+    this.sessionService.getCurrentTenant()
+    return this.credentialDefinitionRepository.findAll(this.getTenantId())
   }
 
   /**
@@ -42,7 +44,7 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
       return this.credentialDefinitionRepository.findByIdentifier(id)
     }
 
-    return this.credentialDefinitionRepository.findById(id)
+    return this.credentialDefinitionRepository.findById(id) // TODO is demo-web using this endpoint or can we filter on tenantId?
   }
 
   /**
@@ -50,7 +52,7 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * @returns Promise resolving to an array of unapproved CredentialDefinition objects
    */
   public getUnapproved = async (): Promise<CredentialDefinition[]> => {
-    return this.credentialDefinitionRepository.findUnapproved()
+    return this.credentialDefinitionRepository.findUnapproved(this.getTenantId())
   }
 
   /**
@@ -61,6 +63,15 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
   public createCredentialDefinition = async (
     credentialDefinition: NewCredentialDefinition,
   ): Promise<CredentialDefinition> => {
+    const tenantId = this.getTenantId()
+    if (!credentialDefinition.tenantId) {
+      credentialDefinition.tenantId = tenantId
+    } else if (credentialDefinition.tenantId !== tenantId) {
+      throw new ForbiddenError(
+        `The credential definition is being created for tenant ${credentialDefinition.tenantId}, but the signed in tenant is ${tenantId}.`,
+      )
+    }
+
     return this.credentialDefinitionRepository.create(credentialDefinition)
   }
 
@@ -74,6 +85,15 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
     id: string,
     credentialDefinition: NewCredentialDefinition,
   ): Promise<CredentialDefinition> => {
+    const tenantId = this.getTenantId()
+    if (!credentialDefinition.tenantId) {
+      credentialDefinition.tenantId = tenantId
+    } else if (credentialDefinition.tenantId !== tenantId) {
+      throw new ForbiddenError(
+        `The credential definition is being updated for tenant ${credentialDefinition.tenantId}, but the signed in tenant is ${tenantId}.`,
+      )
+    }
+
     return this.credentialDefinitionRepository.update(id, credentialDefinition)
   }
 
@@ -83,6 +103,19 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * @returns Promise resolving when deletion is complete
    */
   public deleteCredentialDefinition = async (id: string): Promise<void> => {
+    const existingDef = await this.credentialDefinitionRepository.findById(id)
+    if (existingDef) {
+      const tenantId = this.getTenantId()
+      if (existingDef.tenantId !== tenantId)
+        return Promise.reject(
+          new ForbiddenError(
+            `The credential definition is being deleted for tenant ${existingDef.tenantId}, but the signed in tenant is ${tenantId}.`,
+          ),
+        )
+    } else {
+      return
+    }
+
     return this.credentialDefinitionRepository.delete(id)
   }
 
@@ -96,6 +129,7 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
     if (!importRequest.identifierType || !importRequest.identifier) {
       return Promise.reject(Error('Identifier type and identifier are required for credential definition import.'))
     }
+
     await this.adapterClientApi.importCredentialDefinition(importRequest, this.buildSendOptions())
   }
 
@@ -112,7 +146,16 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
       return Promise.reject(new Error('Could not determine the approving user.'))
     }
 
-    await this.credentialDefinitionRepository.findById(id)
+    const existingDef = await this.credentialDefinitionRepository.findById(id)
+    if (existingDef) {
+      const tenantId = this.getTenantId()
+      if (existingDef.tenantId !== tenantId)
+        return Promise.reject(
+          new ForbiddenError(
+            `The credential definition is being approved for tenant ${existingDef.tenantId}, but the signed in tenant is ${tenantId}.`,
+          ),
+        )
+    }
 
     return this.credentialDefinitionRepository.approve(id, currentUser.id)
   }
@@ -125,6 +168,15 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
   public isApproved = async (id: string): Promise<boolean> => {
     const credentialDef = await this.credentialDefinitionRepository.findById(id)
     return credentialDef.approvedBy !== undefined && credentialDef.approvedBy !== null
+  }
+
+  private getTenantId() {
+    // TODO Deduplicate with showcase service
+    const urlTenantId = this.sessionService.getUrlTenantId()
+    if (!urlTenantId) {
+      throw new InternalServerError('Tenant details are missing')
+    }
+    return urlTenantId
   }
 }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useShowcases } from '@/hooks/use-showcases'
+import { useDeleteShowcase, useDuplicateShowcase, useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
 import type { Showcase } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
@@ -14,15 +14,18 @@ import { Card } from '../ui/card'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
-
+import { toast } from 'sonner'
+import { useTenant } from '@/providers/tenant-provider'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
-
 
 export const LandingPage = () => {
   const t = useTranslations()
   const [searchTerm, setSearchTerm] = useState('')
   const { data, isLoading } = useShowcases()
+  const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { tenantId } = useTenant()
+  const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
 
   const searchFilter = (showcase: Showcase) => {
     if (searchTerm === '') {
@@ -33,13 +36,21 @@ export const LandingPage = () => {
 
   const handlePreview = (slug: string) => {
 
-    const previewUrl = `${WALLET_URL}/${slug}`
+    const previewUrl = `${WALLET_URL}/${tenantId}/${slug}`
     window.open(previewUrl, '_blank')
   }
 
-  const handleOpen = (slug: string) => {
-    const openUrl = `${WALLET_URL}/${slug}`
-    window.open(openUrl, '_blank')
+  const handleDuplicateShowcase = async (showcaseSlug: string) => {
+    const newShowcase = await duplicateShowcase(showcaseSlug, {
+      onSuccess: (data: unknown) => {
+        console.log('Showcase Created:', data)
+        toast.success('Showcase Duplicated')
+      },
+      onError: (error: unknown) => {
+        toast.error('Error duplicating showcase: ' + error)
+      },
+    })
+    console.log('newShowcase', newShowcase)
   }
 
   return (
@@ -65,7 +76,7 @@ export const LandingPage = () => {
                   className="relative min-h-[15rem] h-auto flex items-center justify-center bg-cover bg-center"
                   style={{
                     backgroundImage: `url('${
-                      showcase?.bannerImage?.id ? `${baseUrl}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
+                      showcase?.bannerImage?.id ? `${baseUrl}/${tenantId}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
                     }')`,
                   }}
                 >
@@ -80,11 +91,11 @@ export const LandingPage = () => {
                       <div className="flex-shrink-0">
                         <DeleteButton
                           onClick={() => {
-                            console.log('delete', showcase.id)
+                            deleteShowcase(showcase.slug)
                           }}
                         />
-                        <CopyButton value={`${WALLET_URL}/${showcase.slug}`} />
-                        <OpenButton value={`${WALLET_URL}/${showcase.slug}`} />
+                        <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                        <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
                       </div>
                     </div>
                   </div>
@@ -112,7 +123,7 @@ export const LandingPage = () => {
                           <Image
                             src={
                               persona.headshotImage?.id
-                                ? `${baseUrl}/assets/${persona.headshotImage.id}/file`
+                                ? `${baseUrl}/${tenantId}/assets/${persona.headshotImage.id}/file`
                                 : '/assets/no-image.jpg'
                             }
                             alt={persona.headshotImage?.description || 'Character headshot'}
@@ -133,7 +144,7 @@ export const LandingPage = () => {
                     <ButtonOutline className="w-1/2" onClick={() => handlePreview(showcase.slug)}>
                       {t('action.preview_label')}
                     </ButtonOutline>
-                    <ButtonOutline className="w-1/2" onClick={() => handleOpen(showcase.slug)}>
+                    <ButtonOutline className="w-1/2" onClick={() => handleDuplicateShowcase(showcase.slug)}>
                       {t('action.create_copy_label')}
                     </ButtonOutline>
                   </div>

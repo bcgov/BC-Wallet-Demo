@@ -1,4 +1,4 @@
-name: Build, Push and Deploy 
+name: Build, Push and Deploy
 on:
   workflow_dispatch:
   push:
@@ -6,13 +6,13 @@ on:
       # - main
       - showcase-builder
     paths:
-        - "apps/bc-wallet-api-server/**"
-        - "apps/bc-wallet-traction-adapter/**"
-        - "apps/bc-wallet-showcase-creator/**"
-        - "apps/bc-wallet-demo-server/**"
-        - "apps/bc-wallet-demo-web/**"
-        - "charts/**"
-        - ".github/**"
+      - "apps/bc-wallet-api-server/**"
+      - "apps/bc-wallet-traction-adapter/**"
+      - "apps/bc-wallet-showcase-creator/**"
+      - "apps/bc-wallet-demo-server/**"
+      - "apps/bc-wallet-demo-web/**"
+      - "charts/**"
+      - ".github/**"
 permissions:
   contents: read
   packages: write

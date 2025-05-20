@@ -8,16 +8,11 @@ import { useTranslations } from 'next-intl'
 
 import { NoSelection } from '../credentials/no-selection'
 import { StepType } from 'bc-wallet-openapi'
-import { useEffect } from 'react'
 import { createDefaultStep, createAdvancedStep } from '@/lib/steps'
 
-export const CreateScenariosStepsScreen = () => {
+export const CreateScenariosStepsScreen = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter()
-
-  useEffect(() => {
-    console.log('Component re-rendered with stepState:', stepState)
-  }, [stepState])
 
   const handleAddStep = (type: StepType) => {
     if(type == 'HUMAN_TASK'){
@@ -29,45 +24,44 @@ export const CreateScenariosStepsScreen = () => {
       )
       setStepState('editing-basic')
     }else if(type == 'SERVICE'){
-        createStep(
-          createAdvancedStep({
-            title: `Confirm the information to send`,
-            description: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
-            actions: [
-              {
-                title: "Confirm the information to send",
-                text: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
-                actionType: 'ARIES_OOB',
-                proofRequest: {
-                  attributes:{},
-                  predicates:{},
-                },
-                credentialDefinitionId: '',
-              }
-            ],
-          })
-        )
-        setStepState('editing-basic')
+      createStep(
+        createAdvancedStep({
+          title: `Confirm the information to send`,
+          description: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
+          actions: [
+            {
+              title: "Confirm the information to send",
+              text: `BC Wallet will now ask you to confirm what to send. Notice how it will only share if the credential has not expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.`,
+              actionType: 'ARIES_OOB',
+              proofRequest: {
+                attributes:{},
+                predicates:{},
+              },
+              credentialDefinitionId: '',
+            }
+          ],
+        })
+      )
+      setStepState('editing-basic')
     }
   }
 
   return (
     <div
       id="editStep"
-      className="bg-white dark:bg-dark-bg-secondary text-light-text dark:text-dark-text p-6 rounded-md"
+      className="bg-background text-light-text dark:text-dark-text p-6 rounded-md"
     >
       {!activePersonaId && <NoSelection text={t('onboarding.select_persona_message')} />}
       {activePersonaId && stepState === 'no-selection' && (
         <NoSelection
           text={
-            t('onboarding.no_step_selected_message') ||
-            'No step selected. Please select a step from the left panel or create a new one.'
+            t('onboarding.no_step_selected_message')
           }
         />
       )}
       {activePersonaId && stepState === 'creating-new' && <ChooseStepType addNewStep={handleAddStep} />}
-      {activePersonaId && stepState === 'editing-basic' && <BasicStepEdit />}
-      {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit />}
+      {activePersonaId && stepState === 'editing-basic' && <BasicStepEdit slug={slug} />}
+      {activePersonaId && stepState === 'editing-scenario' && <ScenarioEdit slug={slug} />}
     </div>
   )
 }

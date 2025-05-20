@@ -1,68 +1,137 @@
 'use client'
 
-import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import apiClient from "@/lib/apiService";
-import type { ShowcaseRequest, ShowcasesResponse, Showcase, ShowcaseResponse } from "bc-wallet-openapi";
+import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query'
+import apiClient from '@/lib/apiService'
+import {
+  type ShowcaseRequest,
+  type ShowcasesResponse,
+  type ShowcaseResponse,
+} from 'bc-wallet-openapi'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
 
-const staleTime = 1000 * 60 * 5; // 5 minutes
+const staleTime = 1000 * 60 * 5
 
 export function useShowcases() {
   return useQuery({
     queryKey: ['showcases'],
     queryFn: async () => {
-      const response = await apiClient.get('/showcases') as ShowcasesResponse;
-      return response;
+      const response = (await apiClient.get('/showcases')) as ShowcasesResponse
+      return response
     },
     staleTime,
-  });
+  })
 }
 
-export const useShowcase = (slug: string): UseQueryResult<Showcase> => {
+export const useShowcase = (slug: string): UseQueryResult<ShowcaseResponse> => {
   return useQuery({
     queryKey: ['showcase', slug],
     queryFn: async () => {
-      const response = await apiClient.get(`/showcases/${slug}`) as Showcase;
-      return response;
+      const response = await apiClient.get(`/showcases/${slug}`)
+      return response as ShowcaseResponse
     },
     staleTime,
-  });
+  })
 }
 
-export const useUpdateShowcase = (slug: string): UseMutationResult<Showcase, Error, ShowcaseRequest> => {
-  const queryClient = useQueryClient();
+export const useUpdateShowcase = (slug: string): UseMutationResult<ShowcaseResponse, Error, ShowcaseRequest> => {
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (data: ShowcaseRequest): Promise<Showcase> => {
+    mutationFn: async (data: ShowcaseRequest): Promise<ShowcaseResponse> => {
       if (!slug) {
-        throw new Error("Showcase slug is required");
+        throw new Error('Showcase slug is required')
       }
-      const response = await apiClient.put(`/showcases/${slug}`, data);
-      return response as Showcase;
+      const response = await apiClient.put(`/showcases/${slug}`, data)
+      return response as ShowcaseResponse
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['showcases', slug] });
-    }
-  });
-};
+      queryClient.invalidateQueries({ queryKey: ['showcase', slug] })
+      queryClient.invalidateQueries({ queryKey: ['showcases'] })
+    },
+  })
+}
 
 export const useCreateShowcase = () => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (data: ShowcaseRequest) => {
-      const response = await apiClient.post(`/showcases`, data);
-      return response as ShowcaseResponse;
+      const response = await apiClient.post(`/showcases`, data)
+      return response as ShowcaseResponse
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['showcases'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['showcases'] })
+    },
   })
 }
 
 export const useDeleteShowcase = () => {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (slug: string) => {
-      const response = await apiClient.delete(`/showcases/${slug}`);
-      return response;
+      const response = await apiClient.delete(`/showcases/${slug}`)
+      return response
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['showcases'] })
+    },
+  })
+}
+
+interface UpdateShowcaseScenariosParams {
+  showcaseSlug: string
+  scenarioIds: string[]
+}
+
+export const useUpdateShowcaseScenarios = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ showcaseSlug, scenarioIds }: UpdateShowcaseScenariosParams) => {
+      if (!showcaseSlug) {
+        throw new Error('Showcase slug is required')
+      }
+
+      const response = await apiClient.get(`/showcases/${showcaseSlug}`)
+      const showcaseResponse = response as ShowcaseResponse
+      const showcase = showcaseResponse.showcase
+
+      if (!showcase) {
+        throw new Error('Showcase not found')
+      }
+
+      const existingScenarioIds = showcase?.scenarios?.map((s) => s.id) || []
+
+      const scenarioIdSet = new Set([...existingScenarioIds, ...scenarioIds]);
+      const uniqueScenarioIds = Array.from(scenarioIdSet);
+
+      const parsed = showcaseToShowcaseRequest(showcase)
+
+      const updateData = {
+        ...parsed,
+        scenarios: uniqueScenarioIds,
+      }
+
+      const updateResponse = await apiClient.put(`/showcases/${showcaseSlug}`, updateData)
+      return updateResponse as ShowcaseResponse
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['showcase', variables.showcaseSlug] })
+    },
+    onError: (error) => {
+      console.error('Error updating showcase scenarios:', error)
+    },
+  })
+}
+
+export const useDuplicateShowcase = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (slug: string) => {
+      const response = await apiClient.post(`/showcases/${slug}/duplicate`)
+      return response as ShowcaseResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['showcases'] })
     },
   })
 }
