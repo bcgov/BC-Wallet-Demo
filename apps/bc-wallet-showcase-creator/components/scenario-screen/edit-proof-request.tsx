@@ -27,12 +27,12 @@ interface EditProofRequestProps {
 }
 
 export const EditProofRequest = ({
-  setEditingCredentials,
-  editingCredentials,
-  editingIndex,
-  updateCredentials,
-  credentialId
-}: EditProofRequestProps) => {
+                                   setEditingCredentials,
+                                   editingCredentials,
+                                   editingIndex,
+                                   updateCredentials,
+                                   credentialId
+                                 }: EditProofRequestProps) => {
   const { data: cred, isLoading } = useCredentialDefinition(credentialId)
   const { selectedScenario, updateStep, selectedStep } = usePresentationAdapter()
 
