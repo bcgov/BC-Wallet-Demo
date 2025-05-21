@@ -1,11 +1,11 @@
 import { Button } from '../ui/button'
 
 export const NoSelection = ({
-                              text,
-                              subtext,
-                              handleNewStep,
-                              buttonText,
-                            }: {
+  text,
+  subtext,
+  handleNewStep,
+  buttonText,
+}: {
   text: string
   subtext?: string
   handleNewStep?: () => void

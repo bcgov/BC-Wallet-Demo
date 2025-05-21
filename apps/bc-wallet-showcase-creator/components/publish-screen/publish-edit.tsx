@@ -19,16 +19,15 @@ import { ShowcaseRequest, ShowcaseStatus, AssetResponse } from 'bc-wallet-openap
 import { z } from 'zod'
 
 import { ConfirmationDialog } from '@/components/confirmation-dialog'
-import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useCreateAsset } from '@/hooks/use-asset'
 import { useShowcaseAdapter } from '@/hooks/use-showcase-adapter'
 import { useTenant } from '@/providers/tenant-provider'
 
 const BannerImageUpload = ({
-                             text,
-                             value,
-                             onChange,
-                           }: {
+  text,
+  value,
+  onChange,
+}: {
   text: string
   value?: string
   onChange: (value: string) => void
@@ -136,8 +135,7 @@ export const PublishEdit = () => {
   const router = useRouter()
   const { saveShowcase } = useShowcaseAdapter()
   const { personas } = useOnboardingAdapter()
-  const { tenantId } = useHelpersStore()
-  // const { tenantId } = useTenant();
+  const { tenantId } = useTenant();
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(ShowcaseRequestSchema),

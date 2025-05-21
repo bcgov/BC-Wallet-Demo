@@ -7,9 +7,9 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 
 export const PublishInfo = ({
-                              characters,
-                              credentials,
-                            }: {
+  characters,
+  credentials,
+}: {
   characters: Partial<Persona>[]
   credentials: Partial<CredentialDefinition>[]
 }) => {

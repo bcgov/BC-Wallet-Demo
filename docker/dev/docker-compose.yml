@@ -32,7 +32,7 @@ services:
       - AMQ_PASSWORD=${AMQ_PASSWORD}
       - AMQ_TRANSPORT=${AMQ_TRANSPORT:-tcp}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      # temp keycloak settings
+      # keycloak auth settings
       - OIDC_ROOT_ISSUER_URL=${OIDC_ROOT_ISSUER_URL}
       - OIDC_ROOT_CLIENT_ID=${OIDC_ROOT_CLIENT_ID}
       - OIDC_ROOT_CLIENT_SECRET=${OIDC_ROOT_CLIENT_SECRET}

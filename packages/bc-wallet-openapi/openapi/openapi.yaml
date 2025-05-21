@@ -2803,8 +2803,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/Scenario'
         - type: object
-          #         required:
-          #           - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
+#         required:
+#           - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               $ref: '#/components/schemas/Issuer'
@@ -2818,8 +2818,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/ScenarioRequest'
         - type: object
-          #          required:
-          #            - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
+#          required:
+#            - issuer # This cannot be here because of the allOf to ScenarioRequest. It's a inheritance issue
           properties:
             issuer:
               type: string

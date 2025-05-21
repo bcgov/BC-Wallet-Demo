@@ -73,6 +73,7 @@ TRACTION_API_URL=https://traction-api-url/tenant/
 TRACTION_WEBHOOK_SECRET=your_webhook_secret
 
 # Optional: OIDC configuration (if using authentication)
+OIDC_REALM=your_realm
 OIDC_CLIENT_ID=your_client_id
 OIDC_CLIENT_SECRET=your_client_secret
 OIDC_ISSUER_URL=https://your-keycloak-server/auth/realms/your_realm

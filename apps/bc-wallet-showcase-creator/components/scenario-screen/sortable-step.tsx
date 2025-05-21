@@ -12,11 +12,11 @@ import { CredCard } from '../onboarding-screen/cred-card'
 const MAX_CHARS = 50
 
 export const SortableStep = ({
-                               selectedStep,
-                               myScreen,
-                               stepIndex,
-                               scenarioIndex,
-                             }: {
+  selectedStep,
+  myScreen,
+  stepIndex,
+  scenarioIndex,
+}: {
   selectedStep: { stepIndex: number, scenarioIndex: number } | null
   myScreen: Screen
   stepIndex: number

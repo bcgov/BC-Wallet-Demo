@@ -12,9 +12,9 @@ interface DisplaySearchResultsProps {
 }
 
 export const DisplaySearchResults = ({
-                                       searchResults,
-                                       addCredential,
-                                     }: DisplaySearchResultsProps) => {
+  searchResults,
+  addCredential,
+}: DisplaySearchResultsProps) => {
   const t = useTranslations();
   const MAX_SEARCH_CREDENTIALS = 8;
   const visibleResults = searchResults.slice(0, MAX_SEARCH_CREDENTIALS);

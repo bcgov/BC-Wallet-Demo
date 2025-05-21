@@ -14,10 +14,10 @@ import { CredCard } from './cred-card'
 const MAX_CHARS = 50
 
 export const SortableStep = ({
-                               selectedStep,
-                               myScreen,
-                               stepIndex,
-                             }: {
+  selectedStep,
+  myScreen,
+  stepIndex,
+}: {
   selectedStep: StepRequest | null
   myScreen: Screen
   stepIndex: number

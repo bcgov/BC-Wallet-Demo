@@ -21,15 +21,15 @@ interface FormInputProps<T extends FieldValues> {
 }
 
 export const FormTextInput = <T extends FieldValues>({
-                                                       label,
-                                                       name,
-                                                       register,
-                                                       error,
-                                                       placeholder,
-                                                       className,
-                                                       control,
-                                                       ...props
-                                                     }: FormInputProps<T>) => {
+  label,
+  name,
+  register,
+  error,
+  placeholder,
+  className,
+  control,
+  ...props
+}: FormInputProps<T>) => {
   return (
     <FormField
       control={control}
@@ -58,16 +58,16 @@ export const FormTextInput = <T extends FieldValues>({
 }
 
 export const FormTextArea = <T extends FieldValues>({
-                                                      label,
-                                                      name,
-                                                      register,
-                                                      error,
-                                                      placeholder,
-                                                      className,
-                                                      readOnly,
-                                                      disabled,
-                                                      control
-                                                    }: FormInputProps<T>) => {
+  label,
+  name,
+  register,
+  error,
+  placeholder,
+  className,
+  readOnly,
+  disabled,
+  control
+}: FormInputProps<T>) => {
   return (
     <FormField
       control={control}
