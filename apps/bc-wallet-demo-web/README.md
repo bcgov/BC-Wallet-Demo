@@ -11,33 +11,34 @@ Edit the .env files to match your project needs
 
 
 ### Option 1 - Native
-Please make sure you have a recent version of node, npm, and yarn installed
+Please make sure you have a recent version of node, npm, and pnpm installed
 These steps are executed from the root folder of the project:
 
-> yarn install
+> pnpm install
 
-> yarn dev
+> pnpm dev
 
-The application will now be running at http://localhost:3000
+The application will now be running at  http://localhost:5002/digital-trust/showcase
 
 ### Option 2 - Docker
-These steps assume that you have docker installed
+> These steps assume that you have docker installed
 
-These steps are executed from the root folder of the project:
 
-Build the client:
-> docker build -t bc-wallet-demo-client . -f DockerfileClient
+Build the demo wallet:
 
-Build the server:
-> docker build -t bc-wallet-demo-server . -f DockerfileServer
+>These steps are executed from the apps/bc-wallet-demo-web folder of the project:
 
-Start the server:
-> docker run --name bc-wallet-demo-server -p5000:5000 --rm --env-file server/.env bc-wallet-demo-server
+```bash
+docker compose up -d bc-wallet-demo-web
+```
 
-Start the client:
-> docker run --name bc-wallet-demo-client -p3000:3000 -v \`pwd\`/Caddyfile:/etc/caddy/Caddyfile --rm --env-file client/.env bc-wallet-demo-client
+Build the demo server:
 
-The application will now be running at http://localhost:3000
+>These steps are executed from the apps/bc-wallet-demo-server folder of the project:
+
+```bash
+docker compose up -d bc-wallet-demo-server
+```
 
 ## Contributing
 
@@ -45,8 +46,8 @@ The application will now be running at http://localhost:3000
 
 Please see the [Contributions Guide](CONTRIBUTING.md) for the repo.
 
-Before contributing please run `yarn lint --fix` and fix any linter warnings in your code contribution.
+Before contributing please run `pnpm lint --fix` and fix any linter warnings in your code contribution.
 
 You may also create an issue if you would like to suggest additional resources to include in this repository.
 
-All contrbutions to this repository should adhere to our [Code of Conduct](./CODE_OF_CONDUCT).
+All contributions to this repository should adhere to our [Code of Conduct](./CODE_OF_CONDUCT).

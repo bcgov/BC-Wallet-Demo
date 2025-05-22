@@ -42,7 +42,7 @@ When adding environment variables to this file in the future, ensure that they s
 
 Ensure that both the env files are named `.env` and that they're in the same folder as their respective `.env.example` files, otherwise they won't get loaded.  
 
-In the command line, go to the project directory and run `yarn install` then run `yarn run dev` this will install all dependancies and start the front and backend. Your development environment should be accessible on port http://localhost:3000
+In the command line, go to the project directory and run `pnpm install` then run `pnpm run dev` this will install all dependencies and start the front and backend. Your development environment should be accessible on port http://localhost:3000
 
 ## Project Structure
 As stated in the previous section, the application is split up in to a frontend and backend. The code for each is located in the `client` and `server` folders respectively.

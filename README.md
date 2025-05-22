@@ -56,11 +56,56 @@ resources/                       # Documentation resources
 
 This project uses **pnpm** and **turbo** for monorepo and package management.
 
+## Running 
+
+### Copy env files
+For each of the apps under the apps/ directory, you'll need to create a ```.env``` file from the corresponding ```.env.example``` template. This ensures all environment variables are set up correctly before running the applications.
+
+```bash
+cp apps/bc-wallet-api-server/.env.example apps/bc-wallet-api-server/.env
+cp apps/bc-wallet-demo-server/.env.example apps/bc-wallet-demo-server/.env
+cp apps/bc-wallet-demo-web/.env.example apps/bc-wallet-demo-web/.env
+cp apps/bc-wallet-showcase-creator/.env.example apps/bc-wallet-showcase-creator/.env
+cp apps/bc-wallet-traction-adapter/.env.example apps/bc-wallet-traction-adapter/.env
+```
+
+
+Additionally, for the Docker development environment, copy the Docker env file:
+
+```bash
+cp docker/dev/.env.example docker/dev/.env
+```
+
+>📌 Important: After copying, review each .env file (including docker/dev/.env) and update the values as needed to match your local setup or deployment environment.
+
+### 🐳 Option 1 - Docker
+
+>These steps assume that Docker and Docker Compose are installed on your machine.
+
+>⚠️ Make sure your .env files are properly copied from docker/dev/.env.example 
+
+
+You can run all apps using Docker. 
+
+
+```bash
+docker compose up -d
+```
+This will build and start all services in detached mode.
+
+To stop and remove all running containers and associated volumes, run:
+
+```bash
+docker compose down -v
+```
+
+### Option 2 - Native
+
 ### Make sure pnpm is installed
 
-````shell
+```shell
 npm -g install pnpm
-````
+```
 
 ### Install Dependencies
 
@@ -68,16 +113,77 @@ npm -g install pnpm
 pnpm install
 ```
 
+#### Generate Modals
+
+```bash
+pnpm generate:models
+```
+
+## Start Required Services with Docker
+
+>These steps assume that Docker and Docker Compose are installed on your machine.
+
+Before running the applications, ensure that PostgreSQL and RabbitMQ are up and running. You can start each service separately using Docker:
+
+### Start PostgreSQL
+
+```bash
+docker compose up -d postgres
+```
+
+### Start RabbitMQ
+
+```bash
+docker compose up -d rabbitmq
+```
+
+### Start the Project
+
+```bash
+pnpm dev
+```
+
+#### Run Tests
+
+```bash
+pnpm test
+```
+
+
+#### Create a Tenant for Showcase Builder
+
+After starting all services and the project is running, you'll need to create a tenant in order to use the Showcase Builder.
+
+📘 For detailed instructions, please refer to the [README](./apps/bc-wallet-api-server/README.md) file 
+
+
+#### 🚀 Local Development URLs
+
+After starting the apps, you can access them at the following local addresses:
+
+#### Showcase Creator Access
+
+Access the Showcase Creator using the following URL format:
+
+```bash
+http://localhost:5003/en/<tenant-id>/login
+```
+
+For example, if your tenant ID is showcase-tenantA, the URL would be:
+
+```bash
+http://localhost:5003/en/showcase-tenantA/login
+```
+
+- API Server: http://localhost:5005
+
+- Demo Web: http://localhost:5002/digital-trust/showcase
+
+
 ### Build the Project
 
 ```bash
 pnpm build
-```
-
-### Run Tests
-
-```bash
-pnpm test
 ```
 
 For CI/CD pipelines:
@@ -86,21 +192,6 @@ For CI/CD pipelines:
 pnpm test:ci
 ```
 
-### Start the Project
-
-```bash
-pnpm start
-```
-
-## 🧪 Testing
-
-A temporary test for RabbitMQ is located at:
-
-```
-packages/bc-wallet-traction-adapter/src/__tests__/rabbit-mq.test.ts
-```
-
-We use **Jest** with **Testcontainers** to spin up RabbitMQ containers.
 
 ---
 
@@ -115,8 +206,8 @@ This project is licensed under the **Apache-2.0** license.
 
 Please see the [Contributions Guide](CONTRIBUTING.md) for the repo.
 
-Before contributing please run `yarn lint --fix` and fix any linter warnings in your code contribution.
+Before contributing please run `pnpm lint --fix` and fix any linter warnings in your code contribution.
 
 You may also create an issue if you would like to suggest additional resources to include in this repository.
 
-All contrbutions to this repository should adhere to our [Code of Conduct](./CODE_OF_CONDUCT).
+All contributions to this repository should adhere to our [Code of Conduct](./CODE_OF_CONDUCT).
