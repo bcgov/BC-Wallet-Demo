@@ -20,19 +20,19 @@ interface DisplayStepCredentialsProps {
 }
 
 export const DisplayStepCredentials = ({
-                                         selectedStep,
-                                         selectedScenario,
-                                         removeCredential,
-                                         updateCredentials,
-                                         credentialId,
-                                       }: DisplayStepCredentialsProps) => {
+  selectedStep,
+  selectedScenario,
+  removeCredential,
+  updateCredentials,
+  credentialId,
+}: DisplayStepCredentialsProps) => {
   const [editingCredentials, setEditingCredentials] = useState<number[]>([0])
   const { data: cred } = useCredentialDefinition(credentialId ?? '')
   const { tenantId } = useTenant();
 
   if (!credentialId) {
     return (
-      <div className="m-5 p-5 w-full h-60">
+      <div className="m-5 p-5 w-full h-full">
         <NoSelection text="No Credentials Added" />
       </div>
     )

@@ -11,13 +11,13 @@ There are two env files that you need to configure. This stage assumes you alrea
   
   
 once logged in navigate to to the API keys section under the wallet icon to the top right.
-![](Pasted%20image%2020241002093928.png)
+![](./img/Pasted%20image%2020241002093928.png)
 Create a new API key and save the key and tenant ID in a password manager. You should only have to do this once when migrating to a new traction agent. 
 
 The next thing you'll have to do is setup webhooks for your local environment. Start an ngrok instance on your local machine on port 5000 like so `ngrok http 5000` copy the URL you get in to command window. Go to Settings under the wallet icon, you should see a section where you can add your webhook url. Add the following url to the webhook url textbox: `https://<YOUR_NGROK_URL>/digital-trust/showcase/demo/whook` then in the webhook key generate a random key and paste it in there. Make sure you save the webhook key since we'll need it later. Hit the Save Changes button at the bottom.
-![](Pasted%20image%2020241002095030.png)
+![](./img/Pasted%20image%2020241002095030.png)
 One last thing that needs to be done is to ensure that your traction agent is setup as an issuer. You should see this icon at the top right of your tenant's profile, this means it has the ability to create schemas and cred defs on the ledger.  
-![](Pasted%20image%2020241002100018.png)
+![](./img/Pasted%20image%2020241002100018.png)
 
 There are two .env files that you need to create and configure on the showcase. They go in the same folder as the .env.example file. In the server folder the .env file should look like this:
 ```bash
@@ -42,7 +42,7 @@ When adding environment variables to this file in the future, ensure that they s
 
 Ensure that both the env files are named `.env` and that they're in the same folder as their respective `.env.example` files, otherwise they won't get loaded.  
 
-In the command line, go to the project directory and run `yarn install` then run `yarn run dev` this will install all dependancies and start the front and backend. Your development environment should be accessible on port http://localhost:3000
+In the command line, go to the project directory and run `pnpm install` then run `pnpm run dev` this will install all dependencies and start the front and backend. Your development environment should be accessible on port http://localhost:3000
 
 ## Project Structure
 As stated in the previous section, the application is split up in to a frontend and backend. The code for each is located in the `client` and `server` folders respectively.
@@ -113,7 +113,7 @@ progressBar: [
 }
 ```
 The progress bar section is used to configured the progress bar at the top of the app during onboarding:
-![](Pasted%20image%2020241002141757.png)
+![](./img/Pasted%20image%2020241002141757.png)
 `name` refers to the type of icon used, this is used as and `alt` attribute for accessibility purposes. `onboardingStep` refers to the step ID when the icon becomes highlighted, here we can see that the person icon is highlighted because the user is on the `PICK_CHARACTER` screen id. `iconLight` and `iconDark` are the actual icons to display when the app is in light or dark mode.
 
 #### Onboarding:
@@ -296,7 +296,7 @@ export const studentCustom: CustomCharacter = {
 Like the onboarding section, the use case section consist of a basic structure which sometimes includes special attributes like `requestOptions`. The basic structure has 4 attributes:
 - `screenId`: this is the string that identifies an onboarding step, it also maps a onboarding section to an onboarding step component:
 	- `START`: (required) at the start of the onboarding sections, makes the app render the `StartContainer.tsx` screen with the provided configuration
-	- `CONNECTION*`: creates a new connection invitation and makes the app render `StepConnection.tsx`. The `verifier` field consists of two attributes: `name` is the name of the connection that the user will see in the wallet. `icon` is the icon that gets displayed in the top left of the usecase on the connection screen: ![](Pasted%20image%2020241002151846.png)
+	- `CONNECTION*`: creates a new connection invitation and makes the app render `StepConnection.tsx`. The `verifier` field consists of two attributes: `name` is the name of the connection that the user will see in the wallet. `icon` is the icon that gets displayed in the top left of the usecase on the connection screen: ![](./img/Pasted%20image%2020241002151846.png)
 	- `PROOF*`: makes the app render the `StepProof.tsx` screen. The `requestedCredentials` object can contain requests for predicates and/or credential attributes. The `title` and `text` attributes get displayed on the holder's wallet when viewing the proof request. `requestedCredentials` contains an array of request objects. Each request object contains the following: `icon`(the icon to display on the proof request loading component), `name` (the schema_name to use in the proof request restriction), `schema_id` (the schema id used to lookup OCA branding), `properties` ( the credential attributes to request), `predicates` (the credential predicates to request)
 	- `STEP_END`: makes the app render the `StepEnd.tsx` screen with the provided configuration
 - `title`: the text to display on the page title
@@ -331,7 +331,7 @@ There are three pipelines for the showcase: `bc-wallet-demo-pipeline`, `bc-walle
 The other two pipelines are triggered manually, the test pipeline points the test image stream tags to dev, and the prod pipeline points the prod image stream tags to test. This means to deploy changes to prod, the test pipeline must run first.
 
 To trigger a pipeline manually go to the buildconfigs section in a99fd4-tools, find the pipeline you would like to run and select `Start Build`.
-![](Pasted%20image%2020241003161630.png)
+![](./img/Pasted%20image%2020241003161630.png)
 Once the a pipeline has been run, there's nothing else you need to do, it will automatically handle the deployment to dev, test, or prod depending on the pipeline.
 
 **Note:** The name pipeline is a bit of a misnomer because the pipelines are actually located under the buildconfig section in a99fd4-tools, not the pipeline section.

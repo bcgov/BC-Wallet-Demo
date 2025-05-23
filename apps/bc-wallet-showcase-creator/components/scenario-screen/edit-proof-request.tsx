@@ -241,6 +241,7 @@ export const EditProofRequest = ({
 
         <Button
           type="button"
+          disabled={attributeList.length == 0}
           onClick={onSubmit}
           className="gap-2"
         >

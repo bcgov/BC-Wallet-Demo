@@ -478,7 +478,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
       }
 
       // add scenario ids to the store
-      // add scenario ids to the shwocase
+      // add scenario ids to the showcase
       setScenarioIds(scenarioIds);
       return { success: true, scenarioIds };
     } catch (error) {

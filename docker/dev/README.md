@@ -23,6 +23,9 @@ This guide provides instructions for setting up and running the BC Wallet Demo s
 
 The BC Wallet Demo system is a comprehensive digital credential showcase platform that consists of multiple microservices communicating via a message broker. This Docker setup allows you to run the entire system locally for development and testing purposes.
 
+
+For more info on the devops setup there is [devops.md](../../resources/DEVOPS/devops.md) in the resources/DEVOPS folder in the root.
+
 ## Components
 
 The system consists of the following components:
@@ -73,6 +76,7 @@ TRACTION_API_URL=https://traction-api-url/tenant/
 TRACTION_WEBHOOK_SECRET=your_webhook_secret
 
 # Optional: OIDC configuration (if using authentication)
+OIDC_REALM=your_realm
 OIDC_CLIENT_ID=your_client_id
 OIDC_CLIENT_SECRET=your_client_secret
 OIDC_ISSUER_URL=https://your-keycloak-server/auth/realms/your_realm

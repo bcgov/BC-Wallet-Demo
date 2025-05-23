@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
@@ -30,7 +30,8 @@ import {
   FormData
 } from '@/schemas/onboarding'
 import { StepActionRequestUnion } from '@/types'
-
+import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
+import DeleteModal from '../delete-modal'
 interface StepEditorFormProps {
   currentStep: StepRequest | null
   stepType: StepType
@@ -53,6 +54,7 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
   isEditMode = false
 }) => {
   const t = useTranslations()
+  const [isModalOpen, setIsModalOpen] = useState(false)
   
   const getCurrentAction = (): StepActionRequestUnion | null => {
     if (!currentStep || !currentStep.actions || currentStep.actions.length === 0) {
@@ -62,6 +64,7 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
   };
 
   const currentAction = getCurrentAction();
+  const { deleteStep } = useOnboardingAdapter()
 
   const getSchemaForStep = () => {
     if (stepType === StepType.Service) {
@@ -288,15 +291,39 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
       };
       
       updatedStep.actions = updatedActions;
+    } else{
+      const updatedActions = [...currentStep.actions];
+      const action = updatedActions[0] as AcceptCredentialActionRequest;
+
+      updatedActions[0] = {
+        ...action,
+        credentialDefinitionId: credentialId,
+      };
+      
+      updatedStep.actions = updatedActions;
     }
     
     updateStep(selectedStep.order, updatedStep);
   }
 
   return (
+    <>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <StepHeader icon={<Monitor strokeWidth={3} />} title={getStepTitle()} showDropdown={false} />
+        <StepHeader 
+          icon={<Monitor strokeWidth={3} />} 
+          title={getStepTitle()} 
+          showDropdown={true}
+          onActionClick={(action) => {
+          switch (action) {
+            case 'delete':
+              setIsModalOpen(true)
+              break
+            default:
+              console.log('Unknown action')
+          }
+        }}
+        />
 
         <div className="space-y-6">
           <FormTextInput
@@ -464,12 +491,28 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
           <ButtonOutline
             type="button"
             onClick={() => form.handleSubmit(onSubmit)()}
-            disabled={!form.formState.isValid}
+            disabled={!form.formState.isValid || currentStep?.actions[0]?.credentialDefinitionId === ''}
           >
             {isEditMode ? t('action.save_label') : t('action.next_label')}
           </ButtonOutline>
         </div>
       </form>
     </Form>
+    <DeleteModal
+      isLoading={false}
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      onDelete={() => {
+        console.log('Step',selectedStep);
+        setIsModalOpen(false)
+        deleteStep(selectedStep?.order as number)
+      }}
+      header="Are you sure you want to delete this page?"
+      description="Are you sure you want to delete this page?"
+      subDescription="<b>This action cannot be undone.</b>"
+      cancelText="CANCEL"
+      deleteText="DELETE"
+    />
+    </>
   )
 }

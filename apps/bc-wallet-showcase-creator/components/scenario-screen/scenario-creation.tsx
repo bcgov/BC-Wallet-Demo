@@ -31,6 +31,7 @@ export const CreateScenariosScreen = () => {
     setActiveScenarioIndex,
     activeScenarioIndex,
     deleteScenario,
+    activePersona
   } = usePresentationAdapter()
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
@@ -120,7 +121,7 @@ export const CreateScenariosScreen = () => {
           <div className="p-4">
             <div className="border-b w-full light-border dark:dark-border">
               <div className="pb-4">
-                <h2 className="text-base font-bold">You are editing Ana's scenario.</h2>
+                <h2 className="text-base font-bold">{`You are editing ${activePersona?.name}'s scenario.`}</h2>
                 <p className="text-xs">{t('onboarding.editing_steps_message')}</p>
               </div>
             </div>
