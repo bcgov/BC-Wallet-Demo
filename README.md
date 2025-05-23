@@ -185,6 +185,14 @@ http://localhost:5003/en/showcase-tenantA/login
 ```bash
 pnpm build
 ```
+> 🔄 After building, it's recommended to clean up any build artifacts to avoid workspace conflicts in development.
+
+### clean build artifacts
+Use this command to remove any generated build files (like .next folders)
+
+```bash
+pnpm clean
+```
 
 For CI/CD pipelines:
 

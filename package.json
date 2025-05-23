@@ -20,7 +20,7 @@
     "prepare": "husky install",
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "clean": "turbo run clean",
+    "clean": "rm -rf apps/*/.next && turbo run clean",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "preinstall": "npx only-allow pnpm",
