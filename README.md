@@ -91,7 +91,26 @@ You can run all apps using Docker.
 ```bash
 docker compose up -d
 ```
-This will build and start all services in detached mode.
+This will start all services, including the frontend (bc-wallet-showcase-creator) and backend containers.
+
+#### 🛠 Run bc-wallet-showcase-creator Natively
+
+If you prefer to run the bc-wallet-showcase-creator app natively (outside Docker for easier debugging or faster development):
+
+1. Stop just the container for bc-wallet-showcase-creator:
+
+```bash
+docker compose stop bc-wallet-showcase-creator
+```
+
+2. Start the app locally from the monorepo:
+
+```bash
+cd apps/bc-wallet-showcase-creator
+pnpm dev
+```
+
+This lets you run the frontend with hot-reloading, local logging, and access to your editor tools — while keeping other services (e.g., API, Keycloak) running in Docker.
 
 To stop and remove all running containers and associated volumes, run:
 
