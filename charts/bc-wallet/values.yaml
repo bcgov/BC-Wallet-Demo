@@ -8,6 +8,10 @@ fullnameOverride: ""
 
 global:
   ingressSuffix: "-dev.apps.silver.devops.gov.bc.ca"
+  # Optional: name of ConfigMap with extra environment variables to be used by all components
+  extraEnvVarsCM: ""
+  # Optional: name of Secret with extra environment variables to be used by all components
+  extraEnvVarsSecret: ""
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -49,16 +53,19 @@ apiServer:
   # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
   imagePullSecrets: []
 
-  # Name of ConfigMap with extra environment variables
+  # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
-  # Name of Secret with extra environment variables
+  # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   ## Secret must include the following ENVVars:
-  # ENCRYPTION_KEY: ""
-  # OIDC_ROOT_CLIENT_ID: ""
-  # OIDC_ROOT_CLIENT_SECRET: ""
-  # OIDC_ROOT_ISSUER_URL: ""
   # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
   # TENANT_ID: ""
   # TRACTION_API_URL: ""
   # TRACTION_WEBHOOK_SECRET: ""
@@ -74,7 +81,7 @@ apiServer:
 
   podSecurityContext:
     {}
-  # fsGroup: 2000
+    # fsGroup: 2000
 
   securityContext:
     {}
@@ -83,7 +90,7 @@ apiServer:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-  # runAsUser: 1000
+    # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -103,19 +110,19 @@ apiServer:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-  #   memory: 128Mi
+    #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /
-  #   port: http
+    #   port: http
   readinessProbe:
     {}
     # httpGet:
     #   path: /
-  #   port: http
+    #   port: http
 
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
@@ -169,13 +176,23 @@ demoServer:
 
   logLevel: debug
 
-  # Name of ConfigMap with extra environment variables
+  # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
-  # Name of Secret with extra environment variables
+  # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   ## Secret must include the following ENVVars:
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
+  # TENANT_ID: ""
   # TRACTION_API_URL: ""
   # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -187,7 +204,7 @@ demoServer:
 
   podSecurityContext:
     {}
-  # fsGroup: 2000
+    # fsGroup: 2000
 
   securityContext:
     {}
@@ -196,7 +213,7 @@ demoServer:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-  # runAsUser: 1000
+    # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -216,19 +233,19 @@ demoServer:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-  #   memory: 128Mi
+    #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /
-  #   port: http
+    #   port: http
   readinessProbe:
     {}
     # httpGet:
     #   path: /
-  #   port: http
+    #   port: http
 
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
@@ -285,12 +302,23 @@ demoWeb:
   snowplowEndpoint: spm.apps.gov.bc.ca
   insightsProjectId: your_insights_project_id
 
-  # Name of ConfigMap with extra environment variables
+  # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
-  # Name of Secret with extra environment variables
+  # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   ## Secret must include the following ENVVars:
-  # ? has env vars, no secrets
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -302,7 +330,7 @@ demoWeb:
 
   podSecurityContext:
     {}
-  # fsGroup: 2000
+    # fsGroup: 2000
 
   securityContext:
     {}
@@ -311,7 +339,7 @@ demoWeb:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-  # runAsUser: 1000
+    # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -331,14 +359,14 @@ demoWeb:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-  #   memory: 128Mi
+    #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /health
-  #   port: http
+    #   port: http
   readinessProbe:
     httpGet:
       path: /health
@@ -396,24 +424,23 @@ showcaseCreator:
 
   logLevel: debug
 
-  # Name of ConfigMap with extra environment variables
+  # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
-  # Name of Secret with extra environment variables
+  # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   ## Secret must include the following ENVVars:
-  # NEXT_AUTH_SECRET: ""
-  # OIDC_DEFAULT_TENANT: ""
-  # OIDC_AUTH_URL: ""
-  # OIDC_TRUST_HOST: ""
   # API_KEY: ""
   # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
   # TENANT_ID: ""
   # TRACTION_API_URL: ""
   # TRACTION_WEBHOOK_SECRET: ""
   # WALLET_ID: ""
-  # OIDC_ROOT_CLIENT_ID: ""
-  # OIDC_ROOT_CLIENT_SECRET: ""
-  # OIDC_ROOT_ISSUER_URL: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -425,7 +452,7 @@ showcaseCreator:
 
   podSecurityContext:
     {}
-  # fsGroup: 2000
+    # fsGroup: 2000
 
   securityContext:
     {}
@@ -434,7 +461,7 @@ showcaseCreator:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-  # runAsUser: 1000
+    # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -454,19 +481,19 @@ showcaseCreator:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-  #   memory: 128Mi
+    #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /
-  #   port: http
+    #   port: http
   readinessProbe:
     {}
     # httpGet:
     #   path: /
-  #   port: http
+    #   port: http
 
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
@@ -518,12 +545,23 @@ tractionAdapter:
   # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
   imagePullSecrets: []
 
-  # Name of ConfigMap with extra environment variables
+  # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
-  # Name of Secret with extra environment variables
+  # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   ## Secret must include the following ENVVars:
-  # none
+  # API_KEY: ""
+  # ENCRYPTION_KEY: ""
+  # OIDC_CLIENT_ID: ""
+  # OIDC_CLIENT_SECRET: ""
+  # OIDC_ISSUER_URL: ""
+  # OIDC_REALM: ""
+  # OIDC_SERVER_URL: ""
+  # OIDC_TRUST_HOST: ""
+  # TENANT_ID: ""
+  # TRACTION_API_URL: ""
+  # TRACTION_WEBHOOK_SECRET: ""
+  # WALLET_ID: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -535,7 +573,7 @@ tractionAdapter:
 
   podSecurityContext:
     {}
-  # fsGroup: 2000
+    # fsGroup: 2000
 
   securityContext:
     {}
@@ -544,7 +582,7 @@ tractionAdapter:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-  # runAsUser: 1000
+    # runAsUser: 1000
 
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   service:
@@ -564,19 +602,19 @@ tractionAdapter:
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
-  #   memory: 128Mi
+    #   memory: 128Mi
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     {}
     # httpGet:
     #   path: /
-  #   port: http
+    #   port: http
   readinessProbe:
     {}
     # httpGet:
     #   path: /
-  #   port: http
+    #   port: http
 
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:

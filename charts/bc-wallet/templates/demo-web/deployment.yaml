@@ -58,17 +58,7 @@ spec:
               value: {{ .Values.demoWeb.snowplowEndpoint | quote }}
             - name: DEMOWEB_INSIGHTS_PROJECT_ID
               value: {{ .Values.demoWeb.insightsProjectId | quote }}
-          {{- if or .Values.demoWeb.extraEnvVarsCM .Values.demoWeb.extraEnvVarsSecret }}
-          envFrom:
-            {{- if .Values.demoWeb.extraEnvVarsCM }}
-            - configMapRef:
-                name: {{ .Values.demoWeb.extraEnvVarsCM | quote }}
-            {{- end }}
-            {{- if .Values.demoWeb.extraEnvVarsSecret }}
-            - secretRef:
-                name: {{ .Values.demoWeb.extraEnvVarsSecret | quote }}
-            {{- end }}
-          {{- end }}
+          {{- include "bc-wallet.renderEnvFrom" (list "demoWeb" .) | nindent 10 }}
           {{- with .Values.demoWeb.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
