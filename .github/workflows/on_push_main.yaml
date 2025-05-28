@@ -169,7 +169,7 @@ jobs:
       - name: Deploy to OpenShift with Helm
         run: |
           cd charts/bc-wallet
-          helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
+          helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} \
             --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
