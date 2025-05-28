@@ -219,6 +219,7 @@ jobs:
         run: |
           cd charts/bc-wallet
           helm upgrade --install pr-${{ github.event.number }}-bc-wallet --namespace ${{ vars.OPENSHIFT_NAMESPACE }} \
+            --set global.extraEnvVarsSecret=bc-wallet-secrets \
             --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \

@@ -65,17 +65,7 @@ spec:
               value: {{ .Values.rabbitmq.auth.username | quote }}
             - name: FIXED_SHOWCASE_BACKEND
               value: "https://{{ include "bc-wallet.apiServer.host" . }}"
-          {{- if or .Values.tractionAdapter.extraEnvVarsCM .Values.tractionAdapter.extraEnvVarsSecret }}
-          envFrom:
-            {{- if .Values.tractionAdapter.extraEnvVarsCM }}
-            - configMapRef:
-                name: {{ .Values.tractionAdapter.extraEnvVarsCM | quote }}
-            {{- end }}
-            {{- if .Values.tractionAdapter.extraEnvVarsSecret }}
-            - secretRef:
-                name: {{ .Values.tractionAdapter.extraEnvVarsSecret | quote }}
-            {{- end }}
-          {{- end }}
+          {{- include "bc-wallet.renderEnvFrom" (list "tractionAdapter" .) | nindent 10 }}
           {{- with .Values.tractionAdapter.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
