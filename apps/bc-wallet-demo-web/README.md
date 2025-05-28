@@ -18,7 +18,7 @@ These steps are executed from the root folder of the project:
 
 > pnpm dev
 
-The application will now be running at  http://localhost:5002/digital-trust/showcase
+The application will now be running at  http://localhost:5002/digital-trust/showcase/
 
 ### Option 2 - Docker
 > These steps assume that you have docker installed
