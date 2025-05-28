@@ -260,10 +260,10 @@ jobs:
           body: |
             | Deployment | Resource | Location |
             | --- | --- | --- |
-            | API Server | | https://pr-${{ github.event.number }}-api-server-dev.apps.silver.devops.gov.bc.ca/ |
-            | Traction Adapter | | https://pr-${{ github.event.number }}-traction-adapter-dev.apps.silver.devops.gov.bc.ca/ |
-            | Demo Web | | https://pr-${{ github.event.number }}-demo-web-dev.apps.silver.devops.gov.bc.ca/ |
-            | Showcase Creator | | https://pr-${{ github.event.number }}-showcase-creator-dev.apps.silver.devops.gov.bc.ca/ |
-            | Demo Server | | https://pr-${{ github.event.number }}-demo-server-dev.apps.silver.devops.gov.bc.ca/ |
+            | API Server | | https://pr-${{ github.event.number }}-bc-wallet-api-server-dev.apps.silver.devops.gov.bc.ca/ |
+            | Traction Adapter | | https://pr-${{ github.event.number }}-bc-wallet-traction-adapter-dev.apps.silver.devops.gov.bc.ca/ |
+            | Demo Web | | https://pr-${{ github.event.number }}-bc-wallet-demo-web-dev.apps.silver.devops.gov.bc.ca/ |
+            | Showcase Creator | | https://pr-${{ github.event.number }}-bc-wallet-showcase-creator-dev.apps.silver.devops.gov.bc.ca/ |
+            | Demo Server | | https://pr-${{ github.event.number }}-bc-wallet-demo-server-dev.apps.silver.devops.gov.bc.ca/ |
 
             PR Deployment URLs ready for review.
