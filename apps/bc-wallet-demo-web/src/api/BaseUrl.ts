@@ -28,8 +28,8 @@ const cacheOptions: CacheOptions = {
   },
 }
 
-export const demoBackendBaseRoute = getEnv('REACT_APP_BASE_ROUTE', '/digital-trust/showcase')
-export const demoBackendBaseWsUrl = getEnv('REACT_APP_DEMO_API_URL', '')
+export const demoBackendBaseRoute = process.env.REACT_APP_BASE_ROUTE ?? '/digital-trust/showcase'
+export const demoBackendBaseWsUrl = process.env.REACT_APP_DEMO_API_URL
 export const demoBackendBaseUrl = demoBackendBaseWsUrl + demoBackendBaseRoute
 export const demoBackendSocketPath = `${demoBackendBaseRoute}/socket/`
 export const demoBackendApi = setupCache(
@@ -40,7 +40,7 @@ export const demoBackendApi = setupCache(
 )
 
 const tenantId = getTenantIdFromPath();
-const base = getEnv('REACT_APP_SHOWCASE_API_URL', '');
+const base = process.env.REACT_APP_SHOWCASE_API_URL
 export const showcaseServerBaseUrl = tenantId ? `${base}/${tenantId}` : base;
 
 export const showcaseApi = setupCache(

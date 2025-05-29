@@ -196,7 +196,7 @@ http://localhost:5003/en/showcase-tenantA/login
 
 - API Server: http://localhost:5005
 
-- Demo Web: http://localhost:5002/digital-trust/showcase
+- Demo Web: http://localhost:5002/digital-trust/showcase/
 
 
 ### Build the Project
