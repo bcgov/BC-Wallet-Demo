@@ -51,12 +51,12 @@ class TenantService {
     )
   }
 
-  public getTenant = async (id: string): Promise<Tenant> => {
+  public getTenant = async (id: string, internal: boolean = false): Promise<Tenant> => {
     const tenant = await this.tenantRepository.findById(id)
 
     // Non-root users can only read oidcIssuer
     const currentTenant = this.sessionService.getCurrentTenant()
-    if (!currentTenant || currentTenant.tenantType !== TenantType.ROOT) {
+    if (!internal && (!currentTenant || currentTenant.tenantType !== TenantType.ROOT)) {
       return this.redactedTenantFrom(tenant)
     }
 

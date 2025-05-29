@@ -7,6 +7,7 @@ import CredentialSchemaRepository from '../database/repositories/CredentialSchem
 import { CredentialSchema, NewCredentialSchema } from '../types'
 import type { ISessionService } from '../types/services/session'
 import { AbstractAdapterClientService } from './AbstractAdapterClientService'
+import TenantService from './TenantService'
 
 /**
  * Service for managing credential schemas.
@@ -25,8 +26,9 @@ class CredentialSchemaService extends AbstractAdapterClientService {
     @Inject('ISessionService') sessionService: ISessionService,
     @Inject('IAdapterClientApi') private readonly adapterClientApi: IAdapterClientApi,
     private readonly credentialSchemaRepository: CredentialSchemaRepository,
+    tenantService: TenantService,
   ) {
-    super(sessionService)
+    super(sessionService, tenantService)
   }
 
   /**
@@ -92,7 +94,7 @@ class CredentialSchemaService extends AbstractAdapterClientService {
       return Promise.reject(Error('Identifier type and identifier are required for credential schema import.'))
     }
 
-    await this.adapterClientApi.importCredentialSchema(importRequest, this.buildSendOptions())
+    await this.adapterClientApi.importCredentialSchema(importRequest, await this.buildSendOptions())
   }
 }
 

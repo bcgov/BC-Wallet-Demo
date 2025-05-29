@@ -8,6 +8,7 @@ import CredentialDefinitionRepository from '../database/repositories/CredentialD
 import { CredentialDefinition, NewCredentialDefinition } from '../types'
 import { ISessionService } from '../types/services/session'
 import { AbstractAdapterClientService } from './AbstractAdapterClientService'
+import TenantService from './TenantService'
 
 /**
  * Service for managing credential definitions.
@@ -20,8 +21,9 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
     @Inject('ISessionService') sessionService: ISessionService,
     @Inject('IAdapterClientApi') private readonly adapterClientApi: IAdapterClientApi,
     private readonly credentialDefinitionRepository: CredentialDefinitionRepository,
+    tenantService: TenantService,
   ) {
-    super(sessionService)
+    super(sessionService, tenantService)
   }
 
   /**
@@ -130,7 +132,7 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
       return Promise.reject(Error('Identifier type and identifier are required for credential definition import.'))
     }
 
-    await this.adapterClientApi.importCredentialDefinition(importRequest, this.buildSendOptions())
+    await this.adapterClientApi.importCredentialDefinition(importRequest, await this.buildSendOptions())
   }
 
   /**
