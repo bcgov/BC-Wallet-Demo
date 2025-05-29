@@ -60,17 +60,7 @@ spec:
               value: production
             - name: PORT
               value: {{ .Values.showcaseCreator.service.port | quote }}
-          {{- if or .Values.showcaseCreator.extraEnvVarsCM .Values.showcaseCreator.extraEnvVarsSecret }}
-          envFrom:
-            {{- if .Values.showcaseCreator.extraEnvVarsCM }}
-            - configMapRef:
-                name: {{ .Values.showcaseCreator.extraEnvVarsCM | quote }}
-            {{- end }}
-            {{- if .Values.showcaseCreator.extraEnvVarsSecret }}
-            - secretRef:
-                name: {{ .Values.showcaseCreator.extraEnvVarsSecret | quote }}
-            {{- end }}
-          {{- end }}
+          {{- include "bc-wallet.renderEnvFrom" (list "showcaseCreator" .) | nindent 10 }}
           {{- with .Values.showcaseCreator.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

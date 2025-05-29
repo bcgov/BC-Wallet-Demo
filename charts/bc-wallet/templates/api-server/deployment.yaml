@@ -74,17 +74,7 @@ spec:
                 secretKeyRef:
                   name: {{ include "bc-wallet.database.secret.name" . }}
                   key: {{ include "bc-wallet.database.userPasswordKey" . }}
-          {{- if or .Values.apiServer.extraEnvVarsCM .Values.apiServer.extraEnvVarsSecret }}
-          envFrom:
-            {{- if .Values.apiServer.extraEnvVarsCM }}
-            - configMapRef:
-                name: {{ .Values.apiServer.extraEnvVarsCM | quote }}
-            {{- end }}
-            {{- if .Values.apiServer.extraEnvVarsSecret }}
-            - secretRef:
-                name: {{ .Values.apiServer.extraEnvVarsSecret | quote }}
-            {{- end }}
-          {{- end }}
+          {{- include "bc-wallet.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
           {{- with .Values.apiServer.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

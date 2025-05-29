@@ -52,6 +52,27 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Render envFrom from either service or global scope
+*/}}
+{{- define "bc-wallet.renderEnvFrom" -}}
+{{- $service := index . 0 -}}
+{{- $ctx := index . 1 -}}
+{{- $cm := default (get $ctx.Values.global "extraEnvVarsCM") (get $ctx.Values $service).extraEnvVarsCM }}
+{{- $secret := default (get $ctx.Values.global "extraEnvVarsSecret") (get $ctx.Values $service).extraEnvVarsSecret }}
+{{- if or $cm $secret }}
+envFrom:
+  {{- if $cm }}
+  - configMapRef:
+      name: {{ $cm | quote }}
+  {{- end }}
+  {{- if $secret }}
+  - secretRef:
+      name: {{ $secret | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "bc-wallet.serviceAccountName" -}}

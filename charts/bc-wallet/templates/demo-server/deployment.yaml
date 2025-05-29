@@ -47,17 +47,7 @@ spec:
             - name: http
               containerPort: {{ .Values.demoServer.service.port }}
               protocol: TCP
-          {{- if or .Values.demoServer.extraEnvVarsCM .Values.demoServer.extraEnvVarsSecret }}
-          envFrom:
-            {{- if .Values.demoServer.extraEnvVarsCM }}
-            - configMapRef:
-                name: {{ .Values.demoServer.extraEnvVarsCM | quote }}
-            {{- end }}
-            {{- if .Values.demoServer.extraEnvVarsSecret }}
-            - secretRef:
-                name: {{ .Values.demoServer.extraEnvVarsSecret | quote }}
-            {{- end }}
-          {{- end }}
+          {{- include "bc-wallet.renderEnvFrom" (list "demoServer" .) | nindent 10 }}
           env:
             - name: CORS_ALLOW_CREDENTIALS
               value: "true"
