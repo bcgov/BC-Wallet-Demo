@@ -14,7 +14,7 @@ export abstract class AbstractAdapterClientService {
     if (!tenant) {
       throw new Error('Current tenant not set')
     }
-    const fullTenant = await this.tenantService.getTenant(tenant.id) // User's tenant record is redacted and does not contain Traction secrets
+    const fullTenant = await this.tenantService.getTenant(tenant.id, true) // User's tenant record is redacted and does not contain Traction secrets
 
     return {
       authHeader: this.sessionService.getBearerToken()?.getRawToken(),
