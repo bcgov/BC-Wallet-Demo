@@ -33,6 +33,7 @@ RUN pnpm deploy /deploy --filter bc-wallet-demo-server --prod --no-optional
 FROM node:20-bookworm-slim
 WORKDIR /app
 COPY --from=builder /deploy /app
+COPY apps/bc-wallet-demo-server/src/public /app/build/src/public
 ENV NODE_ENV=production
 RUN echo PORT=3000 > .env
 EXPOSE 3000
