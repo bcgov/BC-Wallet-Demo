@@ -76,6 +76,21 @@ Additionally, for the Docker development environment, copy the Docker env file:
 cp docker/dev/.env.example docker/dev/.env
 ```
 
+### Environment Configuration – API URL Setup
+
+To ensure the frontend correctly communicates with the backend API, update your `.env` variables based on your environment:
+
+```bash
+# For local development without Docker
+NEXT_PUBLIC_SHOWCASE_API_URL=http://localhost:5005
+
+# For Docker Compose setup (inside containers)
+# Use host.docker.internal to allow Docker containers to reach services on the host machine
+NEXT_PUBLIC_SHOWCASE_API_URL=http://host.docker.internal:5005
+```
+
+> host.docker.internal allows Docker containers to access services running on your host machine, solving the issue where localhost inside a container points to the container itself instead of the host.
+
 >📌 Important: After copying, review each .env file (including docker/dev/.env) and update the values as needed to match your local setup or deployment environment.
 
 ### 🐳 Option 1 - Docker
@@ -84,68 +99,6 @@ cp docker/dev/.env.example docker/dev/.env
 
 >⚠️ Make sure your .env files are properly copied from docker/dev/.env.example 
 
-### Local Development Setup: Accessing Docker Services from Browser
-
-#### 📍 Problem
-
-In a Dockerize monorepo with multiple services, Docker containers can talk to each other using service names (like `bc-wallet-api-server`), but your browser cannot resolve these names.
-
-Example:
-```
-# This works inside Docker containers:
-http://bc-wallet-api-server:5005
-
-# But fails in browser:
-❌ fetch('http://bc-wallet-api-server:5005')
-```
-
-#### ✅ Solution (Local Dev Only)
-
-Use your operating system's `hosts` file to map the Docker service names to `localhost`.
-
-This will allow your browser to resolve the same hostnames as used by services in Docker Compose.
-
-#### 🛠 Steps
-
-1. Locate your system's hosts file:
-
-| OS      | Path                                    |
-| ------- | --------------------------------------- |
-| macOS   | `/etc/hosts`                            |
-| Linux   | `/etc/hosts`                            |
-| Windows | `C:\Windows\System32\drivers\etc\hosts` |
-
-2. Open the file with admin privileges :
-
-```bash
-# macOS/Linux
-sudo nano /etc/hosts
-```
-
-3. Add entries for your Docker services:
-
-```bash
-127.0.0.1 bc-wallet-traction-adapter bc-wallet-api-server bc-wallet-showcase-creator bc-wallet-demo-server bc-wallet-demo-web
-```
-
-4. Save the file and restart your browser if needed.
-
-Now, requests like:
-
-```bash
-fetch('http://bc-wallet-api-server:5005')
-```
-
-✅ Will work in browser as they resolve to localhost.
-
-#### ⚠️ Important Notes
-- This is only needed for local development.
-
-- Do not use this approach in production or deployments (e.g., OpenShift, cloud).
-
-- In production, use real URLs (e.g., https://api.example.com) that are already DNS-resolvable.
-
-- Keep this file in sync with your Docker Compose service names.
 
 
 #### You can run all apps using Docker. 
