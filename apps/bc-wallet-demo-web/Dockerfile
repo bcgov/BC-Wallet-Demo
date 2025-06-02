@@ -17,14 +17,23 @@ RUN pnpm --filter bc-wallet-demo-web build
 
 # production stage
 FROM ${runtime_image} as production-stage
+
+ARG uid=1001
+ARG user=nodeapp
+RUN adduser -D -u $uid $user && addgroup $user root
+
 COPY --from=build-stage /app/apps/bc-wallet-demo-web/build /srv/digital-trust/showcase
 
 COPY apps/bc-wallet-demo-web/Caddyfile /etc/caddy/Caddyfile
 COPY apps/bc-wallet-demo-web/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-RUN chown 1001:root /usr/bin/caddy
+RUN chown -R $user:root /srv/digital-trust && chmod -R ug+rw /srv/digital-trust
+RUN chown -R $user:root /etc/caddy && chmod -R ug+rw /etc/caddy
+RUN chown $user:root /usr/bin/caddy && chmod ug+rwx /usr/bin/caddy
 RUN apk add --no-cache gettext
+
+USER $user
 
 # Set the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

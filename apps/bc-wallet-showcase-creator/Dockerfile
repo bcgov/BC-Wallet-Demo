@@ -21,8 +21,11 @@ RUN pnpm run build --filter bc-wallet-showcase-creator
 FROM node:20-alpine AS runner
 WORKDIR /app
 RUN apk add --no-cache libc6-compat bash
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+RUN addgroup nextjs root
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3050
@@ -33,8 +36,8 @@ COPY --from=builder /app/apps/bc-wallet-showcase-creator/.next/static ./apps/bc-
 COPY --from=builder /app/apps/bc-wallet-showcase-creator/public ./apps/bc-wallet-showcase-creator/public
 COPY --from=builder /app/apps/bc-wallet-showcase-creator/env.sh ./env.sh
 RUN chmod +x ./env.sh
+RUN chown -R nextjs:root /app && chmod -R ug+rw /app
 
-RUN chown -R nextjs:nodejs /app
 USER nextjs
 EXPOSE 3050
 

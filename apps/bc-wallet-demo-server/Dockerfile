@@ -19,8 +19,6 @@ RUN rm -rf packages/bc-wallet-adapter-client-api # We are not generating the mod
 COPY apps/tsconfig-base.json apps/
 COPY apps/bc-wallet-demo-server apps/bc-wallet-demo-server
 
-
-
 # Install dependencies and build
 RUN rm -rf $(pnpm store path) && pnpm install -g typescript ts-node
 RUN pnpm install --frozen-lockfile
@@ -31,10 +29,17 @@ RUN pnpm deploy /deploy --filter bc-wallet-demo-server --prod --no-optional
 
 # Runtime stage
 FROM node:20-bookworm-slim
+
+ARG uid=1001
+ARG user=nodeapp
+RUN useradd -U -ms /bin/bash -u $uid $user && usermod -a -G 0 $user
 WORKDIR /app
 COPY --from=builder /deploy /app
+RUN chown -R $user:root /app && chmod -R ug+rw /app
 ENV NODE_ENV=production
 RUN echo PORT=3000 > .env
+
+USER $user
 EXPOSE 3000
 
 CMD ["node", "build/src/index.js"]

@@ -29,10 +29,19 @@ RUN pnpm deploy /deploy --filter bc-wallet-traction-adapter --prod --no-optional
 
 # Runtime stage
 FROM node:20-bookworm-slim
+
+ARG uid=1001
+ARG user=nodeapp
+RUN useradd -U -ms /bin/bash -u $uid $user && usermod -a -G 0 $user
+
 WORKDIR /app
 COPY --from=builder /deploy /app
+RUN chown -R $user:root /app && chmod -R ug+rw /app
+
 ENV NODE_ENV=production
 RUN echo PORT=3000  > .env
 RUN echo '#!/bin/sh\necho "Waiting for message broker to start..."\nsleep 6\necho "Starting application..."\nexec node dist/index.js' > /start.sh && \
     chmod +x /start.sh
+
+USER $user
 CMD ["/start.sh"]
