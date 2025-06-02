@@ -84,33 +84,77 @@ cp docker/dev/.env.example docker/dev/.env
 
 >⚠️ Make sure your .env files are properly copied from docker/dev/.env.example 
 
+### Local Development Setup: Accessing Docker Services from Browser
 
-You can run all apps using Docker. 
+#### 📍 Problem
+
+In a Dockerize monorepo with multiple services, Docker containers can talk to each other using service names (like `bc-wallet-api-server`), but your browser cannot resolve these names.
+
+Example:
+```
+# This works inside Docker containers:
+http://bc-wallet-api-server:5005
+
+# But fails in browser:
+❌ fetch('http://bc-wallet-api-server:5005')
+```
+
+#### ✅ Solution (Local Dev Only)
+
+Use your operating system's `hosts` file to map the Docker service names to `localhost`.
+
+This will allow your browser to resolve the same hostnames as used by services in Docker Compose.
+
+#### 🛠 Steps
+
+1. Locate your system's hosts file:
+
+| OS      | Path                                    |
+| ------- | --------------------------------------- |
+| macOS   | `/etc/hosts`                            |
+| Linux   | `/etc/hosts`                            |
+| Windows | `C:\Windows\System32\drivers\etc\hosts` |
+
+2. Open the file with admin privileges :
+
+```bash
+# macOS/Linux
+sudo nano /etc/hosts
+```
+
+3. Add entries for your Docker services:
+
+```bash
+127.0.0.1 bc-wallet-traction-adapter bc-wallet-api-server bc-wallet-showcase-creator bc-wallet-demo-server bc-wallet-demo-web
+```
+
+4. Save the file and restart your browser if needed.
+
+Now, requests like:
+
+```bash
+fetch('http://bc-wallet-api-server:5005')
+```
+
+✅ Will work in browser as they resolve to localhost.
+
+#### ⚠️ Important Notes
+- This is only needed for local development.
+
+- Do not use this approach in production or deployments (e.g., OpenShift, cloud).
+
+- In production, use real URLs (e.g., https://api.example.com) that are already DNS-resolvable.
+
+- Keep this file in sync with your Docker Compose service names.
+
+
+#### You can run all apps using Docker. 
 
 
 ```bash
 docker compose up -d
 ```
-This will start all services, including the frontend (bc-wallet-showcase-creator) and backend containers.
-
-#### 🛠 Run bc-wallet-showcase-creator Natively
-
-If you prefer to run the bc-wallet-showcase-creator app natively (outside Docker for easier debugging or faster development):
-
-1. Stop just the container for bc-wallet-showcase-creator:
-
-```bash
-docker compose stop bc-wallet-showcase-creator
-```
-
-2. Start the app locally from the monorepo:
-
-```bash
-cd apps/bc-wallet-showcase-creator
-pnpm dev
-```
-
-This lets you run the frontend with hot-reloading, local logging, and access to your editor tools — while keeping other services (e.g., API, Keycloak) running in Docker.
+This will start all services
 
 To stop and remove all running containers and associated volumes, run:
 

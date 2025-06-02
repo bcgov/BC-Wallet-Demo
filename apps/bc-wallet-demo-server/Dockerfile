@@ -35,6 +35,7 @@ ARG user=nodeapp
 RUN useradd -U -ms /bin/bash -u $uid $user && usermod -a -G 0 $user
 WORKDIR /app
 COPY --from=builder /deploy /app
+COPY apps/bc-wallet-demo-server/src/public /app/build/src/public
 RUN chown -R $user:root /app && chmod -R ug+rw /app
 ENV NODE_ENV=production
 RUN echo PORT=3000 > .env
