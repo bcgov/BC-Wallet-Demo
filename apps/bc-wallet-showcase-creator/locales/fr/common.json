@@ -263,9 +263,9 @@
     "publish_label": "Publier"
   },
   "sidebar": {
-    "home_label": "Maison",
-    "showcases_label": "Vitrines",
-    "credential_library_label": "Bibliothèque d'informations",
+    "home_label": "Accueil",
+    "showcases_label": "Tableau de bord",
+    "credential_library_label": "Justificatifs numériques",
     "character_library_label": "Personnages",
     "logout_label": "Se déconnecter",
     "dark_mode_label": "Mode sombre"

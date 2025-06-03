@@ -30,6 +30,7 @@ export const CreateScenariosScreen = () => {
     duplicateScenario,
     setActiveScenarioIndex,
     activeScenarioIndex,
+    setSelectedStep,
     deleteScenario,
     activePersona
   } = usePresentationAdapter()
@@ -37,19 +38,26 @@ export const CreateScenariosScreen = () => {
   const router = useRouter()
   const { tenantId } = useTenant();
 
+  const parseId = (composedId: string) => {
+    const match = composedId.match(/^step-(\d+)-(\d+)$/);
+    if (!match) return null;
+    const stepIndex = parseInt(match[1], 10);
+    const scenarioIndex = parseInt(match[2], 10);
+    return { stepIndex, scenarioIndex };
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     if (!over) return
 
     // Find the steps by their IDs
-    const activeStep = activeScenario?.steps.find((step: any) => step.id === active.id)
-    const overStep = activeScenario?.steps.find((step: any) => step.id === over.id)
+    const from = parseId(active.id as string);
+    const to = parseId(over?.id as string);
 
-    if (!activeStep || !overStep) return
+    if (!from || !to) return;
 
-    // Get the indexes
-    const oldIndex = activeScenario.steps.indexOf(activeStep)
-    const newIndex = activeScenario.steps.indexOf(overStep)
+    const oldIndex = from.scenarioIndex;
+    const newIndex = to.scenarioIndex;
 
     if (oldIndex !== newIndex) {
       moveStep(oldIndex, newIndex)
@@ -57,8 +65,11 @@ export const CreateScenariosScreen = () => {
   }
 
   const handleDragStart = (event: DragStartEvent) => {
-    // Handle drag start if needed
-  }
+    const parsed = parseId(event.active.id as string);
+    if (!parsed) return;
+
+    setSelectedStep({ stepIndex: parsed.stepIndex, scenarioIndex: parsed.scenarioIndex });
+  };
 
   const handleScenarioClick = (index: number) => {
     if (activePersonaId) {
