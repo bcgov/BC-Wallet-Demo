@@ -19,23 +19,23 @@ export const Instructions = () => {
         </li>
         <li className="flex flex-col gap-2">
           <h3 className="text-sm font-bold">Step 2: Create a persona</h3>
-          <p className="text-xs text-foreground/80">This is the second step to create a showcase.</p>
+          <p className="text-xs text-foreground/80">Configure your personas to be used in the showcase.</p>
         </li>
         <li className="flex flex-col gap-2">
           <h3 className="text-sm font-bold">Step 3: Create the onboarding</h3>
-          <p className="text-xs text-foreground/80">This is the third step to create a showcase.</p>
+          <p className="text-xs text-foreground/80">Configure the demo experience around credential offers.</p>
         </li>
         <li className="flex flex-col gap-2">
           <h3 className="text-sm font-bold">Step 4: Add steps to the onboarding</h3>
-          <p className="text-xs text-foreground/80">This is the fourth step to create a showcase.</p>
+          <p className="text-xs text-foreground/80">Configure the steps required to onboard the persona.</p>
         </li>
         <li className="flex flex-col gap-2">
           <h3 className="text-sm font-bold">Step 5: Create a scenario</h3>
-          <p className="text-xs text-foreground/80">This is the fifth step to create a showcase.</p>
+          <p className="text-xs text-foreground/80">Configure the demo experience around credential verification.</p>
         </li>
         <li className="flex flex-col gap-2">
           <h3 className="text-sm font-bold">Step 6: Add steps to the scenario</h3>
-          <p className="text-xs text-foreground/80">This is the sixth step to create a showcase.</p>
+          <p className="text-xs text-foreground/80">Configure the steps required to verify credentials held by the persona.</p>
         </li>
         <li className="flex flex-col gap-2">
           <h3 className="text-sm font-bold">Step 7: Submit your showcase</h3>

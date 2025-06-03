@@ -131,9 +131,11 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
 
   const removeCredential = (credentialId: string) => {
     if (!currentStep) return;
-    const updated = currentStep.actions[0].credentialDefinitionId;
 
-    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updated } as unknown as StepRequestUIActionTypes);
+    const { credentialDefinitionId, ...cleanedAction } = currentStep.actions[0];
+    const updatedActions = [cleanedAction];
+
+    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updatedActions } as unknown as StepRequestUIActionTypes);
     setSelectedCredential(null);
   }
 
@@ -155,7 +157,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
                 ? step.actions.map((action) => ({
                   ...action,
                   actionType: "ARIES_OOB",
-                  credentialDefinitionId: selectedCredential?.id,
+                  credentialDefinitionId: action?.credentialDefinitionId,
                 }))
                 : step.actions,
           };
