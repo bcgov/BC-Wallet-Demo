@@ -49,17 +49,10 @@ export default async function RootLayout({ children, params }: Params) {
 
   const messages = await getMessages()
 
-  const envVars = {
-    WALLET_URL: process.env.NEXT_PUBLIC_WALLET_URL,
-    SHOWCASE_API_URL: process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
-  }
-
   return (
     <html lang={locale} suppressHydrationWarning>
     <head>
-      <Script id="env-script" strategy="beforeInteractive">
-        {`window.__env = ${JSON.stringify(envVars)};`}
-      </Script>
+      <Script src="/__env.js" strategy="beforeInteractive" />
     </head>
     <body className={`${montserrat.variable} antialiased`}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

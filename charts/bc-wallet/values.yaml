@@ -701,6 +701,8 @@ rabbitmq:
   auth:
     username: bc_user
     existingPasswordSecret: bc-wallet-rabbitmq-secret
+    secretKeys:
+      passwordKey: rabbitmq-password
   extraPlugins: "rabbitmq_management"
   configuration: |-
     management.listener.port = 15672

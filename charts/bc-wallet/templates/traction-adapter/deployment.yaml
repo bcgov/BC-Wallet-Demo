@@ -35,6 +35,10 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-rabbitmq {{ .Values.rabbitmq.service.ports.amqp | quote }}; do echo waiting for rabbitmq; sleep 2; done; sleep 5;']
       containers:
         - name: traction-adapter
           {{- with .Values.tractionAdapter.securityContext }}
@@ -48,8 +52,6 @@ spec:
               containerPort: {{ .Values.tractionAdapter.service.port }}
               protocol: TCP
           env:
-            - name: TRACTION_FIXED_SHOWCASE_API_URL
-              value: "https://{{ include "bc-wallet.apiServer.host" . }}"
             - name: AMQ_HOST
               value: {{.Release.Name}}-rabbitmq
             - name: AMQ_PORT
@@ -63,8 +65,8 @@ spec:
                   key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
             - name: AMQ_USERNAME
               value: {{ .Values.rabbitmq.auth.username | quote }}
-            - name: FIXED_SHOWCASE_BACKEND
-              value: "https://{{ include "bc-wallet.apiServer.host" . }}"
+            - name: LOG_LEVEL # TODO remove when all stable
+              value: debug
           {{- include "bc-wallet.renderEnvFrom" (list "tractionAdapter" .) | nindent 10 }}
           {{- with .Values.tractionAdapter.livenessProbe }}
           livenessProbe:

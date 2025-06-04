@@ -35,6 +35,13 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-postgresql {{ .Values.postgresql.primary.service.ports.postgresql | quote }}; do echo waiting for postgres; sleep 2; done; sleep 2;']
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-rabbitmq {{ .Values.rabbitmq.service.ports.amqp | quote }}; do echo waiting for rabbitmq; sleep 2; done; sleep 5;']
       containers:
         - name: api-server
           {{- with .Values.apiServer.securityContext }}
