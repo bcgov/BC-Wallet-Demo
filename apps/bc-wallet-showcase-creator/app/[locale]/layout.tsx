@@ -51,9 +51,21 @@ export default async function RootLayout({ children, params }: Params) {
 
   return (
     <html lang={locale} suppressHydrationWarning>
-    <head>
-      <Script src="/__env.js" strategy="beforeInteractive" />
-    </head>
+    <Script
+      id = 'env-script'
+      src="/__env.js"
+      strategy="beforeInteractive"
+      onError={() => {
+        const fallbackEnv = {
+          NEXT_PUBLIC_SHOWCASE_API_URL: process.env.NEXT_PUBLIC_WALLET_URL,
+          NEXT_PUBLIC_WALLET_URL: process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
+        }
+        const script = document.createElement('script')
+        script.id = 'env-fallback'
+        script.text = `window.__env = ${JSON.stringify(fallbackEnv)};`
+        document.head.prepend(script)
+      }}
+    />
     <body className={`${montserrat.variable} antialiased`}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryProviders>
