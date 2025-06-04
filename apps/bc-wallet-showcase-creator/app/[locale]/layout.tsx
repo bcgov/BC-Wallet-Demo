@@ -51,31 +51,33 @@ export default async function RootLayout({ children, params }: Params) {
 
   return (
     <html lang={locale} suppressHydrationWarning>
-    <Script
-      id = 'env-script'
-      src="/__env.js"
-      strategy="beforeInteractive"
-      onError={() => {
-        const fallbackEnv = {
-          NEXT_PUBLIC_SHOWCASE_API_URL: process.env.NEXT_PUBLIC_WALLET_URL,
-          NEXT_PUBLIC_WALLET_URL: process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
-        }
-        const script = document.createElement('script')
-        script.id = 'env-fallback'
-        script.text = `window.__env = ${JSON.stringify(fallbackEnv)};`
-        document.head.prepend(script)
-      }}
-    />
-    <body className={`${montserrat.variable} antialiased`}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <QueryProviders>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster />
-        </NextIntlClientProvider>
-      </QueryProviders>
-    </ThemeProvider>
-    </body>
+      <Script id="env-script" strategy="beforeInteractive">
+        {`
+          fetch('/__env.js')
+            .then(resp => {
+              if (!resp.ok) throw new Error('env.js failed')
+              return resp.text()
+            })
+            .then(js => (0,eval)(js))
+            .catch(() => {
+              window.__env = {
+                NEXT_PUBLIC_SHOWCASE_API_URL: '${process.env.NEXT_PUBLIC_WALLET_URL}',
+                NEXT_PUBLIC_WALLET_URL: '${process.env.NEXT_PUBLIC_SHOWCASE_API_URL}',
+              }
+            })
+  `}
+      </Script>
+
+      <body className={`${montserrat.variable} antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <QueryProviders>
+            <NextIntlClientProvider messages={messages}>
+              {children}
+              <Toaster />
+            </NextIntlClientProvider>
+          </QueryProviders>
+        </ThemeProvider>
+      </body>
     </html>
   )
 }
