@@ -2,7 +2,7 @@ import type { ConnectionOptions } from 'rhea-promise'
 
 import { Topic, TOPICS } from './types'
 
-export const DEBUG_ENABLED = process.env.DEBUG === 'true' || process.env.LOG_LEVEL === 'debug'
+export const DEBUG_ENABLED = process.env.DEBUG === 'true' || process.env.LOG_LEVEL === 'debug' // Explicit vars to not accidentally log sensitive details
 
 const createAmqConnectionOptions = (transport?: string): ConnectionOptions => {
   // Default to 'tls' if not provided or invalid

@@ -73,7 +73,7 @@ export class ShowcaseApiService extends ApiService {
       } satisfies CredentialSchemaRequest,
     }
     if (DEBUG_ENABLED) {
-      console.debug('Calling updateCredentialSchema', requestParameters)
+      console.debug('Calling updateCredentialSchema', JSON.stringify(requestParameters))
     }
     void (await this.credentialDefinitionsApi.updateCredentialSchema(requestParameters))
     console.debug('updateCredentialSchema successful')
