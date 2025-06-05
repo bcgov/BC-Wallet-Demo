@@ -46,6 +46,9 @@ class ServiceManager {
     }
 
     const showcaseApiService = new ShowcaseApiService(showcaseApiUrlBase)
+    if (decodedToken) {
+      showcaseApiService.updateBearerToken(decodedToken)
+    }
     const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
     /*
     if (!decodedToken && environment.traction.TRACTION_DEFAULT_API_KEY) { TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here

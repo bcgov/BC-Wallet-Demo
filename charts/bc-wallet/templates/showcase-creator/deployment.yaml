@@ -35,6 +35,17 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: wait-for-api
+          image: curlimages/curl:8.8.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until curl -sfL "https://{{ include "bc-wallet.apiServer.host" . }}/tenants"; do
+                echo "Waiting for API to come online..."
+                sleep 5
+              done
       containers:
         - name: showcase-creator
           {{- with .Values.showcaseCreator.securityContext }}

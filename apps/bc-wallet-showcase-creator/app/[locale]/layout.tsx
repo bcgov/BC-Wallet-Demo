@@ -49,28 +49,35 @@ export default async function RootLayout({ children, params }: Params) {
 
   const messages = await getMessages()
 
-  const envVars = {
-    WALLET_URL: process.env.NEXT_PUBLIC_WALLET_URL,
-    SHOWCASE_API_URL: process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
-  }
-
   return (
     <html lang={locale} suppressHydrationWarning>
-    <head>
       <Script id="env-script" strategy="beforeInteractive">
-        {`window.__env = ${JSON.stringify(envVars)};`}
+        {`
+          fetch('/__env.js')
+            .then(resp => {
+              if (!resp.ok) throw new Error('env.js failed')
+              return resp.text()
+            })
+            .then(js => (0,eval)(js))
+            .catch(() => { // For local dev envs this is more convenient
+              window.__env = {
+                NEXT_PUBLIC_SHOWCASE_API_URL: '${process.env.NEXT_PUBLIC_SHOWCASE_API_URL}',
+                NEXT_PUBLIC_WALLET_URL: '${process.env.NEXT_PUBLIC_WALLET_URL}',
+              }
+            })
+  `}
       </Script>
-    </head>
-    <body className={`${montserrat.variable} antialiased`}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <QueryProviders>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster />
-        </NextIntlClientProvider>
-      </QueryProviders>
-    </ThemeProvider>
-    </body>
+
+      <body className={`${montserrat.variable} antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <QueryProviders>
+            <NextIntlClientProvider messages={messages}>
+              {children}
+              <Toaster />
+            </NextIntlClientProvider>
+          </QueryProviders>
+        </ThemeProvider>
+      </body>
     </html>
   )
 }
