@@ -61,8 +61,8 @@ export default async function RootLayout({ children, params }: Params) {
             .then(js => (0,eval)(js))
             .catch(() => { // For local dev envs this is more convenient
               window.__env = {
-                NEXT_PUBLIC_SHOWCASE_API_URL: '${process.env.NEXT_PUBLIC_WALLET_URL}',
-                NEXT_PUBLIC_WALLET_URL: '${process.env.NEXT_PUBLIC_SHOWCASE_API_URL}',
+                NEXT_PUBLIC_SHOWCASE_API_URL: '${process.env.NEXT_PUBLIC_SHOWCASE_API_URL}',
+                NEXT_PUBLIC_WALLET_URL: '${process.env.NEXT_PUBLIC_WALLET_URL}',
               }
             })
   `}
