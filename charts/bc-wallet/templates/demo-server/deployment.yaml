@@ -49,14 +49,6 @@ spec:
               protocol: TCP
           {{- include "bc-wallet.renderEnvFrom" (list "demoServer" .) | nindent 10 }}
           env:
-            - name: CORS_ALLOW_CREDENTIALS
-              value: "true"
-            - name: CORS_DISABLED
-              value: "true"
-            - name: CORS_ALLOW_HEADERS
-              value: "Content-Type, Authorization"
-            - name: CORS_ALLOW_METHODS
-              value: "GET, POST, PUT, DELETE, OPTIONS"
             - name: CORS_ALLOW_ORIGINS
               value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
             - name: SHOWCASE_DB_PASSWORD
