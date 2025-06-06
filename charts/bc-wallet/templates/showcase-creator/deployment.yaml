@@ -58,13 +58,11 @@ spec:
             - name: http
               containerPort: {{ .Values.showcaseCreator.service.port }}
               protocol: TCP
-          env:
+          env: # TODO OIDC_DEFAULT_TENANT
             - name: NEXT_PUBLIC_WALLET_URL
               value: "https://{{ include "bc-wallet.demoWeb.host" . }}/digital-trust/showcase"
             - name: NEXT_PUBLIC_SHOWCASE_API_URL
               value: "https://{{ include "bc-wallet.apiServer.host" . }}"
-            - name: OIDC_REDIRECT_PROXY_URL
-              value: "https://{{ include "bc-wallet.showcaseCreator.host" . }}/api/auth"
             - name: OIDC_AUTH_URL
               value: "https://{{ include "bc-wallet.showcaseCreator.host" . }}"
             - name: NODE_ENV

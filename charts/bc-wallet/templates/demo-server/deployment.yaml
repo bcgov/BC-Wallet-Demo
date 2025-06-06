@@ -48,7 +48,7 @@ spec:
               containerPort: {{ .Values.demoServer.service.port }}
               protocol: TCP
           {{- include "bc-wallet.renderEnvFrom" (list "demoServer" .) | nindent 10 }}
-          env:
+          env: # TODO TRACTION_API_URL
             - name: CORS_ALLOW_ORIGINS
               value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
             - name: SHOWCASE_DB_PASSWORD

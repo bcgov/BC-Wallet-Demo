@@ -54,7 +54,7 @@ spec:
             - name: http
               containerPort: {{ .Values.apiServer.service.port }}
               protocol: TCP
-          env:
+          env: # TODO OIDC_ROOT_CLIENT_ID OIDC_ROOT_ISSUER_URL
             - name: AMQ_HOST
               value: {{.Release.Name}}-rabbitmq
             - name: AMQ_PORT
@@ -81,6 +81,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "bc-wallet.database.secret.name" . }}
                   key: {{ include "bc-wallet.database.userPasswordKey" . }}
+            - name: CORS_ALLOW_ORIGINS
+              value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
           {{- include "bc-wallet.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
           {{- with .Values.apiServer.livenessProbe }}
           livenessProbe:
