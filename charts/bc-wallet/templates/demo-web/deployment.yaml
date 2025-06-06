@@ -52,6 +52,10 @@ spec:
               value: production
             - name: LOG_LEVEL
               value: {{ .Values.demoWeb.logLevel | quote }}
+            - name: REACT_APP_DEMO_API_URL
+              value: "https://{{ include "bc-wallet.demoServer.host" . }}"
+            - name: REACT_APP_SHOWCASE_API_URL
+              value: "https://{{ include "bc-wallet.apiServer.host" . }}"
             - name: REACT_APP_BASE_ROUTE
               value: {{ .Values.demoWeb.baseRoute | quote }}
             - name: DEMOWEB_SNOWPLOW_ENDPOINT

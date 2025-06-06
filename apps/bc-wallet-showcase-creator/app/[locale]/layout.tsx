@@ -51,23 +51,6 @@ export default async function RootLayout({ children, params }: Params) {
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <Script id="env-script" strategy="beforeInteractive">
-        {`
-          fetch('/__env.js')
-            .then(resp => {
-              if (!resp.ok) throw new Error('env.js failed')
-              return resp.text()
-            })
-            .then(js => (0,eval)(js))
-            .catch(() => { // For local dev envs this is more convenient
-              window.__env = {
-                NEXT_PUBLIC_SHOWCASE_API_URL: '${process.env.NEXT_PUBLIC_SHOWCASE_API_URL}',
-                NEXT_PUBLIC_WALLET_URL: '${process.env.NEXT_PUBLIC_WALLET_URL}',
-              }
-            })
-  `}
-      </Script>
-
       <body className={`${montserrat.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <QueryProviders>

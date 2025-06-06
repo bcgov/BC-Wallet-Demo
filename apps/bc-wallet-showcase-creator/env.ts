@@ -17,6 +17,25 @@ const runtimeClientSchema = {
   NEXT_PUBLIC_SHOWCASE_API_URL: z.string().min(1),
 }
 
+// Load env synchronously on client side
+if (typeof window !== 'undefined' && !window.__env) {
+  try {
+    // Try to load env.js synchronously
+    const xhr = new XMLHttpRequest()
+    xhr.open('GET', '/__env.js', false)
+    xhr.send(null)
+    if (xhr.status === 200) {
+      eval(xhr.responseText)
+    }
+  } catch (error) {
+    // Fallback for local dev
+    window.__env = {
+      NEXT_PUBLIC_SHOWCASE_API_URL: process.env.NEXT_PUBLIC_SHOWCASE_API_URL || '',
+      NEXT_PUBLIC_WALLET_URL: process.env.NEXT_PUBLIC_WALLET_URL || '',
+    }
+  }
+}
+
 const getEnv = (key: keyof NonNullable<Window['__env']>): string => {
   if (typeof window === 'undefined') {
     const value = process.env[key]

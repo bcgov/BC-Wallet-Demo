@@ -38,7 +38,7 @@ spec:
       initContainers:
         - name: wait-for-rabbitmq
           image: busybox
-          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-rabbitmq {{ .Values.rabbitmq.service.ports.amqp | quote }}; do echo waiting for rabbitmq; sleep 2; done; sleep 5;']
+          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-rabbitmq {{ .Values.rabbitmq.service.ports.amqp | quote }}; do echo waiting for rabbitmq; sleep 2; done; sleep 10;']
       containers:
         - name: traction-adapter
           {{- with .Values.tractionAdapter.securityContext }}
