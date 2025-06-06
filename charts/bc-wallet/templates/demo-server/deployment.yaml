@@ -51,11 +51,6 @@ spec:
           env: # TODO TRACTION_API_URL
             - name: CORS_ALLOW_ORIGINS
               value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
-            - name: SHOWCASE_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "bc-wallet.database.secret.name" . }}
-                  key: {{ include "bc-wallet.database.userPasswordKey" . }}
             - name: LOG_LEVEL
               value: {{ .Values.demoServer.logLevel | quote }}
             - name: BASE_ROUTE
