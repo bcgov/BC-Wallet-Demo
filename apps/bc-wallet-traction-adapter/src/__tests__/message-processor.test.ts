@@ -191,10 +191,10 @@ describe('MessageProcessor Integration Test', () => {
       body: issuer,
       application_properties: {
         action: 'publish.issuer-assets' as Action,
-        tenantId: 'test-tenant',
+        tractionTenantId: 'test-tenant',
         tractionApiUrlBase: environment.traction.TRACTION_DEFAULT_API_URL,
         showcaseApiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
-        walletId: 'test-wallet',
+        tractionWalletId: 'test-wallet',
         accessTokenEnc: encrypted,
         accessTokenNonce: nonce,
       },
@@ -360,8 +360,8 @@ describe('MessageProcessor Integration Test', () => {
       body: JSON.stringify(issuer),
       application_properties: {
         action: 'unsupported-action' as Action,
-        tenantId: 'test-tenant',
-        walletId: 'test-wallet',
+        tractionTenantId: 'test-tenant',
+        tractionWalletId: 'test-wallet',
         apiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
       },
     }))
@@ -414,10 +414,10 @@ describe('MessageProcessor Integration Test', () => {
       body: credentialSchema,
       application_properties: {
         action: 'import.cred-schema' as Action,
-        tenantId: 'test-tenant',
+        tractionTenantId: 'test-tenant',
         tractionApiUrlBase: environment.traction.TRACTION_DEFAULT_API_URL,
         showcaseApiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
-        walletId: 'test-wallet',
+        tractionWalletId: 'test-wallet',
         accessTokenEnc: encrypted,
         accessTokenNonce: nonce,
       },
