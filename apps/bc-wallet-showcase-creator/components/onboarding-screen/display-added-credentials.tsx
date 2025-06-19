@@ -170,6 +170,7 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
                           value={attr.name}
                           disabled
                         />
+                        {attr.type === 'DATE' ? <div className='text-sm text-red-500'>Date format: YYYYMMDD</div> : ''}
                       </div>
 
                       <div className="space-y-2 flex flex-col justify-center p-4">

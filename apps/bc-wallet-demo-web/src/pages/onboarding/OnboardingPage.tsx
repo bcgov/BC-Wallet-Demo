@@ -48,6 +48,8 @@ export const OnboardingPage: React.FC = () => {
       dispatch(clearShowcase())
       dispatch(fetchWallets())
       dispatch(fetchShowcaseBySlug(slug))
+    } else {
+       dispatch(fetchShowcaseBySlug(slug))
     }
   }, [dispatch, slug, isCompleted])
 

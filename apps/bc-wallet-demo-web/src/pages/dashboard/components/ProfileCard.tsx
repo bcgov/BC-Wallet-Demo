@@ -9,6 +9,8 @@ import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
 import { basePath } from '../../../utils/BasePath';
 import { useNavigate } from 'react-router-dom';
 import type { Persona } from '../../../slices/types'
+import { useShowcases } from '../../../slices/showcases/showcasesSelectors'
+import { getTenantIdFromPath } from '../../../utils/Helpers'
 
 export interface Props {
   currentPersona: Persona
@@ -18,6 +20,8 @@ export const ProfileCard: FC<Props> = ({ currentPersona }) => {
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const showcase = useShowcases()
+  const tenantId = getTenantIdFromPath();
 
   const MODAL_TITLE = 'This will reset your dashboard.'
   const MODAL_DESCRIPTION = `Your current credentials will become invalid. Please make sure you've completed all the use cases
@@ -34,7 +38,7 @@ export const ProfileCard: FC<Props> = ({ currentPersona }) => {
         },
       },
     })
-    navigate(`${basePath}/`)
+    navigate(`${basePath}/${tenantId}/${showcase.showcase?.slug}`)
     dispatch({ type: 'demo/RESET' })
   }
 

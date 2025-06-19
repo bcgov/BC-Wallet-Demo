@@ -71,6 +71,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
   })
 
   useEffect(() => {
+    if (isLoading) return;
     if (selectedPersona) {
       form.reset(
         {

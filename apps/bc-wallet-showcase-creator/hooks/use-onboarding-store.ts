@@ -248,12 +248,14 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
 
     addStep: (personaId, scenarioIndex, stepData) =>
       set((state) => {
-        if (!state.personaScenariosMap[personaId]) return
+        const existingScenarios = state.personaScenariosMap[personaId];
+        if (!existingScenarios) return;
 
-        const scenarios = state.personaScenariosMap[personaId]
-        if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
+        if (scenarioIndex < 0 || scenarioIndex >= existingScenarios.length) return;
 
-        const currentSteps = scenarios[scenarioIndex].steps
+        const updatedScenarios = [...existingScenarios];
+        const currentScenario = { ...updatedScenarios[scenarioIndex] };
+        const currentSteps = [...currentScenario.steps];
 
         const newStep = {
           ...stepData,
@@ -261,10 +263,19 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
           order: currentSteps.length,
           type: stepData.type || 'HUMAN_TASK',
           actions: stepData.actions || [],
-        }
+        };
 
-        scenarios[scenarioIndex].steps.push(newStep)
-      }),
+        currentSteps.push(newStep);
+        currentScenario.steps = currentSteps;
+        updatedScenarios[scenarioIndex] = currentScenario;
+
+        return {
+          personaScenariosMap: {
+            ...state.personaScenariosMap,
+            [personaId]: updatedScenarios,
+          },
+        };
+    }),
 
     updateStep: (personaId, scenarioIndex, stepIndex, stepData) =>
       set((state) => {

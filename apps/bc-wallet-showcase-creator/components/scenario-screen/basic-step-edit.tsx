@@ -29,24 +29,27 @@ import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { StepRequestUIActionTypes } from '@/lib/steps'
 import { useTenant } from '@/providers/tenant-provider'
-import { useUpdateShowcaseScenarios } from '@/hooks/use-showcases'
 import { debugLog } from '@/lib/utils'
 
 export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const router = useRouter()
-  const { mutateAsync } = useCreatePresentation()
-  const { setScenarioIds, currentShowcaseSlug } = useShowcaseStore()
-  const { selectedScenario, updateStep, selectedStep, setStepState, deleteStep } =
+  const { updateScenario, createScenarios , selectedScenario, updateStep, selectedStep, setStepState, deleteStep, isEditMode } =
     usePresentationAdapter()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions();
   const { setSelectedCredential, selectedCredential } = useCredentials()
   const { tenantId } = useTenant();
-  const { personaScenarios } = usePresentationCreation()
-  const { mutateAsync: updateShowcaseScenariosAsync } = useUpdateShowcaseScenarios();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
+
+  const isInvalidServiceStep = selectedScenario?.steps?.some(
+  (step) =>
+    step.type === 'SERVICE' &&
+    step.actions?.some(
+      (action) => action.credentialDefinitionId !== undefined && action.credentialDefinitionId.trim() === ''
+    )
+  );
 
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
 
@@ -142,59 +145,30 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const onSubmit = async (data: BasicStepFormData) => {
     autoSave.flush()
 
-    const mappedScenarios = Array.from(personaScenarios.values()).flatMap((scenarios) =>
-      scenarios.map((scenario) => ({
-        ...scenario,
-        steps: scenario.steps.map((step, index) => {
-          const { credentials, ...restStep } = step as StepRequestUIActionTypes;
-
-          return {
-            ...restStep,
-            order: index,
-            asset: step.asset || undefined,
-            actions:
-              step.type === StepType.Service
-                ? step.actions.map((action) => ({
-                  ...action,
-                  actionType: "ARIES_OOB",
-                  credentialDefinitionId: action?.credentialDefinitionId,
-                }))
-                : step.actions,
-          };
-        }),
-      })),
-    )
-    const scenarioIds = []
-
-    for (const scenario of mappedScenarios) {
-      try {
-        const result = await mutateAsync(scenario as PresentationScenarioRequest)
-        if (result?.presentationScenario?.id) {
-          scenarioIds.push(result.presentationScenario.id)
-        }
-        toast.success(`${scenario?.description || 'persona'} created`)
-      } catch (error) {
-        console.error('Error creating scenario:', error)
-        setErrorModal(true)
-        return
-      }
-    }
-
-    setScenarioIds(scenarioIds)
     try {
-      await updateShowcaseScenariosAsync({
-        showcaseSlug: currentShowcaseSlug,
-        scenarioIds
-      });
+      let result;
+      if (isEditMode && slug) {
+        result = await updateScenario(slug)
 
-      debugLog('Successfully updated showcase with scenario IDs');
-    } catch (updateError) {
-      console.error('Error updating showcase with scenarios:', updateError);
-    }
-    if (slug) {
-      router.push(`/${tenantId}/showcases/${slug}/publish`)
-    } else {
-      router.push(`/${tenantId}/showcases/create/publish`)
+        if (result.success) {
+          toast.success('Scenarios updated successfully')
+          router.push(`/${tenantId}/showcases/${slug}/publish`)
+        } else {
+          throw new Error(result.message || 'Failed to update scenarios')
+        }
+      } else {
+        result = await createScenarios()
+
+        if (result.success) {
+          toast.success('Scenarios created successfully')
+          router.push(`/${tenantId}/showcases/create/publish`)
+        } else {
+          throw new Error(result.message || 'Failed to create scenarios')
+        }
+      }
+    } catch (error) {
+      console.error('Error during scenario operation:', error)
+      setErrorModal(true)
     }
   }
 
@@ -203,6 +177,12 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   if (showErrorModal) {
     return <ErrorModal errorText="Unknown error occurred" setShowModal={setErrorModal} />
   }
+
+  const action = currentStep?.actions?.[0];
+  const isProofRequestEmpty =
+  action?.proofRequest && currentStep.type === StepType.Service &&
+  Object.keys(action.proofRequest.attributes || {}).length === 0 &&
+  Object.keys(action.proofRequest.predicates || {}).length === 0;
 
   return (
     <>
@@ -313,7 +293,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
             {/* <Link href="/publish"> */}
-            <ButtonOutline type="submit" disabled={!form.formState.isValid} onClick={form.handleSubmit(onSubmit)}>
+            <ButtonOutline type="submit" disabled={!form.formState.isValid || isProofRequestEmpty || isInvalidServiceStep} onClick={form.handleSubmit(onSubmit)}>
               {t('action.next_label')}
             </ButtonOutline>
             {/* </Link> */}

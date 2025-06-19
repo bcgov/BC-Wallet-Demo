@@ -94,8 +94,8 @@ export const LandingPage = () => {
                             deleteShowcase(showcase.slug)
                           }}
                         />
-                        <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
-                        <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                        <CopyButton disabled={showcase.status !== 'ACTIVE'} value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                        <OpenButton disabled={showcase.status !== 'ACTIVE'} value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
                       </div>
                     </div>
                   </div>
@@ -141,10 +141,10 @@ export const LandingPage = () => {
                   </div>
 
                   <div className="flex gap-4 mt-auto">
-                    <ButtonOutline className="w-1/2" onClick={() => handlePreview(showcase.slug)}>
+                    <ButtonOutline disabled={showcase.status !== 'ACTIVE'} className="w-1/2" onClick={() => handlePreview(showcase.slug)}>
                       {t('action.preview_label')}
                     </ButtonOutline>
-                    <ButtonOutline className="w-1/2" onClick={() => handleDuplicateShowcase(showcase.slug)}>
+                    <ButtonOutline disabled={showcase.status !== 'ACTIVE'} className="w-1/2" onClick={() => handleDuplicateShowcase(showcase.slug)}>
                       {t('action.create_copy_label')}
                     </ButtonOutline>
                   </div>

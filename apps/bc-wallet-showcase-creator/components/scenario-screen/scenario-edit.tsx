@@ -34,6 +34,16 @@ export const ScenarioEdit = ({ slug }: { slug?: string }) => {
 
   const form = useForm<PresentationScenarioRequest>({
     resolver: zodResolver(presentationScenarioRequestSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      steps: [
+        {
+          title: '',
+          description: '',
+        },
+      ],
+    },
     mode: 'onChange',
   })
 

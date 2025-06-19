@@ -64,7 +64,15 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
   };
 
   const currentAction = getCurrentAction();
-  const { deleteStep } = useOnboardingAdapter()
+  const { deleteStep, selectedScenario } = useOnboardingAdapter()
+
+  const isInvalidServiceStep = selectedScenario?.steps?.some(
+  (step) =>
+    step.type === 'SERVICE' &&
+    step.actions?.some(
+      (action) => action.credentialDefinitionId !== undefined && action.credentialDefinitionId.trim() === ''
+    )
+  );
 
   const getSchemaForStep = () => {
     if (stepType === StepType.Service) {
@@ -95,6 +103,15 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
       asset: currentStep?.asset || '',
       // @ts-expect-error - database still do not persist the credentials
       credentials: currentStep?.credentials || [],
+      setupTitle: '',
+      setupDescription1: '',
+      setupTitle2: '',
+      setupDescription2: '',
+      apple: '',
+      android: '',
+      ledgerImage: '',
+      qrCodeTitle: '',
+      credentialDefinitionId: '',
     };
   
     if (!currentAction) return baseDefaults
@@ -491,7 +508,7 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
           <ButtonOutline
             type="button"
             onClick={() => form.handleSubmit(onSubmit)()}
-            disabled={!form.formState.isValid || currentStep?.actions[0]?.credentialDefinitionId === ''}
+            disabled={!form.formState.isValid || currentStep?.actions[0]?.credentialDefinitionId === '' || isInvalidServiceStep}
           >
             {isEditMode ? t('action.save_label') : t('action.next_label')}
           </ButtonOutline>

@@ -48,18 +48,18 @@ export const createDefaultStep = ({
   title,
   description,
   asset = "",
+  actions
 }: {
   title: string;
   description: string;
   asset?: string;
+  actions: AriesOOBActionRequest[]
 }): StepRequest => ({
   title,
   description,
   order: 0,
   type: "HUMAN_TASK",
-  actions: [
-    sampleAction,
-  ],
+  actions,
   // subScenario: "",
   asset,
 });

@@ -44,6 +44,7 @@ export const CreateNewStep = () => {
             title: 'Basic Step',
             description: 'This is a basic step in the onboarding journey.',
             asset: "",
+            actions:[]
           })
         )
         break
