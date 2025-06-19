@@ -81,7 +81,28 @@ spec:
                 secretKeyRef:
                   name: {{ include "bc-wallet.database.secret.name" . }}
                   key: {{ include "bc-wallet.database.userPasswordKey" . }}
-          {{- include "bc-wallet.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
+            - name: CORS_ALLOW_ORIGINS
+              value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
+            - name: OIDC_ROOT_CLIENT_ID
+               valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_CLIENT_ID
+            - name: OIDC_ROOT_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_CLIENT_SECRET
+            - name: OIDC_ROOT_ISSUER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_ISSUER_URL
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: ENCRYPTION_KEY
           {{- with .Values.apiServer.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
