@@ -34,7 +34,6 @@ export const SortableStep = ({
     transition,
   }
 
-  console.log(myScreen.actions)
 
   const handleStepClick = () => {
     setStepState('editing-basic')

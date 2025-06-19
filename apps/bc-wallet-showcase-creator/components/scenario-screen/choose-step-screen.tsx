@@ -7,12 +7,23 @@ import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { useTranslations } from 'next-intl'
 
 import { NoSelection } from '../credentials/no-selection'
-import { StepType } from 'bc-wallet-openapi'
+import { AriesOOBActionRequest, StepType } from 'bc-wallet-openapi'
 import { createDefaultStep, createAdvancedStep } from '@/lib/steps'
 
 export const CreateScenariosStepsScreen = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
-  const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter()
+  const { stepState, activePersonaId, setStepState, createStep } = usePresentationAdapter(slug)
+
+  const sampleAction: AriesOOBActionRequest =  {
+    title: "example_title",
+    actionType: "ARIES_OOB" as "ARIES_OOB",
+    text: "example_text",
+    proofRequest: {
+      attributes: {},
+      predicates: {},
+    },
+    credentialDefinitionId: ""
+  }
 
   const handleAddStep = (type: StepType) => {
     if(type == 'HUMAN_TASK'){
@@ -20,6 +31,7 @@ export const CreateScenariosStepsScreen = ({ slug }: { slug?: string }) => {
         createDefaultStep({
           title: 'Basic Step',
           description: 'This is a basic step in the onboarding journey.',
+          actions: [sampleAction]
         })
       )
       setStepState('editing-basic')

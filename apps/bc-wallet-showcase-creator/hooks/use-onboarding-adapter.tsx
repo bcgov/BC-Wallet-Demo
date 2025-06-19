@@ -12,6 +12,8 @@ import { useUpdateShowcase, useShowcase, useUpdateShowcaseScenarios } from './us
 import { debugLog } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { showcaseToShowcaseRequest } from '@/lib/parsers'
+import { useTenant } from '@/providers/tenant-provider'
+import { useRouter } from '@/i18n/routing'
 
 export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: createScenarioAsync } = useCreateScenario()
@@ -22,6 +24,8 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
   const { setScenarioIds, currentShowcaseSlug } = useShowcaseStore()
   const { issuerId } = useHelpersStore()
+  const { tenantId } = useTenant();
+  const router = useRouter()
 
   const [localSelectedStep, setLocalSelectedStep] = useState<Screen | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -85,7 +89,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     if (activeScenarioIndex < 0 || activeScenarioIndex >= scenarioList.length) return []
 
     return scenarioList[activeScenarioIndex].steps as Screen[]
-  }, [activePersonaId, personaScenarios, activeScenarioIndex, hasNoScenarios])
+  }, [activePersonaId, personaScenarios, activeScenarioIndex])
 
   const steps = getCurrentSteps();
 
@@ -456,24 +460,38 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
       for (const scenario of personaScenariosList) {
         if (!scenario) continue;
-        try {
-          const result = await updateScenarioAsync({
-            // @ts-expect-error: slug is not required
-            slug: scenario.slug,
-            data: scenario
-          }, {
-            onSuccess: () => {
-              queryClient.invalidateQueries({ queryKey: ['showcase', slug] })
-            }
-          });
+        let result;
 
-          if (result && result.issuanceScenario) {
-            scenarioIds.push(result.issuanceScenario.id);
+        //@ts-ignore
+        if(!scenario.slug) {
+          debugLog('Scenario slug is required for update:', scenario);
+          result = await createScenarios()
+          if (result && result.success) {
+            toast.success('Scenarios created successfully')
+            router.push(`/${tenantId}/showcases/create/scenarios`)
           } else {
             throw new Error('Invalid response format');
           }
-        } catch (error) {
-          return { success: false, message: 'Error updating scenario', error };
+        } else{
+          try {
+            result = await updateScenarioAsync({
+              // @ts-expect-error: slug is not required
+              slug: scenario.slug,
+              data: scenario
+            }, {
+              onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['showcase', slug] })
+              }
+            });
+
+            if (result && result.issuanceScenario) {
+              scenarioIds.push(result.issuanceScenario.id);
+            } else {
+              throw new Error('Invalid response format');
+            }
+          } catch (error) {
+            return { success: false, message: 'Error updating scenario', error };
+          }
         }
       }
 

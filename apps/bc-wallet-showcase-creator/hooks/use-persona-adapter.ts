@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas';
 import { useCreateAsset } from '@/hooks/use-asset';
 import { usePersonaStore } from '@/hooks/use-persona-store';
-import { useUpdateShowcase } from '@/hooks/use-showcases';
-import { Persona, AssetRequest, ShowcaseRequest, PersonaRequest } from "bc-wallet-openapi";
+import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases';
+import { Persona, AssetRequest, ShowcaseRequest, PersonaRequest, ShowcaseResponse } from "bc-wallet-openapi";
 import { toast } from 'sonner';
+import { useQueryClient } from "@tanstack/react-query";
+import { showcaseToShowcaseRequest } from "@/lib/parsers";
 
 export const usePersonaAdapter = () => {
   const [headshotImage, setHeadshotImage] = useState<string | null>(null);
@@ -18,6 +20,7 @@ export const usePersonaAdapter = () => {
 
   const { setEditMode, personaState, setStepState } = usePersonaStore();
   const { selectedPersonaIds, setSelectedPersonaIds, showcase, setShowcase, currentShowcaseSlug } = useShowcaseStore();
+  const queryClient = useQueryClient()
 
   const { data: personasData, isLoading } = usePersonas();
   const { mutateAsync: createPersona } = useCreatePersona();
@@ -25,6 +28,15 @@ export const usePersonaAdapter = () => {
   const { mutateAsync: deletePersona } = useDeletePersona();
   const { mutateAsync: createAsset } = useCreateAsset();
   const { mutateAsync: updateShowcase } = useUpdateShowcase(currentShowcaseSlug || '');
+  const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(currentShowcaseSlug || '')
+
+  const InvalidPersonaState = async() => {
+    queryClient.invalidateQueries({ queryKey: ['personas'] })
+  };
+
+  useEffect(() => {
+    InvalidPersonaState()
+  },[])
 
   const selectedPersona = personasData?.personas?.find(
     (p: Persona) => p.id === selectedPersonaId
@@ -54,9 +66,16 @@ export const usePersonaAdapter = () => {
 
     try {
       const updatedPersonaIds = new Set([...selectedPersonaIds, personaId]);
+      
+      const showcaseResponse = showcaseData as ShowcaseResponse
+      const showcaseRequest = showcaseResponse?.showcase
 
+      if (!showcaseRequest) {
+        throw new Error('Showcase data is undefined')
+      }
+      const parsed = showcaseToShowcaseRequest(showcaseRequest)
       const updatedShowcase: ShowcaseRequest = {
-        ...showcase,
+        ...parsed,
         personas: Array.from(updatedPersonaIds)
       };
 

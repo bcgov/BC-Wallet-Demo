@@ -5,10 +5,10 @@ import { useState } from 'react'
 import ButtonOutline from '@/components/ui/button-outline'
 import { Card } from '@/components/ui/card'
 import { useCreateShowcase, useDeleteShowcase, useDuplicateShowcase, useShowcases } from '@/hooks/use-showcases'
-import { Link } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import { baseUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import type { Persona, Showcase } from 'bc-wallet-openapi'
+import { ShowcaseStatus, type Persona, type Showcase, type ShowcaseRequest } from 'bc-wallet-openapi'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
@@ -18,6 +18,10 @@ import Header from '../header'
 import { env } from '@/env'
 import { getTenantId } from '@/providers/tenant-provider'
 import { toast } from 'sonner'
+import apiClient from '@/lib/apiService'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { useQueryClient } from '@tanstack/react-query'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -26,6 +30,10 @@ export const ShowcaseList = () => {
   const { data, isLoading } = useShowcases()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
   const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
+  const { issuerId, relayerId } = useHelpersStore()
+  const router = useRouter()
+  const queryClient = useQueryClient()
+
   const tabs = [
     { label: t('showcases.header_tab_overview'), status: 'ALL' },
     { label: t('showcases.header_tab_draft'), status: 'PENDING' },
@@ -58,6 +66,32 @@ export const ShowcaseList = () => {
     console.log('newShowcase', newShowcase)
   }
 
+  const UpdateShowcaseStatus = async(showcase: Showcase) => {
+    
+    const showcaseRequest = showcaseToShowcaseRequest(showcase);
+    const updatedShowcase = {
+      ...showcaseRequest,
+      status: ShowcaseStatus.Pending
+    };
+  
+    const response = await apiClient.put(`/showcases/${showcase.slug}`, updatedShowcase)
+
+    if(response) {
+      queryClient.invalidateQueries({ queryKey: ['showcase', showcase.slug] })
+      queryClient.invalidateQueries({ queryKey: ['showcases'] })
+      router.push(`/${tenantId}/showcases/${showcase.slug}`)
+    }
+  }
+
+  const HandleShowcaseCreate = () => {
+    if(!issuerId && !relayerId) {
+      toast.error('Please create a credential before creating a showcase.',{duration: 4000})
+      return
+    }else{
+      router.push(`/${tenantId}/showcases/create`)
+    }
+  }
+  
   return (
     <div className="flex-1 bg-light-bg dark:bg-dark-bg dark:text-dark-text text-light-text min-h-[calc(100vh-40px)]">
       <Header
@@ -66,8 +100,7 @@ export const ShowcaseList = () => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         buttonLabel={t('showcases.create_new_showcase_label')}
-        // buttonLink="/showcases/create"
-        buttonLink={`/${tenantId}/showcases/create`}
+        buttonLink={HandleShowcaseCreate}
       />
 
       {!isLoading && (
@@ -155,8 +188,8 @@ export const ShowcaseList = () => {
                             }}
                           />
 
-                          <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
-                          <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                          <CopyButton disabled={showcase.status !== 'ACTIVE'} value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                          <OpenButton disabled={showcase.status !== 'ACTIVE'} value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
                         </div>
                       </div>
                     </div>
@@ -205,12 +238,13 @@ export const ShowcaseList = () => {
                     <div className="flex gap-4 mt-auto">
                       <Link className="w-1/2" href={`/${tenantId}/showcases/${showcase.slug}`}>
                         <ButtonOutline
+                          onClick={() => UpdateShowcaseStatus(showcase)}
                           className="w-full"
                         >
                           {t('action.edit_label')}
                         </ButtonOutline>
                       </Link>
-                      <ButtonOutline onClick={() => handleDuplicateShowcase(showcase.slug)} className="w-1/2">
+                      <ButtonOutline disabled={showcase.status !== 'ACTIVE'} onClick={() => handleDuplicateShowcase(showcase.slug)} className="w-1/2">
                         {t('action.create_copy_label')}
                       </ButtonOutline>
                     </div>

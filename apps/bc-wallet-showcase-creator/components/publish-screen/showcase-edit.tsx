@@ -40,7 +40,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
       name: '',
       description: '',
       completionMessage: '',
-      status: 'ACTIVE',
+      status: 'PENDING',
       hidden: false,
       scenarios: [],
       personas: [],

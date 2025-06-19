@@ -22,6 +22,8 @@ import { ConfirmationDialog } from '@/components/confirmation-dialog'
 import { useCreateAsset } from '@/hooks/use-asset'
 import { useShowcaseAdapter } from '@/hooks/use-showcase-adapter'
 import { useTenant } from '@/providers/tenant-provider'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { useOnboardingCreationStore } from '@/hooks/use-onboarding-store'
 
 const BannerImageUpload = ({
   text,
@@ -136,6 +138,8 @@ export const PublishEdit = () => {
   const { saveShowcase } = useShowcaseAdapter()
   const { personas } = useOnboardingAdapter()
   const { tenantId } = useTenant();
+  const resetIds = usePresentationCreation().reset
+  const resetOnboardingIds = useOnboardingCreationStore().reset
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(ShowcaseRequestSchema),
@@ -168,6 +172,8 @@ export const PublishEdit = () => {
     toast.success('Showcase created successfully')
     reset()
     setScenarioIds([])
+    resetIds()
+    resetOnboardingIds()
     router.push(`/${tenantId}/showcases`)
   }
 

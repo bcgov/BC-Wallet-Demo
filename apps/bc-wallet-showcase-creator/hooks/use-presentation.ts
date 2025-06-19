@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { produce } from 'immer'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { StepRequest, Step, StepResponse } from 'bc-wallet-openapi'
 import apiClient from '@/lib/apiService'
@@ -162,6 +162,20 @@ export const usePresentation = (slug: string) => {
       return response
     },
     staleTime,
+  })
+}
+
+export const useUpdateScenario = (): UseMutationResult<PresentationScenarioResponse, Error, {slug: string, data: PresentationScenarioRequest}> => {
+  const queryClient = useQueryClient()
+
+  return useMutation<PresentationScenarioResponse, Error, {slug: string, data: PresentationScenarioRequest}>({
+    mutationFn: async ({slug, data}: {slug: string, data: PresentationScenarioRequest}): Promise<PresentationScenarioResponse> => {
+      const response = await apiClient.put(`/scenarios/presentations/${slug}`, data)
+      return response as PresentationScenarioResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['presentationScenario'] })
+    },
   })
 }
 

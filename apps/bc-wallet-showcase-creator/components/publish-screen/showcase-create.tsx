@@ -46,7 +46,7 @@ export const ShowcaseCreate = () => {
       name: '',
       description: '',
       completionMessage: '',
-      status: 'ACTIVE',
+      status: 'PENDING',
       hidden: false,
       scenarios: [],
       personas: [],

@@ -34,6 +34,7 @@ export const ProofAttribute = ({
           onValueChange={(value) => {
             onAttributeChange(index, value as any)
           }}
+          value={attribute.name}
         >
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
