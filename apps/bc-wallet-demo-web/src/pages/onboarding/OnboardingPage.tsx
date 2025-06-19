@@ -58,6 +58,7 @@ export const OnboardingPage: React.FC = () => {
   }, [])
 
   if (showcase === undefined) {
+    dispatch(fetchShowcaseBySlug(slug))
     return <div>Loading...</div>
   }
 

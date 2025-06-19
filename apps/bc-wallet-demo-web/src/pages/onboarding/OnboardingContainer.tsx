@@ -15,7 +15,7 @@ import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
 import { completeOnboarding, setScenario } from '../../slices/onboarding/onboardingSlice'
 import { basePath } from '../../utils/BasePath'
-import { isConnected } from '../../utils/Helpers'
+import { getTenantIdFromPath, isConnected } from '../../utils/Helpers'
 import { setOnboardingProgress } from '../../utils/OnboardingUtils'
 import { OnboardingBottomNav } from './components/OnboardingBottomNav'
 import { PersonaContent } from './components/PersonaContent'
@@ -30,6 +30,7 @@ import type {
   Scenario,
   Step
 } from '../../slices/types'
+import { useShowcases } from '../../slices/showcases/showcasesSelectors'
 
 export interface Props {
   scenarios: Scenario[]
@@ -54,6 +55,8 @@ export const OnboardingContainer: FC<Props> = ({
   const [credentialDefinitions, setCredentialDefinitions] = useState<CredentialDefinition[]>([])
   const [credentialsAccepted, setCredentialsAccepted] = useState<boolean>(false)
   const [connectionCompleted, setConnectionCompleted] = useState<boolean>(false)
+  const showcase = useShowcases()
+  const tenantId = getTenantIdFromPath();
 
   useEffect((): void => {
     setCurrentScenario(scenarios.find((scenario) => scenario.persona?.id === currentPersona?.id))
@@ -236,7 +239,7 @@ export const OnboardingContainer: FC<Props> = ({
         },
       },
     })
-    navigate(`${basePath}/`)
+    navigate(`${basePath}/${tenantId}/${showcase.showcase?.slug}`)
     dispatch({ type: 'demo/RESET' })
   }
 
