@@ -54,7 +54,7 @@ spec:
             - name: http
               containerPort: {{ .Values.apiServer.service.port }}
               protocol: TCP
-          env: # TODO OIDC_ROOT_CLIENT_ID OIDC_ROOT_ISSUER_URL
+          env:
             - name: AMQ_HOST
               value: {{.Release.Name}}-rabbitmq
             - name: AMQ_PORT
@@ -83,7 +83,26 @@ spec:
                   key: {{ include "bc-wallet.database.userPasswordKey" . }}
             - name: CORS_ALLOW_ORIGINS
               value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
-          {{- include "bc-wallet.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
+            - name: OIDC_ROOT_CLIENT_ID
+               valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_CLIENT_ID
+            - name: OIDC_ROOT_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_CLIENT_SECRET
+            - name: OIDC_ROOT_ISSUER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_ISSUER_URL
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: ENCRYPTION_KEY
           {{- with .Values.apiServer.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

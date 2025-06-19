@@ -47,14 +47,33 @@ spec:
             - name: http
               containerPort: {{ .Values.demoServer.service.port }}
               protocol: TCP
-          {{- include "bc-wallet.renderEnvFrom" (list "demoServer" .) | nindent 10 }}
-          env: # TODO TRACTION_API_URL
+          env:
             - name: CORS_ALLOW_ORIGINS
               value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
             - name: LOG_LEVEL
               value: {{ .Values.demoServer.logLevel | quote }}
             - name: BASE_ROUTE
               value: {{ .Values.demoWeb.baseRoute | quote }}
+            - name: TRACTION_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: TRACTION_API_URL
+            - name: WALLET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: WALLET_ID
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: API_KEY
+            - name: TRACTION_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: TRACTION_WEBHOOK_SECRET
           {{- with .Values.demoServer.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

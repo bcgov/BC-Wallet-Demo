@@ -58,7 +58,7 @@ spec:
             - name: http
               containerPort: {{ .Values.showcaseCreator.service.port }}
               protocol: TCP
-          env: # TODO OIDC_DEFAULT_TENANT
+          env:
             - name: NEXT_PUBLIC_WALLET_URL
               value: "https://{{ include "bc-wallet.demoWeb.host" . }}/digital-trust/showcase"
             - name: NEXT_PUBLIC_SHOWCASE_API_URL
@@ -69,7 +69,21 @@ spec:
               value: production
             - name: PORT
               value: {{ .Values.showcaseCreator.service.port | quote }}
-          {{- include "bc-wallet.renderEnvFrom" (list "showcaseCreator" .) | nindent 10 }}
+            - name: NEXT_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.showcaseCreator.secretName | default "bc-wallet-secrets" | quote }}
+                  key: NEXT_AUTH_SECRET
+            - name: OIDC_DEFAULT_TENANT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.showcaseCreator.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_DEFAULT_TENANT
+            - name: OIDC_TRUST_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.showcaseCreator.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_TRUST_HOST
           {{- with .Values.showcaseCreator.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
