@@ -1,11 +1,12 @@
 import { debugLog } from '@/lib/utils'
 import { Tenant, TenantResponse } from 'bc-wallet-openapi'
 import { NextResponse } from 'next/server'
+import { env } from '@/env'
 
 async function fetchTenantConfig(tenantId: string): Promise<Tenant> {
   try {
-    const endpoint = `${process.env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
-    debugLog(`Fetching tenant config for ${tenantId}`, endpoint)
+    const endpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+    console.log(`Fetching tenant config for ${tenantId}`, endpoint)
     const response = await fetch(endpoint, {
       method: 'GET',
       headers: {
@@ -14,7 +15,7 @@ async function fetchTenantConfig(tenantId: string): Promise<Tenant> {
     })
 
     if (!response.ok) {
-      debugLog('Tenant config fetch failed:', response.status, response.statusText)
+      throw new Error(`Tenant config fetch failed: ${response.status} ${response.statusText}`);
     }
     const tenantResponse = (await response.json()) as TenantResponse
     return tenantResponse.tenant
@@ -28,8 +29,10 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const clientId = searchParams.get('clientId')
 
-  if (!clientId) {
-    return NextResponse.json({ valid: false, reason: 'Missing clientId' }, { status: 400 })
+  const clientIdPattern = /^[a-zA-Z0-9_-]+$/; // Allow only alphanumeric, underscores, and hyphens
+
+  if (!clientId || !clientIdPattern.test(clientId)) {
+    return NextResponse.json({ valid: false, reason: 'Invalid or missing clientId' }, { status: 400 })
   }
 
   try {

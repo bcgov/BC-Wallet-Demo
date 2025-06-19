@@ -61,17 +61,13 @@ export default async function middleware(request: NextRequest) {
     const response = await fetch(`${origin}/api/auth/validate-tenant?clientId=${clientId}`)
 
     if (!response.ok) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/invalid-tenant'
-      return NextResponse.rewrite(url)
+      throw new Error(`API responded with status ${response.status}`);
     }
     
     const data = await response.json()
 
     if (!data.valid) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/invalid-tenant'
-      return NextResponse.rewrite(url)
+      throw new Error('Tenant validation failed');
     }
   } catch (error) {
     console.error('Error validating tenant:', error)
