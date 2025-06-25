@@ -84,7 +84,7 @@ spec:
             - name: CORS_ALLOW_ORIGINS
               value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
             - name: OIDC_ROOT_CLIENT_ID
-               valueFrom:
+              valueFrom:
                 secretKeyRef:
                   name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
                   key: OIDC_ROOT_CLIENT_ID
