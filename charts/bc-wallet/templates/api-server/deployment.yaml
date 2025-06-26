@@ -103,6 +103,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
                   key: ENCRYPTION_KEY
+          {{- include "bc-wallet.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
           {{- with .Values.apiServer.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

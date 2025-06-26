@@ -62,6 +62,7 @@ spec:
               value: {{ .Values.demoWeb.snowplowEndpoint | quote }}
             - name: DEMOWEB_INSIGHTS_PROJECT_ID
               value: {{ .Values.demoWeb.insightsProjectId | quote }}
+          {{- include "bc-wallet.renderEnvFrom" (list "demoWeb" .) | nindent 10 }}
           {{- with .Values.demoWeb.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

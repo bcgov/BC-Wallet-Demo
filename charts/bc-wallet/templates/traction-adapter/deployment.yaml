@@ -92,6 +92,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.tractionAdapter.secretName | default "bc-wallet-secrets" | quote }}
                   key: ENCRYPTION_KEY
+          {{- include "bc-wallet.renderEnvFrom" (list "tractionAdapter" .) | nindent 10 }}
           {{- with .Values.tractionAdapter.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

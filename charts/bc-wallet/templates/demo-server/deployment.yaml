@@ -74,6 +74,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
                   key: TRACTION_WEBHOOK_SECRET
+          {{- include "bc-wallet.renderEnvFrom" (list "demoServer" .) | nindent 10 }}
           {{- with .Values.demoServer.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
