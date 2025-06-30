@@ -64,11 +64,7 @@ export default async function middleware(request: NextRequest) {
     if (!response.ok) {
       throw new Error(`API responded with status ${response.status}`);
     }
-    const data = await response.json()
 
-    if (!data.valid) { // TODO The json does not have a field called "valid", create a validation function
-      throw new Error('Tenant validation failed');
-    }
   } catch (error) {
     console.error('Error validating tenant:', error)
     const url = request.nextUrl.clone()
