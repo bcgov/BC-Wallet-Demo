@@ -41,7 +41,6 @@ export default async function middleware(request: NextRequest) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
   })
-
   // Check if a path is root or only contains a locale
   const path = request.nextUrl.pathname
   const isRootPath = path === '/'
@@ -58,15 +57,16 @@ export default async function middleware(request: NextRequest) {
   if (!clientId) return NextResponse.next()
 
   try {
-    const response = await fetch(`${origin}/api/auth/validate-tenant?clientId=${clientId}`)
+
+    const tenantEndpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+    const response = await fetch(tenantEndpoint)
 
     if (!response.ok) {
       throw new Error(`API responded with status ${response.status}`);
     }
-    
     const data = await response.json()
 
-    if (!data.valid) {
+    if (!data.valid) { // TODO The json does not have a field called "valid", create a validation function
       throw new Error('Tenant validation failed');
     }
   } catch (error) {
