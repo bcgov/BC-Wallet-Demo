@@ -17,6 +17,28 @@ function extractClientId(pathname: string): string | null {
 
 export default async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.includes('/login')) {
+
+    const tenantId = extractPathComponents(request).tenantIdFromPath
+
+    if (!tenantId) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/invalid-tenant'
+      return NextResponse.rewrite(url)
+    }
+
+    try {
+      const tenantEndpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+      const response = await fetch(tenantEndpoint)
+
+      if (!response.ok) {
+        throw new Error(`API responded with status ${response.status}`)
+      }
+    } catch (e) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/invalid-tenant'
+      return NextResponse.rewrite(url)
+    }
+
     return NextResponse.next()
   }
   const { origin } = request.nextUrl
