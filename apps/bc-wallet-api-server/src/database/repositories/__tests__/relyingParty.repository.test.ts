@@ -79,6 +79,7 @@ describe('Database relying party repository tests', (): void => {
   it('Should save relying party to database', async (): Promise<void> => {
     const relyingPartyData = {
       name: 'Test Relying Party',
+      tenantId: tenant.id,
       description: 'Test relying party description',
       type: RelyingPartyType.ARIES,
       organization: 'Test Organization',
@@ -103,6 +104,7 @@ describe('Database relying party repository tests', (): void => {
     const relyingParty: NewRelyingParty = {
       name: 'example_name',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition.id],
       description: 'example_description',
       organization: 'example_organization',
@@ -116,6 +118,7 @@ describe('Database relying party repository tests', (): void => {
     const relyingParty: NewRelyingParty = {
       name: 'example_name',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [],
       description: 'example_description',
       organization: 'example_organization',
@@ -130,6 +133,7 @@ describe('Database relying party repository tests', (): void => {
     const relyingParty: NewRelyingParty = {
       name: 'example_name',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [unknownCredentialDefinitionId],
       description: 'example_description',
       organization: 'example_organization',
@@ -146,6 +150,7 @@ describe('Database relying party repository tests', (): void => {
       name: 'Test Relying Party',
       description: 'Test relying party description',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       organization: 'Test Organization',
       logo: asset.id,
       credentialDefinitions: [credentialDefinition.id],
@@ -168,6 +173,7 @@ describe('Database relying party repository tests', (): void => {
       name: 'Test Relying Party',
       description: 'Test relying party description',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       organization: 'Test Organization',
       logo: asset.id,
       credentialDefinitions: [credentialDefinition.id],
@@ -189,6 +195,7 @@ describe('Database relying party repository tests', (): void => {
       name: 'Test Relying Party',
       description: 'Test relying party description',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       organization: 'Test Organization',
       logo: asset.id,
       credentialDefinitions: [credentialDefinition.id],
@@ -209,6 +216,7 @@ describe('Database relying party repository tests', (): void => {
       name: 'Test Relying Party',
       description: 'Test relying party description',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       organization: 'Test Organization',
       logo: asset.id,
       credentialDefinitions: [credentialDefinition.id],
@@ -221,6 +229,7 @@ describe('Database relying party repository tests', (): void => {
       name: 'Updated Name',
       description: 'Updated description',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       organization: 'Updated Organization',
       logo: asset.id,
       credentialDefinitions: [credentialDefinition.id],
@@ -238,6 +247,7 @@ describe('Database relying party repository tests', (): void => {
     const relyingParty: NewRelyingParty = {
       name: 'example_name',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition.id],
       description: 'example_description',
       organization: 'example_organization',
@@ -264,6 +274,7 @@ describe('Database relying party repository tests', (): void => {
     const relyingParty: NewRelyingParty = {
       name: 'example_name',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition.id],
       description: 'example_description',
       organization: 'example_organization',
@@ -289,6 +300,7 @@ describe('Database relying party repository tests', (): void => {
     const relyingParty: NewRelyingParty = {
       name: 'example_name',
       type: RelyingPartyType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition.id],
       description: 'example_description',
       organization: 'example_organization',

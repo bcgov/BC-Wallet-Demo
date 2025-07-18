@@ -98,6 +98,7 @@ export type NewRelyingParty = Omit<typeof relyingParties.$inferInsert, 'logo'> &
   credentialDefinitions: string[]
   organization?: string | null
   logo?: string | null
+  tenantId: string
 }
 
 export type Issuer = Omit<typeof issuers.$inferSelect, 'logo'> & {
@@ -110,6 +111,7 @@ export type NewIssuer = Omit<typeof issuers.$inferInsert, 'logo'> & {
   credentialSchemas: string[]
   organization?: string | null
   logo?: string | null
+  tenantId: string
 }
 
 export enum CredentialType {
@@ -294,9 +296,14 @@ export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 
 
 export type Tenant = typeof tenants.$inferSelect & {
   users?: User[]
+  issuers?: Issuer[]
+  relyingParties?: RelyingParty[]
 }
+
 export type NewTenant = typeof tenants.$inferInsert & {
   users?: string[]
+  issuers?: string[]
+  relyingParties?: string[]
 }
 
 export type Showcase = Omit<typeof showcases.$inferSelect, 'bannerImage' | 'createdBy' | 'approvedBy'> & {

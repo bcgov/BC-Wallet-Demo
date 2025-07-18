@@ -3,8 +3,10 @@ import * as process from 'node:process'
 import { HttpError, InternalServerError } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
 
+import IssuerRepository from '../database/repositories/IssuerRepository'
+import RelyingPartyRepository from '../database/repositories/RelyingPartyRepository'
 import TenantRepository from '../database/repositories/TenantRepository'
-import { NewTenant, Tenant, TenantType } from '../types'
+import { IssuerType, NewTenant, RelyingPartyType, Tenant, TenantType } from '../types'
 import { ISessionService } from '../types/services/session'
 
 const oidcIssuer = process.env.OIDC_ROOT_ISSUER_URL!
@@ -20,6 +22,8 @@ const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
 class TenantService {
   public constructor(
     private readonly tenantRepository: TenantRepository,
+    private readonly issuerRepository: IssuerRepository,
+    private readonly relyingPartyRepository: RelyingPartyRepository,
     @Inject('ISessionService') private readonly sessionService: ISessionService,
   ) {}
 
@@ -54,6 +58,10 @@ class TenantService {
   public getTenant = async (id: string, internal: boolean = false): Promise<Tenant> => {
     const tenant = await this.tenantRepository.findById(id)
 
+    // Ensure default issuer and relying party exist
+    await this.ensureDefaultIssuer(id)
+    await this.ensureDefaultRelyingParty(id)
+
     // Non-root users can only read oidcIssuer
     const currentTenant = this.sessionService.getCurrentTenant()
     if (!internal && (!currentTenant || currentTenant.tenantType !== TenantType.ROOT)) {
@@ -77,6 +85,11 @@ class TenantService {
       return Promise.reject(new InternalServerError(`No encryption key set: ${process.env.ENCRYPTION_KEY}`))
     }
     const tenant = await this.tenantRepository.findByIssuerAndClientId(issuer, clientId)
+
+    // Ensure default issuer and relying party exist
+    await this.ensureDefaultIssuer(tenant.id)
+    await this.ensureDefaultRelyingParty(tenant.id)
+
     return {
       ...tenant,
       ...(tenant.tractionApiKey && {
@@ -89,13 +102,19 @@ class TenantService {
     if (!tenant.tractionApiKey) {
       return this.tenantRepository.create(tenant)
     } else {
-      const { encryptedApiKeyBase64, nonceBase64 } = encryptString(tenant.tractionApiKey, NONCE_SIZE)
+      const { encryptedApiKeyBase64, nonceBase64 } = encryptString(tenant.tractionApiKey, NONCE_SIZE) // FIXME oidcClientSecret too!
       const newTenant = {
         ...tenant,
         tractionApiKey: encryptedApiKeyBase64,
         nonceBase64,
       }
-      return this.tenantRepository.create(newTenant)
+      const createdTenant = await this.tenantRepository.create(newTenant)
+
+      // Create default issuer and relying party
+      await this.ensureDefaultIssuer(createdTenant.id)
+      await this.ensureDefaultRelyingParty(createdTenant.id)
+
+      return createdTenant
     }
   }
 
@@ -103,11 +122,16 @@ class TenantService {
     try {
       const currentTenant = await this.tenantRepository.findById(id)
       if (!tenant.tractionApiKey) {
-        return this.tenantRepository.update(id, tenant)
+        return this.tenantRepository.update(id, {
+          ...tenant,
+          id: currentTenant.id,
+          tenantType: currentTenant.tenantType,
+        })
       } else {
         const { encryptedApiKeyBase64, nonceBase64 } = encryptString(tenant.tractionApiKey, NONCE_SIZE)
         const newTenant = {
           ...tenant,
+          id: currentTenant.id,
           tenantType: currentTenant.tenantType,
           oidcClientSecret: encryptedApiKeyBase64,
           nonceBase64,
@@ -153,12 +177,49 @@ class TenantService {
       createdAt: tenant.createdAt,
       updatedAt: tenant.updatedAt,
       deletedAt: tenant.deletedAt,
+      issuers: tenant.issuers,
+      relyingParties: tenant.relyingParties,
       tractionTenantId: null,
       tractionApiUrl: null,
       tractionWalletId: null,
       tractionApiKey: null,
       nonceBase64: null,
     } satisfies Tenant
+  }
+
+  private async ensureDefaultIssuer(tenantId: string): Promise<void> {
+    // Check if tenant already has an issuer
+    const tenant = await this.tenantRepository.findById(tenantId)
+    if (tenant.issuers && tenant.issuers.length > 0) {
+      return
+    }
+
+    // Create default issuer
+    await this.issuerRepository.create({
+      name: `Default Issuer for ${tenantId}`,
+      type: IssuerType.ARIES,
+      description: 'Default issuer created automatically',
+      credentialDefinitions: [],
+      credentialSchemas: [],
+      tenantId: tenantId,
+    })
+  }
+
+  private async ensureDefaultRelyingParty(tenantId: string): Promise<void> {
+    // Check if tenant already has a relying party
+    const tenant = await this.tenantRepository.findById(tenantId)
+    if (tenant.relyingParties && tenant.relyingParties.length > 0) {
+      return
+    }
+
+    // Create default relying party
+    await this.relyingPartyRepository.create({
+      name: `Default Relying Party for ${tenantId}`,
+      type: RelyingPartyType.ARIES,
+      description: 'Default relying party created automatically',
+      credentialDefinitions: [],
+      tenantId: tenantId,
+    })
   }
 }
 

@@ -2031,6 +2031,14 @@ components:
           type: string
           description: Traction API key
           example: c83e7b9817fe4d43aedcc071f64f0bf6
+        issuers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issuer'
+        relyingParties:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelyingParty'
         users:
           type: array
           items:
@@ -2932,6 +2940,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CredentialSchema'
+        tenantId:
+          type: string
+          description: ID of the tenant that owns this issuer
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         createdAt:
           type: string
           description: Date and time the issuer was created
@@ -2947,6 +2959,7 @@ components:
       required:
         - name
         - description
+        - tenantId
         - type
         - credentialDefinitions
         - credentialSchemas
@@ -2961,6 +2974,10 @@ components:
           example: This issuer issues credentials to users
         type:
           $ref: '#/components/schemas/IssuerType'
+        tenantId:
+          type: string
+          description: ID of the tenant that owns this issuer
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         identifierType:
           $ref: '#/components/schemas/IdentifierType'
         identifier:
@@ -3022,10 +3039,14 @@ components:
           example: This relying party verifies credentials from issuers
         type:
           $ref: '#/components/schemas/RelyingPartyType'
-        organization:
+        tenantId:
           type: string
-          description: Organization the relying party belongs to
-          example: Acme Corporation
+          description: ID of the tenant that owns this relying party
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
+        organization:
+            type: string
+            description: Organization the relying party belongs to
+            example: Acme Corporation
         logo:
           $ref: '#/components/schemas/Asset'
         credentialDefinitions:
@@ -3047,6 +3068,7 @@ components:
       required:
         - name
         - type
+        - tenantId
         - description
         - credentialDefinitions
       properties:
@@ -3060,6 +3082,10 @@ components:
           example: This relying party verifies credentials from issuers
         type:
           $ref: '#/components/schemas/RelyingPartyType'
+        tenantId:
+          type: string
+          description: ID of the tenant that owns this relying party
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         organization:
           type: string
           description: Organization the relying party belongs to
@@ -3181,6 +3207,7 @@ components:
         - version
         - type
         - credentialSchema
+        - tenantId
         # TODO enable back in SHOWCASE-81
         # - representations
       properties:
@@ -3200,6 +3227,10 @@ components:
           example: '1.0'
         type:
           $ref: '#/components/schemas/CredentialType'
+        tenantId:
+          type: string
+          description: ID of the tenant that owns this credential definition
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
         source:
           $ref: '#/components/schemas/Source'
         credentialSchema:

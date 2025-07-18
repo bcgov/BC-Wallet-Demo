@@ -115,6 +115,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -143,6 +144,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -157,6 +159,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -171,6 +174,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [],
       description: 'example_description',
@@ -186,6 +190,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [unknownCredentialDefinitionId],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -202,6 +207,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -232,6 +238,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -253,6 +260,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -271,6 +279,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -309,6 +318,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -335,6 +345,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -361,6 +372,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -388,6 +400,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
@@ -415,6 +428,7 @@ describe('Database issuer repository tests', (): void => {
     const issuer: NewIssuer = {
       name: 'example_name',
       type: IssuerType.ARIES,
+      tenantId: tenant.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',

@@ -111,6 +111,17 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
         where: eq(tenants.id, id),
         with: {
           users: true,
+          issuers: {
+            with: {
+              cds: true,
+              css: true,
+            },
+          },
+          relyingParties: {
+            with: {
+              cds: true,
+            },
+          },
         },
       })
       .prepare('statement_name')
@@ -124,6 +135,17 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
     return {
       ...tenant,
       users: tenant.users.map((item: any) => item.user),
+      issuers: tenant.issuers.map((issuer: any) => ({
+        ...issuer,
+        logo: null,
+        credentialDefinitions: issuer.cds.map((item: any) => ({ id: item.credentialDefinition })),
+        credentialSchemas: issuer.css.map((item: any) => ({ id: item.credentialSchema })),
+      })),
+      relyingParties: tenant.relyingParties.map((rp: any) => ({
+        ...rp,
+        logo: null,
+        credentialDefinitions: rp.cds.map((item: any) => ({ id: item.credentialDefinition })),
+      })),
     }
   }
 
@@ -144,8 +166,23 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
 
   public async findAll(): Promise<Tenant[]> {
     const connection = await this.databaseService.getConnection()
-    const tenants = await connection.query.tenants.findMany()
-    const tenantIds = tenants.map((s: any) => s.id)
+    const tenantsResult = await connection.query.tenants.findMany({
+      with: {
+        issuers: {
+          with: {
+            cds: true,
+            css: true,
+          },
+        },
+        relyingParties: {
+          with: {
+            cds: true,
+          },
+        },
+      },
+    })
+
+    const tenantIds = tenantsResult.map((s: any) => s.id)
 
     const users = await connection.query.tenantsToUsers.findMany({
       where: inArray(tenantsToUsers.tenant, tenantIds),
@@ -163,10 +200,21 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
       return map
     }, new Map<string, any[]>())
 
-    return tenants.map((tenant) => {
+    return tenantsResult.map((tenant) => {
       return {
         ...tenant,
         users: (usersMap.get(tenant.id) || []).map((item: any) => item.user),
+        issuers: tenant.issuers.map((issuer: any) => ({
+          ...issuer,
+          logo: null,
+          credentialDefinitions: issuer.cds.map((item: any) => ({ id: item.credentialDefinition })),
+          credentialSchemas: issuer.css.map((item: any) => ({ id: item.credentialSchema })),
+        })),
+        relyingParties: tenant.relyingParties.map((rp: any) => ({
+          ...rp,
+          logo: null,
+          credentialDefinitions: rp.cds.map((item: any) => ({ id: item.credentialDefinition })),
+        })),
       }
     })
   }

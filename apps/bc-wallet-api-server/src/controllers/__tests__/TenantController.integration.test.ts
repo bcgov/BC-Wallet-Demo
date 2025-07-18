@@ -130,8 +130,8 @@ describe('TenantController Integration Tests', () => {
     const persona = await createTestPersona(asset)
     const schema = await createTestCredentialSchema()
     const definition = await createTestCredentialDefinition(asset, schema, tenant.id)
-    const issuer = await createTestIssuer(asset, definition, schema)
-    const scenario = await createTestScenario(asset, persona, issuer, definition.id)
+    const issuer = await createTestIssuer(asset, definition, schema, tenant.id)
+    const scenario = await createTestScenario(asset, persona, issuer, definition.id, tenant.id)
 
     // Create a showcase associated with the tenant
     const showcaseService = Container.get(ShowcaseService)
