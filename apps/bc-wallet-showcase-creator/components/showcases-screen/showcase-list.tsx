@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import ButtonOutline from '@/components/ui/button-outline'
 import { Card } from '@/components/ui/card'
@@ -8,7 +8,7 @@ import { useCreateShowcase, useDeleteShowcase, useDuplicateShowcase, useShowcase
 import { Link, useRouter } from '@/i18n/routing'
 import { baseUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import { ShowcaseStatus, type Persona, type Showcase, type ShowcaseRequest } from 'bc-wallet-openapi'
+import { ShowcaseStatus, TenantResponse, type Persona, type Showcase, type ShowcaseRequest } from 'bc-wallet-openapi'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
@@ -22,6 +22,10 @@ import apiClient from '@/lib/apiService'
 import { showcaseToShowcaseRequest } from '@/lib/parsers'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useQueryClient } from '@tanstack/react-query'
+import { useCredentialDefinitions } from '@/hooks/use-credentials'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { useOnboardingCreationStore } from '@/hooks/use-onboarding-store'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -29,7 +33,11 @@ export const ShowcaseList = () => {
   const t = useTranslations()
   const { data, isLoading } = useShowcases()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { reset, setScenarioIds,setPersonaIds } = useShowcaseStore()
   const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
+  const { data: credentials } = useCredentialDefinitions()
+  const resetIds = usePresentationCreation().reset
+  const resetOnboardingIds = useOnboardingCreationStore().reset
   const { issuerId, relayerId } = useHelpersStore()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -51,6 +59,48 @@ export const ShowcaseList = () => {
       return true
     }
     return showcase.name.toLowerCase().includes(searchTerm.toLowerCase())
+  }
+
+    const { setIssuerId, setRelayerId } = useHelpersStore()
+  
+    useEffect(() => {
+      const fetchTenantConfig = async () => {
+        if (tenantId) {
+          try {
+            const endpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+            const response = await fetch(endpoint, {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json',
+              },
+            })
+  
+            if (!response.ok) {
+              throw new Error(`Failed to fetch tenant config for ${tenantId}.`)
+            }
+  
+            const tenantResponse = (await response.json()) as TenantResponse
+            if (tenantResponse.tenant.issuers && tenantResponse.tenant.relyingParties) {
+              setIssuerId(tenantResponse.tenant.issuers[0].id)
+              setRelayerId(tenantResponse.tenant.relyingParties[0].id)
+            }
+          } catch (error) {
+            console.error('Error fetching tenant config:', error)
+          }
+        }
+      }
+  
+      void fetchTenantConfig()
+    }, [tenantId, setIssuerId, setRelayerId])
+
+  const handleDeleteShowcase = async (showcaseSlug: string) => {
+   await deleteShowcase(showcaseSlug)
+    reset()
+    setScenarioIds([])
+    setPersonaIds([])
+    resetIds()
+    resetOnboardingIds()
+    queryClient.invalidateQueries({ queryKey: ['showcases'] })
   }
 
   const handleDuplicateShowcase = async (showcaseSlug: string) => {
@@ -84,10 +134,15 @@ export const ShowcaseList = () => {
   }
 
   const HandleShowcaseCreate = () => {
-    if(!issuerId && !relayerId) {
-      toast.error('Please create a credential before creating a showcase.',{duration: 4000})
+    reset()
+    setScenarioIds([])
+    setPersonaIds([])
+    resetIds()
+    resetOnboardingIds()
+    if (!issuerId || !relayerId || credentials?.credentialDefinitions?.length === 0) {
+      toast.error('Please create a credential before creating a showcase.', { duration: 4000 })
       return
-    }else{
+    } else {
       router.push(`/${tenantId}/showcases/create`)
     }
   }
@@ -184,7 +239,7 @@ export const ShowcaseList = () => {
                         <div className="flex-shrink-0">
                           <DeleteButton
                             onClick={() => {
-                              deleteShowcase(showcase.slug)
+                              handleDeleteShowcase(showcase.slug)
                             }}
                           />
 

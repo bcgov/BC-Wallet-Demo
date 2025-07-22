@@ -133,7 +133,7 @@ const ShowcaseRequestSchema = z.object({
 
 export const PublishEdit = () => {
   const t = useTranslations()
-  const { showcase, reset, setScenarioIds } = useShowcaseStore()
+  const { showcase, reset, setScenarioIds,setPersonaIds } = useShowcaseStore()
   const router = useRouter()
   const { saveShowcase } = useShowcaseAdapter()
   const { personas } = useOnboardingAdapter()
@@ -172,6 +172,7 @@ export const PublishEdit = () => {
     toast.success('Showcase created successfully')
     reset()
     setScenarioIds([])
+    setPersonaIds([])
     resetIds()
     resetOnboardingIds()
     router.push(`/${tenantId}/showcases`)

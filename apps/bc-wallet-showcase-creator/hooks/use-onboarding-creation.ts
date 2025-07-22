@@ -45,18 +45,18 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
   } = useOnboardingCreationStore()
 
   useEffect(() => {
-    if (showcaseSlug && showcaseData && !isInitialized) {
+    if (showcaseSlug && showcaseData && !isInitialized && personasData) {
       const showcase = showcaseData?.showcase
 
       if (showcase) {
         const issuanceScenarios = showcase.scenarios?.filter((scenario) => scenario.type === 'ISSUANCE') || []
-        const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
 
         if (issuanceScenarios.length === 0) {
           initializeWithScenarios(personaScenariosMap)
           setIsInitialized(true)
           return
         } else {
+          const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
           issuanceScenarios.forEach((scenario) => {
             if (scenario.personas && scenario.personas.length > 0) {
               scenario.personas.forEach((persona) => {
@@ -110,6 +110,21 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
           setIsInitialized(true)
         }
       }
+    } else if (!showcaseSlug && !isInitialized) {
+      const personas = (personasData?.personas || []).filter((persona: Persona) =>
+        selectedPersonaIds.includes(persona.id),
+      )
+
+      personas.forEach((persona: Persona) => {
+        if (!personaScenariosMap[persona.id]) {
+          addPersonaScenario(persona, issuerId)
+        }
+      })
+
+      if (!activePersonaId && personas.length > 0) {
+        setActivePersonaId(personas[0].id)
+      }
+      setIsInitialized(true)
     }
   }, [
     showcaseSlug,
@@ -119,34 +134,11 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     initializeWithScenarios,
     activePersonaId,
     setActivePersonaId,
-  ])
-
-  useEffect(() => {
-    if (showcaseSlug && isInitialized) return
-
-    const personas = (personasData?.personas || []).filter((persona: Persona) =>
-      selectedPersonaIds.includes(persona.id),
-    )
-
-    personas.forEach((persona: Persona) => {
-      if (!personaScenariosMap[persona.id]) {
-        addPersonaScenario(persona, issuerId)
-      }
-    })
-
-    if (!activePersonaId && personas.length > 0) {
-      setActivePersonaId(personas[0].id)
-    }
-  }, [
-    showcaseSlug,
-    isInitialized,
-    personasData,
-    selectedPersonaIds,
-    personaScenariosMap,
-    activePersonaId,
     issuerId,
+    personasData,
     addPersonaScenario,
-    setActivePersonaId,
+    selectedPersonaIds,
+    personaScenariosMap
   ])
 
   const selectedPersonas = (personasData?.personas || []).filter((persona: Persona) =>

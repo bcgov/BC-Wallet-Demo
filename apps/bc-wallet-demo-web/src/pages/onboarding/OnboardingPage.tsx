@@ -46,12 +46,15 @@ export const OnboardingPage: React.FC = () => {
       navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
     } else if (!isCompleted && !showcase) {
       dispatch(clearShowcase())
-      dispatch(fetchWallets())
       dispatch(fetchShowcaseBySlug(slug))
     } else {
        dispatch(fetchShowcaseBySlug(slug))
     }
   }, [dispatch, slug, isCompleted])
+
+  useEffect(() => {
+    dispatch(fetchWallets())
+  }, [dispatch])
 
   useEffect(() => {
     trackPageView()

@@ -5,11 +5,12 @@ import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas';
 import { useCreateAsset } from '@/hooks/use-asset';
 import { usePersonaStore } from '@/hooks/use-persona-store';
-import { useShowcase, useUpdateShowcase } from '@/hooks/use-showcases';
+import { useUpdateShowcase } from '@/hooks/use-showcases'
 import { Persona, AssetRequest, ShowcaseRequest, PersonaRequest, ShowcaseResponse } from "bc-wallet-openapi";
 import { toast } from 'sonner';
 import { useQueryClient } from "@tanstack/react-query";
 import { showcaseToShowcaseRequest } from "@/lib/parsers";
+import apiClient from "@/lib/apiService";
 
 export const usePersonaAdapter = () => {
   const [headshotImage, setHeadshotImage] = useState<string | null>(null);
@@ -28,7 +29,6 @@ export const usePersonaAdapter = () => {
   const { mutateAsync: deletePersona } = useDeletePersona();
   const { mutateAsync: createAsset } = useCreateAsset();
   const { mutateAsync: updateShowcase } = useUpdateShowcase(currentShowcaseSlug || '');
-  const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(currentShowcaseSlug || '')
 
   const InvalidPersonaState = async() => {
     queryClient.invalidateQueries({ queryKey: ['personas'] })
@@ -67,7 +67,7 @@ export const usePersonaAdapter = () => {
     try {
       const updatedPersonaIds = new Set([...selectedPersonaIds, personaId]);
       
-      const showcaseResponse = showcaseData as ShowcaseResponse
+      const showcaseResponse = await apiClient.get(`/showcases/${currentShowcaseSlug}`) as ShowcaseResponse
       const showcaseRequest = showcaseResponse?.showcase
 
       if (!showcaseRequest) {

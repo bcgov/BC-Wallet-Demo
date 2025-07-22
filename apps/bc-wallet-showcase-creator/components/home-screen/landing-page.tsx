@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDeleteShowcase, useDuplicateShowcase, useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
-import type { Showcase } from 'bc-wallet-openapi'
+import type { Showcase, TenantResponse } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { env } from '@/env'
@@ -16,6 +16,11 @@ import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
 import { toast } from 'sonner'
 import { useTenant } from '@/providers/tenant-provider'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { useOnboardingCreationStore } from '@/hooks/use-onboarding-store'
+import { useQueryClient } from '@tanstack/react-query'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -26,6 +31,51 @@ export const LandingPage = () => {
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
   const { tenantId } = useTenant()
   const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
+  const { reset, setScenarioIds,setPersonaIds } = useShowcaseStore()
+  const { setIssuerId, setRelayerId } = useHelpersStore()
+  const resetIds = usePresentationCreation().reset
+  const resetOnboardingIds = useOnboardingCreationStore().reset
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    const fetchTenantConfig = async () => {
+      if (tenantId) {
+        try {
+          const endpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+          const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+            },
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch tenant config for ${tenantId}.`)
+          }
+
+          const tenantResponse = (await response.json()) as TenantResponse
+          if (tenantResponse.tenant.issuers && tenantResponse.tenant.relyingParties) {
+            setIssuerId(tenantResponse.tenant.issuers[0].id)
+            setRelayerId(tenantResponse.tenant.relyingParties[0].id)
+          }
+        } catch (error) {
+          console.error('Error fetching tenant config:', error)
+        }
+      }
+    }
+
+    void fetchTenantConfig()
+  }, [tenantId, setIssuerId, setRelayerId])
+
+  const handleDeleteShowcase = async (showcaseSlug: string) => {
+   await deleteShowcase(showcaseSlug)
+    reset()
+    setScenarioIds([])
+    setPersonaIds([])
+    resetIds()
+    resetOnboardingIds()
+    queryClient.invalidateQueries({ queryKey: ['showcases'] })
+  }
 
   const searchFilter = (showcase: Showcase) => {
     if (searchTerm === '') {
@@ -91,7 +141,7 @@ export const LandingPage = () => {
                       <div className="flex-shrink-0">
                         <DeleteButton
                           onClick={() => {
-                            deleteShowcase(showcase.slug)
+                            handleDeleteShowcase(showcase.slug)
                           }}
                         />
                         <CopyButton disabled={showcase.status !== 'ACTIVE'} value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />

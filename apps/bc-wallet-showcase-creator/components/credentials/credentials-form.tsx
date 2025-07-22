@@ -104,6 +104,7 @@ export const CredentialsForm = () => {
         credentialSchema: schemaId,
         type: CredentialType.Anoncred,
         icon: assetId,
+        tenantId: tenantId ?? ''
       }
 
       const credentialDefinition = await createCredentialDefinition(credentialDefinitionPayload)
@@ -117,6 +118,7 @@ export const CredentialsForm = () => {
         credentialDefinitions: [credentialId],
         credentialSchemas: [schemaId],
         description: 'bc gov issuer created by showcase creator',
+        tenantId: tenantId ?? ''
       })
 
       const relyingPartyResponse = await createRelyingParty({
@@ -124,6 +126,7 @@ export const CredentialsForm = () => {
         type: RelyingPartyType.Aries,
         credentialDefinitions: [credentialId],
         description: 'bc gov relying party created by showcase creator',
+        tenantId: tenantId ?? ''
       })
 
       if (!issuerResponse?.issuer?.id || !relyingPartyResponse?.relyingParty?.id) {
@@ -202,6 +205,7 @@ export const CredentialsForm = () => {
             credentialDefinitions: [selectedCredential.id],
             credentialSchemas: [selectedCredential.credentialSchema.id],
             description: 'bc gov issuer created by showcase creator',
+            tenantId: tenantId ?? ''
           },
         })
         toast.success('Credential approved successfully!')

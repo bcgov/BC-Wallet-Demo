@@ -31,6 +31,7 @@ import type {
   Step
 } from '../../slices/types'
 import { useShowcases } from '../../slices/showcases/showcasesSelectors'
+import { fetchWallets } from '../../slices/wallets/walletsThunks'
 
 export interface Props {
   scenarios: Scenario[]
@@ -240,6 +241,7 @@ export const OnboardingContainer: FC<Props> = ({
       },
     })
     navigate(`${basePath}/${tenantId}/${showcase.showcase?.slug}`)
+    dispatch(fetchWallets())
     dispatch({ type: 'demo/RESET' })
   }
 

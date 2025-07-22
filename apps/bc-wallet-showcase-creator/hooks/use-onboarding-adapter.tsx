@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { useCreateScenario, useUpdateScenario } from '@/hooks/use-onboarding'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import type { Persona, Showcase, StepRequest } from 'bc-wallet-openapi'
+import type { IssuanceScenarioRequest, Persona, Showcase, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
 import { useUpdateShowcase, useShowcase, useUpdateShowcaseScenarios } from './use-showcases'
 import { debugLog } from '@/lib/utils'
@@ -347,16 +347,20 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     ? getStepActionType(effectiveSelectedStep)
     : null;
 
-  const createScenarios = useCallback(async () => {
+  const createScenarios = useCallback(async (scenariosToCreate?: IssuanceScenarioRequest[]) => {
     try {
-      const personaScenariosList = selectedPersonas
+      const personaScenariosList = scenariosToCreate ??
+      selectedPersonas
         .map((persona) => {
           if (!personaScenarios.has(persona.id)) return null;
 
           const scenarioList = personaScenarios.get(persona.id)!;
           if (!scenarioList.length) return null;
 
-          return scenarioList.map(scenario => ({
+          return scenarioList
+          //@ts-expect-error
+          .filter(s => !s.slug)
+          .map(scenario => ({
             ...scenario,
             personas: [persona.id],
             issuer: issuerId,
@@ -465,7 +469,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
         //@ts-ignore
         if(!scenario.slug) {
           debugLog('Scenario slug is required for update:', scenario);
-          result = await createScenarios()
+          result = await createScenarios([scenario])
           if (result && result.success) {
             toast.success('Scenarios created successfully')
             router.push(`/${tenantId}/showcases/create/scenarios`)
