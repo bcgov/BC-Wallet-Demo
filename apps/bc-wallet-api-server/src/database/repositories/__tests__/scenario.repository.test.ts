@@ -131,16 +131,18 @@ describe('Database scenario repository tests', (): void => {
     }
     credentialDefinition = await credentialDefinitionRepository.create(newCredentialDefinition)
     const newIssuer: NewIssuer = {
+      tenantId,
       name: 'example_name',
       type: IssuerType.ARIES,
       credentialDefinitions: [credentialDefinition.id],
       credentialSchemas: [credentialSchema.id],
       description: 'example_description',
       organization: 'example_organization',
-      logo: asset.id,
+      logo: asset.id
     }
     issuer = await issuerRepository.create(newIssuer)
     const newRelyingParty: NewRelyingParty = {
+      tenantId,
       name: 'example_name',
       type: RelyingPartyType.ARIES,
       credentialDefinitions: [credentialDefinition.id],

@@ -23,6 +23,7 @@ import IssuerController from '../IssuerController'
 import { createApiIssuerRequest } from './apiTestData'
 import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
 import supertest = require('supertest')
+import { a } from 'drizzle-kit/index-BAUrj6Ib'
 
 describe('IssuerController Integration Tests', () => {
   let client: PGlite
@@ -68,7 +69,7 @@ describe('IssuerController Integration Tests', () => {
     const credentialSchema = await createTestCredentialSchema()
     const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
-    const issuerRequest = createApiIssuerRequest(asset.id, [credentialDefinition.id], [credentialSchema.id])
+    const issuerRequest = createApiIssuerRequest(asset.id, tenantId, [credentialDefinition.id], [credentialSchema.id])
     // Add identifierType and identifier that aren't in the utility
     issuerRequest.identifierType = 'DID'
     issuerRequest.identifier = 'did:test:456'
@@ -123,7 +124,7 @@ describe('IssuerController Integration Tests', () => {
     await request.get(`/roles/issuers/${nonExistentId}`).expect(404)
 
     // Try to update a non-existent issuer
-    const updateRequest = createApiIssuerRequest('', [], [])
+    const updateRequest = createApiIssuerRequest('', , tenantId, [], [])
 
     await request.put(`/roles/issuers/${nonExistentId}`).send(updateRequest).expect(404)
 
@@ -141,7 +142,7 @@ describe('IssuerController Integration Tests', () => {
 
     // Attempt to create an issuer with a non-existent credential definition
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
-    const invalidIssuerRequest2 = createApiIssuerRequest('', [nonExistentId], [nonExistentId])
+    const invalidIssuerRequest2 = createApiIssuerRequest('', , tenantId, [nonExistentId], [nonExistentId])
 
     await request.post('/roles/issuers').send(invalidIssuerRequest2).expect(404)
   })
@@ -173,11 +174,7 @@ describe('IssuerController Integration Tests', () => {
       credentialSchema: credentialSchema.id,
     })
 
-    const issuerRequest = createApiIssuerRequest(
-      asset.id,
-      [credentialDefinition1.id, credentialDefinition2.id],
-      [credentialSchema.id],
-    )
+    const issuerRequest = createApiIssuerRequest(asset.id, tenantId, [credentialDefinition1.id, credentialDefinition2.id], [credentialSchema.id])
     const createResponse = await request.post('/roles/issuers').send(issuerRequest).expect(201)
 
     const createdIssuer = createResponse.body.issuer

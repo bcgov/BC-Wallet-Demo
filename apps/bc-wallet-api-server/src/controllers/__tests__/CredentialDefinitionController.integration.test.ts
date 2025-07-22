@@ -81,6 +81,7 @@ describe('CredentialDefinitionController Integration Tests', () => {
         icon: asset.id,
         type: CredentialType.Anoncred,
         representations: [],
+        tenantId,
       } satisfies CredentialDefinitionRequest)
       .expect(201)
     const created = createResponse.body.credentialDefinition
@@ -103,6 +104,7 @@ describe('CredentialDefinitionController Integration Tests', () => {
         icon: asset.id,
         type: CredentialType.Anoncred,
         representations: [],
+        tenantId,
       } satisfies CredentialDefinitionRequest)
       .expect(200)
     expect(updateResponse.body.credentialDefinition.name).toEqual('Updated Credential')
