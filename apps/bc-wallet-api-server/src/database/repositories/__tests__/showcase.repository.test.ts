@@ -63,7 +63,7 @@ describe('Database showcase repository tests', (): void => {
     credentialDefinition2 = await createTestCredentialDefinition(asset, credentialSchema, tenant.id)
 
     // Create issuer
-    const issuer = await createTestIssuer(asset, credentialDefinition1, credentialSchema)
+    const issuer = await createTestIssuer(asset, credentialDefinition1, credentialSchema, tenant.id)
 
     // Create personas
     persona1 = await createTestPersona(asset)

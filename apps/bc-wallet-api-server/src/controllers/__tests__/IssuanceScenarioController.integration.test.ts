@@ -71,7 +71,7 @@ describe('IssuanceScenarioController Integration Tests', () => {
     const asset = await createTestAsset()
     const credentialSchema = await createTestCredentialSchema()
     const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
-    const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema)
+    const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema, tenantId)
     const persona = await createTestPersona(asset)
 
     // 2. Create an issuance scenario - must include at least one step according to the error
