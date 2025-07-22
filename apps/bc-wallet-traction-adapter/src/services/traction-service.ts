@@ -283,7 +283,11 @@ export class TractionService extends ApiService {
       const schema = await this.schemaApi.schemasSchemaIdGet({ schemaId: record.credentialDefinition.schemaId })
       record.credentialDefinition.schemaId = schema.schema?.id
 
-      await this.showcaseApiService.createCredentialDefinition(importRequest, record.credentialDefinition)
+      await this.showcaseApiService.createCredentialDefinition(
+        importRequest,
+        record.credentialDefinition,
+        this.tenantId,
+      )
     } else {
       return Promise.reject(Error(`No credential definition returned for identifier ${definitionId}`))
     }

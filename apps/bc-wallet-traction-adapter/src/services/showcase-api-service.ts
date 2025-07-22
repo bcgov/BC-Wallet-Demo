@@ -101,6 +101,7 @@ export class ShowcaseApiService extends ApiService {
         identifierType: 'DID',
         identifier,
         type: existingDefinition.credentialDefinition.type,
+        tenantId: existingDefinition.credentialDefinition.tenantId,
         credentialSchema: existingDefinition.credentialDefinition.credentialSchema.id,
       } satisfies CredentialDefinitionRequest,
     }))
@@ -145,6 +146,7 @@ export class ShowcaseApiService extends ApiService {
   public async createCredentialDefinition(
     credDefImportDefinition: CredentialDefinitionImportRequest,
     remoteCredDef: CredentialDefinition,
+    tenantId: string,
   ): Promise<void> {
     if (!remoteCredDef.schemaId) {
       return Promise.reject(Error(`Cannot create a credential definition, it should have a schemaId`))
@@ -168,6 +170,7 @@ export class ShowcaseApiService extends ApiService {
         credentialSchema: schema.id,
         version: credDefImportDefinition.version ?? '1',
         type: CredentialType.Anoncred, // FIXME we do not support external types like CL yet
+        tenantId,
         /*
           remoteCredDef.type && Object.keys(CredentialType).includes(remoteCredDef.type as any)
             ? (remoteCredDef.type as unknown as CredentialType)

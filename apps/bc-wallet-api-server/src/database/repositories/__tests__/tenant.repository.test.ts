@@ -132,7 +132,7 @@ describe('Database tenant repository tests', (): void => {
     expect(updatedTenant.id).toEqual(newTenantId)
   })
 
-  it('Should save tenant with users  to database', async (): Promise<void> => {
+  it('Should save tenant with users to database', async (): Promise<void> => {
     const user1: NewUser = { id: '550e8400-e29b-41d4-a716-446655440000', userName: 'User 1' }
     const user2: NewUser = { id: '550e8400-e29b-41d4-a716-446655440001', userName: 'User 2' }
 

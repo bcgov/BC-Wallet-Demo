@@ -3,8 +3,8 @@ import { NotFoundError } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
 
 import DatabaseService from '../../services/DatabaseService'
-import { NewTenant, RepositoryDefinition, Tenant, User } from '../../types'
-import { tenants, tenantsToUsers, users } from '../schema'
+import { NewTenant, RepositoryDefinition, Tenant } from '../../types'
+import { tenants, tenantsToUsers } from '../schema'
 import UserRepository from './UserRepository'
 
 @Service()
@@ -16,7 +16,6 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
   private userRepository!: UserRepository
 
   public async create(newTenant: NewTenant): Promise<Tenant> {
-    let usersResult: User[] = []
     const connection = await this.databaseService.getConnection()
     if (newTenant.users && newTenant.users.length > 0) {
       await Promise.all(newTenant.users.map(async (userId) => this.userRepository.findById(userId)))
@@ -31,7 +30,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
           .returning()
 
         if (newTenant.users && newTenant.users.length > 0) {
-          const tenantsToUsersResult = await tx
+          await tx
             .insert(tenantsToUsers)
             .values(
               newTenant.users.map((userId: string) => ({
@@ -40,17 +39,48 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
               })),
             )
             .returning()
-
-          usersResult = await tx.query.users.findMany({
-            where: inArray(
-              users.id,
-              tenantsToUsersResult.map((item) => item.user).filter((id): id is string => id !== null),
-            ),
-          })
         }
+
+        const tenant = await tx.query.tenants.findFirst({
+          where: eq(tenants.id, tenantResult.id),
+          with: {
+            users: {
+              with: {
+                user: true,
+              },
+            },
+            issuers: {
+              with: {
+                cds: true,
+                css: true,
+              },
+            },
+            relyingParties: {
+              with: {
+                cds: true,
+              },
+            },
+          },
+        })
+
+        if (!tenant) {
+          return Promise.reject(new Error(`Failed to fetch created tenant: ${tenantResult.id}`))
+        }
+
         return {
-          ...tenantResult,
-          users: usersResult,
+          ...tenant,
+          users: tenant.users.map((item: any) => item.user),
+          issuers: tenant.issuers.map((issuer: any) => ({
+            ...issuer,
+            logo: null,
+            credentialDefinitions: issuer.cds.map((item: any) => ({ id: item.credentialDefinition })),
+            credentialSchemas: issuer.css.map((item: any) => ({ id: item.credentialSchema })),
+          })),
+          relyingParties: tenant.relyingParties.map((rp: any) => ({
+            ...rp,
+            logo: null,
+            credentialDefinitions: rp.cds.map((item: any) => ({ id: item.credentialDefinition })),
+          })),
         }
       },
       {
@@ -69,8 +99,6 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
   public async update(id: string, newTenant: NewTenant): Promise<Tenant> {
     await this.findById(id)
 
-    let usersResult: User[] = []
-
     const connection = await this.databaseService.getConnection()
     if (newTenant.users && newTenant.users.length > 0) {
       await Promise.all(newTenant.users.map(async (user) => this.userRepository.findById(user)))
@@ -81,7 +109,7 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
       await tx.delete(tenantsToUsers).where(eq(tenantsToUsers.tenant, id))
 
       if (newTenant.users && newTenant.users.length > 0) {
-        const tenantsToUsersResult = await tx
+        await tx
           .insert(tenantsToUsers)
           .values(
             newTenant.users.map((userId: string) => ({
@@ -90,17 +118,48 @@ class TenantRepository implements RepositoryDefinition<Tenant, NewTenant> {
             })),
           )
           .returning()
-
-        usersResult = await tx.query.users.findMany({
-          where: inArray(
-            users.id,
-            tenantsToUsersResult.map((item) => item.user).filter((id): id is string => id !== null),
-          ),
-        })
       }
+
+      const tenant = await tx.query.tenants.findFirst({
+        where: eq(tenants.id, tenantResult.id),
+        with: {
+          users: {
+            with: {
+              user: true,
+            },
+          },
+          issuers: {
+            with: {
+              cds: true,
+              css: true,
+            },
+          },
+          relyingParties: {
+            with: {
+              cds: true,
+            },
+          },
+        },
+      })
+
+      if (!tenant) {
+        return Promise.reject(new Error(`Failed to fetch updated tenant: ${tenantResult.id}`))
+      }
+
       return {
-        ...tenantResult,
-        users: usersResult,
+        ...tenant,
+        users: tenant.users.map((item: any) => item.user),
+        issuers: tenant.issuers.map((issuer: any) => ({
+          ...issuer,
+          logo: null,
+          credentialDefinitions: issuer.cds.map((item: any) => ({ id: item.credentialDefinition })),
+          credentialSchemas: issuer.css.map((item: any) => ({ id: item.credentialSchema })),
+        })),
+        relyingParties: tenant.relyingParties.map((rp: any) => ({
+          ...rp,
+          logo: null,
+          credentialDefinitions: rp.cds.map((item: any) => ({ id: item.credentialDefinition })),
+        })),
       }
     })
   }
