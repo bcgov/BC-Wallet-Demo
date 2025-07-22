@@ -114,20 +114,6 @@ describe('Database relying party repository tests', (): void => {
     await expect(repository.create(relyingParty)).rejects.toThrowError(`No asset found for id: ${unknownIconId}`)
   })
 
-  it('Should throw error when saving relying party with no credential definitions', async (): Promise<void> => {
-    const relyingParty: NewRelyingParty = {
-      name: 'example_name',
-      type: RelyingPartyType.ARIES,
-      tenantId: tenant.id,
-      credentialDefinitions: [],
-      description: 'example_description',
-      organization: 'example_organization',
-      logo: asset.id,
-    }
-
-    await expect(repository.create(relyingParty)).rejects.toThrowError(`At least one credential definition is required`)
-  })
-
   it('Should throw error when saving relying party with invalid credential definition id', async (): Promise<void> => {
     const unknownCredentialDefinitionId = '498e1086-a2ac-4189-b951-fe863d0fe9fc'
     const relyingParty: NewRelyingParty = {

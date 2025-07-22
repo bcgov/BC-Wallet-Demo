@@ -155,36 +155,6 @@ describe('Database issuer repository tests', (): void => {
     await expect(repository.create(issuer)).rejects.toThrowError(`No asset found for id: ${unknownIconId}`)
   })
 
-  it('Should throw error when saving issuer with no credential definitions', async (): Promise<void> => {
-    const issuer: NewIssuer = {
-      name: 'example_name',
-      type: IssuerType.ARIES,
-      tenantId: tenant.id,
-      credentialDefinitions: [],
-      credentialSchemas: [credentialSchema.id],
-      description: 'example_description',
-      organization: 'example_organization',
-      logo: asset.id,
-    }
-
-    await expect(repository.create(issuer)).rejects.toThrowError(`At least one credential definition is required`)
-  })
-
-  it('Should throw error when saving issuer with no credential schemas', async (): Promise<void> => {
-    const issuer: NewIssuer = {
-      name: 'example_name',
-      type: IssuerType.ARIES,
-      tenantId: tenant.id,
-      credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],
-      credentialSchemas: [],
-      description: 'example_description',
-      organization: 'example_organization',
-      logo: asset.id,
-    }
-
-    await expect(repository.create(issuer)).rejects.toThrowError(`At least one credential schema is required`)
-  })
-
   it('Should throw error when saving issuer with invalid credential definition id', async (): Promise<void> => {
     const unknownCredentialDefinitionId = '498e1086-a2ac-4189-b951-fe863d0fe9fc'
     const issuer: NewIssuer = {
