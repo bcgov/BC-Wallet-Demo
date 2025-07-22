@@ -160,9 +160,9 @@ describe('ShowcaseController Integration Tests', () => {
     const persona = await createTestPersona(asset)
     const credentialSchema = await createTestCredentialSchema()
     const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
-    const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema)
+    const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema, tenantId)
 
-    const scenario = await createApiTestScenario(asset.id, persona.id, issuer.id, credentialDefinition.id)
+    const scenario = await createApiTestScenario(asset.id, persona.id, issuer.id, credentialDefinition.id, tenantId)
 
     // Attempt to create a showcase with non-existent tenant
     const invalidTenantShowcaseRequest: ShowcaseRequest = {

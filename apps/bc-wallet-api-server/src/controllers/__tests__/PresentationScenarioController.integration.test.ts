@@ -81,6 +81,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     const relyingParty = await relyingPartyRepository.create({
       name: 'Test Relying Party',
       type: RelyingPartyType.ARIES,
+      tenantId,
       credentialDefinitions: [credentialDefinition.id],
       description: 'Test relying party description',
       organization: 'Test Organization',
@@ -267,6 +268,7 @@ describe('PresentationScenarioController Integration Tests', () => {
     const relyingParty = await relyingPartyRepository.create({
       name: 'Action Types Test RP',
       type: RelyingPartyType.ARIES,
+      tenantId,
       credentialDefinitions: [credentialDefinition.id],
       description: 'Test RP for action types',
       organization: 'Test Organization',
