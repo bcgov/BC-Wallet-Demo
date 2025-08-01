@@ -286,8 +286,11 @@ export class TractionService extends ApiService {
       await this.showcaseApiService.createCredentialDefinition(
         importRequest,
         record.credentialDefinition,
-        this.tenantId,
+        importRequest.tenantId ?? ''
       )
+      if(DEBUG_ENABLED) {
+        console.debug('importCredentialDefinition Success!');
+      }
     } else {
       return Promise.reject(Error(`No credential definition returned for identifier ${definitionId}`))
     }

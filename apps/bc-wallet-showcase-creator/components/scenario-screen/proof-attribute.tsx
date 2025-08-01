@@ -56,7 +56,7 @@ export const ProofAttribute = ({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Condition</label>
-        <Select defaultValue='none' onValueChange={(value) => onConditionTypeChange(index, value)}>
+        <Select defaultValue='none' disabled onValueChange={(value) => onConditionTypeChange(index, value)}>
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
           </SelectTrigger>

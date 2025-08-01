@@ -102,6 +102,7 @@ export const fetchShowcaseBySlug = createAsyncThunk(
             slug: scenario.personas[0].slug,
             name: scenario.personas[0].name ?? 'UNKNOWN',
             role: scenario.personas[0].role ?? 'UNKNOWN',
+            description:scenario.personas[0].description ?? '' ,
             ...(scenario.personas[0].headshotImage && { headshotImage: scenario.personas[0].headshotImage?.id }),
             ...(scenario.personas[0].bodyImage && { bodyImage: scenario.personas[0].bodyImage?.id }),
           },

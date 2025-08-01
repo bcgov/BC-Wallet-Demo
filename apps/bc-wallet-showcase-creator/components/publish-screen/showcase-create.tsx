@@ -55,6 +55,13 @@ export const ShowcaseCreate = () => {
     },
   })
 
+  const isFormReady =
+  form.formState.isValid &&
+  (
+    Object.keys(form.formState.dirtyFields).length > 0 ||
+    form.watch('bannerImage')
+  )
+
   const onSubmit = async (formData: ShowcaseRequest) => {
     createShowcase(formData, {
       onSuccess: (data) => {
@@ -131,7 +138,7 @@ export const ShowcaseCreate = () => {
             <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline>
 
             <div className="flex gap-3">
-              <ButtonOutline disabled={!form.formState.isValid || !form.formState.isDirty} type="submit">
+              <ButtonOutline disabled={!isFormReady} type="submit">
                 {t('action.next_label')}
               </ButtonOutline>
             </div>

@@ -67,33 +67,30 @@ export const BannerImageUpload = ({
     <div className="flex items-center flex-col justify-center">
       <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}</p>
 
-      {preview && (
-        <div className="relative w-full">
-          <button
-            className="bg-red-500 rounded p-1 m-2 absolute text-black right-0 top-0 text-sm hover:bg-red-400"
-            onClick={(e) => {
-              e.preventDefault()
-              void handleChange(null)
-            }}
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      )}
       <label
         htmlFor="bannerImage"
         className="p-3 flex flex-col items-center justify-center w-full h-full bg-light-bg dark:bg-dark-input dark:hover:bg-dark-input-hover rounded-lg cursor-pointer border dark:border-dark-border hover:bg-light-bg"
       >
-        <div className="flex flex-col items-center h-[240px] justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
+        <div className="relative flex flex-col items-center h-[240px] w-full justify-center border rounded-lg border-dashed dark:border-dark-border p-2">
           {preview ? (
-            <Image
-              alt="preview"
-              className="p-3 w-3/4 object-cover"
-              src={preview}
-              width={300}
-              height={100}
-              priority={true}
-            />
+            <>
+              <button
+                className="bg-red-500 rounded p-1 m-2 absolute text-black right-0 top-0 text-sm hover:bg-red-400 z-10"
+                onClick={(e) => {
+                  e.preventDefault()
+                  void handleChange(null)
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <Image
+                alt="preview"
+                className="p-3 object-contain"
+                src={preview}
+                fill
+                priority={true}
+              />
+            </>
           ) : (
             <p className="text-center text-xs lowercase">
               <span className="font-bold">{t('file_upload.click_to_upload_label')}</span>{' '}

@@ -3286,6 +3286,8 @@ components:
         - identifierType
         - identifier
       properties:
+        tenantId:
+          type: string
         identifierType:
           $ref: '#/components/schemas/IdentifierType'
         identifier:

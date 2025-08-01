@@ -170,6 +170,7 @@ export const OnboardingContainer: FC<Props> = ({
               personas={scenarios.map((scenario) => scenario.persona)}
               title={currentStep?.title}
               text={currentStep?.description}
+              personaDescription={currentPersona?.description}
           />
       )
     } else if (currentScenario?.steps.length === currentStep.order) {

@@ -18,6 +18,7 @@ export interface Props {
   title?: string
   text?: string
   textWithImage?: TextWithImage[]
+  personaDescription?: string
 }
 
 export const PickPersona: React.FC<Props> = ({
@@ -26,6 +27,7 @@ export const PickPersona: React.FC<Props> = ({
                                                title = 'Who do you want to be today?',
                                                text = 'It’s time to pick your character. Every character has its own set of use cases, which explore the power of digital credentials. Don’t worry, you can change your character later.',
                                                textWithImage,
+                                               personaDescription
                                              }) => {
   const dispatch = useAppDispatch()
   const darkMode = useDarkMode()
@@ -72,7 +74,7 @@ export const PickPersona: React.FC<Props> = ({
 
   return (
       <motion.div className="h-full" variants={fadeX} initial="hidden" animate="show" exit="exit">
-        <StepInformation title={title} text={text} textWithImage={textWithImage} />
+        <StepInformation title={title} text={text} textWithImage={textWithImage} personaDescription={personaDescription}/>
         <div className="flex flex-col lg:flex-row items-left lg:items-start justify-between px-8 h-full max-h-72 sm:max-h-96 overflow-y-scroll lg:overflow-y-hidden">
           {personaElements}
         </div>

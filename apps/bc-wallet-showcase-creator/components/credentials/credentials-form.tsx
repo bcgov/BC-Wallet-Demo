@@ -233,6 +233,8 @@ export const CredentialsForm = () => {
         <div className="px-4">
           <StepHeaderCredential
             icon={<Monitor strokeWidth={3} />}
+            showDropdown={true}
+            showApprove={selectedCredential?.approvedBy ? false : true}
             title={t('credentials.view_header_title')}
             onActionClick={(action) => {
               switch (action) {
@@ -274,6 +276,10 @@ export const CredentialsForm = () => {
               {
                 label: t('credentials.source_label'),
                 value: selectedCredential?.source,
+              },
+              {
+                label: 'Credential Status',
+                value: selectedCredential?.approvedBy ? 'Approved' : 'Pending Approval',
               },
             ].map((item, index) => (
               <div key={index} className="flex flex-col p-4 space-y-2">

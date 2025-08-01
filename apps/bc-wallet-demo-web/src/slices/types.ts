@@ -205,6 +205,7 @@ export interface Persona {
   role: string
   headshotImage?: string
   bodyImage?: string
+  description?: string
 }
 
 export interface Step {
