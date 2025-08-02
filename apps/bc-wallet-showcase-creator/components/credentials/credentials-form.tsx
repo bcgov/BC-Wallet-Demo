@@ -196,7 +196,13 @@ export const CredentialsForm = () => {
   const handleApproveCredentialDefinition = async () => {
     if (selectedCredential) {
       try {
-        await approveCredentialDefinition(selectedCredential.id)
+        const response = await approveCredentialDefinition(selectedCredential.id)
+        if (response?.credentialDefinition) {
+          setSelectedCredential({
+            ...selectedCredential,
+            ...response.credentialDefinition,
+          })
+        }
         await updateIssuer({
           id: issuerId,
           data: {

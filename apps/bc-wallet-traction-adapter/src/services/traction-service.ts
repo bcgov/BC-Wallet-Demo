@@ -111,6 +111,9 @@ export class TractionService extends ApiService {
    * @returns True if a bearer token is available, false otherwise
    */
   public async hasBearerToken(): Promise<boolean> {
+    if (DEBUG_ENABLED) {
+      console.debug('hasBearerToken called. Current apiKey status:', !!this.configOptions.apiKey);
+    }
     if (!this.configOptions.apiKey) {
       return false
     }
@@ -118,6 +121,9 @@ export class TractionService extends ApiService {
     const apiKeyCallback = this.configOptions.apiKey as (name: string) => Promise<string>
     const accessToken = await apiKeyCallback('Authorization')
     if (!accessToken) {
+      if (DEBUG_ENABLED) {
+        console.debug('hasBearerToken: No accessToken found.');
+      }
       return false
     }
     const token = new Token(accessToken)
@@ -129,11 +135,20 @@ export class TractionService extends ApiService {
    * @param args
    */
   public updateBearerTokens(args: UpdatedTokens): void {
+    if (DEBUG_ENABLED) {
+      console.debug('updateBearerTokens called with args:', args);
+    }
     if (args.tractionToken) {
       this.configOptions.apiKey = this.tokenCallback(args.tractionToken)
+      if (DEBUG_ENABLED) {
+        console.debug('Traction token updated and APIs re-initialized.');
+      }
     }
     if (args.showcaseApiToken) {
       this.showcaseApiService.updateBearerToken(args.showcaseApiToken)
+      if (DEBUG_ENABLED) {
+        console.debug('Showcase API token updated.');
+      }
     }
   }
 
@@ -575,6 +590,9 @@ export class TractionService extends ApiService {
    * @returns The tenant token
    */
   public async getTenantToken(apiKey: string, walletKey?: string): Promise<string> {
+    if (DEBUG_ENABLED) {
+      console.debug('Attempting to get new tenant token...');
+    }
     if (!this.tenantId) {
       return Promise.reject(Error('In order to get a tenant token, tenantId must be set'))
     }
@@ -599,6 +617,9 @@ export class TractionService extends ApiService {
     const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
     if (!tokenResponse?.token) {
       return Promise.reject(Error('no token was returned'))
+    }
+    if (DEBUG_ENABLED) {
+      console.debug('Successfully obtained new tenant token.');
     }
     return tokenResponse.token
   }
