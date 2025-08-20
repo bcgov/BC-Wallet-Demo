@@ -177,7 +177,7 @@ export class ShowcaseApiService extends ApiService {
             : CredentialType.Anoncred,
 */
         source: Source.Imported,
-        ...(remoteCredDef.tag && { version: remoteCredDef.tag }),
+        ...(remoteCredDef.tag && { version: schema.version }),
         ...(credDefImportDefinition.icon && { icon: credDefImportDefinition.icon }),
         ...(credDefImportDefinition.approvedBy && { approvedBy: credDefImportDefinition.approvedBy }),
       },

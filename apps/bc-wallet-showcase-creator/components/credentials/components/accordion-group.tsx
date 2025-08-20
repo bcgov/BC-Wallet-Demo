@@ -72,8 +72,10 @@ const Accordion = () => {
               <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
                 {t('credentials.step1_link_description')}{' '}
                 <a
-                  href="https://candyscan.idlab.org/txs/CANDY_PROD/domain"
+                  href="http://test.bcovrin.vonx.io:3707/txs/BCOVRIN_TEST/domain"
                   className="text-[#003366] underline font-semibold dark:text-[#255A90]"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   {t('credentials.step1_link_text')}
                 </a>

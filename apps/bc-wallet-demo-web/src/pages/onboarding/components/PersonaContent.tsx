@@ -28,7 +28,7 @@ export const PersonaContent: React.FC<Props> = ({ persona }) => {
             </div>
             {persona.bodyImage && (
               <img
-                className="h-72"
+                className="h-72 object-contain"
                 src={`${showcaseServerBaseUrl}/assets/${persona.bodyImage}/file`}
                 alt={persona.name}
               />

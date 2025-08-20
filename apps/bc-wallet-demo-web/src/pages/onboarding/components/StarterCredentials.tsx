@@ -14,6 +14,10 @@ export interface Props {
 export const StarterCredentials: React.FC<Props> = ({ credentialDefinitions }) => {
   const { issuedCredentials } = useCredentials()
   const issuedCredentialsStartCase = issuedCredentials.map((name) => startCase(name))
+
+  const credDefParts = credentialDefinitions && credentialDefinitions[0]?.identifier?.split(':')
+  const credName = credDefParts && credDefParts[credDefParts.length - 1]
+
   return (
     <motion.div
       variants={fadeX}
@@ -26,7 +30,7 @@ export const StarterCredentials: React.FC<Props> = ({ credentialDefinitions }) =
         <hr className="text-bcgov-lightgrey" />
       </div>
       { credentialDefinitions.map(credentialDefinition => {
-        const completed = issuedCredentials.includes(credentialDefinition.name) || issuedCredentialsStartCase.includes(credentialDefinition.name)
+        const completed = issuedCredentials.includes(credName) || issuedCredentialsStartCase.includes(credentialDefinition.name)
         return (
           <div key={credentialDefinition.name} className="flex-1 flex flex-row items-center justify-between my-2">
             { credentialDefinition.icon &&

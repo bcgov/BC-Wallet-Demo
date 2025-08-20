@@ -29,6 +29,9 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
   function isMobile() {
     return window.innerWidth <= 760
   }
+
+  const BC_Wallet_QR_Code = process.env.REACT_APP_WALLET_QR_CODE_URL ?? `${demoBackendBaseUrl}/qr`
+
   return (
     <AnimatePresence>
       {isWalletModalOpen && (
@@ -102,8 +105,8 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                   </div>
                 </div>
                 {!isMobile() && (
-                  <div className="mt-10 mr-10">
-                    <QRCode value={`${demoBackendBaseUrl}/qr`} size={125} />
+                  <div className="mt-10 mr-10 p-2 bg-white rounded-lg shadow-md">
+                    <QRCode value={`${BC_Wallet_QR_Code}`} size={125} />
                   </div>
                 )}
               </div>

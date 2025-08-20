@@ -34,7 +34,7 @@ import { debugLog } from '@/lib/utils'
 export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const router = useRouter()
-  const { updateScenario, createScenarios , selectedScenario, updateStep, selectedStep, setStepState, deleteStep, isEditMode } =
+  const { updateScenario, createScenarios , selectedScenario, updateStep, selectedStep, setStepState, deleteStep, isEditMode,personaScenarios } =
     usePresentationAdapter()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions();
@@ -43,13 +43,21 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
 
-  const isInvalidServiceStep = selectedScenario?.steps?.some(
-  (step) =>
-    step.type === 'SERVICE' &&
-    step.actions?.some(
-      (action) => action.credentialDefinitionId !== undefined && action.credentialDefinitionId.trim() === ''
+const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList]) =>
+  scenarioList.some((scenario) =>
+    scenario.steps?.some(
+      (step) =>
+        step.type === "SERVICE" &&
+        step.actions?.some((action) => {
+          if (action.actionType !== "ARIES_OOB") return false;
+
+          const credDefId = action.credentialDefinitionId;
+          return credDefId === undefined || 
+                 (typeof credDefId === "string" && credDefId.trim() === "");
+        })
     )
-  );
+  )
+);
 
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
 
@@ -293,7 +301,10 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
             {/* <Link href="/publish"> */}
-            <ButtonOutline type="submit" disabled={!form.formState.isValid || isProofRequestEmpty || isInvalidServiceStep} onClick={form.handleSubmit(onSubmit)}>
+            <ButtonOutline type="submit" 
+              disabled={!form.formState.isValid || isProofRequestEmpty || isInvalidServiceStep}
+              onClick={form.handleSubmit(onSubmit)}
+            >
               {t('action.next_label')}
             </ButtonOutline>
             {/* </Link> */}
