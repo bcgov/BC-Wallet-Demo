@@ -12,15 +12,13 @@ export default function TabsComponent({ slug }: { slug: string }) {
   const pathname = usePathname()
   const { tenantId } = useTenant()
   const { showcase, setShowcase } = useShowcaseStore()
-  const { data: showcaseData } = useShowcase(slug, { enabled: slug !== 'create' })
-
+  const { data: showcaseData } = useShowcase(slug, { enabled: slug !== 'create' }) 
   useEffect(() => {
-    if (showcaseData?.showcase) {
+    if (slug !== 'create' && showcaseData?.showcase && showcaseData.showcase.slug) {
       //@ts-ignore
       setShowcase(showcaseData.showcase)
     }
-  }, [showcaseData, setShowcase])
-
+  }, [showcaseData, setShowcase, slug])
   const tabs = [
     { label: t('navigation.general_label'), path: `/${tenantId}/showcases/${slug}` },
     {

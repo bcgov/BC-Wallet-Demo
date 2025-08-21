@@ -51,6 +51,14 @@ export const OnboardingContainer: FC<Props> = ({
   invitationUrl,
 }) => {
   const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    if (!sessionStorage.getItem('hasVisitedOnboarding')) {
+      dispatch({ type: 'demo/RESET' })
+      sessionStorage.setItem('hasVisitedOnboarding', 'true')
+    }
+  }, [dispatch])
+
   const { issuedCredentials } = useCredentials()
   const [currentScenario, setCurrentScenario] = useState<Scenario | undefined>()
   const [credentialDefinitions, setCredentialDefinitions] = useState<CredentialDefinition[]>([])
@@ -99,6 +107,28 @@ export const OnboardingContainer: FC<Props> = ({
       setConnectionCompleted(isConnected(connectionState))
     }
   }, [connectionState])
+
+  useEffect(() => {
+    const handleTabClose = () => {
+      trackSelfDescribingEvent({
+        event: {
+          schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
+          data: {
+            action: 'leave_on_tab_close',
+            path: currentPersona?.role.toLowerCase(),
+            step: currentStep,
+          },
+        },
+      })
+      dispatch({ type: 'demo/RESET' })
+    }
+
+    window.addEventListener('beforeunload', handleTabClose)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose)
+    }
+  }, [currentPersona, currentStep, dispatch])
 
   const isBackDisabled: boolean = !currentStep || currentStep.order === 1
   const isForwardDisabled: boolean = (() => {
