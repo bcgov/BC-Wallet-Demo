@@ -53,7 +53,6 @@ export const CredentialsImport = () => {
 
       const SchemaResponse = await importCredentialSchema(importSchemaPayload)
       if (!SchemaResponse) {
-        console.error('onSubmit: Failed to import schema. SchemaResponse was falsy.');
         toast.error('Failed to import schema')
         setLoader(false)
         return // Stop execution if schema import fails
@@ -72,7 +71,6 @@ export const CredentialsImport = () => {
         
         const CredentialDefinitionResponse = await importCredentialDefinition(importCredentialDefinitionPayload)
         if(!CredentialDefinitionResponse) {
-          console.error('onSubmit: Failed to import CredentialDefinition. CredentialDefinitionResponse was falsy.');
           toast.error('Failed to import CredentialDefinition')
           setLoader(false)
           return // Stop execution if credential definition import fails
