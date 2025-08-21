@@ -33,11 +33,7 @@ export const ShowcaseCreate = () => {
   // const { tenantId } = useHelpersStore()
   const { tenantId } = useTenant();
 
-  useEffect(() => {
-    resetCreateShowcase()
-    resetPresentationCreation()
-    resetOnboardingCreation()
-  }, [])
+  
 
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(showcaseRequestFormData),

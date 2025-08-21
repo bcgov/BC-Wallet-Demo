@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useShowcaseStore } from "@/hooks/use-showcases-store";
 import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas';
@@ -11,6 +9,11 @@ import { toast } from 'sonner';
 import { useQueryClient } from "@tanstack/react-query";
 import { showcaseToShowcaseRequest } from "@/lib/parsers";
 import apiClient from "@/lib/apiService";
+
+type PersonaRequestWithImageType = PersonaRequest & {
+  headshotImageType?: string;
+  bodyImageType?: string;
+}
 
 export const usePersonaAdapter = () => {
   const [headshotImage, setHeadshotImage] = useState<string | null>(null);
@@ -154,7 +157,7 @@ export const usePersonaAdapter = () => {
     setStepState('no-selection');
   }, [setSelectedPersonaId, setEditMode, setStepState]);
 
-  const savePersona = useCallback(async (personaData: PersonaRequest) => {
+  const savePersona = useCallback(async (personaData: PersonaRequestWithImageType) => {
     try {
       let headshotAssetId = selectedPersona?.headshotImage?.id;
       let bodyAssetId = selectedPersona?.bodyImage?.id;
@@ -163,7 +166,7 @@ export const usePersonaAdapter = () => {
         if (headshotImage) {
           headshotAssetId = await handleImageUpdate(
             headshotImage,
-            'image/jpeg',
+            personaData.headshotImageType || 'image/svg+xml',
             'Headshot.jpg',
             'A headshot image'
           );
@@ -176,8 +179,8 @@ export const usePersonaAdapter = () => {
         if (bodyImage) {
           bodyAssetId = await handleImageUpdate(
             bodyImage,
-            'image/jpeg',
-            'Body.jpg',
+            personaData.bodyImageType || 'image/svg+xml',
+            'FullBody.jpg',
             'A full-body image'
           );
         } else {
@@ -185,8 +188,11 @@ export const usePersonaAdapter = () => {
         }
       }
 
-      const updatedPersonaData: PersonaRequest = {
-        ...personaData,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { headshotImageType, bodyImageType, ...restOfPersonaData } = personaData;
+
+      const finalPersonaData: PersonaRequest = {
+        ...restOfPersonaData,
         headshotImage: headshotAssetId,
         bodyImage: bodyAssetId
       };
@@ -196,12 +202,12 @@ export const usePersonaAdapter = () => {
       if (selectedPersonaId && selectedPersona) {
         result = await updatePersona({
           slug: selectedPersona.slug,
-          data: updatedPersonaData
+          data: finalPersonaData
         });
 
         toast.success('Persona has been updated.');
       } else {
-        result = await createPersona(updatedPersonaData);
+        result = await createPersona(finalPersonaData);
         const newPersonaId = (result as { persona: Persona }).persona.id;
 
         setSelectedPersonaIds([...selectedPersonaIds, newPersonaId]);
@@ -238,7 +244,8 @@ export const usePersonaAdapter = () => {
     setSelectedPersonaIds,
     currentShowcaseSlug,
     showcase,
-    updateShowcaseWithPersona
+    updateShowcaseWithPersona,
+    setStepState
   ]);
 
   return {

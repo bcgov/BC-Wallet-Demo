@@ -26,6 +26,7 @@ import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { usePresentationCreation } from '@/hooks/use-presentation-creation'
 import { useOnboardingCreationStore } from '@/hooks/use-onboarding-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import DeleteModal from '../delete-modal'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -41,6 +42,8 @@ export const ShowcaseList = () => {
   const { issuerId, relayerId } = useHelpersStore()
   const router = useRouter()
   const queryClient = useQueryClient()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showcaseToDelete, setShowcaseToDelete] = useState<string | null>(null)
 
   const tabs = [
     { label: t('showcases.header_tab_overview'), status: 'ALL' },
@@ -100,6 +103,7 @@ export const ShowcaseList = () => {
     setPersonaIds([])
     resetIds()
     resetOnboardingIds()
+    setIsModalOpen(false)
     queryClient.invalidateQueries({ queryKey: ['showcases'] })
   }
 
@@ -114,6 +118,22 @@ export const ShowcaseList = () => {
       },
     })
     console.log('newShowcase', newShowcase)
+  }
+
+  const openModal = (slug: string) => {
+    setShowcaseToDelete(slug)
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setShowcaseToDelete(null)
+    setIsModalOpen(false)
+  }
+
+  const confirmDelete = () => {
+    if (showcaseToDelete) {
+      handleDeleteShowcase(showcaseToDelete)
+    }
   }
 
   const UpdateShowcaseStatus = async(showcase: Showcase) => {
@@ -200,7 +220,6 @@ export const ShowcaseList = () => {
           {data?.showcases
             ?.filter(searchFilter)
             .filter((showcase) => activeTab.status === tabs[0].status || showcase.status === activeTab.status)
-            .reverse()
             .map((showcase: Showcase) => (
               <Card key={showcase.id}>
                 <div
@@ -219,7 +238,7 @@ export const ShowcaseList = () => {
                   >
                     <div
                       className={cn(
-                        'left-4 right-0 top-4 py-2 rounded w-1/4 absolute',
+                        'left-4 right-0 top-4 py-2 rounded w-fit px-2 absolute',
                         showcase.status == 'ACTIVE' ? 'bg-yellow-500' : 'bg-dark-grey',
                       )}
                     >
@@ -231,7 +250,7 @@ export const ShowcaseList = () => {
                     <div className="absolute bg-black bottom-0 left-0 right-0 bg-opacity-70 p-3">
                       <p className="text-xs text-gray-300 break-words">
                         {t('showcases.created_by_label', {
-                          name: 'Test college',
+                          name: tenantId,
                         })}
                       </p>
                       <div className="flex justify-between">
@@ -239,7 +258,7 @@ export const ShowcaseList = () => {
                         <div className="flex-shrink-0">
                           <DeleteButton
                             onClick={() => {
-                              handleDeleteShowcase(showcase.slug)
+                              openModal(showcase.slug)
                             }}
                           />
 
@@ -310,18 +329,17 @@ export const ShowcaseList = () => {
         </div>
       </section>
 
-      {/* <DeleteModal
+        <DeleteModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onDelete={() => {
-            setIsModalOpen(false);
-          }}
-          header="Edit Published Showcase?"
-          description="You are about to edit a published showcase. If you instead wish to make a copy, click <b>Cancel</b> below and then select <b>Create A Copy</b> under the showcase card"
-          subDescription="If you proceed with editing, a <b>Draft version</b> will be created. This Draft will remain unpublished until an Admin approves your changes. <b>Until then, the current published showcase will stay active.</b>"
+          onClose={() => closeModal()}
+          onDelete={() => confirmDelete()}
+          header="Are you sure you want to delete this showcase?"
+          description="Are you sure you want to delete this showcase?"
+          subDescription="<b>This action cannot be undone.</b>"
           cancelText="CANCEL"
-          deleteText="PROCEED WITH EDITING"
-        /> */}
+          deleteText="DELETE"
+          isLoading={isLoading}
+        />
     </div>
   )
 }

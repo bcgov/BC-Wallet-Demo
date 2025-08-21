@@ -104,8 +104,8 @@ export const CreateScenariosScreen = () => {
                 className={cn(
                   'w-full p-4 text-center cursor-pointer transition-colors duration-200',
                   activePersonaId === persona.id
-                    ? 'bg-white dark:bg-dark-bg shadow-md'
-                    : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600',
+                    ? 'bg-white dark:bg-gray-700 shadow-md'
+                    : 'bg-gray-200 dark:bg-dark-bg hover:bg-gray-100'
                 )}
               >
                 <div className="flex flex-col items-center">

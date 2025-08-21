@@ -44,13 +44,15 @@ export const OnboardingPage: React.FC = () => {
       dispatch(clearCredentials())
       dispatch(clearConnection())
       navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
-    } else if (!isCompleted && !showcase) {
+    }
+  }, [dispatch, slug, isCompleted, showcase, currentPersona])
+
+  useEffect(() => {
+    if (!showcase || showcase.slug !== slug) {
       dispatch(clearShowcase())
       dispatch(fetchShowcaseBySlug(slug))
-    } else {
-       dispatch(fetchShowcaseBySlug(slug))
     }
-  }, [dispatch, slug, isCompleted])
+  }, [dispatch, slug, showcase])
 
   useEffect(() => {
     dispatch(fetchWallets())

@@ -18,7 +18,7 @@ export const Instructions = () => {
           <p className="text-xs text-foreground/80">This is the first step to create a showcase.</p>
         </li>
         <li className="flex flex-col gap-2">
-          <h3 className="text-sm font-bold">Step 2: Create a persona</h3>
+          <h3 className="text-sm font-bold">Step 2: Create a persona(character)</h3>
           <p className="text-xs text-foreground/80">Configure your personas to be used in the showcase.</p>
         </li>
         <li className="flex flex-col gap-2">

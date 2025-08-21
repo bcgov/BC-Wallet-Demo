@@ -14,7 +14,7 @@ export const FileUploadFull = ({
   text: string
   element: string
   initialValue?: string
-  handleJSONUpdate: (imageType: string, imageData: string) => void
+  handleJSONUpdate: (imageType: string, imageData: string, fileType?: string) => void
 }) => {
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(initialValue || null)
@@ -32,14 +32,14 @@ export const FileUploadFull = ({
           const base64WithoutPrefix = base64.replace(/^data:image\/[a-zA-Z+\-]+;base64,/, '')
 
           setPreview(`data:${mimeType};base64,${base64WithoutPrefix}`)
-          handleJSONUpdate(element, base64WithoutPrefix)
+          handleJSONUpdate(element, base64WithoutPrefix, mimeType)
         }
       } catch (error) {
         console.error('Error converting file:', error)
       }
     } else {
       setPreview(null)
-      handleJSONUpdate(element, '')
+      handleJSONUpdate(element, '', '')
     }
   }
 
@@ -84,7 +84,7 @@ export const FileUploadFull = ({
         <input
           id={element}
           type="file"
-          accept="image/png, image/jpeg"
+          accept="image/png, image/jpeg, image/svg+xml"
           className="hidden"
           onChange={(e) => handleChange(e.target.files?.[0] ?? null)}
         />

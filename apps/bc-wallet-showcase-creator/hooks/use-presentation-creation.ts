@@ -74,6 +74,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
     setActivePersonaId: (id) =>
       set((state) => {
         state.activePersonaId = id
+        state.activeScenarioIndex = 0
       }),
 
     setActiveScenarioIndex: (index) =>
@@ -424,7 +425,7 @@ export const usePresentationCreation = (showcaseSlug?: string) => {
   } = usePresentationCreationStore()
 
   useEffect(() => {
-    if (showcaseSlug && showcaseData && !isShowcaseLoading) {
+    if (showcaseSlug && showcaseData && !isShowcaseLoading && !isInitialized) {
       const showcase = showcaseData?.showcase
 
       if (showcase) {

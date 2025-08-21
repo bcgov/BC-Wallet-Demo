@@ -34,6 +34,7 @@ class ApiService {
         'Content-Type': 'application/json',
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
+      signal: AbortSignal.timeout(30000) 
     }
 
     if (data && method !== 'GET') {
