@@ -55,15 +55,16 @@ export const useShowcaseStore = create<ShowcaseStore>()(
         showcase: { ...state.showcase, personas: personaIds }
       })),
 
-      setScenarioIds: (scenarioIds) => set((state) => ({
-        showcase: {
-          ...state.showcase,
-          scenarios: scenarioIds.length === 0 ? [] : [
-            ...state.showcase.scenarios ?? [],
-            ...scenarioIds
-          ]
-        }
-      })),
+      setScenarioIds: (scenarioIds) => set((state) => {
+        const currentScenarios = new Set(state.showcase.scenarios || []);
+        scenarioIds.forEach(id => currentScenarios.add(id));
+        return {
+          showcase: {
+            ...state.showcase,
+            scenarios: Array.from(currentScenarios)
+          }
+        };
+      }),
 
       setSelectedPersonaIds: (ids) => set({ selectedPersonaIds: ids }),
       clearSelectedPersonas: () => set({ selectedPersonaIds: [] }),

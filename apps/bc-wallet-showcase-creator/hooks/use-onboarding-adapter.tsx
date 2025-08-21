@@ -80,7 +80,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
   }, [showcaseSlug, personaScenarios, selectedPersonas, activePersonaId, isInitialized, setActivePersonaId])
 
   const getCurrentSteps = useCallback(() => {
-    if (hasNoScenarios) return []
+    if (hasNoScenarios && personaScenarios.size ===0) return []
 
     if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
 
@@ -89,7 +89,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     if (activeScenarioIndex < 0 || activeScenarioIndex >= scenarioList.length) return []
 
     return scenarioList[activeScenarioIndex].steps as Screen[]
-  }, [activePersonaId, personaScenarios, activeScenarioIndex])
+  }, [activePersonaId, personaScenarios, activeScenarioIndex, hasNoScenarios])
 
   const steps = getCurrentSteps();
 
@@ -101,11 +101,12 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
       if (currentSteps.length > 0) {
         handleSelectStepImpl(0, activeScenarioIndex);
-        setIsInitialized(true);
-      } else {
-        setIsInitialized(true);
       }
-    } else if (isCreationInitialized) {
+      setIsInitialized(true);
+    } else if (personaScenarios.size > 0 && !activePersonaId) {
+      const firstPersonaId = Array.from(personaScenarios.keys())[0];
+      setActivePersonaId(firstPersonaId);
+    } else {
       setIsInitialized(true);
     }
   }, [

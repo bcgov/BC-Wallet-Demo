@@ -102,11 +102,11 @@ export const SetupConnectionAction: React.FC<Props> = ({
           </a>
         )}
       </>
-      { skipGetCredential &&
+      {skipGetCredential && (
         <div className="my-5">
-          <Button text="I Already Have my Credential" onClick={skipGetCredential}></Button>
+          <Button text="I Already Have my Credential" onClick={skipGetCredential} disabled={!invitationUrl}></Button>
         </div>
-      }
+      )}
     </motion.div>
   ) : (
     <motion.div variants={fade} key="ctaCompleted">
@@ -129,11 +129,11 @@ export const SetupConnectionAction: React.FC<Props> = ({
       <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4 dark:text-black">
         <p className="text-center mb-2">Scan the QR Code below with your digital wallet.</p>
         <div>{renderQRCode(true)}</div>
-        { skipGetCredential &&
-            <div className="mt-5">
-              <Button text="I Already Have my Credential" onClick={skipGetCredential}></Button>
-            </div>
-        }
+        {skipGetCredential && (
+          <div className="mt-5">
+            <Button text="I Already Have my Credential" onClick={skipGetCredential} disabled={!invitationUrl}></Button>
+          </div>
+        )}
       </div>
     </div>
   )
