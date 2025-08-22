@@ -76,6 +76,8 @@ spec:
               value: {{ .Values.postgresql.auth.database | quote }}
             - name: SHOWCASE_DB_HOST
               value: {{ .Release.Name }}-postgresql
+            - name: RELYING_PARTY_NAME
+              value: relyingPartyName
             - name: SHOWCASE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
