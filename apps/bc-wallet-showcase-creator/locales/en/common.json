@@ -119,7 +119,7 @@
     "link_text": "Find on CandyScan",
     "step1_title": "Step 1",
     "step1_description": "Navigate to the Source URL where the credential is located:",
-    "step1_link_text": "CandyScan",
+    "step1_link_text": "Bcovrin",
     "step1_link_description": "where all BC Gov schemas and credentials are stored.",
     "step2_title": "Step 2",
     "step2_description": "Search for the Desired Credential/Schema",

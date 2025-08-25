@@ -64,15 +64,23 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
   };
 
   const currentAction = getCurrentAction();
-  const { deleteStep, selectedScenario } = useOnboardingAdapter()
+  const { deleteStep, selectedScenario, personaScenarios } = useOnboardingAdapter()
 
-  const isInvalidServiceStep = selectedScenario?.steps?.some(
-  (step) =>
-    step.type === 'SERVICE' &&
-    step.actions?.some(
-      (action) => action.credentialDefinitionId !== undefined && action.credentialDefinitionId.trim() === ''
+const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList]) =>
+  scenarioList.some((scenario) =>
+    scenario.steps?.some(
+      (step) =>
+        step.type === "SERVICE" &&
+        step.actions?.some(
+          (action) =>
+            "credentialDefinitionId" in action && // key must exist
+            typeof action.credentialDefinitionId === "string" &&
+            action.credentialDefinitionId.trim() === ""
+        )
     )
-  );
+  )
+);
+
 
   const getSchemaForStep = () => {
     if (stepType === StepType.Service) {

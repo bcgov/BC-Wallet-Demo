@@ -18,6 +18,7 @@ import { DemoCompletedModal } from './components/DemoCompletedModal'
 import { ProfileCard } from './components/ProfileCard'
 import { UseCaseContainer } from './components/UseCaseContainer'
 import { fetchPersonaBySlug, fetchShowcaseBySlug } from '../../slices/showcases/showcasesThunks'
+import { clearShowcase } from '../../slices/showcases/showcasesSlice'
 import { usePersonaSlug, useSlug } from '../../utils/SlugUtils'
 import { PageNotFound } from '../PageNotFound'
 import { ScenarioType } from 'bc-wallet-openapi'
@@ -42,6 +43,7 @@ export const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
+        dispatch(clearShowcase())
         await dispatch(fetchShowcaseBySlug(showcaseSlug))
         await dispatch(fetchPersonaBySlug(personaSlug))
     }

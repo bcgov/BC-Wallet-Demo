@@ -45,7 +45,7 @@ export const Section: FC<Props> = (props: Props) => {
 
   const style = isMobile ? { height: '700px' } : { minHeight: '800px', height: '80vh' }
   const LEAVE_MODAL_TITLE = 'Are you sure you want to leave?'
-  const LEAVE_MODAL_DESCRIPTION = `You'll be redirected to the dashboard.`
+  const LEAVE_MODAL_DESCRIPTION = `You'll be redirected to the presentation dashboard.`
 
   const showLeaveModal = () => setLeaveModal(true)
   const closeLeave = () => setLeaveModal(false)

@@ -141,7 +141,7 @@ export class TractionService extends ApiService {
     if (args.tractionToken) {
       this.configOptions.apiKey = this.tokenCallback(args.tractionToken)
       if (DEBUG_ENABLED) {
-        console.debug('Traction token updated and APIs re-initialized.');
+        console.debug(`Traction token updated. New token ends with: ...${args.tractionToken.slice(-8)}`);
       }
     }
     if (args.showcaseApiToken) {
@@ -158,8 +158,14 @@ export class TractionService extends ApiService {
    * @returns A callback function that provides the token for the specified header
    */
   private tokenCallback(token: string) {
+    if (DEBUG_ENABLED) {
+      console.debug(`tokenCallback created for token ending with: ...${token.slice(-8)}`);
+    }
     return async (name: string) => {
       if (name === 'Authorization') {
+        if (DEBUG_ENABLED) {
+          console.debug(`Using Traction token ending with: ...${token.slice(-8)} for API call.`);
+        }
         return `Bearer ${token}`
       }
       return ''

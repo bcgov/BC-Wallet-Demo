@@ -30,6 +30,8 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isProceeding, setIsProceeding] = useState(false)
   const { tenantId } = useTenant();
+  const [headshotImageType, setHeadshotImageType] = useState<string | null>(null);
+  const [bodyImageType, setBodyImageType] = useState<string | null>(null);
 
   const {
     // State
@@ -104,6 +106,8 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
         hidden: data.hidden,
         headshotImage: headshotImage || undefined,
         bodyImage: bodyImage || undefined,
+        headshotImageType: headshotImageType || undefined,
+        bodyImageType: bodyImageType || undefined,
       });
 
       handleCreateNew();
@@ -117,6 +121,8 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
 
       setHeadshotImage(null);
       setBodyImage(null);
+      setHeadshotImageType(null);
+      setBodyImageType(null);
       setIsHeadshotImageEdited(false);
       setIsBodyImageEdited(false);
 
@@ -329,8 +335,9 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                     ? `${baseUrl}/${tenantId}/assets/${selectedPersona.headshotImage.id}/file`
                                     : undefined
                                 }
-                                handleJSONUpdate={(imageType, imageData) => {
+                                handleJSONUpdate={(imageType, imageData, fileType) => {
                                   setHeadshotImage(imageData);
+                                  setHeadshotImageType(fileType ?? 'image/jpeg')
                                   setIsHeadshotImageEdited(true);
                                 }}
                               />
@@ -344,8 +351,9 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                     ? `${baseUrl}/${tenantId}/assets/${selectedPersona.bodyImage.id}/file`
                                     : undefined
                                 }
-                                handleJSONUpdate={(imageType, imageData) => {
+                                handleJSONUpdate={(imageType, imageData, fileType) => {
                                   setBodyImage(imageData);
+                                  setBodyImageType(fileType ?? 'image/jpeg')
                                   setIsBodyImageEdited(true);
                                 }}
                               />

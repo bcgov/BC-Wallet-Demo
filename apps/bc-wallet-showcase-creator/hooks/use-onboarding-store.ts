@@ -269,13 +269,11 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
         currentScenario.steps = currentSteps;
         updatedScenarios[scenarioIndex] = currentScenario;
 
-        return {
-          personaScenariosMap: {
-            ...state.personaScenariosMap,
-            [personaId]: updatedScenarios,
-          },
+        state.personaScenariosMap = {
+          ...state.personaScenariosMap,
+          [personaId]: updatedScenarios,
         };
-    }),
+      }),
 
     updateStep: (personaId, scenarioIndex, stepIndex, stepData) =>
       set((state) => {

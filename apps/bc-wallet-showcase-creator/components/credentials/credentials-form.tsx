@@ -45,6 +45,7 @@ export const CredentialsForm = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [credentialLogo, setCredentialLogo] = useState<string>()
+  const [credentialLogoType, setCredentialLogoType] = useState('image/jpeg')
   const [isLoading, setIsLoading] = useState(false)
   const { tenantId } = useTenant();
   const { mutateAsync: createAsset } = useCreateAsset()
@@ -109,7 +110,7 @@ export const CredentialsForm = () => {
         if (!schemaId) throw new Error('Failed to create schema')
 
         const assetPayload: AssetRequest = {
-          mediaType: 'image/jpeg',
+          mediaType: credentialLogoType,
           content: credentialLogo ?? '',
           fileName: 'example.jpg',
           description: 'Example asset',
@@ -450,8 +451,9 @@ export const CredentialsForm = () => {
                   <FileUploadFull
                     text={t('credentials.image_label')}
                     element="headshot_image"
-                    handleJSONUpdate={(imageType, imageData) => {
+                    handleJSONUpdate={(imageType, imageData, fileType) => {
                       setCredentialLogo(imageData)
+                      setCredentialLogoType(fileType?? 'image/jpeg')
                     }}
                   />
                 </div>
@@ -482,7 +484,7 @@ export const CredentialsForm = () => {
             variant="outlineAction"
             size="lg"
             type="submit"
-            disabled={!form.formState.isDirty || !form.formState.isValid}
+            disabled={!form.formState.isDirty || !form.formState.isValid || (form.watch('attributes')?.length ?? 0) === 0}
           >
             {isSubmitting ? 'CREATING...' : 'CREATE CREDENTIAL'}
           </Button>

@@ -101,7 +101,7 @@ export const BannerImageUpload = ({
         <input
           id="bannerImage"
           type="file"
-          accept="image/png, image/jpeg"
+          accept="image/png, image/jpeg, image/svg+xml"
           className="hidden"
           onChange={(e) => handleChange(e.target.files?.[0] ?? null)}
         />
