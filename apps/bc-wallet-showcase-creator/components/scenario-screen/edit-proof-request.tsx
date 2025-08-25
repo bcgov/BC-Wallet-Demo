@@ -27,12 +27,12 @@ interface EditProofRequestProps {
 }
 
 export const EditProofRequest = ({
-                                   setEditingCredentials,
-                                   editingCredentials,
-                                   editingIndex,
-                                   updateCredentials,
-                                   credentialId
-                                 }: EditProofRequestProps) => {
+  setEditingCredentials,
+  editingCredentials,
+  editingIndex,
+  updateCredentials,
+  credentialId
+}: EditProofRequestProps) => {
   const { data: cred, isLoading } = useCredentialDefinition(credentialId)
   const { selectedScenario, updateStep, selectedStep } = usePresentationAdapter()
 
@@ -53,10 +53,14 @@ export const EditProofRequest = ({
       attributes: {
         [credentialName]: {
           attributes: [],
-          restrictions: []
+          restrictions: [],
         }
       },
-      predicates: {}
+      predicates: {
+        [credentialName]: {
+          predicates: [],
+        }
+      }
     }
   })
 
@@ -67,7 +71,7 @@ export const EditProofRequest = ({
     if (!action || action.actionType !== StepActionType.AriesOob || !action.proofRequest) return
 
     const currentAttributes = action.proofRequest.attributes?.[credentialName]?.attributes || []
-    const currentPredicates = action.proofRequest.predicates || undefined
+    const currentPredicates = action.proofRequest.predicates?.[credentialName]?.predicates || []
 
     form.reset({
       attributes: {
@@ -76,6 +80,18 @@ export const EditProofRequest = ({
           restrictions: [credentialName]
         }
       },
+      predicates: {
+        [credentialName]: {
+          predicates: currentPredicates.map(pred => ({
+            name: pred.name,
+            type: pred.type as ">=" | "<=" | "=" | "none",
+            value: pred.value,
+            restrictions: [credentialName]
+          }))
+        },
+
+      }
+
     })
   }, [currentStep, cred, credentialName, form])
 
@@ -115,30 +131,96 @@ export const EditProofRequest = ({
   }
 
   const handleConditionTypeChange = (index: number, value: string) => {
+    // Get both attributes and predicates
     const currentAttributes = form.getValues(`attributes.${credentialName}.attributes`) || []
-    if (!currentAttributes[index]) return
+    const currentPredicates = form.getValues(`predicates.${credentialName}.predicates`) || []
 
-    const attribute = currentAttributes[index]
+    // Get the attribute name from the combined list
+    const attributeList = [
+      ...currentAttributes,
+      ...currentPredicates.map(p => p.name)
+    ]
+    const attribute = attributeList[index]
+
+    if (!attribute) return
 
     if (value === 'none') {
-      const predicates = form.getValues('predicates') || {}
-      const predicateKey = Object.keys(predicates).find((key) => predicates[key].name === attribute)
-      if (predicateKey) {
-        const newPredicates = { ...predicates }
-        delete newPredicates[predicateKey]
-        form.setValue('predicates', newPredicates, { shouldDirty: true })
+      // Remove from predicates
+      const newPredicates = currentPredicates.filter(pred => pred.name !== attribute)
+      form.setValue(`predicates.${credentialName}.predicates`, newPredicates, { shouldDirty: true })
+
+      // Add back to attributes if not present
+      if (!currentAttributes.includes(attribute)) {
+        form.setValue(`attributes.${credentialName}.attributes`, [...currentAttributes, attribute], {
+          shouldDirty: true
+        })
       }
     } else {
-      form.setValue(`predicates.${attribute}`, {
-        name: attribute,
-        type: value as '>=',
-        value: 0,
-        restrictions: [credentialName],
-      }, { shouldDirty: true })
+      // Remove from attributes list
+      const newAttributes = currentAttributes.filter(attr => attr !== attribute)
+      form.setValue(`attributes.${credentialName}.attributes`, newAttributes, {
+        shouldDirty: true
+      })
 
-      const newAttributes = currentAttributes.filter((_, i) => i !== index)
-      form.setValue(`attributes.${credentialName}.attributes`, newAttributes, { shouldDirty: true })
+      // Create predicate object
+      const allowedTypes = ['>=', '<=', '=', 'none'] as const
+      const predicateType: '>=' | '<=' | '=' | 'none' =
+        allowedTypes.includes(value as any) ? (value as '>=' | '<=' | '=' | 'none') : 'none'
+
+      const predicate = {
+        name: attribute,
+        type: predicateType,
+        value: 0,
+        restrictions: [credentialName]
+      }
+
+      // Add/Update predicate
+      const existingPredicateIndex = currentPredicates.findIndex(p => p.name === attribute)
+      if (existingPredicateIndex !== -1) {
+        currentPredicates[existingPredicateIndex] = predicate
+      } else {
+        currentPredicates.push(predicate)
+      }
+
+      form.setValue(`predicates.${credentialName}.predicates`, currentPredicates, {
+        shouldDirty: true,
+        shouldValidate: true
+      })
     }
+
+    // Force form update
+    form.trigger()
+  }
+
+  // Add handleConditionValueChange function
+  const handleConditionValueChange = (index: number, value: string) => {
+    const currentAttributes = form.getValues(`attributes.${credentialName}.attributes`) || []
+    const currentPredicates = form.getValues(`predicates.${credentialName}.predicates`) || []
+
+    const attributeList = [
+      ...currentAttributes,
+      ...currentPredicates.map(p => p.name)
+    ]
+    const attribute = attributeList[index]
+
+    if (!attribute) return
+
+    const existingPredicateIndex = currentPredicates.findIndex(p => p.name === attribute)
+    if (existingPredicateIndex === -1) return
+
+    const updatedPredicates = [...currentPredicates]
+    updatedPredicates[existingPredicateIndex] = {
+      ...currentPredicates[existingPredicateIndex],
+      value: parseFloat(value) || 0
+    }
+
+    form.setValue(`predicates.${credentialName}.predicates`, updatedPredicates, {
+      shouldDirty: true,
+      shouldValidate: true
+    })
+
+    // Force form update
+    form.trigger()
   }
 
   const handleAddAttribute = () => {
@@ -153,13 +235,34 @@ export const EditProofRequest = ({
       form.setValue(`attributes.${credentialName}.attributes`, [...currentAttributes, defaultAttribute], {
         shouldDirty: true
       })
+      form.setValue(`attributes.${credentialName}.restrictions`, [credentialName], {
+        shouldDirty: true
+      })
     }
   }
 
   const handleRemoveAttribute = (index: number) => {
     const currentAttributes = form.getValues(`attributes.${credentialName}.attributes`) || []
-    const newAttributes = currentAttributes.filter((_, i) => i !== index)
+    const currentPredicates = form.getValues(`predicates.${credentialName}.predicates`) || []
+
+    // Get the attribute name from the combined list
+    const attributeList = [
+      ...currentAttributes,
+      ...currentPredicates.map(p => p.name)
+    ]
+    const attributeName = attributeList[index]
+
+    if (!attributeName) return
+
+    // Remove from attributes if present
+    const newAttributes = currentAttributes.filter(attr => attr !== attributeName)
     form.setValue(`attributes.${credentialName}.attributes`, newAttributes, {
+      shouldDirty: true
+    })
+
+    // Remove from predicates if present
+    const newPredicates = currentPredicates.filter(p => p.name !== attributeName)
+    form.setValue(`predicates.${credentialName}.predicates`, newPredicates, {
       shouldDirty: true
     })
   }
@@ -175,7 +278,6 @@ export const EditProofRequest = ({
       ...currentStep,
       actions: currentStep.actions.map((action, index) => {
         if (index !== 0) return action
-
         return {
           ...action,
           proofRequest: {
@@ -195,7 +297,12 @@ export const EditProofRequest = ({
     return <Skeleton className="w-full h-full" />
   }
 
-  const attributeList = form.watch(`attributes.${credentialName}.attributes`) || []
+  const formValues = form.watch();
+
+  const attributeList = [
+    ...(formValues.attributes?.[credentialName]?.attributes || []),
+    ...(formValues.predicates?.[credentialName]?.predicates || []).map(p => p.name)
+  ];
 
   return (
     <div className="space-y-6">
@@ -215,8 +322,10 @@ export const EditProofRequest = ({
               }}
               availableAttributes={availableAttributes}
               currentValue={attributeName}
+              predicates={formValues.predicates?.[credentialName]?.predicates}
               onAttributeChange={handleAttributeChange}
               onConditionTypeChange={handleConditionTypeChange}
+              onConditionValueChange={handleConditionValueChange}
               onRemove={handleRemoveAttribute}
             />
           ))

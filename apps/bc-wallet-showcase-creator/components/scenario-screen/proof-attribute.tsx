@@ -11,8 +11,10 @@ interface ProofAttributeProps {
   attribute: CredentialAttribute
   availableAttributes: CredentialAttribute[]
   currentValue: string
+  predicates?: Array<{ name: string; value: number; type: string }>
   onAttributeChange: (index: number, value: string) => void
   onConditionTypeChange: (index: number, value: string) => void
+  onConditionValueChange: (index: number, value: string) => void
   onRemove: (index: number) => void
 }
 
@@ -21,8 +23,10 @@ export const ProofAttribute = ({
   attribute,
   availableAttributes,
   currentValue,
+  predicates,
   onAttributeChange,
   onConditionTypeChange,
+  onConditionValueChange,
   onRemove,
 }: ProofAttributeProps) => {
   const t = useTranslations()
@@ -56,7 +60,10 @@ export const ProofAttribute = ({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Condition</label>
-        <Select defaultValue='none' disabled onValueChange={(value) => onConditionTypeChange(index, value)}>
+            <Select 
+          value={predicates?.find(p => p.name === attribute.name)?.type || 'none'}
+          onValueChange={(value) => onConditionTypeChange(index, value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
           </SelectTrigger>
@@ -72,7 +79,11 @@ export const ProofAttribute = ({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Condition Value</label>
-        <Input disabled />
+        <Input
+          onChange={(e) => onConditionValueChange(index, e.target.value)}
+          type="number"
+          value={predicates?.find(p => p.name === attribute.name)?.value || ''}
+        />
       </div>
 
       <Button
