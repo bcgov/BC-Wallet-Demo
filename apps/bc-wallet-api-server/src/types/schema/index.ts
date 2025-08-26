@@ -288,10 +288,14 @@ export type AriesRequestCredentialPredicate = {
   restrictions?: string[]
 }
 
+export type AriesRequestPredicates = {
+  predicates?: AriesRequestCredentialPredicate[]
+}
+
 export type AriesProofRequest = typeof ariesProofRequests.$inferSelect
 export type NewAriesProofRequest = Omit<typeof ariesProofRequests.$inferInsert, 'stepAction'> & {
   attributes?: Record<string, AriesRequestCredentialAttribute>
-  predicates?: Record<string, AriesRequestCredentialPredicate>
+  predicates?: Record<string, AriesRequestPredicates>
 }
 
 export type Tenant = typeof tenants.$inferSelect & {

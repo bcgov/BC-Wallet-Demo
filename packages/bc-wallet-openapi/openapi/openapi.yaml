@@ -2468,7 +2468,7 @@ components:
         predicates:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/AriesRequestCredentialPredicates'
+            $ref: '#/components/schemas/AriesRequestPredicates'
           description: Map of predicate groups requested in the proof
           example:
             age:
@@ -2499,7 +2499,7 @@ components:
         predicates:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/AriesRequestCredentialPredicates'
+            $ref: '#/components/schemas/AriesRequestPredicates'
           description: Map of predicate groups requested in the proof
           example:
             age:
@@ -2521,6 +2521,14 @@ components:
             description: Name of the restriction to be included in the proof
             example: age
           description: List of restrictions on the requested attributes
+    AriesRequestPredicates:
+      type: object
+      properties:
+        predicates:
+          type: array
+          items:
+            $ref: '#/components/schemas/AriesRequestCredentialPredicates'
+          description: List of predicates to be included in the proof
     AriesRequestCredentialPredicates:
       type: object
       required:
