@@ -62,7 +62,7 @@ export const StepInformation: FC<Props> = (props: Props) => {
                   properties:
                     credentialDefinition.proofRequest?.attributes?.[credentialDefinition.schema.name].attributes,
                   predicates:
-                    credentialDefinition.proofRequest?.predicates?.[credentialDefinition.schema.name].predicates?.[0],
+                    credentialDefinition.proofRequest?.predicates?.[credentialDefinition.schema.name].predicates,
                 }),
               )}
               requestOptions={{

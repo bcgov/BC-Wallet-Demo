@@ -82,6 +82,7 @@ export const CredentialsForm = () => {
 
     if (isDuplicate) {
       toast.error("A schema with the same name and version already exists.");
+      return false;
     }
 
     return true;
@@ -91,7 +92,7 @@ export const CredentialsForm = () => {
     try {
       setIsSubmitting(true)
 
-      if (!validateUniqueSchema(formData)) {
+      if (validateUniqueSchema(formData)) {
 
         const schemaPayload = {
           name: formData.name || 'example_name',
