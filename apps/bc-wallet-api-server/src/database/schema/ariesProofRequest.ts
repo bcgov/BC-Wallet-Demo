@@ -1,12 +1,12 @@
 import { relations } from 'drizzle-orm'
 import { pgTable, jsonb, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { stepActions } from './stepAction'
-import { AriesRequestCredentialAttribute, AriesRequestCredentialPredicate } from '../../types'
+import { AriesRequestCredentialAttribute, AriesRequestPredicates } from '../../types'
 
 export const ariesProofRequests = pgTable('ariesProofRequest', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),
   attributes: jsonb().$type<Record<string, AriesRequestCredentialAttribute>>(),
-  predicates: jsonb().$type<Record<string, AriesRequestCredentialPredicate>>(),
+  predicates: jsonb().$type<Record<string, AriesRequestPredicates>>(),
   stepAction: uuid('step_action')
     .references(() => stepActions.id, { onDelete: 'cascade' })
     .notNull()

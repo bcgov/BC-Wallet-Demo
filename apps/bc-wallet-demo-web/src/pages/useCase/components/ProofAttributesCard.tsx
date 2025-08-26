@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react'
 
 import { startCase } from 'lodash'
 
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
 import { CheckMark } from '../../../components/Checkmark'
 import { Loader } from '../../../components/Loader'
+import type { Attribute, CredentialRequest } from '../../../slices/types'
 import { isDataUrl } from '../../../utils/Helpers'
 import { getAttributesFromProof } from '../../../utils/ProofUtils'
-import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
-import type { Attribute, CredentialRequest } from '../../../slices/types'
 
 export interface Props {
   entityName: string
@@ -69,14 +69,18 @@ export const ProofAttributesCard: React.FC<Props> = ({ entityName, requestedCred
               </div>
             )
           })}
-          {item.predicates && (
-            <div className="flex flex-row">
-              <p className="flex-1-1 text-sm bg-bcgov-lightgrey dark:bg-bcgov-darkgrey p-1 px-2 rounded-lg m-2">
-                {item.predicates.name.charAt(0).toUpperCase() + item.predicates.name.slice(1)}
-              </p>
-              <p className="flex-1 text-sm bg-white dark:bg-grey p-1 px-2 rounded-lg m-2">{proofReceived && 'OK'}</p>
-            </div>
-          )}
+          {item.predicates && item.predicates.length > 0 &&
+            item.predicates.map((predicate) => (
+              <div className="flex flex-row" key={predicate.name}>
+                <div
+                  style={{ justifySelf: 'center', alignSelf: 'center' }}
+                  className="flex-1-1 text-sm bg-bcgov-lightgrey dark:bg-bcgov-darkgrey p-1 px-2 rounded-lg my-1 md:m-2"
+                >
+                  <p>{predicate.name.charAt(0).toUpperCase() + predicate.name.slice(1)}</p>
+                </div>
+                <p className="flex-1 text-sm bg-white dark:bg-grey p-1 px-2 rounded-lg m-2">{proofReceived && 'OK'}</p>
+              </div>
+            ))}
         </div>
       </div>
     )
@@ -84,18 +88,18 @@ export const ProofAttributesCard: React.FC<Props> = ({ entityName, requestedCred
 
   return (
     <>
-    {(
-      <div className="flex flex-col bg-bcgov-white dark:bg-bcgov-black p-4 md:mb-8 rounded-lg shadow max-h-64 my-2 sm:max-h-72 md:max-h-96 overflow-auto">
-        <div className="flex-1-1 title">
-          <div className="flex flex-row">
-            <h1 className="flex flex-1 font-semibold dark:text-white">{entityName} would like to know:</h1>
-            <div className="flex-1-1 h-8 mb-2">{proofReceived ? <CheckMark /> : <Loader />}</div>
+      {
+        <div className="flex flex-col bg-bcgov-white dark:bg-bcgov-black p-4 md:mb-8 rounded-lg shadow max-h-64 my-2 sm:max-h-72 md:max-h-96 overflow-auto">
+          <div className="flex-1-1 title">
+            <div className="flex flex-row">
+              <h1 className="flex flex-1 font-semibold dark:text-white">{entityName} would like to know:</h1>
+              <div className="flex-1-1 h-8 mb-2">{proofReceived ? <CheckMark /> : <Loader />}</div>
+            </div>
+            <hr className="text-bcgov-lightgrey" />
           </div>
-          <hr className="text-bcgov-lightgrey" />
+          <div className="flex flex-col">{renderRequestedCreds}</div>
         </div>
-        <div className="flex flex-col">{renderRequestedCreds}</div>
-      </div>
-    )}
+      }
     </>
   )
 }

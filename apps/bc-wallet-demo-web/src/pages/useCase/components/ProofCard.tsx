@@ -1,5 +1,7 @@
 import React, { FC } from 'react'
+
 import { startCase } from 'lodash'
+
 import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
 import type { CredentialRequest } from '../../../slices/types'
 

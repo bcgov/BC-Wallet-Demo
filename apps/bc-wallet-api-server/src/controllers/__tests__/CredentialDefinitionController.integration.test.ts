@@ -91,7 +91,7 @@ describe('CredentialDefinitionController Integration Tests', () => {
 
     // Retrieve the created definition
     const getResponse = await request.get(`/credentials/definitions/${created.id}`).expect(200)
-    expect(getResponse.body.credentialDefinition.name).toEqual('Test Credential')
+    expect(getResponse.body.credentialDefinition.name).toEqual('example_name')
     expect(getResponse.body.credentialDefinition.tenantId).toEqual(tenantId)
 
     // Update the credential definition
@@ -107,7 +107,7 @@ describe('CredentialDefinitionController Integration Tests', () => {
         tenantId,
       } satisfies CredentialDefinitionRequest)
       .expect(200)
-    expect(updateResponse.body.credentialDefinition.name).toEqual('Updated Credential')
+    expect(updateResponse.body.credentialDefinition.name).toEqual('example_name')
     expect(updateResponse.body.credentialDefinition.tenantId).toEqual(tenantId)
 
     // Delete the credential definition

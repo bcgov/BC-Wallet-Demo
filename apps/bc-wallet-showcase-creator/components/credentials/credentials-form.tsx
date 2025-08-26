@@ -8,6 +8,7 @@ import {
   useCreateCredentialSchema,
   useCreateIssuer,
   useCreateRelyingParty,
+  useCredentialDefinitions,
   useDeleteCredentialDefinition,
   useUpdateIssuer,
 } from '@/hooks/use-credentials'
@@ -59,6 +60,8 @@ export const CredentialsForm = () => {
   const { mutateAsync: approveCredentialDefinition } = useApproveCredentialDefinition()
   const { mutateAsync: deleteCredentialDefinition } = useDeleteCredentialDefinition()
 
+  const { data: credentials } = useCredentialDefinitions()
+
   const form = useForm<CredentialSchemaRequest>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -70,97 +73,116 @@ export const CredentialsForm = () => {
     shouldFocusError: true,
   })
 
+  const validateUniqueSchema = (data: CredentialSchemaRequest) => {
+    const isDuplicate = credentials?.credentialDefinitions?.some(
+      (item) =>
+        item.name.trim().toLowerCase() === data.name.trim().toLowerCase() &&
+        item.version.trim().toLowerCase() === data.version.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("A schema with the same name and version already exists.");
+      return false;
+    }
+
+    return true;
+  };
+
   const onSubmit = async (formData: CredentialSchemaRequest) => {
     try {
       setIsSubmitting(true)
 
-      const schemaPayload = {
-        name: formData.name || 'example_name',
-        version: formData.version || 'example_version',
-        source: Source.Created,
-        attributes: formData?.attributes?.map((item) => ({
-          name: item.name,
-          value: item.value ?? '',
-          type: item.type,
-        })),
-      }
+      if (validateUniqueSchema(formData)) {
 
-      const schemaResponse = await createCredentialSchema(schemaPayload)
-      const schemaId = schemaResponse?.credentialSchema?.id
-      if (!schemaId) throw new Error('Failed to create schema')
-
-      const assetPayload: AssetRequest = {
-        mediaType: credentialLogoType,
-        content: credentialLogo ?? '',
-        fileName: 'example.jpg',
-        description: 'Example asset',
-      }
-
-      const assetResponse = await createAsset(assetPayload)
-      const assetId = assetResponse?.asset?.id
-
-      const credentialDefinitionPayload: CredentialDefinitionRequest = {
-        name: formData.name || 'default',
-        version: formData.version || '1.0',
-        credentialSchema: schemaId,
-        type: CredentialType.Anoncred,
-        icon: assetId,
-        tenantId: tenantId ?? ''
-      }
-
-      const credentialDefinition = await createCredentialDefinition(credentialDefinitionPayload)
-      const credentialId = credentialDefinition?.credentialDefinition?.id
-
-      if (!credentialId) throw new Error('Failed to create credential')
-
-      const issuerResponse = await createIssuer({
-        name: 'bc gov issuer',
-        type: IssuerType.Aries,
-        credentialDefinitions: [credentialId],
-        credentialSchemas: [schemaId],
-        description: 'bc gov issuer created by showcase creator',
-        tenantId: tenantId ?? ''
-      })
-
-      const relyingPartyResponse = await createRelyingParty({
-        name: 'bc gov relying party',
-        type: RelyingPartyType.Aries,
-        credentialDefinitions: [credentialId],
-        description: 'bc gov relying party created by showcase creator',
-        tenantId: tenantId ?? ''
-      })
-
-      if (!issuerResponse?.issuer?.id || !relyingPartyResponse?.relyingParty?.id) {
-        throw new Error('Failed to create issuer or relying party')
-      }
-
-      setIssuerId(issuerResponse.issuer.id)
-      setRelayerId(relyingPartyResponse.relyingParty.id)
+        const schemaPayload = {
+          name: formData.name || 'example_name',
+          version: formData.version || 'example_version',
+          source: Source.Created,
+          attributes: formData?.attributes?.map((item) => ({
+            name: item.name,
+            value: item.value ?? '',
+            type: item.type,
+          })),
+        }
 
 
-      const newUiCredential = {
-        id: credentialId,
-        name: formData.name,
-        version: formData.version,
-        type: CredentialType.Anoncred,
-        createdAt: credentialDefinition?.credentialDefinition?.createdAt ?? new Date(),
-        updatedAt: credentialDefinition?.credentialDefinition?.updatedAt ?? new Date(),
-        credentialSchema: {
-          id: schemaId,
+        const schemaResponse = await createCredentialSchema(schemaPayload)
+        const schemaId = schemaResponse?.credentialSchema?.id
+        if (!schemaId) throw new Error('Failed to create schema')
+
+        const assetPayload: AssetRequest = {
+          mediaType: credentialLogoType,
+          content: credentialLogo ?? '',
+          fileName: 'example.jpg',
+          description: 'Example asset',
+        }
+
+        const assetResponse = await createAsset(assetPayload)
+        const assetId = assetResponse?.asset?.id
+
+        const credentialDefinitionPayload: CredentialDefinitionRequest = {
+          name: formData.name || 'default',
+          version: formData.version || '1.0',
+          credentialSchema: schemaId,
+          type: CredentialType.Anoncred,
+          icon: assetId,
+          tenantId: tenantId ?? ''
+        }
+
+        const credentialDefinition = await createCredentialDefinition(credentialDefinitionPayload)
+        const credentialId = credentialDefinition?.credentialDefinition?.id
+
+        if (!credentialId) throw new Error('Failed to create credential')
+
+        const issuerResponse = await createIssuer({
+          name: 'bc gov issuer',
+          type: IssuerType.Aries,
+          credentialDefinitions: [credentialId],
+          credentialSchemas: [schemaId],
+          description: 'bc gov issuer created by showcase creator',
+          tenantId: tenantId ?? ''
+        })
+
+        const relyingPartyResponse = await createRelyingParty({
+          name: 'bc gov relying party',
+          type: RelyingPartyType.Aries,
+          credentialDefinitions: [credentialId],
+          description: 'bc gov relying party created by showcase creator',
+          tenantId: tenantId ?? ''
+        })
+
+        if (!issuerResponse?.issuer?.id || !relyingPartyResponse?.relyingParty?.id) {
+          throw new Error('Failed to create issuer or relying party')
+        }
+
+        setIssuerId(issuerResponse.issuer.id)
+        setRelayerId(relyingPartyResponse.relyingParty.id)
+
+
+        const newUiCredential = {
+          id: credentialId,
           name: formData.name,
           version: formData.version,
-          createdAt: schemaResponse?.credentialSchema?.createdAt ?? new Date(),
-          updatedAt: schemaResponse?.credentialSchema?.updatedAt ?? new Date(),
-        },
-        tenantId: tenantId ?? '',
-        icon: assetResponse.asset,
-      }
+          type: CredentialType.Anoncred,
+          createdAt: credentialDefinition?.credentialDefinition?.createdAt ?? new Date(),
+          updatedAt: credentialDefinition?.credentialDefinition?.updatedAt ?? new Date(),
+          credentialSchema: {
+            id: schemaId,
+            name: formData.name,
+            version: formData.version,
+            createdAt: schemaResponse?.credentialSchema?.createdAt ?? new Date(),
+            updatedAt: schemaResponse?.credentialSchema?.updatedAt ?? new Date(),
+          },
+          tenantId: tenantId ?? '',
+          icon: assetResponse.asset,
+        }
 
-      setSelectedCredential(newUiCredential)
-      viewCredential(newUiCredential)
-      setSelectedCredentialDefinitionIds([credentialId])
-      form.reset()
-      toast.success('Credential created successfully!')
+        setSelectedCredential(newUiCredential)
+        viewCredential(newUiCredential)
+        setSelectedCredentialDefinitionIds([credentialId])
+        form.reset()
+        toast.success('Credential created successfully!')
+      }
 
     } catch (error) {
       toast.error('Error creating schema or credential definition.')
