@@ -162,17 +162,21 @@ describe('IssuanceScenarioController Integration Tests', () => {
           },
         },
         predicates: {
-          predicate1: {
-            name: 'example_name',
-            type: '>=',
-            value: 1,
-            restrictions: ['restriction1', 'restriction2'],
-          },
-          predicate2: {
-            name: 'example_name',
-            type: '>=',
-            value: 1,
-            restrictions: ['restriction1', 'restriction2'],
+          attribute: {
+            predicates: [
+              {
+                name: 'example_name',
+                type: '>=',
+                value: 1,
+                restrictions: ['restriction1', 'restriction2'],
+              },
+              {
+                name: 'example_name',
+                type: '>=',
+                value: 1,
+                restrictions: ['restriction1', 'restriction2'],
+              },
+            ],
           },
         },
       },
