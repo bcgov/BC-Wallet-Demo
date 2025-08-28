@@ -276,6 +276,7 @@ export const EditProofRequest = ({
 
     const updatedStep: StepRequest = {
       ...currentStep,
+      //@ts-ignore
       actions: currentStep.actions.map((action, index) => {
         if (index !== 0) return action
         return {
