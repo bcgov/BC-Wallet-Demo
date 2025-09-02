@@ -151,7 +151,8 @@
     "representations_label": "Representations",
     "icon_label": "Icon",
     "timestamps_label": "Timestamps",
-    "pending_approval_label": "Pending Approval"
+    "pending_approval_label": "Pending Approval",
+    "request_in_queue_label": "Request In Queue..."
   },
   "onboarding": {
     "header_title": "Add Steps",

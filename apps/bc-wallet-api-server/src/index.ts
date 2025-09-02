@@ -11,6 +11,7 @@ import { CredentialDefinitionController } from './controllers/CredentialDefiniti
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
 import IssuanceScenarioController from './controllers/IssuanceScenarioController'
 import IssuerController from './controllers/IssuerController'
+import { JobStatusController } from './controllers/JobStatusController'
 import PersonaController from './controllers/PersonaController'
 import PresentationScenarioController from './controllers/PresentationScenarioController'
 import RelyingPartyController from './controllers/RelyingPartyController'
@@ -43,6 +44,7 @@ async function bootstrap() {
         ShowcaseController,
         TenantController,
         ApprovalController,
+        JobStatusController,
       ],
       authorizationChecker,
       middlewares: [RequestContextMiddleware, ExpressErrorHandler],

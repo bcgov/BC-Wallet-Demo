@@ -112,7 +112,7 @@ export class TractionService extends ApiService {
    */
   public async hasBearerToken(): Promise<boolean> {
     if (DEBUG_ENABLED) {
-      console.debug('hasBearerToken called. Current apiKey status:', !!this.configOptions.apiKey);
+      console.debug('hasBearerToken called. Current apiKey status:', !!this.configOptions.apiKey)
     }
     if (!this.configOptions.apiKey) {
       return false
@@ -122,7 +122,7 @@ export class TractionService extends ApiService {
     const accessToken = await apiKeyCallback('Authorization')
     if (!accessToken) {
       if (DEBUG_ENABLED) {
-        console.debug('hasBearerToken: No accessToken found.');
+        console.debug('hasBearerToken: No accessToken found.')
       }
       return false
     }
@@ -136,18 +136,18 @@ export class TractionService extends ApiService {
    */
   public updateBearerTokens(args: UpdatedTokens): void {
     if (DEBUG_ENABLED) {
-      console.debug('updateBearerTokens called with args:', args);
+      console.debug('updateBearerTokens called with args:', args)
     }
     if (args.tractionToken) {
       this.configOptions.apiKey = this.tokenCallback(args.tractionToken)
       if (DEBUG_ENABLED) {
-        console.debug(`Traction token updated. New token ends with: ...${args.tractionToken.slice(-8)}`);
+        console.debug(`Traction token updated. New token ends with: ...${args.tractionToken.slice(-8)}`)
       }
     }
     if (args.showcaseApiToken) {
       this.showcaseApiService.updateBearerToken(args.showcaseApiToken)
       if (DEBUG_ENABLED) {
-        console.debug('Showcase API token updated.');
+        console.debug('Showcase API token updated.')
       }
     }
   }
@@ -159,12 +159,12 @@ export class TractionService extends ApiService {
    */
   private tokenCallback(token: string) {
     if (DEBUG_ENABLED) {
-      console.debug(`tokenCallback created for token ending with: ...${token.slice(-8)}`);
+      console.debug(`tokenCallback created for token ending with: ...${token.slice(-8)}`)
     }
     return async (name: string) => {
       if (name === 'Authorization') {
         if (DEBUG_ENABLED) {
-          console.debug(`Using Traction token ending with: ...${token.slice(-8)} for API call.`);
+          console.debug(`Using Traction token ending with: ...${token.slice(-8)} for API call.`)
         }
         return `Bearer ${token}`
       }
@@ -307,10 +307,10 @@ export class TractionService extends ApiService {
       await this.showcaseApiService.createCredentialDefinition(
         importRequest,
         record.credentialDefinition,
-        importRequest.tenantId ?? ''
+        importRequest.tenantId ?? '',
       )
-      if(DEBUG_ENABLED) {
-        console.debug('importCredentialDefinition Success!');
+      if (DEBUG_ENABLED) {
+        console.debug('importCredentialDefinition Success!')
       }
     } else {
       return Promise.reject(Error(`No credential definition returned for identifier ${definitionId}`))
@@ -597,7 +597,7 @@ export class TractionService extends ApiService {
    */
   public async getTenantToken(apiKey: string, walletKey?: string): Promise<string> {
     if (DEBUG_ENABLED) {
-      console.debug('Attempting to get new tenant token...');
+      console.debug('Attempting to get new tenant token...')
     }
     if (!this.tenantId) {
       return Promise.reject(Error('In order to get a tenant token, tenantId must be set'))
@@ -615,19 +615,25 @@ export class TractionService extends ApiService {
     if (DEBUG_ENABLED) {
       console.debug('Calling multitenancyTenantTenantIdTokenPostRaw with', requestParameters)
     }
-    const apiResponse = await withRetry(
-      () => this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw(requestParameters),
-      'multitenancyTenantTenantIdTokenPostRaw',
-    )
 
-    const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
-    if (!tokenResponse?.token) {
-      return Promise.reject(Error('no token was returned'))
+    try {
+      const apiResponse = await withRetry(
+        () => this.multitenancyApi.multitenancyTenantTenantIdTokenPostRaw(requestParameters),
+        'multitenancyTenantTenantIdTokenPostRaw',
+      )
+
+      const tokenResponse = await this.handleApiResponse<CreateWalletTokenResponse>(apiResponse)
+      if (!tokenResponse?.token) {
+        return Promise.reject(Error('no token was returned'))
+      }
+      if (DEBUG_ENABLED) {
+        console.debug('Successfully obtained new tenant token.')
+      }
+      return tokenResponse.token
+    } catch (error) {
+      console.error('Error obtaining tenant token:', error)
+      return Promise.reject(Error('Error in obtaining tenant token'))
     }
-    if (DEBUG_ENABLED) {
-      console.debug('Successfully obtained new tenant token.');
-    }
-    return tokenResponse.token
   }
 
   /**
