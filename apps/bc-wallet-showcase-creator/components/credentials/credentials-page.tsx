@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { useTranslations } from 'next-intl'
@@ -9,15 +9,42 @@ import Header from '../header'
 import { CredentialsDisplay } from './credentials-display'
 import { CredentialsForm } from './credentials-form'
 import { CredentialsImport } from './credentials-import'
+import { executePendingJob, useJobStatus } from '../../hooks/use-job-status'
+import { useTenant } from '../../providers/tenant-provider'
+import { useQueryClient } from '@tanstack/react-query'
 
 export const CredentialsPage = () => {
   const t = useTranslations()
   const { mode, startImporting } = useCredentials()
   const [searchTerm, setSearchTerm] = useState('')
+  const { data: jobStatus } = useJobStatus('credentialSchema', 'pending')
+  const { data: jobStatusDef } = useJobStatus('credentialDefinition', 'pending')
+  const queryClient = useQueryClient()
+  const { tenantId } = useTenant()
 
   const handleImport = () => {
     startImporting()
   }
+
+  useEffect(() => {
+    const runCredSchema = async () => {
+      if (!jobStatus || !jobStatus.jobStatus) return;
+      const ids = jobStatus.jobStatus.map((job) => job.jobId).join(',');
+        await executePendingJob(ids, tenantId);
+    };
+    runCredSchema();
+    const runCreddef = async () => {
+      
+
+       if (!jobStatusDef || !jobStatusDef.jobStatus) return;
+      const ids = jobStatusDef.jobStatus.map((job) => job.jobId).join(',');
+        await executePendingJob(ids, tenantId);        
+    };
+    runCredSchema();
+    runCreddef();
+
+    queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
+  }, [jobStatus]);
 
   return (
     <div className="flex flex-col bg-foreground/10 dark:bg-dark-bg dark:bg-none min-h-screen">

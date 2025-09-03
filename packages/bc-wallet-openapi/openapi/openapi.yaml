@@ -1984,6 +1984,36 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /job-status:
+    get:
+      tags:
+        - Jobs
+      summary: Get the status of background jobs
+      operationId: getJobStatus
+      parameters: 
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Status of the Job
+          example: pending
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatusResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   securitySchemes:
     OAuth2:
@@ -3621,6 +3651,10 @@ components:
           description: Date and time the credential attribute was last updated
           format: date-time
           example: 2025-03-06T11:30:16.573Z
+        tenantId:
+          type: string
+          description: ID of the tenant that owns this credential definition
+          example: 8832be1c-5dc3-46bb-9e21-fbca4f7bcffc
     JobStatusResponse:
       type: object
       properties:

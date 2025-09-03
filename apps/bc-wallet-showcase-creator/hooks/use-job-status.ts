@@ -15,3 +15,8 @@ export const useJobStatus = (entityType: string, status: string) => {
     staleTime
   })
 }
+
+export const executePendingJob = async (jobIds: string, tenantId?: string) => {
+  const response = await apiClient.post('/job-status/entity/pending/' + jobIds, { tenantId });
+  return response;
+};

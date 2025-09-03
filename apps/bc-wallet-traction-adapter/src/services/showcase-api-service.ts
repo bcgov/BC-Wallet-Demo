@@ -7,6 +7,7 @@ import {
   CredentialDefinitionsApi,
   CredentialSchemaRequest,
   CredentialType,
+  JobsApi,
   Source,
 } from 'bc-wallet-openapi'
 import { CredentialDefinition } from 'bc-wallet-traction-openapi'
@@ -23,6 +24,7 @@ export class ShowcaseApiService extends ApiService {
   private readonly config: Configuration
   private readonly configOptions: ConfigurationParameters
   private readonly credentialDefinitionsApi: CredentialDefinitionsApi
+  private readonly jobStatusApi: JobsApi
 
   /**
    * Constructor for ShowcaseApiService.
@@ -39,6 +41,7 @@ export class ShowcaseApiService extends ApiService {
     }
     this.config = new Configuration(this.configOptions)
     this.credentialDefinitionsApi = new CredentialDefinitionsApi(this.config)
+    this.jobStatusApi = new JobsApi(this.config)
   }
 
   /**
@@ -180,6 +183,7 @@ export class ShowcaseApiService extends ApiService {
         ...(remoteCredDef.tag && { version: schema.version }),
         ...(credDefImportDefinition.icon && { icon: credDefImportDefinition.icon }),
         ...(credDefImportDefinition.approvedBy && { approvedBy: credDefImportDefinition.approvedBy }),
+        jobId: credDefImportDefinition.jobId,
       },
     }) // TODO revocation
   }

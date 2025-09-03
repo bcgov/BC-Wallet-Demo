@@ -1,5 +1,5 @@
 import { JobStatusResponse } from 'bc-wallet-openapi'
-import { Get, JsonController, Param } from 'routing-controllers'
+import { Authorized, Get, HttpCode, JsonController, Param, Post, QueryParam } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import JobStatusService from '../services/JobStatusService'
@@ -11,6 +11,18 @@ import { jobStatusDTOFrom } from '../utils/mappers'
 export class JobStatusController {
   public constructor(private readonly jobStatusService: JobStatusService) {}
 
+  @Authorized()
+  @HttpCode(204)
+  @Post('/entity/pending/:id')
+  public async executePendingJobs(@Param('id') jobIds: string): Promise<void> {
+    try {
+      await this.jobStatusService.executePendingJobs(jobIds)
+    } catch (e) {
+      console.error('executePendingJobs failed:', e)
+      return Promise.reject(e)
+    }
+  }
+
   @Get('/entity/:entityType/:status')
   public async getAllByEntity(
     @Param('entityType') entityType: string,
@@ -18,10 +30,22 @@ export class JobStatusController {
   ): Promise<JobStatusResponse> {
     try {
       const result = await this.jobStatusService.getJobStatusByEntity(entityType, status)
-      console.log('Result from getJobStatusByEntity:', result)
       const jobStatus = result.map((jobStatus) => jobStatusDTOFrom(jobStatus))
-      console.log('Mapped JobStatus DTOs:', jobStatus)
-      // console.log('Returning JobStatusResponse:', JobStatusResponseFromJSONTyped({ jobStatus }, true))
+
+      return { jobStatus }
+    } catch (e) {
+      if (e.httpCode !== 404) {
+        console.error('getAll JobStatus failed:', e)
+      }
+      return Promise.reject(e)
+    }
+  }
+
+  @Get('/')
+  public async getAll(@QueryParam('status') status?: string): Promise<JobStatusResponse> {
+    try {
+      const result = await this.jobStatusService.getAllJobStatus(status)
+      const jobStatus = result.map((jobStatus) => jobStatusDTOFrom(jobStatus))
       return { jobStatus }
     } catch (e) {
       if (e.httpCode !== 404) {

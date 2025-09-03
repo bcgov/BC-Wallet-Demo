@@ -71,6 +71,16 @@ class JobEntityMapRepository implements RepositoryDefinition<JobEntityMap, NewJo
     }))
   }
 
+  public async findByStatus(status?: string): Promise<JobEntityMap[]> {
+    const condition = status ? eq(jobEntityMap.status, status) : undefined
+    const result = await (await this.db.getConnection()).select().from(jobEntityMap).where(condition)
+    return (result ?? []).map((item) => ({
+      ...item,
+      status: item.status ?? 'pending',
+      createdAt: item.createdAt ?? new Date(),
+    }))
+  }
+
   public async updateStatus(jobId: string, data: Partial<JobEntityMap>): Promise<JobEntityMap | null> {
     const [result] = await (
       await this.db.getConnection()
