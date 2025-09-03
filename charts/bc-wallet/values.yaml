@@ -619,10 +619,9 @@ postgresql:
       size: 1Gi
     resources:
       limits:
-        cpu: 200m
-        memory: 256Mi
+        memory: 2Gi
       requests:
-        cpu: 100m
+        cpu: 250m
         memory: 128Mi
     podSecurityContext:
       enabled: false
