@@ -112,6 +112,9 @@ export const useImportCredentialDefinition = () => {
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
       }, 10000);
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['jobStatus'] })
+      }, 10000);
     }
   })
 }

@@ -22,7 +22,7 @@ interface DisplayCredentialProps {
 export const DisplayCredential = ({ credentialId, removeCredential, onCredentialUpdate }: DisplayCredentialProps) => {
   const t = useTranslations()
   const { mutateAsync: updateCredentialSchema } = useUpdateCredentialSchema()
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(true)
   const { tenantId } = useTenant()
 
   const [credentialAttributes, setCredentialAttributes] = useState<CredentialAttribute[]>([])

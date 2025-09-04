@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useRouter } from '@/i18n/routing'
@@ -32,6 +32,12 @@ export const ShowcaseCreate = () => {
   const { reset: resetOnboardingCreation } = useOnboardingCreation()
   // const { tenantId } = useHelpersStore()
   const { tenantId } = useTenant();
+
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+
+  const handleImageUploadError = (error: string) => {
+    setImageUploadError(error);
+  };
 
   
 
@@ -105,6 +111,8 @@ export const ShowcaseCreate = () => {
               <BannerImageUpload
                 text={t('onboarding.icon_label')}
                 value={form.watch('bannerImage')}
+                maxSize={2 * 1024 * 1024} // 2MB limit
+                onImageUploadError={handleImageUploadError}
                 onChange={(value) => {
                   console.log('value form create', value)
                   form.setValue('bannerImage', value, {
@@ -112,8 +120,14 @@ export const ShowcaseCreate = () => {
                     shouldTouch: true,
                     shouldValidate: true,
                   })
+                  setImageUploadError(null); // Clear error on change
                 }}
               />
+              {imageUploadError && (
+                <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
+                  {imageUploadError}
+                </p>
+              )}
               {form.formState.errors.bannerImage?.message && (
                 <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
                   {form.formState.errors.bannerImage?.message}

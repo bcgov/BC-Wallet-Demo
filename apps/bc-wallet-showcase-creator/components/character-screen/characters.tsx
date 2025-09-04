@@ -168,6 +168,16 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
     return selectedPersonaIds.find((id: string) => id === persona.id)
   }
 
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [imageUploadErrorHeadshot, setImageUploadErrorHeadshot] = useState<string | null>(null);
+  
+  const handleImageUploadError = (error: string) => {
+    setImageUploadError(error);
+  };
+  const handleImageUploadErrorHeadshot = (error: string) => {
+    setImageUploadErrorHeadshot(error);
+  };
+
   return (
     <>
       <div className="flex dark:text-dark-text text-light-text flex-col h-full w-full">
@@ -335,12 +345,20 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                     ? `${baseUrl}/${tenantId}/assets/${selectedPersona.headshotImage.id}/file`
                                     : undefined
                                 }
+                                maxSize={2 * 1024 * 1024} // 2MB limit
+                                onImageUploadError={handleImageUploadErrorHeadshot}
                                 handleJSONUpdate={(imageType, imageData, fileType) => {
                                   setHeadshotImage(imageData);
                                   setHeadshotImageType(fileType ?? 'image/jpeg')
                                   setIsHeadshotImageEdited(true);
+                                  setImageUploadErrorHeadshot(null); // Clear error on change
                                 }}
                               />
+                               {imageUploadErrorHeadshot && (
+                                  <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
+                                    {imageUploadErrorHeadshot}
+                                  </p>
+                                )}
                             </div>
                             <div className="text-start">
                               <FileUploadFull
@@ -351,12 +369,20 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                     ? `${baseUrl}/${tenantId}/assets/${selectedPersona.bodyImage.id}/file`
                                     : undefined
                                 }
+                                maxSize={2 * 1024 * 1024} // 2MB limit
+                                onImageUploadError={handleImageUploadError}
                                 handleJSONUpdate={(imageType, imageData, fileType) => {
                                   setBodyImage(imageData);
                                   setBodyImageType(fileType ?? 'image/jpeg')
                                   setIsBodyImageEdited(true);
+                                  setImageUploadError(null); // Clear error on change
                                 }}
                               />
+                              {imageUploadError && (
+                                  <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
+                                    {imageUploadError}
+                                  </p>
+                              )}
                             </div>
                           </div>
                         </div>

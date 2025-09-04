@@ -85,7 +85,7 @@
     "issuer_name_label": "Issuer Name",
     "issuer_name_placeholder": "Enter Issuer Name",
     "version_label": "Version",
-    "source_label":"Source",
+    "source_label": "Source",
     "version_placeholder": "Enter Version",
     "attributes_label": "Attributes",
     "add_attributes_label": "Add Attributes",
@@ -151,7 +151,9 @@
     "representations_label": "Representations",
     "icon_label": "Icon",
     "timestamps_label": "Timestamps",
-    "pending_approval_label": "Pending Approval"
+    "pending_approval_label": "Pending Approval",
+    "request_in_queue_label": "Request In Queue...",
+    "error_fetching_credential": "Credential not found"
   },
   "onboarding": {
     "header_title": "Add Steps",
@@ -250,7 +252,8 @@
   },
   "file_upload": {
     "click_to_upload_label": "Click to upload",
-    "drag_to_upload_label": "or drag and drop"
+    "drag_to_upload_label": "or drag and drop",
+    "file_size_exceeded": "File size exceeds the maximum limit of 2 MB."
   },
   "showcase": {
     "header_title": "Save Showcase",

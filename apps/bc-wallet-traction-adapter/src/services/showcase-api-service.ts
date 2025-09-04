@@ -180,6 +180,7 @@ export class ShowcaseApiService extends ApiService {
         ...(remoteCredDef.tag && { version: schema.version }),
         ...(credDefImportDefinition.icon && { icon: credDefImportDefinition.icon }),
         ...(credDefImportDefinition.approvedBy && { approvedBy: credDefImportDefinition.approvedBy }),
+        jobId: credDefImportDefinition.jobId,
       },
     }) // TODO revocation
   }

@@ -40,7 +40,7 @@ import {
 import { useTenant } from '@/providers/tenant-provider'
 
 export const CredentialsForm = () => {
-  const { selectedCredential, mode, setSelectedCredential, viewCredential } = useCredentials()
+  const { selectedCredential, mode, setSelectedCredential, viewCredential, selectedJobStatus, viewCredentialRequest } = useCredentials()
   const t = useTranslations()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -72,6 +72,12 @@ export const CredentialsForm = () => {
     mode: 'onChange',
     shouldFocusError: true,
   })
+
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+
+  const handleImageUploadError = (error: string) => {
+    setImageUploadError(error);
+  };
 
   const validateUniqueSchema = (data: CredentialSchemaRequest) => {
     const isDuplicate = credentials?.credentialDefinitions?.some(
@@ -402,6 +408,71 @@ export const CredentialsForm = () => {
       </div>
     )
   }
+  if (mode === 'view' && !selectedCredential && selectedJobStatus) {
+    const formattedDate = selectedJobStatus?.createdAt
+      ? new Date(selectedJobStatus.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+      : 'N/A';
+    const formattedTime = selectedJobStatus?.createdAt ? new Date(selectedJobStatus?.createdAt).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+    })
+      : 'N/A';
+
+    return (
+      <div className="my-4 ">
+        {' '}
+        <div className="px-4">
+          <StepHeaderCredential
+            icon={<Monitor strokeWidth={3} />}
+            showDropdown={true}
+            showApprove={false}
+            title={t('credentials.view_header_title')}
+            onActionClick={(action) => {
+              switch (action) {
+                case 'delete':
+                  setIsModalOpen(true)
+                  break
+                case 'approve':
+                  handleApproveCredentialDefinition()
+                  break
+                default:
+                  console.log('Unknown action')
+              }
+            }}
+          />
+        </div>
+        {[
+          {
+            label: t('credentials.credential_name_label'),
+            //@ts-ignore
+            value: selectedJobStatus?.payloadData?.name || '—',
+          },
+          {
+            label: 'Created At:',
+            value: `${formattedDate} at ${formattedTime}`,
+          },
+          {
+            label: t('credentials.version_label'),
+            //@ts-ignore
+            value: selectedJobStatus?.payloadData?.version,
+          },
+          {
+            label: 'Credential Status',
+            value: 'Request is in Queue',
+          },
+        ].map((item, index) => (
+          <div key={index} className="flex flex-col p-4 space-y-2">
+            <h6 className="text-md font-semibold dark:text-white text-black">{item.label}</h6>
+            <p className="text-sm font-medium text-gray-900 dark:text-white break-words">{item.value || '—'}</p>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <Form {...form}>
@@ -452,11 +523,20 @@ export const CredentialsForm = () => {
                   <FileUploadFull
                     text={t('credentials.image_label')}
                     element="headshot_image"
+                    maxSize={2 * 1024 * 1024} // 2MB limit
+                    onImageUploadError={handleImageUploadError}
                     handleJSONUpdate={(imageType, imageData, fileType) => {
                       setCredentialLogo(imageData)
+                      setCredentialLogoType(fileType ?? 'image/jpeg')
                       setCredentialLogoType(fileType?? 'image/jpeg')
+                      setImageUploadError(null); // Clear error on change
                     }}
                   />
+                  {imageUploadError && (
+                    <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
+                      {imageUploadError}
+                    </p>
+              )}
                 </div>
               </div>
             </>

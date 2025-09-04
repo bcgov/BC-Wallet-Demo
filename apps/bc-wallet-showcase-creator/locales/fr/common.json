@@ -84,7 +84,7 @@
     "issuer_name_label": "Nom de l'Émetteur",
     "issuer_name_placeholder": "Entrez le Nom de l'Émetteur",
     "version_label": "Version",
-    "source_label":"Source",
+    "source_label": "Source",
     "version_placeholder": "Entrez la version",
     "attributes_label": "Attributs",
     "attribute_label": "Attribute",
@@ -144,7 +144,9 @@
     "representations_label": "Representations",
     "icon_label": "Icon",
     "timestamps_label": "Timestamps",
-    "pending_approval_label": "En attente d'approbation"
+    "pending_approval_label": "En attente d'approbation",
+    "request_in_queue_label": "Request In Queue...",
+    "error_fetching_credential": "Credential not found"
   },
   "onboarding": {
     "header_title": "Ajouter des étapes",
@@ -242,7 +244,8 @@
   },
   "file_upload": {
     "click_to_upload_label": "Cliquez pour téléverser",
-    "drag_to_upload_label": "ou glissez-déposez"
+    "drag_to_upload_label": "ou glissez-déposez",
+    "file_size_exceeded": "File size exceeds the maximum limit of 2 MB."
   },
   "showcase": {
     "header_title": "Enregistrer la vitrine",

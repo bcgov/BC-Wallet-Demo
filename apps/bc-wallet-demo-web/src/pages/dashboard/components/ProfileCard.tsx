@@ -52,7 +52,7 @@ export const ProfileCard: FC<Props> = ({ currentPersona }) => {
         { currentPersona.bodyImage &&
             <motion.img
                 whileHover={{ scale: 1.05 }}
-                className="m-auto h-32 w-32 md:h-36 md:w-36 p-4 rounded-full bg-bcgov-white dark:bg-bcgov-black ring-2 ring-white mb-4 shadow"
+                className="m-auto h-32 w-32 md:h-36 md:w-36 p-4 rounded-full bg-bcgov-white dark:bg-bcgov-black ring-2 ring-white mb-4 shadow object-contain"
                 src={`${showcaseServerBaseUrl}/assets/${currentPersona.bodyImage}/file`}
                 alt={currentPersona.name}
             />

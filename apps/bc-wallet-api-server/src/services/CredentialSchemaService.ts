@@ -1,9 +1,12 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { CredentialDefinitionImportRequest } from 'bc-wallet-openapi'
+import { randomUUID } from 'crypto'
 import { Inject, Service } from 'typedi'
 import { validate as uuidValidate } from 'uuid'
 
 import CredentialSchemaRepository from '../database/repositories/CredentialSchemaRepository'
+import JobEntityMapRepository from '../database/repositories/JobEntityMapRepository'
+import JobStatusRepository from '../database/repositories/JobStatusRepository'
 import { CredentialSchema, NewCredentialSchema } from '../types'
 import type { ISessionService } from '../types/services/session'
 import { AbstractAdapterClientService } from './AbstractAdapterClientService'
@@ -26,6 +29,8 @@ class CredentialSchemaService extends AbstractAdapterClientService {
     @Inject('ISessionService') sessionService: ISessionService,
     @Inject('IAdapterClientApi') private readonly adapterClientApi: IAdapterClientApi,
     private readonly credentialSchemaRepository: CredentialSchemaRepository,
+    private readonly jobStatusRepository: JobStatusRepository,
+    private readonly jobEntityMapRepository: JobEntityMapRepository,
     tenantService: TenantService,
   ) {
     super(sessionService, tenantService)
@@ -36,6 +41,7 @@ class CredentialSchemaService extends AbstractAdapterClientService {
    * @returns Promise resolving to an array of CredentialSchema objects
    */
   public getCredentialSchemas = async (): Promise<CredentialSchema[]> => {
+    // Filter out any credential schemas that are still pending creation
     return this.credentialSchemaRepository.findAll()
   }
 
@@ -58,7 +64,25 @@ class CredentialSchemaService extends AbstractAdapterClientService {
    * @returns Promise resolving to the created CredentialSchema
    */
   public createCredentialSchema = async (credentialSchema: NewCredentialSchema): Promise<CredentialSchema> => {
-    return this.credentialSchemaRepository.create(credentialSchema)
+    console.debug('Creating credential schema', { credentialSchema })
+    const savedCredentialSchema = await this.credentialSchemaRepository.create(credentialSchema)
+    if (!savedCredentialSchema) {
+      console.error('Failed to create credential schema')
+      throw new Error('Failed to create credential schema')
+    }
+    if (credentialSchema.jobId) {
+      await this.jobStatusRepository.update(credentialSchema.jobId, {
+        status: 'completed',
+        resultData: savedCredentialSchema,
+      })
+
+      // Update job entity map with the actual credential schema ID
+      await this.jobEntityMapRepository.updateStatus(credentialSchema.jobId, {
+        status: 'completed',
+        entityId: savedCredentialSchema.id as unknown as string,
+      })
+    }
+    return savedCredentialSchema
   }
 
   /**
@@ -94,6 +118,22 @@ class CredentialSchemaService extends AbstractAdapterClientService {
       return Promise.reject(Error('Identifier type and identifier are required for credential schema import.'))
     }
 
+    const jobDetails = await this.jobStatusRepository.create({
+      status: 'pending',
+      apiName: 'importCredentialSchema',
+      endpoint: '/credentials/schemas/import',
+      payloadData: JSON.stringify(importRequest),
+    })
+    await this.jobEntityMapRepository.create({
+      jobId: jobDetails.jobId as unknown as string,
+      entityType: 'credentialSchema',
+      entityId: randomUUID(),
+      status: 'pending',
+      action: 'create',
+    })
+    importRequest.jobId = jobDetails.jobId as unknown as string
+
+    // importCredentialSchema: Starting import with request
     await this.adapterClientApi.importCredentialSchema(importRequest, await this.buildSendOptions())
   }
 }
