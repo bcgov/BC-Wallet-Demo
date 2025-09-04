@@ -73,6 +73,12 @@ export const CredentialsForm = () => {
     shouldFocusError: true,
   })
 
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+
+  const handleImageUploadError = (error: string) => {
+    setImageUploadError(error);
+  };
+
   const validateUniqueSchema = (data: CredentialSchemaRequest) => {
     const isDuplicate = credentials?.credentialDefinitions?.some(
       (item) =>
@@ -442,6 +448,7 @@ export const CredentialsForm = () => {
         {[
           {
             label: t('credentials.credential_name_label'),
+            //@ts-ignore
             value: selectedJobStatus?.payloadData?.name || '—',
           },
           {
@@ -450,6 +457,7 @@ export const CredentialsForm = () => {
           },
           {
             label: t('credentials.version_label'),
+            //@ts-ignore
             value: selectedJobStatus?.payloadData?.version,
           },
           {
@@ -515,11 +523,20 @@ export const CredentialsForm = () => {
                   <FileUploadFull
                     text={t('credentials.image_label')}
                     element="headshot_image"
+                    maxSize={2 * 1024 * 1024} // 2MB limit
+                    onImageUploadError={handleImageUploadError}
                     handleJSONUpdate={(imageType, imageData, fileType) => {
                       setCredentialLogo(imageData)
                       setCredentialLogoType(fileType ?? 'image/jpeg')
+                      setCredentialLogoType(fileType?? 'image/jpeg')
+                      setImageUploadError(null); // Clear error on change
                     }}
                   />
+                  {imageUploadError && (
+                    <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
+                      {imageUploadError}
+                    </p>
+              )}
                 </div>
               </div>
             </>

@@ -1,14 +1,14 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import apiClient from "@/lib/apiService"
-import type { JobStatusResponse } from "bc-wallet-openapi"
+import apiClient from '@/lib/apiService'
+import type { JobStatusResponse } from 'bc-wallet-openapi'
 
 const staleTime = 1000 * 60 * 5 // 5 minutes
 
-export const useJobStatus = (entityType: string, status: string) => {
+export const useJobStatus = (entityType: string, status: string, enabledPolling: boolean = false) => {
   return useQuery<JobStatusResponse>({
     queryKey: ['jobStatus', entityType, status],
-     queryFn: async () => {
+    queryFn: async () => {
       const response = await apiClient.get('/job-status/entity/' + entityType + '/' + status)
       return response as JobStatusResponse
     },
@@ -16,7 +16,18 @@ export const useJobStatus = (entityType: string, status: string) => {
   })
 }
 
-export const executePendingJob = async (jobIds: string, tenantId?: string) => {
-  const response = await apiClient.post('/job-status/entity/pending/' + jobIds, { tenantId });
-  return response;
-};
+export const useExecutePendingJob = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ jobIds, tenantId }: { jobIds: string; tenantId?: string }) => {
+      const response = await apiClient.post('/job-status/entity/pending/' + jobIds, { tenantId })
+      return response
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
+      queryClient.invalidateQueries({ queryKey: ['jobStatus', 'credentialSchema', 'pending'] })
+      queryClient.invalidateQueries({ queryKey: ['jobStatus', 'credentialDefinition', 'pending'] })
+    },
+  })
+}

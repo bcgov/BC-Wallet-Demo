@@ -159,7 +159,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
           ))
           }
           {
-            jobStatus && jobStatus.jobStatus && jobStatus.jobStatus.length > 0 && jobStatus.jobStatus.map((job) => (
+            jobStatus && jobStatus.jobStatus && jobStatus.jobStatus.length > 0 && jobStatus.jobStatus.map((job:any) => (
               <div className="flex-grow overflow-y-auto" key={job.jobId}>
               <div className="border-b dark:border-dark-border">
                 

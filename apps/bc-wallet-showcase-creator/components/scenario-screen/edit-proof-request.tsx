@@ -276,6 +276,7 @@ export const EditProofRequest = ({
 
     const updatedStep: StepRequest = {
       ...currentStep,
+      //@ts-ignore
       actions: currentStep.actions.map((action, index) => {
         if (index !== 0) return action
         return {
@@ -342,7 +343,7 @@ export const EditProofRequest = ({
           variant="outline"
           onClick={handleAddAttribute}
           className="gap-2"
-          disabled={availableAttributes.length === 0}
+          disabled={availableAttributes.length === 0 || attributeList.length >= availableAttributes.length}
         >
           <Plus className="h-4 w-4" />
           Add Attribute

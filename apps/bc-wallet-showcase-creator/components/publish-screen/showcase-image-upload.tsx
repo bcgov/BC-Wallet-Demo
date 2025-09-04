@@ -14,10 +14,14 @@ export const BannerImageUpload = ({
   text,
   value,
   onChange,
+  maxSize,
+  onImageUploadError,
 }: {
   text: string
   value?: string
   onChange: (value: string) => void
+  maxSize?: number // Max size in bytes
+  onImageUploadError?: (error: string) => void
 }) => {
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(null)
@@ -34,6 +38,10 @@ export const BannerImageUpload = ({
 
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
+      if (maxSize && newValue.size > maxSize) {
+        onImageUploadError?.(t('file_upload.file_size_exceeded'));
+        return;
+      }
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {

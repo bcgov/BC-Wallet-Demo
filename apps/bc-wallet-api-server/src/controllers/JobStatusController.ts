@@ -1,5 +1,5 @@
 import { JobStatusResponse } from 'bc-wallet-openapi'
-import { Authorized, Get, HttpCode, JsonController, OnUndefined, Param, Post, QueryParam } from 'routing-controllers'
+import { Authorized, Get, JsonController, OnUndefined, Param, Post, QueryParam } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import JobStatusService from '../services/JobStatusService'

@@ -9,7 +9,7 @@ import Header from '../header'
 import { CredentialsDisplay } from './credentials-display'
 import { CredentialsForm } from './credentials-form'
 import { CredentialsImport } from './credentials-import'
-import { executePendingJob, useJobStatus } from '../../hooks/use-job-status'
+import { useExecutePendingJob, useJobStatus } from '../../hooks/use-job-status'
 import { useTenant } from '../../providers/tenant-provider'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -17,35 +17,46 @@ export const CredentialsPage = () => {
   const t = useTranslations()
   const { mode, startImporting } = useCredentials()
   const [searchTerm, setSearchTerm] = useState('')
-  const { data: jobStatus } = useJobStatus('credentialSchema', 'pending')
-  const { data: jobStatusDef } = useJobStatus('credentialDefinition', 'pending')
+  const [enablePollingSchema, setEnablePollingSchema] = useState(false);
+  const [enablePollingDef, setEnablePollingDef] = useState(false);
+
+  const { data: jobStatus } = useJobStatus('credentialSchema', 'pending', enablePollingSchema);
+  const { data: jobStatusDef } = useJobStatus('credentialDefinition', 'pending', enablePollingDef);
+
+  useEffect(() => {
+    setEnablePollingSchema((jobStatus?.jobStatus?.length || 0) > 0);
+  }, [jobStatus]);
+
+  useEffect(() => {
+    setEnablePollingDef((jobStatusDef?.jobStatus?.length || 0) > 0);
+  }, [jobStatusDef]);
   const queryClient = useQueryClient()
   const { tenantId } = useTenant()
+  const { mutate: executePendingJob } = useExecutePendingJob()
 
   const handleImport = () => {
     startImporting()
   }
 
   useEffect(() => {
-    const runCredSchema = async () => {
-      if (!jobStatus?.jobStatus?.length) return;
+    if (jobStatus?.jobStatus?.length) {
       const ids = jobStatus.jobStatus.map((job) => job.jobId).join(',');
-      await executePendingJob(ids, tenantId);
-    };
-    runCredSchema();
-    const runCreddef = async () => {
+      executePendingJob({ jobIds: ids, tenantId });
+    }
+  }, [jobStatus, tenantId, executePendingJob]);
 
-
-      if (!jobStatusDef?.jobStatus?.length) return;
-
+  useEffect(() => {
+    if (jobStatusDef?.jobStatus?.length) {
       const ids = jobStatusDef.jobStatus.map((job) => job.jobId).join(',');
-      await executePendingJob(ids, tenantId);
-    };
-    runCredSchema();
-    runCreddef();
+      executePendingJob({ jobIds: ids, tenantId });
+    }
+  }, [jobStatusDef, tenantId, executePendingJob]);
 
-    queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
-  }, [jobStatus]);
+  useEffect(() => {
+    if (!jobStatus?.jobStatus?.length && !jobStatusDef?.jobStatus?.length) {
+      queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] });
+    }
+  }, [jobStatus, jobStatusDef, queryClient]);
 
   return (
     <div className="flex flex-col bg-foreground/10 dark:bg-dark-bg dark:bg-none min-h-screen">
