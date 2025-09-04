@@ -28,17 +28,18 @@ export const CredentialsPage = () => {
 
   useEffect(() => {
     const runCredSchema = async () => {
-      if (!jobStatus || !jobStatus.jobStatus) return;
+      if (!jobStatus?.jobStatus?.length) return;
       const ids = jobStatus.jobStatus.map((job) => job.jobId).join(',');
-        await executePendingJob(ids, tenantId);
+      await executePendingJob(ids, tenantId);
     };
     runCredSchema();
     const runCreddef = async () => {
-      
 
-       if (!jobStatusDef || !jobStatusDef.jobStatus) return;
+
+      if (!jobStatusDef?.jobStatus?.length) return;
+
       const ids = jobStatusDef.jobStatus.map((job) => job.jobId).join(',');
-        await executePendingJob(ids, tenantId);        
+      await executePendingJob(ids, tenantId);
     };
     runCredSchema();
     runCreddef();

@@ -1,5 +1,5 @@
 import { JobStatusResponse } from 'bc-wallet-openapi'
-import { Authorized, Get, HttpCode, JsonController, Param, Post, QueryParam } from 'routing-controllers'
+import { Authorized, Get, HttpCode, JsonController, OnUndefined, Param, Post, QueryParam } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import JobStatusService from '../services/JobStatusService'
@@ -12,7 +12,7 @@ export class JobStatusController {
   public constructor(private readonly jobStatusService: JobStatusService) {}
 
   @Authorized()
-  @HttpCode(204)
+  @OnUndefined(204)
   @Post('/entity/pending/:id')
   public async executePendingJobs(@Param('id') jobIds: string): Promise<void> {
     try {
