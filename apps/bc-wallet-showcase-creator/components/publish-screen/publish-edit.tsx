@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
@@ -29,10 +29,14 @@ const BannerImageUpload = ({
   text,
   value,
   onChange,
+  maxSize,
+  onImageUploadError,
 }: {
   text: string
   value?: string
   onChange: (value: string) => void
+  maxSize?: number // Max size in bytes
+  onImageUploadError?: (error: string) => void
 }) => {
   const t = useTranslations()
   const { mutateAsync: createAsset } = useCreateAsset()
@@ -40,6 +44,10 @@ const BannerImageUpload = ({
 
   const handleChange = async (newValue: File | null) => {
     if (newValue) {
+      if (maxSize && newValue.size > maxSize) {
+        onImageUploadError?.(t('file_upload.file_size_exceeded'));
+        return;
+      }
       try {
         const base64 = await convertBase64(newValue)
         if (typeof base64 === 'string') {
@@ -141,6 +149,12 @@ export const PublishEdit = () => {
   const resetIds = usePresentationCreation().reset
   const resetOnboardingIds = useOnboardingCreationStore().reset
 
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  
+  const handleImageUploadError = (error: string) => {
+    setImageUploadError(error);
+  };
+
   const form = useForm<ShowcaseRequest>({
     resolver: zodResolver(ShowcaseRequestSchema),
     defaultValues: {
@@ -155,6 +169,12 @@ export const PublishEdit = () => {
   })
 
   useEffect(() => {
+    const bannerImageValue = showcase.bannerImage
+    const bannerImageId =
+      typeof bannerImageValue === 'object' && bannerImageValue !== null
+        ? (bannerImageValue as { id:string }).id
+        : bannerImageValue
+
     form.reset({
       ...showcase,
       name: showcase.name || '',
@@ -163,8 +183,9 @@ export const PublishEdit = () => {
       scenarios: showcase.scenarios || [],
       status: 'ACTIVE',
       tenantId,
+      bannerImage: bannerImageId || '',
     })
-  }, [form, showcase])
+  }, [form.reset, showcase, tenantId, JSON.stringify(personas)])
 
   const onSubmit = async () => {
     const data = form.getValues()
@@ -218,14 +239,22 @@ export const PublishEdit = () => {
               <BannerImageUpload
                 text={t('onboarding.icon_label')}
                 value={form.watch('bannerImage')}
-                onChange={(value) =>
+                maxSize={2 * 1024 * 1024} // 2MB limit
+                onImageUploadError={handleImageUploadError}
+                onChange={(value) => {
                   form.setValue('bannerImage', value, {
                     shouldDirty: true,
                     shouldTouch: true,
                     shouldValidate: true,
                   })
-                }
+                  setImageUploadError(null); // Clear error on change
+                }}
               />
+              {imageUploadError && (
+                <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
+                  {imageUploadError}
+                </p>
+              )}
             </div>
           </div>
 

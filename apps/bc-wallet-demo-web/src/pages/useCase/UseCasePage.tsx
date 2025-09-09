@@ -47,7 +47,14 @@ export const UseCasePage: React.FC = () => {
     void load()
   }, [dispatch, showcaseSlug, personaSlug, scenarioSlug])
 
-  if (showcase === undefined || currentPersona === undefined || currentScenario === undefined) {
+  if (
+    showcase === undefined ||
+    currentPersona === undefined ||
+    currentScenario === undefined ||
+    showcase?.slug !== showcaseSlug ||
+    currentPersona?.slug !== personaSlug ||
+    currentScenario?.slug !== scenarioSlug
+  ) {
     return <div>Loading...</div>
   }
 

@@ -196,6 +196,7 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
     <>
       <StepHeader
         icon={<Monitor strokeWidth={3} />}
+        deleteTitle='Delete step'
         title={t('onboarding.basic_step_header_title')}
         onActionClick={(action) => {
           switch (action) {

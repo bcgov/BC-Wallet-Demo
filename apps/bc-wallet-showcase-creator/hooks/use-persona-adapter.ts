@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import { useQueryClient } from "@tanstack/react-query";
 import { showcaseToShowcaseRequest } from "@/lib/parsers";
 import apiClient from "@/lib/apiService";
+import { useUpdateScenario as useUpdateIssuanceScenario } from '@/hooks/use-onboarding'
+import { useUpdateScenario as useUpdatePresentationScenario } from '@/hooks/use-presentation'
 
 type PersonaRequestWithImageType = PersonaRequest & {
   headshotImageType?: string;
@@ -32,6 +34,8 @@ export const usePersonaAdapter = () => {
   const { mutateAsync: deletePersona } = useDeletePersona();
   const { mutateAsync: createAsset } = useCreateAsset();
   const { mutateAsync: updateShowcase } = useUpdateShowcase(currentShowcaseSlug || '');
+  const { mutateAsync: updateIssuanceScenario } = useUpdateIssuanceScenario();
+  const { mutateAsync: updatePresentationScenario } = useUpdatePresentationScenario();
 
   const InvalidPersonaState = async() => {
     queryClient.invalidateQueries({ queryKey: ['personas'] })
@@ -41,84 +45,157 @@ export const usePersonaAdapter = () => {
     InvalidPersonaState()
   },[])
 
-  const selectedPersona = personasData?.personas?.find(
-    (p: Persona) => p.id === selectedPersonaId
-  ) || null;
+  const selectedPersona = personasData?.personas?.find((p: Persona) => p.id === selectedPersonaId) || null
 
-  const handleImageUpdate = useCallback(async (imageData: string | null, mediaType: string, fileName: string, description: string) => {
-    if (!imageData) return undefined;
+  const handleImageUpdate = useCallback(
+    async (imageData: string | null, mediaType: string, fileName: string, description: string) => {
+      if (!imageData) return undefined
 
-    try {
-      const payload: AssetRequest = {
-        mediaType,
-        content: imageData,
-        fileName,
-        description
-      };
+      try {
+        const payload: AssetRequest = {
+          mediaType,
+          content: imageData,
+          fileName,
+          description,
+        }
 
-      const response = await createAsset(payload);
-      return (response as { asset: { id: string } })?.asset?.id || undefined;
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      return undefined;
-    }
-  }, [createAsset]);
-
-  const updateShowcaseWithPersona = useCallback(async (personaId: string) => {
-    if (!currentShowcaseSlug || !showcase) return;
-
-    try {
-      const updatedPersonaIds = new Set([...selectedPersonaIds, personaId]);
-      
-      const showcaseResponse = await apiClient.get(`/showcases/${currentShowcaseSlug}`) as ShowcaseResponse
-      const showcaseRequest = showcaseResponse?.showcase
-
-      if (!showcaseRequest) {
-        throw new Error('Showcase data is undefined')
+        const response = await createAsset(payload)
+        return (response as { asset: { id: string } })?.asset?.id || undefined
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        return undefined
       }
-      const parsed = showcaseToShowcaseRequest(showcaseRequest)
-      const updatedShowcase: ShowcaseRequest = {
-        ...parsed,
-        personas: Array.from(updatedPersonaIds)
-      };
+    },
+    [createAsset],
+  )
 
-      await updateShowcase(updatedShowcase as ShowcaseRequest);
+  const updateShowcaseWithPersona = useCallback(
+    async (personaIds: string[]) => {
+      if (!currentShowcaseSlug || !showcase) return
 
-      setShowcase(updatedShowcase as ShowcaseRequest);
+      try {
+        // Get the current state of the showcase from the server to compare against
+        const showcaseResponse = (await apiClient.get(`/showcases/${currentShowcaseSlug}`)) as ShowcaseResponse
+        const serverShowcase = showcaseResponse?.showcase
+        if (!serverShowcase) {
+          throw new Error('Showcase data is undefined')
+        }
 
-      return true;
-    } catch (error) {
-      console.error("Error updating showcase with persona:", error);
-      throw error;
-    }
-  }, [currentShowcaseSlug, showcase, selectedPersonaIds, updateShowcase, setShowcase]);
+        const oldPersonaIds = new Set(serverShowcase.personas?.map((p) => p.id) || [])
+        const newPersonaIds = new Set(personaIds)
+
+        // Update the showcase's main persona list first
+        const parsed = showcaseToShowcaseRequest(serverShowcase)
+        const updatedShowcase: ShowcaseRequest = {
+          ...parsed,
+          personas: Array.from(newPersonaIds),
+        }
+        await updateShowcase(updatedShowcase as ShowcaseRequest)
+
+        // Determine which personas were added and removed
+        const addedPersonaIds = personaIds.filter((id) => !oldPersonaIds.has(id))
+        const removedPersonaIds = [...oldPersonaIds].filter((id) => !newPersonaIds.has(id))
+
+        // Iterate through scenarios and update them based on persona changes
+        for (const scenario of serverShowcase.scenarios || []) {
+          const scenarioResponse = await apiClient.get(`/scenarios/${scenario.type.toLowerCase()}s/${scenario.slug}`)
+          let fullScenario
+          if (scenario.type === 'ISSUANCE') {
+            //@ts-ignore
+            fullScenario = scenarioResponse.issuanceScenario
+          } else if (scenario.type === 'PRESENTATION') {
+            //@ts-ignore
+            fullScenario = scenarioResponse.presentationScenario
+          }
+
+          if (fullScenario) {
+            let scenarioPersonaIds = fullScenario.personas?.map((p: { id: string }) => p.id) || []
+            let needsUpdate = false
+
+            // Handle persona removals from the scenario
+            if (removedPersonaIds.length > 0) {
+              const initialLength = scenarioPersonaIds.length
+              scenarioPersonaIds = scenarioPersonaIds.filter((id:any) => !removedPersonaIds.includes(id))
+              if (scenarioPersonaIds.length !== initialLength) {
+                needsUpdate = true
+              }
+            }
+
+            // Handle persona additions, but only if the scenario has no personas (replacement)
+            if (addedPersonaIds.length > 0 && scenarioPersonaIds.length === 0) {
+              scenarioPersonaIds.push(...addedPersonaIds)
+              needsUpdate = true
+            }
+
+            if (needsUpdate) {
+              const commonData = {
+                name: fullScenario.name,
+                description: fullScenario.description,
+                steps: fullScenario.steps.map(({ screenId = 'INFO', ...stepRest }) => ({
+                  ...stepRest,
+                  screenId,
+                  actions:
+                  //@ts-ignore
+                    stepRest.actions?.map(({ id, createdAt, updatedAt, ...actionRest }) => ({
+                      ...actionRest,
+                    })) ?? [],
+                })),
+                hidden: false,
+                personas: scenarioPersonaIds,
+                slug: fullScenario.slug,
+              }
+
+              if (scenario.type === 'ISSUANCE') {
+                const updatedScenarioData = { ...commonData, issuer: fullScenario.issuer?.id }
+                await updateIssuanceScenario({ slug: fullScenario.slug, data: updatedScenarioData })
+              } else if (scenario.type === 'PRESENTATION') {
+                const updatedScenarioDataPresentation = { ...commonData, relyingParty: fullScenario.relyingParty?.id }
+                await updatePresentationScenario({ slug: fullScenario.slug, data: updatedScenarioDataPresentation })
+              }
+            }
+          }
+        }
+
+        // Refresh the local showcase state to reflect all changes
+        const updatedShowcaseResponse = (await apiClient.get(
+          `/showcases/${currentShowcaseSlug}`,
+        )) as ShowcaseResponse
+        //@ts-ignore
+        setShowcase(updatedShowcaseResponse.showcase as ShowcaseRequest)
+        
+        // Invalidate showcase queries to ensure all components get fresh data
+        queryClient.invalidateQueries({ queryKey: ['showcase', currentShowcaseSlug] })
+        queryClient.invalidateQueries({ queryKey: ['showcases'] })
+
+        return true
+      } catch (error) {
+        console.error('Error updating showcase with persona:', error)
+        throw error
+      }
+    },
+    [currentShowcaseSlug, showcase, updateShowcase, setShowcase, updateIssuanceScenario, updatePresentationScenario],
+  )
 
   const deleteCurrentPersona = useCallback(async () => {
-    if (!selectedPersonaId || !selectedPersona) return;
+    if (!selectedPersonaId || !selectedPersona) return
 
     try {
-      await deletePersona(selectedPersona.slug);
+      await deletePersona(selectedPersona.slug)
 
-      const updatedPersonaIds = selectedPersonaIds.filter(id => id !== selectedPersonaId);
-      setSelectedPersonaIds(updatedPersonaIds);
+      const updatedPersonaIds = selectedPersonaIds.filter((id) => id !== selectedPersonaId)
+      setSelectedPersonaIds(updatedPersonaIds)
 
       if (currentShowcaseSlug && showcase) {
-        const updatedShowcase: Partial<ShowcaseRequest> = {
-          ...showcase,
-          personas: updatedPersonaIds
-        };
-
-        await updateShowcase(updatedShowcase as ShowcaseRequest);
-        setShowcase(updatedShowcase as ShowcaseRequest);
+        await updateShowcaseWithPersona(updatedPersonaIds)
       }
 
-      setSelectedPersonaId(null);
-      setStepState('no-selection');
+      setSelectedPersonaId(null)
+      setStepState('no-selection')
 
-      toast.success('Persona has been deleted.');
+      toast.success('Persona has been deleted.')
     } catch (error) {
-      console.error("Error deleting persona:", error);
-      toast.error('Error deleting persona.');
+      console.error('Error deleting persona:', error)
+      toast.error('Error deleting persona.')
     }
   }, [
     selectedPersonaId,
@@ -128,125 +205,131 @@ export const usePersonaAdapter = () => {
     selectedPersonaIds,
     currentShowcaseSlug,
     showcase,
-    updateShowcase,
-    setShowcase,
-    setStepState
-  ]);
+    setStepState,
+    updateShowcaseWithPersona,
+  ])
 
-  const handlePersonaSelect = useCallback((persona: Persona) => {
-    setSelectedPersonaId(persona.id);
-    setStepState('editing-persona');
-  }, [setSelectedPersonaId, setStepState]);
+  const handlePersonaSelect = useCallback(
+    (persona: Persona) => {
+      setSelectedPersonaId(persona.id)
+      setStepState('editing-persona')
+    },
+    [setSelectedPersonaId, setStepState],
+  )
 
   const handleCreateNew = useCallback(() => {
-    setSelectedPersonaId(null);
-    setHeadshotImage(null);
-    setBodyImage(null);
-    setIsHeadshotImageEdited(false);
-    setIsBodyImageEdited(false);
-    setStepState('creating-new');
-  }, [setSelectedPersonaId, setStepState]);
+    setSelectedPersonaId(null)
+    setHeadshotImage(null)
+    setBodyImage(null)
+    setIsHeadshotImageEdited(false)
+    setIsBodyImageEdited(false)
+    setStepState('creating-new')
+  }, [setSelectedPersonaId, setStepState])
 
   const handleCancel = useCallback(() => {
-    setSelectedPersonaId(null);
-    setHeadshotImage(null);
-    setBodyImage(null);
-    setIsHeadshotImageEdited(false);
-    setIsBodyImageEdited(false);
-    setEditMode(false);
-    setStepState('no-selection');
-  }, [setSelectedPersonaId, setEditMode, setStepState]);
+    setSelectedPersonaId(null)
+    setHeadshotImage(null)
+    setBodyImage(null)
+    setIsHeadshotImageEdited(false)
+    setIsBodyImageEdited(false)
+    setEditMode(false)
+    setStepState('no-selection')
+  }, [setSelectedPersonaId, setEditMode, setStepState])
 
-  const savePersona = useCallback(async (personaData: PersonaRequestWithImageType) => {
-    try {
-      let headshotAssetId = selectedPersona?.headshotImage?.id;
-      let bodyAssetId = selectedPersona?.bodyImage?.id;
+  const savePersona = useCallback(
+    async (personaData: PersonaRequestWithImageType) => {
+      try {
+        let headshotAssetId = selectedPersona?.headshotImage?.id
+        let bodyAssetId = selectedPersona?.bodyImage?.id
 
-      if (isHeadshotImageEdited) {
-        if (headshotImage) {
-          headshotAssetId = await handleImageUpdate(
-            headshotImage,
-            personaData.headshotImageType || 'image/svg+xml',
-            'Headshot.jpg',
-            'A headshot image'
-          );
+        if (isHeadshotImageEdited) {
+          if (headshotImage) {
+            headshotAssetId = await handleImageUpdate(
+              headshotImage,
+              personaData.headshotImageType || 'image/svg+xml',
+              'Headshot.jpg',
+              'A headshot image',
+            )
+          } else {
+            headshotAssetId = undefined
+          }
+        }
+
+        if (isBodyImageEdited) {
+          if (bodyImage) {
+            bodyAssetId = await handleImageUpdate(
+              bodyImage,
+              personaData.bodyImageType || 'image/svg+xml',
+              'FullBody.jpg',
+              'A full-body image',
+            )
+          } else {
+            bodyAssetId = undefined
+          }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { headshotImageType, bodyImageType, ...restOfPersonaData } = personaData
+
+        const finalPersonaData: PersonaRequest = {
+          ...restOfPersonaData,
+          headshotImage: headshotAssetId,
+          bodyImage: bodyAssetId,
+        }
+
+        let result
+
+        if (selectedPersonaId && selectedPersona) {
+          result = await updatePersona({
+            slug: selectedPersona.slug,
+            data: finalPersonaData,
+          })
+
+          toast.success('Persona has been updated.')
         } else {
-          headshotAssetId = undefined;
+          result = await createPersona(finalPersonaData)
+          const newPersonaId = (result as { persona: Persona }).persona.id
+
+          const newPersonaIds = [...selectedPersonaIds, newPersonaId]
+          setSelectedPersonaIds(newPersonaIds)
+
+          if (currentShowcaseSlug && showcase) {
+            await updateShowcaseWithPersona(newPersonaIds)
+          }
+
+          setStepState('no-selection')
+          toast.success('Persona has been created.')
         }
+        setHeadshotImage(null)
+        setBodyImage(null)
+        setIsHeadshotImageEdited(false)
+        setIsBodyImageEdited(false)
+
+        return result
+      } catch (error) {
+        console.error('Error saving persona:', error)
+        toast.error('Error saving persona.')
+        throw error
       }
-
-      if (isBodyImageEdited) {
-        if (bodyImage) {
-          bodyAssetId = await handleImageUpdate(
-            bodyImage,
-            personaData.bodyImageType || 'image/svg+xml',
-            'FullBody.jpg',
-            'A full-body image'
-          );
-        } else {
-          bodyAssetId = undefined;
-        }
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { headshotImageType, bodyImageType, ...restOfPersonaData } = personaData;
-
-      const finalPersonaData: PersonaRequest = {
-        ...restOfPersonaData,
-        headshotImage: headshotAssetId,
-        bodyImage: bodyAssetId
-      };
-
-      let result;
-
-      if (selectedPersonaId && selectedPersona) {
-        result = await updatePersona({
-          slug: selectedPersona.slug,
-          data: finalPersonaData
-        });
-
-        toast.success('Persona has been updated.');
-      } else {
-        result = await createPersona(finalPersonaData);
-        const newPersonaId = (result as { persona: Persona }).persona.id;
-
-        setSelectedPersonaIds([...selectedPersonaIds, newPersonaId]);
-
-        if (currentShowcaseSlug && showcase) {
-          await updateShowcaseWithPersona(newPersonaId);
-        }
-
-        setStepState('no-selection');
-        toast.success('Persona has been created.');
-      }
-      setHeadshotImage(null);
-      setBodyImage(null);
-      setIsHeadshotImageEdited(false);
-      setIsBodyImageEdited(false);
-
-      return result;
-    } catch (error) {
-      console.error("Error saving persona:", error);
-      toast.error('Error saving persona.');
-      throw error;
-    }
-  }, [
-    selectedPersona,
-    isHeadshotImageEdited,
-    isBodyImageEdited,
-    headshotImage,
-    bodyImage,
-    selectedPersonaId,
-    handleImageUpdate,
-    updatePersona,
-    createPersona,
-    selectedPersonaIds,
-    setSelectedPersonaIds,
-    currentShowcaseSlug,
-    showcase,
-    updateShowcaseWithPersona,
-    setStepState
-  ]);
+    },
+    [
+      selectedPersona,
+      isHeadshotImageEdited,
+      isBodyImageEdited,
+      headshotImage,
+      bodyImage,
+      selectedPersonaId,
+      handleImageUpdate,
+      updatePersona,
+      createPersona,
+      selectedPersonaIds,
+      setSelectedPersonaIds,
+      currentShowcaseSlug,
+      showcase,
+      updateShowcaseWithPersona,
+      setStepState,
+    ],
+  )
 
   return {
     selectedPersonaId,
@@ -275,6 +358,6 @@ export const usePersonaAdapter = () => {
     setStepState,
 
     selectedPersonaIds,
-    setSelectedPersonaIds
-  };
-};
+    setSelectedPersonaIds,
+  }
+}

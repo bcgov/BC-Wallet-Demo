@@ -92,11 +92,12 @@ export const usePresentationAdapter = (showcaseSlug?: string) => {
 
       if (currentSteps.length > 0) {
         handleSelectStepImpl(0, activeScenarioIndex);
-        setIsInitialized(true);
-      } else {
-        setIsInitialized(true);
       }
-    } else if (isCreationInitialized) {
+      setIsInitialized(true);
+    } else if (personaScenarios.size > 0 && !activePersonaId) {
+      const firstPersonaId = Array.from(personaScenarios.keys())[0];
+      setActivePersonaId(firstPersonaId);
+    } else {
       setIsInitialized(true);
     }
   }, [
@@ -105,7 +106,7 @@ export const usePresentationAdapter = (showcaseSlug?: string) => {
     activePersonaId,
     activeScenarioIndex,
     isInitialized,
-    isCreationInitialized,
+    // isCreationInitialized,
     getCurrentSteps
   ]);
 
@@ -348,7 +349,7 @@ export const usePresentationAdapter = (showcaseSlug?: string) => {
     (stepIndex: number, scenarioIndex: number = activeScenarioIndex) => {      
       handleSelectStepImpl(stepIndex, scenarioIndex);
     },
-    [activeScenarioIndex, selectStep],
+    [activeScenarioIndex, steps],
   );
 
   return {

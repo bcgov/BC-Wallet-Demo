@@ -49,11 +49,29 @@ function App() {
   useEffect(() => {
     if (connectionDate && lastServerReset) {
       if (connectionDate < lastServerReset) {
-        navigate(`${basePath}/`)
-        dispatch({ type: 'demo/RESET' })
+        const validRoutes = [
+          `${basePath}/${tenantId}/`,
+          `${basePath}/${tenantId}/:slug`,
+          `${basePath}/${tenantId}/:slug/:personaSlug/presentations`,
+          `${basePath}/${tenantId}/:slug/:personaSlug/presentations/:scenarioSlug`,
+        ];
+        const currentPath = location.pathname;
+        const isPathValid = validRoutes.some((route) => {
+          const routeParts = route.split('/').filter(p => p);
+          const pathParts = currentPath.split('/').filter(p => p);
+          if (routeParts.length !== pathParts.length) {
+            return false;
+          }
+          return routeParts.every((part, i) => part.startsWith(':') || part === pathParts[i]);
+        });
+
+        if (!isPathValid) {
+          navigate(`${basePath}/`);
+          dispatch({ type: 'demo/RESET' });
+        }
       }
     }
-  }, [connectionDate, lastServerReset])
+  }, [connectionDate, lastServerReset, location.pathname, navigate, dispatch, tenantId]);
 
   useEffect(() => {
     const ws = io(demoBackendBaseWsUrl, { path: demoBackendSocketPath })

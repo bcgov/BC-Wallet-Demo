@@ -266,6 +266,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                   <StepHeader
                     icon={<Monitor strokeWidth={3} />}
                     title={t('character.character_detail')}
+                    deleteTitle='Delete character'
                     onActionClick={(action) => {
                       switch (action) {
                         case 'save':

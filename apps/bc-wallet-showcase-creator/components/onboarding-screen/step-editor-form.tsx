@@ -338,6 +338,7 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
         <StepHeader 
           icon={<Monitor strokeWidth={3} />} 
           title={getStepTitle()} 
+          deleteTitle='Delete step'
           showDropdown={true}
           onActionClick={(action) => {
           switch (action) {
