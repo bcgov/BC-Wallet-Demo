@@ -48,7 +48,6 @@ export const ShowcaseList = () => {
   const tabs = [
     { label: t('showcases.header_tab_overview'), status: 'ALL' },
     { label: t('showcases.header_tab_draft'), status: 'PENDING' },
-    { label: t('showcases.header_tab_under_review'), status: 'UNDER_REVIEW' },
     { label: t('showcases.header_tab_published'), status: 'ACTIVE' },
   ]
 

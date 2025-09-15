@@ -127,7 +127,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
 
   return (
     <div className="flex flex-col p-6">
-      <StepHeader icon={<Monitor strokeWidth={3} />} title={'Edit Showcase'} showDropdown={false} />
+      <StepHeader icon={<Monitor strokeWidth={3} />} title={'Edit showcase details'} showDropdown={false} />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-grow space-y-6">
@@ -179,7 +179,7 @@ export const ShowcaseEdit = ({ slug }: { slug: string }) => {
 
             <div className="space-y-2">
               <BannerImageUpload
-                text={t('onboarding.icon_label')}
+                text={'Showcase Image'}
                 value={form.watch('bannerImage')}
                 onChange={(value) => {
                   console.log('value form edit', value)

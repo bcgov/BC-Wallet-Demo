@@ -16,12 +16,14 @@ export const BannerImageUpload = ({
   onChange,
   maxSize,
   onImageUploadError,
+  isMandatory
 }: {
   text: string
   value?: string
   onChange: (value: string) => void
   maxSize?: number // Max size in bytes
   onImageUploadError?: (error: string) => void
+  isMandatory?: boolean
 }) => {
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(null)
@@ -73,7 +75,7 @@ export const BannerImageUpload = ({
 
   return (
     <div className="flex items-center flex-col justify-center">
-      <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}</p>
+      <p className="text-md w-full text-start font-bold text-foreground/80 mb-3">{text}{isMandatory ? <span className="text-red-500">*</span> : null}</p>
 
       <label
         htmlFor="bannerImage"

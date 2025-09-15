@@ -14,7 +14,7 @@ import ButtonOutline from '../ui/button-outline'
 import { ShowcaseRequest } from 'bc-wallet-openapi'
 
 import { toast } from 'sonner'
-import { useCreateShowcase } from '@/hooks/use-showcases'
+import { useCreateShowcase, useUpdateShowcase } from '@/hooks/use-showcases'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { showcaseRequestFormData } from '@/schemas/showcase'
@@ -27,13 +27,15 @@ export const ShowcaseCreate = () => {
   const t = useTranslations()
   const router = useRouter()
   const { mutateAsync: createShowcase } = useCreateShowcase()
-  const { setShowcase, reset: resetCreateShowcase, setCurrentShowcaseSlug } = useShowcaseStore()
-  const { reset: resetPresentationCreation } = usePresentationCreation()
+  const { showcase, setShowcase, reset: resetCreateShowcase, setCurrentShowcaseSlug, currentShowcaseSlug } =
+    useShowcaseStore()
+  const { mutateAsync: updateShowcase } = useUpdateShowcase(currentShowcaseSlug)
   const { reset: resetOnboardingCreation } = useOnboardingCreation()
   // const { tenantId } = useHelpersStore()
   const { tenantId } = useTenant();
 
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [Slug, setSlug] = useState<string | null>(null);
 
   const handleImageUploadError = (error: string) => {
     setImageUploadError(error);
@@ -45,15 +47,8 @@ export const ShowcaseCreate = () => {
     resolver: zodResolver(showcaseRequestFormData),
     mode: 'onChange',
     defaultValues: {
-      name: '',
-      description: '',
-      completionMessage: '',
-      status: 'PENDING',
-      hidden: false,
-      scenarios: [],
-      personas: [],
+      ...showcase,
       tenantId: tenantId,
-      bannerImage: '',
     },
   })
 
@@ -65,28 +60,54 @@ export const ShowcaseCreate = () => {
   )
 
   const onSubmit = async (formData: ShowcaseRequest) => {
-    createShowcase(formData, {
-      onSuccess: (data) => {
-        if (data.showcase?.slug) {
-          setCurrentShowcaseSlug(data.showcase.slug)
-          setShowcase({ ...formData, tenantId: formData.tenantId, bannerImage: formData.bannerImage })
-          toast.success('Showcase created successfully')
+    const payload: ShowcaseRequest = {
+      name: formData.name,
+      description: formData.description,
+      completionMessage: formData.completionMessage,
+      status: 'PENDING',
+      hidden: formData.hidden,
+      scenarios: formData.scenarios,
+      personas: formData.personas,
+      tenantId: formData.tenantId,
+      bannerImage: formData.bannerImage,
+    }
+
+    if (currentShowcaseSlug) {
+      updateShowcase(payload, {
+        onSuccess: () => {
+          setShowcase(payload)
+          toast.success('Showcase updated successfully')
           router.push(`/${tenantId}/showcases/create/characters`)
-        } else {
+        },
+        onError: () => {
+          toast.error('Error updating showcase')
+        },
+      })
+    } else {
+      createShowcase(payload, {
+        onSuccess: (apiResponse) => {
+          if (apiResponse.showcase?.slug) {
+            setSlug(apiResponse.showcase.slug)
+            setCurrentShowcaseSlug(apiResponse.showcase.slug)
+            setShowcase(payload)
+            toast.success('Showcase created successfully')
+            router.push(`/${tenantId}/showcases/create/characters`)
+          } else {
+            toast.error('Error creating showcase')
+          }
+        },
+        onError: () => {
           toast.error('Error creating showcase')
-        }
-      },
-      onError: () => {
-        toast.error('Error creating showcase')
-      },
-    })
+        },
+      })
+    }
   }
 
   const handleCancel = () => form.reset()
 
   return (
     <div className="flex flex-col p-6">
-      <StepHeader icon={<Monitor strokeWidth={3} />} title={'Create your showcase'} showDropdown={false} />
+      <StepHeader icon={<Monitor strokeWidth={3} />} title={'Enter showcase details'} showDropdown={false} />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-grow space-y-6">
@@ -97,6 +118,7 @@ export const ShowcaseCreate = () => {
               name="name"
               register={form.register}
               error={form.formState.errors.name?.message}
+              isMandatory={true}
               placeholder="Enter showcase name"
             />
             <FormTextArea
@@ -104,15 +126,17 @@ export const ShowcaseCreate = () => {
               label="Showcase Description"
               name="description"
               register={form.register}
+              isMandatory={true}
               error={form.formState.errors.description?.message}
               placeholder="Enter showcase description"
             />
             <div className="space-y-2">
               <BannerImageUpload
-                text={t('onboarding.icon_label')}
+                text={'Showcase Image'}
                 value={form.watch('bannerImage')}
                 maxSize={2 * 1024 * 1024} // 2MB limit
                 onImageUploadError={handleImageUploadError}
+                isMandatory={true}
                 onChange={(value) => {
                   console.log('value form create', value)
                   form.setValue('bannerImage', value, {
@@ -140,12 +164,12 @@ export const ShowcaseCreate = () => {
               name="completionMessage"
               register={form.register}
               error={form.formState.errors.completionMessage?.message}
-              placeholder="Add details here that should appear in the pop-up box that appears at completion of your showcase."
+              placeholder="This text will appear in a pop-up box for the end-user on the final page of your showcase."
             />
           </div>
 
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
-            <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline>
+            {/* <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline> */}
 
             <div className="flex gap-3">
               <ButtonOutline disabled={!isFormReady} type="submit">

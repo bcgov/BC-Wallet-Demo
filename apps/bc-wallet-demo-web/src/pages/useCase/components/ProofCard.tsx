@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, useState } from 'react'
 
 import { startCase } from 'lodash'
 
@@ -10,13 +10,18 @@ export interface Props {
 }
 
 export const ProofCard: FC<Props> = (props: Props) => {
+  const [brokenImageUrls, setBrokenImageUrls] = useState<string[]>([])
+
   const { requestedItems } = props
   const renderRequestedItems = requestedItems.map((item) => {
+    const imageUrl = `${showcaseServerBaseUrl}/assets/${item.icon}/file`
+    const isBroken = brokenImageUrls.includes(imageUrl)
+
     return (
       <div className="flex-1 flex flex-row items-center justify-between pt-4 " key={item.name}>
-        {item.icon && (
+        {item.icon && !isBroken && (
           <div className="bg-bcgov-lightgrey dark:bg-bcgov-black rounded-lg p-2 w-12">
-            <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${item.icon}/file`} alt="icon" />
+            <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${item.icon}/file`} alt="icon" onError={() => setBrokenImageUrls((prev) => [...prev, imageUrl])} />
           </div>
         )}
         <div className="flex-1 px-4 justify-self-start dark:text-white">

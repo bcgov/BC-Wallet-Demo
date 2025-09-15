@@ -1,10 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
 import { startCase } from 'lodash'
 import { rowFadeX } from '../../../FramerAnimations'
 import { StartButton } from './StartButton'
-import { showcaseServerBaseUrl } from '../../../api/BaseUrl';
+import { showcaseServerBaseUrl } from '../../../api/BaseUrl'
 import type { CredentialDefinition, Persona } from '../../../slices/types'
 
 export interface Props {
@@ -26,6 +26,8 @@ export const UseCaseItem: React.FC<Props> = ({
   start,
   currentPersona,
 }) => {
+  const [brokenImageUrls, setBrokenImageUrls] = useState<string[]>([])
+
   return (
     <motion.div variants={rowFadeX} key={slug}>
       <div
@@ -38,13 +40,18 @@ export const UseCaseItem: React.FC<Props> = ({
           <div className="w-2/3 xl:w-1/3 flex flex-col">
             <h2 className="text-sm xl:text-base font-semibold mb-2">You'll be asked to share</h2>
             {requiredCredentials.map((requiredCredential) => {
+              const imageUrl = `${showcaseServerBaseUrl}/assets/${requiredCredential.icon}/file`
+              const isBroken = brokenImageUrls.includes(imageUrl)
               return (
-                <div key={requiredCredential.id} className={`flex flex-row mb-2`}>
-                  <img
-                    className="w-4 h-4 lg:w-6 lg:h-6 mx-2"
-                    src={`${showcaseServerBaseUrl}/assets/${requiredCredential.icon}/file`}
-                    alt="credential icon"
-                  />
+                <div key={requiredCredential.id} className={`flex flex-row mb-2 items-center`}>
+                  {requiredCredential.icon && !isBroken && (
+                    <img
+                      className="w-4 h-4 lg:w-6 lg:h-6 mx-2"
+                      src={imageUrl}
+                      alt="credential icon"
+                      onError={() => setBrokenImageUrls((prev) => [...prev, imageUrl])}
+                    />
+                  )}
                   <p className="text-xs sxl:text-sm">{startCase(requiredCredential.name)}&nbsp;</p>
                 </div>
               )

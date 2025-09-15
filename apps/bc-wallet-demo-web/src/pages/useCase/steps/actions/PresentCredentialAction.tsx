@@ -47,9 +47,9 @@ export const PresentCredentialAction: React.FC<Props> = ({
 
   const createProofRequest = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const proofs: any = []
+    const proofs: any = {}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const predicates: any = []
+    const predicates: any = {}
 
     requestedCredentials?.forEach((item) => {
       const restrictions: any[] = [
@@ -76,14 +76,14 @@ export const PresentCredentialAction: React.FC<Props> = ({
       }
       if (item.predicates) {
         item.predicates.forEach((p) => {
-          predicates[item.name] = {
+          predicates[p.name] = {
             restrictions,
             name: p.name,
             p_value: p.value,
             p_type: p.type,
             non_revoked: item.nonRevoked,
           }
-          return predicates[item.name]
+          return predicates[p.name]
         })
       }
     })
@@ -130,13 +130,6 @@ export const PresentCredentialAction: React.FC<Props> = ({
       dispatch(fetchProofById(message.presentation_exchange_id))
     }
   }, [message])
-
-  // remove proof record after we're done with it
-  useEffect(() => {
-    if (proofReceived) {
-      dispatch(deleteProofById(proof?.id))
-    }
-  }, [proofReceived])
 
   const sendNewRequest = () => {
     if (!proofReceived && proof) {

@@ -7,7 +7,7 @@ const attributeSchema = z.object({
 
 const predicateValueSchema = z.object({
   name: z.string(),
-  type: z.enum([">=", "<=", "=", "none"]),
+  type: z.enum([">=", "<=", "none"]),
   value: z.number(),
   restrictions: z.array(z.string()).optional(),
 })
@@ -26,7 +26,6 @@ export const PREDICATE_OPTIONS = [
   { value: "none", label: "None" },
   { value: ">=", label: ">=" },
   { value: "<=", label: "<=" },
-  { value: "=", label: "=" },
 ] as const;
 
 export type ProofRequestFormData = z.infer<typeof proofRequestSchema>;

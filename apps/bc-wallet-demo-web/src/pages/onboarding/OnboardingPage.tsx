@@ -43,6 +43,7 @@ export const OnboardingPage: React.FC = () => {
       dispatch(completeOnboarding())
       dispatch(clearCredentials())
       dispatch(clearConnection())
+      dispatch(fetchWallets())
       navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
     }
   }, [dispatch, slug, isCompleted, showcase, currentPersona])
@@ -51,6 +52,7 @@ export const OnboardingPage: React.FC = () => {
     if (!showcase || showcase.slug !== slug) {
       dispatch(clearShowcase())
       dispatch(fetchShowcaseBySlug(slug))
+      dispatch(fetchWallets())
     }
   }, [dispatch, slug, showcase])
 
