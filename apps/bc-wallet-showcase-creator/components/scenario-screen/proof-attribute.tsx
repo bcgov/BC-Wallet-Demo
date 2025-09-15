@@ -62,6 +62,7 @@ export const ProofAttribute = ({
         <label className="text-sm font-medium">Condition</label>
             <Select 
           value={predicates?.find(p => p.name === attribute.name)?.type || 'none'}
+          disabled={attribute.type !== 'DATE'}
           onValueChange={(value) => onConditionTypeChange(index, value)}
         >
           <SelectTrigger>
@@ -81,6 +82,7 @@ export const ProofAttribute = ({
         <label className="text-sm font-medium">Condition Value</label>
         <Input
           onChange={(e) => onConditionValueChange(index, e.target.value)}
+          disabled={attribute.type !== 'DATE'}
           type="number"
           value={predicates?.find(p => p.name === attribute.name)?.value || ''}
         />

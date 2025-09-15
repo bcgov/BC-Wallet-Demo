@@ -84,7 +84,7 @@ export const EditProofRequest = ({
         [credentialName]: {
           predicates: currentPredicates.map(pred => ({
             name: pred.name,
-            type: pred.type as ">=" | "<=" | "=" | "none",
+            type: pred.type as ">=" | "<=" | "none",
             value: pred.value,
             restrictions: [credentialName]
           }))
@@ -163,9 +163,9 @@ export const EditProofRequest = ({
       })
 
       // Create predicate object
-      const allowedTypes = ['>=', '<=', '=', 'none'] as const
-      const predicateType: '>=' | '<=' | '=' | 'none' =
-        allowedTypes.includes(value as any) ? (value as '>=' | '<=' | '=' | 'none') : 'none'
+      const allowedTypes = ['>=', '<=', 'none'] as const
+      const predicateType: '>=' | '<=' | 'none' =
+        allowedTypes.includes(value as any) ? (value as '>=' | '<=' | 'none') : 'none'
 
       const predicate = {
         name: attribute,

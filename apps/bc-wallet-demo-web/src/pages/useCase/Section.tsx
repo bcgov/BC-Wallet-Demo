@@ -22,6 +22,7 @@ import { basePath } from '../../utils/BasePath'
 import { getTenantIdFromPath, isConnected } from '../../utils/Helpers'
 import { SideView } from './SideView'
 import { StepInformation } from './steps/StepInformation'
+import { deleteProofById } from '../../slices/proof/proofThunks'
 
 export interface Props {
   showcase: Showcase
@@ -214,6 +215,9 @@ export const Section: FC<Props> = (props: Props) => {
             <div className="flex justify-between items-center">
               <BackButton
                 onClick={() => {
+                  if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob) && isProofCompleted && proof?.id) {
+                    dispatch(deleteProofById(proof.id))
+                  }
                   prev()
                   trackSelfDescribingEvent({
                     event: {
@@ -234,6 +238,9 @@ export const Section: FC<Props> = (props: Props) => {
                 <SmallButton
                   text="NEXT"
                   onClick={() => {
+                    if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob) && isProofCompleted && proof?.id) {
+                      dispatch(deleteProofById(proof.id))
+                    }
                     next()
                     trackSelfDescribingEvent({
                       event: {

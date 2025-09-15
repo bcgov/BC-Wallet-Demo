@@ -44,7 +44,7 @@ export function NavProjects() {
           {projects.map((item) => (
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild>
-                <Link href={item.url} className={cn(pathname === item.url && 'bg-light-bg dark:bg-dark-bg-secondary')}>
+                <Link href={item.url} className={cn(pathname === item.url && 'bg-[#e5e5e5] dark:bg-dark-bg-secondary')}>
                   <item.icon />
                   <span>{t(item.name)}</span>
                 </Link>

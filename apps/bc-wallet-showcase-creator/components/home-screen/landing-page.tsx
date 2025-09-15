@@ -22,6 +22,8 @@ import { usePresentationCreation } from '@/hooks/use-presentation-creation'
 import { useOnboardingCreationStore } from '@/hooks/use-onboarding-store'
 import { useQueryClient } from '@tanstack/react-query'
 import DeleteModal from '../delete-modal'
+import { useCredentialDefinitions } from '@/hooks/use-credentials'
+import { useRouter } from '@/i18n/routing'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -30,10 +32,12 @@ export const LandingPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const { data, isLoading } = useShowcases()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { data: credentials } = useCredentialDefinitions()
+  const router = useRouter()
   const { tenantId } = useTenant()
   const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
   const { reset, setScenarioIds, setPersonaIds } = useShowcaseStore()
-  const { setIssuerId, setRelayerId } = useHelpersStore()
+  const { setIssuerId, setRelayerId, issuerId, relayerId } = useHelpersStore()
   const resetIds = usePresentationCreation().reset
   const resetOnboardingIds = useOnboardingCreationStore().reset
   const queryClient = useQueryClient()
@@ -121,9 +125,29 @@ export const LandingPage = () => {
     }
   }
 
+  const HandleShowcaseCreate = () => {
+      reset()
+      setScenarioIds([])
+      setPersonaIds([])
+      resetIds()
+      resetOnboardingIds()
+      if (!issuerId || !relayerId || credentials?.credentialDefinitions?.length === 0) {
+        toast.error('Please create a credential before creating a showcase.', { duration: 4000 })
+        return
+      } else {
+        router.push(`/${tenantId}/showcases/create`)
+      }
+    }
+
   return (
     <>
-      <Header title={t('home.header_title')} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <Header 
+        title={t('home.header_title')} 
+        searchTerm={searchTerm} 
+        setSearchTerm={setSearchTerm}
+        buttonLabel={t('showcases.create_new_showcase_label')}
+        buttonLink={HandleShowcaseCreate}
+      />
 
       {isLoading && (
         <div className="flex flex-col items-center">

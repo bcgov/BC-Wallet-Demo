@@ -18,6 +18,7 @@ export interface Props {
 
 export const ProofAttributesCard: React.FC<Props> = ({ entityName, requestedCredentials, proof, proofReceived }) => {
   const [values, setValues] = useState<Attribute[]>([])
+  const [brokenImageUrls, setBrokenImageUrls] = useState<string[]>([])
 
   const formatDate = (prop: string) => {
     const year = prop.substring(0, 4)
@@ -34,12 +35,14 @@ export const ProofAttributesCard: React.FC<Props> = ({ entityName, requestedCred
   }, [proofReceived])
 
   const renderRequestedCreds = requestedCredentials.map((item) => {
+    const imageUrl = `${showcaseServerBaseUrl}/assets/${item.icon}/file`
+    const isBroken = brokenImageUrls.includes(imageUrl)
     return (
       <div className="block md:flex lg:block flex-1 lg:flex-col items-center justify-between pt-4" key={item.name}>
         <div className="flex flex-1 flex-row">
-          {item.icon && (
+          {item.icon && !isBroken &&  (
             <div className="bg-bcgov-lightgrey dark:bg-bcgov-darkgrey rounded-lg p-2 w-12">
-              <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${item.icon}/file`} alt="icon" />
+              <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${item.icon}/file`} alt="icon" onError={() => setBrokenImageUrls((prev) => [...prev, imageUrl])} />
             </div>
           )}
           <div className="flex flex-1 flex-row justify-between px-4 dark:text-white m-auto">

@@ -3,9 +3,18 @@ import type { AxiosResponse } from 'axios'
 import type { ProofRequestData } from '../slices/types'
 import { demoBackendApi } from './BaseUrl'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const hasRequestedProperties = (attributes: any) => {
+  if (!attributes) {
+    return false
+  }
+  return Object.values(attributes).some((attribute: any) => attribute.names?.length > 0)
+}
+
 export const createProofRequest = (data: ProofRequestData): Promise<AxiosResponse> => {
+  const attributes = data.attributes ?? {}
   const proofRequest = {
-    requested_attributes: Object.assign({}, data.attributes),
+    requested_attributes: hasRequestedProperties(attributes) ? attributes : {},
     requested_predicates: Object.assign({}, data.predicates),
     version: '1.0.0',
     name: data.requestOptions?.name,
@@ -20,8 +29,9 @@ export const createProofRequest = (data: ProofRequestData): Promise<AxiosRespons
 }
 
 export const createDeepProofRequest = (data: ProofRequestData): Promise<AxiosResponse> => {
+  const attributes = data.attributes ?? {}
   const proofRequest = {
-    requested_attributes: Object.assign({}, data.attributes),
+    requested_attributes: hasRequestedProperties(attributes) ? attributes : {},
     requested_predicates: Object.assign({}, data.predicates),
     version: '1.0.0',
     name: data.requestOptions?.name,
@@ -36,8 +46,9 @@ export const createDeepProofRequest = (data: ProofRequestData): Promise<AxiosRes
 }
 
 export const createOOBProofRequest = (data: ProofRequestData): Promise<AxiosResponse> => {
+  const attributes = data.attributes ?? {}
   const proofRequest = {
-    requested_attributes: Object.assign({}, data.attributes),
+    requested_attributes: hasRequestedProperties(attributes) ? attributes : {},
     requested_predicates: Object.assign({}, data.predicates),
     version: '1.0.0',
     name: data.requestOptions?.name,
