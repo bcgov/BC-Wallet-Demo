@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useFormDirtyStore } from '@/hooks/use-form-dirty-store'
 
 import { useRouter } from '@/i18n/routing'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,13 +27,14 @@ import { useTenant } from '@/providers/tenant-provider'
 export const ShowcaseCreate = () => {
   const t = useTranslations()
   const router = useRouter()
-  const { mutateAsync: createShowcase } = useCreateShowcase()
+  const { mutateAsync: createShowcase, isPending: isCreating } = useCreateShowcase()
   const { showcase, setShowcase, reset: resetCreateShowcase, setCurrentShowcaseSlug, currentShowcaseSlug } =
     useShowcaseStore()
-  const { mutateAsync: updateShowcase } = useUpdateShowcase(currentShowcaseSlug)
+  const { mutateAsync: updateShowcase, isPending: isUpdating } = useUpdateShowcase(currentShowcaseSlug)
   const { reset: resetOnboardingCreation } = useOnboardingCreation()
   // const { tenantId } = useHelpersStore()
   const { tenantId } = useTenant();
+  const { setDirty } = useFormDirtyStore();
 
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [Slug, setSlug] = useState<string | null>(null);
@@ -40,6 +42,8 @@ export const ShowcaseCreate = () => {
   const handleImageUploadError = (error: string) => {
     setImageUploadError(error);
   };
+
+  const isSubmitting = isCreating || isUpdating
 
   
 
@@ -59,7 +63,7 @@ export const ShowcaseCreate = () => {
     form.watch('bannerImage')
   )
 
-  const onSubmit = async (formData: ShowcaseRequest) => {
+  const onSubmit = async (formData: ShowcaseRequest, shouldNavigate = false) => {
     const payload: ShowcaseRequest = {
       name: formData.name,
       description: formData.description,
@@ -72,45 +76,69 @@ export const ShowcaseCreate = () => {
       bannerImage: formData.bannerImage,
     }
 
+    const handleSuccess = (apiResponse?: { showcase?: { slug?: string } }) => {
+      if (currentShowcaseSlug) {
+        setShowcase(payload)
+        toast.success('Showcase updated successfully')
+        form.reset(payload) // Reset form state after successful update
+        setDirty(false) // Mark form as clean after save
+        if (shouldNavigate) {
+          router.push(`/${tenantId}/showcases/create/characters`)
+        }
+      } else if (apiResponse?.showcase?.slug) {
+        setSlug(apiResponse.showcase.slug)
+        setCurrentShowcaseSlug(apiResponse.showcase.slug)
+        setShowcase(payload)
+        toast.success('Showcase created successfully')
+        form.reset(payload) // Reset form state after successful creation
+        setDirty(false) // Mark form as clean after save
+        if (shouldNavigate) {
+          router.push(`/${tenantId}/showcases/create/characters`)
+        }
+      } else {
+        toast.error('Error creating showcase: No slug returned')
+      }
+    }
+
+    const handleError = () => {
+      toast.error(`Error ${currentShowcaseSlug ? 'updating' : 'creating'} showcase`)
+    }
+
     if (currentShowcaseSlug) {
       updateShowcase(payload, {
-        onSuccess: () => {
-          setShowcase(payload)
-          toast.success('Showcase updated successfully')
-          router.push(`/${tenantId}/showcases/create/characters`)
-        },
-        onError: () => {
-          toast.error('Error updating showcase')
-        },
+        onSuccess: () => handleSuccess(),
+        onError: handleError,
       })
     } else {
       createShowcase(payload, {
-        onSuccess: (apiResponse) => {
-          if (apiResponse.showcase?.slug) {
-            setSlug(apiResponse.showcase.slug)
-            setCurrentShowcaseSlug(apiResponse.showcase.slug)
-            setShowcase(payload)
-            toast.success('Showcase created successfully')
-            router.push(`/${tenantId}/showcases/create/characters`)
-          } else {
-            toast.error('Error creating showcase')
-          }
-        },
-        onError: () => {
-          toast.error('Error creating showcase')
-        },
+        onSuccess: handleSuccess,
+        onError: handleError,
       })
     }
   }
 
-  const handleCancel = () => form.reset()
+  useEffect(() => {
+    setDirty(form.formState.isDirty);
+  }, [form.formState.isDirty, setDirty]);
+
+  const handleProceed = () => {
+    if (form.formState.isDirty) {
+      toast.warning(t('character.save_changes_warning'))
+      return
+    }
+    if (currentShowcaseSlug) {
+      router.push(`/${tenantId}/showcases/${currentShowcaseSlug}/characters`)
+    } else {
+      router.push(`/${tenantId}/showcases/create/characters`)
+    }
+  }
 
   return (
     <div className="flex flex-col p-6">
       <StepHeader icon={<Monitor strokeWidth={3} />} title={'Enter showcase details'} showDropdown={false} />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-grow space-y-6">
+        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col flex-grow space-y-6">
           <div className="space-y-6 flex-grow">
             <FormTextInput
               control={form.control}
@@ -169,11 +197,19 @@ export const ShowcaseCreate = () => {
           </div>
 
           <div className="mt-auto pt-4 border-t flex justify-end gap-3">
-            {/* <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline> */}
+            <ButtonOutline
+              onClick={form.handleSubmit((data) => onSubmit(data, false))}
+              disabled={!isFormReady || isSubmitting || !form.formState.isDirty}
+            >
+              {t('action.save_label')}
+            </ButtonOutline>
 
             <div className="flex gap-3">
-              <ButtonOutline disabled={!isFormReady} type="submit">
-                {t('action.next_label')}
+              <ButtonOutline
+                disabled={isSubmitting || form.formState.isDirty}
+                onClick={handleProceed}
+              >
+                {'Proceed to Character'}
               </ButtonOutline>
             </div>
           </div>

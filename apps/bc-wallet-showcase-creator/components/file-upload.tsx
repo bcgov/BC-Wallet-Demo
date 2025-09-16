@@ -12,13 +12,15 @@ export const FileUploadFull = ({
   handleJSONUpdate,
   maxSize,
   onImageUploadError,
+  onImageDelete,
 }: {
   text: string
   element: string
   initialValue?: string
-  handleJSONUpdate: (imageType: string, imageData: string, fileType?: string) => void
+  handleJSONUpdate: (imageType: string, imageData: string | null, fileType?: string | null) => void
   maxSize?: number // Max size in bytes
   onImageUploadError?: (error: string) => void
+  onImageDelete?: () => void
 }) => {
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(initialValue || null)
@@ -53,7 +55,7 @@ export const FileUploadFull = ({
 
   return (
     <div className="flex items-center flex-col justify-center">
-      <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}</p>
+      <p className="text-md w-full text-start font-bold text-foreground/80 mb-3">{text}</p>
 
       {preview && (
         <div className="relative w-full">
@@ -62,6 +64,7 @@ export const FileUploadFull = ({
             onClick={(e) => {
               e.preventDefault()
               void handleChange(null)
+              onImageDelete?.()
             }}
           >
             <Trash2 />

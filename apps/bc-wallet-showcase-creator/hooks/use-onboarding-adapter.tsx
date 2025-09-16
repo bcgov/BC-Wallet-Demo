@@ -392,7 +392,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
           if (result && result.issuanceScenario) {
             scenarioIds.push(result.issuanceScenario.id);
-            toast.success(`Scenario created for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
+            toast.success(`Onboarding created successfully for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
           } else {
             throw new Error('Invalid response format');
           }
@@ -472,7 +472,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
           debugLog('Scenario slug is required for update:', scenario);
           result = await createScenarios([scenario])
           if (result && result.success) {
-            toast.success('Scenarios created successfully')
+            toast.success('Onboarding created successfully')
             router.push(`/${tenantId}/showcases/create/scenarios`)
           } else {
             throw new Error('Invalid response format');

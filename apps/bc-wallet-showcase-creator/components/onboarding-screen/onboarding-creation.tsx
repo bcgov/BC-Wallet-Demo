@@ -116,7 +116,7 @@ const handleDragStart = (event: DragStartEvent) => {
             </div>
           </div>
 
-          <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          {/* <DndContext collisionDetection={closestCenter} onDragStart={() => {}} onDragEnd={() => {}}> */}
             <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
               {steps.length === 0 ? (
                 <div className="text-center text-gray-500 p-4">
@@ -145,7 +145,7 @@ const handleDragStart = (event: DragStartEvent) => {
                 )}
               </DragOverlay>
             </SortableContext>
-          </DndContext>
+          {/* </DndContext> */}
 
           <div className="p-4 mt-auto border-t">
             <Button

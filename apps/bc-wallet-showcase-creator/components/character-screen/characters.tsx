@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
+import { useFormDirtyStore } from '@/hooks/use-form-dirty-store'
 import { usePersonaAdapter } from '@/hooks/use-persona-adapter'
 import StepHeader from '@/components/step-header'
 import { FormTextInput, FormTextArea } from '@/components/text-input'
@@ -29,7 +30,9 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isProceeding, setIsProceeding] = useState(false)
+  const [initialSelectionDone, setInitialSelectionDone] = useState(false)
   const { tenantId } = useTenant();
+  const { setDirty, setImageDirty, isImageDirty } = useFormDirtyStore();
   const [headshotImageType, setHeadshotImageType] = useState<string | null>(null);
   const [bodyImageType, setBodyImageType] = useState<string | null>(null);
 
@@ -73,6 +76,15 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
   })
 
   useEffect(() => {
+    setDirty(form.formState.isDirty);
+  }, [form.formState.isDirty, setDirty]);
+
+
+  const onlyRecentlyCreated = useCallback((persona: Persona) => {
+    return selectedPersonaIds.find((id: string) => id === persona.id)
+  }, [selectedPersonaIds])
+
+  useEffect(() => {
     if (isLoading) return;
     if (selectedPersona) {
       form.reset(
@@ -84,6 +96,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
         },
         { keepDefaultValues: false },
       )
+      setImageDirty(false)
     } else if (!selectedPersonaId) {
       form.reset(
         {
@@ -94,8 +107,31 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
         },
         { keepDefaultValues: false },
       )
+      setImageDirty(false)
     }
   }, [selectedPersona, selectedPersonaId, form])
+
+  useEffect(() => {
+    if (isLoading || !personasData?.personas || selectedPersonaId || initialSelectionDone) {
+      return
+    }
+
+    const filteredPersonas = personasData.personas.filter(onlyRecentlyCreated)
+
+    if (filteredPersonas.length > 0) {
+      handlePersonaSelect(filteredPersonas[0])
+      setInitialSelectionDone(true)
+    }else{
+      handleCreateNew()
+    }
+  }, [
+    isLoading,
+    personasData,
+    selectedPersonaId,
+    handlePersonaSelect,
+    onlyRecentlyCreated,
+    initialSelectionDone,
+  ])
 
   const handleFormSubmit = async (data: CharacterFormData) => {
     try {
@@ -110,21 +146,8 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
         bodyImageType: bodyImageType || undefined,
       });
 
-      handleCreateNew();
-
-      form.reset({
-        name: '',
-        role: '',
-        description: '',
-        hidden: false,
-      });
-
-      setHeadshotImage(null);
-      setBodyImage(null);
-      setHeadshotImageType(null);
-      setBodyImageType(null);
-      setIsHeadshotImageEdited(false);
-      setIsBodyImageEdited(false);
+      setDirty(false); // Mark form as clean after save
+      setImageDirty(false)
 
     } catch (error) {
       toast.error(t('character.error_character_creation_label'));
@@ -164,10 +187,6 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
     }
   };
 
-  const onlyRecentlyCreated = (persona: Persona) => {
-    return selectedPersonaIds.find((id: string) => id === persona.id)
-  }
-
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [imageUploadErrorHeadshot, setImageUploadErrorHeadshot] = useState<string | null>(null);
   
@@ -177,6 +196,18 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
   const handleImageUploadErrorHeadshot = (error: string) => {
     setImageUploadErrorHeadshot(error);
   };
+
+  const handleImageDeletion = (imageType: 'headshot' | 'body') => {
+    if (imageType === 'headshot') {
+      setHeadshotImage(null);
+      setIsHeadshotImageEdited(true);
+      setImageDirty(true);
+    } else if (imageType === 'body') {
+      setBodyImage(null);
+      setIsBodyImageEdited(true);
+      setImageDirty(true);
+    }
+  }
 
   return (
     <>
@@ -296,6 +327,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                 register={form.register}
                                 error={form.formState.errors.name?.message}
                                 placeholder={t('character.edit_name_placeholder')}
+                                isMandatory={true}
                                 control={form.control}
                               />
                             </div>
@@ -305,6 +337,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                 name="role"
                                 register={form.register}
                                 error={form.formState.errors.role?.message}
+                                isMandatory={true}
                                 placeholder={t('character.edit_role_placeholder')}
                                 control={form.control}
                               />
@@ -317,6 +350,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                               name="description"
                               register={form.register}
                               error={form.formState.errors.description?.message}
+                              isMandatory={true}
                               placeholder={t('character.edit_description_placeholder')}
                               control={form.control}
                             />
@@ -353,6 +387,11 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                   setHeadshotImageType(fileType ?? 'image/jpeg')
                                   setIsHeadshotImageEdited(true);
                                   setImageUploadErrorHeadshot(null); // Clear error on change
+                                  setImageDirty(true)
+                                }}
+                                onImageDelete={() => {
+                                  handleImageDeletion('headshot');
+                                  setImageDirty(true);
                                 }}
                               />
                                {imageUploadErrorHeadshot && (
@@ -377,6 +416,11 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                   setBodyImageType(fileType ?? 'image/jpeg')
                                   setIsBodyImageEdited(true);
                                   setImageUploadError(null); // Clear error on change
+                                  setImageDirty(true)
+                                }}
+                                onImageDelete={() => {
+                                  handleImageDeletion('body');
+                                  setImageDirty(true);
                                 }}
                               />
                               {imageUploadError && (
@@ -388,17 +432,30 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                           </div>
                         </div>
 
-                        <div className="mt-auto pt-4 border-t flex justify-end gap-3">
-                          <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline>
-                          <ButtonOutline type="submit" disabled={!form.formState.isValid}>
-                            {t('action.save_label')}
+                        <div className="mt-auto pt-4 border-t flex justify-between gap-3">
+                          <ButtonOutline onClick={handleCancel}>{'Help'}</ButtonOutline>
+                          <div className='flex gap-3'>
+                          <ButtonOutline
+                            type="submit"
+                            disabled={!form.formState.isValid || (!form.formState.isDirty && !isImageDirty)}
+                          >
+                            {'Save Character Details'}
                           </ButtonOutline>
-                          <ButtonOutline onClick={(e) => {
-                            e.preventDefault()
-                            handleProceed()
-                          }} disabled={isProceeding || selectedPersonaIds.length === 0}>
-                            {t('action.next_label')}
+                          <ButtonOutline
+                            onClick={(e) => {
+                              e.preventDefault()
+                              handleProceed()
+                            }}
+                            disabled={
+                              isProceeding ||
+                              personaState === 'creating-new' ||
+                              (personaState === 'editing-persona' && (form.formState.isDirty || isImageDirty)) ||
+                              selectedPersonaIds.length === 0
+                            }
+                          >
+                            {'Proceed to Onboarding'}
                           </ButtonOutline>
+                          </div>
 
                         </div>
                       </div>
@@ -406,7 +463,10 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                   </Form>
                 </div>
               ) : (
-                <div className="self-center justify-center mt-[23%]">{t('character.no_character_selected_label')}</div>
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div>{t('character.no_character_selected_label')}</div>
+                  <div className="mt-2">{t('character.no_character_selected_label2')}</div>
+                </div>
               )}
             </div>
           </div>

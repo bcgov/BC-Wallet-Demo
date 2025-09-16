@@ -27,13 +27,15 @@ export const OnboardingSteps = ({ showcaseSlug }: { showcaseSlug?: string }) => 
     return (
       <NoSelection
         text={
-          t('onboarding.no_step_selected_message')
+          'This section includes multiple steps for your character onboarding. Please note that you will configure onboarding steps for each of your characters'
         }
         subtext={
-          t('onboarding.no_step_selected_subtext')
+          'First, you will click on each step to review and configure the default onboarding details already included in your showcase.'
         }
-        handleNewStep={() => setStepState('creating-new')}
-        buttonText={t('onboarding.create_new_step_button_label')}
+        subtext1=' Next, you may add any additional steps you would like to include in the character onboarding by clicking ‘Add Step’ at the bottom of the list’'
+        subtext2='Note: If you have more than one character, please click on each character and configure the onboarding steps.'
+        // handleNewStep={() => setStepState('creating-new')}
+        // buttonText={t('onboarding.create_new_step_button_label')}
       />
     )
   }
