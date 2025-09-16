@@ -104,7 +104,7 @@ export const SetupConnectionAction: React.FC<Props> = ({
       </>
       {skipGetCredential && (
         <div className="my-5">
-          <Button text="I Already Have my Credential" onClick={skipGetCredential} disabled={!invitationUrl}></Button>
+          <Button text="I already Have my Credential" onClick={skipGetCredential} disabled={!invitationUrl}></Button>
         </div>
       )}
     </motion.div>
@@ -131,7 +131,7 @@ export const SetupConnectionAction: React.FC<Props> = ({
         <div>{renderQRCode(true)}</div>
         {skipGetCredential && (
           <div className="mt-5">
-            <Button text="I Already Have my Credential" onClick={skipGetCredential} disabled={!invitationUrl}></Button>
+            <Button text="I already Have my Credential" onClick={skipGetCredential} disabled={!invitationUrl}></Button>
           </div>
         )}
       </div>

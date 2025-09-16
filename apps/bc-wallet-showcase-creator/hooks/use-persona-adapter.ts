@@ -285,7 +285,7 @@ export const usePersonaAdapter = () => {
             data: finalPersonaData,
           })
 
-          toast.success('Persona has been updated.')
+          toast.success('Character has been updated.')
         } else {
           result = await createPersona(finalPersonaData)
           const newPersonaId = (result as { persona: Persona }).persona.id
@@ -297,13 +297,10 @@ export const usePersonaAdapter = () => {
             await updateShowcaseWithPersona(newPersonaIds)
           }
 
-          setStepState('no-selection')
-          toast.success('Persona has been created.')
+          setSelectedPersonaId(newPersonaId)
+          setStepState('editing-persona')
+          toast.success('Character has been created.')
         }
-        setHeadshotImage(null)
-        setBodyImage(null)
-        setIsHeadshotImageEdited(false)
-        setIsBodyImageEdited(false)
 
         return result
       } catch (error) {

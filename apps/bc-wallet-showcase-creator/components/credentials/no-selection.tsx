@@ -5,18 +5,24 @@ export const NoSelection = ({
                               subtext,
                               handleNewStep,
                               buttonText,
+                              subtext1,
+                              subtext2
                             }: {
   text: string
   subtext?: string
+  subtext1?: string
+  subtext2?: string
   handleNewStep?: () => void
   buttonText?: string
 }) => {
   return (
-    <div className="border border-light dark:border-dark w-full flex items-center justify-center no-selection">
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <h3 className="mb-2 text-lg font-medium">{text}</h3>
-          {subtext && <p className="text-gray-500">{subtext}</p>}
+    <div className="border border-light dark:border-dark w-full flex flex-col items-center justify-center h-full py-12 no-selection">
+      <div className="flex items-center justify-center px-4">
+        <div className="text-start">
+          <h3 className="mb-3 text-base  text-light-text dark:text-dark-text">{text}</h3>
+          {subtext && <p className="text-base text-light-text dark:text-dark-text">{subtext}</p>}
+          {subtext1 && <p className="mt-2 text-base text-light-text dark:text-dark-text">{subtext1}</p>}
+          {subtext2 && <p className="mt-2 text-base text-light-text dark:text-dark-text">{subtext2}</p>}
           {handleNewStep && (
             <Button variant="outline" className="mt-4" onClick={handleNewStep}>
               {buttonText}

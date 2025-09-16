@@ -6,12 +6,15 @@ import { Link, usePathname } from '@/i18n/routing'
 import { useTenant } from '@/providers/tenant-provider'
 import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
+import { useFormDirtyStore } from '@/hooks/use-form-dirty-store'
+import { toast } from 'sonner'
 
 export default function TabsComponent({ slug }: { slug: string }) {
   const t = useTranslations()
   const pathname = usePathname()
   const { tenantId } = useTenant()
   const { showcase, setShowcase } = useShowcaseStore()
+  const { isDirty, isImageDirty } = useFormDirtyStore()
   const { data: showcaseData } = useShowcase(slug, { enabled: slug !== 'create' }) 
   useEffect(() => {
     if (slug !== 'create' && showcaseData?.showcase && showcaseData.showcase.slug) {
@@ -46,7 +49,16 @@ export default function TabsComponent({ slug }: { slug: string }) {
   return (
     <div>
       {tabs.map((tab: { label: string; path: string; disabled?: boolean }) => (
-        <Link href={tab.path} key={tab.label}>
+        <Link
+          href={tab.path}
+          key={tab.label}
+          onClick={(e) => {
+            if (isDirty || isImageDirty) {
+              e.preventDefault();
+              toast.warning(t('character.save_changes_warning'));
+            }
+          }}
+        >
           <button
             key={tab.path}
             disabled={tab.disabled}
