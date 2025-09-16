@@ -526,6 +526,7 @@ export const CredentialsForm = () => {
                     maxSize={2 * 1024 * 1024} // 2MB limit
                     onImageUploadError={handleImageUploadError}
                     handleJSONUpdate={(imageType, imageData, fileType) => {
+                      //@ts-ignore
                       setCredentialLogo(imageData)
                       setCredentialLogoType(fileType ?? 'image/jpeg')
                       setCredentialLogoType(fileType?? 'image/jpeg')
