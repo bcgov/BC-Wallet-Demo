@@ -63,7 +63,8 @@
     "character_delete_description": "Cette action ne peut pas être annulée.",
     "success_characters_selected_label": "Personnages ajoutés avec succès",
     "error_no_characters_selected_label": "Veuillez sélectionner au moins un personnage pour continuer",
-    "error_character_creation_label": "Erreur lors de la création du personnage"
+    "error_character_creation_label": "Erreur lors de la création du personnage",
+    "save_changes_warning": "Veuillez enregistrer vos modifications avant de continuer."
   },
   "credentials": {
     "credential_title": "Justificatifs",
@@ -188,7 +189,25 @@
     "go_back_to_select_personas": "Retour à la sélection des personnages",
     "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration.",
     "no_step_selected_subtext": "Sélectionnez une étape de la liste ou créez une nouvelle étape",
-    "create_new_step_button_label": "Créer une nouvelle étape"
+    "create_new_step_button_label": "Créer une nouvelle étape",
+    "issue_step_description": "Cette étape émettra un justificatif à l'utilisateur. Sélectionnez le justificatif à émettre ci-dessous.",
+    "wallet_step_description": "Cette étape guidera l'utilisateur pour installer l'application BC Wallet.",
+    "connect_step_description": "Cette étape établira une connexion entre le portefeuille de l'utilisateur et l'émetteur.",
+    "share_step_description": "Cette étape demandera à l'utilisateur de partager un justificatif.",
+    "button_step_description": "Cette étape affichera un bouton à l'utilisateur.",
+    "basic_step_description": "Ceci est une étape de base avec un titre, une description et une image facultative.",
+    "meet_step_instruction": "Cet écran sera l'introduction de l'utilisateur final à votre personnage, vous voudrez donc fournir autant de détails que possible.",
+    "get_started_step_instruction": "Cet écran sera l'introduction de l'utilisateur final au portefeuille BC. Nous avons déjà inclus la langue par défaut pour vous.",
+    "install_wallet_step_instruction": "Cet écran fournira à l'utilisateur final des instructions pour télécharger et installer le portefeuille BC. Nous avons déjà inclus la langue par défaut pour vous.",
+    "connect_step_instruction": "Cet écran fournira à l'utilisateur final un code QR à scanner pour connecter son portefeuille BC à l'émetteur du justificatif. Veuillez modifier la langue par défaut pour votre vitrine.",
+    "accept_credential_step_instruction": "Sur cet écran, vous ajouterez des détails sur le justificatif qui sera délivré à l'utilisateur final.",
+    "you_are_all_set_step_instruction": "Cet écran fournira à l'utilisateur final un message indiquant qu'il a bien reçu le justificatif et l'a stocké dans son portefeuille BC. Nous avons déjà inclus la langue par défaut pour vous.",
+    "edit_character_introduction_step_title": "Modifier l'étape d'introduction du personnage",
+    "edit_introduction_bc_wallet_step_title": "Modifier l'étape d'introduction au portefeuille BC",
+    "edit_install_bc_wallet_step_title": "Modifier l'étape d'installation du portefeuille BC",
+    "edit_connect_bc_wallet_step_title": "Modifier l'étape de connexion avec le portefeuille BC",
+    "edit_credential_issuance_step_title": "Modifier l'étape d'émission de justificatif",
+    "edit_credential_received_step_title": "Modifier l'étape de justificatif reçu"
   },
   "scenario": {
     "header_title": "Créer des Scénarios",

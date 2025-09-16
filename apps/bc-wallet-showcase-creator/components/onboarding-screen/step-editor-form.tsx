@@ -268,23 +268,25 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
   }, [form, autoSave])
 
   const getStepTitle = () => {
-    if (stepType === StepType.Service) {
-      return t('onboarding.issue_step_header_title')
+    if (currentStep?.order === 0 && !currentAction) {
+      return t('onboarding.edit_character_introduction_step_title');
     }
-
-    if (!currentAction) return t('onboarding.basic_step_header_title')
-
-    switch (currentAction.actionType) {
-      case StepActionType.ChooseWallet:
-        return t('onboarding.wallet_step_header_title')
-      case StepActionType.SetupConnection:
-      case StepActionType.AriesOob:
-        return t('onboarding.connect_step_header_title')
-      case StepActionType.AcceptCredential:
-        return t('onboarding.issue_step_header_title')
-      default:
-        return t('onboarding.basic_step_header_title')
+    if (currentStep?.order === 1 && !currentAction) {
+      return t('onboarding.edit_introduction_bc_wallet_step_title');
     }
+    if (currentStep?.order === 5 && !currentAction) {
+      return t('onboarding.edit_credential_received_step_title');
+    }
+    if (stepType === StepType.Service || currentAction?.actionType === StepActionType.AcceptCredential) {
+      return t('onboarding.edit_credential_issuance_step_title');
+    }
+    if (currentAction?.actionType === StepActionType.ChooseWallet) {
+      return t('onboarding.edit_install_bc_wallet_step_title');
+    }
+    if (currentAction?.actionType === StepActionType.SetupConnection || currentAction?.actionType === StepActionType.AriesOob) {
+      return t('onboarding.edit_connect_bc_wallet_step_title');
+    }
+    return t('onboarding.basic_step_header_title');
   }
 
   const showCredentialSelection = () => {
@@ -293,6 +295,29 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
     }
     return currentAction && currentAction.actionType === StepActionType.AcceptCredential
   }
+
+  const getInstructionalText = () => {
+    if (!currentAction && stepType !== StepType.Service) {
+      if (currentStep?.order === 0) {
+        return t('onboarding.meet_step_instruction');
+      } else if (currentStep?.order === 1) {
+        return t('onboarding.get_started_step_instruction');
+      } else if (currentStep?.order === 5) { // Assuming 'You're all set' is the 6th step (index 5) and a basic step
+        return t('onboarding.you_are_all_set_step_instruction');
+      }
+    }
+    switch (currentAction?.actionType) {
+      case StepActionType.ChooseWallet:
+        return t('onboarding.install_wallet_step_instruction');
+      case StepActionType.SetupConnection:
+      case StepActionType.AriesOob:
+        return t('onboarding.connect_step_instruction');
+      case StepActionType.AcceptCredential:
+        return t('onboarding.accept_credential_step_instruction');
+      default:
+        return null;
+    }
+  };
 
   const handleUpdateCredentials = (credentialId: string) => {
     if (!currentStep || !selectedStep) return;
@@ -352,6 +377,11 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
         />
 
         <div className="space-y-6">
+          {getInstructionalText() && (
+            <p className="text-sm text-muted-foreground mb-4">
+                {getInstructionalText()}
+            </p>
+          )}
           <FormTextInput
             control={form.control}
             label={t('onboarding.page_title_label')}
@@ -510,9 +540,7 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
             {t('action.cancel_label')}
           </ButtonOutline>
 
-          <ButtonOutline type="button" onClick={toggleViewMode}>
-            {t('action.preview_label')}
-          </ButtonOutline>
+
 
           <ButtonOutline
             type="button"

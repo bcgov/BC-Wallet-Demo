@@ -57,11 +57,12 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-2xl font-bold">{t('onboarding.add_your_credential_label')}</p>
+        <p className="text-md font-bold text-foreground/80">{t('onboarding.add_your_credential_label')}</p>
         <hr className="border border-black" />
       </div>
 
       <div className="mt-6">
+        <p className="text-sm text-muted-foreground mb-4">{'In this section, you must search for and select a credential to be issued. The attributes available will be displayed. Enter the attribute values for the credential. Please make sure to Save before proceeding'}</p>
         <p className="text-md font-bold">{t('onboarding.search_credential_label')}</p>
         <div className="flex flex-row justify-center items-center my-4">
           <div className="relative w-full">

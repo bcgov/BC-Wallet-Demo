@@ -18,7 +18,7 @@ interface Actions {
 export const usePersonaStore = create<State & Actions>()(
   immer((set) => ({
     editMode: false,
-    personaState: "no-selection",
+    personaState: "creating-new",
 
     setStepState: (newState) =>
       set((state) => {
@@ -32,7 +32,7 @@ export const usePersonaStore = create<State & Actions>()(
 
     reset: () =>
       set((state) => {
-        state.personaState = "no-selection";
+        state.personaState = "creating-new";
         state.editMode = false;
       }),
   }))
