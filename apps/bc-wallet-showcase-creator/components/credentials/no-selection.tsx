@@ -17,9 +17,8 @@ export const NoSelection = ({
 }) => {
   return (
     <div className="border border-light dark:border-dark w-full flex flex-col items-center justify-center h-full py-12 no-selection">
-      <div className="flex items-center justify-center px-4">
-        <div className="text-start">
-          <h3 className="mb-3 text-base  text-light-text dark:text-dark-text">{text}</h3>
+      <div className="mx-auto px-4 text-center">
+          <h3 className="mb-3 text-base text-light-text dark:text-dark-text">{text}</h3>
           {subtext && <p className="text-base text-light-text dark:text-dark-text">{subtext}</p>}
           {subtext1 && <p className="mt-2 text-base text-light-text dark:text-dark-text">{subtext1}</p>}
           {subtext2 && <p className="mt-2 text-base text-light-text dark:text-dark-text">{subtext2}</p>}
@@ -30,6 +29,5 @@ export const NoSelection = ({
           )}
         </div>
       </div>
-    </div>
   )
 }

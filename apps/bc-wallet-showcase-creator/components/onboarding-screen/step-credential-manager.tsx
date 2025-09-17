@@ -57,7 +57,7 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-md font-bold text-foreground/80">{t('onboarding.add_your_credential_label')}</p>
+        <p className="text-md font-bold text-foreground/80">{t('onboarding.add_your_credential_label')}<span className="text-red-500">*</span></p>
         <hr className="border border-black" />
       </div>
 

@@ -77,7 +77,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
   }
   return (
     <div className="flex items-center flex-col justify-center w-full">
-      <p className="w-full text-start text-foreground font-bold mb-2">{text}</p>
+      <p className="w-full text-start text-foreground/80 font-bold mb-2">{text}</p>
 
       {existingAssetId && (
         <div className="relative w-full">

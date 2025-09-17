@@ -192,12 +192,36 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
   Object.keys(action.proofRequest.attributes || {}).length === 0 &&
   Object.keys(action.proofRequest.predicates || {}).length === 0;
 
+  const getInstructionalText = () => {
+        if (currentStep?.order === 0) {
+          return 'This screen will provide the end-user a QR code to scan and receive a proof request on their BC Wallet to share request information from their credential. Please edit the default language for your showcase';
+        } else if (currentStep?.order === 1) {
+          return 'On this screen, you will add details about the credential attributes the end-user will share.  Please edit the default language for your showcase';
+        } else if (currentStep?.order === 2) {
+          return 'This screen will provide the. end-user a message that they have successfully shared the credential from their BC Wallet. Please edit the default language for your showcase';
+        }
+    };
+
+    const getStepTitle = () => {
+        if (currentStep?.order === 0)  {
+          return 'Edit Scan QR Code step';
+        }
+        if (currentStep?.order === 1)  {
+          return 'Edit Information to Share step';
+        }
+         if (currentStep?.order === 2)  {
+          return 'Edit Credential Shared step'
+        }
+ 
+        return t('onboarding.basic_step_header_title');
+      }
+
   return (
     <>
       <StepHeader
         icon={<Monitor strokeWidth={3} />}
         deleteTitle='Delete step'
-        title={t('onboarding.basic_step_header_title')}
+        title={getStepTitle()}
         onActionClick={(action) => {
           switch (action) {
             case 'save':
@@ -220,6 +244,11 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
       />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {getInstructionalText() && (
+            <p className="text-sm text-muted-foreground mb-4">
+                {getInstructionalText()}
+            </p>
+          )}
           <div className="space-y-6">
             <FormTextInput
               label={t('scenario.edit_page_title_label')}
@@ -227,6 +256,7 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
               name="title"
               register={form.register}
               error={form.formState.errors.title?.message}
+              isMandatory={true}
               placeholder={t('scenario.edit_page_title_placeholder')}
             />
 
@@ -236,6 +266,7 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
               name="description"
               register={form.register}
               error={form.formState.errors.description?.message}
+              isMandatory={true}
               placeholder={t('scenario.edit_page_description_placeholder')}
             />
           </div>
@@ -268,11 +299,12 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
 
           {currentStep?.type == StepType.Service && (
             <div className="space-y-4">
-              <h4 className="text-xl font-bold">Request Options</h4>
+              <h4 className="text-md font-bold">Confirm the information to send in the proof request</h4>
               <hr />
 
               <div className="space-y-4">
                 <div>
+                  <p className="text-sm text-muted-foreground mb-4">{'In this section, you must search for and select a credential to be shared. Add the credential attribute(s) you wish the end-user to share. Please make sure to Save before proceeding.'}</p>
                   <p className="text-md font-bold">Search for a Credential:</p>
                   <div className="flex flex-row justify-center items-center my-4">
                     <div className="relative w-full">
@@ -299,16 +331,16 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
               </div>
             </div>
           )}
-          <div className="mt-auto pt-4 border-t flex justify-end gap-3">
-            <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
-            {/* <Link href="/publish"> */}
+          <div className="mt-auto pt-4 border-t flex justify-between ">
+            <ButtonOutline onClick={() => setStepState('no-selection')}>{'help'}</ButtonOutline>
+
             <ButtonOutline type="submit" 
               disabled={!form.formState.isValid || isProofRequestEmpty || isInvalidServiceStep}
               onClick={form.handleSubmit(onSubmit)}
             >
-              {t('action.next_label')}
+              {'Proceed to Publish'}
             </ButtonOutline>
-            {/* </Link> */}
+
           </div>
         </form>
       </Form>
