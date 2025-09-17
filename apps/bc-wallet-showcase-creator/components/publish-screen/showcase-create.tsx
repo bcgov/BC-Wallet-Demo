@@ -127,7 +127,7 @@ export const ShowcaseCreate = () => {
       return
     }
     if (currentShowcaseSlug) {
-      router.push(`/${tenantId}/showcases/${currentShowcaseSlug}/characters`)
+      router.push(`/${tenantId}/showcases/create/characters`)
     } else {
       router.push(`/${tenantId}/showcases/create/characters`)
     }

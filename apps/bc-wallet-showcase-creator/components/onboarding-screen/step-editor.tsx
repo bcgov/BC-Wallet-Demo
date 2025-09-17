@@ -14,6 +14,8 @@ import { StepPreview } from './step-preview'
 import { baseUrl } from '@/lib/utils'
 import { useShowcase } from '@/hooks/use-showcases'
 import { useTenant } from '@/providers/tenant-provider'
+import { useFormDirtyStore } from '@/hooks/use-form-dirty-store'
+import { useBeforeUnload } from '@/hooks/use-before-unload'
 
 export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
@@ -23,6 +25,8 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const [errorMessage, setErrorMessage] = useState('')
   const [isViewMode, setIsViewMode] = useState(false)
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
+  const { isDirty } = useFormDirtyStore()
+  useBeforeUnload(isDirty, t('character.save_changes_warning'))
 
   const {
     steps: screens,
@@ -42,6 +46,10 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const toggleViewMode = () => setIsViewMode(!isViewMode)
 
   const handleCancel = () => {
+    if (isDirty) {
+      toast.warning(t('character.save_changes_warning'))
+      return
+    }
     setStepState('no-selection')
     setSelectedStep(null)
   }
@@ -111,6 +119,10 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
       onCancel={handleCancel}
       toggleViewMode={toggleViewMode}
       isEditMode={isEditMode}
+      onProceed={handleSubmit}
+      updateScenarios={updateScenarios}
+      createScenarios={createScenarios}
+      // showcaseSlug={showcaseSlug}
     />
   )
 }

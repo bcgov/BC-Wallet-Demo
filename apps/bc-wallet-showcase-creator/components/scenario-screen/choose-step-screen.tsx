@@ -65,10 +65,11 @@ export const CreateScenariosStepsScreen = ({ slug }: { slug?: string }) => {
     >
       {!activePersonaId && <NoSelection text={t('onboarding.select_persona_message')} />}
       {activePersonaId && stepState === 'no-selection' && (
-        <NoSelection
-          text={
-            t('onboarding.no_step_selected_message')
-          }
+        <NoSelection 
+          text={'This section includes multiple steps to create the scenarios included in your showcase. Please note that you will configure scenarios for each of your characters and then you will configure the steps included in each scenario.'}
+          subtext='First, you will click on each scenario step to review and configure the default scenario details already included in your showcase.' 
+          subtext1='Next, you may add and configure those steps required to verify credentials held by each character. You can add additional steps to the default scenario already created by clicking ‘Add Step’. You may also copy and create a new scenario and corresponding steps for each of your characters.'
+          subtext2='Note: If you have more than one character, please click on each character and configure both the scenarios and scenario steps.'
         />
       )}
       {activePersonaId && stepState === 'creating-new' && <ChooseStepType addNewStep={handleAddStep} />}

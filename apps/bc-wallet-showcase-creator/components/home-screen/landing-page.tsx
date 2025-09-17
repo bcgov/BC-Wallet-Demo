@@ -71,6 +71,12 @@ export const LandingPage = () => {
       }
     }
 
+    reset()
+    setScenarioIds([])
+    setPersonaIds([])
+    resetIds()
+    resetOnboardingIds()
+
     void fetchTenantConfig()
   }, [tenantId, setIssuerId, setRelayerId])
 

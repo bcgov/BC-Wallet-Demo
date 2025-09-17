@@ -68,7 +68,6 @@ export const DisplayStepCredentials = ({
             />
             <div className="space-y-1 ml-4">
               <p className="font-semibold">{cred?.credentialDefinition?.credentialSchema?.name}</p>
-              <p className="text-sm text-muted-foreground">{'Test college'}</p>
             </div>
           </div>
 

@@ -140,6 +140,8 @@ export const PresentCredentialAction: React.FC<Props> = ({
     closeFailedRequestModal()
   }
 
+  console.log('Received Proof:', proof)
+
   return (
     <motion.div>
       <div className="flex flex-row m-auto w-full">

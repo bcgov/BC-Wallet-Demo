@@ -37,7 +37,7 @@ export default function TabsComponent({ slug }: { slug: string }) {
     {
       label: t('navigation.scenario_label'),
       path: `/${tenantId}/showcases/${slug}/scenarios`,
-      disabled: showcase.scenarios?.length == 0,
+      disabled: (showcase.scenarios?.length == 0 || (showcase.personas?.length ?? 0) === 0),
     },
     {
       label: t('navigation.publish_label'),

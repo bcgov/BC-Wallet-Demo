@@ -31,12 +31,14 @@ const BannerImageUpload = ({
   onChange,
   maxSize,
   onImageUploadError,
+  isMandatory
 }: {
   text: string
   value?: string
   onChange: (value: string) => void
   maxSize?: number // Max size in bytes
   onImageUploadError?: (error: string) => void
+  isMandatory?: boolean
 }) => {
   const t = useTranslations()
   const { mutateAsync: createAsset } = useCreateAsset()
@@ -78,7 +80,7 @@ const BannerImageUpload = ({
   // Simply render the component with minimal logic
   return (
     <div className="flex items-center flex-col justify-center">
-      <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}</p>
+      <p className="text-md w-full text-start font-bold text-foreground mb-3">{text}{isMandatory ? <span className="text-red-500">*</span> : null}</p>
 
       <div className="w-full">
         {value && (
@@ -206,7 +208,7 @@ export const PublishEdit = () => {
 
   return (
     <div className="flex flex-col min-h-screen p-6">
-      <StepHeader icon={<Monitor strokeWidth={3} />} title={'Publish your showcase'} />
+      <StepHeader icon={<Monitor strokeWidth={3} />} showDelete={false} title={'Publish your showcase'} />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-grow space-y-6">
@@ -217,6 +219,7 @@ export const PublishEdit = () => {
               name="name"
               register={form.register}
               error={form.formState.errors.name?.message}
+              isMandatory={true}
               placeholder="Enter showcase name"
             />
             <FormTextArea
@@ -225,6 +228,7 @@ export const PublishEdit = () => {
               name="description"
               register={form.register}
               error={form.formState.errors.description?.message}
+              isMandatory={true}
               placeholder="Enter showcase description"
             />
             <FormTextArea
@@ -241,6 +245,7 @@ export const PublishEdit = () => {
                 value={form.watch('bannerImage')}
                 maxSize={2 * 1024 * 1024} // 2MB limit
                 onImageUploadError={handleImageUploadError}
+                isMandatory={true}
                 onChange={(value) => {
                   form.setValue('bannerImage', value, {
                     shouldDirty: true,
@@ -258,16 +263,14 @@ export const PublishEdit = () => {
             </div>
           </div>
 
-          <div className="mt-auto pt-4 border-t flex justify-between">
-            <div>
+          <div className="mt-auto pt-4 border-t flex justify-end">
+            {/* <div>
               <ButtonOutline onClick={handleCancel}>{t('action.cancel_label')}</ButtonOutline>
-            </div>
+            </div> */}
             <div className="flex gap-3">
               <ConfirmationDialog
-                title="Submit for Review?"
+                title="Publish Showcase"
                 content={<>
-                  {t('showcase.modal_description')}
-                  <br />
                   {t('showcase.modal_description2')}
                 </>
                 }

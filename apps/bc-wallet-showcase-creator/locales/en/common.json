@@ -25,7 +25,7 @@
     "description_version": "Version",
     "loading_label": "Loading...",
     "publish_info_title": "Review and Publish Showcase",
-    "publish_info_subtitle": "Enter and review the showcase details.",
+    "publish_info_subtitle": "Review showcase details before publishing",
     "publish_info_credentials": "Will receive the following credential(s):",
     "loading_showcase_data_label": "Loading showcase data...",
     "name_placeholder": "Showcase Name",
@@ -219,9 +219,10 @@
     "edit_credential_received_step_title": "Edit Credential Received step"
   },
   "scenario": {
-    "header_title": "Create Scenarios",
-    "header_subtitle": "Add pages below to create your scenarios screens and connecting steps.",
+    "header_title": "Configure scenario steps",
+    "header_subtitle": "Review and configure the default scenario steps already included below for each character. Then you may add any additional steps you wish to include in the scenario. You may also copy and create additional scenarios for each of your characters.",
     "no_scenario_selected_message": "Nothing Selected",
+    "editing_steps_message": "Select a character and then click on each step below to configure scenarios for that character. Please confirm that you have selected the appropriate character before adding new scenario steps",
     "add_scenario_label": "Add Scenario",
     "scenarios_added_label": "Scenarios Added: {scenarioCount}",
     "delete_scenario_label": "Delete Scenario",
@@ -279,7 +280,7 @@
   "showcase": {
     "header_title": "Save Showcase",
     "title": "Enter the name for this showcase below.",
-    "button_label": "PUBLISH FOR REVIEW",
+    "button_label": "PUBLISH SHOWCASE",
     "subtitle": "Today's date will be appended to the filename for versioning.\nex. MyShowcase_v3_(mm-dd-yyyy)",
     "modal_description": "Once submitted, you won't be able to make further edits until the review is complete.",
     "modal_button": "CONFIRM & SUBMIT FOR REVIEW",
