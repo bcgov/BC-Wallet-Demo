@@ -15,6 +15,7 @@ import { StepActionType, StepRequest } from 'bc-wallet-openapi'
 import { StepRequestUIActionTypes } from '@/lib/steps'
 import { useCredentialDefinition } from '@/hooks/use-credentials'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
 
 interface EditProofRequestProps {
   credentialId: string;
@@ -272,7 +273,7 @@ export const EditProofRequest = ({
 
     const formData = form.getValues()
 
-    setEditingCredentials(editingCredentials.filter((i) => i !== editingIndex))
+    // setEditingCredentials(editingCredentials.filter((i) => i !== editingIndex))
 
     const updatedStep: StepRequest = {
       ...currentStep,
@@ -292,6 +293,7 @@ export const EditProofRequest = ({
     }
 
     updateStep(selectedStep?.stepIndex || 0, updatedStep)
+    toast.success('Proof request updated successfully')
   }
 
   if (isLoading) {

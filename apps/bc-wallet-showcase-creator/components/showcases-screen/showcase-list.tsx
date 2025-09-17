@@ -91,6 +91,12 @@ export const ShowcaseList = () => {
           }
         }
       }
+
+      reset()
+      setScenarioIds([])
+      setPersonaIds([])
+      resetIds()
+      resetOnboardingIds()
   
       void fetchTenantConfig()
     }, [tenantId, setIssuerId, setRelayerId])

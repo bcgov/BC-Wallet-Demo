@@ -7,6 +7,7 @@ import { Service } from 'typedi'
 export class WebhookController {
   @Post('/*')
   public async handlePostWhook(@Body() params: any, @Req() req: any) {
+    console.log('Received webhook:', params)
     const socketMap: Map<string, Socket> = req.app.get('sockets')
     const api_key = req.headers['x-api-key']
     if (api_key !== process.env.TRACTION_WEBHOOK_SECRET) {

@@ -133,7 +133,7 @@ export const CreateScenariosScreen = () => {
             <div className="border-b w-full light-border dark:dark-border">
               <div className="pb-4">
                 <h2 className="text-base font-bold">{`You are editing ${activePersona?.name}'s scenario.`}</h2>
-                <p className="text-xs">{t('onboarding.editing_steps_message')}</p>
+                <p className="text-xs">{t('scenario.editing_steps_message')}</p>
               </div>
             </div>
 
@@ -160,17 +160,17 @@ export const CreateScenariosScreen = () => {
                     }}
                     className="p-3 bg-light-bg dark:bg-dark-bg"
                   >
-                    <h3 className="text-xl font-bold">{scenario?.name}</h3>
+                    <h3 className="text-lg font-medium">Edit Scenario Name: <p className="text-xl font-bold">{scenario?.name}</p></h3>
                   </div>
 
                   {/* Only show steps for the active scenario */}
                   {/* {activeScenarioIndex === index && ( */}
                   <>
-                    <DndContext
+                    {/* <DndContext
                       collisionDetection={closestCenter}
                       onDragStart={handleDragStart}
                       onDragEnd={handleDragEnd}
-                    >
+                    > */}
                       <div className="p-2">
                         <SortableContext
                           items={scenario.steps?.map((step, i) => `step-${index}-${i}`)}
@@ -207,7 +207,7 @@ export const CreateScenariosScreen = () => {
                           </DragOverlay>
                         </SortableContext>
                       </div>
-                    </DndContext>
+                    {/* </DndContext> */}
 
                     <div className="p-2 pt-0 flex flex-row gap-2">
                       <Button
@@ -232,7 +232,7 @@ export const CreateScenariosScreen = () => {
               </div>
             ))}
 
-            <div className="pt-4 border-t">
+            {/* <div className="pt-4 border-t">
               <Button
                 onClick={() => setStepState('creating-new')}
                 className="w-full"
@@ -241,7 +241,7 @@ export const CreateScenariosScreen = () => {
               >
                 {t('scenario.add_scenario_label').toUpperCase() || 'Add Scenario'}
               </Button>
-            </div>
+            </div> */}
           </div>
         </>
       )}

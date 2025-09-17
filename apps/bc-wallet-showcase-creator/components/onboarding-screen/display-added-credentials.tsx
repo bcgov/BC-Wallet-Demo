@@ -177,7 +177,16 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
                         <label className="text-sm font-bold">{t('credentials.attribute_value_placeholder')}</label>
                         <Input
                           value={attr.value || ''}
-                          onChange={(e) => handleAttributeChange(attrIndex, e.target.value)}
+                          onChange={(e) => {
+                            if (attr.type === 'DATE') {
+                              const regex = /^[0-9]{0,8}$/
+                              if (regex.test(e.target.value)) {
+                                handleAttributeChange(attrIndex, e.target.value)
+                              }
+                            } else {
+                              handleAttributeChange(attrIndex, e.target.value)
+                            }
+                          }}
                         />
                       </div>
                     </div>

@@ -359,8 +359,8 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
           if (!scenarioList.length) return null;
 
           return scenarioList
-          //@ts-expect-error
-          .filter(s => !s.slug)
+          //@ts-expect-error - Filter out scenarios that already have slugs (already created)
+          .filter(s => !s.slug && !s.id)
           .map(scenario => ({
             ...scenario,
             personas: [persona.id],
@@ -392,6 +392,33 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
           if (result && result.issuanceScenario) {
             scenarioIds.push(result.issuanceScenario.id);
+            
+            // Update the scenario with the returned slug to prevent duplicate creation
+            if (result.issuanceScenario.slug && scenario.personas && scenario.personas.length > 0) {
+              const personaId = scenario.personas[0];
+              const personaScenarioList = selectedPersonas
+                .find(p => p.id === personaId)
+                ? Array.from(personaScenarios.get(personaId) || [])
+                : [];
+              
+              const scenarioIndex = personaScenarioList.findIndex(s => 
+                s.name === scenario.name && 
+                s.description === scenario.description &&
+                //@ts-ignore
+                !s.slug // Only update scenarios that don't have a slug yet
+              );
+              
+              if (scenarioIndex >= 0) {
+                //@ts-expect-error: Slug is available
+                updateScenario(personaId, scenarioIndex, {
+                  ...scenario,
+                  //@ts-ignore
+                  slug: result.issuanceScenario.slug,
+                  id: result.issuanceScenario.id
+                });
+              }
+            }
+            
             toast.success(`Onboarding created successfully for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
           } else {
             throw new Error('Invalid response format');
@@ -465,21 +492,12 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
       for (const scenario of personaScenariosList) {
         if (!scenario) continue;
-        let result;
-
+        
+        // Only update scenarios that already exist (have slugs)
         //@ts-ignore
-        if(!scenario.slug) {
-          debugLog('Scenario slug is required for update:', scenario);
-          result = await createScenarios([scenario])
-          if (result && result.success) {
-            toast.success('Onboarding created successfully')
-            router.push(`/${tenantId}/showcases/create/scenarios`)
-          } else {
-            throw new Error('Invalid response format');
-          }
-        } else{
+        if (scenario.slug) {
           try {
-            result = await updateScenarioAsync({
+            const result = await updateScenarioAsync({
               // @ts-expect-error: slug is not required
               slug: scenario.slug,
               data: scenario
@@ -497,6 +515,9 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
           } catch (error) {
             return { success: false, message: 'Error updating scenario', error };
           }
+        } else {
+          // Scenario doesn't exist yet, skip it for update operation
+          debugLog('Skipping scenario without slug in update operation:', scenario);
         }
       }
 
