@@ -275,7 +275,12 @@
     "modal_button": "CONFIMER ET ENVOYER POUR LA REVISION",
     "modal_description2": "Voulez-vous continuer?",
     "publish_info_credentials": "Recevera les attestations suivantes:",
-    "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine."
+    "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine.",
+    "validation_error_title": "Validation Errors"
+  },
+  "error": {
+    "title": "Error",
+    "description": "Please correct the following issues to proceed:"
   },
   "navigation": {
     "general_label": "Général",

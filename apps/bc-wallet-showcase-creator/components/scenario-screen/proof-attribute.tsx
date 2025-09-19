@@ -79,10 +79,17 @@ export const ProofAttribute = ({
       </div>
 
       <div className="space-y-2">
+        <div className='flex flex-col'>
         <label className="text-sm font-medium">Condition Value</label>
+        {attribute.type === 'DATE' ? <div className='text-xs text-red-500'>Date format: YYYYMMDD</div> : ''}
+        </div>
         <Input
-          onChange={(e) => onConditionValueChange(index, e.target.value)}
-          disabled={attribute.type !== 'DATE'}
+          onChange={(e) => {
+            if (e.target.value.length <= 8) {
+              onConditionValueChange(index, e.target.value)
+            }
+          }}
+          disabled={attribute.type !== 'DATE' || (predicates?.find(p => p.name === attribute.name)?.type || 'none') === 'none'}
           type="number"
           value={predicates?.find(p => p.name === attribute.name)?.value || ''}
         />

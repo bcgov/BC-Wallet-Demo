@@ -1,14 +1,14 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { useShowcaseStore } from "@/hooks/use-showcases-store";
-import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas';
-import { useCreateAsset } from '@/hooks/use-asset';
-import { usePersonaStore } from '@/hooks/use-persona-store';
+import { useState, useCallback, useEffect } from 'react'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { usePersonas, useCreatePersona, useUpdatePersona, useDeletePersona } from '@/hooks/use-personas'
+import { useCreateAsset } from '@/hooks/use-asset'
+import { usePersonaStore } from '@/hooks/use-persona-store'
 import { useUpdateShowcase } from '@/hooks/use-showcases'
-import { Persona, AssetRequest, ShowcaseRequest, PersonaRequest, ShowcaseResponse } from "bc-wallet-openapi";
-import { toast } from 'sonner';
-import { useQueryClient } from "@tanstack/react-query";
-import { showcaseToShowcaseRequest } from "@/lib/parsers";
-import apiClient from "@/lib/apiService";
+import { Persona, AssetRequest, ShowcaseRequest, PersonaRequest, ShowcaseResponse } from 'bc-wallet-openapi'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
+import apiClient from '@/lib/apiService'
 import { useUpdateScenario as useUpdateIssuanceScenario } from '@/hooks/use-onboarding'
 import { useUpdateScenario as useUpdatePresentationScenario } from '@/hooks/use-presentation'
 
@@ -18,14 +18,22 @@ type PersonaRequestWithImageType = PersonaRequest & {
 }
 
 export const usePersonaAdapter = () => {
-  const [headshotImage, setHeadshotImage] = useState<string | null>(null);
-  const [isHeadshotImageEdited, setIsHeadshotImageEdited] = useState<boolean>(false);
-  const [bodyImage, setBodyImage] = useState<string | null>(null);
-  const [isBodyImageEdited, setIsBodyImageEdited] = useState<boolean>(false);
-  const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null);
+  const {
+    setEditMode,
+    personaState,
+    setStepState,
+    draftHeadshotImage,
+    draftBodyImage,
+    setDraftImages,
+  } = usePersonaStore()
 
-  const { setEditMode, personaState, setStepState } = usePersonaStore();
-  const { selectedPersonaIds, setSelectedPersonaIds, showcase, setShowcase, currentShowcaseSlug } = useShowcaseStore();
+  const [headshotImage, setHeadshotImage] = useState<string | null>(draftHeadshotImage)
+  const [isHeadshotImageEdited, setIsHeadshotImageEdited] = useState<boolean>(!!draftHeadshotImage)
+  const [bodyImage, setBodyImage] = useState<string | null>(draftBodyImage)
+  const [isBodyImageEdited, setIsBodyImageEdited] = useState<boolean>(!!draftBodyImage)
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null)
+
+  const { selectedPersonaIds, setSelectedPersonaIds, showcase, setShowcase, currentShowcaseSlug } = useShowcaseStore()
   const queryClient = useQueryClient()
 
   const { data: personasData, isLoading } = usePersonas();
@@ -37,13 +45,13 @@ export const usePersonaAdapter = () => {
   const { mutateAsync: updateIssuanceScenario } = useUpdateIssuanceScenario();
   const { mutateAsync: updatePresentationScenario } = useUpdatePresentationScenario();
 
-  const InvalidPersonaState = async() => {
+  const InvalidPersonaState = useCallback(async () => {
     queryClient.invalidateQueries({ queryKey: ['personas'] })
-  };
+  }, [queryClient])
 
   useEffect(() => {
     InvalidPersonaState()
-  },[])
+  },[InvalidPersonaState])
 
   const selectedPersona = personasData?.personas?.find((p: Persona) => p.id === selectedPersonaId) || null
 
@@ -72,7 +80,6 @@ export const usePersonaAdapter = () => {
   const updateShowcaseWithPersona = useCallback(
     async (personaIds: string[]) => {
       if (!currentShowcaseSlug || !showcase) return
-
       try {
         // Get the current state of the showcase from the server to compare against
         const showcaseResponse = (await apiClient.get(`/showcases/${currentShowcaseSlug}`)) as ShowcaseResponse
@@ -81,20 +88,14 @@ export const usePersonaAdapter = () => {
           throw new Error('Showcase data is undefined')
         }
 
-        const oldPersonaIds = new Set(serverShowcase.personas?.map((p) => p.id) || [])
+        const oldPersonaIds = new Set(showcase.personas?.map((p:any) => p.id) || [])
         const newPersonaIds = new Set(personaIds)
-
-        // Update the showcase's main persona list first
-        const parsed = showcaseToShowcaseRequest(serverShowcase)
-        const updatedShowcase: ShowcaseRequest = {
-          ...parsed,
-          personas: Array.from(newPersonaIds),
-        }
-        await updateShowcase(updatedShowcase as ShowcaseRequest)
 
         // Determine which personas were added and removed
         const addedPersonaIds = personaIds.filter((id) => !oldPersonaIds.has(id))
         const removedPersonaIds = [...oldPersonaIds].filter((id) => !newPersonaIds.has(id))
+
+        const scenariosToRemove: string[] = []
 
         // Iterate through scenarios and update them based on persona changes
         for (const scenario of serverShowcase.scenarios || []) {
@@ -114,9 +115,17 @@ export const usePersonaAdapter = () => {
 
             // Handle persona removals from the scenario
             if (removedPersonaIds.length > 0) {
-              const initialLength = scenarioPersonaIds.length
-              scenarioPersonaIds = scenarioPersonaIds.filter((id:any) => !removedPersonaIds.includes(id))
-              if (scenarioPersonaIds.length !== initialLength) {
+              const personasBeforeRemoval = [...scenarioPersonaIds] // Define personasBeforeRemoval here
+
+              const personasAfterFiltering = scenarioPersonaIds.filter((id:any) => !removedPersonaIds.includes(id))
+
+              const shouldRemoveScenario = personasAfterFiltering.length === 0
+
+              if (shouldRemoveScenario) {
+                scenariosToRemove.push(scenario.slug)
+                continue // Skip further processing for this scenario
+              } else if (personasAfterFiltering.length !== personasBeforeRemoval.length) {
+                scenarioPersonaIds = personasAfterFiltering // Update scenarioPersonaIds only if not removing the whole scenario
                 needsUpdate = true
               }
             }
@@ -156,6 +165,19 @@ export const usePersonaAdapter = () => {
           }
         }
 
+        let finalScenarios = serverShowcase.scenarios || []
+        if (scenariosToRemove.length > 0) {
+            finalScenarios = finalScenarios.filter(s => !scenariosToRemove.includes(s.slug))
+        }
+
+        const parsed = showcaseToShowcaseRequest(serverShowcase)
+        const updatedShowcaseRequest: ShowcaseRequest = {
+            ...parsed,
+            personas: Array.from(newPersonaIds),
+            scenarios: finalScenarios.map(s => s.id), // Include updated scenarios
+        }
+        await updateShowcase(updatedShowcaseRequest)
+
         // Refresh the local showcase state to reflect all changes
         const updatedShowcaseResponse = (await apiClient.get(
           `/showcases/${currentShowcaseSlug}`,
@@ -190,7 +212,11 @@ export const usePersonaAdapter = () => {
       }
 
       setSelectedPersonaId(null)
-      setStepState('no-selection')
+      if (updatedPersonaIds.length === 0) {
+        setStepState('creating-new')
+      } else {
+        setStepState('no-selection')
+      }
 
       toast.success('Persona has been deleted.')
     } catch (error) {
@@ -209,22 +235,24 @@ export const usePersonaAdapter = () => {
     updateShowcaseWithPersona,
   ])
 
+
   const handlePersonaSelect = useCallback(
     (persona: Persona) => {
       setSelectedPersonaId(persona.id)
       setStepState('editing-persona')
+      setDraftImages({ headshot: null, body: null }) // Clear drafts when selecting a persona
     },
-    [setSelectedPersonaId, setStepState],
+    [setSelectedPersonaId, setStepState, setDraftImages],
   )
 
   const handleCreateNew = useCallback(() => {
     setSelectedPersonaId(null)
-    setHeadshotImage(null)
-    setBodyImage(null)
-    setIsHeadshotImageEdited(false)
-    setIsBodyImageEdited(false)
+    setHeadshotImage(draftHeadshotImage)
+    setBodyImage(draftBodyImage)
+    setIsHeadshotImageEdited(!!draftHeadshotImage)
+    setIsBodyImageEdited(!!draftBodyImage)
     setStepState('creating-new')
-  }, [setSelectedPersonaId, setStepState])
+  }, [setSelectedPersonaId, setStepState, draftHeadshotImage, draftBodyImage])
 
   const handleCancel = useCallback(() => {
     setSelectedPersonaId(null)
@@ -299,6 +327,7 @@ export const usePersonaAdapter = () => {
 
           setSelectedPersonaId(newPersonaId)
           setStepState('editing-persona')
+          setDraftImages({ headshot: null, body: null }) // Clear drafts after successful save
           toast.success('Character has been created.')
         }
 
@@ -325,18 +354,30 @@ export const usePersonaAdapter = () => {
       showcase,
       updateShowcaseWithPersona,
       setStepState,
+      setDraftImages,
     ],
   )
+
+  // Custom setters to update both local and draft state
+  const setDraftHeadshotImage = (image: string | null) => {
+    setHeadshotImage(image)
+    setDraftImages({ headshot: image })
+  }
+
+  const setDraftBodyImage = (image: string | null) => {
+    setBodyImage(image)
+    setDraftImages({ body: image })
+  }
 
   return {
     selectedPersonaId,
     setSelectedPersonaId,
     headshotImage,
-    setHeadshotImage,
+    setHeadshotImage: setDraftHeadshotImage,
     isHeadshotImageEdited,
     setIsHeadshotImageEdited,
     bodyImage,
-    setBodyImage,
+    setBodyImage: setDraftBodyImage,
     isBodyImageEdited,
     setIsBodyImageEdited,
     selectedPersona,

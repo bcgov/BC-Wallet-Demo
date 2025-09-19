@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 
 import { ActionCTA } from '../../../../components/ActionCTA'
 import { useAppDispatch } from '../../../../hooks/hooks'
@@ -11,6 +11,8 @@ import { useSocket } from '../../../../slices/socket/socketSelector'
 import type { CredentialRequest } from '../../../../slices/types'
 import { FailedRequestModal } from '../../../onboarding/components/FailedRequestModal'
 import { ProofAttributesCard } from '../../components/ProofAttributesCard'
+import { dropIn, standardFade } from '../../../../FramerAnimations'
+import { SmallButton } from '../../../../components/SmallButton'
 
 export interface Props {
   proof?: any
@@ -38,6 +40,7 @@ export const PresentCredentialAction: React.FC<Props> = ({
     proof?.state === 'done'
 
   const [isFailedRequestModalOpen, setIsFailedRequestModalOpen] = useState(false)
+  const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false)
   const showFailedRequestModal = () => setIsFailedRequestModalOpen(true)
   const closeFailedRequestModal = () => setIsFailedRequestModalOpen(false)
   const proofRequestCreated = useRef(false);
@@ -129,6 +132,9 @@ export const PresentCredentialAction: React.FC<Props> = ({
     ) {
       dispatch(fetchProofById(message.presentation_exchange_id))
     }
+    if(message.state === 'abandoned') {
+      setIsDeclineModalOpen(true)
+    }
   }, [message])
 
   const sendNewRequest = () => {
@@ -138,6 +144,7 @@ export const PresentCredentialAction: React.FC<Props> = ({
     }
     proofRequestCreated.current = true
     closeFailedRequestModal()
+    setIsDeclineModalOpen(false)
   }
 
   console.log('Received Proof:', proof)
@@ -179,6 +186,54 @@ export const PresentCredentialAction: React.FC<Props> = ({
           close={closeFailedRequestModal}
           proof={true}
         />
+      )}
+      {isDeclineModalOpen && (
+        <AnimatePresence>
+          <motion.div
+            variants={standardFade}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            className="fixed z-10 inset-0 overflow-y-auto"
+            aria-labelledby="modal-title"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div
+                className="fixed inset-0 bg-bcgov-black bg-opacity-50 transition-all duration-300"
+                aria-hidden="true"
+                onClick={close}
+              />
+
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true" />
+
+              <motion.div
+                variants={dropIn}
+                initial="hidden"
+                animate="show"
+                exit="exit"
+                className="bg-bcgov-white dark:bg-bcgov-black inline-block align-bottom rounded-lg text-left overflow-hidden shadow-xl transform transition-all duration-300 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full dark:text-white"
+              >
+                <div className=" px-4 pt-2 mt-4 sm:pb-4">
+                  <div className="sm:flex sm:items-start">
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h2 className="text-xl font-medium text-grey-900">{'Proof request declined'}</h2>
+                      <div className="mt-2">
+                        <p className="text-sm">
+                          User has declined the proof request{' '}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-4 pb-4 sm:px-6 flex flex-row-reverse">
+                  <SmallButton onClick={() => setIsDeclineModalOpen(false)} text={'OK'} disabled={false} />
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       )}
     </motion.div>
   )

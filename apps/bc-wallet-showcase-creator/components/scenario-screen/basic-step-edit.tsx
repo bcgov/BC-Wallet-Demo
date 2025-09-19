@@ -42,6 +42,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const { tenantId } = useTenant();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
+  const [isUpdated, setIsUpdated] = useState(false)
 
 const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList]) =>
   scenarioList.some((scenario) =>
@@ -144,7 +145,15 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
     if (!currentStep) return;
 
     const { credentialDefinitionId, ...cleanedAction } = currentStep.actions[0];
-    const updatedActions = [cleanedAction];
+     const updatedAction = {
+        ...cleanedAction,
+        proofRequest: {
+          attributes: {},
+          predicates: {},
+        },
+      }
+
+    const updatedActions = [updatedAction];
 
     updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updatedActions } as unknown as StepRequestUIActionTypes);
     setSelectedCredential(null);
@@ -160,7 +169,8 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
 
         if (result.success) {
           toast.success('Scenarios updated successfully')
-          router.push(`/${tenantId}/showcases/${slug}/publish`)
+          setIsUpdated(true)
+          // router.push(`/${tenantId}/showcases/${slug}/publish`)
         } else {
           throw new Error(result.message || 'Failed to update scenarios')
         }
@@ -169,7 +179,8 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
 
         if (result.success) {
           toast.success('Scenarios created successfully')
-          router.push(`/${tenantId}/showcases/create/publish`)
+          setIsUpdated(true)
+          // router.push(`/${tenantId}/showcases/create/publish`)
         } else {
           throw new Error(result.message || 'Failed to create scenarios')
         }
@@ -180,6 +191,14 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
     }
   }
 
+  const GoToNext = () => {
+    if (isEditMode && slug) {
+      router.push(`/${tenantId}/showcases/${slug}/publish`)
+    } else {
+      router.push(`/${tenantId}/showcases/create/publish`)
+    }
+  }
+
   if (!currentStep) return null
 
   if (showErrorModal) {
@@ -187,10 +206,42 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
   }
 
   const action = currentStep?.actions?.[0];
-  const isProofRequestEmpty =
-  action?.proofRequest && currentStep.type === StepType.Service &&
-  Object.keys(action.proofRequest.attributes || {}).length === 0 &&
-  Object.keys(action.proofRequest.predicates || {}).length === 0;
+
+  // Extended validation for predicates (same as onSubmit)
+  const hasInvalidPredicates =
+    action?.proofRequest &&
+    currentStep.type === StepType.Service &&
+    Object.values(action.proofRequest.predicates || {}).some((predGroup: any) =>
+      (predGroup.predicates || []).some(
+        (p: any) =>
+          (p.type === '>=' || p.type === '<=') &&
+          (String(p.value) === '0' || !/^\d{8}$/.test(String(p.value)))
+      )
+    )
+
+  // Extended validation for attributes/predicates existence
+  const hasNoAttributesOrPredicates =
+    action?.proofRequest &&
+    currentStep.type === StepType.Service &&
+    Object.values(action.proofRequest.attributes || {}).every(
+      (attrGroup: any) => !attrGroup.attributes || attrGroup.attributes.length === 0
+    ) &&
+    Object.values(action.proofRequest.predicates || {}).every(
+      (predGroup: any) => !predGroup.predicates || predGroup.predicates.length === 0
+    )
+
+    console.log('Test',action?.proofRequest);
+
+    console.log('hasNoAttributesOrPredicates', hasNoAttributesOrPredicates);
+    console.log('hasInvalidPredicates', hasInvalidPredicates);
+
+    const isProofRequestEmpty =
+    action?.proofRequest && currentStep.type === StepType.Service &&
+    Object.keys(action.proofRequest.attributes || {}).length === 0 &&
+    Object.keys(action.proofRequest.predicates || {}).length === 0;
+
+    const isProofRequestInvalid = isProofRequestEmpty || hasNoAttributesOrPredicates || hasInvalidPredicates
+
 
   const getInstructionalText = () => {
         if (currentStep?.order === 0) {
@@ -221,6 +272,7 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
       <StepHeader
         icon={<Monitor strokeWidth={3} />}
         deleteTitle='Delete step'
+        showDropdown={(currentStep?.order ?? 0) >= 3}
         title={getStepTitle()}
         onActionClick={(action) => {
           switch (action) {
@@ -334,12 +386,23 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
           <div className="mt-auto pt-4 border-t flex justify-between ">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{'help'}</ButtonOutline>
 
-            <ButtonOutline type="submit" 
-              disabled={!form.formState.isValid || isProofRequestEmpty || isInvalidServiceStep}
+          <div className='flex gap-4'>
+
+            <ButtonOutline type="button" 
+              disabled={!form.formState.isValid}
               onClick={form.handleSubmit(onSubmit)}
+            >
+              {'Save'}
+            </ButtonOutline>
+
+            <ButtonOutline type="button" 
+              disabled={!isUpdated}
+              // disabled={!form.formState.isValid || isProofRequestInvalid || isInvalidServiceStep}
+              onClick={() => GoToNext()}
             >
               {'Proceed to Publish'}
             </ButtonOutline>
+          </div>
 
           </div>
         </form>

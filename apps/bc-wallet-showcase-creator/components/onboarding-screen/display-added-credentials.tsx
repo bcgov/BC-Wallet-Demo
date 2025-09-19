@@ -12,6 +12,7 @@ import { useCredentialDefinition } from '@/hooks/use-credentials'
 import type { CredentialSchemaRequest, CredentialAttribute } from 'bc-wallet-openapi'
 import { Skeleton } from '../ui/skeleton'
 import { useTenant } from '@/providers/tenant-provider'
+import { toast } from 'sonner'
 
 interface DisplayCredentialProps {
   credentialId: string
@@ -58,6 +59,15 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
   const handleSaveAttributes = async () => {
     if (!data || !data.credentialDefinition || !data.credentialDefinition.credentialSchema) {
       console.error('Missing credential schema data')
+      return
+    }
+
+    const dateValidationErrors = credentialAttributes
+      .filter((attr) => attr.type === 'DATE' && attr.value && attr.value.length !== 8)
+      .map((attr) => `• ${attr.name}: must be exactly 8 digits (YYYYMMDD).`)
+
+    if (dateValidationErrors.length > 0) {
+      toast.error(`Invalid attribute value(s):${dateValidationErrors.join('')}`, { duration: 3000 })
       return
     }
 

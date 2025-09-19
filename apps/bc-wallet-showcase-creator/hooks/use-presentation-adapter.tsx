@@ -45,7 +45,7 @@ export const usePresentationAdapter = (showcaseSlug?: string) => {
     setStepState,
     stepState,
     selectedScenario,
-    // updateScenario,
+    updateScenario: updateLocalScenario,
     removeScenario,
     selectedStep,
     setSelectedStep,
@@ -156,6 +156,31 @@ export const usePresentationAdapter = (showcaseSlug?: string) => {
           if(result && result.presentationScenario) {
             scenarioIds.push(result.presentationScenario.id);
             toast.success(`Scenario created for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
+            
+            // Update the scenario with the returned slug to prevent duplicate creation
+            if (result.presentationScenario.slug && scenario.personas && scenario.personas.length > 0) {
+              const personaId = scenario.personas[0];
+              const personaScenarioList = selectedPersonas
+                .find(p => p.id === personaId)
+                ? Array.from(personaScenarios.get(personaId) || [])
+                : [];
+              
+              const scenarioIndex = personaScenarioList.findIndex(s => 
+                s.name === scenario.name && 
+                s.description === scenario.description &&
+                //@ts-expect-error : slug is present in the scenario
+                !s.slug // Only update scenarios that don't have a slug yet
+              );
+              
+              if (scenarioIndex >= 0) {
+                updateLocalScenario(personaId, scenarioIndex, {
+                  ...scenario,
+                  //@ts-expect-error : slug is present in the scenario
+                  slug: result.presentationScenario.slug,
+                  id: result.presentationScenario.id
+                });
+              }
+            }
           } else {
             throw new Error('Invalid response format');
           }
@@ -238,7 +263,7 @@ export const usePresentationAdapter = (showcaseSlug?: string) => {
           result = await createScenarios([scenario])
           if (result && result.success) {
             toast.success('Scenarios created successfully')
-            router.push(`/${tenantId}/showcases/create/publish`)
+            // router.push(`/${tenantId}/showcases/create/publish`)
           } else {
             throw new Error('Invalid response format');
           }

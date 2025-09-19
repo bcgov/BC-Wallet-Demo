@@ -105,6 +105,16 @@ export const AcceptCredentialAction: React.FC<Props> = (props: Props) => {
   }
 
   const sendNewCredentials = () => {
+    credentialDefinitions.forEach(credentialDefinition => {
+      if (isDeepLink) {
+        dispatch(issueDeepCredential({ connectionId, credentialDefinition }))
+      } else {
+        dispatch(issueCredential({ connectionId, credentialDefinition }))
+      }
+      track({
+        id: 'credential_issued',
+      })
+    })
     closeFailedRequestModal()
   }
 

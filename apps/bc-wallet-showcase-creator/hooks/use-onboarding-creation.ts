@@ -179,8 +179,7 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     setStepState,
     stepState,
     selectedScenario,
-    updateScenario: (scenarioData: IssuanceScenarioRequest) =>
-      activePersonaId && updateScenario(activePersonaId, activeScenarioIndex, scenarioData),
+    updateScenario,
     removeScenario: () => activePersonaId && removeScenario(activePersonaId, activeScenarioIndex),
     selectedStep,
     setSelectedStep,

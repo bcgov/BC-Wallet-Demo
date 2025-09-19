@@ -16,6 +16,7 @@ import { useShowcase } from '@/hooks/use-showcases'
 import { useTenant } from '@/providers/tenant-provider'
 import { useFormDirtyStore } from '@/hooks/use-form-dirty-store'
 import { useBeforeUnload } from '@/hooks/use-before-unload'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
 
 export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
@@ -24,7 +25,9 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const [showErrorModal, setErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isViewMode, setIsViewMode] = useState(false)
+  const [isUpdated, setIsUpdated] = useState(false)
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
+  const { currentShowcaseSlug } = useShowcaseStore()
   const { isDirty } = useFormDirtyStore()
   useBeforeUnload(isDirty, t('character.save_changes_warning'))
 
@@ -37,7 +40,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
     createScenarios,
     updateScenarios,
     isEditMode
-  } = useOnboardingAdapter(showcaseSlug)
+  } = useOnboardingAdapter(currentShowcaseSlug)
   const { tenantId } = useTenant();
 
   const currentStep = selectedStep !== null ? screens[selectedStep.order] : null
@@ -60,11 +63,12 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
     try {
       let result;
 
-      if (isEditMode && showcaseSlug) {
-        result = await updateScenarios(showcaseSlug)
+      if (isEditMode && currentShowcaseSlug) {
+        result = await updateScenarios(currentShowcaseSlug)
         if (result.success) {
           toast.success('Scenarios updated successfully')
-          router.push(`/${tenantId}/showcases/${showcaseSlug}/scenarios`)
+          setIsUpdated(true)
+          // router.push(`/${tenantId}/showcases/${showcaseSlug}/scenarios`)
         } else {
           throw new Error(result.message || 'Failed to update scenarios')
         }
@@ -72,7 +76,8 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
         result = await createScenarios()
         if (result.success) {
           toast.success('Scenarios created successfully')
-          router.push(`/${tenantId}/showcases/create/scenarios`)
+          setIsUpdated(true)
+          // router.push(`/${tenantId}/showcases/create/scenarios`)
         } else {
           throw new Error(result.message || 'Failed to create scenarios')
         }
@@ -119,10 +124,8 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
       onCancel={handleCancel}
       toggleViewMode={toggleViewMode}
       isEditMode={isEditMode}
-      onProceed={handleSubmit}
-      updateScenarios={updateScenarios}
-      createScenarios={createScenarios}
-      // showcaseSlug={showcaseSlug}
+      showcaseSlug={currentShowcaseSlug}
+      isUpdated={isUpdated}
     />
   )
 }

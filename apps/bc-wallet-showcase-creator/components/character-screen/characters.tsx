@@ -112,16 +112,16 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
   }, [selectedPersona, selectedPersonaId, form])
 
   useEffect(() => {
-    if (isLoading || !personasData?.personas || selectedPersonaId || initialSelectionDone) {
+    if (isLoading || selectedPersonaId || initialSelectionDone || !personasData) {
       return
     }
 
-    const filteredPersonas = personasData.personas.filter(onlyRecentlyCreated)
+    const filteredPersonas = (personasData.personas ?? []).filter(onlyRecentlyCreated)
 
     if (filteredPersonas.length > 0) {
       handlePersonaSelect(filteredPersonas[0])
       setInitialSelectionDone(true)
-    }else{
+    } else {
       handleCreateNew()
     }
   }, [
@@ -131,6 +131,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
     handlePersonaSelect,
     onlyRecentlyCreated,
     initialSelectionDone,
+    handleCreateNew,
   ])
 
   const handleFormSubmit = async (data: CharacterFormData) => {
@@ -297,6 +298,7 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                   <StepHeader
                     icon={<Monitor strokeWidth={3} />}
                     title={t('character.character_detail')}
+                    showDropdown={personaState !== 'creating-new'}
                     deleteTitle='Delete character'
                     onActionClick={(action) => {
                       switch (action) {
@@ -376,22 +378,24 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                 text={t('character.headshot_image_label')}
                                 element={'headshot_image'}
                                 initialValue={
-                                  selectedPersona?.headshotImage?.id
+                                  personaState === 'creating-new' && headshotImage
+                                    ? `data:image/jpeg;base64,${headshotImage}`
+                                    : selectedPersona?.headshotImage?.id
                                     ? `${baseUrl}/${tenantId}/assets/${selectedPersona.headshotImage.id}/file`
                                     : undefined
                                 }
                                 maxSize={2 * 1024 * 1024} // 2MB limit
                                 onImageUploadError={handleImageUploadErrorHeadshot}
                                 handleJSONUpdate={(imageType, imageData, fileType) => {
-                                  setHeadshotImage(imageData);
+                                  setHeadshotImage(imageData)
                                   setHeadshotImageType(fileType ?? 'image/jpeg')
-                                  setIsHeadshotImageEdited(true);
-                                  setImageUploadErrorHeadshot(null); // Clear error on change
+                                  setIsHeadshotImageEdited(true)
+                                  setImageUploadErrorHeadshot(null) // Clear error on change
                                   setImageDirty(true)
                                 }}
                                 onImageDelete={() => {
-                                  handleImageDeletion('headshot');
-                                  setImageDirty(true);
+                                  handleImageDeletion('headshot')
+                                  setImageDirty(true)
                                 }}
                               />
                                {imageUploadErrorHeadshot && (
@@ -405,22 +409,24 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
                                 text={t('character.full_body_image_label')}
                                 element={'body_image'}
                                 initialValue={
-                                  selectedPersona?.bodyImage?.id
+                                  personaState === 'creating-new' && bodyImage
+                                    ? `data:image/jpeg;base64,${bodyImage}`
+                                    : selectedPersona?.bodyImage?.id
                                     ? `${baseUrl}/${tenantId}/assets/${selectedPersona.bodyImage.id}/file`
                                     : undefined
                                 }
                                 maxSize={2 * 1024 * 1024} // 2MB limit
                                 onImageUploadError={handleImageUploadError}
                                 handleJSONUpdate={(imageType, imageData, fileType) => {
-                                  setBodyImage(imageData);
+                                  setBodyImage(imageData)
                                   setBodyImageType(fileType ?? 'image/jpeg')
-                                  setIsBodyImageEdited(true);
-                                  setImageUploadError(null); // Clear error on change
+                                  setIsBodyImageEdited(true)
+                                  setImageUploadError(null) // Clear error on change
                                   setImageDirty(true)
                                 }}
                                 onImageDelete={() => {
-                                  handleImageDeletion('body');
-                                  setImageDirty(true);
+                                  handleImageDeletion('body')
+                                  setImageDirty(true)
                                 }}
                               />
                               {imageUploadError && (
