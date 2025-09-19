@@ -61,7 +61,7 @@ export const ScenarioEdit = ({ slug }: { slug?: string }) => {
         name:data.name,
         description: data.description
       }
-
+      //@ts-ignore
       updateScenario(updatedScenario)
     setStepState('no-selection')
   }
