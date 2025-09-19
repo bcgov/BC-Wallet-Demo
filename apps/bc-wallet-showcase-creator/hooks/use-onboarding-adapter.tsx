@@ -392,6 +392,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
           if (result && result.issuanceScenario) {
             scenarioIds.push(result.issuanceScenario.id);
+            toast.success(`Onboarding created for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
             
             // Update the scenario with the returned slug to prevent duplicate creation
             if (result.issuanceScenario.slug && scenario.personas && scenario.personas.length > 0) {
@@ -409,7 +410,6 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
               );
               
               if (scenarioIndex >= 0) {
-                //@ts-expect-error: Slug is available
                 updateScenario(personaId, scenarioIndex, {
                   ...scenario,
                   //@ts-ignore
@@ -418,8 +418,6 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
                 });
               }
             }
-            
-            toast.success(`Onboarding created successfully for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
           } else {
             throw new Error('Invalid response format');
           }
@@ -492,12 +490,20 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
       for (const scenario of personaScenariosList) {
         if (!scenario) continue;
-        
-        // Only update scenarios that already exist (have slugs)
+        let result;
         //@ts-ignore
-        if (scenario.slug) {
+        if(!scenario.slug) {
+          debugLog('Scenario slug is required for update:', scenario);
+          result = await createScenarios([scenario])
+          if (result && result.success) {
+            toast.success('Scenarios created successfully')
+            // router.push(`/${tenantId}/showcases/create/scenarios`)
+          } else {
+            throw new Error('Invalid response format');
+          }
+        } else{
           try {
-            const result = await updateScenarioAsync({
+            result = await updateScenarioAsync({
               // @ts-expect-error: slug is not required
               slug: scenario.slug,
               data: scenario
@@ -515,9 +521,6 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
           } catch (error) {
             return { success: false, message: 'Error updating scenario', error };
           }
-        } else {
-          // Scenario doesn't exist yet, skip it for update operation
-          debugLog('Skipping scenario without slug in update operation:', scenario);
         }
       }
 

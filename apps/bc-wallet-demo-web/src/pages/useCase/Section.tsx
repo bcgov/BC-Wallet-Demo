@@ -230,7 +230,7 @@ export const Section: FC<Props> = (props: Props) => {
                     },
                   })
                 }}
-                disabled={isBackDisabled}
+                disabled={isBackDisabled || currentScenario.steps.length === currentStep.order}
               />
               {currentScenario.steps.length === currentStep.order ? (
                 <Button text="COMPLETE" onClick={() => setCompleted(true)} />

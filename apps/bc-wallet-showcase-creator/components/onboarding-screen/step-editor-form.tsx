@@ -6,8 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { useRouter } from '@/i18n/routing'
-import { useTenant } from '@/providers/tenant-provider'
 import { Form } from '@/components/ui/form'
 import { FormTextArea, FormTextInput } from '@/components/text-input'
 import { LocalFileUpload } from './local-file-upload'
@@ -35,6 +33,8 @@ import { StepActionRequestUnion } from '@/types'
 import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import DeleteModal from '../delete-modal'
 import { useFormDirtyStore } from '@/hooks/use-form-dirty-store'
+import { useTenant } from '@/providers/tenant-provider'
+import { useRouter } from '@/i18n/routing'
 interface StepEditorFormProps {
   currentStep: StepRequest | null
   stepType: StepType
@@ -44,9 +44,8 @@ interface StepEditorFormProps {
   onCancel: () => void
   toggleViewMode: () => void
   isEditMode?: boolean
-  onProceed: () => void
-  updateScenarios?: (slug: string) => Promise<any>
-  createScenarios?: () => Promise<any>
+  showcaseSlug?: string
+  isUpdated?: boolean
 }
 
 export const StepEditorForm: React.FC<StepEditorFormProps> = ({
@@ -57,17 +56,14 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
   onSubmit,
   onCancel,
   toggleViewMode,
+  showcaseSlug,
   isEditMode = false,
-  onProceed,
-  updateScenarios: propUpdateScenarios,
-  createScenarios: propCreateScenarios
+  isUpdated
 }) => {
   const t = useTranslations()
-  const router = useRouter()
-  const { tenantId } = useTenant()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const { setDirty, isDirty } = useFormDirtyStore()
+  const { tenantId } = useTenant();
+  const router = useRouter()
   
   const getCurrentAction = (): StepActionRequestUnion | null => {
     if (!currentStep || !currentStep.actions || currentStep.actions.length === 0) {
@@ -78,8 +74,6 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
 
   const currentAction = getCurrentAction();
   const { deleteStep, selectedScenario, personaScenarios } = useOnboardingAdapter()
-
-  // console.log('selectedScenario',selectedScenario);
 
 const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList]) =>
   scenarioList.some((scenario) =>
@@ -196,19 +190,12 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
   useEffect(() => {
     if (currentStep) {
       form.reset(getDefaultValues())
-      setDirty(false)
     }
-  }, [currentStep, setDirty])
+  }, [currentStep])
 
   const autoSave = debounce((data: FormData) => {
     if (!currentStep || !form.formState.isDirty || !selectedStep) return;
   
-    performSave(data);
-  }, 800);
-
-  const performSave = (data: FormData) => {
-    if (!currentStep || !selectedStep) return;
-
     const updatedStep: StepRequest = {
       ...currentStep,
       title: data.title,
@@ -277,87 +264,10 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
   
     setTimeout(() => {
       toast.success('Changes saved', { duration: 1000 });
-      setDirty(false)
     }, 500);
-  };
+  }, 800);
 
   useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
-      if (name && type === 'change') {
-        setDirty(true);
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [form, setDirty])
-
-  const handleSave = async () => {
-    if (!form.formState.isValid) {
-      toast.error(t('onboarding.form_validation_error'));
-      return;
-    }
-    
-    setIsSaving(true);
-    
-    try {
-      // First save to local state
-      form.handleSubmit(performSave)();
-      
-      // Wait a bit for state to update
-      await new Promise(resolve => setTimeout(resolve, 200));
-        console.log('isEditMode',isEditMode);
-      // Then save to API using passed methods
-      if (isEditMode && propUpdateScenarios) {
-        // Update existing scenario
-        // @ts-expect-error : Slug is available
-        const result = await propUpdateScenarios(selectedScenario.slug);
-        console.log('result',result);
-        if (result.success) {
-          toast.success('Changes saved successfully');
-        } else {
-          toast.error(result.message || 'Error saving changes');
-        }
-      } else if (propCreateScenarios) {
-        // Create new scenario
-        const result = await propCreateScenarios();
-        if (result.success) {
-          toast.success('Scenario created successfully');
-        } else {
-          toast.error(result.message || 'Error creating scenario');
-        }
-      } else {
-        // Just save locally if no API methods provided
-        toast.success('Changes saved locally');
-      }
-    } catch (error) {
-      console.error('Error saving step:', error);
-      toast.error('Error saving changes');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleProceedToScenario = () => {
-    if (isDirty) {
-      toast.warning(t('character.save_changes_warning'));
-      return;
-    }
-    
-    // Navigate to scenario page directly
-    try {
-      // @ts-expect-error : Slug is available
-      if (isEditMode && selectedScenario?.slug) {
-        // @ts-expect-error : Slug is available
-        router.push(`/${tenantId}/showcases/${selectedScenario.slug}/scenarios`);
-      } else {
-        router.push(`/${tenantId}/showcases/create/scenarios`);
-      }
-    } catch (error) {
-      console.error('Error navigating to scenarios:', error);
-      toast.error('Error navigating');
-    }
-  };
-
-   useEffect(() => {
     const subscription = form.watch((value) => {
       if (form.formState.isDirty) {
         autoSave(value as FormData)
@@ -453,6 +363,15 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
     }
     
     updateStep(selectedStep.order, updatedStep);
+  }
+
+  const GotoNext = () => {
+  if (isEditMode && showcaseSlug) {
+        // result = await updateScenarios(showcaseSlug)
+        router.push(`/${tenantId}/showcases/${showcaseSlug}/scenarios`)
+      } else {
+        router.push(`/${tenantId}/showcases/create/scenarios`)
+      }
   }
 
   return (
@@ -636,31 +555,31 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
           )}
         </div>
 
-
-        <div className="gap-3 flex justify-between">
-          <ButtonOutline onClick={() => {
-            if (isDirty) {
-              toast.warning(t('character.save_changes_warning'))
-              return
-            }
-            onCancel()
-          }} type="button">
+        <div className="mt-auto pt-4 border-t flex justify-between gap-3">
+          <ButtonOutline onClick={onCancel} type="button">
             {'Help'}
           </ButtonOutline>
 
+<div className='gap-4 flex'>
 
-
-          <div className='flex gap-3'>
           <ButtonOutline
             type="button"
             onClick={() => form.handleSubmit(onSubmit)()}
-            disabled={!form.formState.isValid || currentStep?.actions[0]?.credentialDefinitionId === '' || isInvalidServiceStep}
+            disabled={!form.formState.isValid}
+          >
+            {'Save'}
+          </ButtonOutline>
+
+          <ButtonOutline
+            type="button"
+            onClick={() => GotoNext()}
+            disabled={!isUpdated}
+            // disabled={!form.formState.isValid || currentStep?.actions[0]?.credentialDefinitionId === '' || isInvalidServiceStep}
           >
             {'Proceed to Scenario'}
           </ButtonOutline>
-          </div>
-
-          </div>
+</div>
+        </div>
       </form>
     </Form>
     <DeleteModal

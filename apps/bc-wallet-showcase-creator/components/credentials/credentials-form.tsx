@@ -553,8 +553,7 @@ export const CredentialsForm = () => {
               ⚠️ <span className="font-semibold">Credentials cannot be edited once created. </span>
               If changes are needed <span className="font-semibold">create a new version.</span>
               <br />
-              📝 <span className="font-semibold">Attribute values are defined during scenario</span> creation in the{' '}
-              <span className="font-semibold">Onboarding</span> step.
+              📝 <span className="font-semibold">Attributes values are defined in the Onboarding menu.</span>
             </p>
           </div>
         </div>

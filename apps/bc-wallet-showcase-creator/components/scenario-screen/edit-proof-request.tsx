@@ -273,6 +273,32 @@ export const EditProofRequest = ({
 
     const formData = form.getValues()
 
+      const attributesForCred = formData.attributes?.[credentialName]?.attributes || []
+      const predicatesForCred = formData.predicates?.[credentialName]?.predicates || []
+
+      if ((!attributesForCred || attributesForCred.length === 0) && (!predicatesForCred || predicatesForCred.length === 0)) {
+        toast.error(`You must add at least one attribute or one predicate for credential "${credentialName || 'unknown'}"`)
+        return
+      }
+
+      // Validation: Predicates with >= or <= must have a valid 8-digit value
+      const errorMessages: string[] = [];
+      predicatesForCred.forEach((p) => {
+        if (p.type === '>=' || p.type === '<=') {
+          const valueStr = String(p.value);
+          // Check if the value is not exactly 8 digits or is the default '0'
+          if (!/^\d{8}$/.test(valueStr) || valueStr === '0') {
+            errorMessages.push(`• ${p.name}: Condition Value must be exactly 8 digits (YYYYMMDD).`);
+          }
+        }
+      });
+
+      if (errorMessages.length > 0) {
+        toast.error(
+          `Invalid predicate value(s) for credential "${credentialName}":` +errorMessages.join(''),{ duration: 3000 });
+        return;
+      }
+
     // setEditingCredentials(editingCredentials.filter((i) => i !== editingIndex))
 
     const updatedStep: StepRequest = {

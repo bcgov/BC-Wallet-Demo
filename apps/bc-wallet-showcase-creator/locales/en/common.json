@@ -284,7 +284,12 @@
     "subtitle": "Today's date will be appended to the filename for versioning.\nex. MyShowcase_v3_(mm-dd-yyyy)",
     "modal_description": "Once submitted, you won't be able to make further edits until the review is complete.",
     "modal_button": "CONFIRM & SUBMIT FOR REVIEW",
-    "modal_description2": "Do you want to proceed?"
+    "modal_description2": "Do you want to proceed?",
+    "validation_error_title": "Validation Errors"
+  },
+  "error": {
+    "title": "Error",
+    "description": "Please correct the following issues to proceed:"
   },
   "navigation": {
     "general_label": "General",

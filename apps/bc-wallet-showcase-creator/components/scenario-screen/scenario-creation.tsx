@@ -217,7 +217,7 @@ export const CreateScenariosScreen = () => {
                       >
                         {t('onboarding.add_step_label')}
                       </Button>
-
+                      {scenarios.length > 1 && (   
                       <Button
                         onClick={() => handleScenarioDelete(index)}
                         variant="outlineAction"
@@ -225,6 +225,7 @@ export const CreateScenariosScreen = () => {
                       >
                         {t('scenario.remove_scenario_label').toUpperCase()}
                       </Button>
+                      )}
                     </div>
                   </>
                   {/* )} */}

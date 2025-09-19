@@ -51,6 +51,7 @@ interface OnboardingCreationState {
   removeScenario: (personaId: string, scenarioIndex: number) => void
   setSelectedStep: (selectedStep: Screen | null) => void
   selectStep: (stepIndex: number, scenarioIndex: number) => void
+  setPersonaScenariosMap: (scenariosMap: Record<string, IssuanceScenarioRequest[]>) => void
 
   reset: () => void
 }
@@ -466,6 +467,11 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
         } else {
           state.stepState = 'editing-basic'
         }
+      }),
+
+    setPersonaScenariosMap: (scenariosMap) =>
+      set((state) => {
+        state.personaScenariosMap = scenariosMap
       }),
 
     reset: () =>
