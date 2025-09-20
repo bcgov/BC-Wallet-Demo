@@ -158,6 +158,8 @@ export default function NewCharacterPage({ slug }: { slug?: string }) {
   const handleDelete = async () => {
     setIsModalOpen(false)
     await deleteCurrentPersona()
+    setHeadshotImage(null)
+    setBodyImage(null)
   }
 
   const handleProceed = async () => {
