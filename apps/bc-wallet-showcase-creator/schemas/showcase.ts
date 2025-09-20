@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const showcaseRequestFormData = z.object({
   name: z.string().min(1, "Showcase name is required").max(50, "Showcase name cannot exceed 50 characters"),
-  description: z.string().min(1, "Description is required").max(200, "Showcase description cannot exceed 200 characters"),
+  description: z.string().min(1, "Showcase description is required").max(200, "Showcase description cannot exceed 200 characters"),
   completionMessage: z.string().max(100, "Completion message cannot exceed 100 characters").optional(),
   status: z.nativeEnum(ShowcaseStatus).optional().default(ShowcaseStatus.Active),
   hidden: z.boolean().optional().default(false),

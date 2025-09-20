@@ -28,7 +28,14 @@ const presentationScenarioRequestSchema = z.object({
 
 export const ScenarioEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
-  const { selectedScenario, updateScenario, setStepState, removeScenario } = usePresentationCreation()
+  const {
+    selectedScenario,
+    updateScenario,
+    setStepState,
+    removeScenario,
+    activePersonaId,
+    activeScenarioIndex,
+  } = usePresentationCreation()
   const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -54,16 +61,16 @@ export const ScenarioEdit = ({ slug }: { slug?: string }) => {
   }, [selectedScenario, form.reset])
 
   const onSubmit = (data: PresentationScenarioRequest) => {
-    if (selectedScenario === null) return
+    if (selectedScenario === null || !activePersonaId) return
 
-      const updatedScenario = {
-        ...selectedScenario,
-        name:data.name,
-        description: data.description
-      }
-      //@ts-ignore
-      updateScenario(updatedScenario)
-    setStepState('no-selection')
+    const updatedScenario = {
+      ...selectedScenario,
+      name: data.name,
+      description: data.description,
+    }
+
+    updateScenario(activePersonaId, activeScenarioIndex, updatedScenario)
+    setStepState('editing-basic')
   }
 
   if (!selectedScenario) return null

@@ -280,6 +280,22 @@ export const usePresentationAdapter = (showcaseSlug?: string) => {
             });
               if (result && result.presentationScenario) {
                 scenarioIds.push(result.presentationScenario.id);
+                if (result.presentationScenario.slug && scenario.personas && scenario.personas.length > 0) {
+                  const personaId = scenario.personas[0];
+                  const personaScenarioList = personaScenarios.get(personaId) || [];
+                  const scenarioIndex = personaScenarioList.findIndex(
+                    // @ts-expect-error
+                    (s) => s.slug === scenario.slug
+                  );
+                  if (scenarioIndex !== -1) {
+                    updateLocalScenario(personaId, scenarioIndex, {
+                      ...scenario,
+                      //@ts-expect-error: slug is present
+                      slug: result.presentationScenario.slug,
+                      id: result.presentationScenario.id,
+                    });
+                  }
+                }
               } else {
                 throw new Error('Invalid response format');
               }

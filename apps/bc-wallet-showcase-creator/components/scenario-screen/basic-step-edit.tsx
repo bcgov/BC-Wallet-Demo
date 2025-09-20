@@ -230,11 +230,6 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
       (predGroup: any) => !predGroup.predicates || predGroup.predicates.length === 0
     )
 
-    console.log('Test',action?.proofRequest);
-
-    console.log('hasNoAttributesOrPredicates', hasNoAttributesOrPredicates);
-    console.log('hasInvalidPredicates', hasInvalidPredicates);
-
     const isProofRequestEmpty =
     action?.proofRequest && currentStep.type === StepType.Service &&
     Object.keys(action.proofRequest.attributes || {}).length === 0 &&
