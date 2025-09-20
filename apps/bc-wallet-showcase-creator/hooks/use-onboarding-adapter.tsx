@@ -515,6 +515,22 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
             if (result && result.issuanceScenario) {
               scenarioIds.push(result.issuanceScenario.id);
+              if(result.issuanceScenario.slug && scenario.personas && scenario.personas.length > 0) {
+                const personaId = scenario.personas[0];
+                const personaScenarioList = personaScenarios.get(personaId) || [];
+                const scenarioIndex = personaScenarioList.findIndex(
+                  // @ts-expect-error
+                  (s)=> s.slug === scenario.slug 
+                );
+                if(scenarioIndex >= 0) {
+                  updateScenario(personaId, scenarioIndex, {
+                    ...scenario,
+                    //@ts-ignore
+                    slug: result.issuanceScenario.slug,
+                    id: result.issuanceScenario.id
+                  });
+                }
+              }
             } else {
               throw new Error('Invalid response format');
             }

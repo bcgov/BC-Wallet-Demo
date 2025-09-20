@@ -136,7 +136,7 @@ const BannerImageUpload = ({
 
 const ShowcaseRequestSchema = z.object({
   name: z.string().min(1, 'Showcase name is required'),
-  description: z.string().min(1, 'Showcase description is required'),
+  description: z.string().min(1, 'Showcase description is required').max(200, 'Showcase description cannot exceed 200 characters'),
   bannerImage: z.string().min(1, 'Banner image is required'),
   completionMessage: z.string().optional(),
   status: z.nativeEnum(ShowcaseStatus),
@@ -254,7 +254,7 @@ export const PublishEdit = () => {
           if (action.actionType === 'ACCEPT_CREDENTIAL') {
             if (!('credentialDefinitionId' in action) || !action.credentialDefinitionId || action.credentialDefinitionId.trim() === '') {
               missing.push(
-                `Step "${step.title}" in scenario "${scenario.name}" must have a valid credentialDefinitionId for ACCEPT_CREDENTIAL action`
+                `Step "${step.title}" in onboarding "${scenario.name}" must have a valid credentialDefinitionId for ACCEPT_CREDENTIAL action`
               )
             }
           }

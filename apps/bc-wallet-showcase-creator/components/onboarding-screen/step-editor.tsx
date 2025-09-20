@@ -104,7 +104,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   }
 
   if (isCreatingOrUpdating) {
-    return <Loader text={isEditMode ? "Updating Scenario" : "Creating Scenario"} />
+    return <Loader text={isEditMode ? "Updating Onboarding" : "Creating Onboarding"} />
   }
 
   if (showErrorModal) {

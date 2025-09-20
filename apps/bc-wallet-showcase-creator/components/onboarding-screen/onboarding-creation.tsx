@@ -14,6 +14,7 @@ import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { cn, baseUrl } from '@/lib/utils'
 import { Screen } from '@/types'
 import { useTenant } from '@/providers/tenant-provider'
+import { useEffect } from 'react'
 
 export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
@@ -27,11 +28,22 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
     setActivePersonaId,
     setSelectedStep,
     activePersona,
+    setActiveScenarioIndex,
   } = useOnboardingAdapter(showcaseSlug)
 
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
   const { tenantId } = useTenant();
+
+  useEffect(() => {
+    if (personas.length > 0) {
+      const activePersonaIsValid = personas.some((p) => p.id === activePersonaId)
+      if (!activePersonaIsValid) {
+        setActivePersonaId(personas[0].id)
+        setActiveScenarioIndex(0)
+      }
+    }
+  }, [personas, activePersonaId, setActivePersonaId, setActiveScenarioIndex])
 
 const parseId = (composedId: string) => {
   const match = composedId.match(/^step-(\d+)-(\d+)$/);
@@ -62,6 +74,11 @@ const handleDragStart = (event: DragStartEvent) => {
     }
   }
 
+  const handlePersonaChange = (personaId: string) => {
+    setActivePersonaId(personaId);
+    setActiveScenarioIndex(0);
+  };
+
   return (
     <div className="bg-background text-light-text dark:text-dark-text rounded-md border shadow-sm">
       {selectedPersonaIds.length === 0 ? (
@@ -78,7 +95,7 @@ const handleDragStart = (event: DragStartEvent) => {
             {personas.map((persona: Persona) => (
               <div
                 key={persona.id}
-                onClick={() => setActivePersonaId(persona.id)}
+                onClick={() => handlePersonaChange(persona.id)}
                 className={cn(
                   'w-full p-4 text-center cursor-pointer transition-colors duration-200',
                   activePersonaId === persona.id
