@@ -496,7 +496,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
           debugLog('Scenario slug is required for update:', scenario);
           result = await createScenarios([scenario])
           if (result && result.success) {
-            toast.success('Scenarios created successfully')
+            toast.success('Onboarding created successfully')
             // router.push(`/${tenantId}/showcases/create/scenarios`)
           } else {
             throw new Error('Invalid response format');

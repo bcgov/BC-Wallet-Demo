@@ -66,7 +66,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
       if (isEditMode && currentShowcaseSlug) {
         result = await updateScenarios(currentShowcaseSlug)
         if (result.success) {
-          toast.success('Scenarios updated successfully')
+          toast.success('Onboarding updated successfully')
           setIsUpdated(true)
           // router.push(`/${tenantId}/showcases/${showcaseSlug}/scenarios`)
         } else {
@@ -75,7 +75,7 @@ export const StepEditor = ({ showcaseSlug }: { showcaseSlug?: string }) => {
       } else {
         result = await createScenarios()
         if (result.success) {
-          toast.success('Scenarios created successfully')
+          toast.success('Onboarding created successfully')
           setIsUpdated(true)
           // router.push(`/${tenantId}/showcases/create/scenarios`)
         } else {
