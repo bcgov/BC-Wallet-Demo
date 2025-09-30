@@ -6,6 +6,7 @@ import {
   ShowcaseResponse,
   ShowcaseResponseFromJSONTyped,
 } from 'bc-wallet-openapi'
+import pino from 'pino'
 import { Authorized, Get, JsonController, NotFoundError, Param, Post } from 'routing-controllers'
 import { Service } from 'typedi'
 
@@ -17,6 +18,7 @@ import { credentialDefinitionDTOFrom, showcaseDTOFrom } from '../utils/mappers'
 @JsonController(getBasePath())
 @Service()
 export class ApprovalController {
+  private readonly logger = pino()
   public constructor(
     private showcaseService: ShowcaseService,
     private credentialDefinitionService: CredentialDefinitionService,
@@ -28,6 +30,7 @@ export class ApprovalController {
     @Param('definitionId') definitionId: string,
   ): Promise<CredentialDefinitionResponse> {
     try {
+      this.logger.info(`Approving credential definition id=${definitionId}`)
       const updatedDefinition = await this.credentialDefinitionService.approveCredentialDefinition(definitionId)
       if (!updatedDefinition) {
         return Promise.reject(new NotFoundError(`Credential Definition with ID ${definitionId} not found`))

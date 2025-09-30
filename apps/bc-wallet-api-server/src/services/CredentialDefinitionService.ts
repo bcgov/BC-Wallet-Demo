@@ -1,6 +1,7 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { type CredentialDefinitionImportRequest } from 'bc-wallet-openapi'
 import { randomUUID } from 'crypto'
+import { pino } from 'pino'
 import { ForbiddenError, InternalServerError } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
 import { validate as uuidValidate } from 'uuid'
@@ -20,6 +21,7 @@ import TenantService from './TenantService'
  */
 @Service()
 class CredentialDefinitionService extends AbstractAdapterClientService {
+  private readonly logger = pino()
   public constructor(
     @Inject('ISessionService') sessionService: ISessionService,
     @Inject('IAdapterClientApi') private readonly adapterClientApi: IAdapterClientApi,
@@ -36,8 +38,18 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * @returns Promise resolving to an array of CredentialDefinition objects
    */
   public getCredentialDefinitions = async (): Promise<CredentialDefinition[]> => {
+    this.logger.info('getCredentialDefinitions: Fetching all credential definitions for tenant')
     this.sessionService.getCurrentTenant()
-    return this.credentialDefinitionRepository.findAll(this.getTenantId())
+    const tenantId = this.getTenantId()
+    this.logger.debug({ tenantId }, 'getCredentialDefinitions: Tenant ID')
+    try {
+      const definitions = await this.credentialDefinitionRepository.findAll(tenantId)
+      this.logger.info({ count: definitions.length }, 'getCredentialDefinitions: Fetched credential definitions count')
+      return definitions
+    } catch (err) {
+      this.logger.error({ err }, 'getCredentialDefinitions: Error fetching definitions')
+      throw err
+    }
   }
 
   /**
@@ -46,6 +58,7 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * @returns Promise resolving to the requested CredentialDefinition
    */
   public getCredentialDefinition = async (id: string): Promise<CredentialDefinition> => {
+    this.logger.info(`get credential definition id=${id}`)
     if (!uuidValidate(id) && id.split(':').length >= 3) {
       // support for lookup by indy identifier
       return this.credentialDefinitionRepository.findByIdentifier(id)
