@@ -147,7 +147,9 @@ export const PresentCredentialAction: React.FC<Props> = ({
     setIsDeclineModalOpen(false)
   }
 
-  console.log('Received Proof:', proof)
+  if(proof){  
+    console.log('Received Proof:', proof)
+  }
 
   return (
     <motion.div>

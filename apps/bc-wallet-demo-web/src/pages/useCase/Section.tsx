@@ -215,7 +215,7 @@ export const Section: FC<Props> = (props: Props) => {
             <div className="flex justify-between items-center">
               <BackButton
                 onClick={() => {
-                  if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob) && isProofCompleted && proof?.id) {
+                  if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob) && proof?.id) {
                     dispatch(deleteProofById(proof.id))
                   }
                   prev()
@@ -238,7 +238,7 @@ export const Section: FC<Props> = (props: Props) => {
                 <SmallButton
                   text="NEXT"
                   onClick={() => {
-                    if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob) && isProofCompleted && proof?.id) {
+                    if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob) && proof?.id) {
                       dispatch(deleteProofById(proof.id))
                     }
                     next()
