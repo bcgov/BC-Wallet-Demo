@@ -23,14 +23,20 @@ import { registerServicesByInterface } from './services/RegisterServicesByInterf
 import TenantService from './services/TenantService'
 import { authorizationChecker } from './utils/auth'
 import { corsOptions } from './utils/cors'
+import { logger } from './utils/logger'
 
 useContainer(Container)
 
 async function bootstrap() {
   try {
+    logger.info('Starting BC Wallet API Server...')
+    
+    logger.info('Registering services by interface...')
     await registerServicesByInterface()
+    logger.info('Services registered successfully')
 
     // Create and configure Express server
+    logger.info('Creating Express server with routing controllers...')
     const app = createExpressServer({
       controllers: [
         AssetController,
@@ -51,18 +57,22 @@ async function bootstrap() {
       defaultErrorHandler: false,
       cors: corsOptions,
     })
+    logger.info('Express server created successfully')
 
+    logger.info('Creating root tenant...')
     const tenantService = Container.get(TenantService)
     void (await tenantService.createRootTenant())
+    logger.info('Root tenant created successfully')
 
     // Start the server
     const port = Number(process.env.PORT)
+    logger.info({ port }, 'Starting server...')
 
     app.listen(port, (): void => {
-      console.log(`Server is running on port ${port}`)
+      logger.info({ port }, `BC Wallet API Server is running on port ${port}`)
     })
   } catch (error) {
-    console.error('Failed to start application:', error)
+    logger.error({ error }, 'Failed to start BC Wallet API Server')
     process.exit(1)
   }
 }
