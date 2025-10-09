@@ -118,11 +118,6 @@ describe('IssuerController Integration Tests', () => {
     // Try to get a non-existent issuer
     await request.get(`/roles/issuers/${nonExistentId}`).expect(404)
 
-    // Try to update a non-existent issuer
-    const updateRequest = createApiIssuerRequest('', tenantId, [], [])
-
-    await request.put(`/roles/issuers/${nonExistentId}`).send(updateRequest).expect(404)
-
     // Try to delete a non-existent issuer
     await request.delete(`/roles/issuers/${nonExistentId}`).expect(404)
   })

@@ -295,7 +295,7 @@ describe('MessageProcessor Integration Test', () => {
     // Send a message without a tenant ID
     const messageId = uuidv4()
     const tenantId = environment.traction.TRACTION_DEFAULT_TENANT_ID
-    environment.traction.TRACTION_DEFAULT_TENANT_ID = undefined // temporarily clear the tenant, otherwise it will find the fixed tenant from the env and we cannot test the error message
+    environment.traction.TRACTION_DEFAULT_TENANT_ID = '' // temporarily clear the tenant, otherwise it will find the fixed tenant from the env and we cannot test the error message
     void (await sender.send({
       message_id: messageId,
       body: JSON.stringify(credDef),
