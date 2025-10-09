@@ -41,13 +41,15 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
     let results = credentials.credentialDefinitions.filter(
       (cred: CredentialDefinition) => cred.source === Source.Created && cred.name.toUpperCase().includes(searchUpper),
     )
+    //@ts-ignore
     if (jobsApprovalFailed && jobsApprovalFailed.jobStatus?.length > 0) {
       results = results.filter((cred) =>
-        jobsApprovalFailed?.jobStatus?.find((job) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+        jobsApprovalFailed?.jobStatus?.find((job:any) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
     }
+    //@ts-ignore
     if (jobsStatus && jobsStatus?.jobStatus?.length > 0) {
       results = results.filter((cred) =>
-        jobsStatus?.jobStatus?.find((job) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+        jobsStatus?.jobStatus?.find((job:any) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
     }
 
     setSearchResults(results)

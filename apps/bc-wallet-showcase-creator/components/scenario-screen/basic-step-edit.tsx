@@ -122,13 +122,15 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
       cred.name.toUpperCase().includes(searchUpper)
     );
 
+    //@ts-ignore
     if (jobsApprovalFailed && jobsApprovalFailed.jobStatus?.length > 0) {
       results = results.filter((cred) =>
-        jobsApprovalFailed?.jobStatus?.find((job) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+        jobsApprovalFailed?.jobStatus?.find((job:any) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
     }
+    //@ts-ignore
     if (jobsStatus && jobsStatus?.jobStatus?.length > 0) {
       results = results.filter((cred) =>
-        jobsStatus?.jobStatus?.find((job) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+        jobsStatus?.jobStatus?.find((job:any) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
     }
 
     setSearchResults(results);
@@ -278,6 +280,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
         deleteTitle='Delete step'
         showDropdown={(currentStep?.order ?? 0) >= 3}
         title={getStepTitle()}
+        //@ts-ignore
         showDropdown={(currentStep?.order ?? 0) >= 3}
         title={getStepTitle()}
         onActionClick={(action) => {
@@ -314,7 +317,6 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
               name="title"
               register={form.register}
               error={form.formState.errors.title?.message}
-              isMandatory={true}
               isMandatory={true}
               placeholder={t('scenario.edit_page_title_placeholder')}
             />

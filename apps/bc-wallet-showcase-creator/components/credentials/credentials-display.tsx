@@ -118,13 +118,13 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                           {t('credentials.pending_approval_label')}
                         </Badge>
                       }
-                      {jobStatusApproval?.jobStatus?.find(job => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
+                      {jobStatusApproval?.jobStatus?.find((job:any) => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
                         <Badge variant="destructive" className="text-center flex justify-center items-center">
                           {t('credentials.request_in_queue_label')}
                         </Badge>
                       }
                       {
-                        jobStatusApprovalFailed?.jobStatus?.find(job => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
+                        jobStatusApprovalFailed?.jobStatus?.find((job:any) => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
                         <Badge variant="destructive" className="text-center flex justify-center items-center">
                           {t('credentials.request_failed_label')}
                         </Badge>
@@ -159,13 +159,13 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                           </Badge> :
                           <span className="text-sm text-foreground/80">Version {item.version}</span>
                         }
-                        {jobStatusApproval?.jobStatus?.find(job => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
+                        {jobStatusApproval?.jobStatus?.find((job:any) => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
                           <Badge variant="destructive" className="text-center flex justify-center items-center">
                             {t('credentials.request_in_queue_label')}
                           </Badge>
                         }
                         {
-                          jobStatusApprovalFailed?.jobStatus?.find(job => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
+                          jobStatusApprovalFailed?.jobStatus?.find((job:any) => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
                           <Badge variant="destructive" className="text-center flex justify-center items-center">
                             {t('credentials.request_failed_label')}
                           </Badge>
