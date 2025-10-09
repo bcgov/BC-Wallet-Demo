@@ -9,6 +9,7 @@ import JobEntityMapRepository from '../database/repositories/JobEntityMapReposit
 import JobStatusRepository from '../database/repositories/JobStatusRepository'
 import { CredentialSchema, NewCredentialSchema } from '../types'
 import type { ISessionService } from '../types/services/session'
+import { createRequestLogger } from '../utils/logger'
 import { AbstractAdapterClientService } from './AbstractAdapterClientService'
 import TenantService from './TenantService'
 
@@ -19,6 +20,8 @@ import TenantService from './TenantService'
  */
 @Service()
 class CredentialSchemaService extends AbstractAdapterClientService {
+  private readonly logger = createRequestLogger('CredentialSchemaService')
+
   /**
    * Constructor for CredentialSchemaService.
    * @param sessionService Service for managing user sessions
@@ -41,8 +44,16 @@ class CredentialSchemaService extends AbstractAdapterClientService {
    * @returns Promise resolving to an array of CredentialSchema objects
    */
   public getCredentialSchemas = async (): Promise<CredentialSchema[]> => {
-    // Filter out any credential schemas that are still pending creation
-    return this.credentialSchemaRepository.findAll()
+    this.logger.info('Retrieving all credential schemas')
+    try {
+      // Filter out any credential schemas that are still pending creation
+      const schemas = await this.credentialSchemaRepository.findAll()
+      this.logger.info({ count: schemas.length }, 'Successfully retrieved credential schemas')
+      return schemas
+    } catch (error) {
+      this.logger.error({ error }, 'Failed to retrieve credential schemas')
+      throw error
+    }
   }
 
   /**
@@ -67,7 +78,7 @@ class CredentialSchemaService extends AbstractAdapterClientService {
     console.debug('Creating credential schema', { credentialSchema })
     const savedCredentialSchema = await this.credentialSchemaRepository.create(credentialSchema)
     if (!savedCredentialSchema) {
-      console.error('Failed to create credential schema')
+      this.logger.error({ credentialSchema }, 'Failed to create credential schema')
       throw new Error('Failed to create credential schema')
     }
     if (credentialSchema.jobId) {

@@ -7,6 +7,7 @@ import JobEntityMapRepository from '../database/repositories/JobEntityMapReposit
 import JobStatusRepository from '../database/repositories/JobStatusRepository'
 import { JobStatus } from '../types/jobStatus'
 import type { ISessionService } from '../types/services/session'
+import { createRequestLogger } from '../utils/logger'
 import { issuerDTOFrom } from '../utils/mappers'
 import { AbstractAdapterClientService } from './AbstractAdapterClientService'
 import TenantService from './TenantService'
@@ -17,6 +18,8 @@ import TenantService from './TenantService'
  */
 @Service()
 class JobStatusService extends AbstractAdapterClientService {
+  private readonly logger = createRequestLogger('JobStatusService')
+  
   /**
    * Constructor for CredentialSchemaService.
    * @param sessionService Service for managing user sessions
@@ -63,7 +66,7 @@ class JobStatusService extends AbstractAdapterClientService {
       }
 
       for (const job of jobStatusResponse) {
-        console.debug(`Executing job ${job.jobId}`)
+        this.logger.info({ jobId: job.jobId }, `Executing job ${job.jobId}`)
         try {
           if (job.apiName === 'importCredentialDefinition') {
             const importRequest: CredentialDefinitionImportRequest = {
@@ -90,12 +93,12 @@ class JobStatusService extends AbstractAdapterClientService {
 
           if (job.apiName === 'updateIssuer') {
             const issuer = await this.issuerRepository.findById(job.payloadData.issuerId)
-            issuer.jobId = job.jobId
+            const issuerWithJobId = { ...issuer, jobId: job.jobId }
 
-            await this.adapterClientApi.publishIssuer(issuerDTOFrom(issuer), await this.buildSendOptions())
+            await this.adapterClientApi.publishIssuer(issuerDTOFrom(issuerWithJobId), await this.buildSendOptions())
           }
         } catch (error) {
-          console.error(`Error executing job ${job.jobId}:`, error)
+          this.logger.error({ error, jobId: job.jobId }, `Error executing job ${job.jobId}`)
         }
       }
     })
@@ -114,7 +117,7 @@ class JobStatusService extends AbstractAdapterClientService {
     for (const jobEntity of jobEntities) {
       jobEntity.status = status
       await this.jobEntityMapRepository.updateStatus(jobEntity.jobId as unknown as string, jobEntity)
-      console.log(`JobEntityMap for job ${id} updated to status ${status}`)
+      this.logger.info({ id, status }, `JobEntityMap for job ${id} updated to status ${status}`)
     }
 
     return jobStatus
