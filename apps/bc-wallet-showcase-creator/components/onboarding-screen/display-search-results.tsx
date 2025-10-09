@@ -59,7 +59,7 @@ export const DisplaySearchResults = ({
                 <div className="space-y-1 ml-4 text-start">
                   <p className="font-semibold">{result.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {result.issuer_name ?? 'Test college'}
+                    {result.issuer_name ?? ''}
                   </p>
                 </div>
               </div>

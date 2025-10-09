@@ -278,6 +278,8 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
         deleteTitle='Delete step'
         showDropdown={(currentStep?.order ?? 0) >= 3}
         title={getStepTitle()}
+        showDropdown={(currentStep?.order ?? 0) >= 3}
+        title={getStepTitle()}
         onActionClick={(action) => {
           switch (action) {
             case 'save':
@@ -312,6 +314,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
               name="title"
               register={form.register}
               error={form.formState.errors.title?.message}
+              isMandatory={true}
               isMandatory={true}
               placeholder={t('scenario.edit_page_title_placeholder')}
             />
