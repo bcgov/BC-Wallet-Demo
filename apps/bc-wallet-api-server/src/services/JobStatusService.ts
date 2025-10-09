@@ -2,10 +2,12 @@ import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { CredentialDefinitionImportRequest, CredentialSchemaImportRequest } from 'bc-wallet-openapi'
 import { Inject, Service } from 'typedi'
 
+import IssuerRepository from '../database/repositories/IssuerRepository'
 import JobEntityMapRepository from '../database/repositories/JobEntityMapRepository'
 import JobStatusRepository from '../database/repositories/JobStatusRepository'
 import { JobStatus } from '../types/jobStatus'
 import type { ISessionService } from '../types/services/session'
+import { issuerDTOFrom } from '../utils/mappers'
 import { AbstractAdapterClientService } from './AbstractAdapterClientService'
 import TenantService from './TenantService'
 
@@ -26,6 +28,7 @@ class JobStatusService extends AbstractAdapterClientService {
     @Inject('IAdapterClientApi') private readonly adapterClientApi: IAdapterClientApi,
     private readonly jobStatusRepository: JobStatusRepository,
     private readonly jobEntityMapRepository: JobEntityMapRepository,
+    private readonly issuerRepository: IssuerRepository,
     tenantService: TenantService,
   ) {
     super(sessionService, tenantService)
@@ -72,7 +75,8 @@ class JobStatusService extends AbstractAdapterClientService {
             }
 
             await this.adapterClientApi.importCredentialDefinition(importRequest, await this.buildSendOptions())
-          } else {
+          }
+          if (job.apiName === 'importCredentialDefinition') {
             const importRequest: CredentialSchemaImportRequest = {
               identifierType: 'DID',
               identifier: job.payloadData.identifier,
@@ -83,11 +87,37 @@ class JobStatusService extends AbstractAdapterClientService {
 
             await this.adapterClientApi.importCredentialSchema(importRequest, await this.buildSendOptions())
           }
+
+          if (job.apiName === 'updateIssuer') {
+            const issuer = await this.issuerRepository.findById(job.payloadData.issuerId)
+            issuer.jobId = job.jobId
+
+            await this.adapterClientApi.publishIssuer(issuerDTOFrom(issuer), await this.buildSendOptions())
+          }
         } catch (error) {
           console.error(`Error executing job ${job.jobId}:`, error)
         }
       }
     })
+  }
+
+  public async updateJobStatus(id: string, status: string): Promise<JobStatus> {
+    const jobStatus = await this.jobStatusRepository.findById(id)
+    if (!jobStatus) {
+      throw new Error(`Job with ID ${id} not found`)
+    }
+
+    await this.jobStatusRepository.update(id, { status })
+
+    // Update corresponding JobEntityMap status
+    const jobEntities = await this.jobEntityMapRepository.findByJobId(id)
+    for (const jobEntity of jobEntities) {
+      jobEntity.status = status
+      await this.jobEntityMapRepository.updateStatus(jobEntity.jobId as unknown as string, jobEntity)
+      console.log(`JobEntityMap for job ${id} updated to status ${status}`)
+    }
+
+    return jobStatus
   }
 }
 

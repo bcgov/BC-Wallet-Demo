@@ -78,6 +78,10 @@ class ApiService {
     return this.request<T>('PUT', url, data)
   }
 
+  public patch<T>(url: string, data?: any): Promise<T | void> {
+    return this.request<T>('PATCH', url, data)
+  }
+
   public delete<T>(url: string): Promise<T | void> {
     return this.request<T>('DELETE', url)
   }

@@ -92,16 +92,16 @@ export class CredentialSchemaController {
   @OnUndefined(204)
   @Post('/import')
   public async importSchema(@Body() importRequest: CredentialSchemaImportRequest): Promise<void> {
-    this.logger.info({ schemaId: importRequest.credentialSchemaId }, 'Importing credential schema')
+    this.logger.info({ schemaId: importRequest.identifier }, 'Importing credential schema')
     try {
       if (!instanceOfCredentialSchemaImportRequest(importRequest)) {
         this.logger.warn('Invalid credential schema import request format')
         return Promise.reject(new BadRequestError())
       }
       await this.credentialSchemaService.importCredentialSchema(importRequest)
-      this.logger.info({ schemaId: importRequest.credentialSchemaId }, 'Successfully imported credential schema')
+      this.logger.info({ schemaId: importRequest.identifier }, 'Successfully imported credential schema')
     } catch (e) {
-      this.logger.error({ error: e, schemaId: importRequest.credentialSchemaId }, 'Failed to import credential schema')
+      this.logger.error({ error: e, schemaId: importRequest.identifier }, 'Failed to import credential schema')
       return Promise.reject(e)
     }
   }

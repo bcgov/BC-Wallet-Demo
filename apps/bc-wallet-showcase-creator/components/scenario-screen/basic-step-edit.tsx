@@ -14,12 +14,9 @@ import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { debounce } from 'lodash'
 import { toast } from 'sonner'
-import { useCreatePresentation } from '@/hooks/use-presentation'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { BasicStepFormData, basicStepSchema } from '@/schemas/onboarding'
-import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { CredentialDefinition, PresentationScenarioRequest, StepType } from 'bc-wallet-openapi'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { CredentialDefinition, StepType } from 'bc-wallet-openapi'
 import { useRouter } from '@/i18n/routing'
 import { LocalFileUpload } from './local-file-upload'
 import { ErrorModal } from '../error-modal'
@@ -29,12 +26,12 @@ import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { StepRequestUIActionTypes } from '@/lib/steps'
 import { useTenant } from '@/providers/tenant-provider'
-import { debugLog } from '@/lib/utils'
+import { useJobStatus } from '../../hooks/use-job-status'
 
 export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const router = useRouter()
-  const { updateScenario, createScenarios , selectedScenario, updateStep, selectedStep, setStepState, deleteStep, isEditMode,personaScenarios } =
+  const { updateScenario, createScenarios, selectedScenario, updateStep, selectedStep, setStepState, deleteStep, isEditMode, personaScenarios } =
     usePresentationAdapter()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions();
@@ -44,21 +41,24 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const [showErrorModal, setErrorModal] = useState(false)
   const [isUpdated, setIsUpdated] = useState(false)
 
-const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList]) =>
-  scenarioList.some((scenario) =>
-    scenario.steps?.some(
-      (step) =>
-        step.type === "SERVICE" &&
-        step.actions?.some((action) => {
-          if (action.actionType !== "ARIES_OOB") return false;
+  const { data: jobsApprovalFailed } = useJobStatus('updateIssuer', 'failed')
+  const { data: jobsStatus } = useJobStatus('credentialDefinition', 'pending')
 
-          const credDefId = action.credentialDefinitionId;
-          return credDefId === undefined || 
-                 (typeof credDefId === "string" && credDefId.trim() === "");
-        })
+  const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList]) =>
+    scenarioList.some((scenario) =>
+      scenario.steps?.some(
+        (step) =>
+          step.type === "SERVICE" &&
+          step.actions?.some((action) => {
+            if (action.actionType !== "ARIES_OOB") return false;
+
+            const credDefId = action.credentialDefinitionId;
+            return credDefId === undefined ||
+              (typeof credDefId === "string" && credDefId.trim() === "");
+          })
+      )
     )
-  )
-);
+  );
 
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
 
@@ -118,9 +118,18 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
       return;
     }
 
-    const results = credentials.credentialDefinitions.filter((cred: any) =>
+    let results = credentials.credentialDefinitions.filter((cred: any) =>
       cred.name.toUpperCase().includes(searchUpper)
     );
+
+    if (jobsApprovalFailed && jobsApprovalFailed.jobStatus?.length > 0) {
+      results = results.filter((cred) =>
+        jobsApprovalFailed?.jobStatus?.find((job) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+    }
+    if (jobsStatus && jobsStatus?.jobStatus?.length > 0) {
+      results = results.filter((cred) =>
+        jobsStatus?.jobStatus?.find((job) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+    }
 
     setSearchResults(results);
   };
@@ -145,13 +154,13 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
     if (!currentStep) return;
 
     const { credentialDefinitionId, ...cleanedAction } = currentStep.actions[0];
-     const updatedAction = {
-        ...cleanedAction,
-        proofRequest: {
-          attributes: {},
-          predicates: {},
-        },
-      }
+    const updatedAction = {
+      ...cleanedAction,
+      proofRequest: {
+        attributes: {},
+        predicates: {},
+      },
+    }
 
     const updatedActions = [updatedAction];
 
@@ -230,37 +239,37 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
       (predGroup: any) => !predGroup.predicates || predGroup.predicates.length === 0
     )
 
-    const isProofRequestEmpty =
+  const isProofRequestEmpty =
     action?.proofRequest && currentStep.type === StepType.Service &&
     Object.keys(action.proofRequest.attributes || {}).length === 0 &&
     Object.keys(action.proofRequest.predicates || {}).length === 0;
 
-    const isProofRequestInvalid = isProofRequestEmpty || hasNoAttributesOrPredicates || hasInvalidPredicates
+  const isProofRequestInvalid = isProofRequestEmpty || hasNoAttributesOrPredicates || hasInvalidPredicates
 
 
   const getInstructionalText = () => {
-        if (currentStep?.order === 0) {
-          return 'This screen will provide the end-user a QR code to scan and receive a proof request on their BC Wallet to share request information from their credential. Please edit the default language for your showcase';
-        } else if (currentStep?.order === 1) {
-          return 'On this screen, you will add details about the credential attributes the end-user will share.  Please edit the default language for your showcase';
-        } else if (currentStep?.order === 2) {
-          return 'This screen will provide the. end-user a message that they have successfully shared the credential from their BC Wallet. Please edit the default language for your showcase';
-        }
-    };
+    if (currentStep?.order === 0) {
+      return 'This screen will provide the end-user a QR code to scan and receive a proof request on their BC Wallet to share request information from their credential. Please edit the default language for your showcase';
+    } else if (currentStep?.order === 1) {
+      return 'On this screen, you will add details about the credential attributes the end-user will share.  Please edit the default language for your showcase';
+    } else if (currentStep?.order === 2) {
+      return 'This screen will provide the. end-user a message that they have successfully shared the credential from their BC Wallet. Please edit the default language for your showcase';
+    }
+  };
 
-    const getStepTitle = () => {
-        if (currentStep?.order === 0)  {
-          return 'Edit Scan QR Code step';
-        }
-        if (currentStep?.order === 1)  {
-          return 'Edit Information to Share step';
-        }
-         if (currentStep?.order === 2)  {
-          return 'Edit Credential Shared step'
-        }
- 
-        return t('onboarding.basic_step_header_title');
-      }
+  const getStepTitle = () => {
+    if (currentStep?.order === 0) {
+      return 'Edit Scan QR Code step';
+    }
+    if (currentStep?.order === 1) {
+      return 'Edit Information to Share step';
+    }
+    if (currentStep?.order === 2) {
+      return 'Edit Credential Shared step'
+    }
+
+    return t('onboarding.basic_step_header_title');
+  }
 
   return (
     <>
@@ -293,7 +302,7 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {getInstructionalText() && (
             <p className="text-sm text-muted-foreground mb-4">
-                {getInstructionalText()}
+              {getInstructionalText()}
             </p>
           )}
           <div className="space-y-6">
@@ -381,23 +390,23 @@ const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList
           <div className="mt-auto pt-4 border-t flex justify-between ">
             <ButtonOutline onClick={() => setStepState('no-selection')}>{'help'}</ButtonOutline>
 
-          <div className='flex gap-4'>
+            <div className='flex gap-4'>
 
-            <ButtonOutline type="button" 
-              disabled={!form.formState.isValid}
-              onClick={form.handleSubmit(onSubmit)}
-            >
-              {'Save'}
-            </ButtonOutline>
+              <ButtonOutline type="button"
+                disabled={!form.formState.isValid}
+                onClick={form.handleSubmit(onSubmit)}
+              >
+                {'Save'}
+              </ButtonOutline>
 
-            <ButtonOutline type="button" 
-              disabled={!isUpdated}
-              // disabled={!form.formState.isValid || isProofRequestInvalid || isInvalidServiceStep}
-              onClick={() => GoToNext()}
-            >
-              {'Proceed to Publish'}
-            </ButtonOutline>
-          </div>
+              <ButtonOutline type="button"
+                disabled={!isUpdated}
+                // disabled={!form.formState.isValid || isProofRequestInvalid || isInvalidServiceStep}
+                onClick={() => GoToNext()}
+              >
+                {'Proceed to Publish'}
+              </ButtonOutline>
+            </div>
 
           </div>
         </form>

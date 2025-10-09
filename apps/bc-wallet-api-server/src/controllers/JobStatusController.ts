@@ -1,10 +1,14 @@
 import { JobStatusResponse } from 'bc-wallet-openapi'
-import { Authorized, Get, JsonController, OnUndefined, Param, Post, QueryParam } from 'routing-controllers'
+import { Authorized, Body, Get, JsonController, OnUndefined, Param, Patch, Post, QueryParam } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import JobStatusService from '../services/JobStatusService'
 import { getBasePath } from '../utils/auth'
 import { jobStatusDTOFrom } from '../utils/mappers'
+
+export class JobStatusUpdate {
+  status: string
+}
 
 @JsonController(getBasePath('/job-status'))
 @Service()
@@ -51,6 +55,20 @@ export class JobStatusController {
       if (e.httpCode !== 404) {
         console.error('getAll JobStatus failed:', e)
       }
+      return Promise.reject(e)
+    }
+  }
+
+  @Patch('/:id')
+  public async updateJobStatus(
+    @Param('id') id: string,
+    @Body() jobStatusUpdate: JobStatusUpdate,
+  ): Promise<JobStatusResponse> {
+    try {
+      const updatedJobStatus = await this.jobStatusService.updateJobStatus(id, jobStatusUpdate.status)
+      return { jobStatus: [jobStatusDTOFrom(updatedJobStatus)] }
+    } catch (e) {
+      console.error('updateJobStatus failed:', e)
       return Promise.reject(e)
     }
   }

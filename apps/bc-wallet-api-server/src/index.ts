@@ -30,7 +30,7 @@ useContainer(Container)
 async function bootstrap() {
   try {
     logger.info('Starting BC Wallet API Server...')
-    
+
     logger.info('Registering services by interface...')
     await registerServicesByInterface()
     logger.info('Services registered successfully')

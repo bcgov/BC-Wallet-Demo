@@ -24,7 +24,8 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
   const { data: credentials, isLoading } = useCredentialDefinitions()
   const { tenantId } = useTenant();
   const { data: jobStatus } = useJobStatus('credentialDefinition', 'pending')
-
+  const { data: jobStatusApproval } = useJobStatus('updateIssuer', 'pending')
+  const { data: jobStatusApprovalFailed } = useJobStatus('updateIssuer', 'failed')
   const sanitizedSearchTerm = searchTerm?.toLowerCase() || ''
 
   const filteredCredentials =
@@ -55,8 +56,8 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
       if (credential) {
         handleSelectCredential(credential)
       }
-        else{
-          handleQueue(id, jobStatus!.jobStatus?.find(job => job.jobId === id)!)
+      else {
+        handleQueue(id, jobStatus!.jobStatus?.find(job => job.jobId === id)!)
       }
     }
   }
@@ -83,6 +84,7 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
       ) : (
         <>
           {filteredCredentials.map((item) => (
+
             <div className="flex-grow overflow-y-auto" key={item.id}>
               <div className="border-b dark:border-dark-border">
                 {openId === item.id ? (
@@ -116,6 +118,17 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                           {t('credentials.pending_approval_label')}
                         </Badge>
                       }
+                      {jobStatusApproval?.jobStatus?.find(job => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
+                        <Badge variant="destructive" className="text-center flex justify-center items-center">
+                          {t('credentials.request_in_queue_label')}
+                        </Badge>
+                      }
+                      {
+                        jobStatusApprovalFailed?.jobStatus?.find(job => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
+                        <Badge variant="destructive" className="text-center flex justify-center items-center">
+                          {t('credentials.request_failed_label')}
+                        </Badge>
+                      }
                     </div>
                   </div>
                 ) : (
@@ -146,6 +159,17 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                           </Badge> :
                           <span className="text-sm text-foreground/80">Version {item.version}</span>
                         }
+                        {jobStatusApproval?.jobStatus?.find(job => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
+                          <Badge variant="destructive" className="text-center flex justify-center items-center">
+                            {t('credentials.request_in_queue_label')}
+                          </Badge>
+                        }
+                        {
+                          jobStatusApprovalFailed?.jobStatus?.find(job => job?.payloadData?.identifier?.trim().toLowerCase() === item.credentialSchema.identifier?.trim().toLowerCase()) &&
+                          <Badge variant="destructive" className="text-center flex justify-center items-center">
+                            {t('credentials.request_failed_label')}
+                          </Badge>
+                        }
                       </div>
                     </div>
                     <div className="ml-2">
@@ -159,10 +183,10 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
           ))
           }
           {
-            jobStatus && jobStatus.jobStatus && jobStatus.jobStatus.length > 0 && jobStatus.jobStatus.map((job:any) => (
+            jobStatus && jobStatus.jobStatus && jobStatus.jobStatus.length > 0 && jobStatus.jobStatus.map((job: any) => (
               <div className="flex-grow overflow-y-auto" key={job.jobId}>
-              <div className="border-b dark:border-dark-border">
-                
+                <div className="border-b dark:border-dark-border">
+
                   <div
                     onClick={() => toggleDetails(job.jobId)}
                     key={job.jobId}
@@ -171,22 +195,23 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                   >
                     <div className="flex items-center gap-3 w-full">
                       <Image
-                        src= '/assets/no-image.jpg'
+                        src='/assets/no-image.jpg'
                         unoptimized
                         onError={(e) => {
                           const target = e.currentTarget as HTMLImageElement
                           target.src = '/assets/no-image.jpg'
                         }}
-                        alt= 'Credential icon'
+                        alt='Credential icon'
                         width={50}
                         height={50}
                         className="rounded-full aspect-square object-cover transition-all duration-300 scale-100 shadow-md hover:scale-105"
                       />
                       <div className="flex flex-col w-full">
                         <span className="text-lg font-semibold">{job.payloadData?.name}</span>
-                          <Badge variant="destructive" className="text-center flex justify-center items-center">
-                            {t('credentials.request_in_queue_label')}
-                          </Badge> 
+                        <Badge variant="destructive" className="text-center flex justify-center items-center">
+                          {t('credentials.request_in_queue_label')}
+                        </Badge>
+
                       </div>
                     </div>
                     <div className="ml-2">
@@ -194,9 +219,9 @@ export const CredentialsDisplay = ({ searchTerm }: CredentialsDisplayProps) => {
                       {/* <p className="text-sm text-foreground/80">{item.credentialSchema?.attributes?.length || 0}</p> */}
                     </div>
                   </div>
-                
+
+                </div>
               </div>
-            </div>
             ))
           }
         </>

@@ -31,3 +31,20 @@ export const useExecutePendingJob = () => {
     },
   })
 }
+
+
+export const useUpdateJobStatus = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, status, tenantId }: { id: string; status: string; tenantId?: string }) => {
+      const response = await apiClient.patch('/job-status/' + id, { status, tenantId })
+      return response as JobStatusResponse
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentialDefinitions'] })
+      queryClient.invalidateQueries({ queryKey: ['jobStatus', 'credentialSchema', 'pending'] })
+      queryClient.invalidateQueries({ queryKey: ['jobStatus', 'credentialDefinition', 'pending'] })
+    },
+  })
+}

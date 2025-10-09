@@ -2014,6 +2014,56 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /job-status/{id}:
+    patch:
+      tags:
+        - Jobs
+      summary: Update the status of a background job
+      operationId: updateJobStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier for the job
+          example: 123e4567-e89b-12d3-a456-426614174000
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  description: New status for the job
+                  enum:
+                    - pending
+                    - failed 
+                    - completed
+                  example: completed
+
+        required: true
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatusResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   securitySchemes:
     OAuth2:
@@ -2992,6 +3042,10 @@ components:
           description: Date and time the issuer was last updated
           format: date-time
           example: "2025-03-06T11:30:16.573Z"
+        jobId:
+          type: string
+          description: Optional job ID if this is part of a background job
+          example: 789e4567-e89b-12d3-a456-426614174123
     IssuerRequest:
       type: object
       required:
@@ -3612,7 +3666,7 @@ components:
       type: object
       required:
         - jobId
-        - JobStatus
+        - status
       properties:
         jobId:
           type: string
@@ -3632,7 +3686,7 @@ components:
           example: { }
         status: 
           type: string
-          description: pending or completed
+          description: pending, failed or completed
           example: 'completed'
         errorMessage?:
           type: string
