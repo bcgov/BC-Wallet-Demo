@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AnimatePresence, motion } from 'framer-motion'
 
 import { ActionCTA } from '../../../../components/ActionCTA'
 import { useAppDispatch } from '../../../../hooks/hooks'
@@ -12,8 +11,6 @@ import { useSocket } from '../../../../slices/socket/socketSelector'
 import type { CredentialRequest } from '../../../../slices/types'
 import { FailedRequestModal } from '../../../onboarding/components/FailedRequestModal'
 import { ProofAttributesCard } from '../../components/ProofAttributesCard'
-import { dropIn, standardFade } from '../../../../FramerAnimations'
-import { SmallButton } from '../../../../components/SmallButton'
 import { dropIn, standardFade } from '../../../../FramerAnimations'
 import { SmallButton } from '../../../../components/SmallButton'
 
