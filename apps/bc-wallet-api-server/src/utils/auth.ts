@@ -5,7 +5,11 @@ import { Action, BadRequestError, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
 
 import TenantService from '../services/TenantService'
+
 import { Claims } from '../types/auth/claims'
+import { createRequestLogger } from './logger'
+
+const logger = createRequestLogger('AuthUtils')
 import { Token } from '../types/auth/token'
 import { ISessionService, ISessionServiceUpdater } from '../types/services/session'
 
@@ -182,7 +186,7 @@ export function isAccessTokenExpired(token: Token): boolean {
   const currentTime = Math.floor(Date.now() / 1000)
 
   if (!token.payload.exp) {
-    console.warn('Token does not contain an expiration date, assuming it is expired.')
+    logger.warn('Token does not contain an expiration date, assuming it is expired')
     return true
   }
 

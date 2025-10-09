@@ -13,6 +13,7 @@ import type {
   CreateWalletTokenRequest,
   CreateWalletTokenResponse,
   DIDResult,
+  SchemaStorageRecord,
   TransactionRecord,
   TxnOrCredentialDefinitionSendResult,
   TxnOrSchemaSendResult,
@@ -200,13 +201,18 @@ export class TractionService extends ApiService {
    * @param credentialSchema The credential schema definition to create a schema from
    * @returns An object containing the created schema ID and transaction ID (if any)
    */
-  public async createSchema(credentialSchema: CredentialSchema): Promise<CreateSchemaResult> {
+  public async createSchema(
+    credentialSchema: CredentialSchema,
+    jobId?: string,
+    did?: string,
+  ): Promise<CreateSchemaResult> {
     const schemaRequest = credentialSchemaToSchemaPostRequest(credentialSchema)
     if (DEBUG_ENABLED) {
       console.debug('Calling schemasPostRaw with', schemaRequest)
     }
 
     let apiResponse: ApiResponse<TxnOrSchemaSendResult>
+    let apiStorageResponse: SchemaStorageRecord
     try {
       apiResponse = await withRetry(
         () =>
@@ -217,6 +223,20 @@ export class TractionService extends ApiService {
         'schemasPostRaw',
       )
     } catch (error) {
+      if (did) {
+        const schemas = await this.schemaApi.schemasSchemaIdGet({
+          schemaId: `${did}:2:${credentialSchema.name}:${credentialSchema.version}`,
+        })
+
+        apiStorageResponse = await this.schemaStorageApi.schemaStoragePost({
+          body: { schemaId: schemas.schema?.id as string },
+        })
+
+        if (jobId) {
+          this.showcaseApiService.updateJobStatus(jobId, 'completed')
+        }
+        return { schemaId: apiStorageResponse?.schemaId }
+      }
       return this.handleServiceError(error, 'posting schema')
     }
 
@@ -228,6 +248,10 @@ export class TractionService extends ApiService {
 
     let schemaId = result?.sent?.schemaId
     if (!schemaId) {
+      // fail job
+      if (jobId) {
+        this.showcaseApiService.updateJobStatus(jobId, 'failed')
+      }
       return Promise.reject(Error('No schema ID was returned after creation request'))
     }
 
@@ -328,6 +352,7 @@ export class TractionService extends ApiService {
     credentialDef: CredentialDefinition,
     schemaId: string,
     issuerDid: string,
+    jobId?: string,
   ): Promise<PublishCredentialDefinitionResult> {
     let apiResponse: ApiResponse<TxnOrCredentialDefinitionSendResult>
     try {
@@ -340,6 +365,10 @@ export class TractionService extends ApiService {
         'credentialDefinitionsPostRaw',
       )
     } catch (error) {
+      if (jobId) {
+        this.showcaseApiService.updateJobStatus(jobId, 'failed')
+      }
+
       return this.handleServiceError(error, 'posting credential definition')
     }
 
@@ -440,7 +469,7 @@ export class TractionService extends ApiService {
           (await this.findExistingSchema(credentialSchema.name, credentialSchema.version))
         if (!schemaId) {
           console.log(`Schema ${credentialSchema.name} v${credentialSchema.version} not found, creating...`)
-          const createResult = await this.createSchema(credentialSchema)
+          const createResult = await this.createSchema(credentialSchema, issuer.jobId, issuerId)
           schemaId = createResult.schemaId
           if (!credentialSchema.identifier) {
             credentialSchema.identifierType = 'DID'
@@ -488,7 +517,7 @@ export class TractionService extends ApiService {
             credentialDef.credentialSchema.identifier ??
             schemaIdMap.get(
               credentialDef.credentialSchema.id ??
-                `${credentialDef.credentialSchema.name}::${credentialDef.credentialSchema.version}`,
+              `${credentialDef.credentialSchema.name}::${credentialDef.credentialSchema.version}`,
             )
           if (!cdSchemaId) {
             return Promise.reject(
@@ -499,7 +528,7 @@ export class TractionService extends ApiService {
           }
 
           // Create a new credential definition
-          const createResult = await this.createCredentialDefinition(credentialDef, cdSchemaId, issuerId)
+          const createResult = await this.createCredentialDefinition(credentialDef, cdSchemaId, issuerId, issuer.jobId)
           credDefId = createResult.credentialDefinitionId // May be undefined if only transactionId is returned
           if (createResult.transactionId) {
             transactionIds.push(createResult.transactionId)
@@ -533,7 +562,12 @@ export class TractionService extends ApiService {
           }
         }
       }
+
+      if (issuer.jobId) {
+        this.showcaseApiService.updateJobStatus(issuer.jobId, 'completed')
+      }
     }
+
     return transactionIds
   }
 

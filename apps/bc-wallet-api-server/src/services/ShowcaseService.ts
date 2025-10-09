@@ -4,10 +4,13 @@ import { Inject, Service } from 'typedi'
 import ShowcaseRepository from '../database/repositories/ShowcaseRepository'
 import { NewShowcase, Showcase } from '../types'
 import { ISessionService } from '../types/services/session'
+import { createRequestLogger } from '../utils/logger'
 import CredentialDefinitionService from './CredentialDefinitionService'
 
 @Service()
 class ShowcaseService {
+  private readonly logger = createRequestLogger('ShowcaseService')
+
   public constructor(
     private readonly showcaseRepository: ShowcaseRepository,
     private credentialDefinitionService: CredentialDefinitionService,
@@ -15,62 +18,134 @@ class ShowcaseService {
   ) {}
 
   public getShowcases = async (): Promise<Showcase[]> => {
-    return this.showcaseRepository.findAll(this.getTenantId())
+    const tenantId = this.getTenantId()
+    this.logger.info({ tenantId }, 'Retrieving all showcases for tenant')
+    try {
+      const showcases = await this.showcaseRepository.findAll(tenantId)
+      this.logger.info({ tenantId, count: showcases.length }, 'Successfully retrieved showcases')
+      return showcases
+    } catch (error) {
+      this.logger.error({ error, tenantId }, 'Failed to retrieve showcases')
+      throw error
+    }
   }
 
   public getUnapproved() {
-    return this.showcaseRepository.findUnapproved(this.getTenantId())
+    const tenantId = this.getTenantId()
+    this.logger.info({ tenantId }, 'Retrieving unapproved showcases for tenant')
+    return this.showcaseRepository.findUnapproved(tenantId)
   }
 
   public getShowcase = async (id: string): Promise<Showcase> => {
-    return this.showcaseRepository.findById(id)
+    this.logger.info({ showcaseId: id }, 'Retrieving showcase by id')
+    try {
+      const showcase = await this.showcaseRepository.findById(id)
+      this.logger.info({ showcaseId: id, slug: showcase.slug }, 'Successfully retrieved showcase')
+      return showcase
+    } catch (error) {
+      this.logger.error({ error, showcaseId: id }, 'Failed to retrieve showcase')
+      throw error
+    }
   }
 
   public createShowcase = async (showcase: NewShowcase): Promise<Showcase> => {
     const tenantId = this.getTenantId()
+    this.logger.info({ tenantId, showcaseName: showcase.name }, 'Creating new showcase')
+
     if (!showcase.tenantId) {
       showcase.tenantId = tenantId
+      this.logger.debug({ tenantId }, 'Assigned tenant ID to showcase')
     } else if (showcase.tenantId !== tenantId) {
+      this.logger.warn(
+        { providedTenantId: showcase.tenantId, sessionTenantId: tenantId },
+        'Tenant ID mismatch in showcase creation',
+      )
       throw new ForbiddenError(
         `The showcase is being created for tenant ${showcase.tenantId}, but the signed in tenant is ${tenantId}.`,
       )
     }
-    return this.showcaseRepository.create(showcase)
+
+    try {
+      const createdShowcase = await this.showcaseRepository.create(showcase)
+      this.logger.info(
+        { showcaseId: createdShowcase.id, slug: createdShowcase.slug, tenantId },
+        'Successfully created showcase',
+      )
+      return createdShowcase
+    } catch (error) {
+      this.logger.error({ error, showcaseName: showcase.name, tenantId }, 'Failed to create showcase')
+      throw error
+    }
   }
 
   public updateShowcase = async (id: string, showcase: NewShowcase): Promise<Showcase> => {
     const tenantId = this.getTenantId()
+    this.logger.info({ showcaseId: id, tenantId, showcaseName: showcase.name }, 'Updating showcase')
+
     if (!showcase.tenantId) {
       showcase.tenantId = tenantId
+      this.logger.debug({ showcaseId: id, tenantId }, 'Assigned tenant ID to showcase update')
     } else if (showcase.tenantId !== tenantId) {
+      this.logger.warn(
+        { showcaseId: id, providedTenantId: showcase.tenantId, sessionTenantId: tenantId },
+        'Tenant ID mismatch in showcase update',
+      )
       throw new ForbiddenError(
         `The showcase is being updated for tenant ${showcase.tenantId}, but the signed in tenant is ${tenantId}.`,
       )
     }
 
-    return this.showcaseRepository.update(id, showcase)
+    try {
+      const updatedShowcase = await this.showcaseRepository.update(id, showcase)
+      this.logger.info({ showcaseId: id, slug: updatedShowcase.slug, tenantId }, 'Successfully updated showcase')
+      return updatedShowcase
+    } catch (error) {
+      this.logger.error({ error, showcaseId: id, tenantId }, 'Failed to update showcase')
+      throw error
+    }
   }
 
   public deleteShowcase = async (id: string): Promise<void> => {
     const tenantId = this.getTenantId()
-    const existingShowcase = await this.showcaseRepository.findById(id)
-    if (existingShowcase) {
-      if (existingShowcase.tenantId !== tenantId)
-        return Promise.reject(
-          new ForbiddenError(
-            `The showcase is being deleted for tenant ${existingShowcase.tenantId}, but the signed in tenant is ${tenantId}.`,
-          ),
-        )
-    } else {
-      return
-    }
+    this.logger.info({ showcaseId: id, tenantId }, 'Deleting showcase')
 
-    return this.showcaseRepository.delete(id)
+    try {
+      const existingShowcase = await this.showcaseRepository.findById(id)
+      if (existingShowcase) {
+        if (existingShowcase.tenantId !== tenantId) {
+          this.logger.warn(
+            { showcaseId: id, showcaseTenantId: existingShowcase.tenantId, sessionTenantId: tenantId },
+            'Tenant ID mismatch in showcase deletion',
+          )
+          return Promise.reject(
+            new ForbiddenError(
+              `The showcase is being deleted for tenant ${existingShowcase.tenantId}, but the signed in tenant is ${tenantId}.`,
+            ),
+          )
+        }
+        await this.showcaseRepository.delete(id)
+        this.logger.info({ showcaseId: id, tenantId }, 'Successfully deleted showcase')
+      } else {
+        this.logger.info({ showcaseId: id, tenantId }, 'Showcase not found for deletion')
+        return
+      }
+    } catch (error) {
+      this.logger.error({ error, showcaseId: id, tenantId }, 'Failed to delete showcase')
+      throw error
+    }
   }
 
   public getIdBySlug = async (slug: string): Promise<string> => {
     const tenantId = this.getTenantId()
-    return this.showcaseRepository.findIdBySlug(slug, tenantId)
+    this.logger.info({ slug, tenantId }, 'Finding showcase ID by slug')
+    try {
+      const id = await this.showcaseRepository.findIdBySlug(slug, tenantId)
+      this.logger.info({ slug, showcaseId: id, tenantId }, 'Successfully found showcase ID by slug')
+      return id
+    } catch (error) {
+      this.logger.error({ error, slug, tenantId }, 'Failed to find showcase ID by slug')
+      throw error
+    }
   }
 
   /**
@@ -81,12 +156,25 @@ class ShowcaseService {
    * @throws Error if the current user cannot be determined (implementation specific).
    */
   public approveShowcase = async (id: string): Promise<Showcase> => {
-    const currentUser = await this.sessionService.getCurrentUser()
-    if (!currentUser) {
-      return Promise.reject(new Error('Could not determine the approving user.'))
+    this.logger.info({ showcaseId: id }, 'Approving showcase')
+
+    try {
+      const currentUser = await this.sessionService.getCurrentUser()
+      if (!currentUser) {
+        this.logger.error({ showcaseId: id }, 'Could not determine the approving user')
+        return Promise.reject(new Error('Could not determine the approving user.'))
+      }
+
+      const tenantId = this.getTenantId()
+      this.logger.info({ showcaseId: id, userId: currentUser.id, tenantId }, 'Approving showcase with user context')
+
+      const approvedShowcase = await this.showcaseRepository.approve(id, tenantId, currentUser.id)
+      this.logger.info({ showcaseId: id, userId: currentUser.id, tenantId }, 'Successfully approved showcase')
+      return approvedShowcase
+    } catch (error) {
+      this.logger.error({ error, showcaseId: id }, 'Failed to approve showcase')
+      throw error
     }
-    const tenantId = this.getTenantId()
-    return this.showcaseRepository.approve(id, tenantId, currentUser.id)
   }
 
   /**

@@ -7,7 +7,9 @@ import {
   CredentialDefinitionsApi,
   CredentialSchemaRequest,
   CredentialType,
+  JobsApi,
   Source,
+  UpdateJobStatusRequestStatusEnum,
 } from 'bc-wallet-openapi'
 import { CredentialDefinition } from 'bc-wallet-traction-openapi'
 
@@ -23,6 +25,7 @@ export class ShowcaseApiService extends ApiService {
   private readonly config: Configuration
   private readonly configOptions: ConfigurationParameters
   private readonly credentialDefinitionsApi: CredentialDefinitionsApi
+  private readonly jobsApi: JobsApi
 
   /**
    * Constructor for ShowcaseApiService.
@@ -39,6 +42,7 @@ export class ShowcaseApiService extends ApiService {
     }
     this.config = new Configuration(this.configOptions)
     this.credentialDefinitionsApi = new CredentialDefinitionsApi(this.config)
+    this.jobsApi = new JobsApi(this.config)
   }
 
   /**
@@ -205,5 +209,14 @@ export class ShowcaseApiService extends ApiService {
       }
       return ''
     }
+  }
+
+  public async updateJobStatus(id: string, status: string): Promise<void> {
+    await this.jobsApi.updateJobStatus({
+      id,
+      updateJobStatusRequest: {
+        status: status as unknown as UpdateJobStatusRequestStatusEnum,
+      },
+    })
   }
 }

@@ -125,6 +125,7 @@ export type NewIssuer = Omit<typeof issuers.$inferInsert, 'logo'> & {
   organization?: string | null
   logo?: string | null
   tenantId: string
+  jobId?: string | null
 }
 
 export enum CredentialType {

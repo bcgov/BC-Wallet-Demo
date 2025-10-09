@@ -155,6 +155,7 @@
     "timestamps_label": "Timestamps",
     "pending_approval_label": "Pending Approval",
     "request_in_queue_label": "Request In Queue...",
+    "request_failed_label": "Request Failed",
     "error_fetching_credential": "Credential not found"
   },
   "onboarding": {

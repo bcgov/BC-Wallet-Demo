@@ -22,6 +22,7 @@ export const CredentialsPage = () => {
 
   const { data: jobStatus } = useJobStatus('credentialSchema', 'pending', enablePollingSchema);
   const { data: jobStatusDef } = useJobStatus('credentialDefinition', 'pending', enablePollingDef);
+  const { data: jobStatusApproval } = useJobStatus('updateIssuer', 'pending', enablePollingDef);
 
   useEffect(() => {
     setEnablePollingSchema((jobStatus?.jobStatus?.length || 0) > 0);
@@ -51,6 +52,14 @@ export const CredentialsPage = () => {
       executePendingJob({ jobIds: ids, tenantId });
     }
   }, [jobStatusDef, tenantId, executePendingJob]);
+
+  useEffect(() => {
+    if (jobStatusApproval?.jobStatus?.length) {
+      const ids = jobStatusApproval.jobStatus.map((job) => job.jobId).join(',');
+      executePendingJob({ jobIds: ids, tenantId });
+    }
+  }, [jobStatusApproval, tenantId, executePendingJob]);
+
 
   useEffect(() => {
     if (!jobStatus?.jobStatus?.length && !jobStatusDef?.jobStatus?.length) {

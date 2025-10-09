@@ -39,15 +39,19 @@ import { Service } from 'typedi'
 import ScenarioService from '../services/ScenarioService'
 import { PresentationScenario, ScenarioType } from '../types'
 import { getBasePath } from '../utils/auth'
+import { createRequestLogger } from '../utils/logger'
 import { presentationScenarioDTOFrom, stepDTOFrom } from '../utils/mappers'
 
 @JsonController(getBasePath('/scenarios/presentations'))
 @Service()
 class PresentationScenarioController {
+  private readonly logger = createRequestLogger('PresentationScenarioController')
+  
   public constructor(private scenarioService: ScenarioService) {}
 
   @Get('/')
   public async getAllPresentationScenarios(): Promise<PresentationScenariosResponse> {
+    this.logger.info('Getting all presentation scenarios')
     try {
       const result = (await this.scenarioService.getScenarios({
         filter: { scenarioType: ScenarioType.PRESENTATION },
@@ -55,10 +59,11 @@ class PresentationScenarioController {
       const presentationScenarios = result.map((presentationScenario) =>
         presentationScenarioDTOFrom(presentationScenario),
       )
+      this.logger.info({ count: presentationScenarios.length }, 'Successfully retrieved presentation scenarios')
       return PresentationScenariosResponseFromJSONTyped({ presentationScenarios }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Get all presentation scenarios failed:`, e)
+        this.logger.error({ error: e }, 'Get all presentation scenarios failed')
       }
       return Promise.reject(e)
     }
@@ -75,7 +80,7 @@ class PresentationScenarioController {
       )
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Get presentation scenario id=${presentationScenarioId} failed:`, e)
+        this.logger.error({ error: e, presentationScenarioId }, `Get presentation scenario id=${presentationScenarioId} failed`)
       }
       return Promise.reject(e)
     }
@@ -100,7 +105,7 @@ class PresentationScenarioController {
       )
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Create presentation scenario failed:`, e)
+        this.logger.error({ error: e, presentationScenarioRequest }, 'Create presentation scenario failed')
       }
       return Promise.reject(e)
     }
@@ -127,7 +132,7 @@ class PresentationScenarioController {
       )
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Update presentation scenario id=${presentationScenarioId} failed:`, e)
+        this.logger.error({ error: e, presentationScenarioId, presentationScenarioRequest }, `Update presentation scenario id=${presentationScenarioId} failed`)
       }
       return Promise.reject(e)
     }
@@ -142,7 +147,7 @@ class PresentationScenarioController {
       return await this.scenarioService.deleteScenario(presentationScenarioId)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Delete presentation scenario id=${presentationScenarioId} failed:`, e)
+        this.logger.error({ error: e, presentationScenarioId }, `Delete presentation scenario id=${presentationScenarioId} failed`)
       }
       return Promise.reject(e)
     }
@@ -157,7 +162,7 @@ class PresentationScenarioController {
       return StepsResponseFromJSONTyped({ steps }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Get all steps for presentation scenario id=${presentationScenarioId} failed:`, e)
+        this.logger.error({ error: e, presentationScenarioId }, `Get all steps for presentation scenario id=${presentationScenarioId} failed`)
       }
       return Promise.reject(e)
     }
@@ -174,7 +179,7 @@ class PresentationScenarioController {
       return StepResponseFromJSONTyped({ step: stepDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Get step id=${stepId} for presentation scenario id=${presentationScenarioId} failed:`, e)
+        this.logger.error({ error: e, stepId, presentationScenarioId }, `Get step id=${stepId} for presentation scenario id=${presentationScenarioId} failed`)
       }
       return Promise.reject(e)
     }
@@ -199,7 +204,7 @@ class PresentationScenarioController {
       return StepResponseFromJSONTyped({ step: stepDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Create step for presentation scenario id=${presentationScenarioId} failed:`, e)
+        this.logger.error({ error: e, presentationScenarioId, stepRequest }, `Create step for presentation scenario id=${presentationScenarioId} failed`)
       }
       return Promise.reject(e)
     }
@@ -225,7 +230,7 @@ class PresentationScenarioController {
       return StepResponseFromJSONTyped({ step: stepDTOFrom(result) }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Update step id=${stepId} for presentation scenario id=${presentationScenarioId} failed:`, e)
+        this.logger.error({ error: e, stepId, presentationScenarioId, stepRequest }, `Update step id=${stepId} for presentation scenario id=${presentationScenarioId} failed`)
       }
       return Promise.reject(e)
     }
@@ -243,7 +248,7 @@ class PresentationScenarioController {
       return this.scenarioService.deleteScenarioStep(presentationScenarioId, stepId)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(`Delete step id=${stepId} for presentation scenario id=${presentationScenarioId} failed:`, e)
+        this.logger.error({ error: e, stepId, presentationScenarioId }, `Delete step id=${stepId} for presentation scenario id=${presentationScenarioId} failed`)
       }
       return Promise.reject(e)
     }
@@ -261,9 +266,9 @@ class PresentationScenarioController {
       return StepActionsResponseFromJSONTyped({ actions }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(
-          `Get all actions for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed:`,
-          e,
+        this.logger.error(
+          { error: e, stepId, presentationScenarioId },
+          `Get all actions for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed`,
         )
       }
       return Promise.reject(e)
@@ -282,9 +287,9 @@ class PresentationScenarioController {
       return StepActionResponseFromJSONTyped({ action: result }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(
-          `Get action id=${actionId} for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed:`,
-          e,
+        this.logger.error(
+          { error: e, actionId, stepId, presentationScenarioId },
+          `Get action id=${actionId} for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed`,
         )
       }
       return Promise.reject(e)
@@ -312,9 +317,9 @@ class PresentationScenarioController {
       return StepActionResponseFromJSONTyped({ action: result }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(
-          `Create action for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed:`,
-          e,
+        this.logger.error(
+          { error: e, stepId, presentationScenarioId, actionRequest },
+          `Create action for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed`,
         )
       }
       return Promise.reject(e)
@@ -343,9 +348,9 @@ class PresentationScenarioController {
       return StepActionResponseFromJSONTyped({ action: result }, false)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(
-          `Update action id=${actionId} for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed:`,
-          e,
+        this.logger.error(
+          { error: e, actionId, stepId, presentationScenarioId, actionRequest },
+          `Update action id=${actionId} for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed`,
         )
       }
       return Promise.reject(e)
@@ -365,9 +370,9 @@ class PresentationScenarioController {
       return this.scenarioService.deleteScenarioStepAction(presentationScenarioId, stepId, actionId)
     } catch (e) {
       if (e.httpCode !== 404) {
-        console.error(
-          `Delete action id=${actionId} for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed:`,
-          e,
+        this.logger.error(
+          { error: e, actionId, stepId, presentationScenarioId },
+          `Delete action id=${actionId} for step id=${stepId}, presentation scenario id=${presentationScenarioId} failed`,
         )
       }
       return Promise.reject(e)
