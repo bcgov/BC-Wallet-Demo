@@ -25,7 +25,7 @@ class AssetService {
     this.logger.info({ assetId: id }, 'Retrieving asset by id')
     try {
       const asset = await this.assetRepository.findById(id)
-      this.logger.info({ assetId: id, assetName: asset.name }, 'Successfully retrieved asset')
+      this.logger.info({ assetId: id, assetName: asset.fileName }, 'Successfully retrieved asset')
       return asset
     } catch (error) {
       this.logger.error({ error, assetId: id }, 'Failed to retrieve asset')
@@ -34,22 +34,22 @@ class AssetService {
   }
 
   public createAsset = async (asset: NewAsset): Promise<Asset> => {
-    this.logger.info({ assetName: asset.name }, 'Creating new asset')
+    this.logger.info({ assetName: asset.fileName }, 'Creating new asset')
     try {
       const createdAsset = await this.assetRepository.create(asset)
-      this.logger.info({ assetId: createdAsset.id, assetName: createdAsset.name }, 'Successfully created asset')
+      this.logger.info({ assetId: createdAsset.id, assetName: createdAsset.fileName }, 'Successfully created asset')
       return createdAsset
     } catch (error) {
-      this.logger.error({ error, assetName: asset.name }, 'Failed to create asset')
+      this.logger.error({ error, assetName: asset.fileName }, 'Failed to create asset')
       throw error
     }
   }
 
   public updateAsset = async (id: string, asset: NewAsset): Promise<Asset> => {
-    this.logger.info({ assetId: id, assetName: asset.name }, 'Updating asset')
+    this.logger.info({ assetId: id, assetName: asset.fileName }, 'Updating asset')
     try {
       const updatedAsset = await this.assetRepository.update(id, asset)
-      this.logger.info({ assetId: id, assetName: updatedAsset.name }, 'Successfully updated asset')
+      this.logger.info({ assetId: id, assetName: updatedAsset.fileName }, 'Successfully updated asset')
       return updatedAsset
     } catch (error) {
       this.logger.error({ error, assetId: id }, 'Failed to update asset')

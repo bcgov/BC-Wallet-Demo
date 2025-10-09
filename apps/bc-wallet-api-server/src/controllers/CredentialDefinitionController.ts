@@ -105,7 +105,7 @@ export class CredentialDefinitionController {
   public async importCredentialDefinition(
     @Body() credentialDefinitionRequest: CredentialDefinitionImportRequest,
   ): Promise<void> {
-    this.logger.info({ defId: credentialDefinitionRequest.credentialDefinitionId }, 'Importing credential definition')
+    this.logger.info({ defId: credentialDefinitionRequest.identifier }, 'Importing credential definition')
     try {
       if (!instanceOfCredentialDefinitionImportRequest(credentialDefinitionRequest)) {
         this.logger.warn('Invalid credential definition import request format')
@@ -114,9 +114,9 @@ export class CredentialDefinitionController {
       await this.credentialDefinitionService.importCredentialDefinition(
         CredentialDefinitionImportRequestToJSONTyped(credentialDefinitionRequest),
       )
-      this.logger.info({ defId: credentialDefinitionRequest.credentialDefinitionId }, 'Successfully imported credential definition')
+      this.logger.info({ defId: credentialDefinitionRequest.identifier }, 'Successfully imported credential definition')
     } catch (e) {
-      this.logger.error({ error: e, defId: credentialDefinitionRequest.credentialDefinitionId }, 'Failed to import credential definition')
+      this.logger.error({ error: e, defId: credentialDefinitionRequest.identifier }, 'Failed to import credential definition')
       return Promise.reject(e)
     }
   }

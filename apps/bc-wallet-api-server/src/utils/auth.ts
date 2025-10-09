@@ -5,11 +5,8 @@ import { Action, BadRequestError, UnauthorizedError } from 'routing-controllers'
 import Container from 'typedi'
 
 import TenantService from '../services/TenantService'
-import { verify } from 'jsonwebtoken'
-import jwt from 'jsonwebtoken'
 
 import { Claims } from '../types/auth/claims'
-import { UserRole } from '../types/auth/userRole'
 import { createRequestLogger } from './logger'
 
 const logger = createRequestLogger('AuthUtils')

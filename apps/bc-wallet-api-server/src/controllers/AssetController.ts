@@ -68,7 +68,7 @@ class AssetController {
   @HttpCode(201)
   @Post('/')
   public async post(@Body({ options: { limit: '250mb' } }) assetRequest: AssetRequest): Promise<AssetResponse> {
-    this.logger.info({ assetName: assetRequest.name }, 'Creating new asset')
+    this.logger.info({ assetName: assetRequest.fileName }, 'Creating new asset')
     try {
       if (!instanceOfAssetRequest(assetRequest)) {
         this.logger.warn('Invalid asset request format')
@@ -89,7 +89,7 @@ class AssetController {
     @Param('id') id: string,
     @Body({ options: { limit: '250mb' } }) assetRequest: AssetRequest,
   ): Promise<AssetResponse> {
-    this.logger.info({ id, assetName: assetRequest.name }, 'Updating asset')
+    this.logger.info({ id, assetName: assetRequest.fileName }, 'Updating asset')
     try {
       if (!instanceOfAssetRequest(assetRequest)) {
         this.logger.warn({ id }, 'Invalid asset request format for update')
