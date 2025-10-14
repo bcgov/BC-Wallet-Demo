@@ -2,6 +2,8 @@ import { relations } from 'drizzle-orm'
 import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 import { TenantType } from '../../types'
+import { issuers } from './issuer'
+import { relyingParties } from './relyingParty'
 import { showcases } from './showcase'
 import { tenantsToUsers } from './tenantsToUsers'
 
@@ -27,4 +29,6 @@ export const tenants = pgTable('tenant', {
 export const tenantRelations = relations(tenants, ({ many }) => ({
   showcase: many(showcases),
   users: many(tenantsToUsers),
+  issuers: many(issuers),
+  relyingParties: many(relyingParties),
 }))

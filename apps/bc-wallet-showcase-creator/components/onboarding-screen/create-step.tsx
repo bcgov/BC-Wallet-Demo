@@ -44,6 +44,7 @@ export const CreateNewStep = () => {
             title: 'Basic Step',
             description: 'This is a basic step in the onboarding journey.',
             asset: "",
+            actions:[]
           })
         )
         break
@@ -111,27 +112,6 @@ export const CreateNewStep = () => {
         onClick={() => handleAddStep('issue')}
       />
 
-      <StepButton
-        title={t('onboarding.install_wallet_step_label') || 'Install Wallet Step'}
-        details={[
-          t('onboarding.create_title_label') || 'Title',
-          t('onboarding.create_description_label') || 'Description',
-          t('onboarding.create_image_label') || 'Image',
-          t('onboarding.install_wallet_label') || 'Wallet',
-        ]}
-        onClick={() => handleAddStep('wallet')}
-      />
-
-      <StepButton
-        title={t('onboarding.connect_step_label') || 'Connect Step'}
-        details={[
-          t('onboarding.create_title_label') || 'Title',
-          t('onboarding.create_description_label') || 'Description',
-          t('onboarding.create_image_label') || 'Image',
-          'QR Code',
-        ]}
-        onClick={() => handleAddStep('connect')}
-      />
     </>
   )
 }

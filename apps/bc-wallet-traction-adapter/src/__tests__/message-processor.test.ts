@@ -191,10 +191,10 @@ describe('MessageProcessor Integration Test', () => {
       body: issuer,
       application_properties: {
         action: 'publish.issuer-assets' as Action,
-        tenantId: 'test-tenant',
+        tractionTenantId: 'test-tenant',
         tractionApiUrlBase: environment.traction.TRACTION_DEFAULT_API_URL,
         showcaseApiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
-        walletId: 'test-wallet',
+        tractionWalletId: 'test-wallet',
         accessTokenEnc: encrypted,
         accessTokenNonce: nonce,
       },
@@ -295,7 +295,7 @@ describe('MessageProcessor Integration Test', () => {
     // Send a message without a tenant ID
     const messageId = uuidv4()
     const tenantId = environment.traction.TRACTION_DEFAULT_TENANT_ID
-    environment.traction.TRACTION_DEFAULT_TENANT_ID = undefined // temporarily clear the tenant, otherwise it will find the fixed tenant from the env and we cannot test the error message
+    environment.traction.TRACTION_DEFAULT_TENANT_ID = '' // temporarily clear the tenant, otherwise it will find the fixed tenant from the env and we cannot test the error message
     void (await sender.send({
       message_id: messageId,
       body: JSON.stringify(credDef),
@@ -360,8 +360,8 @@ describe('MessageProcessor Integration Test', () => {
       body: JSON.stringify(issuer),
       application_properties: {
         action: 'unsupported-action' as Action,
-        tenantId: 'test-tenant',
-        walletId: 'test-wallet',
+        tractionTenantId: 'test-tenant',
+        tractionWalletId: 'test-wallet',
         apiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
       },
     }))
@@ -414,10 +414,10 @@ describe('MessageProcessor Integration Test', () => {
       body: credentialSchema,
       application_properties: {
         action: 'import.cred-schema' as Action,
-        tenantId: 'test-tenant',
+        tractionTenantId: 'test-tenant',
         tractionApiUrlBase: environment.traction.TRACTION_DEFAULT_API_URL,
         showcaseApiUrlBase: environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
-        walletId: 'test-wallet',
+        tractionWalletId: 'test-wallet',
         accessTokenEnc: encrypted,
         accessTokenNonce: nonce,
       },

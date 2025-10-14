@@ -1,12 +1,17 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { CredentialDefinitionImportRequest } from 'bc-wallet-openapi'
+import { randomUUID } from 'crypto'
 import { Inject, Service } from 'typedi'
 import { validate as uuidValidate } from 'uuid'
 
 import CredentialSchemaRepository from '../database/repositories/CredentialSchemaRepository'
+import JobEntityMapRepository from '../database/repositories/JobEntityMapRepository'
+import JobStatusRepository from '../database/repositories/JobStatusRepository'
 import { CredentialSchema, NewCredentialSchema } from '../types'
 import type { ISessionService } from '../types/services/session'
+import { createRequestLogger } from '../utils/logger'
 import { AbstractAdapterClientService } from './AbstractAdapterClientService'
+import TenantService from './TenantService'
 
 /**
  * Service for managing credential schemas.
@@ -15,6 +20,8 @@ import { AbstractAdapterClientService } from './AbstractAdapterClientService'
  */
 @Service()
 class CredentialSchemaService extends AbstractAdapterClientService {
+  private readonly logger = createRequestLogger('CredentialSchemaService')
+
   /**
    * Constructor for CredentialSchemaService.
    * @param sessionService Service for managing user sessions
@@ -25,8 +32,11 @@ class CredentialSchemaService extends AbstractAdapterClientService {
     @Inject('ISessionService') sessionService: ISessionService,
     @Inject('IAdapterClientApi') private readonly adapterClientApi: IAdapterClientApi,
     private readonly credentialSchemaRepository: CredentialSchemaRepository,
+    private readonly jobStatusRepository: JobStatusRepository,
+    private readonly jobEntityMapRepository: JobEntityMapRepository,
+    tenantService: TenantService,
   ) {
-    super(sessionService)
+    super(sessionService, tenantService)
   }
 
   /**
@@ -34,7 +44,16 @@ class CredentialSchemaService extends AbstractAdapterClientService {
    * @returns Promise resolving to an array of CredentialSchema objects
    */
   public getCredentialSchemas = async (): Promise<CredentialSchema[]> => {
-    return this.credentialSchemaRepository.findAll()
+    this.logger.info('Retrieving all credential schemas')
+    try {
+      // Filter out any credential schemas that are still pending creation
+      const schemas = await this.credentialSchemaRepository.findAll()
+      this.logger.info({ count: schemas.length }, 'Successfully retrieved credential schemas')
+      return schemas
+    } catch (error) {
+      this.logger.error({ error }, 'Failed to retrieve credential schemas')
+      throw error
+    }
   }
 
   /**
@@ -56,7 +75,25 @@ class CredentialSchemaService extends AbstractAdapterClientService {
    * @returns Promise resolving to the created CredentialSchema
    */
   public createCredentialSchema = async (credentialSchema: NewCredentialSchema): Promise<CredentialSchema> => {
-    return this.credentialSchemaRepository.create(credentialSchema)
+    console.debug('Creating credential schema', { credentialSchema })
+    const savedCredentialSchema = await this.credentialSchemaRepository.create(credentialSchema)
+    if (!savedCredentialSchema) {
+      this.logger.error({ credentialSchema }, 'Failed to create credential schema')
+      throw new Error('Failed to create credential schema')
+    }
+    if (credentialSchema.jobId) {
+      await this.jobStatusRepository.update(credentialSchema.jobId, {
+        status: 'completed',
+        resultData: savedCredentialSchema,
+      })
+
+      // Update job entity map with the actual credential schema ID
+      await this.jobEntityMapRepository.updateStatus(credentialSchema.jobId, {
+        status: 'completed',
+        entityId: savedCredentialSchema.id as unknown as string,
+      })
+    }
+    return savedCredentialSchema
   }
 
   /**
@@ -92,7 +129,23 @@ class CredentialSchemaService extends AbstractAdapterClientService {
       return Promise.reject(Error('Identifier type and identifier are required for credential schema import.'))
     }
 
-    await this.adapterClientApi.importCredentialSchema(importRequest, this.buildSendOptions())
+    const jobDetails = await this.jobStatusRepository.create({
+      status: 'pending',
+      apiName: 'importCredentialSchema',
+      endpoint: '/credentials/schemas/import',
+      payloadData: JSON.stringify(importRequest),
+    })
+    await this.jobEntityMapRepository.create({
+      jobId: jobDetails.jobId as unknown as string,
+      entityType: 'credentialSchema',
+      entityId: randomUUID(),
+      status: 'pending',
+      action: 'create',
+    })
+    importRequest.jobId = jobDetails.jobId as unknown as string
+
+    // importCredentialSchema: Starting import with request
+    await this.adapterClientApi.importCredentialSchema(importRequest, await this.buildSendOptions())
   }
 }
 

@@ -8,6 +8,7 @@ import {
   useCreateCredentialSchema,
   useCreateIssuer,
   useCreateRelyingParty,
+  useCredentialDefinitions,
   useDeleteCredentialDefinition,
   useUpdateIssuer,
 } from '@/hooks/use-credentials'
@@ -39,11 +40,12 @@ import {
 import { useTenant } from '@/providers/tenant-provider'
 
 export const CredentialsForm = () => {
-  const { selectedCredential, mode, setSelectedCredential, viewCredential } = useCredentials()
+  const { selectedCredential, mode, setSelectedCredential, viewCredential, selectedJobStatus, viewCredentialRequest } = useCredentials()
   const t = useTranslations()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [credentialLogo, setCredentialLogo] = useState<string>()
+  const [credentialLogoType, setCredentialLogoType] = useState('image/jpeg')
   const [isLoading, setIsLoading] = useState(false)
   const { tenantId } = useTenant();
   const { mutateAsync: createAsset } = useCreateAsset()
@@ -58,6 +60,8 @@ export const CredentialsForm = () => {
   const { mutateAsync: approveCredentialDefinition } = useApproveCredentialDefinition()
   const { mutateAsync: deleteCredentialDefinition } = useDeleteCredentialDefinition()
 
+  const { data: credentials } = useCredentialDefinitions()
+
   const form = useForm<CredentialSchemaRequest>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -69,94 +73,122 @@ export const CredentialsForm = () => {
     shouldFocusError: true,
   })
 
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+
+  const handleImageUploadError = (error: string) => {
+    setImageUploadError(error);
+  };
+
+  const validateUniqueSchema = (data: CredentialSchemaRequest) => {
+    const isDuplicate = credentials?.credentialDefinitions?.some(
+      (item) =>
+        item.name.trim().toLowerCase() === data.name.trim().toLowerCase() &&
+        item.version.trim().toLowerCase() === data.version.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("A schema with the same name and version already exists.");
+      return false;
+    }
+
+    return true;
+  };
+
   const onSubmit = async (formData: CredentialSchemaRequest) => {
     try {
       setIsSubmitting(true)
 
-      const schemaPayload = {
-        name: formData.name || 'example_name',
-        version: formData.version || 'example_version',
-        source: Source.Created,
-        attributes: formData?.attributes?.map((item) => ({
-          name: item.name,
-          value: item.value ?? '',
-          type: item.type,
-        })),
-      }
+      if (validateUniqueSchema(formData)) {
 
-      const schemaResponse = await createCredentialSchema(schemaPayload)
-      const schemaId = schemaResponse?.credentialSchema?.id
-      if (!schemaId) throw new Error('Failed to create schema')
-
-      const assetPayload: AssetRequest = {
-        mediaType: 'image/jpeg',
-        content: credentialLogo ?? '',
-        fileName: 'example.jpg',
-        description: 'Example asset',
-      }
-
-      const assetResponse = await createAsset(assetPayload)
-      const assetId = assetResponse?.asset?.id
-
-      const credentialDefinitionPayload: CredentialDefinitionRequest = {
-        name: formData.name || 'default',
-        version: formData.version || '1.0',
-        credentialSchema: schemaId,
-        type: CredentialType.Anoncred,
-        icon: assetId,
-      }
-
-      const credentialDefinition = await createCredentialDefinition(credentialDefinitionPayload)
-      const credentialId = credentialDefinition?.credentialDefinition?.id
-
-      if (!credentialId) throw new Error('Failed to create credential')
-
-      const issuerResponse = await createIssuer({
-        name: 'bc gov issuer',
-        type: IssuerType.Aries,
-        credentialDefinitions: [credentialId],
-        credentialSchemas: [schemaId],
-        description: 'bc gov issuer created by showcase creator',
-      })
-
-      const relyingPartyResponse = await createRelyingParty({
-        name: 'bc gov relying party',
-        type: RelyingPartyType.Aries,
-        credentialDefinitions: [credentialId],
-        description: 'bc gov relying party created by showcase creator',
-      })
-
-      if (!issuerResponse?.issuer?.id || !relyingPartyResponse?.relyingParty?.id) {
-        throw new Error('Failed to create issuer or relying party')
-      }
-
-      setIssuerId(issuerResponse.issuer.id)
-      setRelayerId(relyingPartyResponse.relyingParty.id)
+        const schemaPayload = {
+          name: formData.name || 'example_name',
+          version: formData.version || 'example_version',
+          source: Source.Created,
+          attributes: formData?.attributes?.map((item) => ({
+            name: item.name,
+            value: item.value ?? '',
+            type: item.type,
+          })),
+        }
 
 
-      const newUiCredential = {
-        id: credentialId,
-        name: formData.name,
-        version: formData.version,
-        type: CredentialType.Anoncred,
-        createdAt: credentialDefinition?.credentialDefinition?.createdAt ?? new Date(),
-        updatedAt: credentialDefinition?.credentialDefinition?.updatedAt ?? new Date(),
-        credentialSchema: {
-          id: schemaId,
+        const schemaResponse = await createCredentialSchema(schemaPayload)
+        const schemaId = schemaResponse?.credentialSchema?.id
+        if (!schemaId) throw new Error('Failed to create schema')
+
+        const assetPayload: AssetRequest = {
+          mediaType: credentialLogoType,
+          content: credentialLogo ?? '',
+          fileName: 'example.jpg',
+          description: 'Example asset',
+        }
+
+        const assetResponse = await createAsset(assetPayload)
+        const assetId = assetResponse?.asset?.id
+
+        const credentialDefinitionPayload: CredentialDefinitionRequest = {
+          name: formData.name || 'default',
+          version: formData.version || '1.0',
+          credentialSchema: schemaId,
+          type: CredentialType.Anoncred,
+          icon: assetId,
+          tenantId: tenantId ?? ''
+        }
+
+        const credentialDefinition = await createCredentialDefinition(credentialDefinitionPayload)
+        const credentialId = credentialDefinition?.credentialDefinition?.id
+
+        if (!credentialId) throw new Error('Failed to create credential')
+
+        const issuerResponse = await createIssuer({
+          name: 'bc gov issuer',
+          type: IssuerType.Aries,
+          credentialDefinitions: [credentialId],
+          credentialSchemas: [schemaId],
+          description: 'bc gov issuer created by showcase creator',
+          tenantId: tenantId ?? ''
+        })
+
+        const relyingPartyResponse = await createRelyingParty({
+          name: 'bc gov relying party',
+          type: RelyingPartyType.Aries,
+          credentialDefinitions: [credentialId],
+          description: 'bc gov relying party created by showcase creator',
+          tenantId: tenantId ?? ''
+        })
+
+        if (!issuerResponse?.issuer?.id || !relyingPartyResponse?.relyingParty?.id) {
+          throw new Error('Failed to create issuer or relying party')
+        }
+
+        setIssuerId(issuerResponse.issuer.id)
+        setRelayerId(relyingPartyResponse.relyingParty.id)
+
+
+        const newUiCredential = {
+          id: credentialId,
           name: formData.name,
           version: formData.version,
-          createdAt: schemaResponse?.credentialSchema?.createdAt ?? new Date(),
-          updatedAt: schemaResponse?.credentialSchema?.updatedAt ?? new Date(),
-        },
-        tenantId: tenantId ?? '',
-        icon: assetResponse.asset,
-      }
+          type: CredentialType.Anoncred,
+          createdAt: credentialDefinition?.credentialDefinition?.createdAt ?? new Date(),
+          updatedAt: credentialDefinition?.credentialDefinition?.updatedAt ?? new Date(),
+          credentialSchema: {
+            id: schemaId,
+            name: formData.name,
+            version: formData.version,
+            createdAt: schemaResponse?.credentialSchema?.createdAt ?? new Date(),
+            updatedAt: schemaResponse?.credentialSchema?.updatedAt ?? new Date(),
+          },
+          tenantId: tenantId ?? '',
+          icon: assetResponse.asset,
+        }
 
-      setSelectedCredential(newUiCredential)
-      viewCredential(newUiCredential)
-      setSelectedCredentialDefinitionIds([credentialId])
-      form.reset()
-      toast.success('Credential created successfully!')
+        setSelectedCredential(newUiCredential)
+        viewCredential(newUiCredential)
+        setSelectedCredentialDefinitionIds([credentialId])
+        form.reset()
+        toast.success('Credential created successfully!')
+      }
 
     } catch (error) {
       toast.error('Error creating schema or credential definition.')
@@ -193,7 +225,13 @@ export const CredentialsForm = () => {
   const handleApproveCredentialDefinition = async () => {
     if (selectedCredential) {
       try {
-        await approveCredentialDefinition(selectedCredential.id)
+        const response = await approveCredentialDefinition(selectedCredential.id)
+        if (response?.credentialDefinition) {
+          setSelectedCredential({
+            ...selectedCredential,
+            ...response.credentialDefinition,
+          })
+        }
         await updateIssuer({
           id: issuerId,
           data: {
@@ -202,10 +240,12 @@ export const CredentialsForm = () => {
             credentialDefinitions: [selectedCredential.id],
             credentialSchemas: [selectedCredential.credentialSchema.id],
             description: 'bc gov issuer created by showcase creator',
+            tenantId: tenantId ?? ''
           },
         })
         toast.success('Credential approved successfully!')
       } catch (error) {
+        // TODO: FAil JOB
         toast.error('Failed to approve credential')
       }
     }
@@ -229,6 +269,8 @@ export const CredentialsForm = () => {
         <div className="px-4">
           <StepHeaderCredential
             icon={<Monitor strokeWidth={3} />}
+            showDropdown={true}
+            showApprove={selectedCredential?.approvedBy ? false : true}
             title={t('credentials.view_header_title')}
             onActionClick={(action) => {
               switch (action) {
@@ -270,6 +312,10 @@ export const CredentialsForm = () => {
               {
                 label: t('credentials.source_label'),
                 value: selectedCredential?.source,
+              },
+              {
+                label: 'Credential Status',
+                value: selectedCredential?.approvedBy ? 'Approved' : 'Pending Approval',
               },
             ].map((item, index) => (
               <div key={index} className="flex flex-col p-4 space-y-2">
@@ -363,6 +409,71 @@ export const CredentialsForm = () => {
       </div>
     )
   }
+  if (mode === 'view' && !selectedCredential && selectedJobStatus) {
+    const formattedDate = selectedJobStatus?.createdAt
+      ? new Date(selectedJobStatus.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+      : 'N/A';
+    const formattedTime = selectedJobStatus?.createdAt ? new Date(selectedJobStatus?.createdAt).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+    })
+      : 'N/A';
+
+    return (
+      <div className="my-4 ">
+        {' '}
+        <div className="px-4">
+          <StepHeaderCredential
+            icon={<Monitor strokeWidth={3} />}
+            showDropdown={true}
+            showApprove={false}
+            title={t('credentials.view_header_title')}
+            onActionClick={(action) => {
+              switch (action) {
+                case 'delete':
+                  setIsModalOpen(true)
+                  break
+                case 'approve':
+                  handleApproveCredentialDefinition()
+                  break
+                default:
+                  console.log('Unknown action')
+              }
+            }}
+          />
+        </div>
+        {[
+          {
+            label: t('credentials.credential_name_label'),
+            //@ts-ignore
+            value: selectedJobStatus?.payloadData?.name || '—',
+          },
+          {
+            label: 'Created At:',
+            value: `${formattedDate} at ${formattedTime}`,
+          },
+          {
+            label: t('credentials.version_label'),
+            //@ts-ignore
+            value: selectedJobStatus?.payloadData?.version,
+          },
+          {
+            label: 'Credential Status',
+            value: 'Request is in Queue',
+          },
+        ].map((item, index) => (
+          <div key={index} className="flex flex-col p-4 space-y-2">
+            <h6 className="text-md font-semibold dark:text-white text-black">{item.label}</h6>
+            <p className="text-sm font-medium text-gray-900 dark:text-white break-words">{item.value || '—'}</p>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <Form {...form}>
@@ -413,10 +524,21 @@ export const CredentialsForm = () => {
                   <FileUploadFull
                     text={t('credentials.image_label')}
                     element="headshot_image"
-                    handleJSONUpdate={(imageType, imageData) => {
+                    maxSize={2 * 1024 * 1024} // 2MB limit
+                    onImageUploadError={handleImageUploadError}
+                    handleJSONUpdate={(imageType, imageData, fileType) => {
+                      //@ts-ignore
                       setCredentialLogo(imageData)
+                      setCredentialLogoType(fileType ?? 'image/jpeg')
+                      setCredentialLogoType(fileType?? 'image/jpeg')
+                      setImageUploadError(null); // Clear error on change
                     }}
                   />
+                  {imageUploadError && (
+                    <p className="text-md w-full text-start text-foreground mb-3 text-red-500 text-sm">
+                      {imageUploadError}
+                    </p>
+              )}
                 </div>
               </div>
             </>
@@ -432,8 +554,7 @@ export const CredentialsForm = () => {
               ⚠️ <span className="font-semibold">Credentials cannot be edited once created. </span>
               If changes are needed <span className="font-semibold">create a new version.</span>
               <br />
-              📝 <span className="font-semibold">Attribute values are defined during scenario</span> creation in the{' '}
-              <span className="font-semibold">Onboarding</span> step.
+              📝 <span className="font-semibold">Attributes values are defined in the Onboarding menu.</span>
             </p>
           </div>
         </div>
@@ -445,7 +566,7 @@ export const CredentialsForm = () => {
             variant="outlineAction"
             size="lg"
             type="submit"
-            disabled={!form.formState.isDirty || !form.formState.isValid}
+            disabled={!form.formState.isDirty || !form.formState.isValid || (form.watch('attributes')?.length ?? 0) === 0}
           >
             {isSubmitting ? 'CREATING...' : 'CREATE CREDENTIAL'}
           </Button>

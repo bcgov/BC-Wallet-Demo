@@ -47,27 +47,34 @@ spec:
             - name: http
               containerPort: {{ .Values.demoServer.service.port }}
               protocol: TCP
-          {{- include "bc-wallet.renderEnvFrom" (list "demoServer" .) | nindent 10 }}
           env:
-            - name: CORS_ALLOW_CREDENTIALS
-              value: "true"
-            - name: CORS_DISABLED
-              value: "true"
-            - name: CORS_ALLOW_HEADERS
-              value: "Content-Type, Authorization"
-            - name: CORS_ALLOW_METHODS
-              value: "GET, POST, PUT, DELETE, OPTIONS"
             - name: CORS_ALLOW_ORIGINS
               value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
-            - name: SHOWCASE_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "bc-wallet.database.secret.name" . }}
-                  key: {{ include "bc-wallet.database.userPasswordKey" . }}
             - name: LOG_LEVEL
               value: {{ .Values.demoServer.logLevel | quote }}
             - name: BASE_ROUTE
               value: {{ .Values.demoWeb.baseRoute | quote }}
+            - name: TRACTION_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: TRACTION_API_URL
+            - name: WALLET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: WALLET_ID
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: API_KEY
+            - name: TRACTION_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: TRACTION_WEBHOOK_SECRET
+          {{- include "bc-wallet.renderEnvFrom" (list "demoServer" .) | nindent 10 }}
           {{- with .Values.demoServer.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

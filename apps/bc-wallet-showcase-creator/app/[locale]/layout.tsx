@@ -43,37 +43,24 @@ type Params = PropsWithChildren<{
 
 export default async function RootLayout({ children, params }: Params) {
   const { locale } = await params
-  // Ensure that the incoming `locale` is valid
   if (!routing.locales.includes(locale)) {
     notFound()
   }
 
-  // Providing all messages to the client
   const messages = await getMessages()
-
-  // Get environment variables from server
-  const envVars = {
-    WALLET_URL: process.env.NEXT_PUBLIC_WALLET_URL,
-    SHOWCASE_API_URL: process.env.NEXT_PUBLIC_SHOWCASE_API_URL,
-  }
 
   return (
     <html lang={locale} suppressHydrationWarning>
-    <head>
-      <Script id="env-script" strategy="beforeInteractive">
-        {`window.__env = ${JSON.stringify(envVars)};`}
-      </Script>
-    </head>
-    <body className={`${montserrat.variable} antialiased`}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <QueryProviders>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster />
-        </NextIntlClientProvider>
-      </QueryProviders>
-    </ThemeProvider>
-    </body>
+      <body className={`${montserrat.variable} antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <QueryProviders>
+            <NextIntlClientProvider messages={messages}>
+              {children}
+              <Toaster />
+            </NextIntlClientProvider>
+          </QueryProviders>
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

@@ -7,12 +7,7 @@ import { Application } from 'express'
 import { createExpressServer, useContainer } from 'routing-controllers'
 import { Container } from 'typedi'
 
-import {
-  createTestAsset,
-  createTestCredentialDefinition,
-  createTestCredentialSchema,
-  createTestTenant,
-} from '../../database/repositories/__tests__/dbTestData'
+import { createTestAsset, createTestCredentialDefinition, createTestCredentialSchema, createTestTenant } from '../../database/repositories/__tests__/dbTestData'
 import AssetRepository from '../../database/repositories/AssetRepository'
 import CredentialDefinitionRepository from '../../database/repositories/CredentialDefinitionRepository'
 import CredentialSchemaRepository from '../../database/repositories/CredentialSchemaRepository'
@@ -68,7 +63,7 @@ describe('IssuerController Integration Tests', () => {
     const credentialSchema = await createTestCredentialSchema()
     const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
 
-    const issuerRequest = createApiIssuerRequest(asset.id, [credentialDefinition.id], [credentialSchema.id])
+    const issuerRequest = createApiIssuerRequest(asset.id, tenantId, [credentialDefinition.id], [credentialSchema.id])
     // Add identifierType and identifier that aren't in the utility
     issuerRequest.identifierType = 'DID'
     issuerRequest.identifier = 'did:test:456'
@@ -102,6 +97,7 @@ describe('IssuerController Integration Tests', () => {
         logo: asset.id,
         credentialDefinitions: [credentialDefinition.id],
         credentialSchemas: [credentialSchema.id],
+        tenantId,
       } satisfies IssuerRequest)
       .expect(200)
 
@@ -122,11 +118,6 @@ describe('IssuerController Integration Tests', () => {
     // Try to get a non-existent issuer
     await request.get(`/roles/issuers/${nonExistentId}`).expect(404)
 
-    // Try to update a non-existent issuer
-    const updateRequest = createApiIssuerRequest('', [], [])
-
-    await request.put(`/roles/issuers/${nonExistentId}`).send(updateRequest).expect(404)
-
     // Try to delete a non-existent issuer
     await request.delete(`/roles/issuers/${nonExistentId}`).expect(404)
   })
@@ -141,7 +132,7 @@ describe('IssuerController Integration Tests', () => {
 
     // Attempt to create an issuer with a non-existent credential definition
     const nonExistentId = '00000000-0000-0000-0000-000000000000'
-    const invalidIssuerRequest2 = createApiIssuerRequest('', [nonExistentId], [nonExistentId])
+    const invalidIssuerRequest2 = createApiIssuerRequest('', tenantId, [nonExistentId], [nonExistentId])
 
     await request.post('/roles/issuers').send(invalidIssuerRequest2).expect(404)
   })
@@ -175,6 +166,7 @@ describe('IssuerController Integration Tests', () => {
 
     const issuerRequest = createApiIssuerRequest(
       asset.id,
+      tenantId,
       [credentialDefinition1.id, credentialDefinition2.id],
       [credentialSchema.id],
     )

@@ -12,6 +12,7 @@ import { useCredentialDefinition } from '@/hooks/use-credentials'
 import type { CredentialSchemaRequest, CredentialAttribute } from 'bc-wallet-openapi'
 import { Skeleton } from '../ui/skeleton'
 import { useTenant } from '@/providers/tenant-provider'
+import { toast } from 'sonner'
 
 interface DisplayCredentialProps {
   credentialId: string
@@ -22,7 +23,7 @@ interface DisplayCredentialProps {
 export const DisplayCredential = ({ credentialId, removeCredential, onCredentialUpdate }: DisplayCredentialProps) => {
   const t = useTranslations()
   const { mutateAsync: updateCredentialSchema } = useUpdateCredentialSchema()
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(true)
   const { tenantId } = useTenant()
 
   const [credentialAttributes, setCredentialAttributes] = useState<CredentialAttribute[]>([])
@@ -58,6 +59,15 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
   const handleSaveAttributes = async () => {
     if (!data || !data.credentialDefinition || !data.credentialDefinition.credentialSchema) {
       console.error('Missing credential schema data')
+      return
+    }
+
+    const dateValidationErrors = credentialAttributes
+      .filter((attr) => attr.type === 'DATE' && attr.value && attr.value.length !== 8)
+      .map((attr) => `• ${attr.name}: must be exactly 8 digits (YYYYMMDD).`)
+
+    if (dateValidationErrors.length > 0) {
+      toast.error(`Invalid attribute value(s):${dateValidationErrors.join('')}`, { duration: 3000 })
       return
     }
 
@@ -170,13 +180,23 @@ export const DisplayCredential = ({ credentialId, removeCredential, onCredential
                           value={attr.name}
                           disabled
                         />
+                        {attr.type === 'DATE' ? <div className='text-sm text-red-500'>Date format: YYYYMMDD</div> : ''}
                       </div>
 
                       <div className="space-y-2 flex flex-col justify-center p-4">
                         <label className="text-sm font-bold">{t('credentials.attribute_value_placeholder')}</label>
                         <Input
                           value={attr.value || ''}
-                          onChange={(e) => handleAttributeChange(attrIndex, e.target.value)}
+                          onChange={(e) => {
+                            if (attr.type === 'DATE') {
+                              const regex = /^[0-9]{0,8}$/
+                              if (regex.test(e.target.value)) {
+                                handleAttributeChange(attrIndex, e.target.value)
+                              }
+                            } else {
+                              handleAttributeChange(attrIndex, e.target.value)
+                            }
+                          }}
                         />
                       </div>
                     </div>

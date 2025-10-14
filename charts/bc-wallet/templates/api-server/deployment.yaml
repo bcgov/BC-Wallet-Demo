@@ -35,6 +35,13 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-postgresql {{ .Values.postgresql.primary.service.ports.postgresql | quote }}; do echo waiting for postgres; sleep 2; done; sleep 2;']
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-rabbitmq {{ .Values.rabbitmq.service.ports.amqp | quote }}; do echo waiting for rabbitmq; sleep 2; done; sleep 5;']
       containers:
         - name: api-server
           {{- with .Values.apiServer.securityContext }}
@@ -69,11 +76,35 @@ spec:
               value: {{ .Values.postgresql.auth.database | quote }}
             - name: SHOWCASE_DB_HOST
               value: {{ .Release.Name }}-postgresql
+            - name: RELYING_PARTY_NAME
+              value: relyingPartyName
             - name: SHOWCASE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "bc-wallet.database.secret.name" . }}
                   key: {{ include "bc-wallet.database.userPasswordKey" . }}
+            - name: CORS_ALLOW_ORIGINS
+              value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
+            - name: OIDC_ROOT_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_CLIENT_ID
+            - name: OIDC_ROOT_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_CLIENT_SECRET
+            - name: OIDC_ROOT_ISSUER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: OIDC_ROOT_ISSUER_URL
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  key: ENCRYPTION_KEY
           {{- include "bc-wallet.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
           {{- with .Values.apiServer.livenessProbe }}
           livenessProbe:

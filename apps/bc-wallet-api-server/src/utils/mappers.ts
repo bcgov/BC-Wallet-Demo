@@ -42,6 +42,7 @@ import {
   StepActionTypes,
   User,
 } from '../types'
+import { JobStatus } from '../types/jobStatus'
 
 export const newAssetFrom = (asset: AssetRequestDTO): NewAsset => {
   return {
@@ -74,12 +75,19 @@ export const credentialDefinitionDTOFrom = (credentialDefinition: CredentialDefi
     identifierType: credentialDefinition.identifierType || undefined,
     identifier: credentialDefinition.identifier || undefined,
     source: credentialDefinition.source || undefined,
+    name: credentialSchemaDTOFrom(credentialDefinition.credentialSchema).name || credentialDefinition.name,
     credentialSchema: credentialSchemaDTOFrom(credentialDefinition.credentialSchema),
     representations: credentialDefinition.representations,
     revocation: credentialDefinition.revocation || undefined,
     icon: credentialDefinition.icon ? assetDTOFrom(credentialDefinition.icon) : undefined,
     approvedBy: credentialDefinition.approvedBy ? userDTOFrom(credentialDefinition.approvedBy) : undefined,
     approvedAt: credentialDefinition.approvedAt ?? undefined,
+  }
+}
+
+export const jobStatusDTOFrom = (jobStatus: JobStatus): JobStatus => {
+  return {
+    ...jobStatus,
   }
 }
 

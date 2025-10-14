@@ -62,7 +62,10 @@ runs:
       id: tests
       shell: bash
       run: pnpm run test
-
+      env:
+        OIDC_ROOT_ISSUER_URL: dummy
+        OIDC_ROOT_CLIENT_ID: dummy
+        OIDC_ROOT_CLIENT_SECRET: dummy
     - name: Set test status
       id: test-status
       if: always()

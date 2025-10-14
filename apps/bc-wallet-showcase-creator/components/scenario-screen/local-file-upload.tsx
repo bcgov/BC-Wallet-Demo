@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useAssetById, useCreateAsset } from '@/hooks/use-asset'
 import Image from 'next/image'
 import { AssetResponse } from 'bc-wallet-openapi'
+import { useTenant } from '@/providers/tenant-provider'
 
 interface LocalFileUploadProps {
   text: string
@@ -17,6 +18,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
   const t = useTranslations()
   const [preview, setPreview] = useState<string | null>(null)
   const { mutateAsync: createAsset } = useCreateAsset()
+  const { tenantId } = useTenant()
 
   const { data: response } = useAssetById(existingAssetId || '') as {
     data?: AssetResponse
@@ -75,7 +77,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
   }
   return (
     <div className="flex items-center flex-col justify-center w-full">
-      <p className="w-full text-start text-foreground font-bold mb-2">{text}</p>
+      <p className="w-full text-start text-foreground/80 font-bold mb-2">{text}</p>
 
       {existingAssetId && (
         <div className="relative w-full">
@@ -98,6 +100,7 @@ export function LocalFileUpload({ text, element, handleLocalUpdate, existingAsse
             <Image
               alt={`${text} preview`}
               className="right-auto top-auto p-3 w-3/4"
+              src={`${baseUrl}/${tenantId}/assets/${existingAssetId}/file`}
               width={300}
               height={100}
               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}

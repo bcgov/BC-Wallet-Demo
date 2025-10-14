@@ -7,6 +7,7 @@ import { Claims } from '../types/auth/claims'
 import type { OidcSession } from '../types/auth/session'
 import { Token } from '../types/auth/token'
 import type { ISessionService, ISessionServiceUpdater } from '../types/services/session'
+import { createRequestLogger } from '../utils/logger'
 import UserService from './UserService'
 
 const sessionCache = new LRUCache<string, OidcSession>({
@@ -21,6 +22,8 @@ export const tenantUrlStore = new AsyncLocalStorage<string>()
 
 @Service()
 export class OidcSessionService implements ISessionService, ISessionServiceUpdater {
+  private readonly logger = createRequestLogger('OidcSessionService')
+  
   public constructor(private readonly userService: UserService) {}
 
   public getCurrentUser(): User | null {
@@ -71,7 +74,7 @@ export class OidcSessionService implements ISessionService, ISessionServiceUpdat
   public setActiveClaims(claims: Claims): void {
     const hash = this.getCurrentHash()
     if (!hash) {
-      console.warn('Attempted to set active claims without a token in context.')
+      this.logger.warn('Attempted to set active claims without a token in context')
       return
     }
     const session = this.getSession()

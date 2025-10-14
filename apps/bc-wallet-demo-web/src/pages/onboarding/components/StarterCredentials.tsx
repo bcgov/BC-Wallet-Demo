@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { startCase } from 'lodash'
 import { StateIndicator } from '../../../components/StateIndicator'
@@ -14,6 +14,11 @@ export interface Props {
 export const StarterCredentials: React.FC<Props> = ({ credentialDefinitions }) => {
   const { issuedCredentials } = useCredentials()
   const issuedCredentialsStartCase = issuedCredentials.map((name) => startCase(name))
+
+  const credDefParts = credentialDefinitions && credentialDefinitions[0]?.identifier?.split(':')
+  const credName = credDefParts && credDefParts[credDefParts.length - 1]
+  const [brokenImageUrls, setBrokenImageUrls] = useState<string[]>([])
+
   return (
     <motion.div
       variants={fadeX}
@@ -26,12 +31,15 @@ export const StarterCredentials: React.FC<Props> = ({ credentialDefinitions }) =
         <hr className="text-bcgov-lightgrey" />
       </div>
       { credentialDefinitions.map(credentialDefinition => {
-        const completed = issuedCredentials.includes(credentialDefinition.name) || issuedCredentialsStartCase.includes(credentialDefinition.name)
+        const completed = issuedCredentials.includes(credName) || issuedCredentialsStartCase.includes(credentialDefinition.name)
+        const imageUrl = `${showcaseServerBaseUrl}/assets/${credentialDefinition.icon}/file`
+        const isBroken = brokenImageUrls.includes(imageUrl)
+
         return (
           <div key={credentialDefinition.name} className="flex-1 flex flex-row items-center justify-between my-2">
-            { credentialDefinition.icon &&
+            { credentialDefinition.icon && !isBroken &&
                 <div className="bg-bcgov-lightgrey rounded-lg p-2 w-12">
-                  <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${credentialDefinition.icon}/file`} alt="icon" />
+                  <img className="h-8 m-auto" src={`${showcaseServerBaseUrl}/assets/${credentialDefinition.icon}/file`} alt="icon" onError={() => setBrokenImageUrls((prev) => [...prev, imageUrl])} />
                 </div>
             }
             <div className="flex-1 px-4 justify-self-start dark:text-white text-sm sm:text-base">

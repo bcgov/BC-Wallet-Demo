@@ -52,8 +52,14 @@ spec:
               value: production
             - name: LOG_LEVEL
               value: {{ .Values.demoWeb.logLevel | quote }}
+            - name: REACT_APP_DEMO_API_URL
+              value: "https://{{ include "bc-wallet.demoServer.host" . }}"
+            - name: REACT_APP_SHOWCASE_API_URL
+              value: "https://{{ include "bc-wallet.apiServer.host" . }}"
             - name: REACT_APP_BASE_ROUTE
               value: {{ .Values.demoWeb.baseRoute | quote }}
+            - name: REACT_APP_WALLET_QR_CODE_URL
+              value: https://digital.gov.bc.ca/design/digital-trust/digital-credentials/bc-wallet
             - name: DEMOWEB_SNOWPLOW_ENDPOINT
               value: {{ .Values.demoWeb.snowplowEndpoint | quote }}
             - name: DEMOWEB_INSIGHTS_PROJECT_ID

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { CredentialDefinition } from "bc-wallet-openapi";
+import { CredentialDefinition, JobStatus } from "bc-wallet-openapi";
 
 type Mode = "create" | "import" | "view";
 
@@ -10,13 +10,16 @@ interface State {
 	isCreating: boolean;
 	isDeleting: boolean;
 	credentials: CredentialDefinition[];
+	selectedJobStatus: JobStatus | null;
 }
 
 interface Actions {
 	setSelectedCredential: (credential: CredentialDefinition | null) => void;
+	setSelectedJobStatus: (job: JobStatus | null) => void;
 	startCreating: () => Promise<string>;
 	startImporting: () => void;
 	viewCredential: (credential: CredentialDefinition) => void;
+	viewCredentialRequest: (credential: JobStatus) => void;
 	cancel: () => void;
 	reset: () => void;
 	deleteCredential: (credentialId: string) => void;
@@ -25,6 +28,7 @@ interface Actions {
 export const useCredentials = create<State & Actions>()(
 	immer((set, get) => ({
 		selectedCredential: null,
+		selectedJobStatus: null,
 		mode: "create",
 		credentials: [],
 		isCreating: false,
@@ -48,6 +52,12 @@ export const useCredentials = create<State & Actions>()(
 		setSelectedCredential: (credential) =>
 			set((state) => {
 				state.selectedCredential = credential;
+			}),
+
+
+		setSelectedJobStatus: (job) =>
+			set((state) => {
+				state.selectedJobStatus = job;
 			}),
 
 		startCreating: async () => {
@@ -88,6 +98,14 @@ export const useCredentials = create<State & Actions>()(
 		viewCredential: (credential) => {
 			set((state) => {
 				state.selectedCredential = credential;
+				state.mode = "view";
+				state.isCreating = false;
+			});
+		},
+
+		viewCredentialRequest: (credential) => {
+			set((state) => {
+				state.selectedJobStatus = credential;
 				state.mode = "view";
 				state.isCreating = false;
 			});

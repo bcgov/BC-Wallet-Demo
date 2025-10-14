@@ -17,6 +17,8 @@ import { basePath } from '../../../../utils/BasePath'
 import { FailedRequestModal } from '../../components/FailedRequestModal'
 import { StarterCredentials } from '../../components/StarterCredentials'
 import { CredentialDefinition } from '../../../../slices/types'
+import { useShowcases } from '../../../../slices/showcases/showcasesSelectors'
+import { getTenantIdFromPath } from '../../../../utils/Helpers'
 
 export interface Props {
   connectionId: string
@@ -34,6 +36,8 @@ export const AcceptCredentialAction: React.FC<Props> = (props: Props) => {
   const { isDeepLink } = useConnection()
   const { message } = useSocket()
   const credentialsIssued = useRef(false);
+  const showcase = useShowcases()
+  const tenantId = getTenantIdFromPath();
 
   const showFailedRequestModal = () => setIsFailedRequestModalOpen(true)
   const closeFailedRequestModal = () => setIsFailedRequestModalOpen(false)
@@ -96,11 +100,21 @@ export const AcceptCredentialAction: React.FC<Props> = (props: Props) => {
   }, [message])
 
   const routeError = () => {
-    navigate(`${basePath}`)
+    navigate(`${basePath}/${tenantId}/${showcase.showcase?.slug}`)
     dispatch({ type: 'demo/RESET' })
   }
 
   const sendNewCredentials = () => {
+    credentialDefinitions.forEach(credentialDefinition => {
+      if (isDeepLink) {
+        dispatch(issueDeepCredential({ connectionId, credentialDefinition }))
+      } else {
+        dispatch(issueCredential({ connectionId, credentialDefinition }))
+      }
+      track({
+        id: 'credential_issued',
+      })
+    })
     closeFailedRequestModal()
   }
 

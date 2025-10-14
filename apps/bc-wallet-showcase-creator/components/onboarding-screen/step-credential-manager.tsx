@@ -7,6 +7,7 @@ import { useCredentials } from '@/hooks/use-credentials-store'
 import { useCredentialDefinition, useCredentialDefinitions } from '@/hooks/use-credentials'
 import { DisplaySearchResults } from './display-search-results'
 import { DisplayCredential } from './display-added-credentials'
+import { useJobStatus } from '../../hooks/use-job-status'
 
 interface StepCredentialManagerProps {
   currentStepCredential: string | undefined
@@ -22,6 +23,9 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions()
   const { data: credential } = useCredentialDefinition(currentStepCredential || '')
+  const { data: jobsApprovalFailed } = useJobStatus('updateIssuer', 'failed')
+  const { data: jobsStatus } = useJobStatus('credentialDefinition', 'pending')
+
 
   const searchCredential = (searchText: string) => {
     setSearchResults([])
@@ -34,9 +38,19 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
       return
     }
 
-    const results = credentials.credentialDefinitions.filter(
+    let results = credentials.credentialDefinitions.filter(
       (cred: CredentialDefinition) => cred.source === Source.Created && cred.name.toUpperCase().includes(searchUpper),
     )
+    //@ts-ignore
+    if (jobsApprovalFailed && jobsApprovalFailed.jobStatus?.length > 0) {
+      results = results.filter((cred) =>
+        jobsApprovalFailed?.jobStatus?.find((job:any) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+    }
+    //@ts-ignore
+    if (jobsStatus && jobsStatus?.jobStatus?.length > 0) {
+      results = results.filter((cred) =>
+        jobsStatus?.jobStatus?.find((job:any) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+    }
 
     setSearchResults(results)
   }
@@ -57,11 +71,12 @@ export const StepCredentialManager: React.FC<StepCredentialManagerProps> = ({
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-2xl font-bold">{t('onboarding.add_your_credential_label')}</p>
+        <p className="text-md font-bold text-foreground/80">{t('onboarding.add_your_credential_label')}<span className="text-red-500">*</span></p>
         <hr className="border border-black" />
       </div>
 
       <div className="mt-6">
+        <p className="text-sm text-muted-foreground mb-4">{'In this section, you must search for and select a credential to be issued. The attributes available will be displayed. Enter the attribute values for the credential. Please make sure to Save before proceeding'}</p>
         <p className="text-md font-bold">{t('onboarding.search_credential_label')}</p>
         <div className="flex flex-row justify-center items-center my-4">
           <div className="relative w-full">

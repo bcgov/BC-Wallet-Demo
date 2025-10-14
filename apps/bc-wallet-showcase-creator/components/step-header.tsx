@@ -12,6 +12,7 @@ interface StepHeaderProps {
   showPreview?: boolean
   showRevert?: boolean
   showDelete?: boolean
+  deleteTitle?: string
   onActionClick?: (action: 'save' | 'preview' | 'revert' | 'delete') => void // Callback function for actions
 }
 
@@ -24,6 +25,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
   showPreview = false,
   showRevert = false,
   showDelete = true,
+  deleteTitle,
   onActionClick,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -95,7 +97,7 @@ const StepHeader: React.FC<StepHeaderProps> = ({
                   }}
                 >
                   <Trash2 size={20} />
-                  {t('action.delete_header_label')}
+                  {deleteTitle ? deleteTitle : t('action.delete_header_label')}
                 </li>
               )}
             </ul>

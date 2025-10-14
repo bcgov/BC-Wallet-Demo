@@ -24,7 +24,7 @@ export const convertBase64 = (file: File): Promise<string> => {
 export function parseSchemaId(schemaId: string) {
   const parts = schemaId.split(':')
   return {
-    schemaPrefix: parts[0],
+    schemaPrefix: parts[2],
     schemaVersion: parts[3],
   }
 }

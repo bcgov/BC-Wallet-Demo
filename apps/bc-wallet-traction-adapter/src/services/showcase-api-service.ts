@@ -7,7 +7,9 @@ import {
   CredentialDefinitionsApi,
   CredentialSchemaRequest,
   CredentialType,
+  JobsApi,
   Source,
+  UpdateJobStatusRequestStatusEnum,
 } from 'bc-wallet-openapi'
 import { CredentialDefinition } from 'bc-wallet-traction-openapi'
 
@@ -23,6 +25,7 @@ export class ShowcaseApiService extends ApiService {
   private readonly config: Configuration
   private readonly configOptions: ConfigurationParameters
   private readonly credentialDefinitionsApi: CredentialDefinitionsApi
+  private readonly jobsApi: JobsApi
 
   /**
    * Constructor for ShowcaseApiService.
@@ -39,6 +42,7 @@ export class ShowcaseApiService extends ApiService {
     }
     this.config = new Configuration(this.configOptions)
     this.credentialDefinitionsApi = new CredentialDefinitionsApi(this.config)
+    this.jobsApi = new JobsApi(this.config)
   }
 
   /**
@@ -73,7 +77,7 @@ export class ShowcaseApiService extends ApiService {
       } satisfies CredentialSchemaRequest,
     }
     if (DEBUG_ENABLED) {
-      console.debug('Calling updateCredentialSchema', requestParameters)
+      console.debug('Calling updateCredentialSchema', JSON.stringify(requestParameters))
     }
     void (await this.credentialDefinitionsApi.updateCredentialSchema(requestParameters))
     console.debug('updateCredentialSchema successful')
@@ -101,6 +105,7 @@ export class ShowcaseApiService extends ApiService {
         identifierType: 'DID',
         identifier,
         type: existingDefinition.credentialDefinition.type,
+        tenantId: existingDefinition.credentialDefinition.tenantId,
         credentialSchema: existingDefinition.credentialDefinition.credentialSchema.id,
       } satisfies CredentialDefinitionRequest,
     }))
@@ -145,6 +150,7 @@ export class ShowcaseApiService extends ApiService {
   public async createCredentialDefinition(
     credDefImportDefinition: CredentialDefinitionImportRequest,
     remoteCredDef: CredentialDefinition,
+    tenantId: string,
   ): Promise<void> {
     if (!remoteCredDef.schemaId) {
       return Promise.reject(Error(`Cannot create a credential definition, it should have a schemaId`))
@@ -168,15 +174,17 @@ export class ShowcaseApiService extends ApiService {
         credentialSchema: schema.id,
         version: credDefImportDefinition.version ?? '1',
         type: CredentialType.Anoncred, // FIXME we do not support external types like CL yet
+        tenantId,
         /*
           remoteCredDef.type && Object.keys(CredentialType).includes(remoteCredDef.type as any)
             ? (remoteCredDef.type as unknown as CredentialType)
             : CredentialType.Anoncred,
 */
         source: Source.Imported,
-        ...(remoteCredDef.tag && { version: remoteCredDef.tag }),
+        ...(remoteCredDef.tag && { version: schema.version }),
         ...(credDefImportDefinition.icon && { icon: credDefImportDefinition.icon }),
         ...(credDefImportDefinition.approvedBy && { approvedBy: credDefImportDefinition.approvedBy }),
+        jobId: credDefImportDefinition.jobId,
       },
     }) // TODO revocation
   }
@@ -201,5 +209,14 @@ export class ShowcaseApiService extends ApiService {
       }
       return ''
     }
+  }
+
+  public async updateJobStatus(id: string, status: string): Promise<void> {
+    await this.jobsApi.updateJobStatus({
+      id,
+      updateJobStatusRequest: {
+        status: status as unknown as UpdateJobStatusRequestStatusEnum,
+      },
+    })
   }
 }

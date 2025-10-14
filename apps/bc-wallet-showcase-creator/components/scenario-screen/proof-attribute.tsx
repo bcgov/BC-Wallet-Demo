@@ -11,8 +11,10 @@ interface ProofAttributeProps {
   attribute: CredentialAttribute
   availableAttributes: CredentialAttribute[]
   currentValue: string
+  predicates?: Array<{ name: string; value: number; type: string }>
   onAttributeChange: (index: number, value: string) => void
   onConditionTypeChange: (index: number, value: string) => void
+  onConditionValueChange: (index: number, value: string) => void
   onRemove: (index: number) => void
 }
 
@@ -21,8 +23,10 @@ export const ProofAttribute = ({
   attribute,
   availableAttributes,
   currentValue,
+  predicates,
   onAttributeChange,
   onConditionTypeChange,
+  onConditionValueChange,
   onRemove,
 }: ProofAttributeProps) => {
   const t = useTranslations()
@@ -34,6 +38,7 @@ export const ProofAttribute = ({
           onValueChange={(value) => {
             onAttributeChange(index, value as any)
           }}
+          value={attribute.name}
         >
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
@@ -55,7 +60,11 @@ export const ProofAttribute = ({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Condition</label>
-        <Select defaultValue='none' onValueChange={(value) => onConditionTypeChange(index, value)}>
+            <Select 
+          value={predicates?.find(p => p.name === attribute.name)?.type || 'none'}
+          disabled={attribute.type !== 'DATE'}
+          onValueChange={(value) => onConditionTypeChange(index, value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder={t('scenario.proof_attribute_placeholder')} />
           </SelectTrigger>
@@ -70,8 +79,20 @@ export const ProofAttribute = ({
       </div>
 
       <div className="space-y-2">
+        <div className='flex flex-col'>
         <label className="text-sm font-medium">Condition Value</label>
-        <Input disabled />
+        {attribute.type === 'DATE' ? <div className='text-xs text-red-500'>Date format: YYYYMMDD</div> : ''}
+        </div>
+        <Input
+          onChange={(e) => {
+            if (e.target.value.length <= 8) {
+              onConditionValueChange(index, e.target.value)
+            }
+          }}
+          disabled={attribute.type !== 'DATE' || (predicates?.find(p => p.name === attribute.name)?.type || 'none') === 'none'}
+          type="number"
+          value={predicates?.find(p => p.name === attribute.name)?.value || ''}
+        />
       </div>
 
       <Button

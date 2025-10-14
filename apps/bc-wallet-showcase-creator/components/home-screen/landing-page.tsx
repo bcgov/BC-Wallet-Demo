@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDeleteShowcase, useDuplicateShowcase, useShowcases } from '@/hooks/use-showcases'
 import { baseUrl } from '@/lib/utils'
-import type { Showcase } from 'bc-wallet-openapi'
+import type { Showcase, TenantResponse } from 'bc-wallet-openapi'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { env } from '@/env'
@@ -16,6 +16,14 @@ import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
 import { toast } from 'sonner'
 import { useTenant } from '@/providers/tenant-provider'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { useOnboardingCreationStore } from '@/hooks/use-onboarding-store'
+import { useQueryClient } from '@tanstack/react-query'
+import DeleteModal from '../delete-modal'
+import { useCredentialDefinitions } from '@/hooks/use-credentials'
+import { useRouter } from '@/i18n/routing'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -24,8 +32,64 @@ export const LandingPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const { data, isLoading } = useShowcases()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { data: credentials } = useCredentialDefinitions()
+  const router = useRouter()
   const { tenantId } = useTenant()
   const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
+  const { reset, setScenarioIds, setPersonaIds } = useShowcaseStore()
+  const { setIssuerId, setRelayerId, issuerId, relayerId } = useHelpersStore()
+  const resetIds = usePresentationCreation().reset
+  const resetOnboardingIds = useOnboardingCreationStore().reset
+  const queryClient = useQueryClient()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showcaseToDelete, setShowcaseToDelete] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchTenantConfig = async () => {
+      if (tenantId) {
+        try {
+          const endpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+          const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+            },
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch tenant config for ${tenantId}.`)
+          }
+
+          const tenantResponse = (await response.json()) as TenantResponse
+          if (tenantResponse.tenant.issuers && tenantResponse.tenant.relyingParties) {
+            setIssuerId(tenantResponse.tenant.issuers[0].id)
+            setRelayerId(tenantResponse.tenant.relyingParties[0].id)
+          }
+        } catch (error) {
+          console.error('Error fetching tenant config:', error)
+        }
+      }
+    }
+
+    reset()
+    setScenarioIds([])
+    setPersonaIds([])
+    resetIds()
+    resetOnboardingIds()
+
+    void fetchTenantConfig()
+  }, [tenantId, setIssuerId, setRelayerId])
+
+  const handleDeleteShowcase = async (showcaseSlug: string) => {
+   await deleteShowcase(showcaseSlug)
+    reset()
+    setScenarioIds([])
+    setPersonaIds([])
+    resetIds()
+    resetOnboardingIds()
+    setIsModalOpen(false)
+    queryClient.invalidateQueries({ queryKey: ['showcases'] })
+  }
 
   const searchFilter = (showcase: Showcase) => {
     if (searchTerm === '') {
@@ -35,7 +99,6 @@ export const LandingPage = () => {
   }
 
   const handlePreview = (slug: string) => {
-
     const previewUrl = `${WALLET_URL}/${tenantId}/${slug}`
     window.open(previewUrl, '_blank')
   }
@@ -50,12 +113,47 @@ export const LandingPage = () => {
         toast.error('Error duplicating showcase: ' + error)
       },
     })
-    console.log('newShowcase', newShowcase)
   }
+
+  const openModal = (slug: string) => {
+    setShowcaseToDelete(slug)
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setShowcaseToDelete(null)
+    setIsModalOpen(false)
+  }
+
+  const confirmDelete = () => {
+    if (showcaseToDelete) {
+      handleDeleteShowcase(showcaseToDelete)
+    }
+  }
+
+  const HandleShowcaseCreate = () => {
+      reset()
+      setScenarioIds([])
+      setPersonaIds([])
+      resetIds()
+      resetOnboardingIds()
+      if (!issuerId || !relayerId || credentials?.credentialDefinitions?.length === 0) {
+        toast.error('Please create a credential before creating a showcase.', { duration: 4000 })
+        return
+      } else {
+        router.push(`/${tenantId}/showcases/create`)
+      }
+    }
 
   return (
     <>
-      <Header title={t('home.header_title')} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <Header 
+        title={t('home.header_title')} 
+        searchTerm={searchTerm} 
+        setSearchTerm={setSearchTerm}
+        buttonLabel={t('showcases.create_new_showcase_label')}
+        buttonLink={HandleShowcaseCreate}
+      />
 
       {isLoading && (
         <div className="flex flex-col items-center">
@@ -76,14 +174,16 @@ export const LandingPage = () => {
                   className="relative min-h-[15rem] h-auto flex items-center justify-center bg-cover bg-center"
                   style={{
                     backgroundImage: `url('${
-                      showcase?.bannerImage?.id ? `${baseUrl}/${tenantId}/assets/${showcase.bannerImage.id}/file` : '/assets/NavBar/Showcase.jpeg'
+                      showcase?.bannerImage?.id
+                        ? `${baseUrl}/${tenantId}/assets/${showcase.bannerImage.id}/file`
+                        : '/assets/NavBar/Showcase.jpeg'
                     }')`,
                   }}
                 >
                   <div className="absolute bg-black bottom-0 left-0 right-0 bg-opacity-70 p-3">
                     <p className="text-xs text-gray-300 break-words">
                       {t('showcases.created_by_label', {
-                        name: 'Test college',
+                        name: tenantId,
                       })}
                     </p>
                     <div className="flex justify-between">
@@ -91,11 +191,17 @@ export const LandingPage = () => {
                       <div className="flex-shrink-0">
                         <DeleteButton
                           onClick={() => {
-                            deleteShowcase(showcase.slug)
+                            openModal(showcase.slug)
                           }}
                         />
-                        <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
-                        <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                        <CopyButton
+                          disabled={showcase.status !== 'ACTIVE'}
+                          value={`${WALLET_URL}/${tenantId}/${showcase.slug}`}
+                        />
+                        <OpenButton
+                          disabled={showcase.status !== 'ACTIVE'}
+                          value={`${WALLET_URL}/${tenantId}/${showcase.slug}`}
+                        />
                       </div>
                     </div>
                   </div>
@@ -141,10 +247,18 @@ export const LandingPage = () => {
                   </div>
 
                   <div className="flex gap-4 mt-auto">
-                    <ButtonOutline className="w-1/2" onClick={() => handlePreview(showcase.slug)}>
+                    <ButtonOutline
+                      disabled={showcase.status !== 'ACTIVE'}
+                      className="w-1/2"
+                      onClick={() => handlePreview(showcase.slug)}
+                    >
                       {t('action.preview_label')}
                     </ButtonOutline>
-                    <ButtonOutline className="w-1/2" onClick={() => handleDuplicateShowcase(showcase.slug)}>
+                    <ButtonOutline
+                      disabled={showcase.status !== 'ACTIVE'}
+                      className="w-1/2"
+                      onClick={() => handleDuplicateShowcase(showcase.slug)}
+                    >
                       {t('action.create_copy_label')}
                     </ButtonOutline>
                   </div>
@@ -154,8 +268,20 @@ export const LandingPage = () => {
           ))}
         </div>
       </section>
+      <DeleteModal
+          isOpen={isModalOpen}
+          onClose={() => closeModal()}
+          onDelete={() => confirmDelete()}
+          header="Are you sure you want to delete this showcase?"
+          description="Are you sure you want to delete this showcase?"
+          subDescription="<b>This action cannot be undone.</b>"
+          cancelText="CANCEL"
+          deleteText="DELETE"
+          isLoading={isLoading}
+        />
     </>
   )
 }
 
 export default LandingPage
+

@@ -34,6 +34,7 @@ class ApiService {
         'Content-Type': 'application/json',
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
+      signal: AbortSignal.timeout(30000) 
     }
 
     if (data && method !== 'GET') {
@@ -75,6 +76,10 @@ class ApiService {
 
   public put<T>(url: string, data?: any): Promise<T | void> {
     return this.request<T>('PUT', url, data)
+  }
+
+  public patch<T>(url: string, data?: any): Promise<T | void> {
+    return this.request<T>('PATCH', url, data)
   }
 
   public delete<T>(url: string): Promise<T | void> {

@@ -18,6 +18,7 @@ interface FormInputProps<T extends FieldValues> {
   readOnly?: boolean
   disabled?: boolean
   control: Control<T>
+  isMandatory?: boolean
 }
 
 export const FormTextInput = <T extends FieldValues>({
@@ -28,6 +29,7 @@ export const FormTextInput = <T extends FieldValues>({
                                                        placeholder,
                                                        className,
                                                        control,
+                                                       isMandatory,
                                                        ...props
                                                      }: FormInputProps<T>) => {
   return (
@@ -38,7 +40,7 @@ export const FormTextInput = <T extends FieldValues>({
         <FormItem>
           <div className={cn('space-y-2', className)}>
             <Label className="text-md font-bold text-foreground/80" htmlFor={name}>
-              {label}
+              {label}{isMandatory ? <span className="text-red-500">*</span> : null}
             </Label>
             <Input
               className="rounded w-full text-foreground dark:bg-dark-input bg-light-bg resize-none mt-3 p-2 border dark:border-dark-border"
@@ -66,7 +68,8 @@ export const FormTextArea = <T extends FieldValues>({
                                                       className,
                                                       readOnly,
                                                       disabled,
-                                                      control
+                                                      control,
+                                                      isMandatory 
                                                     }: FormInputProps<T>) => {
   return (
     <FormField
@@ -76,7 +79,7 @@ export const FormTextArea = <T extends FieldValues>({
         <FormItem>
           <div className={cn('space-y-2', className)}>
             <Label className="text-md font-bold text-foreground/80" htmlFor={name}>
-              {label}
+              {label}{isMandatory ? <span className="text-red-500">*</span> : null}
             </Label>
             <Textarea
               className="rounded w-full dark:text-dark-text dark:bg-dark-input bg-light-bg resize-none mt-3 p-2 border dark:border-dark-border"

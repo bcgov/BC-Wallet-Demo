@@ -24,8 +24,8 @@ import TenantService from '../../services/TenantService'
 import { ShowcaseStatus } from '../../types'
 import TenantController from '../TenantController'
 import { registerMockServicesByInterface, setupRabbitMQ, setupTestDatabase } from './globalTestSetup'
-import supertest = require('supertest')
 import { MockSessionService } from './MockSessionService'
+import supertest = require('supertest')
 
 describe('TenantController Integration Tests', () => {
   let client: PGlite
@@ -73,31 +73,36 @@ describe('TenantController Integration Tests', () => {
     expect(createdTenant.oidcIssuer).toEqual('https://auth-server/auth/realms/test')
     expect(createdTenant.createdAt).toBeDefined()
 
+    // Check that default issuer and relying party were created
+    expect(createdTenant.issuers).toHaveLength(1)
+    expect(createdTenant.issuers[0].name).toEqual('Default Issuer for test-tenant-1')
+    expect(createdTenant.relyingParties).toHaveLength(1)
+    expect(createdTenant.relyingParties[0].name).toEqual('Default Relying Party for test-tenant-1')
+
     // 2. Retrieve all tenants
     const getAllResponse = await request.get('/tenants').expect(200)
     expect(getAllResponse.body.tenants).toBeInstanceOf(Array)
     expect(getAllResponse.body.tenants.length).toBe(1)
 
-    // 3. Retrieve the created tenant
-    const getResponse = await request.get(`/tenants/${createdTenant.id}`).expect(200)
-    expect(getResponse.body.tenant.id).toEqual('test-tenant-1')
-
     // 4. Update the tenant
     const updatedRequest: TenantRequest = {
-      id: 'updated-tenant-1',
-      oidcIssuer: 'https://auth-server/auth/realms/test',
+      id: createdTenant.id,
+      oidcIssuer: 'https://auth-server/auth/realms/updated-test',
+      tractionTenantId: 'b8e9c7ce-f374-4df7-8c7e-dcd6f1f0f1d7',
     }
 
     const updateResponse = await request.put(`/tenants/${createdTenant.id}`).send(updatedRequest).expect(200)
     const updatedTenant = updateResponse.body.tenant
 
-    expect(updatedTenant.id).toEqual('updated-tenant-1')
+    expect(updatedTenant.id).toEqual(createdTenant.id)
+    expect(updatedTenant.oidcIssuer).toEqual('https://auth-server/auth/realms/updated-test')
+    expect(updatedTenant.tractionTenantId).toEqual('b8e9c7ce-f374-4df7-8c7e-dcd6f1f0f1d7')
 
-    // 5. Delete the tenant
-    await request.delete(`/tenants/${updatedTenant.id}`).expect(204)
+    // 5. Delete the tenant (use the original ID since it wasn't changed)
+    await request.delete(`/tenants/${createdTenant.id}`).expect(204)
 
     // 6. Verify tenant deletion
-    await request.get(`/tenants/${updatedTenant.id}`).expect(404)
+    await request.get(`/tenants/${createdTenant.id}`).expect(404)
   })
 
   it('should handle errors when accessing non-existent resources', async () => {
@@ -130,8 +135,8 @@ describe('TenantController Integration Tests', () => {
     const persona = await createTestPersona(asset)
     const schema = await createTestCredentialSchema()
     const definition = await createTestCredentialDefinition(asset, schema, tenant.id)
-    const issuer = await createTestIssuer(asset, definition, schema)
-    const scenario = await createTestScenario(asset, persona, issuer, definition.id)
+    const issuer = await createTestIssuer(asset, definition, schema, tenant.id)
+    const scenario = await createTestScenario(asset, persona, issuer, definition.id, tenant.id)
 
     // Create a showcase associated with the tenant
     const showcaseService = Container.get(ShowcaseService)

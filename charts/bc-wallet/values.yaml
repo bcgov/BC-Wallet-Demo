@@ -58,18 +58,10 @@ apiServer:
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
+  # SHOWCASE_DB_PASSWORD: ""
+  # AMQ_PASSWORD: ""
   # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
-  # TENANT_ID: ""
-  # TRACTION_API_URL: ""
-  # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
+  # OIDC_ROOT_CLIENT_SECRET: "
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -181,18 +173,9 @@ demoServer:
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
-  # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
-  # TENANT_ID: ""
-  # TRACTION_API_URL: ""
+  # TRACTION_DEFAULT_TENANT_ID: ""
+  # TRACTION_DEFAULT_API_KEY: ""
   # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -306,19 +289,7 @@ demoWeb:
   extraEnvVarsCM: ""
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
-  ## Secret must include the following ENVVars:
-  # API_KEY: ""
-  # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
-  # TENANT_ID: ""
-  # TRACTION_API_URL: ""
-  # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
+  ## Secret must include the following ENVVars: none
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -429,18 +400,7 @@ showcaseCreator:
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   ## Secret must include the following ENVVars:
-  # API_KEY: ""
-  # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
-  # TENANT_ID: ""
-  # TRACTION_API_URL: ""
-  # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
+  # NEXT_AUTH_SECRET: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -549,19 +509,9 @@ tractionAdapter:
   extraEnvVarsCM: ""
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
-  ## Secret must include the following ENVVars:
-  # API_KEY: ""
+  ## Secret must include the following ENVVars: (TRACTION_DEFAULT_API_KEY etc. should be present when creating the tenant records)
   # ENCRYPTION_KEY: ""
-  # OIDC_CLIENT_ID: ""
-  # OIDC_CLIENT_SECRET: ""
-  # OIDC_ISSUER_URL: ""
-  # OIDC_REALM: ""
-  # OIDC_SERVER_URL: ""
-  # OIDC_TRUST_HOST: ""
-  # TENANT_ID: ""
-  # TRACTION_API_URL: ""
-  # TRACTION_WEBHOOK_SECRET: ""
-  # WALLET_ID: ""
+  # AMQ_PASSWORD: ""
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -669,10 +619,9 @@ postgresql:
       size: 1Gi
     resources:
       limits:
-        cpu: 200m
-        memory: 256Mi
+        memory: 2Gi
       requests:
-        cpu: 100m
+        cpu: 250m
         memory: 128Mi
     podSecurityContext:
       enabled: false
@@ -701,6 +650,8 @@ rabbitmq:
   auth:
     username: bc_user
     existingPasswordSecret: bc-wallet-rabbitmq-secret
+    secretKeys:
+      passwordKey: rabbitmq-password
   extraPlugins: "rabbitmq_management"
   configuration: |-
     management.listener.port = 15672

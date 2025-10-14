@@ -17,21 +17,14 @@ import CredentialSchemaRepository from './CredentialSchemaRepository'
 
 @Service()
 class IssuerRepository implements RepositoryDefinition<Issuer, NewIssuer> {
-  constructor(
+  public constructor(
     private readonly databaseService: DatabaseService,
     private readonly credentialDefinitionRepository: CredentialDefinitionRepository,
     private readonly credentialSchemaRepository: CredentialSchemaRepository,
     private readonly assetRepository: AssetRepository,
   ) {}
 
-  async create(issuer: NewIssuer): Promise<Issuer> {
-    if (issuer.credentialDefinitions.length === 0) {
-      return Promise.reject(new BadRequestError('At least one credential definition is required'))
-    }
-    if (issuer.credentialSchemas.length === 0) {
-      return Promise.reject(new BadRequestError('At least one credential schema is required'))
-    }
-
+  public async create(issuer: NewIssuer): Promise<Issuer> {
     const credentialDefinitionPromises = issuer.credentialDefinitions.map(
       async (credentialDefinition) => await this.credentialDefinitionRepository.findById(credentialDefinition),
     )
@@ -51,52 +44,54 @@ class IssuerRepository implements RepositoryDefinition<Issuer, NewIssuer> {
         })
         .returning()
 
-      const issuersToCredentialDefinitionsResult = await tx
-        .insert(issuersToCredentialDefinitions)
-        .values(
-          issuer.credentialDefinitions.map((credentialDefinitionId: string) => ({
-            issuer: issuerResult.id,
-            credentialDefinition: credentialDefinitionId,
-          })),
-        )
-        .returning()
+      let credentialDefinitionsResult: any[] = []
+      let credentialSchemasResult: any[] = []
 
-      const credentialDefinitionsResult = await tx.query.credentialDefinitions.findMany({
-        where: inArray(
-          credentialDefinitions.id,
-          issuersToCredentialDefinitionsResult.map((item) => item.credentialDefinition),
-        ),
-        with: {
-          cs: {
-            with: {
-              attributes: true,
-            },
+      // Only insert if arrays are not empty
+      if (issuer.credentialDefinitions.length > 0) {
+        const issuersToCredentialDefinitionsResult = await tx
+          .insert(issuersToCredentialDefinitions)
+          .values(
+            issuer.credentialDefinitions.map((credentialDefinitionId: string) => ({
+              issuer: issuerResult.id,
+              credentialDefinition: credentialDefinitionId,
+            })),
+          )
+          .returning()
+
+        credentialDefinitionsResult = await tx.query.credentialDefinitions.findMany({
+          where: inArray(
+            credentialDefinitions.id,
+            issuersToCredentialDefinitionsResult.map((item) => item.credentialDefinition),
+          ),
+          with: {
+            cs: { with: { attributes: true } },
+            representations: true,
+            revocation: true,
+            icon: true,
           },
-          representations: true,
-          revocation: true,
-          icon: true,
-        },
-      })
+        })
+      }
 
-      const issuersToCredentialSchemasResult = await tx
-        .insert(issuersToCredentialSchemas)
-        .values(
-          issuer.credentialSchemas.map((credentialSchema: string) => ({
-            issuer: issuerResult.id,
-            credentialSchema: credentialSchema,
-          })),
-        )
-        .returning()
+      if (issuer.credentialSchemas.length > 0) {
+        const issuersToCredentialSchemasResult = await tx
+          .insert(issuersToCredentialSchemas)
+          .values(
+            issuer.credentialSchemas.map((credentialSchema: string) => ({
+              issuer: issuerResult.id,
+              credentialSchema: credentialSchema,
+            })),
+          )
+          .returning()
 
-      const credentialSchemasResult = await tx.query.credentialSchemas.findMany({
-        where: inArray(
-          credentialSchemas.id,
-          issuersToCredentialSchemasResult.map((item) => item.credentialSchema),
-        ),
-        with: {
-          attributes: true,
-        },
-      })
+        credentialSchemasResult = await tx.query.credentialSchemas.findMany({
+          where: inArray(
+            credentialSchemas.id,
+            issuersToCredentialSchemasResult.map((item) => item.credentialSchema),
+          ),
+          with: { attributes: true },
+        })
+      }
 
       return {
         ...issuerResult,
@@ -110,12 +105,12 @@ class IssuerRepository implements RepositoryDefinition<Issuer, NewIssuer> {
     })
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.findById(id)
     await (await this.databaseService.getConnection()).delete(issuers).where(eq(issuers.id, id))
   }
 
-  async update(id: string, issuer: NewIssuer): Promise<Issuer> {
+  public async update(id: string, issuer: NewIssuer): Promise<Issuer> {
     await this.findById(id)
 
     if (issuer.credentialDefinitions.length === 0) {
@@ -207,7 +202,7 @@ class IssuerRepository implements RepositoryDefinition<Issuer, NewIssuer> {
     })
   }
 
-  async findById(id: string): Promise<Issuer> {
+  public async findById(id: string): Promise<Issuer> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.issuers.findFirst({
@@ -256,7 +251,7 @@ class IssuerRepository implements RepositoryDefinition<Issuer, NewIssuer> {
     }
   }
 
-  async findAll(): Promise<Issuer[]> {
+  public async findAll(): Promise<Issuer[]> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.issuers.findMany({
@@ -292,6 +287,7 @@ class IssuerRepository implements RepositoryDefinition<Issuer, NewIssuer> {
 
     return result.map((issuer) => ({
       ...issuer,
+      tenant: issuer.tenantId ? { id: issuer.tenantId } : null,
       credentialDefinitions: issuer.cds.map((item: any) => ({
         ...item.cd,
         credentialSchema: item.cd.cs,

@@ -26,7 +26,7 @@ export const SortableStep = ({
   const { handleSelectStep, duplicateStep, activePersonaId, setStepState, activeScenarioIndex, setActiveScenarioIndex } = usePresentationAdapter()
   const { tenantId } = useTenant()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: myScreen.id || `step-${scenarioIndex}-${stepIndex}`,
+    id: `step-${scenarioIndex}-${stepIndex}`,
   })
 
   const style = {
@@ -34,7 +34,6 @@ export const SortableStep = ({
     transition,
   }
 
-  console.log(myScreen.actions)
 
   const handleStepClick = () => {
     setStepState('editing-basic')

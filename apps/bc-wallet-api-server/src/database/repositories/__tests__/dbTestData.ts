@@ -106,6 +106,7 @@ export async function createTestScenario(
   persona: Persona,
   issuer: Issuer,
   credentialDefinitionId: string,
+  tenantId: string,
 ): Promise<Scenario> {
   const scenarioRepository = Container.get(ScenarioRepository)
   return scenarioRepository.create({
@@ -166,6 +167,7 @@ export async function createTestIssuer(
   asset: Asset,
   definition: CredentialDefinition,
   schema: CredentialSchema,
+  tenantId: string,
 ): Promise<Issuer> {
   const issuerRepository = Container.get(IssuerRepository)
   return issuerRepository.create({
@@ -176,6 +178,7 @@ export async function createTestIssuer(
     description: 'Test issuer description',
     organization: 'Test Organization',
     logo: asset.id,
+    tenantId: tenantId,
   })
 }
 
@@ -202,8 +205,8 @@ export async function createTestShowcase(
   const schema = await createTestCredentialSchema()
   // Use renamed db helper
   const definition = await createTestCredentialDefinition(asset, schema, tenantId)
-  const issuer = await createTestIssuer(asset, definition, schema)
-  const scenario = await createTestScenario(asset, persona, issuer, definition.id)
+  const issuer = await createTestIssuer(asset, definition, schema, tenantId)
+  const scenario = await createTestScenario(asset, persona, issuer, definition.id, tenantId)
 
   // Use the ShowcaseService to create the showcase
   const showcaseService = Container.get(ShowcaseService)

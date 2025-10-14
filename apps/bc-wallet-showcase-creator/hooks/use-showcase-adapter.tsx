@@ -7,6 +7,7 @@ import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { Showcase, ShowcaseRequest, ShowcaseScenariosInner } from 'bc-wallet-openapi'
 import { debugLog } from '@/lib/utils'
 import { showcaseToShowcaseRequest } from '@/lib/parsers'
+import { useTenant } from '@/providers/tenant-provider'
 
 export function useShowcaseAdapter(slug?: string) {
   const [isLoading, setIsLoading] = useState(true)
@@ -27,10 +28,9 @@ export function useShowcaseAdapter(slug?: string) {
     useUpdateShowcase(effectiveSlug || '')
 
   const {
-    selectedCredentialDefinitionIds,
-    tenantId,
-    setTenantId
+    selectedCredentialDefinitionIds
   } = useHelpersStore()
+  const { tenantId, setTenantId } = useTenant();
 
   useEffect(() => {
     if (!effectiveSlug) {
@@ -86,7 +86,7 @@ export function useShowcaseAdapter(slug?: string) {
         scenarios: Array.from(new Set(storeShowcase.scenarios || [])),
         personas: data.personas || storeShowcase.personas,
         bannerImage: data.bannerImage,
-        tenantId,
+        tenantId: tenantId ?? '',
         completionMessage: data.completionMessage,
       };
 

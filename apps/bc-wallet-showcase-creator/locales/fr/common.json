@@ -17,6 +17,7 @@
     "header_tab_published": "Publié",
     "header_tab_active": "Publié",
     "header_tab_archived": "Archivé",
+    "header_tab_pending": "Brouillon",
     "create_new_showcase_label": "CRÉER UNE NOUVELLE VITRINE",
     "created_by_label": "Créé par {name}",
     "description_label": "Description",
@@ -62,7 +63,8 @@
     "character_delete_description": "Cette action ne peut pas être annulée.",
     "success_characters_selected_label": "Personnages ajoutés avec succès",
     "error_no_characters_selected_label": "Veuillez sélectionner au moins un personnage pour continuer",
-    "error_character_creation_label": "Erreur lors de la création du personnage"
+    "error_character_creation_label": "Erreur lors de la création du personnage",
+    "save_changes_warning": "Veuillez enregistrer vos modifications avant de continuer."
   },
   "credentials": {
     "credential_title": "Justificatifs",
@@ -83,7 +85,7 @@
     "issuer_name_label": "Nom de l'Émetteur",
     "issuer_name_placeholder": "Entrez le Nom de l'Émetteur",
     "version_label": "Version",
-    "source_label":"Source",
+    "source_label": "Source",
     "version_placeholder": "Entrez la version",
     "attributes_label": "Attributs",
     "attribute_label": "Attribute",
@@ -115,7 +117,7 @@
     "step1_title": "Étape 1",
     "no_credentials: ": "Aucun justificatif trouvé",
     "step1_description": "Accédez à l'URL source où se trouve le justificatif :",
-    "step1_link_text": "CandyScan",
+    "step1_link_text": "Bcovrin",
     "step1_link_description": "où sont stockés tous les schémas et justificatifs du gouvernement de la Colombie-Britannique.",
     "step2_title": "Étape 2",
     "step2_description": "Recherchez le schéma ou le justificatif souhaité",
@@ -143,7 +145,10 @@
     "representations_label": "Representations",
     "icon_label": "Icon",
     "timestamps_label": "Timestamps",
-    "pending_approval_label": "En attente d'approbation"
+    "pending_approval_label": "En attente d'approbation",
+    "request_in_queue_label": "Request In Queue...",
+    "request_failed_label": "Request Failed",
+    "error_fetching_credential": "Credential not found"
   },
   "onboarding": {
     "header_title": "Ajouter des étapes",
@@ -185,7 +190,25 @@
     "go_back_to_select_personas": "Retour à la sélection des personnages",
     "select_persona_message": "Sélectionnez un personnage à gauche pour modifier ses étapes d'intégration.",
     "no_step_selected_subtext": "Sélectionnez une étape de la liste ou créez une nouvelle étape",
-    "create_new_step_button_label": "Créer une nouvelle étape"
+    "create_new_step_button_label": "Créer une nouvelle étape",
+    "issue_step_description": "Cette étape émettra un justificatif à l'utilisateur. Sélectionnez le justificatif à émettre ci-dessous.",
+    "wallet_step_description": "Cette étape guidera l'utilisateur pour installer l'application BC Wallet.",
+    "connect_step_description": "Cette étape établira une connexion entre le portefeuille de l'utilisateur et l'émetteur.",
+    "share_step_description": "Cette étape demandera à l'utilisateur de partager un justificatif.",
+    "button_step_description": "Cette étape affichera un bouton à l'utilisateur.",
+    "basic_step_description": "Ceci est une étape de base avec un titre, une description et une image facultative.",
+    "meet_step_instruction": "Cet écran sera l'introduction de l'utilisateur final à votre personnage, vous voudrez donc fournir autant de détails que possible.",
+    "get_started_step_instruction": "Cet écran sera l'introduction de l'utilisateur final au portefeuille BC. Nous avons déjà inclus la langue par défaut pour vous.",
+    "install_wallet_step_instruction": "Cet écran fournira à l'utilisateur final des instructions pour télécharger et installer le portefeuille BC. Nous avons déjà inclus la langue par défaut pour vous.",
+    "connect_step_instruction": "Cet écran fournira à l'utilisateur final un code QR à scanner pour connecter son portefeuille BC à l'émetteur du justificatif. Veuillez modifier la langue par défaut pour votre vitrine.",
+    "accept_credential_step_instruction": "Sur cet écran, vous ajouterez des détails sur le justificatif qui sera délivré à l'utilisateur final.",
+    "you_are_all_set_step_instruction": "Cet écran fournira à l'utilisateur final un message indiquant qu'il a bien reçu le justificatif et l'a stocké dans son portefeuille BC. Nous avons déjà inclus la langue par défaut pour vous.",
+    "edit_character_introduction_step_title": "Modifier l'étape d'introduction du personnage",
+    "edit_introduction_bc_wallet_step_title": "Modifier l'étape d'introduction au portefeuille BC",
+    "edit_install_bc_wallet_step_title": "Modifier l'étape d'installation du portefeuille BC",
+    "edit_connect_bc_wallet_step_title": "Modifier l'étape de connexion avec le portefeuille BC",
+    "edit_credential_issuance_step_title": "Modifier l'étape d'émission de justificatif",
+    "edit_credential_received_step_title": "Modifier l'étape de justificatif reçu"
   },
   "scenario": {
     "header_title": "Créer des Scénarios",
@@ -241,7 +264,8 @@
   },
   "file_upload": {
     "click_to_upload_label": "Cliquez pour téléverser",
-    "drag_to_upload_label": "ou glissez-déposez"
+    "drag_to_upload_label": "ou glissez-déposez",
+    "file_size_exceeded": "File size exceeds the maximum limit of 2 MB."
   },
   "showcase": {
     "header_title": "Enregistrer la vitrine",
@@ -252,7 +276,12 @@
     "modal_button": "CONFIMER ET ENVOYER POUR LA REVISION",
     "modal_description2": "Voulez-vous continuer?",
     "publish_info_credentials": "Recevera les attestations suivantes:",
-    "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine."
+    "publish_info_subtitle": "Saisissez et vérifiez les détails de la vitrine.",
+    "validation_error_title": "Validation Errors"
+  },
+  "error": {
+    "title": "Error",
+    "description": "Please correct the following issues to proceed:"
   },
   "navigation": {
     "general_label": "Général",
@@ -263,9 +292,9 @@
     "publish_label": "Publier"
   },
   "sidebar": {
-    "home_label": "Maison",
-    "showcases_label": "Vitrines",
-    "credential_library_label": "Bibliothèque d'informations",
+    "home_label": "Accueil",
+    "showcases_label": "Tableau de bord",
+    "credential_library_label": "Justificatifs numériques",
     "character_library_label": "Personnages",
     "logout_label": "Se déconnecter",
     "dark_mode_label": "Mode sombre"

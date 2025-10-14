@@ -1,2 +1,1 @@
-# ditp-showcase-creator-ui
-
+# bc-wallet-showcase-creator

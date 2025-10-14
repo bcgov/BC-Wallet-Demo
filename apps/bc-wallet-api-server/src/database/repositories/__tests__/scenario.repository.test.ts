@@ -131,6 +131,7 @@ describe('Database scenario repository tests', (): void => {
     }
     credentialDefinition = await credentialDefinitionRepository.create(newCredentialDefinition)
     const newIssuer: NewIssuer = {
+      tenantId,
       name: 'example_name',
       type: IssuerType.ARIES,
       credentialDefinitions: [credentialDefinition.id],
@@ -141,6 +142,7 @@ describe('Database scenario repository tests', (): void => {
     }
     issuer = await issuerRepository.create(newIssuer)
     const newRelyingParty: NewRelyingParty = {
+      tenantId,
       name: 'example_name',
       type: RelyingPartyType.ARIES,
       credentialDefinitions: [credentialDefinition.id],
@@ -197,17 +199,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -237,17 +243,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -290,8 +300,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
     expect(savedIssuanceScenario.steps[0].asset).not.toBeNull()
@@ -357,17 +367,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -397,17 +411,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -451,13 +469,9 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.name).toEqual(action.proofRequest.predicates!.predicate1.name)
-        expect(action.proofRequest.predicates!.predicate1.type).toEqual(action.proofRequest.predicates!.predicate1.type)
-        expect(action.proofRequest.predicates!.predicate1.value).toEqual(
-          action.proofRequest.predicates!.predicate1.value,
-        )
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute?.predicates?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute?.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
 
@@ -538,17 +552,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -578,17 +596,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -633,17 +655,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -673,17 +699,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -730,17 +760,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -770,17 +804,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -827,17 +865,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -883,17 +925,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -937,17 +983,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -977,17 +1027,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1022,8 +1076,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute?.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
 
@@ -1075,17 +1129,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1115,17 +1173,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1177,17 +1239,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1217,17 +1283,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1278,17 +1348,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1318,17 +1392,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1372,17 +1450,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1403,17 +1485,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1464,8 +1550,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
     expect(updatedIssuanceScenarioResult.personas).toBeDefined()
@@ -1516,17 +1602,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1556,17 +1646,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1624,17 +1718,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1664,17 +1762,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1715,17 +1817,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1773,17 +1879,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1813,17 +1923,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1864,17 +1978,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1922,17 +2040,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -1973,17 +2095,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2030,17 +2156,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2081,17 +2211,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2138,17 +2272,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2188,17 +2326,21 @@ describe('Database scenario repository tests', (): void => {
               },
             },
             predicates: {
-              predicate1: {
-                name: 'example_name',
-                type: '>=',
-                value: 1,
-                restrictions: ['restriction1', 'restriction2'],
-              },
-              predicate2: {
-                name: 'example_name',
-                type: '>=',
-                value: 1,
-                restrictions: ['restriction1', 'restriction2'],
+              attribute: {
+                predicates: [
+                  {
+                    name: 'example_name',
+                    type: '>=',
+                    value: 1,
+                    restrictions: ['restriction1', 'restriction2'],
+                  },
+                  {
+                    name: 'example_name',
+                    type: '>=',
+                    value: 1,
+                    restrictions: ['restriction1', 'restriction2'],
+                  },
+                ],
               },
             },
           },
@@ -2219,17 +2361,21 @@ describe('Database scenario repository tests', (): void => {
               },
             },
             predicates: {
-              predicate1: {
-                name: 'example_name',
-                type: '>=',
-                value: 1,
-                restrictions: ['restriction1', 'restriction2'],
-              },
-              predicate2: {
-                name: 'example_name',
-                type: '>=',
-                value: 1,
-                restrictions: ['restriction1', 'restriction2'],
+              attribute: {
+                predicates: [
+                  {
+                    name: 'example_name',
+                    type: '>=',
+                    value: 1,
+                    restrictions: ['restriction1', 'restriction2'],
+                  },
+                  {
+                    name: 'example_name',
+                    type: '>=',
+                    value: 1,
+                    restrictions: ['restriction1', 'restriction2'],
+                  },
+                ],
               },
             },
           },
@@ -2268,8 +2414,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
   })
@@ -2303,17 +2449,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2388,17 +2538,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2419,17 +2573,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2472,8 +2630,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
   })
@@ -2507,17 +2665,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2547,17 +2709,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2621,17 +2787,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2661,17 +2831,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2726,17 +2900,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2773,17 +2951,21 @@ describe('Database scenario repository tests', (): void => {
               },
             },
             predicates: {
-              predicate1: {
-                name: 'example_name',
-                type: '>=',
-                value: 1,
-                restrictions: ['restriction1', 'restriction2'],
-              },
-              predicate2: {
-                name: 'example_name',
-                type: '>=',
-                value: 1,
-                restrictions: ['restriction1', 'restriction2'],
+              attribute: {
+                predicates: [
+                  {
+                    name: 'example_name',
+                    type: '>=',
+                    value: 1,
+                    restrictions: ['restriction1', 'restriction2'],
+                  },
+                  {
+                    name: 'example_name',
+                    type: '>=',
+                    value: 1,
+                    restrictions: ['restriction1', 'restriction2'],
+                  },
+                ],
               },
             },
           },
@@ -2804,17 +2986,21 @@ describe('Database scenario repository tests', (): void => {
               },
             },
             predicates: {
-              predicate1: {
-                name: 'example_name',
-                type: '>=',
-                value: 1,
-                restrictions: ['restriction1', 'restriction2'],
-              },
-              predicate2: {
-                name: 'example_name',
-                type: '>=',
-                value: 1,
-                restrictions: ['restriction1', 'restriction2'],
+              attribute: {
+                predicates: [
+                  {
+                    name: 'example_name',
+                    type: '>=',
+                    value: 1,
+                    restrictions: ['restriction1', 'restriction2'],
+                  },
+                  {
+                    name: 'example_name',
+                    type: '>=',
+                    value: 1,
+                    restrictions: ['restriction1', 'restriction2'],
+                  },
+                ],
               },
             },
           },
@@ -2853,8 +3039,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
   })
@@ -2888,17 +3074,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -2972,17 +3162,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -3013,17 +3207,21 @@ describe('Database scenario repository tests', (): void => {
           },
         },
         predicates: {
-          predicate1: {
-            name: 'example_name',
-            type: '>=',
-            value: 1,
-            restrictions: ['restriction1', 'restriction2'],
-          },
-          predicate2: {
-            name: 'example_name',
-            type: '>=',
-            value: 1,
-            restrictions: ['restriction1', 'restriction2'],
+          attribute: {
+            predicates: [
+              {
+                name: 'example_name',
+                type: '>=',
+                value: 1,
+                restrictions: ['restriction1', 'restriction2'],
+              },
+              {
+                name: 'example_name',
+                type: '>=',
+                value: 1,
+                restrictions: ['restriction1', 'restriction2'],
+              },
+            ],
           },
         },
       },
@@ -3057,8 +3255,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
   })
@@ -3092,17 +3290,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -3138,8 +3340,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
   })
@@ -3173,17 +3375,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -3204,17 +3410,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -3268,17 +3478,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -3299,17 +3513,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -3366,17 +3584,21 @@ describe('Database scenario repository tests', (): void => {
                   },
                 },
                 predicates: {
-                  predicate1: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
-                  },
-                  predicate2: {
-                    name: 'example_name',
-                    type: '>=',
-                    value: 1,
-                    restrictions: ['restriction1', 'restriction2'],
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
                   },
                 },
               },
@@ -3407,19 +3629,23 @@ describe('Database scenario repository tests', (): void => {
           },
         },
         predicates: {
-          predicate1: {
-            name: 'example_name',
-            type: '>=',
-            value: 1,
-            restrictions: ['restriction1', 'restriction2'],
-          },
-          predicate2: {
-            name: 'example_name',
-            type: '>=',
-            value: 1,
-            restrictions: ['restriction1', 'restriction2'],
-          },
-        },
+                  attribute: {
+                    predicates: [
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                      {
+                        name: 'example_name',
+                        type: '>=',
+                        value: 1,
+                        restrictions: ['restriction1', 'restriction2'],
+                      },
+                    ],
+                  },
+                },
       },
     }
     const updatedStepResult = await repository.updateStepAction(
@@ -3446,8 +3672,8 @@ describe('Database scenario repository tests', (): void => {
         expect(action.proofRequest.attributes!.attribute1.restrictions?.length).toEqual(2)
 
         expect(action.proofRequest.predicates).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1).toBeDefined()
-        expect(action.proofRequest.predicates!.predicate1.restrictions?.length).toEqual(2)
+        expect(action.proofRequest.predicates!.attribute.predicates).toBeDefined()
+        expect(action.proofRequest.predicates!.attribute.predicates?.[0].restrictions?.length).toEqual(2)
       }
     }
   })

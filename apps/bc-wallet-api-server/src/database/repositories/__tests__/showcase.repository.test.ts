@@ -63,15 +63,15 @@ describe('Database showcase repository tests', (): void => {
     credentialDefinition2 = await createTestCredentialDefinition(asset, credentialSchema, tenant.id)
 
     // Create issuer
-    const issuer = await createTestIssuer(asset, credentialDefinition1, credentialSchema)
+    const issuer = await createTestIssuer(asset, credentialDefinition1, credentialSchema, tenant.id)
 
     // Create personas
     persona1 = await createTestPersona(asset)
     persona2 = await createTestPersona(asset)
 
     // Create scenarios
-    issuanceScenario1 = await createTestScenario(asset, persona1, issuer, credentialDefinition1.id)
-    issuanceScenario2 = await createTestScenario(asset, persona2, issuer, credentialDefinition2.id)
+    issuanceScenario1 = await createTestScenario(asset, persona1, issuer, credentialDefinition1.id, tenant.id)
+    issuanceScenario2 = await createTestScenario(asset, persona2, issuer, credentialDefinition2.id, tenant.id)
   })
 
   afterEach(async (): Promise<void> => {

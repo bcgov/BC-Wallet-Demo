@@ -14,12 +14,9 @@ import StepHeader from '../step-header'
 import ButtonOutline from '../ui/button-outline'
 import { debounce } from 'lodash'
 import { toast } from 'sonner'
-import { useCreatePresentation } from '@/hooks/use-presentation'
 import { usePresentationAdapter } from '@/hooks/use-presentation-adapter'
 import { BasicStepFormData, basicStepSchema } from '@/schemas/onboarding'
-import { usePresentationCreation } from '@/hooks/use-presentation-creation'
-import { CredentialDefinition, PresentationScenarioRequest, StepType } from 'bc-wallet-openapi'
-import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import { CredentialDefinition, StepType } from 'bc-wallet-openapi'
 import { useRouter } from '@/i18n/routing'
 import { LocalFileUpload } from './local-file-upload'
 import { ErrorModal } from '../error-modal'
@@ -29,24 +26,39 @@ import { useCredentialDefinitions } from '@/hooks/use-credentials'
 import { useCredentials } from '@/hooks/use-credentials-store'
 import { StepRequestUIActionTypes } from '@/lib/steps'
 import { useTenant } from '@/providers/tenant-provider'
-import { useUpdateShowcaseScenarios } from '@/hooks/use-showcases'
-import { debugLog } from '@/lib/utils'
+import { useJobStatus } from '../../hooks/use-job-status'
 
 export const BasicStepEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
   const router = useRouter()
-  const { mutateAsync } = useCreatePresentation()
-  const { setScenarioIds, currentShowcaseSlug } = useShowcaseStore()
-  const { selectedScenario, updateStep, selectedStep, setStepState, deleteStep } =
+  const { updateScenario, createScenarios, selectedScenario, updateStep, selectedStep, setStepState, deleteStep, isEditMode, personaScenarios } =
     usePresentationAdapter()
   const [searchResults, setSearchResults] = useState<CredentialDefinition[]>([])
   const { data: credentials } = useCredentialDefinitions();
   const { setSelectedCredential, selectedCredential } = useCredentials()
   const { tenantId } = useTenant();
-  const { personaScenarios } = usePresentationCreation()
-  const { mutateAsync: updateShowcaseScenariosAsync } = useUpdateShowcaseScenarios();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showErrorModal, setErrorModal] = useState(false)
+  const [isUpdated, setIsUpdated] = useState(false)
+
+  const { data: jobsApprovalFailed } = useJobStatus('updateIssuer', 'failed')
+  const { data: jobsStatus } = useJobStatus('credentialDefinition', 'pending')
+
+  const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList]) =>
+    scenarioList.some((scenario) =>
+      scenario.steps?.some(
+        (step) =>
+          step.type === "SERVICE" &&
+          step.actions?.some((action) => {
+            if (action.actionType !== "ARIES_OOB") return false;
+
+            const credDefId = action.credentialDefinitionId;
+            return credDefId === undefined ||
+              (typeof credDefId === "string" && credDefId.trim() === "");
+          })
+      )
+    )
+  );
 
   const currentStep = selectedScenario && selectedStep !== null ? selectedScenario.steps[selectedStep.stepIndex] as StepRequestUIActionTypes : null
 
@@ -106,9 +118,20 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
       return;
     }
 
-    const results = credentials.credentialDefinitions.filter((cred: any) =>
+    let results = credentials.credentialDefinitions.filter((cred: any) =>
       cred.name.toUpperCase().includes(searchUpper)
     );
+
+    //@ts-ignore
+    if (jobsApprovalFailed && jobsApprovalFailed.jobStatus?.length > 0) {
+      results = results.filter((cred) =>
+        jobsApprovalFailed?.jobStatus?.find((job:any) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+    }
+    //@ts-ignore
+    if (jobsStatus && jobsStatus?.jobStatus?.length > 0) {
+      results = results.filter((cred) =>
+        jobsStatus?.jobStatus?.find((job:any) => job?.payloadData?.identifier !== cred.credentialSchema.identifier))
+    }
 
     setSearchResults(results);
   };
@@ -131,65 +154,56 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
 
   const removeCredential = (credentialId: string) => {
     if (!currentStep) return;
-    const updated = currentStep.actions[0].credentialDefinitionId;
 
-    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updated } as unknown as StepRequestUIActionTypes);
+    const { credentialDefinitionId, ...cleanedAction } = currentStep.actions[0];
+    const updatedAction = {
+      ...cleanedAction,
+      proofRequest: {
+        attributes: {},
+        predicates: {},
+      },
+    }
+
+    const updatedActions = [updatedAction];
+
+    updateStep(selectedStep?.stepIndex || 0, { ...currentStep, actions: updatedActions } as unknown as StepRequestUIActionTypes);
     setSelectedCredential(null);
   }
 
   const onSubmit = async (data: BasicStepFormData) => {
     autoSave.flush()
 
-    const mappedScenarios = Array.from(personaScenarios.values()).flatMap((scenarios) =>
-      scenarios.map((scenario) => ({
-        ...scenario,
-        steps: scenario.steps.map((step, index) => {
-          const { credentials, ...restStep } = step as StepRequestUIActionTypes;
-
-          return {
-            ...restStep,
-            order: index,
-            asset: step.asset || undefined,
-            actions:
-              step.type === StepType.Service
-                ? step.actions.map((action) => ({
-                  ...action,
-                  actionType: "ARIES_OOB",
-                  credentialDefinitionId: selectedCredential?.id,
-                }))
-                : step.actions,
-          };
-        }),
-      })),
-    )
-    const scenarioIds = []
-
-    for (const scenario of mappedScenarios) {
-      try {
-        const result = await mutateAsync(scenario as PresentationScenarioRequest)
-        if (result?.presentationScenario?.id) {
-          scenarioIds.push(result.presentationScenario.id)
-        }
-        toast.success(`${scenario?.description || 'persona'} created`)
-      } catch (error) {
-        console.error('Error creating scenario:', error)
-        setErrorModal(true)
-        return
-      }
-    }
-
-    setScenarioIds(scenarioIds)
     try {
-      await updateShowcaseScenariosAsync({
-        showcaseSlug: currentShowcaseSlug,
-        scenarioIds
-      });
+      let result;
+      if (isEditMode && slug) {
+        result = await updateScenario(slug)
 
-      debugLog('Successfully updated showcase with scenario IDs');
-    } catch (updateError) {
-      console.error('Error updating showcase with scenarios:', updateError);
+        if (result.success) {
+          toast.success('Scenarios updated successfully')
+          setIsUpdated(true)
+          // router.push(`/${tenantId}/showcases/${slug}/publish`)
+        } else {
+          throw new Error(result.message || 'Failed to update scenarios')
+        }
+      } else {
+        result = await createScenarios()
+
+        if (result.success) {
+          toast.success('Scenarios created successfully')
+          setIsUpdated(true)
+          // router.push(`/${tenantId}/showcases/create/publish`)
+        } else {
+          throw new Error(result.message || 'Failed to create scenarios')
+        }
+      }
+    } catch (error) {
+      console.error('Error during scenario operation:', error)
+      setErrorModal(true)
     }
-    if (slug) {
+  }
+
+  const GoToNext = () => {
+    if (isEditMode && slug) {
       router.push(`/${tenantId}/showcases/${slug}/publish`)
     } else {
       router.push(`/${tenantId}/showcases/create/publish`)
@@ -202,11 +216,73 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
     return <ErrorModal errorText="Unknown error occurred" setShowModal={setErrorModal} />
   }
 
+  const action = currentStep?.actions?.[0];
+
+  // Extended validation for predicates (same as onSubmit)
+  const hasInvalidPredicates =
+    action?.proofRequest &&
+    currentStep.type === StepType.Service &&
+    Object.values(action.proofRequest.predicates || {}).some((predGroup: any) =>
+      (predGroup.predicates || []).some(
+        (p: any) =>
+          (p.type === '>=' || p.type === '<=') &&
+          (String(p.value) === '0' || !/^\d{8}$/.test(String(p.value)))
+      )
+    )
+
+  // Extended validation for attributes/predicates existence
+  const hasNoAttributesOrPredicates =
+    action?.proofRequest &&
+    currentStep.type === StepType.Service &&
+    Object.values(action.proofRequest.attributes || {}).every(
+      (attrGroup: any) => !attrGroup.attributes || attrGroup.attributes.length === 0
+    ) &&
+    Object.values(action.proofRequest.predicates || {}).every(
+      (predGroup: any) => !predGroup.predicates || predGroup.predicates.length === 0
+    )
+
+  const isProofRequestEmpty =
+    action?.proofRequest && currentStep.type === StepType.Service &&
+    Object.keys(action.proofRequest.attributes || {}).length === 0 &&
+    Object.keys(action.proofRequest.predicates || {}).length === 0;
+
+  const isProofRequestInvalid = isProofRequestEmpty || hasNoAttributesOrPredicates || hasInvalidPredicates
+
+
+  const getInstructionalText = () => {
+    if (currentStep?.order === 0) {
+      return 'This screen will provide the end-user a QR code to scan and receive a proof request on their BC Wallet to share request information from their credential. Please edit the default language for your showcase';
+    } else if (currentStep?.order === 1) {
+      return 'On this screen, you will add details about the credential attributes the end-user will share.  Please edit the default language for your showcase';
+    } else if (currentStep?.order === 2) {
+      return 'This screen will provide the. end-user a message that they have successfully shared the credential from their BC Wallet. Please edit the default language for your showcase';
+    }
+  };
+
+  const getStepTitle = () => {
+    if (currentStep?.order === 0) {
+      return 'Edit Scan QR Code step';
+    }
+    if (currentStep?.order === 1) {
+      return 'Edit Information to Share step';
+    }
+    if (currentStep?.order === 2) {
+      return 'Edit Credential Shared step'
+    }
+
+    return t('onboarding.basic_step_header_title');
+  }
+
   return (
     <>
       <StepHeader
         icon={<Monitor strokeWidth={3} />}
-        title={t('onboarding.basic_step_header_title')}
+        deleteTitle='Delete step'
+        showDropdown={(currentStep?.order ?? 0) >= 3}
+        title={getStepTitle()}
+        //@ts-ignore
+        showDropdown={(currentStep?.order ?? 0) >= 3}
+        title={getStepTitle()}
         onActionClick={(action) => {
           switch (action) {
             case 'save':
@@ -229,6 +305,11 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
       />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {getInstructionalText() && (
+            <p className="text-sm text-muted-foreground mb-4">
+              {getInstructionalText()}
+            </p>
+          )}
           <div className="space-y-6">
             <FormTextInput
               label={t('scenario.edit_page_title_label')}
@@ -236,6 +317,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
               name="title"
               register={form.register}
               error={form.formState.errors.title?.message}
+              isMandatory={true}
               placeholder={t('scenario.edit_page_title_placeholder')}
             />
 
@@ -245,6 +327,7 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
               name="description"
               register={form.register}
               error={form.formState.errors.description?.message}
+              isMandatory={true}
               placeholder={t('scenario.edit_page_description_placeholder')}
             />
           </div>
@@ -277,11 +360,12 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
 
           {currentStep?.type == StepType.Service && (
             <div className="space-y-4">
-              <h4 className="text-xl font-bold">Request Options</h4>
+              <h4 className="text-md font-bold">Confirm the information to send in the proof request</h4>
               <hr />
 
               <div className="space-y-4">
                 <div>
+                  <p className="text-sm text-muted-foreground mb-4">{'In this section, you must search for and select a credential to be shared. Add the credential attribute(s) you wish the end-user to share. Please make sure to Save before proceeding.'}</p>
                   <p className="text-md font-bold">Search for a Credential:</p>
                   <div className="flex flex-row justify-center items-center my-4">
                     <div className="relative w-full">
@@ -308,13 +392,27 @@ export const BasicStepEdit = ({ slug }: { slug?: string }) => {
               </div>
             </div>
           )}
-          <div className="mt-auto pt-4 border-t flex justify-end gap-3">
-            <ButtonOutline onClick={() => setStepState('no-selection')}>{t('action.cancel_label')}</ButtonOutline>
-            {/* <Link href="/publish"> */}
-            <ButtonOutline type="submit" disabled={!form.formState.isValid} onClick={form.handleSubmit(onSubmit)}>
-              {t('action.next_label')}
-            </ButtonOutline>
-            {/* </Link> */}
+          <div className="mt-auto pt-4 border-t flex justify-between ">
+            <ButtonOutline onClick={() => setStepState('no-selection')}>{'help'}</ButtonOutline>
+
+            <div className='flex gap-4'>
+
+              <ButtonOutline type="button"
+                disabled={!form.formState.isValid}
+                onClick={form.handleSubmit(onSubmit)}
+              >
+                {'Save'}
+              </ButtonOutline>
+
+              <ButtonOutline type="button"
+                disabled={!isUpdated}
+                // disabled={!form.formState.isValid || isProofRequestInvalid || isInvalidServiceStep}
+                onClick={() => GoToNext()}
+              >
+                {'Proceed to Publish'}
+              </ButtonOutline>
+            </div>
+
           </div>
         </form>
       </Form>

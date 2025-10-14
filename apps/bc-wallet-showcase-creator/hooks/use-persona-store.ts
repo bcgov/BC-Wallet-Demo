@@ -1,39 +1,52 @@
 'use client'
 
-import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
+import { create } from 'zustand'
+import { immer } from 'zustand/middleware/immer'
 
-type PersonaState = "editing-persona" | "no-selection" | "creating-new";
+type PersonaState = 'editing-persona' | 'no-selection' | 'creating-new'
 interface State {
-  editMode: boolean;
-  personaState: PersonaState;
+  editMode: boolean
+  personaState: PersonaState
+  draftHeadshotImage: string | null
+  draftBodyImage: string | null
 }
 
 interface Actions {
-  setEditMode: (mode: boolean) => void;
-  setStepState: (state: PersonaState) => void;
-  reset: () => void;
+  setEditMode: (mode: boolean) => void
+  setStepState: (state: PersonaState) => void
+  setDraftImages: (images: { headshot?: string | null; body?: string | null }) => void
+  reset: () => void
 }
 
 export const usePersonaStore = create<State & Actions>()(
   immer((set) => ({
     editMode: false,
-    personaState: "no-selection",
+    personaState: 'creating-new',
+    draftHeadshotImage: null,
+    draftBodyImage: null,
 
     setStepState: (newState) =>
       set((state) => {
-        state.personaState = newState;
+        state.personaState = newState
       }),
 
     setEditMode: (mode) =>
       set((state) => {
-        state.editMode = mode;
+        state.editMode = mode
+      }),
+
+    setDraftImages: ({ headshot, body }) =>
+      set((state) => {
+        if (headshot !== undefined) state.draftHeadshotImage = headshot
+        if (body !== undefined) state.draftBodyImage = body
       }),
 
     reset: () =>
       set((state) => {
-        state.personaState = "no-selection";
-        state.editMode = false;
+        state.personaState = 'creating-new'
+        state.editMode = false
+        state.draftHeadshotImage = null
+        state.draftBodyImage = null
       }),
-  }))
-);
+  })),
+)

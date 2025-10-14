@@ -1,13 +1,15 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { sampleAction } from '@/lib/steps'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { usePersonas } from './use-personas'
-import type { Persona, PresentationScenarioRequest, StepActionRequest, StepRequest } from 'bc-wallet-openapi'
+import type { Persona, PresentationScenarioRequest, Step, StepActionRequest, StepRequest } from 'bc-wallet-openapi'
 import { StepActionType, StepType } from 'bc-wallet-openapi'
+import { useShowcase } from './use-showcases'
+import { presentationScenarioToPresentationScenarioRequest } from '@/lib/parsers'
 
 enableMapSet()
 
@@ -24,6 +26,7 @@ interface PresentationCreationState {
   selectedStep: SelectedStep
 
   // Actions
+  initializeWithScenarios: (scenariosMap: Record<string, PresentationScenarioRequest[]>) => void
   setActivePersonaId: (id: string | null) => void
   setActiveScenarioIndex: (index: number) => void
   updatePersonaSteps: (personaId: string, scenarioIndex: number, steps: StepRequest[]) => void
@@ -57,6 +60,12 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
     selectedScenarioId: null as string | null,
     selectedStep: null as SelectedStep | null,
 
+    initializeWithScenarios: (scenariosMap) =>
+      set((state) => {
+        state.personaScenariosMap = scenariosMap
+        state.selectedStep = null
+      }),
+
     setSelectedScenarioId: (id) =>
       set((state) => {
         state.selectedScenarioId = id
@@ -65,6 +74,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
     setActivePersonaId: (id) =>
       set((state) => {
         state.activePersonaId = id
+        state.activeScenarioIndex = 0
       }),
 
     setActiveScenarioIndex: (index) =>
@@ -155,6 +165,7 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         const duplicatedScenario = JSON.parse(JSON.stringify(scenarioToDuplicate))
 
         duplicatedScenario.name = `${duplicatedScenario.name} (Copy)`
+        duplicatedScenario.slug = null
 
         const newScenarioIndex = scenarios.length
 
@@ -164,12 +175,19 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
           scenarioIndex: newScenarioIndex,
         }))
 
-        scenarios.push(duplicatedScenario)
+        return {
+          personaScenariosMap: {
+            ...state.personaScenariosMap,
+            [personaId]: [...scenarios, duplicatedScenario],
+          },
+        }
+        // scenarios.push(duplicatedScenario)
       }),
 
     addStep: (personaId, scenarioIndex, stepData) =>
       set((state) => {
-        if (!state.personaScenariosMap[personaId]) return
+        const existingScenarios = state.personaScenariosMap[personaId]
+        if (!existingScenarios) return
 
         const scenarios = state.personaScenariosMap[personaId]
         if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
@@ -367,14 +385,15 @@ const usePresentationCreationStore = create<PresentationCreationState>()(
         state.activeScenarioIndex = 0
       })
     },
-
   })),
 )
 
-export const usePresentationCreation = () => {
+export const usePresentationCreation = (showcaseSlug?: string) => {
   const { selectedPersonaIds } = useShowcaseStore()
   const { relayerId, selectedCredentialDefinitionIds } = useHelpersStore()
   const { data: personasData } = usePersonas()
+  const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const {
     personaScenariosMap,
@@ -401,10 +420,91 @@ export const usePresentationCreation = () => {
     selectedStep,
     setSelectedStep,
     selectStep,
+    initializeWithScenarios,
     reset,
   } = usePresentationCreationStore()
 
   useEffect(() => {
+    if (showcaseSlug && showcaseData && !isShowcaseLoading && !isInitialized) {
+      const showcase = showcaseData?.showcase
+
+      if (showcase) {
+        const issuanceScenarios = showcase.scenarios?.filter((scenario) => scenario.type === 'PRESENTATION') || []
+
+        const personaScenariosData: Record<string, PresentationScenarioRequest[]> = {}
+        
+        if (issuanceScenarios.length === 0) {
+          initializeWithScenarios(personaScenariosMap)
+          setIsInitialized(true)
+          return
+        } else {
+          issuanceScenarios.forEach((scenario) => {
+            if (scenario.personas && scenario.personas.length > 0) {
+              scenario.personas.forEach((persona) => {
+                if (!personaScenariosData[persona.id]) {
+                  personaScenariosData[persona.id] = []
+                }
+
+                const scenarioRequest = presentationScenarioToPresentationScenarioRequest(scenario)
+                personaScenariosData[persona.id].push(scenarioRequest)
+              })
+            }
+          })
+
+          const mergedScenarios: Record<string, PresentationScenarioRequest[]> = { ...personaScenariosMap }
+
+          for (const personaId in personaScenariosData) {
+            const apiScenarios = personaScenariosData[personaId]
+            const localScenarios = mergedScenarios[personaId] || []
+
+            const mergedPersonaScenarios: PresentationScenarioRequest[] = []
+
+            apiScenarios.forEach((apiScenario) => {
+              const localMatch = localScenarios.find((local) => local.name === apiScenario.name)
+
+              if (localMatch) {
+                const apiStepKeys = new Set(apiScenario.steps?.map((s) => s.type + s.order))
+                const extraLocalSteps = localMatch.steps?.filter((s) => !apiStepKeys.has(s.type + s.order)) || []
+
+                mergedPersonaScenarios.push({
+                  ...apiScenario,
+                  steps: [...apiScenario.steps, ...extraLocalSteps],
+                })
+              } else {
+                mergedPersonaScenarios.push(apiScenario)
+              }
+            })
+
+            const extraLocalScenarios = localScenarios.filter(
+              (local) => !apiScenarios.find((api) => api.name === local.name),
+            )
+
+            mergedScenarios[personaId] = [...mergedPersonaScenarios, ...extraLocalScenarios]
+          }
+
+          initializeWithScenarios(mergedScenarios)
+
+          if (!activePersonaId && Object.keys(mergedScenarios).length > 0) {
+            setActivePersonaId(Object.keys(mergedScenarios)[0])
+          }
+
+          setIsInitialized(true)
+        }
+      }
+    }
+  }, [
+    showcaseSlug,
+    showcaseData,
+    isShowcaseLoading,
+    isInitialized,
+    initializeWithScenarios,
+    activePersonaId,
+    setActivePersonaId,
+  ])
+
+   useEffect(() => {
+    if (showcaseSlug && isInitialized) return
+
     const personas = (personasData?.personas || []).filter((persona: Persona) =>
       selectedPersonaIds.includes(persona.id),
     )
@@ -419,6 +519,8 @@ export const usePresentationCreation = () => {
       setActivePersonaId(personas[0].id)
     }
   }, [
+    showcaseSlug,
+    isInitialized,
     personasData,
     selectedPersonaIds,
     personaScenariosMap,
@@ -448,8 +550,10 @@ export const usePresentationCreation = () => {
     personaScenarios,
     activePersonaId,
     setActivePersonaId,
-    updatePersonaSteps,
-    addActionToStep,
+    updatePersonaSteps: (personaId: string, steps: StepRequest[]) =>
+      updatePersonaSteps(personaId, activeScenarioIndex, steps),
+    addActionToStep: (personaId: string, stepIndex: number, action: StepActionRequest) =>
+      addActionToStep(personaId, stepIndex, action),
     addPersonaScenario: (persona: Persona) => addPersonaScenario(persona, relayerId),
     duplicateScenario,
     activeScenarioIndex,
@@ -464,13 +568,14 @@ export const usePresentationCreation = () => {
     setStepState,
     stepState,
     selectedScenario,
-    updateScenario: (scenarioData: PresentationScenarioRequest) =>
-      activePersonaId && updateScenario(activePersonaId, activeScenarioIndex, scenarioData),
+    updateScenario,
     removeScenario: () => activePersonaId && removeScenario(activePersonaId, activeScenarioIndex),
     selectedStep,
     setSelectedStep,
     selectStep,
     personaScenariosMap,
+    isShowcaseLoading,
+    isInitialized,
     reset,
   }
 }

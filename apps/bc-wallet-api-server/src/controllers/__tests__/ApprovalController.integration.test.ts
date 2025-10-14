@@ -99,7 +99,7 @@ describe('ApprovalController Integration Tests', () => {
 
   it('should approve a specific credential definition', async () => {
     // 1. Setup: Create an unapproved definition using the API helper
-    const definition = await createUnapprovedCredDef('cred-def-api-approve', sessionService.getCurrentTenant()!.id)
+    const definition = await createUnapprovedCredDef('example_name', sessionService.getCurrentTenant()!.id)
 
     // 2. Action: Call the API endpoint
     const response = await request.post(`/credentials/definitions/${definition.id}/approve`).expect(200)
@@ -166,7 +166,7 @@ describe('ApprovalController Integration Tests', () => {
     const tenantId = getTenantId()
 
     // 1. Setup: Create a mix of approved and unapproved items using API helpers
-    const unapprovedDef = await createUnapprovedCredDef('pending-def-api', tenantId)
+    const unapprovedDef = await createUnapprovedCredDef('example_name', tenantId)
     const unapprovedShowcase = await createTestShowcase(tenantId, 'pending-showcase-api')
 
     const approvedDef = await createUnapprovedCredDef('approved-def-api', tenantId)

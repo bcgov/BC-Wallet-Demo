@@ -14,6 +14,7 @@ import { useUseCaseState } from '../../slices/useCases/useCasesSelectors'
 import { basePath } from '../../utils/BasePath'
 import { Section } from './Section'
 import { fetchPersonaBySlug, fetchScenarioBySlug, fetchShowcaseBySlug } from '../../slices/showcases/showcasesThunks'
+import { clearShowcase } from '../../slices/showcases/showcasesSlice'
 import { usePersonaSlug, useScenarioSlug, useSlug } from '../../utils/SlugUtils'
 import { PageNotFound } from '../PageNotFound'
 import type { PresentationScenario } from '../../slices/types'
@@ -38,6 +39,7 @@ export const UseCasePage: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
+      dispatch(clearShowcase())
       await dispatch(fetchShowcaseBySlug(showcaseSlug))
       await dispatch(fetchPersonaBySlug(personaSlug))
       await dispatch(fetchScenarioBySlug(scenarioSlug))
@@ -45,7 +47,14 @@ export const UseCasePage: React.FC = () => {
     void load()
   }, [dispatch, showcaseSlug, personaSlug, scenarioSlug])
 
-  if (showcase === undefined || currentPersona === undefined || currentScenario === undefined) {
+  if (
+    showcase === undefined ||
+    currentPersona === undefined ||
+    currentScenario === undefined ||
+    showcase?.slug !== showcaseSlug ||
+    currentPersona?.slug !== personaSlug ||
+    currentScenario?.slug !== scenarioSlug
+  ) {
     return <div>Loading...</div>
   }
 

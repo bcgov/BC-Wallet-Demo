@@ -1,12 +1,13 @@
 import { relations, sql } from 'drizzle-orm'
 import { check, pgTable, text, timestamp, uuid, boolean, index } from 'drizzle-orm/pg-core'
-import { steps } from './step'
-import { issuers } from './issuer'
-import { scenariosToPersonas } from './scenariosToPersonas'
-import { relyingParties } from './relyingParty'
-import { ScenarioTypePg } from './scenarioType'
-import { assets } from './asset'
+
 import { ScenarioType } from '../../types'
+import { assets } from './asset'
+import { issuers } from './issuer'
+import { relyingParties } from './relyingParty'
+import { scenariosToPersonas } from './scenariosToPersonas'
+import { ScenarioTypePg } from './scenarioType'
+import { steps } from './step'
 
 export const scenarios = pgTable(
   'scenario',
@@ -16,9 +17,9 @@ export const scenarios = pgTable(
     slug: text().notNull().unique(),
     description: text().notNull(),
     scenarioType: ScenarioTypePg('scenario_type').notNull().$type<ScenarioType>(),
-    issuer: uuid().references(() => issuers.id),
+    issuer: uuid().references(() => issuers.id, { onDelete: 'set null' }),
     hidden: boolean().notNull().default(false),
-    relyingParty: uuid('relying_party').references(() => relyingParties.id),
+    relyingParty: uuid('relying_party').references(() => relyingParties.id, { onDelete: 'set null' }),
     bannerImage: uuid('banner_image').references(() => assets.id),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
@@ -31,7 +32,8 @@ export const scenarios = pgTable(
       'scenario_type_check',
       sql`
             (scenario_type = 'PRESENTATION' AND relying_party IS NOT NULL) OR
-            (scenario_type = 'ISSUANCE' AND issuer IS NOT NULL)
+            (scenario_type = 'ISSUANCE' AND issuer IS NOT NULL) OR
+            (issuer IS NULL AND relying_party IS NULL)
     `,
     ),
     index('idx_relyingParty_issuer_scenario').on(t.relyingParty),

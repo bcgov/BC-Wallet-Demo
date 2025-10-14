@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { setupCache } from 'axios-cache-interceptor'
 import type { CacheOptions } from 'axios-cache-interceptor/src/cache/create'
+
 import { getTenantIdFromPath } from '../utils/Helpers'
 
 declare global {
@@ -17,6 +18,7 @@ const getEnv = (key: string, fallback: string): string => {
   if (window.__env && window.__env[key as keyof typeof window.__env]) {
     return window.__env[key as keyof typeof window.__env] || fallback
   }
+  console.warn(`Using process.env var for ${key}. This should only happen in dev environments`)
   return process.env[key] || fallback
 }
 
@@ -39,9 +41,9 @@ export const demoBackendApi = setupCache(
   cacheOptions,
 )
 
-const tenantId = getTenantIdFromPath();
-const base = getEnv('REACT_APP_SHOWCASE_API_URL', '');
-export const showcaseServerBaseUrl = tenantId ? `${base}/${tenantId}` : base;
+const tenantId = getTenantIdFromPath()
+const base = getEnv('REACT_APP_SHOWCASE_API_URL', '')
+export const showcaseServerBaseUrl = tenantId ? `${base}/${tenantId}` : base
 
 export const showcaseApi = setupCache(
   axios.create({

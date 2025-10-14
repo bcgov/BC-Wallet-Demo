@@ -28,12 +28,29 @@ const presentationScenarioRequestSchema = z.object({
 
 export const ScenarioEdit = ({ slug }: { slug?: string }) => {
   const t = useTranslations()
-  const { selectedScenario, updateScenario, setStepState, removeScenario } = usePresentationCreation()
+  const {
+    selectedScenario,
+    updateScenario,
+    setStepState,
+    removeScenario,
+    activePersonaId,
+    activeScenarioIndex,
+  } = usePresentationCreation()
   const [isOpen, setIsOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const form = useForm<PresentationScenarioRequest>({
     resolver: zodResolver(presentationScenarioRequestSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      steps: [
+        {
+          title: '',
+          description: '',
+        },
+      ],
+    },
     mode: 'onChange',
   })
 
@@ -44,10 +61,16 @@ export const ScenarioEdit = ({ slug }: { slug?: string }) => {
   }, [selectedScenario, form.reset])
 
   const onSubmit = (data: PresentationScenarioRequest) => {
-    if (selectedScenario === null) return
+    if (selectedScenario === null || !activePersonaId) return
 
-    // updateScenario(selectedScenario, updatedScenario)
-    setStepState('no-selection')
+    const updatedScenario = {
+      ...selectedScenario,
+      name: data.name,
+      description: data.description,
+    }
+
+    updateScenario(activePersonaId, activeScenarioIndex, updatedScenario)
+    setStepState('editing-basic')
   }
 
   if (!selectedScenario) return null
@@ -87,6 +110,9 @@ export const ScenarioEdit = ({ slug }: { slug?: string }) => {
         <hr /> */}
 
           <div className="space-y-6">
+            <p className="text-sm text-muted-foreground mb-4">
+                {'This screen will be the end-user’s introduction to the scenario, so you will want to provide as many details as possible.'}
+            </p>
             <h4 className="text-xl font-bold">{t('scenario.edit_overview_label')}</h4>
 
             <FormTextInput
@@ -98,14 +124,14 @@ export const ScenarioEdit = ({ slug }: { slug?: string }) => {
               control={form.control}
             />
 
-            <FormTextInput
+            {/* <FormTextInput
               label={t('scenario.scenario_description')}
               name="description"
               register={form.register}
               error={form.formState.errors.description?.message}
               placeholder={t('scenario.edit_page_title_placeholder')}
               control={form.control}
-            />
+            /> */}
             {/* 
           <FormTextArea
             label={t('scenario.edit_page_description_label')}
@@ -206,13 +232,13 @@ export const ScenarioEdit = ({ slug }: { slug?: string }) => {
             </ButtonOutline>
             <ButtonOutline
               type="submit"
-              // disabled={!form.formState.isDirty || !form.formState.isValid}
+              disabled={!form.formState.isDirty || !form.formState.isValid}
             >
               {t('action.save_label')}
             </ButtonOutline>
-            <Button type="submit" disabled={!form.formState.isDirty || !form.formState.isValid}>
+            {/* <Button type="submit" disabled={!form.formState.isDirty || !form.formState.isValid}>
               {t('action.save_label')}
-            </Button>
+            </Button> */}
           </div>
         </form>
       </Form>

@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import ButtonOutline from '@/components/ui/button-outline'
 import { Card } from '@/components/ui/card'
 import { useCreateShowcase, useDeleteShowcase, useDuplicateShowcase, useShowcases } from '@/hooks/use-showcases'
-import { Link } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import { baseUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import type { Persona, Showcase } from 'bc-wallet-openapi'
+import { ShowcaseStatus, TenantResponse, type Persona, type Showcase, type ShowcaseRequest } from 'bc-wallet-openapi'
 import { CopyButton } from '../ui/copy-button'
 import { DeleteButton } from '../ui/delete-button'
 import { OpenButton } from '../ui/external-open-button'
@@ -18,6 +18,15 @@ import Header from '../header'
 import { env } from '@/env'
 import { getTenantId } from '@/providers/tenant-provider'
 import { toast } from 'sonner'
+import apiClient from '@/lib/apiService'
+import { showcaseToShowcaseRequest } from '@/lib/parsers'
+import { useHelpersStore } from '@/hooks/use-helpers-store'
+import { useQueryClient } from '@tanstack/react-query'
+import { useCredentialDefinitions } from '@/hooks/use-credentials'
+import { usePresentationCreation } from '@/hooks/use-presentation-creation'
+import { useOnboardingCreationStore } from '@/hooks/use-onboarding-store'
+import { useShowcaseStore } from '@/hooks/use-showcases-store'
+import DeleteModal from '../delete-modal'
 
 const WALLET_URL = env.NEXT_PUBLIC_WALLET_URL
 
@@ -25,11 +34,20 @@ export const ShowcaseList = () => {
   const t = useTranslations()
   const { data, isLoading } = useShowcases()
   const { mutateAsync: deleteShowcase } = useDeleteShowcase()
+  const { reset, setScenarioIds,setPersonaIds } = useShowcaseStore()
   const { mutateAsync: duplicateShowcase } = useDuplicateShowcase()
+  const { data: credentials } = useCredentialDefinitions()
+  const resetIds = usePresentationCreation().reset
+  const resetOnboardingIds = useOnboardingCreationStore().reset
+  const { issuerId, relayerId } = useHelpersStore()
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showcaseToDelete, setShowcaseToDelete] = useState<string | null>(null)
+
   const tabs = [
     { label: t('showcases.header_tab_overview'), status: 'ALL' },
     { label: t('showcases.header_tab_draft'), status: 'PENDING' },
-    { label: t('showcases.header_tab_under_review'), status: 'UNDER_REVIEW' },
     { label: t('showcases.header_tab_published'), status: 'ACTIVE' },
   ]
 
@@ -45,6 +63,55 @@ export const ShowcaseList = () => {
     return showcase.name.toLowerCase().includes(searchTerm.toLowerCase())
   }
 
+    const { setIssuerId, setRelayerId } = useHelpersStore()
+  
+    useEffect(() => {
+      const fetchTenantConfig = async () => {
+        if (tenantId) {
+          try {
+            const endpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+            const response = await fetch(endpoint, {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json',
+              },
+            })
+  
+            if (!response.ok) {
+              throw new Error(`Failed to fetch tenant config for ${tenantId}.`)
+            }
+  
+            const tenantResponse = (await response.json()) as TenantResponse
+            if (tenantResponse.tenant.issuers && tenantResponse.tenant.relyingParties) {
+              setIssuerId(tenantResponse.tenant.issuers[0].id)
+              setRelayerId(tenantResponse.tenant.relyingParties[0].id)
+            }
+          } catch (error) {
+            console.error('Error fetching tenant config:', error)
+          }
+        }
+      }
+
+      reset()
+      setScenarioIds([])
+      setPersonaIds([])
+      resetIds()
+      resetOnboardingIds()
+  
+      void fetchTenantConfig()
+    }, [tenantId, setIssuerId, setRelayerId])
+
+  const handleDeleteShowcase = async (showcaseSlug: string) => {
+   await deleteShowcase(showcaseSlug)
+    reset()
+    setScenarioIds([])
+    setPersonaIds([])
+    resetIds()
+    resetOnboardingIds()
+    setIsModalOpen(false)
+    queryClient.invalidateQueries({ queryKey: ['showcases'] })
+  }
+
   const handleDuplicateShowcase = async (showcaseSlug: string) => {
     const newShowcase = await duplicateShowcase(showcaseSlug, {
       onSuccess: (data: unknown) => {
@@ -58,6 +125,53 @@ export const ShowcaseList = () => {
     console.log('newShowcase', newShowcase)
   }
 
+  const openModal = (slug: string) => {
+    setShowcaseToDelete(slug)
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setShowcaseToDelete(null)
+    setIsModalOpen(false)
+  }
+
+  const confirmDelete = () => {
+    if (showcaseToDelete) {
+      handleDeleteShowcase(showcaseToDelete)
+    }
+  }
+
+  const UpdateShowcaseStatus = async(showcase: Showcase) => {
+    
+    const showcaseRequest = showcaseToShowcaseRequest(showcase);
+    const updatedShowcase = {
+      ...showcaseRequest,
+      status: ShowcaseStatus.Pending
+    };
+  
+    const response = await apiClient.put(`/showcases/${showcase.slug}`, updatedShowcase)
+
+    if(response) {
+      queryClient.invalidateQueries({ queryKey: ['showcase', showcase.slug] })
+      queryClient.invalidateQueries({ queryKey: ['showcases'] })
+      router.push(`/${tenantId}/showcases/${showcase.slug}`)
+    }
+  }
+
+  const HandleShowcaseCreate = () => {
+    reset()
+    setScenarioIds([])
+    setPersonaIds([])
+    resetIds()
+    resetOnboardingIds()
+    if (!issuerId || !relayerId || credentials?.credentialDefinitions?.length === 0) {
+      toast.error('Please create a credential before creating a showcase.', { duration: 4000 })
+      return
+    } else {
+      router.push(`/${tenantId}/showcases/create`)
+    }
+  }
+  
   return (
     <div className="flex-1 bg-light-bg dark:bg-dark-bg dark:text-dark-text text-light-text min-h-[calc(100vh-40px)]">
       <Header
@@ -66,8 +180,7 @@ export const ShowcaseList = () => {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         buttonLabel={t('showcases.create_new_showcase_label')}
-        // buttonLink="/showcases/create"
-        buttonLink={`/${tenantId}/showcases/create`}
+        buttonLink={HandleShowcaseCreate}
       />
 
       {!isLoading && (
@@ -112,7 +225,6 @@ export const ShowcaseList = () => {
           {data?.showcases
             ?.filter(searchFilter)
             .filter((showcase) => activeTab.status === tabs[0].status || showcase.status === activeTab.status)
-            .reverse()
             .map((showcase: Showcase) => (
               <Card key={showcase.id}>
                 <div
@@ -131,7 +243,7 @@ export const ShowcaseList = () => {
                   >
                     <div
                       className={cn(
-                        'left-4 right-0 top-4 py-2 rounded w-1/4 absolute',
+                        'left-4 right-0 top-4 py-2 rounded w-fit px-2 absolute',
                         showcase.status == 'ACTIVE' ? 'bg-yellow-500' : 'bg-dark-grey',
                       )}
                     >
@@ -143,7 +255,7 @@ export const ShowcaseList = () => {
                     <div className="absolute bg-black bottom-0 left-0 right-0 bg-opacity-70 p-3">
                       <p className="text-xs text-gray-300 break-words">
                         {t('showcases.created_by_label', {
-                          name: 'Test college',
+                          name: tenantId,
                         })}
                       </p>
                       <div className="flex justify-between">
@@ -151,12 +263,12 @@ export const ShowcaseList = () => {
                         <div className="flex-shrink-0">
                           <DeleteButton
                             onClick={() => {
-                              deleteShowcase(showcase.slug)
+                              openModal(showcase.slug)
                             }}
                           />
 
-                          <CopyButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
-                          <OpenButton value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                          <CopyButton disabled={showcase.status !== 'ACTIVE'} value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
+                          <OpenButton disabled={showcase.status !== 'ACTIVE'} value={`${WALLET_URL}/${tenantId}/${showcase.slug}`} />
                         </div>
                       </div>
                     </div>
@@ -205,12 +317,13 @@ export const ShowcaseList = () => {
                     <div className="flex gap-4 mt-auto">
                       <Link className="w-1/2" href={`/${tenantId}/showcases/${showcase.slug}`}>
                         <ButtonOutline
+                          onClick={() => UpdateShowcaseStatus(showcase)}
                           className="w-full"
                         >
                           {t('action.edit_label')}
                         </ButtonOutline>
                       </Link>
-                      <ButtonOutline onClick={() => handleDuplicateShowcase(showcase.slug)} className="w-1/2">
+                      <ButtonOutline disabled={showcase.status !== 'ACTIVE'} onClick={() => handleDuplicateShowcase(showcase.slug)} className="w-1/2">
                         {t('action.create_copy_label')}
                       </ButtonOutline>
                     </div>
@@ -221,18 +334,17 @@ export const ShowcaseList = () => {
         </div>
       </section>
 
-      {/* <DeleteModal
+        <DeleteModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onDelete={() => {
-            setIsModalOpen(false);
-          }}
-          header="Edit Published Showcase?"
-          description="You are about to edit a published showcase. If you instead wish to make a copy, click <b>Cancel</b> below and then select <b>Create A Copy</b> under the showcase card"
-          subDescription="If you proceed with editing, a <b>Draft version</b> will be created. This Draft will remain unpublished until an Admin approves your changes. <b>Until then, the current published showcase will stay active.</b>"
+          onClose={() => closeModal()}
+          onDelete={() => confirmDelete()}
+          header="Are you sure you want to delete this showcase?"
+          description="Are you sure you want to delete this showcase?"
+          subDescription="<b>This action cannot be undone.</b>"
           cancelText="CANCEL"
-          deleteText="PROCEED WITH EDITING"
-        /> */}
+          deleteText="DELETE"
+          isLoading={isLoading}
+        />
     </div>
   )
 }

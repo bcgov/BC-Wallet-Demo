@@ -1,13 +1,18 @@
 import { IAdapterClientApi } from 'bc-wallet-adapter-client-api'
 import { type CredentialDefinitionImportRequest } from 'bc-wallet-openapi'
+import { randomUUID } from 'crypto'
+import { pino } from 'pino'
 import { ForbiddenError, InternalServerError } from 'routing-controllers'
 import { Inject, Service } from 'typedi'
 import { validate as uuidValidate } from 'uuid'
 
 import CredentialDefinitionRepository from '../database/repositories/CredentialDefinitionRepository'
+import JobEntityMapRepository from '../database/repositories/JobEntityMapRepository'
+import JobStatusRepository from '../database/repositories/JobStatusRepository'
 import { CredentialDefinition, NewCredentialDefinition } from '../types'
 import { ISessionService } from '../types/services/session'
 import { AbstractAdapterClientService } from './AbstractAdapterClientService'
+import TenantService from './TenantService'
 
 /**
  * Service for managing credential definitions.
@@ -16,12 +21,16 @@ import { AbstractAdapterClientService } from './AbstractAdapterClientService'
  */
 @Service()
 class CredentialDefinitionService extends AbstractAdapterClientService {
+  private readonly logger = pino()
   public constructor(
     @Inject('ISessionService') sessionService: ISessionService,
     @Inject('IAdapterClientApi') private readonly adapterClientApi: IAdapterClientApi,
     private readonly credentialDefinitionRepository: CredentialDefinitionRepository,
+    private readonly jobStatusRepository: JobStatusRepository,
+    private readonly jobEntityMapRepository: JobEntityMapRepository,
+    tenantService: TenantService,
   ) {
-    super(sessionService)
+    super(sessionService, tenantService)
   }
 
   /**
@@ -29,8 +38,18 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * @returns Promise resolving to an array of CredentialDefinition objects
    */
   public getCredentialDefinitions = async (): Promise<CredentialDefinition[]> => {
+    this.logger.info('getCredentialDefinitions: Fetching all credential definitions for tenant')
     this.sessionService.getCurrentTenant()
-    return this.credentialDefinitionRepository.findAll(this.getTenantId())
+    const tenantId = this.getTenantId()
+    this.logger.debug({ tenantId }, 'getCredentialDefinitions: Tenant ID')
+    try {
+      const definitions = await this.credentialDefinitionRepository.findAll(tenantId)
+      this.logger.info({ count: definitions.length }, 'getCredentialDefinitions: Fetched credential definitions count')
+      return definitions
+    } catch (err) {
+      this.logger.error({ err }, 'getCredentialDefinitions: Error fetching definitions')
+      throw err
+    }
   }
 
   /**
@@ -39,6 +58,7 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
    * @returns Promise resolving to the requested CredentialDefinition
    */
   public getCredentialDefinition = async (id: string): Promise<CredentialDefinition> => {
+    this.logger.info(`get credential definition id=${id}`)
     if (!uuidValidate(id) && id.split(':').length >= 3) {
       // support for lookup by indy identifier
       return this.credentialDefinitionRepository.findByIdentifier(id)
@@ -72,7 +92,21 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
       )
     }
 
-    return this.credentialDefinitionRepository.create(credentialDefinition)
+    const savedCredentialDefinition = await this.credentialDefinitionRepository.create(credentialDefinition)
+    if (credentialDefinition.jobId) {
+      await this.jobStatusRepository.update(credentialDefinition.jobId, {
+        status: 'completed',
+        resultData: savedCredentialDefinition,
+      })
+
+      // Update job entity map with the actual credential schema ID
+      await this.jobEntityMapRepository.updateStatus(credentialDefinition.jobId, {
+        status: 'completed',
+        entityId: savedCredentialDefinition.id as unknown as string,
+      })
+    }
+
+    return savedCredentialDefinition
   }
 
   /**
@@ -130,7 +164,22 @@ class CredentialDefinitionService extends AbstractAdapterClientService {
       return Promise.reject(Error('Identifier type and identifier are required for credential definition import.'))
     }
 
-    await this.adapterClientApi.importCredentialDefinition(importRequest, this.buildSendOptions())
+    const jobDetails = await this.jobStatusRepository.create({
+      status: 'pending',
+      apiName: 'importCredentialDefinition',
+      endpoint: '/credentials/definitions/import',
+      payloadData: JSON.stringify(importRequest),
+    })
+    await this.jobEntityMapRepository.create({
+      jobId: jobDetails.jobId as unknown as string,
+      entityType: 'credentialDefinition',
+      entityId: randomUUID(),
+      status: 'pending',
+      action: 'create',
+    })
+    importRequest.jobId = jobDetails.jobId as unknown as string
+
+    await this.adapterClientApi.importCredentialDefinition(importRequest, await this.buildSendOptions())
   }
 
   /**

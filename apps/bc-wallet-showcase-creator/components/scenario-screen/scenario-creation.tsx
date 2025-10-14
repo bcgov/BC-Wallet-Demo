@@ -30,25 +30,34 @@ export const CreateScenariosScreen = () => {
     duplicateScenario,
     setActiveScenarioIndex,
     activeScenarioIndex,
+    setSelectedStep,
     deleteScenario,
+    activePersona
   } = usePresentationAdapter()
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
   const { tenantId } = useTenant();
+
+  const parseId = (composedId: string) => {
+    const match = composedId.match(/^step-(\d+)-(\d+)$/);
+    if (!match) return null;
+    const stepIndex = parseInt(match[1], 10);
+    const scenarioIndex = parseInt(match[2], 10);
+    return { stepIndex, scenarioIndex };
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     if (!over) return
 
     // Find the steps by their IDs
-    const activeStep = activeScenario?.steps.find((step: any) => step.id === active.id)
-    const overStep = activeScenario?.steps.find((step: any) => step.id === over.id)
+    const from = parseId(active.id as string);
+    const to = parseId(over?.id as string);
 
-    if (!activeStep || !overStep) return
+    if (!from || !to) return;
 
-    // Get the indexes
-    const oldIndex = activeScenario.steps.indexOf(activeStep)
-    const newIndex = activeScenario.steps.indexOf(overStep)
+    const oldIndex = from.scenarioIndex;
+    const newIndex = to.scenarioIndex;
 
     if (oldIndex !== newIndex) {
       moveStep(oldIndex, newIndex)
@@ -56,8 +65,11 @@ export const CreateScenariosScreen = () => {
   }
 
   const handleDragStart = (event: DragStartEvent) => {
-    // Handle drag start if needed
-  }
+    const parsed = parseId(event.active.id as string);
+    if (!parsed) return;
+
+    setSelectedStep({ stepIndex: parsed.stepIndex, scenarioIndex: parsed.scenarioIndex });
+  };
 
   const handleScenarioClick = (index: number) => {
     if (activePersonaId) {
@@ -92,8 +104,8 @@ export const CreateScenariosScreen = () => {
                 className={cn(
                   'w-full p-4 text-center cursor-pointer transition-colors duration-200',
                   activePersonaId === persona.id
-                    ? 'bg-white dark:bg-dark-bg shadow-md'
-                    : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600',
+                    ? 'bg-white dark:bg-gray-700 shadow-md'
+                    : 'bg-gray-200 dark:bg-dark-bg hover:bg-gray-100'
                 )}
               >
                 <div className="flex flex-col items-center">
@@ -120,8 +132,8 @@ export const CreateScenariosScreen = () => {
           <div className="p-4">
             <div className="border-b w-full light-border dark:dark-border">
               <div className="pb-4">
-                <h2 className="text-base font-bold">You are editing Ana's scenario.</h2>
-                <p className="text-xs">{t('onboarding.editing_steps_message')}</p>
+                <h2 className="text-base font-bold">{`You are editing ${activePersona?.name}'s scenario.`}</h2>
+                <p className="text-xs">{t('scenario.editing_steps_message')}</p>
               </div>
             </div>
 
@@ -148,17 +160,17 @@ export const CreateScenariosScreen = () => {
                     }}
                     className="p-3 bg-light-bg dark:bg-dark-bg"
                   >
-                    <h3 className="text-xl font-bold">{scenario?.name}</h3>
+                    <h3 className="text-lg font-medium">Edit Scenario Name: <p className="text-xl font-bold">{scenario?.name}</p></h3>
                   </div>
 
                   {/* Only show steps for the active scenario */}
                   {/* {activeScenarioIndex === index && ( */}
                   <>
-                    <DndContext
+                    {/* <DndContext
                       collisionDetection={closestCenter}
                       onDragStart={handleDragStart}
                       onDragEnd={handleDragEnd}
-                    >
+                    > */}
                       <div className="p-2">
                         <SortableContext
                           items={scenario.steps?.map((step, i) => `step-${index}-${i}`)}
@@ -195,7 +207,7 @@ export const CreateScenariosScreen = () => {
                           </DragOverlay>
                         </SortableContext>
                       </div>
-                    </DndContext>
+                    {/* </DndContext> */}
 
                     <div className="p-2 pt-0 flex flex-row gap-2">
                       <Button
@@ -205,7 +217,7 @@ export const CreateScenariosScreen = () => {
                       >
                         {t('onboarding.add_step_label')}
                       </Button>
-
+                      {scenarios.length > 1 && (   
                       <Button
                         onClick={() => handleScenarioDelete(index)}
                         variant="outlineAction"
@@ -213,6 +225,7 @@ export const CreateScenariosScreen = () => {
                       >
                         {t('scenario.remove_scenario_label').toUpperCase()}
                       </Button>
+                      )}
                     </div>
                   </>
                   {/* )} */}
@@ -220,7 +233,7 @@ export const CreateScenariosScreen = () => {
               </div>
             ))}
 
-            <div className="pt-4 border-t">
+            {/* <div className="pt-4 border-t">
               <Button
                 onClick={() => setStepState('creating-new')}
                 className="w-full"
@@ -229,7 +242,7 @@ export const CreateScenariosScreen = () => {
               >
                 {t('scenario.add_scenario_label').toUpperCase() || 'Add Scenario'}
               </Button>
-            </div>
+            </div> */}
           </div>
         </>
       )}

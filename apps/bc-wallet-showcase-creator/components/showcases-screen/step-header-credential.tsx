@@ -7,6 +7,7 @@ interface StepHeaderCredentialProps {
   title: string
   actions?: React.ReactNode // Custom actions (buttons, menus, etc.)
   showDropdown?: boolean // Control dropdown visibility from parent
+  showApprove?: boolean
   onActionClick?: (action: 'save' | 'preview' | 'revert' | 'delete' | 'approve') => void // Callback function for actions
 }
 
@@ -16,6 +17,7 @@ const StepHeaderCredential = ({
   actions,
   showDropdown = true,
   onActionClick,
+  showApprove = true
 }: StepHeaderCredentialProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -51,15 +53,17 @@ const StepHeaderCredential = ({
                 <Trash2 size={20} />
                 Delete
               </li>
-              <li
-                className="flex gap-2 px-4 mt-2 py-2 hover:bg-light-bg-secondary dark:hover:bg-dark-input-hover cursor-pointer"
-                onClick={() => {
-                  onActionClick?.('approve')
-                }}
-              >
-                <Check size={20} />
-                Approve
-              </li>
+              {showApprove && 
+                <li
+                  className="flex gap-2 px-4 mt-2 py-2 hover:bg-light-bg-secondary dark:hover:bg-dark-input-hover cursor-pointer"
+                  onClick={() => {
+                    onActionClick?.('approve')
+                  }}
+                >
+                  <Check size={20} />
+                  Approve
+                </li>
+              }
             </ul>
           </div>
         )}

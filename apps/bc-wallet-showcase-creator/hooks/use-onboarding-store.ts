@@ -51,6 +51,7 @@ interface OnboardingCreationState {
   removeScenario: (personaId: string, scenarioIndex: number) => void
   setSelectedStep: (selectedStep: Screen | null) => void
   selectStep: (stepIndex: number, scenarioIndex: number) => void
+  setPersonaScenariosMap: (scenariosMap: Record<string, IssuanceScenarioRequest[]>) => void
 
   reset: () => void
 }
@@ -248,12 +249,14 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
 
     addStep: (personaId, scenarioIndex, stepData) =>
       set((state) => {
-        if (!state.personaScenariosMap[personaId]) return
+        const existingScenarios = state.personaScenariosMap[personaId];
+        if (!existingScenarios) return;
 
-        const scenarios = state.personaScenariosMap[personaId]
-        if (scenarioIndex < 0 || scenarioIndex >= scenarios.length) return
+        if (scenarioIndex < 0 || scenarioIndex >= existingScenarios.length) return;
 
-        const currentSteps = scenarios[scenarioIndex].steps
+        const updatedScenarios = [...existingScenarios];
+        const currentScenario = { ...updatedScenarios[scenarioIndex] };
+        const currentSteps = [...currentScenario.steps];
 
         const newStep = {
           ...stepData,
@@ -261,9 +264,16 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
           order: currentSteps.length,
           type: stepData.type || 'HUMAN_TASK',
           actions: stepData.actions || [],
-        }
+        };
 
-        scenarios[scenarioIndex].steps.push(newStep)
+        currentSteps.push(newStep);
+        currentScenario.steps = currentSteps;
+        updatedScenarios[scenarioIndex] = currentScenario;
+
+        state.personaScenariosMap = {
+          ...state.personaScenariosMap,
+          [personaId]: updatedScenarios,
+        };
       }),
 
     updateStep: (personaId, scenarioIndex, stepIndex, stepData) =>
@@ -457,6 +467,11 @@ export const useOnboardingCreationStore = create<OnboardingCreationState>()(
         } else {
           state.stepState = 'editing-basic'
         }
+      }),
+
+    setPersonaScenariosMap: (scenariosMap) =>
+      set((state) => {
+        state.personaScenariosMap = scenariosMap
       }),
 
     reset: () =>

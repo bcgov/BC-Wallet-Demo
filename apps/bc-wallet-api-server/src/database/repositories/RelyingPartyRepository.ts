@@ -1,6 +1,5 @@
 import { eq, inArray } from 'drizzle-orm'
-import { BadRequestError } from 'routing-controllers'
-import { NotFoundError } from 'routing-controllers'
+import { BadRequestError, NotFoundError } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import DatabaseService from '../../services/DatabaseService'
@@ -11,21 +10,19 @@ import CredentialDefinitionRepository from './CredentialDefinitionRepository'
 
 @Service()
 class RelyingPartyRepository implements RepositoryDefinition<RelyingParty, NewRelyingParty> {
-  constructor(
+  public constructor(
     private readonly databaseService: DatabaseService,
     private readonly credentialDefinitionRepository: CredentialDefinitionRepository,
     private readonly assetRepository: AssetRepository,
   ) {}
 
-  async create(relyingParty: NewRelyingParty): Promise<RelyingParty> {
-    if (!relyingParty.credentialDefinitions || relyingParty.credentialDefinitions.length === 0) {
-      return Promise.reject(new BadRequestError('At least one credential definition is required'))
+  public async create(relyingParty: NewRelyingParty): Promise<RelyingParty> {
+    if (relyingParty.credentialDefinitions && relyingParty.credentialDefinitions.length > 0) {
+      const credentialDefinitionPromises = relyingParty.credentialDefinitions.map(
+        async (credentialDefinition) => await this.credentialDefinitionRepository.findById(credentialDefinition),
+      )
+      await Promise.all(credentialDefinitionPromises)
     }
-
-    const credentialDefinitionPromises = relyingParty.credentialDefinitions.map(
-      async (credentialDefinition) => await this.credentialDefinitionRepository.findById(credentialDefinition),
-    )
-    await Promise.all(credentialDefinitionPromises)
     const logoResult = relyingParty.logo ? await this.assetRepository.findById(relyingParty.logo) : null
 
     return (await this.databaseService.getConnection()).transaction(async (tx): Promise<RelyingParty> => {
@@ -37,32 +34,33 @@ class RelyingPartyRepository implements RepositoryDefinition<RelyingParty, NewRe
         })
         .returning()
 
-      const relyingPartiesToCredentialDefinitionsResult = await tx
-        .insert(relyingPartiesToCredentialDefinitions)
-        .values(
-          relyingParty.credentialDefinitions.map((credentialDefinitionId: string) => ({
-            relyingParty: relyingPartyResult.id,
-            credentialDefinition: credentialDefinitionId,
-          })),
-        )
-        .returning()
+      let credentialDefinitionsResult: any[] = []
 
-      const credentialDefinitionsResult = await tx.query.credentialDefinitions.findMany({
-        where: inArray(
-          credentialDefinitions.id,
-          relyingPartiesToCredentialDefinitionsResult.map((item) => item.credentialDefinition),
-        ),
-        with: {
-          cs: {
-            with: {
-              attributes: true,
-            },
+      // Only insert if arrays are not empty
+      if (relyingParty.credentialDefinitions && relyingParty.credentialDefinitions.length > 0) {
+        const relyingPartiesToCredentialDefinitionsResult = await tx
+          .insert(relyingPartiesToCredentialDefinitions)
+          .values(
+            relyingParty.credentialDefinitions.map((credentialDefinitionId: string) => ({
+              relyingParty: relyingPartyResult.id,
+              credentialDefinition: credentialDefinitionId,
+            })),
+          )
+          .returning()
+
+        credentialDefinitionsResult = await tx.query.credentialDefinitions.findMany({
+          where: inArray(
+            credentialDefinitions.id,
+            relyingPartiesToCredentialDefinitionsResult.map((item) => item.credentialDefinition),
+          ),
+          with: {
+            cs: { with: { attributes: true } },
+            representations: true,
+            revocation: true,
+            icon: true,
           },
-          representations: true,
-          revocation: true,
-          icon: true,
-        },
-      })
+        })
+      }
 
       return {
         ...relyingPartyResult,
@@ -75,12 +73,12 @@ class RelyingPartyRepository implements RepositoryDefinition<RelyingParty, NewRe
     })
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.findById(id)
     await (await this.databaseService.getConnection()).delete(relyingParties).where(eq(relyingParties.id, id))
   }
 
-  async update(id: string, relyingParty: NewRelyingParty): Promise<RelyingParty> {
+  public async update(id: string, relyingParty: NewRelyingParty): Promise<RelyingParty> {
     await this.findById(id)
 
     if (!relyingParty.credentialDefinitions || relyingParty.credentialDefinitions.length === 0) {
@@ -145,7 +143,7 @@ class RelyingPartyRepository implements RepositoryDefinition<RelyingParty, NewRe
     })
   }
 
-  async findById(id: string): Promise<RelyingParty> {
+  public async findById(id: string): Promise<RelyingParty> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.relyingParties.findFirst({
@@ -168,6 +166,7 @@ class RelyingPartyRepository implements RepositoryDefinition<RelyingParty, NewRe
           },
         },
         logo: true,
+        tenant: true,
       },
     })
 
@@ -184,7 +183,7 @@ class RelyingPartyRepository implements RepositoryDefinition<RelyingParty, NewRe
     }
   }
 
-  async findAll(): Promise<RelyingParty[]> {
+  public async findAll(): Promise<RelyingParty[]> {
     const result = await (
       await this.databaseService.getConnection()
     ).query.relyingParties.findMany({

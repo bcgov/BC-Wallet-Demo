@@ -46,6 +46,8 @@ describe('Database tenant repository tests', (): void => {
 
     expect(savedTenant).toBeDefined()
     expect(savedTenant.id).toEqual(tenant.id)
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
   })
 
   it('Should get tenant by id from database', async (): Promise<void> => {
@@ -57,6 +59,8 @@ describe('Database tenant repository tests', (): void => {
 
     const savedTenant = await tenantRepository.create(tenant)
     expect(savedTenant).toBeDefined()
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
 
     const fromDb = await tenantRepository.findById(savedTenant.id)
 
@@ -97,6 +101,8 @@ describe('Database tenant repository tests', (): void => {
 
     const savedTenant = await tenantRepository.create(tenant)
     expect(savedTenant).toBeDefined()
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
 
     await tenantRepository.delete(savedTenant.id)
 
@@ -126,7 +132,7 @@ describe('Database tenant repository tests', (): void => {
     expect(updatedTenant.id).toEqual(newTenantId)
   })
 
-  it('Should save tenant with users  to database', async (): Promise<void> => {
+  it('Should save tenant with users to database', async (): Promise<void> => {
     const user1: NewUser = { id: '550e8400-e29b-41d4-a716-446655440000', userName: 'User 1' }
     const user2: NewUser = { id: '550e8400-e29b-41d4-a716-446655440001', userName: 'User 2' }
 
@@ -144,6 +150,8 @@ describe('Database tenant repository tests', (): void => {
 
     expect(savedTenant).toBeDefined()
     expect(savedTenant.id).toEqual(tenant.id)
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
     expect(savedTenant.users).toHaveLength(2)
     expect(savedTenant.users).toEqual([
       {
@@ -222,6 +230,8 @@ describe('Database tenant repository tests', (): void => {
     expect(savedTenant.tractionTenantId).toEqual(tenant.tractionTenantId)
     expect(savedTenant.tractionWalletId).toEqual(tenant.tractionWalletId)
     expect(savedTenant.tractionApiUrl).toEqual(tenant.tractionApiUrl)
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
   })
 
   it('Should update Traction fields in tenant', async (): Promise<void> => {
@@ -236,6 +246,8 @@ describe('Database tenant repository tests', (): void => {
     expect(savedTenant.tractionTenantId).toBeNull()
     expect(savedTenant.tractionWalletId).toBeNull()
     expect(savedTenant.tractionApiUrl).toBeNull()
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
 
     const updatedTenant = await tenantRepository.update(savedTenant.id, {
       id: savedTenant.id,
@@ -263,6 +275,8 @@ describe('Database tenant repository tests', (): void => {
     const savedTenant = await tenantRepository.create(tenant)
     expect(savedTenant).toBeDefined()
     expect(savedTenant.tenantType).toEqual(TenantType.SHOWCASE)
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
 
     const updatedTenant = await tenantRepository.update(savedTenant.id, {
       id: savedTenant.id,
@@ -295,6 +309,8 @@ describe('Database tenant repository tests', (): void => {
     expect(savedTenant.tractionApiUrl).toEqual(tenant.tractionApiUrl)
     expect(savedTenant.tractionApiKey).toEqual(tenant.tractionApiKey)
     expect(savedTenant.nonceBase64).toEqual(tenant.nonceBase64)
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
   })
 
   it('Should update tractionApiKey and nonceBase64 fields in tenant', async (): Promise<void> => {
@@ -308,6 +324,8 @@ describe('Database tenant repository tests', (): void => {
     expect(savedTenant).toBeDefined()
     expect(savedTenant.tractionApiKey).toBeNull()
     expect(savedTenant.nonceBase64).toBeNull()
+    expect(savedTenant.issuers).toEqual([])
+    expect(savedTenant.relyingParties).toEqual([])
 
     const updatedTenant = await tenantRepository.update(savedTenant.id, {
       id: savedTenant.id,
@@ -321,5 +339,7 @@ describe('Database tenant repository tests', (): void => {
     expect(updatedTenant.id).toEqual(savedTenant.id)
     expect(updatedTenant.tractionApiKey).toEqual('c83e7b9817fe4d43aedcc071f64f0bf6')
     expect(updatedTenant.nonceBase64).toEqual('base64EncodedNonceString')
+    expect(updatedTenant.issuers).toEqual([])
+    expect(updatedTenant.relyingParties).toEqual([])
   })
 })

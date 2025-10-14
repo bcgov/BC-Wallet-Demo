@@ -6,12 +6,14 @@ import { toast } from 'sonner'
 import { useCreateScenario, useUpdateScenario } from '@/hooks/use-onboarding'
 import { useHelpersStore } from '@/hooks/use-helpers-store'
 import { useShowcaseStore } from '@/hooks/use-showcases-store'
-import type { Persona, Showcase, StepRequest } from 'bc-wallet-openapi'
+import type { IssuanceScenarioRequest, Persona, Showcase, StepRequest } from 'bc-wallet-openapi'
 import type { Screen } from '@/types'
 import { useUpdateShowcase, useShowcase, useUpdateShowcaseScenarios } from './use-showcases'
 import { debugLog } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { showcaseToShowcaseRequest } from '@/lib/parsers'
+import { useTenant } from '@/providers/tenant-provider'
+import { useRouter } from '@/i18n/routing'
 
 export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { mutateAsync: createScenarioAsync } = useCreateScenario()
@@ -22,6 +24,8 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
   const { data: showcaseData, isLoading: isShowcaseLoading } = useShowcase(showcaseSlug || '')
   const { setScenarioIds, currentShowcaseSlug } = useShowcaseStore()
   const { issuerId } = useHelpersStore()
+  const { tenantId } = useTenant();
+  const router = useRouter()
 
   const [localSelectedStep, setLocalSelectedStep] = useState<Screen | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -76,7 +80,7 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
   }, [showcaseSlug, personaScenarios, selectedPersonas, activePersonaId, isInitialized, setActivePersonaId])
 
   const getCurrentSteps = useCallback(() => {
-    if (hasNoScenarios) return []
+    if (hasNoScenarios && personaScenarios.size ===0) return []
 
     if (!activePersonaId || !personaScenarios.has(activePersonaId)) return []
 
@@ -97,11 +101,12 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
       if (currentSteps.length > 0) {
         handleSelectStepImpl(0, activeScenarioIndex);
-        setIsInitialized(true);
-      } else {
-        setIsInitialized(true);
       }
-    } else if (isCreationInitialized) {
+      setIsInitialized(true);
+    } else if (personaScenarios.size > 0 && !activePersonaId) {
+      const firstPersonaId = Array.from(personaScenarios.keys())[0];
+      setActivePersonaId(firstPersonaId);
+    } else {
       setIsInitialized(true);
     }
   }, [
@@ -343,16 +348,20 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
     ? getStepActionType(effectiveSelectedStep)
     : null;
 
-  const createScenarios = useCallback(async () => {
+  const createScenarios = useCallback(async (scenariosToCreate?: IssuanceScenarioRequest[]) => {
     try {
-      const personaScenariosList = selectedPersonas
+      const personaScenariosList = scenariosToCreate ??
+      selectedPersonas
         .map((persona) => {
           if (!personaScenarios.has(persona.id)) return null;
 
           const scenarioList = personaScenarios.get(persona.id)!;
           if (!scenarioList.length) return null;
 
-          return scenarioList.map(scenario => ({
+          return scenarioList
+          //@ts-expect-error - Filter out scenarios that already have slugs (already created)
+          .filter(s => !s.slug && !s.id)
+          .map(scenario => ({
             ...scenario,
             personas: [persona.id],
             issuer: issuerId,
@@ -383,7 +392,32 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
           if (result && result.issuanceScenario) {
             scenarioIds.push(result.issuanceScenario.id);
-            toast.success(`Scenario created for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
+            toast.success(`Onboarding created for ${scenario.personas[0] ? selectedPersonas.find(p => p.id === scenario.personas[0])?.name || 'persona' : 'persona'}`);
+            
+            // Update the scenario with the returned slug to prevent duplicate creation
+            if (result.issuanceScenario.slug && scenario.personas && scenario.personas.length > 0) {
+              const personaId = scenario.personas[0];
+              const personaScenarioList = selectedPersonas
+                .find(p => p.id === personaId)
+                ? Array.from(personaScenarios.get(personaId) || [])
+                : [];
+              
+              const scenarioIndex = personaScenarioList.findIndex(s => 
+                s.name === scenario.name && 
+                s.description === scenario.description &&
+                //@ts-ignore
+                !s.slug // Only update scenarios that don't have a slug yet
+              );
+              
+              if (scenarioIndex >= 0) {
+                updateScenario(personaId, scenarioIndex, {
+                  ...scenario,
+                  //@ts-ignore
+                  slug: result.issuanceScenario.slug,
+                  id: result.issuanceScenario.id
+                });
+              }
+            }
           } else {
             throw new Error('Invalid response format');
           }
@@ -456,29 +490,58 @@ export const useOnboardingAdapter = (showcaseSlug?: string) => {
 
       for (const scenario of personaScenariosList) {
         if (!scenario) continue;
-        try {
-          const result = await updateScenarioAsync({
-            // @ts-expect-error: slug is not required
-            slug: scenario.slug,
-            data: scenario
-          }, {
-            onSuccess: () => {
-              queryClient.invalidateQueries({ queryKey: ['showcase', slug] })
-            }
-          });
-
-          if (result && result.issuanceScenario) {
-            scenarioIds.push(result.issuanceScenario.id);
+        let result;
+        //@ts-ignore
+        if(!scenario.slug) {
+          debugLog('Scenario slug is required for update:', scenario);
+          result = await createScenarios([scenario])
+          if (result && result.success) {
+            toast.success('Onboarding created successfully')
+            // router.push(`/${tenantId}/showcases/create/scenarios`)
           } else {
             throw new Error('Invalid response format');
           }
-        } catch (error) {
-          return { success: false, message: 'Error updating scenario', error };
+        } else{
+          try {
+            result = await updateScenarioAsync({
+              // @ts-expect-error: slug is not required
+              slug: scenario.slug,
+              data: scenario
+            }, {
+              onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['showcase', slug] })
+              }
+            });
+
+            if (result && result.issuanceScenario) {
+              scenarioIds.push(result.issuanceScenario.id);
+              if(result.issuanceScenario.slug && scenario.personas && scenario.personas.length > 0) {
+                const personaId = scenario.personas[0];
+                const personaScenarioList = personaScenarios.get(personaId) || [];
+                const scenarioIndex = personaScenarioList.findIndex(
+                  // @ts-expect-error
+                  (s)=> s.slug === scenario.slug 
+                );
+                if(scenarioIndex >= 0) {
+                  updateScenario(personaId, scenarioIndex, {
+                    ...scenario,
+                    //@ts-ignore
+                    slug: result.issuanceScenario.slug,
+                    id: result.issuanceScenario.id
+                  });
+                }
+              }
+            } else {
+              throw new Error('Invalid response format');
+            }
+          } catch (error) {
+            return { success: false, message: 'Error updating scenario', error };
+          }
         }
       }
 
       // add scenario ids to the store
-      // add scenario ids to the shwocase
+      // add scenario ids to the showcase
       setScenarioIds(scenarioIds);
       return { success: true, scenarioIds };
     } catch (error) {

@@ -43,19 +43,29 @@ export const OnboardingPage: React.FC = () => {
       dispatch(completeOnboarding())
       dispatch(clearCredentials())
       dispatch(clearConnection())
-      navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
-    } else if (!isCompleted && !showcase) {
-      dispatch(clearShowcase())
       dispatch(fetchWallets())
-      dispatch(fetchShowcaseBySlug(slug))
+      navigate(`${basePath}/${tenantId}/${showcase.slug}/${currentPersona.slug}/presentations`)
     }
-  }, [dispatch, slug, isCompleted])
+  }, [dispatch, slug, isCompleted, showcase, currentPersona])
+
+  useEffect(() => {
+    if (!showcase || showcase.slug !== slug) {
+      dispatch(clearShowcase())
+      dispatch(fetchShowcaseBySlug(slug))
+      dispatch(fetchWallets())
+    }
+  }, [dispatch, slug, showcase])
+
+  useEffect(() => {
+    dispatch(fetchWallets())
+  }, [dispatch])
 
   useEffect(() => {
     trackPageView()
   }, [])
 
   if (showcase === undefined) {
+    dispatch(fetchShowcaseBySlug(slug))
     return <div>Loading...</div>
   }
 

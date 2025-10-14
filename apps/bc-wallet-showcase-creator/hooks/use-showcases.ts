@@ -22,7 +22,7 @@ export function useShowcases() {
   })
 }
 
-export const useShowcase = (slug: string): UseQueryResult<ShowcaseResponse> => {
+export const useShowcase = (slug: string, options: { enabled: boolean } = { enabled: true }): UseQueryResult<ShowcaseResponse> => {
   return useQuery({
     queryKey: ['showcase', slug],
     queryFn: async () => {
@@ -30,6 +30,7 @@ export const useShowcase = (slug: string): UseQueryResult<ShowcaseResponse> => {
       return response as ShowcaseResponse
     },
     staleTime,
+    enabled: options.enabled,
   })
 }
 

@@ -14,6 +14,7 @@ import { DEBUG_ENABLED, environment } from './environment'
 import { getTractionService } from './services/service-manager'
 import type { TractionService } from './services/traction-service'
 import { Action, Topic, TOPICS } from './types'
+import { buildHttpErrorMessage } from './util/http-error'
 
 interface MessageHeaders {
   action?: Action
@@ -86,8 +87,8 @@ export class MessageProcessor {
       const service = await getTractionService(
         headers.tractionTenantId ?? environment.traction.TRACTION_DEFAULT_TENANT_ID!,
         environment.showcase.TRACTION_FIXED_SHOWCASE_API_URL ||
-        headers.showcaseApiUrlBase ||
-        environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
+          headers.showcaseApiUrlBase ||
+          environment.showcase.TRACTION_DEFAULT_SHOWCASE_API_URL,
         headers.tractionApiUrlBase || environment.traction.TRACTION_DEFAULT_API_URL,
         headers.tractionWalletId || environment.traction.TRACTION_DEFAULT_TENANT_ID!,
         headers.accessTokenEnc,
@@ -115,10 +116,10 @@ export class MessageProcessor {
 
     return {
       action: applicationProperties['action'] as Action | undefined,
-      tractionTenantId: applicationProperties['tenantId'] as string | undefined,
+      tractionTenantId: applicationProperties['tractionTenantId'] as string | undefined,
       tractionApiUrlBase: applicationProperties['tractionApiUrlBase'] as string | undefined,
       showcaseApiUrlBase: applicationProperties['showcaseApiUrlBase'] as string | undefined,
-      tractionWalletId: applicationProperties['walletId'] as string | undefined,
+      tractionWalletId: applicationProperties['tractionWalletId'] as string | undefined,
       accessTokenEnc: applicationProperties['accessTokenEnc'] as Buffer | undefined,
       accessTokenNonce: applicationProperties['accessTokenNonce'] as Buffer | undefined,
     }
@@ -173,7 +174,7 @@ export class MessageProcessor {
         context.delivery.accept()
       }
     } catch (e) {
-      const errorMsg = this.buildErrorMessage(issuer, e)
+      const errorMsg = await this.buildErrorMessage(issuer, e)
       console.error(errorMsg)
       console.debug('Stack:', e.stack)
 
@@ -188,7 +189,7 @@ export class MessageProcessor {
     }
   }
 
-  private buildErrorMessage(issuer: Issuer, e: Error) {
+  private async buildErrorMessage(issuer: Issuer, e: Error) {
     const parts = []
     parts.push(
       `An error occurred while publishing issuer ${issuer.id} / ${issuer.name} of type ${issuer.type} to Traction. Reason: ${e.message}`,
@@ -200,6 +201,11 @@ export class MessageProcessor {
 
     if ('details' in e && e.details && Array.isArray(e.details) && e.details.length) {
       parts.push(e.details.join('\r\n'))
+    }
+
+    if ('response' in e) {
+      const response = e.response as Response
+      parts.push(`Response:\r\n${await buildHttpErrorMessage(response)}`)
     }
 
     return parts.join('\r\n')

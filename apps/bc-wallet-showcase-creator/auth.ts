@@ -163,7 +163,7 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
 
 async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<NextAuthConfig> {
   const tenantId = getTenantIdFromRequest(req)
-  console.debug(`Auth using tenantId from cookie: ${tenantId}`)
+  console.debug(`Auth using tenantId: ${tenantId}`)
 
   // Basic configuration without tenant-specific settings
   const baseConfig: NextAuthConfig = {

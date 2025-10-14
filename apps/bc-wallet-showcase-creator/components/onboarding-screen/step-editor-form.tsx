@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Monitor } from 'lucide-react'
@@ -30,7 +30,11 @@ import {
   FormData
 } from '@/schemas/onboarding'
 import { StepActionRequestUnion } from '@/types'
-
+import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
+import DeleteModal from '../delete-modal'
+import { useFormDirtyStore } from '@/hooks/use-form-dirty-store'
+import { useTenant } from '@/providers/tenant-provider'
+import { useRouter } from '@/i18n/routing'
 interface StepEditorFormProps {
   currentStep: StepRequest | null
   stepType: StepType
@@ -40,6 +44,8 @@ interface StepEditorFormProps {
   onCancel: () => void
   toggleViewMode: () => void
   isEditMode?: boolean
+  showcaseSlug?: string
+  isUpdated?: boolean
 }
 
 export const StepEditorForm: React.FC<StepEditorFormProps> = ({
@@ -50,9 +56,14 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
   onSubmit,
   onCancel,
   toggleViewMode,
-  isEditMode = false
+  showcaseSlug,
+  isEditMode = false,
+  isUpdated
 }) => {
   const t = useTranslations()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { tenantId } = useTenant();
+  const router = useRouter()
   
   const getCurrentAction = (): StepActionRequestUnion | null => {
     if (!currentStep || !currentStep.actions || currentStep.actions.length === 0) {
@@ -62,6 +73,23 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
   };
 
   const currentAction = getCurrentAction();
+  const { deleteStep, selectedScenario, personaScenarios } = useOnboardingAdapter()
+
+const isInvalidServiceStep = Array.from(personaScenarios).some(([_, scenarioList]) =>
+  scenarioList.some((scenario) =>
+    scenario.steps?.some(
+      (step) =>
+        step.type === "SERVICE" &&
+        step.actions?.some(
+          (action) =>
+            "credentialDefinitionId" in action && // key must exist
+            typeof action.credentialDefinitionId === "string" &&
+            action.credentialDefinitionId.trim() === ""
+        )
+    )
+  )
+);
+
 
   const getSchemaForStep = () => {
     if (stepType === StepType.Service) {
@@ -92,6 +120,15 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
       asset: currentStep?.asset || '',
       // @ts-expect-error - database still do not persist the credentials
       credentials: currentStep?.credentials || [],
+      setupTitle: '',
+      setupDescription1: '',
+      setupTitle2: '',
+      setupDescription2: '',
+      apple: '',
+      android: '',
+      ledgerImage: '',
+      qrCodeTitle: '',
+      credentialDefinitionId: '',
     };
   
     if (!currentAction) return baseDefaults
@@ -240,23 +277,25 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
   }, [form, autoSave])
 
   const getStepTitle = () => {
-    if (stepType === StepType.Service) {
-      return t('onboarding.issue_step_header_title')
+    if (currentStep?.order === 0 && !currentAction) {
+      return t('onboarding.edit_character_introduction_step_title');
     }
-
-    if (!currentAction) return t('onboarding.basic_step_header_title')
-
-    switch (currentAction.actionType) {
-      case StepActionType.ChooseWallet:
-        return t('onboarding.wallet_step_header_title')
-      case StepActionType.SetupConnection:
-      case StepActionType.AriesOob:
-        return t('onboarding.connect_step_header_title')
-      case StepActionType.AcceptCredential:
-        return t('onboarding.issue_step_header_title')
-      default:
-        return t('onboarding.basic_step_header_title')
+    if (currentStep?.order === 1 && !currentAction) {
+      return t('onboarding.edit_introduction_bc_wallet_step_title');
     }
+    if (currentStep?.order === 5 && !currentAction) {
+      return t('onboarding.edit_credential_received_step_title');
+    }
+    if (stepType === StepType.Service || currentAction?.actionType === StepActionType.AcceptCredential) {
+      return t('onboarding.edit_credential_issuance_step_title');
+    }
+    if (currentAction?.actionType === StepActionType.ChooseWallet) {
+      return t('onboarding.edit_install_bc_wallet_step_title');
+    }
+    if (currentAction?.actionType === StepActionType.SetupConnection || currentAction?.actionType === StepActionType.AriesOob) {
+      return t('onboarding.edit_connect_bc_wallet_step_title');
+    }
+    return t('onboarding.basic_step_header_title');
   }
 
   const showCredentialSelection = () => {
@@ -265,6 +304,29 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
     }
     return currentAction && currentAction.actionType === StepActionType.AcceptCredential
   }
+
+  const getInstructionalText = () => {
+    if (!currentAction && stepType !== StepType.Service) {
+      if (currentStep?.order === 0) {
+        return t('onboarding.meet_step_instruction');
+      } else if (currentStep?.order === 1) {
+        return t('onboarding.get_started_step_instruction');
+      } else if (currentStep?.order === 5) { // Assuming 'You're all set' is the 6th step (index 5) and a basic step
+        return t('onboarding.you_are_all_set_step_instruction');
+      }
+    }
+    switch (currentAction?.actionType) {
+      case StepActionType.ChooseWallet:
+        return t('onboarding.install_wallet_step_instruction');
+      case StepActionType.SetupConnection:
+      case StepActionType.AriesOob:
+        return t('onboarding.connect_step_instruction');
+      case StepActionType.AcceptCredential:
+        return t('onboarding.accept_credential_step_instruction');
+      default:
+        return null;
+    }
+  };
 
   const handleUpdateCredentials = (credentialId: string) => {
     if (!currentStep || !selectedStep) return;
@@ -288,23 +350,63 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
       };
       
       updatedStep.actions = updatedActions;
+    } else{
+      const updatedActions = [...currentStep.actions];
+      const action = updatedActions[0] as AcceptCredentialActionRequest;
+
+      updatedActions[0] = {
+        ...action,
+        credentialDefinitionId: credentialId,
+      };
+      
+      updatedStep.actions = updatedActions;
     }
     
     updateStep(selectedStep.order, updatedStep);
   }
 
+  const GotoNext = () => {
+  if (isEditMode && showcaseSlug) {
+        // result = await updateScenarios(showcaseSlug)
+        router.push(`/${tenantId}/showcases/${showcaseSlug}/scenarios`)
+      } else {
+        router.push(`/${tenantId}/showcases/create/scenarios`)
+      }
+  }
+
   return (
+    <>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <StepHeader icon={<Monitor strokeWidth={3} />} title={getStepTitle()} showDropdown={false} />
+        <StepHeader 
+          icon={<Monitor strokeWidth={3} />} 
+          title={getStepTitle()} 
+          deleteTitle='Delete step'
+          showDropdown={(currentStep?.order ?? 0) >= 6}
+          onActionClick={(action) => {
+          switch (action) {
+            case 'delete':
+              setIsModalOpen(true)
+              break
+            default:
+              console.log('Unknown action')
+          }
+        }}
+        />
 
         <div className="space-y-6">
+          {getInstructionalText() && (
+            <p className="text-sm text-muted-foreground mb-4">
+                {getInstructionalText()}
+            </p>
+          )}
           <FormTextInput
             control={form.control}
             label={t('onboarding.page_title_label')}
             name="title"
             register={form.register}
             error={form.formState.errors.title?.message}
+            isMandatory={true}
             placeholder={t('onboarding.page_title_placeholder')}
           />
 
@@ -315,6 +417,7 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
               name="description"
               register={form.register}
               error={form.formState.errors.description?.message}
+              isMandatory={true}
               placeholder={t('onboarding.page_description_placeholder')}
             />
             {form.formState.errors.description && (
@@ -452,24 +555,48 @@ export const StepEditorForm: React.FC<StepEditorFormProps> = ({
           )}
         </div>
 
-        <div className="mt-auto pt-4 border-t flex justify-end gap-3">
+        <div className="mt-auto pt-4 border-t flex justify-between gap-3">
           <ButtonOutline onClick={onCancel} type="button">
-            {t('action.cancel_label')}
+            {'Help'}
           </ButtonOutline>
 
-          <ButtonOutline type="button" onClick={toggleViewMode}>
-            {t('action.preview_label')}
-          </ButtonOutline>
+<div className='gap-4 flex'>
 
           <ButtonOutline
             type="button"
             onClick={() => form.handleSubmit(onSubmit)()}
             disabled={!form.formState.isValid}
           >
-            {isEditMode ? t('action.save_label') : t('action.next_label')}
+            {'Save'}
           </ButtonOutline>
+
+          <ButtonOutline
+            type="button"
+            onClick={() => GotoNext()}
+            disabled={!isUpdated}
+            // disabled={!form.formState.isValid || currentStep?.actions[0]?.credentialDefinitionId === '' || isInvalidServiceStep}
+          >
+            {'Proceed to Scenario'}
+          </ButtonOutline>
+</div>
         </div>
       </form>
     </Form>
+    <DeleteModal
+      isLoading={false}
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      onDelete={() => {
+        console.log('Step',selectedStep);
+        setIsModalOpen(false)
+        deleteStep(selectedStep?.order as number)
+      }}
+      header="Are you sure you want to delete this page?"
+      description="Are you sure you want to delete this page?"
+      subDescription="<b>This action cannot be undone.</b>"
+      cancelText="CANCEL"
+      deleteText="DELETE"
+    />
+    </>
   )
 }

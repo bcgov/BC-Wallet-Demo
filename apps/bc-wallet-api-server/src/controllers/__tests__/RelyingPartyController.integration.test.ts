@@ -70,6 +70,7 @@ describe('RelyingPartyController Integration Tests', () => {
       name: 'Test Relying Party',
       description: 'Test relying party description',
       type: RelyingPartyType.ARIES,
+      tenantId,
       organization: 'Test Organization',
       logo: asset.id,
       credentialDefinitions: [credentialDefinition.id],
@@ -122,6 +123,7 @@ describe('RelyingPartyController Integration Tests', () => {
       name: 'Non-existent Relying Party',
       description: 'This relying party does not exist',
       type: RelyingPartyType.ARIES,
+      tenantId,
       credentialDefinitions: [],
     }
 
@@ -145,6 +147,7 @@ describe('RelyingPartyController Integration Tests', () => {
       name: 'Invalid Relying Party',
       description: 'Test description',
       type: RelyingPartyType.ARIES,
+      tenantId,
       credentialDefinitions: [nonExistentId],
     }
 
@@ -182,6 +185,7 @@ describe('RelyingPartyController Integration Tests', () => {
       name: 'Multi-Cred Relying Party',
       description: 'Relying party with multiple credential definitions',
       type: RelyingPartyType.ARIES,
+      tenantId,
       organization: 'Test Organization',
       logo: asset.id,
       credentialDefinitions: [credentialDefinition1.id, credentialDefinition2.id],

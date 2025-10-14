@@ -22,6 +22,7 @@ import { basePath } from '../../utils/BasePath'
 import { getTenantIdFromPath, isConnected } from '../../utils/Helpers'
 import { SideView } from './SideView'
 import { StepInformation } from './steps/StepInformation'
+import { deleteProofById } from '../../slices/proof/proofThunks'
 
 export interface Props {
   showcase: Showcase
@@ -45,7 +46,7 @@ export const Section: FC<Props> = (props: Props) => {
 
   const style = isMobile ? { height: '700px' } : { minHeight: '800px', height: '80vh' }
   const LEAVE_MODAL_TITLE = 'Are you sure you want to leave?'
-  const LEAVE_MODAL_DESCRIPTION = `You'll be redirected to the dashboard.`
+  const LEAVE_MODAL_DESCRIPTION = `You'll be redirected to the presentation dashboard.`
 
   const showLeaveModal = () => setLeaveModal(true)
   const closeLeave = () => setLeaveModal(false)
@@ -214,6 +215,9 @@ export const Section: FC<Props> = (props: Props) => {
             <div className="flex justify-between items-center">
               <BackButton
                 onClick={() => {
+                  if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob) && proof?.id) {
+                    dispatch(deleteProofById(proof.id))
+                  }
                   prev()
                   trackSelfDescribingEvent({
                     event: {
@@ -226,7 +230,7 @@ export const Section: FC<Props> = (props: Props) => {
                     },
                   })
                 }}
-                disabled={isBackDisabled}
+                disabled={isBackDisabled || currentScenario.steps.length === currentStep.order}
               />
               {currentScenario.steps.length === currentStep.order ? (
                 <Button text="COMPLETE" onClick={() => setCompleted(true)} />
@@ -234,6 +238,9 @@ export const Section: FC<Props> = (props: Props) => {
                 <SmallButton
                   text="NEXT"
                   onClick={() => {
+                    if (currentStep.actions?.some((action) => action.actionType === StepActionType.AriesOob) && proof?.id) {
+                      dispatch(deleteProofById(proof.id))
+                    }
                     next()
                     trackSelfDescribingEvent({
                       event: {

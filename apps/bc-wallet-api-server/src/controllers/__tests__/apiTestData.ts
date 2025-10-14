@@ -128,6 +128,7 @@ export function createApiShowcaseRequest(
 
 export function createApiIssuerRequest(
   assetId: string,
+  tenantId: string,
   credentialDefinitions: string[],
   credentialSchemas: string[],
 ): IssuerRequest {
@@ -135,6 +136,7 @@ export function createApiIssuerRequest(
     name: 'Test Issuer',
     description: 'Test Issuer Description',
     type: 'ARIES',
+    tenantId,
     organization: 'Test Organization',
     logo: assetId,
     credentialDefinitions: credentialDefinitions,
@@ -147,8 +149,8 @@ export async function createApiFullTestData(tenantId: string): Promise<{ showcas
   const persona = await createTestPersona(asset)
   const credentialSchema = await createTestCredentialSchema()
   const credentialDefinition = await createTestCredentialDefinition(asset, credentialSchema, tenantId)
-  const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema)
-  const scenario = await createTestScenario(asset, persona, issuer, credentialDefinition.id)
+  const issuer = await createTestIssuer(asset, credentialDefinition, credentialSchema, tenantId)
+  const scenario = await createTestScenario(asset, persona, issuer, credentialDefinition.id, tenantId)
   const showcaseRequest = createApiShowcaseRequest(scenario.id, persona.id, asset.id, tenantId)
   return { showcaseRequest }
 }
@@ -158,6 +160,7 @@ export async function createApiTestScenario(
   personaId: string,
   issuerId: string,
   credentialDefinitionId: string,
+  tenantId: string
 ): Promise<{ id: string } & IssuanceScenarioRequest> {
   const assetRepository = Container.get(AssetRepository)
   const personaRepository = Container.get(PersonaRepository)
@@ -167,7 +170,7 @@ export async function createApiTestScenario(
   const persona = await personaRepository.findById(personaId)
   const issuer = await issuerRepository.findById(issuerId)
 
-  const scenario = await createTestScenario(asset, persona, issuer, credentialDefinitionId)
+  const scenario = await createTestScenario(asset, persona, issuer, credentialDefinitionId, tenantId)
   const scenarioRequest = createApiIssuanceScenarioRequest(issuerId, personaId, assetId, credentialDefinitionId)
 
   return { id: scenario.id, ...scenarioRequest }

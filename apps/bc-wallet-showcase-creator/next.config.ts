@@ -9,13 +9,14 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: '*.dev.nborbit.ca',
+        protocol: 'https',
+        hostname: '**',
+        pathname: '**/assets/**',
       },
       {
         protocol: 'http',
-        hostname: 'localhost',
-        port: '3001',
-        pathname: '/**',
+        hostname: '**',
+        pathname: '**/assets/**',
       },
     ],
     dangerouslyAllowSVG: true,

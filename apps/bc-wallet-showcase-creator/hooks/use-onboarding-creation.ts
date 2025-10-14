@@ -45,44 +45,86 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
   } = useOnboardingCreationStore()
 
   useEffect(() => {
-    if (showcaseSlug && showcaseData && !isInitialized && !isShowcaseLoading) {
+    if (showcaseSlug && showcaseData && !isInitialized && personasData) {
       const showcase = showcaseData?.showcase
 
       if (showcase) {
-        const issuanceScenarios = showcase.scenarios?.filter(
-          scenario => scenario.type === 'ISSUANCE'
-        ) || []
+        const issuanceScenarios = showcase.scenarios?.filter((scenario) => scenario.type === 'ISSUANCE') || []
 
         if (issuanceScenarios.length === 0) {
-          initializeWithScenarios({})
+          initializeWithScenarios(personaScenariosMap)
           setIsInitialized(true)
           return
-        }
+        } else {
+          const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
+          issuanceScenarios.forEach((scenario) => {
+            if (scenario.personas && scenario.personas.length > 0) {
+              scenario.personas.forEach((persona) => {
+                if (!personaScenariosData[persona.id]) {
+                  personaScenariosData[persona.id] = []
+                }
 
-        const personaScenariosData: Record<string, IssuanceScenarioRequest[]> = {}
+                const scenarioRequest = issuanceScenarioToIssuanceScenarioRequest(scenario)
 
-        issuanceScenarios.forEach(scenario => {
-          if (scenario.personas && scenario.personas.length > 0) {
-            scenario.personas.forEach(persona => {
-              if (!personaScenariosData[persona.id]) {
-                personaScenariosData[persona.id] = []
+                personaScenariosData[persona.id].push(scenarioRequest)
+              })
+            }
+          })
+
+          const mergedScenarios: Record<string, IssuanceScenarioRequest[]> = { ...personaScenariosMap }
+
+          for (const personaId in personaScenariosData) {
+            const apiScenarios = personaScenariosData[personaId]
+            const localScenarios = mergedScenarios[personaId] || []
+
+            const mergedPersonaScenarios: IssuanceScenarioRequest[] = []
+
+            apiScenarios.forEach((apiScenario) => {
+              const localMatch = localScenarios.find((local) => local.name === apiScenario.name)
+
+              if (localMatch) {
+                const apiStepKeys = new Set(apiScenario.steps?.map((s) => s.type + s.order))
+                const extraLocalSteps = localMatch.steps?.filter((s) => !apiStepKeys.has(s.type + s.order)) || []
+
+                mergedPersonaScenarios.push({
+                  ...apiScenario,
+                  steps: [...apiScenario.steps, ...extraLocalSteps],
+                })
+              } else {
+                mergedPersonaScenarios.push(apiScenario)
               }
-
-              const scenarioRequest = issuanceScenarioToIssuanceScenarioRequest(scenario)
-
-              personaScenariosData[persona.id].push(scenarioRequest)
             })
+
+            const extraLocalScenarios = localScenarios.filter(
+              (local) => !apiScenarios.find((api) => api.name === local.name),
+            )
+
+            mergedScenarios[personaId] = [...mergedPersonaScenarios, ...extraLocalScenarios]
           }
-        })
+          initializeWithScenarios(mergedScenarios)
 
-        initializeWithScenarios(personaScenariosData)
+          if (!activePersonaId && Object.keys(mergedScenarios).length > 0) {
+            setActivePersonaId(Object.keys(mergedScenarios)[0])
+          }
 
-        if (!activePersonaId && Object.keys(personaScenariosData).length > 0) {
-          setActivePersonaId(Object.keys(personaScenariosData)[0])
+          setIsInitialized(true)
         }
-
-        setIsInitialized(true)
       }
+    } else if (!showcaseSlug && !isInitialized) {
+      const personas = (personasData?.personas || []).filter((persona: Persona) =>
+        selectedPersonaIds.includes(persona.id),
+      )
+
+      personas.forEach((persona: Persona) => {
+        if (!personaScenariosMap[persona.id]) {
+          addPersonaScenario(persona, issuerId)
+        }
+      })
+
+      if (!activePersonaId && personas.length > 0) {
+        setActivePersonaId(personas[0].id)
+      }
+      setIsInitialized(true)
     }
   }, [
     showcaseSlug,
@@ -91,35 +133,12 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     isInitialized,
     initializeWithScenarios,
     activePersonaId,
-    setActivePersonaId
-  ])
-
-  useEffect(() => {
-    if (showcaseSlug && isInitialized) return
-
-    const personas = (personasData?.personas || []).filter((persona: Persona) =>
-      selectedPersonaIds.includes(persona.id),
-    )
-
-    personas.forEach((persona: Persona) => {
-      if (!personaScenariosMap[persona.id]) {
-        addPersonaScenario(persona, issuerId)
-      }
-    })
-
-    if (!activePersonaId && personas.length > 0) {
-      setActivePersonaId(personas[0].id)
-    }
-  }, [
-    showcaseSlug,
-    isInitialized,
-    personasData,
-    selectedPersonaIds,
-    personaScenariosMap,
-    activePersonaId,
-    issuerId,
-    addPersonaScenario,
     setActivePersonaId,
+    issuerId,
+    personasData,
+    addPersonaScenario,
+    selectedPersonaIds,
+    personaScenariosMap
   ])
 
   const selectedPersonas = (personasData?.personas || []).filter((persona: Persona) =>
@@ -160,8 +179,7 @@ export const useOnboardingCreation = (showcaseSlug?: string) => {
     setStepState,
     stepState,
     selectedScenario,
-    updateScenario: (scenarioData: IssuanceScenarioRequest) =>
-      activePersonaId && updateScenario(activePersonaId, activeScenarioIndex, scenarioData),
+    updateScenario,
     removeScenario: () => activePersonaId && removeScenario(activePersonaId, activeScenarioIndex),
     selectedStep,
     setSelectedStep,

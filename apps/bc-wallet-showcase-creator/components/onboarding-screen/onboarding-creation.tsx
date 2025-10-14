@@ -1,6 +1,6 @@
 'use client'
 
-import type { DragEndEvent } from '@dnd-kit/core'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useTranslations } from 'next-intl'
@@ -14,6 +14,7 @@ import { useOnboardingAdapter } from '@/hooks/use-onboarding-adapter'
 import { cn, baseUrl } from '@/lib/utils'
 import { Screen } from '@/types'
 import { useTenant } from '@/providers/tenant-provider'
+import { useEffect } from 'react'
 
 export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string }) => {
   const t = useTranslations()
@@ -25,24 +26,58 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
     personas,
     activePersonaId,
     setActivePersonaId,
+    setSelectedStep,
     activePersona,
+    setActiveScenarioIndex,
   } = useOnboardingAdapter(showcaseSlug)
 
   const { selectedPersonaIds } = useShowcaseStore()
   const router = useRouter()
   const { tenantId } = useTenant();
 
+  useEffect(() => {
+    if (personas.length > 0) {
+      const activePersonaIsValid = personas.some((p) => p.id === activePersonaId)
+      if (!activePersonaIsValid) {
+        setActivePersonaId(personas[0].id)
+        setActiveScenarioIndex(0)
+      }
+    }
+  }, [personas, activePersonaId, setActivePersonaId, setActiveScenarioIndex])
+
+const parseId = (composedId: string) => {
+  const match = composedId.match(/^step-(\d+)-(\d+)$/);
+  if (!match) return null;
+  const stepIndex = parseInt(match[1], 10);
+  const scenarioIndex = parseInt(match[2], 10);
+  return { stepIndex, scenarioIndex };
+};
+
+const handleDragStart = (event: DragStartEvent) => {
+  const parsed = parseId(event.active.id as string);
+  if (!parsed) return;
+
+  const index = parsed.stepIndex;
+  setSelectedStep(index);
+};
+
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) return
+    const from = parseId(event.active.id as string);
+    const to = parseId(event.over?.id as string);
+    if (!from || !to) return;
 
-    const oldIndex = steps.findIndex((step) => step.id === active.id)
-    const newIndex = steps.findIndex((step) => step.id === over.id)
+    const oldIndex = from.stepIndex;
+    const newIndex = to.stepIndex;
 
-    if (oldIndex !== newIndex && oldIndex >= 0 && newIndex >= 0) {
-      handleMoveStep(oldIndex, newIndex)
+    if (oldIndex !== newIndex) {
+      handleMoveStep(oldIndex, newIndex);
     }
   }
+
+  const handlePersonaChange = (personaId: string) => {
+    setActivePersonaId(personaId);
+    setActiveScenarioIndex(0);
+  };
 
   return (
     <div className="bg-background text-light-text dark:text-dark-text rounded-md border shadow-sm">
@@ -60,12 +95,12 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
             {personas.map((persona: Persona) => (
               <div
                 key={persona.id}
-                onClick={() => setActivePersonaId(persona.id)}
+                onClick={() => handlePersonaChange(persona.id)}
                 className={cn(
                   'w-full p-4 text-center cursor-pointer transition-colors duration-200',
                   activePersonaId === persona.id
-                    ? 'bg-white dark:bg-dark-bg shadow-md'
-                    : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    ? 'bg-white dark:bg-gray-700 shadow-md'
+                    : 'bg-gray-200 dark:bg-dark-bg hover:bg-gray-100'
                 )}
               >
                 <div className="flex flex-col items-center">
@@ -98,7 +133,7 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
             </div>
           </div>
 
-          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          {/* <DndContext collisionDetection={closestCenter} onDragStart={() => {}} onDragEnd={() => {}}> */}
             <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
               {steps.length === 0 ? (
                 <div className="text-center text-gray-500 p-4">
@@ -127,7 +162,7 @@ export const CreateOnboardingScreen = ({ showcaseSlug }: { showcaseSlug?: string
                 )}
               </DragOverlay>
             </SortableContext>
-          </DndContext>
+          {/* </DndContext> */}
 
           <div className="p-4 mt-auto border-t">
             <Button

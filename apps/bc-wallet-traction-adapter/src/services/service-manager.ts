@@ -1,7 +1,7 @@
 import type { Buffer } from 'buffer'
 import { LRUCache } from 'lru-cache'
 
-import { environment } from '../environment'
+import { DEBUG_ENABLED, environment } from '../environment'
 import { decryptBufferAsString } from '../util/CypherUtil'
 import { ShowcaseApiService } from './showcase-api-service'
 import { UpdatedTokens, TractionService } from './traction-service'
@@ -28,16 +28,12 @@ class ServiceManager {
 
     // Return existing service if it exists
     if (this.services.has(key)) {
+      if (DEBUG_ENABLED) console.debug(`ServiceManager: Found cached service for key: ${key}`)
       const service = this.services.get(key)! as TractionService
 
-      // Update token if provided
-      /*if (decodedToken) {  TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
-        service.updateBearerToken(decodedToken)
-      } else if (!service.hasBearerToken() && environment.traction.TRACTION_DEFAULT_API_KEY) {
-        service.updateBearerToken(await service.getTenantToken(environment.traction.TRACTION_DEFAULT_API_KEY))
-      }*/
       // -> Alternative logic
       if (!(await service.hasBearerToken()) && environment.traction.TRACTION_DEFAULT_API_KEY) {
+        if (DEBUG_ENABLED) console.debug(`ServiceManager: Token for ${key} is missing or expired. Fetching new token.`)
         const freshTractionToken = await service.getTenantToken(environment.traction.TRACTION_DEFAULT_API_KEY)
         updatedTokens.tractionToken = freshTractionToken
       }
@@ -45,15 +41,16 @@ class ServiceManager {
       return service
     }
 
+    if (DEBUG_ENABLED) console.debug(`ServiceManager: Creating new service for key: ${key}`)
     const showcaseApiService = new ShowcaseApiService(showcaseApiUrlBase)
-    const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
-    /*
-    if (!decodedToken && environment.traction.TRACTION_DEFAULT_API_KEY) { TODO as long as we cannot get Traction to accept the user's bearer token we need to create one here
-      tractionService.updateBearerToken(await tractionService.getTenantToken(environment.traction.TRACTION_DEFAULT_API_KEY))
+    if (decodedToken) {
+      showcaseApiService.updateBearerToken(decodedToken)
     }
-*/
+    const tractionService = new TractionService(tenantId, tractionApiUrlBase, showcaseApiService, walletId)
+
     // -> Alternative logic
     if (environment.traction.TRACTION_DEFAULT_API_KEY) {
+      if (DEBUG_ENABLED) console.debug(`ServiceManager: Fetching initial token for new service ${key}.`)
       const freshTractionToken = await tractionService.getTenantToken(environment.traction.TRACTION_DEFAULT_API_KEY)
       updatedTokens.tractionToken = freshTractionToken
     }
