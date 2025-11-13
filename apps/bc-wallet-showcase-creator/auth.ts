@@ -23,10 +23,17 @@ export interface JWTUser {
   email: string
 }
 
+export interface UserRoles {
+  realmRoles: string[]
+  clientRoles: Record<string, string[]>
+}
+
 declare module 'next-auth' {
   interface Session {
     accessToken?: string | undefined
-    user: User
+    user: User & {
+      roles?: UserRoles
+    }
     error?: 'RefreshAccessTokenError'
   }
 }
@@ -113,6 +120,47 @@ function extractTenantFromUrl(url: string): string | undefined {
     return parts[3] // https://host/<language>/<tenant>/<path>
   }
   return undefined
+}
+
+// Extract roles from decoded JWT token
+function extractRolesFromToken(token: any): UserRoles {
+  const roles: UserRoles = {
+    realmRoles: [],
+    clientRoles: {},
+  }
+
+  // Extract realm roles
+  if (token.realm_access?.roles) {
+    roles.realmRoles = token.realm_access.roles
+  }
+
+  // Extract client-specific roles
+  if (token.resource_access) {
+    Object.keys(token.resource_access).forEach((clientId) => {
+      if (token.resource_access[clientId]?.roles) {
+        roles.clientRoles[clientId] = token.resource_access[clientId].roles
+      }
+    })
+  }
+
+  return roles
+}
+
+// Check if user has required role
+export function hasRole(roles: UserRoles, requiredRole: string, clientId?: string): boolean {
+  // Check client-specific role
+  if (clientId && roles.clientRoles[clientId]) {
+    if (roles.clientRoles[clientId].includes(requiredRole)) {
+      return true
+    }
+  }
+
+  // Check realm role
+  if (roles.realmRoles.includes(requiredRole)) {
+    return true
+  }
+
+  return false
 }
 
 // Token refresh function
@@ -209,12 +257,26 @@ async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<N
         ...baseConfig.callbacks,
         async jwt({ token, account }) {
           if (account) {
+            // Decode the access token to extract roles
+            let decodedToken: any = {}
+            if (account.access_token) {
+              try {
+                const parts = account.access_token.split('.')
+                if (parts.length === 3) {
+                  decodedToken = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+                }
+              } catch (error) {
+                console.error('Failed to decode access token:', error)
+              }
+            }
+
             return {
               ...token,
               access_token: account.access_token,
               expires_at: account.expires_at,
               accessTokenExpires: account.expires_at ? account.expires_at * 1000 : 0,
               refresh_token: account.refresh_token,
+              roles: extractRolesFromToken(decodedToken),
             }
           }
 
@@ -233,6 +295,7 @@ async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<N
         async session({ session, token }) {
           session.accessToken = token.access_token as string | undefined
           session.error = token.error as 'RefreshAccessTokenError' | undefined
+          session.user.roles = token.roles as UserRoles | undefined
           return session
         },
       },

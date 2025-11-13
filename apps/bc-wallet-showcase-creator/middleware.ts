@@ -2,6 +2,7 @@ import createMiddleware from 'next-intl/middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { routing } from './i18n/routing'
 import { env } from '@/env'
+import { auth } from '@/auth'
 
 const handleI18nRouting = createMiddleware(routing)
 
@@ -16,7 +17,57 @@ function extractClientId(pathname: string): string | null {
 }
 
 export default async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.includes('/login')) {
+  const pathname = request.nextUrl.pathname
+  
+  // Check for public routes
+  const isLoginRoute = pathname.includes('/login')
+  const isInvalidTenantRoute = pathname.includes('/invalid-tenant')
+  const isUnauthorizedRoute = pathname.includes('/unauthorized')
+  const isApiRoute = pathname.includes('/api')
+  const isPublicRoute = isLoginRoute || isInvalidTenantRoute || isUnauthorizedRoute || isApiRoute
+
+  // For protected routes, check authentication and roles
+  if (!isPublicRoute) {
+    const session = await auth()
+    
+    // If not authenticated, redirect to login
+    if (!session) {
+      const { locale, tenantIdFromPath } = extractPathComponents(request)
+      const defaultLocale = locale || routing.defaultLocale
+      const tenantId = tenantIdFromPath || env.OIDC_DEFAULT_TENANT
+      const loginUrl = `/${defaultLocale}/${tenantId}/login`
+      return NextResponse.redirect(new URL(loginUrl, request.url))
+    }
+
+    // Check if user has admin role (realm or client-specific)
+    const userRoles = session.user?.roles
+    let hasAdminRole = false
+    
+    if (userRoles) {
+      // Check realm roles
+      hasAdminRole = userRoles.realmRoles.includes('admin')
+      
+      // Check client roles
+      if (!hasAdminRole) {
+        for (const clientRoles of Object.values(userRoles.clientRoles)) {
+          if (Array.isArray(clientRoles) && clientRoles.includes('admin')) {
+            hasAdminRole = true
+            break
+          }
+        }
+      }
+    }
+
+    if (!hasAdminRole) {
+      // User is authenticated but doesn't have admin role
+      const url = request.nextUrl.clone()
+      url.pathname = '/unauthorized'
+      return NextResponse.rewrite(url)
+    }
+  }
+
+  // Handle login page tenant validation
+  if (isLoginRoute) {
 
     const tenantId = extractPathComponents(request).tenantIdFromPath
 
@@ -111,5 +162,5 @@ function extractPathComponents(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/(fr|en)/:path*', '/:locale(fr|en)/:tenant((?!login)(?!api/auth)(?!_next)(?!_vercel|.*\\..*)/*)'],
+  matcher: ['/', '/(fr|en)/:path*', '/:locale(fr|en)/:tenant((?!login)(?!api/auth)(?!unauthorized)(?!_next)(?!_vercel|.*\\..*)/*)'],
 }
