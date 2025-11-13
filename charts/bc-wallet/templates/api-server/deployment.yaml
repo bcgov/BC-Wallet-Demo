@@ -88,22 +88,22 @@ spec:
             - name: OIDC_ROOT_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.apiServer.secretName | quote }}
                   key: OIDC_ROOT_CLIENT_ID
             - name: OIDC_ROOT_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.apiServer.secretName | quote }}
                   key: OIDC_ROOT_CLIENT_SECRET
             - name: OIDC_ROOT_ISSUER_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.apiServer.secretName | quote }}
                   key: OIDC_ROOT_ISSUER_URL
             - name: ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.apiServer.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.apiServer.encryptionSecretName | quote }}
                   key: ENCRYPTION_KEY
           {{- include "bc-wallet.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
           {{- with .Values.apiServer.livenessProbe }}

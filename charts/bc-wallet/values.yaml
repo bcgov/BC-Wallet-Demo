@@ -56,12 +56,16 @@ apiServer:
   # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
+  # Secret containing API Server specific OIDC credentials
+  # Required keys: OIDC_ROOT_CLIENT_ID, OIDC_ROOT_CLIENT_SECRET, OIDC_ROOT_ISSUER_URL
+  secretName: "bc-wallet-api-server-secrets"
+
+  # Secret containing shared encryption key
+  # Required keys: ENCRYPTION_KEY
+  encryptionSecretName: "bc-wallet-encryption-shared"
+
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
-  ## Secret must include the following ENVVars:
-  # SHOWCASE_DB_PASSWORD: ""
-  # AMQ_PASSWORD: ""
-  # ENCRYPTION_KEY: ""
-  # OIDC_ROOT_CLIENT_SECRET: "
+  # Use this for additional secrets beyond the component-specific ones above
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -171,11 +175,16 @@ demoServer:
   # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
+  # Secret containing Traction API credentials (shared with demo-server)
+  # Required keys: TRACTION_API_URL, WALLET_ID, API_KEY, OIDC_DEFAULT_TENANT
+  tractionSecretName: "bc-wallet-traction-shared"
+
+  # Secret containing webhook authentication
+  # Required keys: TRACTION_WEBHOOK_SECRET
+  webhookSecretName: "bc-wallet-webhooks-shared"
+
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
-  ## Secret must include the following ENVVars:
-  # TRACTION_DEFAULT_TENANT_ID: ""
-  # TRACTION_DEFAULT_API_KEY: ""
-  # TRACTION_WEBHOOK_SECRET: ""
+  # Use this for additional secrets beyond the component-specific ones above
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -398,9 +407,12 @@ showcaseCreator:
   # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
+  # Secret containing Showcase Creator specific OIDC/Auth configuration
+  # Required keys: NEXT_AUTH_SECRET, OIDC_DEFAULT_TENANT, OIDC_TRUST_HOST
+  secretName: "bc-wallet-showcase-creator-secrets"
+
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
-  ## Secret must include the following ENVVars:
-  # NEXT_AUTH_SECRET: ""
+  # Use this for additional secrets beyond the component-specific ones above
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.
@@ -508,10 +520,16 @@ tractionAdapter:
   # Name of ConfigMap with extra environment variables; overrides global.extraEnvVarsCM if set
   extraEnvVarsCM: ""
 
+  # Secret containing Traction API credentials (shared with demo-server)
+  # Required keys: TRACTION_API_URL, WALLET_ID, API_KEY, OIDC_DEFAULT_TENANT
+  tractionSecretName: "bc-wallet-traction-shared"
+
+  # Secret containing shared encryption key (shared with api-server)
+  # Required keys: ENCRYPTION_KEY
+  encryptionSecretName: "bc-wallet-encryption-shared"
+
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
-  ## Secret must include the following ENVVars: (TRACTION_DEFAULT_API_KEY etc. should be present when creating the tenant records)
-  # ENCRYPTION_KEY: ""
-  # AMQ_PASSWORD: ""
+  # Use this for additional secrets beyond the component-specific ones above
   extraEnvVarsSecret: ""
 
   # This is for setting Kubernetes Annotations to a Pod.

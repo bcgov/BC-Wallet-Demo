@@ -6,6 +6,17 @@ BC Wallet services with PostgreSQL and RabbitMQ
 
 For more info on the devops setup there is [devops.md](../../resources/DEVOPS/devops.md) in the resources/DEVOPS folder in the root.
 
+## Secret Management
+
+This chart uses an isolated secret management approach where each component only has access to the secrets it needs. See [SECRET_MANAGEMENT.md](./SECRET_MANAGEMENT.md) for detailed documentation on:
+
+- Secret structure and organization
+- Component-specific vs shared secrets
+- Creating and managing secrets
+- Migration guide from previous versions
+- Security best practices
+- Troubleshooting
+
 ## Values
 
 | Key | Type | Default | Description |

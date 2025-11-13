@@ -70,27 +70,27 @@ spec:
             - name: TRACTION_DEFAULT_API_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.tractionAdapter.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.tractionAdapter.tractionSecretName | quote }}
                   key: TRACTION_API_URL
             - name: TRACTION_DEFAULT_TENANT_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.tractionAdapter.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.tractionAdapter.tractionSecretName | quote }}
                   key: OIDC_DEFAULT_TENANT
             - name: TRACTION_DEFAULT_WALLET_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.tractionAdapter.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.tractionAdapter.tractionSecretName | quote }}
                   key: WALLET_ID
             - name: TRACTION_DEFAULT_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.tractionAdapter.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.tractionAdapter.tractionSecretName | quote }}
                   key: API_KEY
             - name: ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.tractionAdapter.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.tractionAdapter.encryptionSecretName | quote }}
                   key: ENCRYPTION_KEY
           {{- include "bc-wallet.renderEnvFrom" (list "tractionAdapter" .) | nindent 10 }}
           {{- with .Values.tractionAdapter.livenessProbe }}

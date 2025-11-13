@@ -57,22 +57,22 @@ spec:
             - name: TRACTION_API_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.demoServer.tractionSecretName | quote }}
                   key: TRACTION_API_URL
             - name: WALLET_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.demoServer.tractionSecretName | quote }}
                   key: WALLET_ID
             - name: API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.demoServer.tractionSecretName | quote }}
                   key: API_KEY
             - name: TRACTION_WEBHOOK_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.demoServer.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.demoServer.webhookSecretName | quote }}
                   key: TRACTION_WEBHOOK_SECRET
           {{- include "bc-wallet.renderEnvFrom" (list "demoServer" .) | nindent 10 }}
           {{- with .Values.demoServer.livenessProbe }}

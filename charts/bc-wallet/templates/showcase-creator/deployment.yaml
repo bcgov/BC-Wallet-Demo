@@ -72,17 +72,17 @@ spec:
             - name: NEXT_AUTH_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.showcaseCreator.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.showcaseCreator.secretName | quote }}
                   key: NEXT_AUTH_SECRET
             - name: OIDC_DEFAULT_TENANT
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.showcaseCreator.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.showcaseCreator.secretName | quote }}
                   key: OIDC_DEFAULT_TENANT
             - name: OIDC_TRUST_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.showcaseCreator.secretName | default "bc-wallet-secrets" | quote }}
+                  name: {{ .Values.showcaseCreator.secretName | quote }}
                   key: OIDC_TRUST_HOST
           {{- with .Values.showcaseCreator.livenessProbe }}
           {{- include "bc-wallet.renderEnvFrom" (list "showcaseCreator" .) | nindent 10 }}
