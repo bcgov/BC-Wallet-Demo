@@ -305,6 +305,7 @@
     "showcases_label": "Showcases",
     "credential_library_label": "Credential Library",
     "character_library_label": "Characters",
+    "admin_tenants_label": "Tenant Management",
     "logout_label": "Log Out",
     "dark_mode_label": "Dark Mode"
   },

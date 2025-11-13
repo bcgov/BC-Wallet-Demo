@@ -296,6 +296,7 @@
     "showcases_label": "Tableau de bord",
     "credential_library_label": "Justificatifs numériques",
     "character_library_label": "Personnages",
+    "admin_tenants_label": "Gestion des locataires",
     "logout_label": "Se déconnecter",
     "dark_mode_label": "Mode sombre"
   },

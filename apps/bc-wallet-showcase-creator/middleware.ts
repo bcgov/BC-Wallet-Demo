@@ -25,6 +25,9 @@ export default async function middleware(request: NextRequest) {
   const isUnauthorizedRoute = pathname.includes('/unauthorized')
   const isApiRoute = pathname.includes('/api')
   const isPublicRoute = isLoginRoute || isInvalidTenantRoute || isUnauthorizedRoute || isApiRoute
+  
+  // Check if this is an admin route
+  const isAdminRoute = pathname.includes('/admin')
 
   // For protected routes, check authentication and roles
   if (!isPublicRoute) {
@@ -58,8 +61,19 @@ export default async function middleware(request: NextRequest) {
       }
     }
 
-    if (!hasAdminRole) {
-      // User is authenticated but doesn't have admin role
+    // For admin routes, admin role is required
+    // For other routes, just authentication is enough
+    if (isAdminRoute && !hasAdminRole) {
+      // User is authenticated but doesn't have admin role, and trying to access admin area
+      const url = request.nextUrl.clone()
+      url.pathname = '/unauthorized'
+      return NextResponse.rewrite(url)
+    }
+    
+    // For non-admin routes, any authenticated user without admin role still can't access
+    // (based on previous RBAC requirement)
+    if (!isAdminRoute && !hasAdminRole) {
+      // User is authenticated but doesn't have admin role for regular routes
       const url = request.nextUrl.clone()
       url.pathname = '/unauthorized'
       return NextResponse.rewrite(url)

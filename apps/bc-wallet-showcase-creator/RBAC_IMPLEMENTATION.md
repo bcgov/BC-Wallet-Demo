@@ -176,10 +176,19 @@ apps/bc-wallet-showcase-creator/
 ├── auth.ts                          # Modified: Added role extraction
 ├── middleware.ts                    # Modified: Added role checking
 ├── RBAC.md                          # New: Documentation
+├── TENANT_MANAGEMENT.md             # New: Tenant admin UI documentation
+├── lib/api/
+│   └── tenants.ts                   # New: Tenant API client
+├── components/admin/
+│   └── tenant-form-dialog.tsx       # New: Tenant form component
 ├── app/
-│   └── unauthorized/
-│       ├── page.tsx                 # New: Unauthorized page
-│       └── layout.tsx               # New: Unauthorized layout
+│   ├── unauthorized/
+│   │   ├── page.tsx                 # New: Unauthorized page
+│   │   └── layout.tsx               # New: Unauthorized layout
+│   └── [locale]/(protected)/admin/
+│       ├── layout.tsx               # New: Admin panel layout
+│       └── tenants/
+│           └── page.tsx             # New: Tenant management page
 ARCHITECTURE_OVERVIEW.md             # Modified: Updated security section
 ```
 
@@ -190,8 +199,8 @@ ARCHITECTURE_OVERVIEW.md             # Modified: Updated security section
    - Resource-level permissions
    - Dynamic role assignment
 
-2. **Role Management UI**
-   - Admin panel for role assignment
+2. **Role Management UI** ✅ **IMPLEMENTED**
+   - Admin panel for tenant management (see [TENANT_MANAGEMENT.md](./TENANT_MANAGEMENT.md))
    - User role viewing
    - Audit log for role changes
 
