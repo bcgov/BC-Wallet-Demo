@@ -2,7 +2,7 @@
 
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square)
 
-BC Wallet services with PostgreSQL and RabbitMQ
+BC Wallet Showcase services with PostgreSQL and RabbitMQ
 
 For more info on the devops setup there is [devops.md](../../resources/DEVOPS/devops.md) in the resources/DEVOPS folder in the root.
 

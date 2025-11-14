@@ -1,4 +1,4 @@
-# Default values for bc-wallet.
+# Default values for bc-wallet-showcase.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -58,11 +58,11 @@ apiServer:
 
   # Secret containing API Server specific OIDC credentials
   # Required keys: OIDC_ROOT_CLIENT_ID, OIDC_ROOT_CLIENT_SECRET, OIDC_ROOT_ISSUER_URL
-  secretName: "bc-wallet-api-server-secrets"
+  secretName: "bc-wallet-showcase-api-server-secrets"
 
   # Secret containing shared encryption key
   # Required keys: ENCRYPTION_KEY
-  encryptionSecretName: "bc-wallet-encryption-shared"
+  encryptionSecretName: "bc-wallet-showcase-encryption-shared"
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   # Use this for additional secrets beyond the component-specific ones above
@@ -177,11 +177,11 @@ demoServer:
 
   # Secret containing Traction API credentials (shared with demo-server)
   # Required keys: TRACTION_API_URL, WALLET_ID, API_KEY, OIDC_DEFAULT_TENANT
-  tractionSecretName: "bc-wallet-traction-shared"
+  tractionSecretName: "bc-wallet-showcase-traction-shared"
 
   # Secret containing webhook authentication
   # Required keys: TRACTION_WEBHOOK_SECRET
-  webhookSecretName: "bc-wallet-webhooks-shared"
+  webhookSecretName: "bc-wallet-showcase-webhooks-shared"
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   # Use this for additional secrets beyond the component-specific ones above
@@ -409,7 +409,7 @@ showcaseCreator:
 
   # Secret containing Showcase Creator specific OIDC/Auth configuration
   # Required keys: NEXT_AUTH_SECRET, OIDC_DEFAULT_TENANT, OIDC_TRUST_HOST
-  secretName: "bc-wallet-showcase-creator-secrets"
+  secretName: "bc-wallet-showcase-showcase-creator-secrets"
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   # Use this for additional secrets beyond the component-specific ones above
@@ -522,11 +522,11 @@ tractionAdapter:
 
   # Secret containing Traction API credentials (shared with demo-server)
   # Required keys: TRACTION_API_URL, WALLET_ID, API_KEY, OIDC_DEFAULT_TENANT
-  tractionSecretName: "bc-wallet-traction-shared"
+  tractionSecretName: "bc-wallet-showcase-traction-shared"
 
   # Secret containing shared encryption key (shared with api-server)
   # Required keys: ENCRYPTION_KEY
-  encryptionSecretName: "bc-wallet-encryption-shared"
+  encryptionSecretName: "bc-wallet-showcase-encryption-shared"
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   # Use this for additional secrets beyond the component-specific ones above
@@ -621,6 +621,10 @@ tractionAdapter:
 
 postgresql:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami-legacy/postgresql
+    tag: 16.6.3-debian-12-r0
   auth:
     enablePostgresUser: true
     username: "showcase-user"
@@ -665,6 +669,10 @@ postgresql:
 
 rabbitmq:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami-legacy/rabbitmq
+    tag: 4.0.5-debian-12-r0
   auth:
     username: bc_user
     existingPasswordSecret: bc-wallet-rabbitmq-secret

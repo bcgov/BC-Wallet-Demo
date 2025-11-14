@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-api-server
+  name: {{ include "bc-wallet-showcase.fullname" . }}-api-server
   labels:
     app.kubernetes.io/component: api-server
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.apiServer.autoscaling.enabled }}
   replicas: {{ .Values.apiServer.replicaCount }}
@@ -12,7 +12,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: api-server
-      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+      {{- include "bc-wallet-showcase.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.apiServer.podAnnotations }}
@@ -21,7 +21,7 @@ spec:
       {{- end }}
       labels:
         app.kubernetes.io/component: api-server
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        {{- include "bc-wallet-showcase.labels" . | nindent 8 }}
         {{- with .Values.apiServer.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -30,7 +30,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "bc-wallet.serviceAccountName" . }}
+      serviceAccountName: {{ include "bc-wallet-showcase.serviceAccountName" . }}
       {{- with .Values.apiServer.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -66,8 +66,8 @@ spec:
             - name: AMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
-                  key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+                  name: {{ include "bc-wallet-showcase.rabbitmq.secret.name" . }}
+                  key: {{ include "bc-wallet-showcase.rabbitmq.passwordKey" . }}
             - name: SHOWCASE_DB_PORT
               value: {{ .Values.postgresql.primary.service.ports.postgresql | quote }}
             - name: SHOWCASE_DB_USERNAME
@@ -81,10 +81,10 @@ spec:
             - name: SHOWCASE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "bc-wallet.database.secret.name" . }}
-                  key: {{ include "bc-wallet.database.userPasswordKey" . }}
+                  name: {{ include "bc-wallet-showcase.database.secret.name" . }}
+                  key: {{ include "bc-wallet-showcase.database.userPasswordKey" . }}
             - name: CORS_ALLOW_ORIGINS
-              value: "https://{{ include "bc-wallet.showcaseCreator.host" . }},https://{{ include "bc-wallet.demoWeb.host" . }}"
+              value: "https://{{ include "bc-wallet-showcase.showcaseCreator.host" . }},https://{{ include "bc-wallet-showcase.demoWeb.host" . }}"
             - name: OIDC_ROOT_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -105,7 +105,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.apiServer.encryptionSecretName | quote }}
                   key: ENCRYPTION_KEY
-          {{- include "bc-wallet.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
+          {{- include "bc-wallet-showcase.renderEnvFrom" (list "apiServer" .) | nindent 10 }}
           {{- with .Values.apiServer.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

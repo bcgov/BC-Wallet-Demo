@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-traction-adapter
+  name: {{ include "bc-wallet-showcase.fullname" . }}-traction-adapter
   labels:
     app.kubernetes.io/component: traction-adapter
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.tractionAdapter.autoscaling.enabled }}
   replicas: {{ .Values.tractionAdapter.replicaCount }}
@@ -12,7 +12,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: traction-adapter
-      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+      {{- include "bc-wallet-showcase.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.tractionAdapter.podAnnotations }}
@@ -21,7 +21,7 @@ spec:
       {{- end }}
       labels:
         app.kubernetes.io/component: traction-adapter
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        {{- include "bc-wallet-showcase.labels" . | nindent 8 }}
         {{- with .Values.tractionAdapter.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -30,7 +30,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "bc-wallet.serviceAccountName" . }}
+      serviceAccountName: {{ include "bc-wallet-showcase.serviceAccountName" . }}
       {{- with .Values.tractionAdapter.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -61,8 +61,8 @@ spec:
             - name: AMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "bc-wallet.rabbitmq.secret.name" . }}
-                  key: {{ include "bc-wallet.rabbitmq.passwordKey" . }}
+                  name: {{ include "bc-wallet-showcase.rabbitmq.secret.name" . }}
+                  key: {{ include "bc-wallet-showcase.rabbitmq.passwordKey" . }}
             - name: AMQ_USERNAME
               value: {{ .Values.rabbitmq.auth.username | quote }}
             - name: LOG_LEVEL # TODO remove when all stable
@@ -92,7 +92,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.tractionAdapter.encryptionSecretName | quote }}
                   key: ENCRYPTION_KEY
-          {{- include "bc-wallet.renderEnvFrom" (list "tractionAdapter" .) | nindent 10 }}
+          {{- include "bc-wallet-showcase.renderEnvFrom" (list "tractionAdapter" .) | nindent 10 }}
           {{- with .Values.tractionAdapter.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

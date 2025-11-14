@@ -2,16 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-demo-server
+  name: {{ include "bc-wallet-showcase.fullname" . }}-demo-server
   namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/component: demo-server
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/component: demo-server
-      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+      {{- include "bc-wallet-showcase.selectorLabels" . | nindent 6 }}
   policyTypes:
     - Ingress
   ingress:
@@ -33,5 +33,5 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: api-server
-              {{- include "bc-wallet.selectorLabels" . | nindent 14 }}
+              {{- include "bc-wallet-showcase.selectorLabels" . | nindent 14 }}
 {{- end }}

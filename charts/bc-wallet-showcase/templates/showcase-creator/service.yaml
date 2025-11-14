@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-showcase-creator
+  name: {{ include "bc-wallet-showcase.fullname" . }}-showcase-creator
   labels:
     app.kubernetes.io/component: showcase-creator
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.showcaseCreator.service.type }}
   ports:
@@ -14,4 +14,4 @@ spec:
       name: http
   selector:
     app.kubernetes.io/component: showcase-creator
-    {{- include "bc-wallet.selectorLabels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.selectorLabels" . | nindent 4 }}

@@ -2,16 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-showcase-creator
+  name: {{ include "bc-wallet-showcase.fullname" . }}-showcase-creator
   namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/component: showcase-creator
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/component: showcase-creator
-      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+      {{- include "bc-wallet-showcase.selectorLabels" . | nindent 6 }}
   policyTypes:
     - Ingress
   ingress:

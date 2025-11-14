@@ -2,15 +2,15 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-showcase-creator
+  name: {{ include "bc-wallet-showcase.fullname" . }}-showcase-creator
   labels:
     app.kubernetes.io/component: showcase-creator
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "bc-wallet.fullname" . }}-showcase-creator
+    name: {{ include "bc-wallet-showcase.fullname" . }}-showcase-creator
   minReplicas: {{ .Values.showcaseCreator.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.showcaseCreator.autoscaling.maxReplicas }}
   metrics:

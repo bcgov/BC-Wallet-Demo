@@ -2,15 +2,15 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-demo-server
+  name: {{ include "bc-wallet-showcase.fullname" . }}-demo-server
   labels:
     app.kubernetes.io/component: demo-server
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "bc-wallet.fullname" . }}-demo-server
+    name: {{ include "bc-wallet-showcase.fullname" . }}-demo-server
   minReplicas: {{ .Values.demoServer.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.demoServer.autoscaling.maxReplicas }}
   metrics:

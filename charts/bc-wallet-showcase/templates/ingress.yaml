@@ -13,9 +13,9 @@ apiVersion: extensions/v1beta1
 {{- end }}
 kind: Ingress
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}
+  name: {{ include "bc-wallet-showcase.fullname" . }}
   labels:
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -35,7 +35,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    - host: {{ include "bc-wallet.apiServer.host" . | quote }}
+    - host: {{ include "bc-wallet-showcase.apiServer.host" . | quote }}
       http:
         paths:
           - path: /
@@ -45,14 +45,14 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "bc-wallet.fullname" . }}-api-server
+                name: {{ include "bc-wallet-showcase.fullname" . }}-api-server
                 port:
                   number: {{ .Values.apiServer.service.port }}
               {{- else }}
-              serviceName: {{ include "bc-wallet.fullname" . }}-api-server
+              serviceName: {{ include "bc-wallet-showcase.fullname" . }}-api-server
               servicePort: {{ .Values.apiServer.service.port }}
               {{- end }}
-    - host: {{ include "bc-wallet.demoServer.host" . | quote }}
+    - host: {{ include "bc-wallet-showcase.demoServer.host" . | quote }}
       http:
         paths:
           - path: /
@@ -62,14 +62,14 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "bc-wallet.fullname" . }}-demo-server
+                name: {{ include "bc-wallet-showcase.fullname" . }}-demo-server
                 port:
                   number: {{ .Values.demoServer.service.port }}
               {{- else }}
-              serviceName: {{ include "bc-wallet.fullname" . }}-demo-server
+              serviceName: {{ include "bc-wallet-showcase.fullname" . }}-demo-server
               servicePort: {{ .Values.demoServer.service.port }}
               {{- end }}
-    - host: {{ include "bc-wallet.demoWeb.host" . | quote }}
+    - host: {{ include "bc-wallet-showcase.demoWeb.host" . | quote }}
       http:
         paths:
           - path: /
@@ -79,14 +79,14 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "bc-wallet.fullname" . }}-demo-web
+                name: {{ include "bc-wallet-showcase.fullname" . }}-demo-web
                 port:
                   number: {{ .Values.demoWeb.service.port }}
               {{- else }}
-              serviceName: {{ include "bc-wallet.fullname" . }}-demo-web
+              serviceName: {{ include "bc-wallet-showcase.fullname" . }}-demo-web
               servicePort: {{ .Values.demoWeb.service.port }}
               {{- end }}
-    - host: {{ include "bc-wallet.showcaseCreator.host" . | quote }}
+    - host: {{ include "bc-wallet-showcase.showcaseCreator.host" . | quote }}
       http:
         paths:
           - path: /
@@ -96,14 +96,14 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "bc-wallet.fullname" . }}-showcase-creator
+                name: {{ include "bc-wallet-showcase.fullname" . }}-showcase-creator
                 port:
                   number: {{ .Values.showcaseCreator.service.port }}
               {{- else }}
-              serviceName: {{ include "bc-wallet.fullname" . }}-showcase-creator
+              serviceName: {{ include "bc-wallet-showcase.fullname" . }}-showcase-creator
               servicePort: {{ .Values.showcaseCreator.service.port }}
               {{- end }}
-    - host: {{ include "bc-wallet.tractionAdapter.host" . | quote }}
+    - host: {{ include "bc-wallet-showcase.tractionAdapter.host" . | quote }}
       http:
         paths:
           - path: /
@@ -113,11 +113,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "bc-wallet.fullname" . }}-traction-adapter
+                name: {{ include "bc-wallet-showcase.fullname" . }}-traction-adapter
                 port:
                   number: {{ .Values.tractionAdapter.service.port }}
               {{- else }}
-              serviceName: {{ include "bc-wallet.fullname" . }}-traction-adapter
+              serviceName: {{ include "bc-wallet-showcase.fullname" . }}-traction-adapter
               servicePort: {{ .Values.tractionAdapter.service.port }}
               {{- end }}
 {{- end }}

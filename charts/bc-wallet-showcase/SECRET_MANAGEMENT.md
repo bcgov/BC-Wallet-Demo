@@ -10,7 +10,7 @@ This document describes the secret management architecture for the BC Wallet Hel
 
 These secrets contain credentials used by only one component:
 
-#### 1. `bc-wallet-api-server-secrets`
+#### 1. `bc-wallet-showcase-api-server-secrets`
 **Used by:** api-server only  
 **Required keys:**
 - `OIDC_ROOT_CLIENT_ID` - OIDC client identifier for API server authentication
@@ -20,10 +20,10 @@ These secrets contain credentials used by only one component:
 **Configuration in values.yaml:**
 ```yaml
 apiServer:
-  secretName: "bc-wallet-api-server-secrets"
+  secretName: "bc-wallet-showcase-api-server-secrets"
 ```
 
-#### 2. `bc-wallet-showcase-creator-secrets`
+#### 2. `bc-wallet-showcase-showcase-creator-secrets`
 **Used by:** showcase-creator only  
 **Required keys:**
 - `NEXT_AUTH_SECRET` - NextAuth.js session encryption secret (must be 32+ characters)
@@ -33,14 +33,14 @@ apiServer:
 **Configuration in values.yaml:**
 ```yaml
 showcaseCreator:
-  secretName: "bc-wallet-showcase-creator-secrets"
+  secretName: "bc-wallet-showcase-showcase-creator-secrets"
 ```
 
 ### Shared Secrets
 
 These secrets contain credentials shared by multiple components:
 
-#### 3. `bc-wallet-traction-shared`
+#### 3. `bc-wallet-showcase-traction-shared`
 **Used by:** demo-server, traction-adapter  
 **Required keys:**
 - `TRACTION_API_URL` - Base URL for Traction API
@@ -51,13 +51,13 @@ These secrets contain credentials shared by multiple components:
 **Configuration in values.yaml:**
 ```yaml
 demoServer:
-  tractionSecretName: "bc-wallet-traction-shared"
+  tractionSecretName: "bc-wallet-showcase-traction-shared"
 
 tractionAdapter:
-  tractionSecretName: "bc-wallet-traction-shared"
+  tractionSecretName: "bc-wallet-showcase-traction-shared"
 ```
 
-#### 4. `bc-wallet-encryption-shared`
+#### 4. `bc-wallet-showcase-encryption-shared`
 **Used by:** api-server, traction-adapter  
 **Required keys:**
 - `ENCRYPTION_KEY` - Shared encryption key for data encryption (must be 32 bytes hex-encoded)
@@ -65,13 +65,13 @@ tractionAdapter:
 **Configuration in values.yaml:**
 ```yaml
 apiServer:
-  encryptionSecretName: "bc-wallet-encryption-shared"
+  encryptionSecretName: "bc-wallet-showcase-encryption-shared"
 
 tractionAdapter:
-  encryptionSecretName: "bc-wallet-encryption-shared"
+  encryptionSecretName: "bc-wallet-showcase-encryption-shared"
 ```
 
-#### 5. `bc-wallet-webhooks-shared`
+#### 5. `bc-wallet-showcase-webhooks-shared`
 **Used by:** demo-server  
 **Required keys:**
 - `TRACTION_WEBHOOK_SECRET` - Secret for authenticating Traction webhook callbacks
@@ -79,7 +79,7 @@ tractionAdapter:
 **Configuration in values.yaml:**
 ```yaml
 demoServer:
-  webhookSecretName: "bc-wallet-webhooks-shared"
+  webhookSecretName: "bc-wallet-showcase-webhooks-shared"
 ```
 
 ### Infrastructure Secrets
@@ -112,15 +112,15 @@ These secrets are managed by dependent Helm charts and referenced via helper fun
 
 | Component | Secrets Used | Purpose |
 |-----------|--------------|---------|
-| api-server | bc-wallet-api-server-secrets | OIDC authentication |
-| api-server | bc-wallet-encryption-shared | Data encryption |
+| api-server | bc-wallet-showcase-api-server-secrets | OIDC authentication |
+| api-server | bc-wallet-showcase-encryption-shared | Data encryption |
 | api-server | postgresql secret | Database access |
 | api-server | rabbitmq secret | Message queue access |
-| demo-server | bc-wallet-traction-shared | Traction API access |
-| demo-server | bc-wallet-webhooks-shared | Webhook validation |
-| showcase-creator | bc-wallet-showcase-creator-secrets | NextAuth & OIDC |
-| traction-adapter | bc-wallet-traction-shared | Traction API access |
-| traction-adapter | bc-wallet-encryption-shared | Data encryption |
+| demo-server | bc-wallet-showcase-traction-shared | Traction API access |
+| demo-server | bc-wallet-showcase-webhooks-shared | Webhook validation |
+| showcase-creator | bc-wallet-showcase-showcase-creator-secrets | NextAuth & OIDC |
+| traction-adapter | bc-wallet-showcase-traction-shared | Traction API access |
+| traction-adapter | bc-wallet-showcase-encryption-shared | Data encryption |
 | traction-adapter | rabbitmq secret | Message queue access |
 | demo-web | (none) | No secret access needed |
 
@@ -130,14 +130,14 @@ These secrets are managed by dependent Helm charts and referenced via helper fun
 
 ```bash
 # API Server OIDC credentials
-kubectl create secret generic bc-wallet-api-server-secrets \
+kubectl create secret generic bc-wallet-showcase-api-server-secrets \
   --from-literal=OIDC_ROOT_CLIENT_ID='your-client-id' \
   --from-literal=OIDC_ROOT_CLIENT_SECRET='your-client-secret' \
   --from-literal=OIDC_ROOT_ISSUER_URL='https://keycloak.example.com/realms/your-realm' \
   -n your-namespace
 
 # Showcase Creator authentication
-kubectl create secret generic bc-wallet-showcase-creator-secrets \
+kubectl create secret generic bc-wallet-showcase-showcase-creator-secrets \
   --from-literal=NEXT_AUTH_SECRET='your-long-random-secret-32-chars-minimum' \
   --from-literal=OIDC_DEFAULT_TENANT='your-tenant-id' \
   --from-literal=OIDC_TRUST_HOST='true' \
@@ -148,7 +148,7 @@ kubectl create secret generic bc-wallet-showcase-creator-secrets \
 
 ```bash
 # Traction credentials (shared by demo-server and traction-adapter)
-kubectl create secret generic bc-wallet-traction-shared \
+kubectl create secret generic bc-wallet-showcase-traction-shared \
   --from-literal=TRACTION_API_URL='https://traction.example.com' \
   --from-literal=WALLET_ID='your-wallet-id' \
   --from-literal=API_KEY='your-api-key' \
@@ -156,12 +156,12 @@ kubectl create secret generic bc-wallet-traction-shared \
   -n your-namespace
 
 # Encryption key (shared by api-server and traction-adapter)
-kubectl create secret generic bc-wallet-encryption-shared \
+kubectl create secret generic bc-wallet-showcase-encryption-shared \
   --from-literal=ENCRYPTION_KEY='0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' \
   -n your-namespace
 
 # Webhook secret
-kubectl create secret generic bc-wallet-webhooks-shared \
+kubectl create secret generic bc-wallet-showcase-webhooks-shared \
   --from-literal=TRACTION_WEBHOOK_SECRET='your-webhook-secret' \
   -n your-namespace
 ```
@@ -176,7 +176,7 @@ For production environments, consider using external secret management solutions
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
-  name: bc-wallet-api-server-secrets
+  name: bc-wallet-showcase-api-server-secrets
   namespace: bc-wallet
 spec:
   encryptedData:
@@ -191,14 +191,14 @@ spec:
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: bc-wallet-api-server-secrets
+  name: bc-wallet-showcase-api-server-secrets
 spec:
   refreshInterval: 1h
   secretStoreRef:
     kind: SecretStore
     name: vault-backend
   target:
-    name: bc-wallet-api-server-secrets
+    name: bc-wallet-showcase-api-server-secrets
   data:
   - secretKey: OIDC_ROOT_CLIENT_ID
     remoteRef:
@@ -216,28 +216,28 @@ spec:
 
 ## Migration Guide
 
-### Migrating from Single `bc-wallet-secrets`
+### Migrating from Single `bc-wallet-showcase-secrets`
 
-If you're upgrading from a previous version where all secrets were in a single `bc-wallet-secrets` secret:
+If you're upgrading from a previous version where all secrets were in a single `bc-wallet-showcase-secrets` secret:
 
 #### Step 1: Review Current Secrets
 
 ```bash
-kubectl get secret bc-wallet-secrets -n your-namespace -o yaml
+kubectl get secret bc-wallet-showcase-secrets -n your-namespace -o yaml
 ```
 
 #### Step 2: Create New Isolated Secrets
 
-Extract the keys from `bc-wallet-secrets` and create the new isolated secrets:
+Extract the keys from `bc-wallet-showcase-secrets` and create the new isolated secrets:
 
 ```bash
 # Extract current values (example)
-export OIDC_CLIENT_ID=$(kubectl get secret bc-wallet-secrets -n your-namespace -o jsonpath='{.data.OIDC_ROOT_CLIENT_ID}' | base64 -d)
-export OIDC_CLIENT_SECRET=$(kubectl get secret bc-wallet-secrets -n your-namespace -o jsonpath='{.data.OIDC_ROOT_CLIENT_SECRET}' | base64 -d)
+export OIDC_CLIENT_ID=$(kubectl get secret bc-wallet-showcase-secrets -n your-namespace -o jsonpath='{.data.OIDC_ROOT_CLIENT_ID}' | base64 -d)
+export OIDC_CLIENT_SECRET=$(kubectl get secret bc-wallet-showcase-secrets -n your-namespace -o jsonpath='{.data.OIDC_ROOT_CLIENT_SECRET}' | base64 -d)
 # ... extract other values ...
 
 # Create new secrets
-kubectl create secret generic bc-wallet-api-server-secrets \
+kubectl create secret generic bc-wallet-showcase-api-server-secrets \
   --from-literal=OIDC_ROOT_CLIENT_ID="$OIDC_CLIENT_ID" \
   --from-literal=OIDC_ROOT_CLIENT_SECRET="$OIDC_CLIENT_SECRET" \
   --from-literal=OIDC_ROOT_ISSUER_URL="$OIDC_ISSUER_URL" \
@@ -269,7 +269,7 @@ kubectl get pod <api-server-pod> -n your-namespace -o jsonpath='{.spec.container
 Once verified, you can remove the old secret:
 
 ```bash
-kubectl delete secret bc-wallet-secrets -n your-namespace
+kubectl delete secret bc-wallet-showcase-secrets -n your-namespace
 ```
 
 ## Security Best Practices
@@ -290,14 +290,14 @@ Use RBAC to restrict secret access:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: bc-wallet-secret-reader
+  name: bc-wallet-showcase-secret-reader
   namespace: bc-wallet
 rules:
 - apiGroups: [""]
   resources: ["secrets"]
   resourceNames: 
-    - bc-wallet-api-server-secrets
-    - bc-wallet-traction-shared
+    - bc-wallet-showcase-api-server-secrets
+    - bc-wallet-showcase-traction-shared
   verbs: ["get"]
 ```
 
@@ -353,10 +353,10 @@ Each component only has access to the secrets it needs. This minimizes:
 
 ```bash
 # Check if secret exists
-kubectl get secret bc-wallet-api-server-secrets -n your-namespace
+kubectl get secret bc-wallet-showcase-api-server-secrets -n your-namespace
 
 # If missing, create it
-kubectl create secret generic bc-wallet-api-server-secrets \
+kubectl create secret generic bc-wallet-showcase-api-server-secrets \
   --from-literal=OIDC_ROOT_CLIENT_ID='...' \
   --from-literal=OIDC_ROOT_CLIENT_SECRET='...' \
   --from-literal=OIDC_ROOT_ISSUER_URL='...' \
@@ -367,10 +367,10 @@ kubectl create secret generic bc-wallet-api-server-secrets \
 
 ```bash
 # View secret keys
-kubectl get secret bc-wallet-api-server-secrets -n your-namespace -o jsonpath='{.data}' | jq 'keys'
+kubectl get secret bc-wallet-showcase-api-server-secrets -n your-namespace -o jsonpath='{.data}' | jq 'keys'
 
 # Add missing key
-kubectl patch secret bc-wallet-api-server-secrets -n your-namespace \
+kubectl patch secret bc-wallet-showcase-api-server-secrets -n your-namespace \
   --type='json' \
   -p='[{"op": "add", "path": "/data/MISSING_KEY", "value": "'$(echo -n 'value' | base64)'"}]'
 ```
@@ -381,7 +381,7 @@ Check that secret values are correctly formatted:
 
 ```bash
 # Decode and verify secret value
-kubectl get secret bc-wallet-api-server-secrets -n your-namespace \
+kubectl get secret bc-wallet-showcase-api-server-secrets -n your-namespace \
   -o jsonpath='{.data.OIDC_ROOT_CLIENT_ID}' | base64 -d
 ```
 

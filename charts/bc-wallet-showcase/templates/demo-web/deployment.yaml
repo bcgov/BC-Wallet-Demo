@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-demo-web
+  name: {{ include "bc-wallet-showcase.fullname" . }}-demo-web
   labels:
     app.kubernetes.io/component: demo-web
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.demoWeb.autoscaling.enabled }}
   replicas: {{ .Values.demoWeb.replicaCount }}
@@ -12,7 +12,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: demo-web
-      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+      {{- include "bc-wallet-showcase.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.demoWeb.podAnnotations }}
@@ -21,7 +21,7 @@ spec:
       {{- end }}
       labels:
         app.kubernetes.io/component: demo-web
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        {{- include "bc-wallet-showcase.labels" . | nindent 8 }}
         {{- with .Values.demoWeb.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -30,7 +30,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "bc-wallet.serviceAccountName" . }}
+      serviceAccountName: {{ include "bc-wallet-showcase.serviceAccountName" . }}
       {{- with .Values.demoWeb.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -53,9 +53,9 @@ spec:
             - name: LOG_LEVEL
               value: {{ .Values.demoWeb.logLevel | quote }}
             - name: REACT_APP_DEMO_API_URL
-              value: "https://{{ include "bc-wallet.demoServer.host" . }}"
+              value: "https://{{ include "bc-wallet-showcase.demoServer.host" . }}"
             - name: REACT_APP_SHOWCASE_API_URL
-              value: "https://{{ include "bc-wallet.apiServer.host" . }}"
+              value: "https://{{ include "bc-wallet-showcase.apiServer.host" . }}"
             - name: REACT_APP_BASE_ROUTE
               value: {{ .Values.demoWeb.baseRoute | quote }}
             - name: REACT_APP_WALLET_QR_CODE_URL
@@ -64,7 +64,7 @@ spec:
               value: {{ .Values.demoWeb.snowplowEndpoint | quote }}
             - name: DEMOWEB_INSIGHTS_PROJECT_ID
               value: {{ .Values.demoWeb.insightsProjectId | quote }}
-          {{- include "bc-wallet.renderEnvFrom" (list "demoWeb" .) | nindent 10 }}
+          {{- include "bc-wallet-showcase.renderEnvFrom" (list "demoWeb" .) | nindent 10 }}
           {{- with .Values.demoWeb.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

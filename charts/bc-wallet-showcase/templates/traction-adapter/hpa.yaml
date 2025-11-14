@@ -2,15 +2,15 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-traction-adapter
+  name: {{ include "bc-wallet-showcase.fullname" . }}-traction-adapter
   labels:
     app.kubernetes.io/component: traction-adapter
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "bc-wallet.fullname" . }}-traction-adapter
+    name: {{ include "bc-wallet-showcase.fullname" . }}-traction-adapter
   minReplicas: {{ .Values.tractionAdapter.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.tractionAdapter.autoscaling.maxReplicas }}
   metrics:

@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-demo-server
+  name: {{ include "bc-wallet-showcase.fullname" . }}-demo-server
   labels:
     app.kubernetes.io/component: demo-server
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.demoServer.service.type }}
   ports:
@@ -14,4 +14,4 @@ spec:
       name: http
   selector:
     app.kubernetes.io/component: demo-server
-    {{- include "bc-wallet.selectorLabels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.selectorLabels" . | nindent 4 }}

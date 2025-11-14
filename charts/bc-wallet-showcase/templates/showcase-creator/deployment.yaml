@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bc-wallet.fullname" . }}-showcase-creator
+  name: {{ include "bc-wallet-showcase.fullname" . }}-showcase-creator
   labels:
     app.kubernetes.io/component: showcase-creator
-    {{- include "bc-wallet.labels" . | nindent 4 }}
+    {{- include "bc-wallet-showcase.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.showcaseCreator.autoscaling.enabled }}
   replicas: {{ .Values.showcaseCreator.replicaCount }}
@@ -12,7 +12,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: showcase-creator
-      {{- include "bc-wallet.selectorLabels" . | nindent 6 }}
+      {{- include "bc-wallet-showcase.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.showcaseCreator.podAnnotations }}
@@ -21,7 +21,7 @@ spec:
       {{- end }}
       labels:
         app.kubernetes.io/component: showcase-creator
-        {{- include "bc-wallet.labels" . | nindent 8 }}
+        {{- include "bc-wallet-showcase.labels" . | nindent 8 }}
         {{- with .Values.showcaseCreator.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -30,7 +30,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "bc-wallet.serviceAccountName" . }}
+      serviceAccountName: {{ include "bc-wallet-showcase.serviceAccountName" . }}
       {{- with .Values.showcaseCreator.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -42,7 +42,7 @@ spec:
             - /bin/sh
             - -c
             - |
-              until curl -sfL "https://{{ include "bc-wallet.apiServer.host" . }}/tenants"; do
+              until curl -sfL "https://{{ include "bc-wallet-showcase.apiServer.host" . }}/tenants"; do
                 echo "Waiting for API to come online..."
                 sleep 5
               done
@@ -60,11 +60,11 @@ spec:
               protocol: TCP
           env:
             - name: NEXT_PUBLIC_WALLET_URL
-              value: "https://{{ include "bc-wallet.demoWeb.host" . }}/digital-trust/showcase"
+              value: "https://{{ include "bc-wallet-showcase.demoWeb.host" . }}/digital-trust/showcase"
             - name: NEXT_PUBLIC_SHOWCASE_API_URL
-              value: "https://{{ include "bc-wallet.apiServer.host" . }}"
+              value: "https://{{ include "bc-wallet-showcase.apiServer.host" . }}"
             - name: OIDC_AUTH_URL
-              value: "https://{{ include "bc-wallet.showcaseCreator.host" . }}"
+              value: "https://{{ include "bc-wallet-showcase.showcaseCreator.host" . }}"
             - name: NODE_ENV
               value: production
             - name: PORT
@@ -85,7 +85,7 @@ spec:
                   name: {{ .Values.showcaseCreator.secretName | quote }}
                   key: OIDC_TRUST_HOST
           {{- with .Values.showcaseCreator.livenessProbe }}
-          {{- include "bc-wallet.renderEnvFrom" (list "showcaseCreator" .) | nindent 10 }}
+          {{- include "bc-wallet-showcase.renderEnvFrom" (list "showcaseCreator" .) | nindent 10 }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
