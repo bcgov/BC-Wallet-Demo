@@ -32,9 +32,15 @@
 
     vars basePath {$REACT_APP_BASE_ROUTE}
 
-    # Health check for openshift
+    # Health check for openshift (Caddy webserver health)
     handle /health {
         respond 200
+    }
+
+    # Application health check (React app availability)
+    handle /app-health {
+        rewrite * /app-health.json
+        file_server
     }
 
     handle {$REACT_APP_BASE_ROUTE}/demo {

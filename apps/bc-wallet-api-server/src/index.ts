@@ -9,6 +9,7 @@ import ApprovalController from './controllers/ApprovalController'
 import AssetController from './controllers/AssetController'
 import { CredentialDefinitionController } from './controllers/CredentialDefinitionController'
 import { CredentialSchemaController } from './controllers/CredentialSchemaController'
+import { HealthController } from './controllers/HealthController'
 import IssuanceScenarioController from './controllers/IssuanceScenarioController'
 import IssuerController from './controllers/IssuerController'
 import { JobStatusController } from './controllers/JobStatusController'
@@ -51,6 +52,7 @@ async function bootstrap() {
         TenantController,
         ApprovalController,
         JobStatusController,
+        HealthController,
       ],
       authorizationChecker,
       middlewares: [RequestContextMiddleware, ExpressErrorHandler],

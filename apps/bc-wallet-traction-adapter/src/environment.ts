@@ -86,6 +86,9 @@ export const environment = {
     NONCE_SIZE: parsePositiveInt(process.env.ENCRYPTION_NONCE_SIZE, 12), // 96 bits for ChaCha20-Poly1305
     AUTH_TAG_LENGTH: 16, // 128 bits, fixed for ChaCha20-Poly1305
   },
+  health: {
+    HEALTH_SERVER_PORT: parsePositiveInt(process.env.HEALTH_SERVER_PORT, 8080),
+  },
 }
 
 if (DEBUG_ENABLED) {

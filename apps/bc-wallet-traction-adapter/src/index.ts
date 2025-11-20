@@ -2,24 +2,31 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import { environment } from './environment'
+import { HealthServer } from './health-server'
 import { MessageProcessor } from './message-processor'
 
 async function main() {
   const processor = new MessageProcessor(environment.messageBroker.MESSAGE_PROCESSOR_TOPIC)
+  const healthServer = new HealthServer(environment.health.HEALTH_SERVER_PORT)
 
   try {
+    await healthServer.start()
+    console.log('Health server started')
+
     await processor.start()
     console.log('AMQ 1.0 message processor started')
 
     process.on('SIGINT', async () => {
       console.log('Received SIGINT. Shutting down...')
       await processor.stop()
+      await healthServer.stop()
       process.exit(0)
     })
 
     process.on('SIGTERM', async () => {
       console.log('Received SIGTERM. Shutting down...')
       await processor.stop()
+      await healthServer.stop()
       process.exit(0)
     })
 
@@ -31,3 +38,4 @@ async function main() {
 }
 
 void main()
+
