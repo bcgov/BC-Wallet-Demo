@@ -217,9 +217,10 @@ jobs:
             
       - name: Deploy PR Environment with Helm
         run: |
-          cd charts/bc-wallet
-          helm upgrade --install pr-${{ github.event.number }}-bc-wallet --namespace ${{ vars.OPENSHIFT_NAMESPACE }} \
-            --set global.extraEnvVarsSecret=bc-wallet-secrets \
+          cd charts/bc-wallet-showcase
+          helm dependency update
+          helm upgrade --install pr-${{ github.event.number }}-bc-wallet-showcase --namespace ${{ vars.OPENSHIFT_NAMESPACE }} \
+            --set global.extraEnvVarsSecret=bc-wallet-showcase-secrets \
             --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
@@ -229,11 +230,11 @@ jobs:
             
       - name: Restart PR Deployments
         run: |
-          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-api-server
-          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-traction-adapter
-          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-showcase-creator
-          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-demo-server
-          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-demo-web
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-showcase-api-server
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-showcase-traction-adapter
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-showcase-showcase-creator
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-showcase-demo-server
+          oc rollout restart deployment/pr-${{ github.event.number }}-bc-wallet-showcase-demo-web
 
   deploymenturls:
     name: PR Deployment URLs comment
@@ -260,10 +261,10 @@ jobs:
           body: |
             | Deployment | Resource | Location |
             | --- | --- | --- |
-            | API Server | | https://pr-${{ github.event.number }}-bc-wallet-api-server-dev.apps.silver.devops.gov.bc.ca/ |
-            | Traction Adapter | | https://pr-${{ github.event.number }}-bc-wallet-traction-adapter-dev.apps.silver.devops.gov.bc.ca/ |
-            | Demo Web | | https://pr-${{ github.event.number }}-bc-wallet-demo-web-dev.apps.silver.devops.gov.bc.ca/ |
-            | Showcase Creator | | https://pr-${{ github.event.number }}-bc-wallet-showcase-creator-dev.apps.silver.devops.gov.bc.ca/ |
-            | Demo Server | | https://pr-${{ github.event.number }}-bc-wallet-demo-server-dev.apps.silver.devops.gov.bc.ca/ |
+            | API Server | | https://pr-${{ github.event.number }}-bc-wallet-showcase-api-server-dev.apps.silver.devops.gov.bc.ca/ |
+            | Traction Adapter | | https://pr-${{ github.event.number }}-bc-wallet-showcase-traction-adapter-dev.apps.silver.devops.gov.bc.ca/ |
+            | Demo Web | | https://pr-${{ github.event.number }}-bc-wallet-showcase-demo-web-dev.apps.silver.devops.gov.bc.ca/ |
+            | Showcase Creator | | https://pr-${{ github.event.number }}-bc-wallet-showcase-showcase-creator-dev.apps.silver.devops.gov.bc.ca/ |
+            | Demo Server | | https://pr-${{ github.event.number }}-bc-wallet-showcase-demo-server-dev.apps.silver.devops.gov.bc.ca/ |
 
             PR Deployment URLs ready for review.

@@ -51,13 +51,13 @@ jobs:
       - name: Uninstall Credential Showcase resources via Helm
         continue-on-error: true
         run: |
-          helm uninstall pr-${{ env.PR_NUM }}-bc-wallet --namespace ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+          helm uninstall pr-${{ env.PR_NUM }}-bc-wallet-showcase --namespace ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
 
       - name: Remove Credential Showcase Openshift Objects
         continue-on-error: true
         run: |
           oc delete secret,pvc,route,service,deployment,statefulset,configmap \
-            --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet"
+            --selector "app.kubernetes.io/instance=pr-${{ env.PR_NUM }}-bc-wallet-showcase"
 
   clean-ghcr:
     runs-on: ubuntu-latest

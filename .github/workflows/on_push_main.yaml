@@ -168,9 +168,10 @@ jobs:
      
       - name: Deploy to OpenShift with Helm
         run: |
-          cd charts/bc-wallet
-          helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} \
-            --set global.extraEnvVarsSecret=bc-wallet-secrets \
+          cd charts/bc-wallet-showcase
+          helm dependency update
+          helm upgrade --install bc-wallet-showcase-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} \
+            --set global.extraEnvVarsSecret=bc-wallet-showcase-secrets \
             --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
@@ -180,11 +181,11 @@ jobs:
       
       - name: Restart Deployments
         run: |
-          oc rollout restart deployment/bc-wallet-demo-api-server
-          oc rollout restart deployment/bc-wallet-demo-traction-adapter
-          oc rollout restart deployment/bc-wallet-demo-showcase-creator
-          oc rollout restart deployment/bc-wallet-demo-demo-server
-          oc rollout restart deployment/bc-wallet-demo-demo-web
+          oc rollout restart deployment/bc-wallet-showcase-demo-api-server
+          oc rollout restart deployment/bc-wallet-showcase-demo-traction-adapter
+          oc rollout restart deployment/bc-wallet-showcase-demo-showcase-creator
+          oc rollout restart deployment/bc-wallet-showcase-demo-demo-server
+          oc rollout restart deployment/bc-wallet-showcase-demo-demo-web
 
   deploy_uat:
     name: Deploy to UAT
@@ -209,8 +210,9 @@ jobs:
      
       - name: Deploy to OpenShift with Helm
         run: |
-          cd charts/bc-wallet
-          helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
+          cd charts/bc-wallet-showcase
+          helm dependency update
+          helm upgrade --install bc-wallet-showcase-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
             --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
@@ -220,11 +222,11 @@ jobs:
       
       - name: Restart Deployments
         run: |
-          oc rollout restart deployment/bc-wallet-demo-api-server
-          oc rollout restart deployment/bc-wallet-demo-traction-adapter
-          oc rollout restart deployment/bc-wallet-demo-showcase-creator
-          oc rollout restart deployment/bc-wallet-demo-demo-server
-          oc rollout restart deployment/bc-wallet-demo-demo-web
+          oc rollout restart deployment/bc-wallet-showcase-demo-api-server
+          oc rollout restart deployment/bc-wallet-showcase-demo-traction-adapter
+          oc rollout restart deployment/bc-wallet-showcase-demo-showcase-creator
+          oc rollout restart deployment/bc-wallet-showcase-demo-demo-server
+          oc rollout restart deployment/bc-wallet-showcase-demo-demo-web
 
   deploy_prod:
     name: Deploy to Production
@@ -249,8 +251,9 @@ jobs:
      
       - name: Deploy to OpenShift with Helm
         run: |
-          cd charts/bc-wallet
-          helm upgrade --install bc-wallet-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
+          cd charts/bc-wallet-showcase
+          helm dependency update
+          helm upgrade --install bc-wallet-showcase-demo --namespace ${{ vars.OPENSHIFT_NAMESPACE }} -f ./values.yaml \
             --set apiServer.image.tag=${{ needs.build_api_server.outputs.image_tag }} \
             --set tractionAdapter.image.tag=${{ needs.build_traction_adapter.outputs.image_tag }} \
             --set showcaseCreator.image.tag=${{ needs.build_showcase_creator.outputs.image_tag }} \
@@ -260,8 +263,8 @@ jobs:
       
       - name: Restart Deployments
         run: |
-          oc rollout restart deployment/bc-wallet-demo-api-server
-          oc rollout restart deployment/bc-wallet-demo-traction-adapter
-          oc rollout restart deployment/bc-wallet-demo-showcase-creator
-          oc rollout restart deployment/bc-wallet-demo-demo-server
-          oc rollout restart deployment/bc-wallet-demo-demo-web
+          oc rollout restart deployment/bc-wallet-showcase-demo-api-server
+          oc rollout restart deployment/bc-wallet-showcase-demo-traction-adapter
+          oc rollout restart deployment/bc-wallet-showcase-demo-showcase-creator
+          oc rollout restart deployment/bc-wallet-showcase-demo-demo-server
+          oc rollout restart deployment/bc-wallet-showcase-demo-demo-web
