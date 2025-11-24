@@ -179,6 +179,8 @@ NEXT_AUTH_SECRET=your_secure_secret
 
 The `OIDC_DEFAULT_TENANT` setting is optional, but if not set, the tenant should be included in the URL. The `NEXT_AUTH_SECRET` is required for securing session cookies and tokens.
 
+**Automatic Tenant Creation**: When `OIDC_DEFAULT_TENANT` is configured along with the Traction variables below, the API server will automatically create this tenant on startup if it doesn't already exist. This eliminates the need for manual tenant creation during deployment.
+
 
 ### Traction Configuration
 These variables provide further configuration for the interaction with the Traction tenant, primarily used by the `bc-wallet-traction-adapter`.
