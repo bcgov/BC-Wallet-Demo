@@ -1,3 +1,4 @@
+import { getSession } from 'next-auth/react'
 import { baseUrl } from '../utils'
 
 export interface Tenant {
@@ -29,22 +30,35 @@ export interface TenantResponse {
 }
 
 /**
+ * Get the authorization header with Bearer token
+ */
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const session = await getSession()
+  return {
+    'Content-Type': 'application/json',
+    ...(session?.accessToken ? { Authorization: `Bearer ${session.accessToken}` } : {}),
+  }
+}
+
+/**
  * Fetch all tenants
  */
 export async function getAllTenants(): Promise<Tenant[]> {
+  const headers = await getAuthHeaders()
   const response = await fetch(`${baseUrl}/tenants`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     credentials: 'include',
   })
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch tenants: ${response.statusText}`)
+    const errorText = await response.text()
+    console.error('Failed to fetch tenants:', response.status, errorText)
+    throw new Error(`Failed to fetch tenants: ${response.status} ${response.statusText}`)
   }
 
   const data: TenantsResponse = await response.json()
+  console.log('Fetched tenants:', data)
   return data.tenants
 }
 
@@ -52,11 +66,10 @@ export async function getAllTenants(): Promise<Tenant[]> {
  * Get a specific tenant by ID
  */
 export async function getTenant(id: string): Promise<Tenant> {
+  const headers = await getAuthHeaders()
   const response = await fetch(`${baseUrl}/tenants/${id}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     credentials: 'include',
   })
 
@@ -72,11 +85,10 @@ export async function getTenant(id: string): Promise<Tenant> {
  * Create a new tenant
  */
 export async function createTenant(tenantData: TenantRequest): Promise<Tenant> {
+  const headers = await getAuthHeaders()
   const response = await fetch(`${baseUrl}/tenants`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     credentials: 'include',
     body: JSON.stringify(tenantData),
   })
@@ -94,11 +106,10 @@ export async function createTenant(tenantData: TenantRequest): Promise<Tenant> {
  * Update an existing tenant
  */
 export async function updateTenant(id: string, tenantData: TenantRequest): Promise<Tenant> {
+  const headers = await getAuthHeaders()
   const response = await fetch(`${baseUrl}/tenants/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     credentials: 'include',
     body: JSON.stringify(tenantData),
   })
@@ -116,11 +127,10 @@ export async function updateTenant(id: string, tenantData: TenantRequest): Promi
  * Delete a tenant
  */
 export async function deleteTenant(id: string): Promise<void> {
+  const headers = await getAuthHeaders()
   const response = await fetch(`${baseUrl}/tenants/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     credentials: 'include',
   })
 

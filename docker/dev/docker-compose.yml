@@ -140,7 +140,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3050
-      - NEXT_PUBLIC_SHOWCASE_API_URL=${SHOWCASE_API_URL:-http://localhost:5005}
+      - NEXT_PUBLIC_SHOWCASE_API_URL=http://localhost:5005
+      - SHOWCASE_API_URL_INTERNAL=http://bc-wallet-api-server:5005
       - NEXT_PUBLIC_WALLET_URL=${DEMOWEB_WALLET_URL:-https://localhost3366:/digital-trust/showcase}
       - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET}
       - OIDC_AUTH_URL=${OIDC_AUTH_URL}

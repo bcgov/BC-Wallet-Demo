@@ -19,12 +19,18 @@ export function NavProjects() {
   const t = useTranslations('sidebar')
   const pathname = usePathname()
   const { tenantId } = useTenant()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+
+  console.log('NavProjects - status:', status)
+  console.log('NavProjects - session.user:', JSON.stringify(session?.user))
+  console.log('NavProjects - roles:', JSON.stringify(session?.user?.roles))
 
   // Check if user has admin role
   const isAdmin = session?.user?.roles 
     ? hasRole(session.user.roles, 'admin')
     : false
+
+  console.log('NavProjects - isAdmin:', isAdmin)
 
   const projects = [
     {

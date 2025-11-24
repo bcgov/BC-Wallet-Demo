@@ -30,7 +30,24 @@ export const corsOptions: CorsOptions = {
       'Pragma',
       'Expires',
     ]
-    return headers.includes('*') ? '*' : headers
+    // When wildcard is specified, return string array of common headers
+    // because some CORS implementations don't handle '*' correctly
+    if (headers.includes('*')) {
+      return [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'Cache-Control',
+        'Pragma',
+        'Expires',
+        'Accept',
+        'Origin',
+      ]
+    }
+    return headers
   })(),
+  exposedHeaders: ['Content-Type', 'Authorization'],
   credentials: process.env.CORS_ALLOW_CREDENTIALS === 'true',
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 }

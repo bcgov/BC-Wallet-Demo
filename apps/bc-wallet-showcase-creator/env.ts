@@ -55,6 +55,7 @@ export const env = createEnv({
     AUTH_TRUST_HOST: z.string().default('true'),
     AUTH_URL: z.string().min(1),
     OIDC_DEFAULT_TENANT: z.string().min(1),
+    SHOWCASE_API_URL_INTERNAL: z.string().optional(),
   },
   client: runtimeClientSchema,
   runtimeEnv: {
@@ -62,6 +63,7 @@ export const env = createEnv({
     AUTH_TRUST_HOST: process.env.OIDC_TRUST_HOST,
     AUTH_URL: process.env.OIDC_AUTH_URL,
     OIDC_DEFAULT_TENANT: process.env.OIDC_DEFAULT_TENANT,
+    SHOWCASE_API_URL_INTERNAL: process.env.SHOWCASE_API_URL_INTERNAL,
     NEXT_PUBLIC_WALLET_URL: getEnv('NEXT_PUBLIC_WALLET_URL'),
     NEXT_PUBLIC_SHOWCASE_API_URL: getEnv('NEXT_PUBLIC_SHOWCASE_API_URL'),
   },

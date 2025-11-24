@@ -36,7 +36,7 @@ async function bootstrap() {
     await registerServicesByInterface()
     logger.info('Services registered successfully')
 
-    // Create and configure Express server
+    // Create and configure Express server with routing-controllers
     logger.info('Creating Express server with routing controllers...')
     const app = createExpressServer({
       controllers: [
@@ -59,6 +59,7 @@ async function bootstrap() {
       defaultErrorHandler: false,
       cors: corsOptions,
     })
+    
     logger.info('Express server created successfully')
 
     logger.info('Creating root tenant...')

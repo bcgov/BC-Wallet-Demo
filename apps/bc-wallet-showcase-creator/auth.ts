@@ -59,7 +59,8 @@ async function getOrFetchTenantConfig(tenantId: string): Promise<Tenant> {
 
 async function fetchTenantConfig(tenantId: string): Promise<Tenant> {
   try {
-    const endpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+    const apiUrl = env.SHOWCASE_API_URL_INTERNAL || env.NEXT_PUBLIC_SHOWCASE_API_URL
+    const endpoint = `${apiUrl}/tenants/${tenantId}`
     console.debug(`Fetching tenant config for ${tenantId}`, endpoint)
     const response = await fetch(endpoint, {
       method: 'GET',
@@ -81,30 +82,56 @@ async function fetchTenantConfig(tenantId: string): Promise<Tenant> {
 
 /**
  * The tenant-id cookie can't usually be accessed from the auth request, so take it from authjs.callback-url or referer
- * @param nextReq
+ * @param req - Can be NextRequest or NextAuth request object
  */
-function getTenantIdFromRequest(nextReq?: NextRequest): string | undefined {
-  if (!nextReq) {
+function getTenantIdFromRequest(req?: any): string | undefined {
+  if (!req) {
     return undefined
   }
 
-  const cookies = nextReq.cookies
+  // Handle NextAuth request format
+  const cookies = req.cookies
+  const headers = req.headers
 
   let tenantId: string | undefined
-  if (!tenantId) {
-    const callbackUrl = cookies.get('authjs.callback-url')?.value ?? cookies.get('__Secure-authjs.callback-url')?.value
+
+  // Try to get from tenant-id cookie first
+  if (cookies) {
+    if (typeof cookies.get === 'function') {
+      // NextRequest format
+      tenantId = cookies.get('tenant-id')?.value
+    } else if (typeof cookies.tenant === 'object') {
+      // NextAuth format - cookies object
+      tenantId = cookies['tenant-id']
+    }
+  }
+
+  // Try authjs callback URL
+  if (!tenantId && cookies) {
+    let callbackUrl: string | undefined
+    if (typeof cookies.get === 'function') {
+      callbackUrl = cookies.get('authjs.callback-url')?.value ?? cookies.get('__Secure-authjs.callback-url')?.value
+    } else {
+      callbackUrl = cookies['authjs.callback-url'] ?? cookies['__Secure-authjs.callback-url']
+    }
     if (callbackUrl) {
       tenantId = extractTenantFromUrl(callbackUrl)
     }
   }
 
-  if (!tenantId) {
-    const referer = nextReq.headers.get('referer') || ''
-    tenantId = extractTenantFromUrl(referer)
-  }
-
-  if (!tenantId) {
-    tenantId = cookies.get('tenant-id')?.value
+  // Try referer header
+  if (!tenantId && headers) {
+    let referer: string | undefined
+    if (typeof headers.get === 'function') {
+      referer = headers.get('referer') || ''
+    } else if (headers instanceof Headers) {
+      referer = headers.get('referer') || ''
+    } else {
+      referer = headers.referer || ''
+    }
+    if (referer) {
+      tenantId = extractTenantFromUrl(referer)
+    }
   }
 
   return tenantId
@@ -148,16 +175,25 @@ function extractRolesFromToken(token: any): UserRoles {
 
 // Check if user has required role
 export function hasRole(roles: UserRoles, requiredRole: string, clientId?: string): boolean {
-  // Check client-specific role
+  // Check realm role first
+  if (roles.realmRoles.includes(requiredRole)) {
+    return true
+  }
+
+  // Check specific client role if clientId provided
   if (clientId && roles.clientRoles[clientId]) {
     if (roles.clientRoles[clientId].includes(requiredRole)) {
       return true
     }
   }
 
-  // Check realm role
-  if (roles.realmRoles.includes(requiredRole)) {
-    return true
+  // If no clientId specified, check ALL client roles
+  if (!clientId) {
+    for (const clientRoles of Object.values(roles.clientRoles)) {
+      if (Array.isArray(clientRoles) && clientRoles.includes(requiredRole)) {
+        return true
+      }
+    }
   }
 
   return false
@@ -209,9 +245,9 @@ async function refreshAccessToken(token: any, tenantConfig: Tenant, tenantId: st
   }
 }
 
-async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<NextAuthConfig> {
+async function buildAuthConfig(req?: NextRequest | any, res?: NextResponse): Promise<NextAuthConfig> {
   const tenantId = getTenantIdFromRequest(req)
-  console.debug(`Auth using tenantId: ${tenantId}`)
+  console.debug(`Auth using tenantId: ${tenantId}`, req ? 'has request' : 'no request')
 
   // Basic configuration without tenant-specific settings
   const baseConfig: NextAuthConfig = {
@@ -232,7 +268,7 @@ async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<N
   }
 
   if (!tenantId) {
-    console.warn(`No tenantId found in request. Req is ${req ? 'not empty' : 'empty'}`)
+    console.warn(`No tenantId found in request.`)
     return baseConfig
   }
 
@@ -255,7 +291,12 @@ async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<N
       ],
       callbacks: {
         ...baseConfig.callbacks,
-        async jwt({ token, account }) {
+        async jwt({ token, account, trigger, session: callbackSession }) {
+          // Try to get tenantId from token if not set yet
+          if (!token.tenantId && tenantId) {
+            token.tenantId = tenantId
+          }
+
           if (account) {
             // Decode the access token to extract roles
             let decodedToken: any = {}
@@ -264,11 +305,18 @@ async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<N
                 const parts = account.access_token.split('.')
                 if (parts.length === 3) {
                   decodedToken = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+                  console.debug('Decoded token:', JSON.stringify({
+                    realm_access: decodedToken.realm_access,
+                    resource_access: decodedToken.resource_access,
+                  }))
                 }
               } catch (error) {
                 console.error('Failed to decode access token:', error)
               }
             }
+
+            const roles = extractRolesFromToken(decodedToken)
+            console.debug('Extracted roles:', JSON.stringify(roles))
 
             return {
               ...token,
@@ -276,7 +324,8 @@ async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<N
               expires_at: account.expires_at,
               accessTokenExpires: account.expires_at ? account.expires_at * 1000 : 0,
               refresh_token: account.refresh_token,
-              roles: extractRolesFromToken(decodedToken),
+              roles: roles,
+              tenantId: tenantId,
             }
           }
 
@@ -289,13 +338,16 @@ async function buildAuthConfig(req?: NextRequest, res?: NextResponse): Promise<N
           if (isTokenValid) {
             return token
           } else {
-            return await refreshAccessToken(token, tenantConfig, tenantId)
+            // Use tenantId from token if available
+            const tokenTenantId = (token.tenantId as string) || tenantId
+            return await refreshAccessToken(token, tenantConfig, tokenTenantId)
           }
         },
         async session({ session, token }) {
           session.accessToken = token.access_token as string | undefined
           session.error = token.error as 'RefreshAccessTokenError' | undefined
           session.user.roles = token.roles as UserRoles | undefined
+          console.debug('Session callback - roles:', JSON.stringify(session.user.roles))
           return session
         },
       },

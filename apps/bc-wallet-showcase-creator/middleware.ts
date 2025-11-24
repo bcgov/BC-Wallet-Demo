@@ -61,22 +61,23 @@ export default async function middleware(request: NextRequest) {
       }
     }
 
-    // For admin routes, admin role is required
-    // For other routes, just authentication is enough
-    if (isAdminRoute && !hasAdminRole) {
-      // User is authenticated but doesn't have admin role, and trying to access admin area
-      const url = request.nextUrl.clone()
-      url.pathname = '/unauthorized'
-      return NextResponse.rewrite(url)
-    }
-    
-    // For non-admin routes, any authenticated user without admin role still can't access
-    // (based on previous RBAC requirement)
-    if (!isAdminRoute && !hasAdminRole) {
-      // User is authenticated but doesn't have admin role for regular routes
-      const url = request.nextUrl.clone()
-      url.pathname = '/unauthorized'
-      return NextResponse.rewrite(url)
+    // Only block access if we're certain the user doesn't have the role
+    // The client-side AdminGuard will handle the loading state properly
+    if (userRoles && !hasAdminRole) {
+      // User has loaded roles but doesn't have admin role
+      if (isAdminRoute) {
+        // Trying to access admin area without admin role
+        const url = request.nextUrl.clone()
+        url.pathname = '/unauthorized'
+        return NextResponse.redirect(url)
+      }
+      
+      // For non-admin routes, also require admin role (per RBAC requirement)
+      if (!isAdminRoute) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/unauthorized'
+        return NextResponse.redirect(url)
+      }
     }
   }
 
@@ -92,7 +93,8 @@ export default async function middleware(request: NextRequest) {
     }
 
     try {
-      const tenantEndpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+      const apiUrl = env.SHOWCASE_API_URL_INTERNAL || env.NEXT_PUBLIC_SHOWCASE_API_URL
+      const tenantEndpoint = `${apiUrl}/tenants/${tenantId}`
       const response = await fetch(tenantEndpoint)
 
       if (!response.ok) {
@@ -106,6 +108,12 @@ export default async function middleware(request: NextRequest) {
 
     return NextResponse.next()
   }
+
+  // Admin routes don't require tenant validation
+  if (isAdminRoute) {
+    return handleI18nRouting(request)
+  }
+
   const { origin } = request.nextUrl
 
   const { locale, tenantIdFromPath, isLoginPage } = extractPathComponents(request)
@@ -145,7 +153,8 @@ export default async function middleware(request: NextRequest) {
 
   try {
 
-    const tenantEndpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+    const apiUrl = env.SHOWCASE_API_URL_INTERNAL || env.NEXT_PUBLIC_SHOWCASE_API_URL
+    const tenantEndpoint = `${apiUrl}/tenants/${tenantId}`
     const response = await fetch(tenantEndpoint)
 
     if (!response.ok) {

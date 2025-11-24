@@ -5,7 +5,8 @@ import { env } from '@/env'
 
 async function fetchTenantConfig(tenantId: string): Promise<Tenant> {
   try {
-    const endpoint = `${env.NEXT_PUBLIC_SHOWCASE_API_URL}/tenants/${tenantId}`
+    const apiUrl = env.SHOWCASE_API_URL_INTERNAL || env.NEXT_PUBLIC_SHOWCASE_API_URL
+    const endpoint = `${apiUrl}/tenants/${tenantId}`
     console.log(`Fetching tenant config for ${tenantId}`, endpoint)
     const response = await fetch(endpoint, {
       method: 'GET',
