@@ -38,6 +38,39 @@ pnpm build
 
 ## Tenant Management
 
+The API server supports multi-tenancy with automatic tenant provisioning. There are two types of tenants:
+
+1. **Root Tenant**: Automatically created at startup using `OIDC_ROOT_CLIENT_ID` credentials. This tenant uses the `client_credentials` grant type and has administrative privileges for managing other tenants.
+
+2. **Default Tenant**: Optionally created at startup if `OIDC_DEFAULT_TENANT` is configured. This is typically a user-facing tenant that uses the `authorization_code` grant type for browser-based authentication.
+
+### Automatic Default Tenant Creation
+
+To enable automatic tenant creation on startup, configure the following environment variables:
+
+```bash
+# Required for automatic creation
+OIDC_DEFAULT_TENANT=cdt-dev
+OIDC_DEFAULT_TENANT_ISSUER=https://dev.loginproxy.gov.bc.ca/auth/realms/digitaltrust-citz
+
+# Optional Traction configuration
+OIDC_DEFAULT_TENANT_TRACTION_TENANT_ID=56791f2e-61fb-4400-857c-922f49069253
+OIDC_DEFAULT_TENANT_TRACTION_API_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
+OIDC_DEFAULT_TENANT_TRACTION_API_KEY=fe700ae4f08847199bc5137bd7b426cf
+```
+
+When these variables are set, the API server will:
+
+- Check if the tenant already exists on startup
+- Create the tenant automatically if it doesn't exist
+- Skip creation if `OIDC_DEFAULT_TENANT` is not configured
+
+This eliminates the need for manual tenant creation via curl commands during deployment.
+
+### Manual Tenant Management
+
+You can still create, update, and delete tenants manually using the REST API.
+
 ### Authentication
 
 Before performing any tenant operations, you'll need to authenticate and obtain an access token.

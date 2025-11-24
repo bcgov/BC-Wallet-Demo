@@ -193,7 +193,6 @@ TRACTION_ADAPTER_MESSAGE_TOPIC=your_traction_topic # Optional: Custom topic name
 #### Fixed tenant configuration (Note: intended to move to a dynamic tenant record later)
 ```
 TRACTION_DEFAULT_TENANT_ID=your_traction_tenant_id # The specific Traction tenant ID to use
-TRACTION_DEFAULT_WALLET_ID=your_traction_wallet_id # The specific Traction wallet ID within the tenant
 TRACTION_DEFAULT_API_KEY=your_traction_api_key # API key for authenticating with the Traction tenant API
 TRACTION_FIXED_SHOWCASE_API_URL=http://your-api-server:5005 # URL the traction adapter uses to reach the bc-wallet-api-server (must be reachable from the adapter's perspective)
 ```

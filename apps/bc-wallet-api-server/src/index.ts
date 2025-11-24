@@ -67,6 +67,10 @@ async function bootstrap() {
     void (await tenantService.createRootTenant())
     logger.info('Root tenant created successfully')
 
+    logger.info('Creating default tenant if configured...')
+    void (await tenantService.createDefaultTenant())
+    logger.info('Default tenant creation completed')
+
     // Start the server
     const port = Number(process.env.PORT)
     logger.info({ port }, 'Starting server...')

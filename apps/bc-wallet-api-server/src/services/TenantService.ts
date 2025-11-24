@@ -17,6 +17,13 @@ if (!oidcIssuer || !oidcClientId || !oidcClientSecret) {
   throw new Error('OIDC_ROOT_ISSUER_URL, OIDC_ROOT_CLIENT_ID and OIDC_ROOT_CLIENT_SECRET must be set')
 }
 
+// Optional default tenant configuration
+const defaultTenantId = process.env.OIDC_DEFAULT_TENANT
+const defaultTenantIssuer = process.env.OIDC_DEFAULT_TENANT_ISSUER
+const defaultTenantTractionTenantId = process.env.OIDC_DEFAULT_TENANT_TRACTION_TENANT_ID
+const defaultTenantTractionApiUrl = process.env.OIDC_DEFAULT_TENANT_TRACTION_API_URL
+const defaultTenantTractionApiKey = process.env.OIDC_DEFAULT_TENANT_TRACTION_API_KEY
+
 const NONCE_SIZE = parseInt(process.env.NONCE_SIZE || '12') || 12
 
 @Service()
@@ -194,6 +201,43 @@ class TenantService {
         return createdTenant
       } else {
         this.logger.error({ error: e }, 'Failed to create root tenant')
+        return Promise.reject(e)
+      }
+    }
+  }
+
+  public async createDefaultTenant() {
+    // Skip if default tenant configuration is not provided
+    if (!defaultTenantId || !defaultTenantIssuer) {
+      this.logger.info('No default tenant configured, skipping default tenant creation')
+      return
+    }
+
+    this.logger.info({ tenantId: defaultTenantId, oidcIssuer: defaultTenantIssuer }, 'Creating or retrieving default tenant')
+    
+    try {
+      // Check if tenant already exists
+      const existingTenant = await this.tenantRepository.findById(defaultTenantId)
+      this.logger.info({ tenantId: existingTenant.id }, 'Default tenant already exists')
+      return existingTenant
+    } catch (e) {
+      if (e instanceof HttpError && e.httpCode === 404) {
+        this.logger.info('Default tenant not found, creating new one')
+        
+        const newDefaultTenant: NewTenant = {
+          id: defaultTenantId,
+          tenantType: TenantType.SHOWCASE,
+          oidcIssuer: defaultTenantIssuer,
+          ...(defaultTenantTractionTenantId && { tractionTenantId: defaultTenantTractionTenantId }),
+          ...(defaultTenantTractionApiUrl && { tractionApiUrl: defaultTenantTractionApiUrl }),
+          ...(defaultTenantTractionApiKey && { tractionApiKey: defaultTenantTractionApiKey }),
+        }
+        
+        const createdTenant = await this.createTenant(newDefaultTenant)
+        this.logger.info({ tenantId: createdTenant.id }, 'Successfully created default tenant')
+        return createdTenant
+      } else {
+        this.logger.error({ error: e }, 'Failed to create default tenant')
         return Promise.reject(e)
       }
     }

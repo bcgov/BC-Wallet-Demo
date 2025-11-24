@@ -180,7 +180,6 @@ The application components rely on several environment variables. Some are confi
 
 *   `api_server.env.OIDC_SERVER_URL`: The base URL of your OIDC provider.
 *   `traction_adapter.env.TRACTION_DEFAULT_TENANT_ID`: The default Traction Tenant ID to use.
-*   `traction_adapter.env.TRACTION_DEFAULT_WALLET_ID`: The default Traction Wallet ID associated with the tenant.
 *   `traction_adapter.env.TRACTION_DEFAULT_API_URL`: The URL for the Traction Tenant API.
 *   `showcase_creator.env.OIDC_ISSUER_URL`: The full issuer URL for OIDC (often `OIDC_SERVER_URL`).
 *   `demo_web.env.DEMOWEB_SNOWPLOW_ENDPOINT`: Endpoint for Snowplow analytics (if used).

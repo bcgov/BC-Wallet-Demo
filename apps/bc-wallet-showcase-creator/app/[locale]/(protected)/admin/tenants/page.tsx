@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -23,7 +24,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { PlusCircle, Pencil, Trash2, RefreshCw } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2, RefreshCw, ArrowLeft } from 'lucide-react'
 import { TenantFormDialog } from '@/components/admin/tenant-form-dialog'
 import {
   getAllTenants,
@@ -37,6 +38,8 @@ import { useToast } from '@/hooks/use-toast'
 
 export default function TenantsAdminPage() {
   const router = useRouter()
+  const params = useParams()
+  const locale = params.locale as string
   const { toast } = useToast()
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -136,14 +139,26 @@ export default function TenantsAdminPage() {
     })
   }
 
+  const handleBackToShowcases = () => {
+    // Use the first non-root tenant or fallback to 'cdt-dev'
+    const regularTenant = tenants.find(t => t.id !== 'showcase-builder-main') || tenants[0]
+    const defaultTenant = regularTenant?.id || 'cdt-dev'
+    router.push(`/${locale}/${defaultTenant}`)
+  }
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tenant Management</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage showcase tenants and their Traction integrations
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={handleBackToShowcases}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Tenant Management</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage showcase tenants and their Traction integrations
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="icon" onClick={loadTenants} disabled={isLoading}>
@@ -178,7 +193,7 @@ export default function TenantsAdminPage() {
                 <TableRow>
                   <TableHead>Tenant ID</TableHead>
                   <TableHead>OIDC Issuer</TableHead>
-                  <TableHead>Traction Tenant</TableHead>
+                  <TableHead>Traction Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Updated</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -193,9 +208,9 @@ export default function TenantsAdminPage() {
                     </TableCell>
                     <TableCell>
                       {tenant.tractionTenantId ? (
-                        <Badge variant="default">Connected</Badge>
+                        <Badge variant="default">Configured</Badge>
                       ) : (
-                        <Badge variant="secondary">Not Connected</Badge>
+                        <Badge variant="secondary">Not Configured</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">

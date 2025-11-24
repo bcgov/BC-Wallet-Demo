@@ -71,7 +71,6 @@ export const environment = {
   traction: {
     TRACTION_DEFAULT_API_URL: process.env.TRACTION_DEFAULT_API_URL ?? 'http://localhost:8032',
     TRACTION_DEFAULT_TENANT_ID: process.env.TRACTION_DEFAULT_TENANT_ID as string | undefined,
-    TRACTION_DEFAULT_WALLET_ID: process.env.TRACTION_DEFAULT_WALLET_ID as string | undefined,
     TRACTION_DEFAULT_API_KEY: process.env.TRACTION_DEFAULT_API_KEY as string | undefined,
     TRACTION_TENANT_SESSION_CACHE_SIZE: parsePositiveInt(process.env.TRACTION_TENANT_SESSION_CACHE_SIZE, 1024),
     TRACTION_TENANT_SESSION_TTL_MINS: parsePositiveInt(process.env.TRACTION_TENANT_SESSION_TTL_MINS, 1440),

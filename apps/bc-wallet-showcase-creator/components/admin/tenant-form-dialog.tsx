@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,15 +24,43 @@ interface TenantFormDialogProps {
 
 export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isCreate }: TenantFormDialogProps) {
   const [formData, setFormData] = useState<TenantRequest>({
-    id: tenant?.id || '',
-    oidcIssuer: tenant?.oidcIssuer || '',
-    tractionTenantId: tenant?.tractionTenantId || '',
-    tractionWalletId: tenant?.tractionWalletId || '',
-    tractionApiUrl: tenant?.tractionApiUrl || '',
-    tractionApiKey: tenant?.tractionApiKey || '',
+    id: '',
+    oidcIssuer: '',
+    tractionTenantId: '',
+    tractionWalletId: '',
+    tractionApiUrl: '',
+    tractionApiKey: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Update form data when dialog opens or tenant changes
+  useEffect(() => {
+    if (open) {
+      if (isCreate) {
+        // Reset to empty form for create
+        setFormData({
+          id: '',
+          oidcIssuer: '',
+          tractionTenantId: '',
+          tractionWalletId: '',
+          tractionApiUrl: '',
+          tractionApiKey: '',
+        })
+      } else if (tenant) {
+        // Populate with tenant data for edit
+        setFormData({
+          id: tenant.id,
+          oidcIssuer: tenant.oidcIssuer,
+          tractionTenantId: tenant.tractionTenantId || '',
+          tractionWalletId: tenant.tractionWalletId || '',
+          tractionApiUrl: tenant.tractionApiUrl || '',
+          tractionApiKey: tenant.tractionApiKey || '',
+        })
+      }
+      setError(null)
+    }
+  }, [open, tenant, isCreate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,15 +70,6 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isCreat
     try {
       await onSubmit(formData)
       onOpenChange(false)
-      // Reset form
-      setFormData({
-        id: '',
-        oidcIssuer: '',
-        tractionTenantId: '',
-        tractionWalletId: '',
-        tractionApiUrl: '',
-        tractionApiKey: '',
-      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -77,11 +96,11 @@ export function TenantFormDialog({ open, onOpenChange, tenant, onSubmit, isCreat
                 id="id"
                 value={formData.id}
                 onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                placeholder="showcase-tenantA"
+                placeholder="my-tenant-id"
                 required
                 disabled={!isCreate}
               />
-              <p className="text-sm text-muted-foreground">Unique identifier for the tenant</p>
+              <p className="text-sm text-muted-foreground">Unique identifier for the tenant (e.g., cdt-dev, my-org-tenant)</p>
             </div>
 
             <div className="grid gap-2">
