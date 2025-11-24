@@ -77,11 +77,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.tractionAdapter.tractionSecretName | quote }}
                   key: OIDC_DEFAULT_TENANT
-            - name: TRACTION_DEFAULT_WALLET_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.tractionAdapter.tractionSecretName | quote }}
-                  key: WALLET_ID
             - name: TRACTION_DEFAULT_API_KEY
               valueFrom:
                 secretKeyRef:

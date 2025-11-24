@@ -17,6 +17,12 @@ These secrets contain credentials used by only one component:
 - `OIDC_ROOT_CLIENT_SECRET` - OIDC client secret for API server authentication
 - `OIDC_ROOT_ISSUER_URL` - OIDC issuer URL (typically Keycloak endpoint)
 
+**Optional keys for default tenant auto-creation:**
+- `OIDC_DEFAULT_TENANT` - Default tenant ID to create on startup
+- `OIDC_DEFAULT_TENANT_ISSUER` - OIDC issuer URL for the default tenant
+
+**Note:** For automatic default tenant creation, the api-server also needs access to the Traction shared secret (see below).
+
 **Configuration in values.yaml:**
 ```yaml
 apiServer:
@@ -41,12 +47,14 @@ showcaseCreator:
 These secrets contain credentials shared by multiple components:
 
 #### 3. `bc-wallet-showcase-traction-shared`
-**Used by:** demo-server, traction-adapter  
+**Used by:** demo-server, traction-adapter, api-server (optional)  
 **Required keys:**
 - `TRACTION_API_URL` - Base URL for Traction API
 - `WALLET_ID` - Traction wallet identifier
 - `API_KEY` - Traction API authentication key
 - `OIDC_DEFAULT_TENANT` - Default tenant ID for Traction
+
+**Note:** api-server uses this secret optionally for automatic default tenant creation on startup.
 
 **Configuration in values.yaml:**
 ```yaml
@@ -111,9 +119,10 @@ These secrets are managed by dependent Helm charts and referenced via helper fun
 ## Component Secret Matrix
 
 | Component | Secrets Used | Purpose |
-|-----------|--------------|---------|
+|-----------|--------------|---------|  
 | api-server | bc-wallet-showcase-api-server-secrets | OIDC authentication |
 | api-server | bc-wallet-showcase-encryption-shared | Data encryption |
+| api-server | bc-wallet-showcase-traction-shared (optional) | Default tenant auto-creation |
 | api-server | postgresql secret | Database access |
 | api-server | rabbitmq secret | Message queue access |
 | demo-server | bc-wallet-showcase-traction-shared | Traction API access |
@@ -122,9 +131,7 @@ These secrets are managed by dependent Helm charts and referenced via helper fun
 | traction-adapter | bc-wallet-showcase-traction-shared | Traction API access |
 | traction-adapter | bc-wallet-showcase-encryption-shared | Data encryption |
 | traction-adapter | rabbitmq secret | Message queue access |
-| demo-web | (none) | No secret access needed |
-
-## Creating Secrets
+| demo-web | (none) | No secret access needed |## Creating Secrets
 
 ### Example: Component-Specific Secrets
 

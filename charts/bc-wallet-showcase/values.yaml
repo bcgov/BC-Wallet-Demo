@@ -58,11 +58,18 @@ apiServer:
 
   # Secret containing API Server specific OIDC credentials
   # Required keys: OIDC_ROOT_CLIENT_ID, OIDC_ROOT_CLIENT_SECRET, OIDC_ROOT_ISSUER_URL
+  # Optional keys for default tenant auto-creation: OIDC_DEFAULT_TENANT, OIDC_DEFAULT_TENANT_ISSUER
   secretName: "bc-wallet-showcase-api-server-secrets"
 
   # Secret containing shared encryption key
   # Required keys: ENCRYPTION_KEY
   encryptionSecretName: "bc-wallet-showcase-encryption-shared"
+
+  # Secret containing Traction credentials for default tenant auto-creation (optional)
+  # Same secret as used by demo-server and traction-adapter
+  # Optional keys for auto-creation: TRACTION_API_URL, API_KEY, OIDC_DEFAULT_TENANT
+  # Note: All Traction-related keys are optional; tenant will be created without Traction config if not provided
+  tractionSecretName: "bc-wallet-showcase-traction-shared"
 
   # Name of Secret with extra environment variables; overrides global.extraEnvVarsSecret if set
   # Use this for additional secrets beyond the component-specific ones above
@@ -176,7 +183,7 @@ demoServer:
   extraEnvVarsCM: ""
 
   # Secret containing Traction API credentials (shared with demo-server)
-  # Required keys: TRACTION_API_URL, WALLET_ID, API_KEY, OIDC_DEFAULT_TENANT
+  # Required keys: TRACTION_API_URL, API_KEY, OIDC_DEFAULT_TENANT
   tractionSecretName: "bc-wallet-showcase-traction-shared"
 
   # Secret containing webhook authentication
@@ -521,7 +528,7 @@ tractionAdapter:
   extraEnvVarsCM: ""
 
   # Secret containing Traction API credentials (shared with demo-server)
-  # Required keys: TRACTION_API_URL, WALLET_ID, API_KEY, OIDC_DEFAULT_TENANT
+  # Required keys: TRACTION_API_URL, API_KEY, OIDC_DEFAULT_TENANT
   tractionSecretName: "bc-wallet-showcase-traction-shared"
 
   # Secret containing shared encryption key (shared with api-server)

@@ -100,6 +100,36 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.apiServer.secretName | quote }}
                   key: OIDC_ROOT_ISSUER_URL
+            - name: OIDC_DEFAULT_TENANT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | quote }}
+                  key: OIDC_DEFAULT_TENANT
+                  optional: true
+            - name: OIDC_DEFAULT_TENANT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.secretName | quote }}
+                  key: OIDC_DEFAULT_TENANT_ISSUER
+                  optional: true
+            - name: OIDC_DEFAULT_TENANT_TRACTION_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.tractionSecretName | quote }}
+                  key: OIDC_DEFAULT_TENANT
+                  optional: true
+            - name: OIDC_DEFAULT_TENANT_TRACTION_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.tractionSecretName | quote }}
+                  key: TRACTION_API_URL
+                  optional: true
+            - name: OIDC_DEFAULT_TENANT_TRACTION_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.apiServer.tractionSecretName | quote }}
+                  key: API_KEY
+                  optional: true
             - name: ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
