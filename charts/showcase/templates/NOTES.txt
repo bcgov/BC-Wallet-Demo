@@ -2,7 +2,7 @@
 {{- if .Values.ingress.enabled }}
    https://{{ .Values.ingress.web.hostname }}{{ .Values.ingress.web.path }}
 {{- else }}
-   kubectl --namespace {{ include "common.names.namespace" . }} port-forward svc/{{ include "showcase.web.fullname" . }} 3000:3000
+   kubectl --namespace {{ include "showcase.namespace" . }} port-forward svc/{{ include "showcase.web.fullname" . }} 3000:3000
    Then open http://127.0.0.1:3000
 {{- end }}
 
@@ -11,8 +11,8 @@
 
 {{- if .Values.mongodb.enabled }}
 
-3. MongoDB is enabled. Root password must match `mongodb.auth.rootPassword` (used in MONGODB_URI for the server).
+3. MongoDB is enabled (CloudPirates chart). Set `mongodb.auth.rootPassword` to match the generated `MONGODB_URI` on the server.
    Primary host from this release: {{ include "showcase.mongodb.host" . }}:27017
 {{- end }}
 
-Reference chart layout: https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy
+Reference: https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy (CloudPirates OCI dependencies)

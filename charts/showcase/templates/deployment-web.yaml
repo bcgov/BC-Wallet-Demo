@@ -1,25 +1,34 @@
-{{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.showcase.web.podLabels .Values.commonLabels ) "context" . ) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "showcase.web.fullname" . }}
-  namespace: {{ include "common.names.namespace" . | quote }}
-  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
     app.kubernetes.io/component: web
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.showcase.web.replicaCount }}
   selector:
-    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: web
   template:
     metadata:
-      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+      labels:
+        {{- include "showcase.labels" . | nindent 8 }}
         app.kubernetes.io/component: web
+        {{- range $k, $v := .Values.showcase.web.podLabels }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
       {{- if .Values.showcase.web.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.web.podAnnotations "context" $) | nindent 8 }}
+      annotations: {{- toYaml .Values.showcase.web.podAnnotations | nindent 8 }}
       {{- end }}
     spec:
-      {{- include "common.images.renderPullSecrets" ( dict "images" (list .Values.showcase.web.image) "global" .Values.global ) | nindent 6 }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: web
           image: {{ include "showcase.web.image" . }}
@@ -46,19 +55,19 @@ spec:
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
-          {{- if .Values.showcase.web.resources }}
-          resources: {{- toYaml .Values.showcase.web.resources | nindent 12 }}
+          {{- with .Values.showcase.web.resources }}
+          resources: {{- toYaml . | nindent 12 }}
           {{- end }}
       volumes:
         - name: caddyfile
           configMap:
             name: {{ include "showcase.web.configmapName" . }}
-      {{- if .Values.showcase.web.nodeSelector }}
-      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.web.nodeSelector "context" $) | nindent 8 }}
+      {{- with .Values.showcase.web.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.showcase.web.tolerations }}
-      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.web.tolerations "context" $) | nindent 8 }}
+      {{- with .Values.showcase.web.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.showcase.web.affinity }}
-      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.web.affinity "context" $) | nindent 8 }}
+      {{- with .Values.showcase.web.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
       {{- end }}

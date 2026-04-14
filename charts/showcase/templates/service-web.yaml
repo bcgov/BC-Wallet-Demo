@@ -1,14 +1,14 @@
-{{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.showcase.web.podLabels .Values.commonLabels ) "context" . ) }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "showcase.web.fullname" . }}
-  namespace: {{ include "common.names.namespace" . | quote }}
-  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
     app.kubernetes.io/component: web
 spec:
   type: ClusterIP
-  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+  selector:
+    {{- include "showcase.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: web
   ports:
     - name: http

@@ -1,19 +1,10 @@
 ## Default values for the showcase umbrella chart (BC Wallet Demo web + server + optional MongoDB).
-## Scaffolding follows https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy
-## (Bitnami common library + conditional database subchart).
-
-tags:
-  bitnami-common: true
+## Database subchart follows the OWF acapy pattern (CloudPirates OCI) — see
+## https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy
 
 global:
   imageRegistry: ""
   imagePullSecrets: []
-  defaultStorageClass: ""
-  security:
-    allowInsecureImages: false
-  compatibility:
-    openshift:
-      adaptSecurityContext: auto
 
 nameOverride: ""
 fullnameOverride: ""
@@ -22,12 +13,13 @@ kubeVersion: ""
 commonLabels: {}
 commonAnnotations: {}
 
-## Bitnami MongoDB (optional). When enabled, set auth.rootPassword at install time.
+## CloudPirates MongoDB (optional). Pass `mongodb.auth.rootPassword` at install when enabled.
+## Values under `mongodb:` are forwarded to the subchart.
 mongodb:
   enabled: true
-  architecture: standalone
   auth:
-    rootUser: root
+    enabled: true
+    rootUsername: admin
     rootPassword: ""
   persistence:
     enabled: true

@@ -3,10 +3,10 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "showcase.web.fullname" . }}-ingress
-  namespace: {{ include "common.names.namespace" . | quote }}
-  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-  {{- if .Values.ingress.annotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.ingress.annotations "context" $ ) | nindent 4 }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations: {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   {{- if .Values.ingress.className }}

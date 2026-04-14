@@ -1,25 +1,34 @@
-{{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.showcase.server.podLabels .Values.commonLabels ) "context" . ) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "showcase.server.fullname" . }}
-  namespace: {{ include "common.names.namespace" . | quote }}
-  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
     app.kubernetes.io/component: server
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.showcase.server.replicaCount }}
   selector:
-    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: server
   template:
     metadata:
-      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+      labels:
+        {{- include "showcase.labels" . | nindent 8 }}
         app.kubernetes.io/component: server
+        {{- range $k, $v := .Values.showcase.server.podLabels }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
       {{- if .Values.showcase.server.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.server.podAnnotations "context" $) | nindent 8 }}
+      annotations: {{- toYaml .Values.showcase.server.podAnnotations | nindent 8 }}
       {{- end }}
     spec:
-      {{- include "common.images.renderPullSecrets" ( dict "images" (list .Values.showcase.server.image) "global" .Values.global ) | nindent 6 }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: server
           image: {{ include "showcase.server.image" . }}
@@ -42,15 +51,15 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 10
-          {{- if .Values.showcase.server.resources }}
-          resources: {{- toYaml .Values.showcase.server.resources | nindent 12 }}
+          {{- with .Values.showcase.server.resources }}
+          resources: {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.showcase.server.nodeSelector }}
-      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.server.nodeSelector "context" $) | nindent 8 }}
+      {{- with .Values.showcase.server.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.showcase.server.tolerations }}
-      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.server.tolerations "context" $) | nindent 8 }}
+      {{- with .Values.showcase.server.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.showcase.server.affinity }}
-      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.server.affinity "context" $) | nindent 8 }}
+      {{- with .Values.showcase.server.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
       {{- end }}
