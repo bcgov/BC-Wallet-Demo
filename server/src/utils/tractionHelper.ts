@@ -1,9 +1,18 @@
-import type { AxiosRequestConfig } from 'axios'
+import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 import axios from 'axios'
 import moment from 'moment'
 
 import logger from './logger'
+
+const safeAxiosError = (err: unknown) => {
+  const e = err as AxiosError
+  return {
+    message: e.message,
+    status: e.response?.status,
+    url: e.config?.url,
+  }
+}
 
 export let agentKey = ''
 
@@ -69,7 +78,7 @@ export const tractionGarbageCollection = async () => {
         tractionRequest.delete(`/connections/${conn.connection_id}`)
       })
     } catch (err) {
-      logger.warn({ err }, 'Garbage collection: failed to clean up connections')
+      logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up connections')
     }
   }
   const cleanupExchangeRecords = async () => {
@@ -81,7 +90,7 @@ export const tractionGarbageCollection = async () => {
         tractionRequest.delete(`/issue-credential/records/${record.credential_exchange_id}`)
       })
     } catch (err) {
-      logger.warn({ err }, 'Garbage collection: failed to clean up credential exchange records')
+      logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up credential exchange records')
     }
   }
   const cleanupProofRecords = async () => {
@@ -93,7 +102,7 @@ export const tractionGarbageCollection = async () => {
         tractionRequest.delete(`/present-proof/records/${proof.presentation_exchange_id}`)
       })
     } catch (err) {
-      logger.warn({ err }, 'Garbage collection: failed to clean up proof records')
+      logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up proof records')
     }
   }
   cleanupConnections()
