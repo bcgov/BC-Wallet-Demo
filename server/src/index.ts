@@ -3,9 +3,11 @@ import type { Express } from 'express'
 
 import { json, static as stx } from 'express'
 import * as http from 'http'
+import { pinoHttp } from 'pino-http'
 import { createExpressServer } from 'routing-controllers'
 import { Server } from 'socket.io'
 
+import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionRequest, tractionGarbageCollection } from './utils/tractionHelper'
 
 const baseRoute = process.env.BASE_ROUTE
@@ -29,10 +31,12 @@ const socketMap = new Map()
 const connectionMap = new Map()
 
 ws.on('connection', (socket) => {
+  logger.debug({ socketId: socket.id }, 'WebSocket client connected')
   socket.on('subscribe', ({ connectionId }) => {
     if (connectionId) {
       socketMap.set(connectionId, socket)
       connectionMap.set(socket.id, connectionId)
+      logger.debug({ socketId: socket.id, connectionId }, 'Socket subscribed to connection')
     }
   })
   socket.on('disconnect', () => {
@@ -41,6 +45,7 @@ ws.on('connection', (socket) => {
     if (connectionId) {
       socketMap.delete(connectionId)
     }
+    logger.debug({ socketId: socket.id, connectionId }, 'WebSocket client disconnected')
   })
 })
 
@@ -51,6 +56,22 @@ const run = async () => {
   app.set('sockets', socketMap)
 
   app.use(json())
+  app.use(
+    pinoHttp({
+      logger,
+      customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+      customErrorMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+      customLogLevel: (_req, res) => {
+        if (res.statusCode >= 500) return 'error'
+        if (res.statusCode >= 400) return 'warn'
+        return 'info'
+      },
+      serializers: {
+        req: () => undefined,
+        res: () => undefined,
+      },
+    })
+  )
 
   app.use(`${baseRoute}/public`, stx(__dirname + '/public'))
 
@@ -72,7 +93,7 @@ const run = async () => {
     return res
   })
 
-  // respond to healthchecks for openshift
+  // respond to health checks for openshift
   app.get('/', async (req, res) => {
     res.send('ok')
     return res
@@ -91,7 +112,8 @@ const run = async () => {
     return response
   })
 
-  server.listen(5000)
+  await server.listen(5000)
+  logger.info('Server listening on port 5000')
 }
 
 run()

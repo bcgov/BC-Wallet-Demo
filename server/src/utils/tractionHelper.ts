@@ -3,6 +3,8 @@ import type { AxiosRequestConfig } from 'axios'
 import axios from 'axios'
 import moment from 'moment'
 
+import logger from './logger'
+
 export let agentKey = ''
 
 export const tractionBaseUrl = process.env.TRACTION_URL ?? ''
@@ -12,14 +14,18 @@ export const tractionApiKeyUpdaterInit = async () => {
   const tractionBaseUrl = process.env.TRACTION_URL ?? ''
   const tenantId = process.env.TENANT_ID ?? ''
   const apiKey = process.env.API_KEY ?? ''
+  logger.info({ tractionBaseUrl, tenantId }, 'Initializing Traction API key')
   agentKey =
     (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data?.token ??
     agentKey
+  logger.info('Traction API key initialized successfully')
   // refresh agent key every hour
   setInterval(async () => {
+    logger.debug('Refreshing Traction API key')
     agentKey =
       (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data?.token ??
       agentKey
+    logger.debug('Traction API key refreshed')
   }, 3600000)
 }
 
@@ -50,37 +56,51 @@ export const tractionRequest = {
 export const tractionGarbageCollection = async () => {
   // delete all connections that are older than one day
   const cleanupConnections = async () => {
-    const connections: any[] = (await tractionRequest.get('/connections')).data.results
-    connections.forEach((conn) => {
-      if (
-        moment().diff(moment(conn.created_at), 'hours') >= 12 &&
-        conn.alias !== 'endorser' &&
-        conn.alias !== 'bcovrin-test-endorser'
-      ) {
+    try {
+      const connections: any[] = (await tractionRequest.get('/connections')).data.results
+      const stale = connections.filter(
+        (conn) =>
+          moment().diff(moment(conn.created_at), 'hours') >= 12 &&
+          conn.alias !== 'endorser' &&
+          conn.alias !== 'bcovrin-test-endorser'
+      )
+      logger.info({ count: stale.length }, 'Garbage collection: deleting stale connections')
+      stale.forEach((conn) => {
         tractionRequest.delete(`/connections/${conn.connection_id}`)
-      }
-    })
+      })
+    } catch (err) {
+      logger.warn({ err }, 'Garbage collection: failed to clean up connections')
+    }
   }
   const cleanupExchangeRecords = async () => {
-    const records: any[] = (await tractionRequest.get('/issue-credential/records')).data.results
-    records.forEach((record) => {
-      if (moment().diff(moment(record.created_at), 'hours') >= 12) {
+    try {
+      const records: any[] = (await tractionRequest.get('/issue-credential/records')).data.results
+      const stale = records.filter((record) => moment().diff(moment(record.created_at), 'hours') >= 12)
+      logger.info({ count: stale.length }, 'Garbage collection: deleting stale credential exchange records')
+      stale.forEach((record) => {
         tractionRequest.delete(`/issue-credential/records/${record.credential_exchange_id}`)
-      }
-    })
+      })
+    } catch (err) {
+      logger.warn({ err }, 'Garbage collection: failed to clean up credential exchange records')
+    }
   }
   const cleanupProofRecords = async () => {
-    const proofs: any[] = (await tractionRequest.get('/present-proof/records')).data.results
-    proofs.forEach((proof) => {
-      if (moment().diff(moment(proof.created_at), 'hours') >= 12) {
+    try {
+      const proofs: any[] = (await tractionRequest.get('/present-proof/records')).data.results
+      const stale = proofs.filter((proof) => moment().diff(moment(proof.created_at), 'hours') >= 12)
+      logger.info({ count: stale.length }, 'Garbage collection: deleting stale proof records')
+      stale.forEach((proof) => {
         tractionRequest.delete(`/present-proof/records/${proof.presentation_exchange_id}`)
-      }
-    })
+      })
+    } catch (err) {
+      logger.warn({ err }, 'Garbage collection: failed to clean up proof records')
+    }
   }
   cleanupConnections()
   cleanupExchangeRecords()
   cleanupProofRecords()
   setInterval(async () => {
+    logger.debug('Running scheduled garbage collection')
     cleanupConnections()
     cleanupExchangeRecords()
     cleanupProofRecords()
