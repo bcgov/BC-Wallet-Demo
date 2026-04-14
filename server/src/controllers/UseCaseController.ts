@@ -1,7 +1,8 @@
 import { Get, JsonController, NotFoundError, Param, QueryParam } from 'routing-controllers'
-import { Inject, Service } from 'typedi'
+import { Service } from 'typedi'
 
 import characters from '../content/Characters'
+import logger from '../utils/logger'
 
 const useCases = characters.map((c) => c.useCases)
 @JsonController('/usecases')
@@ -12,9 +13,11 @@ export class UseCaseController {
    */
   @Get('/:useCaseSlug')
   public async getUseCaseBySlug(@Param('useCaseSlug') useCaseSlug: string) {
+    logger.debug({ useCaseSlug }, 'Fetching use case by slug')
     const useCase = useCases.flat().find((x) => x.id === useCaseSlug)
 
     if (!useCase) {
+      logger.warn({ useCaseSlug }, 'Use case not found')
       throw new NotFoundError(`use case with slug "${useCaseSlug}" not found.`)
     }
     return useCase
@@ -25,9 +28,11 @@ export class UseCaseController {
    */
   @Get('/character/:type')
   public async getUseCasesByCharType(@Param('type') type: string, @QueryParam('showHidden') showHidden?: boolean) {
+    logger.debug({ type, showHidden }, 'Fetching use cases by character type')
     const UCs = characters.find((c) => c.type === type)
 
     if (!UCs) {
+      logger.warn({ type }, 'Character type not found for use case lookup')
       throw new NotFoundError(`Use cases for character with type "${type}" not found.`)
     }
 

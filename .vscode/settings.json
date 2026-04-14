@@ -1,3 +1,14 @@
 {
-  "cSpell.words": ["bcgov-black", "bcgov-darkgrey", "bcgov-lightgrey"]
+  "cSpell.words": [
+    "bcgov-black",
+    "bcgov-darkgrey",
+    "bcgov-lightgrey",
+    "didcomm",
+    "ditp",
+    "typedi",
+    "usecase",
+    "usecases",
+    "whook"
+  ],
+  "js/ts.format.semicolons": "remove",
 }

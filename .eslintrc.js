@@ -49,6 +49,7 @@ module.exports = {
       'error',
       {
         devDependencies: false,
+        packageDir: [__dirname, `${__dirname}/client`, `${__dirname}/server`],
       },
     ],
     'cypress/no-assigning-return-values': 'error',

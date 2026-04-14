@@ -1,6 +1,7 @@
 import { Body, Get, JsonController, Param, Post } from 'routing-controllers'
 import { Service } from 'typedi'
 
+import logger from '../utils/logger'
 import { tractionRequest } from '../utils/tractionHelper'
 
 @JsonController('/connections')
@@ -8,18 +9,22 @@ import { tractionRequest } from '../utils/tractionHelper'
 export class ConnectionController {
   @Get('/getConnectionStatus/:connId')
   public async getConnectionStatus(@Param('connId') connectionId: string) {
+    logger.debug({ connectionId }, 'Fetching connection status')
     const response = await tractionRequest.get(`/connections/${connectionId}`)
+    logger.debug({ connectionId, state: response.data?.state }, 'Connection status retrieved')
     return response.data
   }
 
   @Get('/invitationId/:id')
   public async getConnectionByInvitation(@Param('id') invitationId: string) {
+    logger.debug({ invitationId }, 'Fetching connection by invitation id')
     const response = await tractionRequest.get(`/connections?invitation_msg_id=${invitationId}`)
     return response.data.results[0]
   }
 
   @Post('/createInvite')
   public async createConnectionInvite(@Body() params: any) {
+    logger.info('Creating connection invitation')
     const data = {
       ...params,
       accept: ['didcomm/aip1', 'didcomm/aip2;env=rfc19'],
@@ -30,6 +35,7 @@ export class ConnectionController {
       use_public_did: false,
     }
     const response = await tractionRequest.post(`/out-of-band/create-invitation?multi_use=false`, data)
+    logger.info({ invitationUrl: response.data?.invitation_url }, 'Connection invitation created')
     return response.data
   }
 }
