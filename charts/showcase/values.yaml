@@ -1,0 +1,86 @@
+## Default values for the showcase umbrella chart (BC Wallet Demo web + server + optional MongoDB).
+## Scaffolding follows https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy
+## (Bitnami common library + conditional database subchart).
+
+tags:
+  bitnami-common: true
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  defaultStorageClass: ""
+  security:
+    allowInsecureImages: false
+  compatibility:
+    openshift:
+      adaptSecurityContext: auto
+
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+kubeVersion: ""
+commonLabels: {}
+commonAnnotations: {}
+
+## Bitnami MongoDB (optional). When enabled, set auth.rootPassword at install time.
+mongodb:
+  enabled: true
+  architecture: standalone
+  auth:
+    rootUser: root
+    rootPassword: ""
+  persistence:
+    enabled: true
+    size: 8Gi
+
+## Showcase API (Express server)
+showcase:
+  baseRoute: /digital-trust/showcase
+  server:
+    replicaCount: 1
+    image:
+      registry: ""
+      repository: bc-wallet-demo-server
+      tag: latest
+      digest: ""
+      pullPolicy: IfNotPresent
+    resources: {}
+    extraEnv: []
+    ## Extra keys merged into the server env Secret (plain strings; prefer existingSecret for prod).
+    secretEnv: {}
+    podAnnotations: {}
+    podLabels: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  ## Showcase web (Caddy + static build)
+  web:
+    replicaCount: 1
+    image:
+      registry: ""
+      repository: bc-wallet-demo-web
+      tag: latest
+      digest: ""
+      pullPolicy: IfNotPresent
+    resources: {}
+    podAnnotations: {}
+    podLabels: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  ## Public URL of the API as seen by browsers (scheme + host + port if needed). Baked into web env for CRA.
+  publicBackendUrl: ""
+  ## Optional Microsoft Clarity / App Insights project id for the web bundle.
+  insightsProjectId: ""
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  web:
+    hostname: showcase.example.com
+    path: /
+    tls: false
+    tlsSecret: ""

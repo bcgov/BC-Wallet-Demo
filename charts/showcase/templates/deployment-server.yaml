@@ -1,0 +1,56 @@
+{{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.showcase.server.podLabels .Values.commonLabels ) "context" . ) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "showcase.server.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  replicas: {{ .Values.showcase.server.replicaCount }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: server
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: server
+      {{- if .Values.showcase.server.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.server.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- include "common.images.renderPullSecrets" ( dict "images" (list .Values.showcase.server.image) "global" .Values.global ) | nindent 6 }}
+      containers:
+        - name: server
+          image: {{ include "showcase.server.image" . }}
+          imagePullPolicy: {{ .Values.showcase.server.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+          {{- if or .Values.mongodb.enabled (not (empty .Values.showcase.server.secretEnv)) }}
+          envFrom:
+            - secretRef:
+                name: {{ include "showcase.server.secretName" . }}
+          {{- end }}
+          {{- range .Values.showcase.server.extraEnv }}
+          - name: {{ .name }}
+            value: {{ .value | quote }}
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ printf "%s/server/ready" .Values.showcase.baseRoute }}
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          {{- if .Values.showcase.server.resources }}
+          resources: {{- toYaml .Values.showcase.server.resources | nindent 12 }}
+          {{- end }}
+      {{- if .Values.showcase.server.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.server.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.showcase.server.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.server.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.showcase.server.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.showcase.server.affinity "context" $) | nindent 8 }}
+      {{- end }}

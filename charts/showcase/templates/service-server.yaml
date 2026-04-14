@@ -1,0 +1,16 @@
+{{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.showcase.server.podLabels .Values.commonLabels ) "context" . ) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "showcase.server.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  type: ClusterIP
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: server
+  ports:
+    - name: http
+      port: 5000
+      targetPort: http

@@ -1,0 +1,18 @@
+1. Get the web UI URL (in-cluster or via ingress):
+{{- if .Values.ingress.enabled }}
+   https://{{ .Values.ingress.web.hostname }}{{ .Values.ingress.web.path }}
+{{- else }}
+   kubectl --namespace {{ include "common.names.namespace" . }} port-forward svc/{{ include "showcase.web.fullname" . }} 3000:3000
+   Then open http://127.0.0.1:3000
+{{- end }}
+
+2. API service (ClusterIP):
+   {{ include "showcase.server.fullname" . }}:5000
+
+{{- if .Values.mongodb.enabled }}
+
+3. MongoDB is enabled. Root password must match `mongodb.auth.rootPassword` (used in MONGODB_URI for the server).
+   Primary host from this release: {{ include "showcase.mongodb.host" . }}:27017
+{{- end }}
+
+Reference chart layout: https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy

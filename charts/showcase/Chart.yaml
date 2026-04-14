@@ -1,0 +1,16 @@
+apiVersion: v2
+name: showcase
+description: Helm chart for the BC Wallet Demo showcase (web + API) with optional MongoDB
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: mongodb
+    version: 18.6.25
+    repository: https://charts.bitnami.com/bitnami
+    condition: mongodb.enabled
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    tags:
+      - bitnami-common
+    version: 2.31.3
