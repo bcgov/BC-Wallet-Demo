@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Libindy
         uses: ./.github/actions/setup-libindy
@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Libindy
         uses: ./.github/actions/setup-libindy
@@ -107,7 +107,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Libindy
         uses: ./.github/actions/setup-libindy
@@ -145,7 +145,7 @@ jobs:
       - build-and-push-image-server
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Copy stack file to remote
         uses: garygrossgarten/github-action-scp@v0.7.3
