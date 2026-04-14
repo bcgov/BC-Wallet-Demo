@@ -19,22 +19,29 @@ export let agentKey = ''
 export const tractionBaseUrl = process.env.TRACTION_URL ?? ''
 
 export const tractionApiKeyUpdaterInit = async () => {
-  // get traction api key
   const tractionBaseUrl = process.env.TRACTION_URL ?? ''
   const tenantId = process.env.TENANT_ID ?? ''
   const apiKey = process.env.API_KEY ?? ''
   logger.info({ tractionBaseUrl, tenantId }, 'Initializing Traction API key')
-  agentKey =
-    (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data?.token ??
-    agentKey
-  logger.info('Traction API key initialized successfully')
-  // refresh agent key every hour
-  setInterval(async () => {
-    logger.debug('Refreshing Traction API key')
+  try {
     agentKey =
       (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data?.token ??
       agentKey
-    logger.debug('Traction API key refreshed')
+    logger.info('Traction API key initialized successfully')
+  } catch (err) {
+    logger.warn(safeAxiosError(err), 'Failed to initialize Traction API key; server will start without a valid token')
+  }
+  // refresh agent key every hour
+  setInterval(async () => {
+    logger.debug('Refreshing Traction API key')
+    try {
+      agentKey =
+        (await axios.post(`${tractionBaseUrl}/multitenancy/tenant/${tenantId}/token`, { api_key: apiKey })).data
+          ?.token ?? agentKey
+      logger.debug('Traction API key refreshed')
+    } catch (err) {
+      logger.warn(safeAxiosError(err), 'Failed to refresh Traction API key; retaining previous token')
+    }
   }, 3600000)
 }
 
@@ -74,9 +81,7 @@ export const tractionGarbageCollection = async () => {
           conn.alias !== 'bcovrin-test-endorser'
       )
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale connections')
-      stale.forEach((conn) => {
-        tractionRequest.delete(`/connections/${conn.connection_id}`)
-      })
+      await Promise.all(stale.map((conn) => tractionRequest.delete(`/connections/${conn.connection_id}`)))
     } catch (err) {
       logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up connections')
     }
@@ -86,9 +91,9 @@ export const tractionGarbageCollection = async () => {
       const records: any[] = (await tractionRequest.get('/issue-credential/records')).data.results
       const stale = records.filter((record) => moment().diff(moment(record.created_at), 'hours') >= 12)
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale credential exchange records')
-      stale.forEach((record) => {
-        tractionRequest.delete(`/issue-credential/records/${record.credential_exchange_id}`)
-      })
+      await Promise.all(
+        stale.map((record) => tractionRequest.delete(`/issue-credential/records/${record.credential_exchange_id}`))
+      )
     } catch (err) {
       logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up credential exchange records')
     }
@@ -98,9 +103,9 @@ export const tractionGarbageCollection = async () => {
       const proofs: any[] = (await tractionRequest.get('/present-proof/records')).data.results
       const stale = proofs.filter((proof) => moment().diff(moment(proof.created_at), 'hours') >= 12)
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale proof records')
-      stale.forEach((proof) => {
-        tractionRequest.delete(`/present-proof/records/${proof.presentation_exchange_id}`)
-      })
+      await Promise.all(
+        stale.map((proof) => tractionRequest.delete(`/present-proof/records/${proof.presentation_exchange_id}`))
+      )
     } catch (err) {
       logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up proof records')
     }

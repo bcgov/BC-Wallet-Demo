@@ -46,10 +46,13 @@ export class DeeplinkController {
     for (let i = 0; i < 10 && !this.isConnected(state); i++) {
       await new Promise((r) => setTimeout(r, 1000))
       if (!this.isConnected(state)) {
-        tractionRequest.get(`/connections/${connectionId}`).then((resp) => {
+        try {
+          const resp = await tractionRequest.get(`/connections/${connectionId}`)
           state = resp.data?.state
           logger.debug({ connectionId, state, attempt: i + 1 }, 'Deep link: polling connection state')
-        })
+        } catch (error) {
+          logger.warn({ connectionId, attempt: i + 1, error }, 'Deep link: failed to poll connection state')
+        }
       }
     }
     return state

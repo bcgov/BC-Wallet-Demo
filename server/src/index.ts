@@ -112,7 +112,13 @@ const run = async () => {
     return response
   })
 
-  await server.listen(5000)
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject)
+    server.listen(5000, () => {
+      server.off('error', reject)
+      resolve()
+    })
+  })
   logger.info('Server listening on port 5000')
 }
 

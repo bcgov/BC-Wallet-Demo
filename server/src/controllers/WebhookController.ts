@@ -1,6 +1,6 @@
 import type { Socket } from 'socket.io'
 
-import { Body, JsonController, Post, Req } from 'routing-controllers'
+import { Body, JsonController, Post, Req, UnauthorizedError } from 'routing-controllers'
 import { Service } from 'typedi'
 
 import logger from '../utils/logger'
@@ -14,7 +14,7 @@ export class WebhookController {
     const api_key = req.headers['x-api-key']
     if (api_key !== process.env.WEBHOOK_SECRET) {
       logger.warn({ path: req.path }, 'Webhook received with invalid API key')
-      return { message: 'Unauthorized', status: 401 }
+      throw new UnauthorizedError('Invalid API key')
     }
     const connectionId = params.connection_id
     const path = req.path.endsWith('/') ? req.path.slice(0, -1) : req.path
