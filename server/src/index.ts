@@ -13,7 +13,7 @@ import { tractionApiKeyUpdaterInit, tractionRequest, tractionGarbageCollection }
 const baseRoute = process.env.BASE_ROUTE
 
 const app: Express = createExpressServer({
-  controllers: [__dirname + '/controllers/**/*.ts'],
+  controllers: [__dirname + '/controllers/*.ts'],
   cors: true,
   routePrefix: `${baseRoute}/demo`,
 })
