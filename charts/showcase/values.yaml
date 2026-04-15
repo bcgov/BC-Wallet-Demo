@@ -16,6 +16,10 @@ commonAnnotations: {}
 ## CloudPirates MongoDB (optional). All keys under `mongodb:` are forwarded to the subchart.
 ## For GitOps, prefer `auth.existingSecret` / `auth.existingSecretPasswordKey` (see CloudPirates chart docs)
 ## and mount server env (including `MONGODB_URI`) via `showcase.server.existingSecret`.
+##
+## True for Chart.lock dependency mongodb 0.15.x: the CloudPirates subchart defaults to Docker Hub's
+## official `mongo` image on MongoDB 8.x (upstream default tag is a pinned 8.2.x + digest). Override
+## `mongodb.image.registry` / `repository` / `tag` here if you need a different major or digest.
 mongodb:
   ## When true, either set `showcase.server.existingSecret` (with MONGODB_URI) or `auth.rootPassword`
   ## for a chart-managed Secret (dev only).
