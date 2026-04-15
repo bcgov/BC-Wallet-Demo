@@ -29,6 +29,7 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-inferrable-types': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-use-before-define': ['error', { functions: false, classes: false, variables: true }],
     '@typescript-eslint/explicit-member-accessibility': 'error',
     'no-console': 'error',
@@ -61,13 +62,21 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['jest.config.ts', '.eslintrc.js'],
+      files: ['jest.config.ts', 'vitest.config.ts', '.eslintrc.js'],
       env: {
         node: true,
       },
     },
     {
-      files: ['*.test.ts', '**/__tests__/**', '**/tests/**', 'jest.*.ts', 'samples/**'],
+      files: [
+        '*.test.ts',
+        '**/__tests__/**',
+        '**/tests/**',
+        'jest.*.ts',
+        'vitest.config.ts',
+        '*.config.ts',
+        'samples/**',
+      ],
       env: {
         jest: true,
         node: false,

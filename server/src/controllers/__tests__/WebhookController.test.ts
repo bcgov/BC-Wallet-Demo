@@ -58,9 +58,9 @@ describe('WebhookController', () => {
     it('does not throw when no socket exists for the connectionId', async () => {
       const req = makeReq({ app: { get: vi.fn().mockReturnValue(new Map()) } })
 
-      await expect(
-        controller.handlePostWhook({ connection_id: 'nobody' }, req)
-      ).resolves.toEqual({ message: 'Webhook received' })
+      await expect(controller.handlePostWhook({ connection_id: 'nobody' }, req)).resolves.toEqual({
+        message: 'Webhook received',
+      })
     })
 
     it('strips trailing slash from path when extracting endpoint', async () => {
@@ -86,10 +86,7 @@ describe('WebhookController', () => {
 
       await controller.handlePostWhook({ connection_id: 'conn1' }, req)
 
-      expect(mockEmit).toHaveBeenCalledWith(
-        'message',
-        expect.objectContaining({ endpoint: 'basicmessages' })
-      )
+      expect(mockEmit).toHaveBeenCalledWith('message', expect.objectContaining({ endpoint: 'basicmessages' }))
     })
   })
 })

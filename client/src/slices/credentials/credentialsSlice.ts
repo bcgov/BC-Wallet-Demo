@@ -25,7 +25,7 @@ const credentialSlice = createSlice({
   name: 'credentials',
   initialState,
   reducers: {
-    clearCredentials: (state) => {
+    clearCredentials: () => {
       // state.credentials.map((x) => isCredIssued(x.state) && state.issuedCredentials.push(x))
       // state.credentials = []
     },
@@ -54,13 +54,13 @@ const credentialSlice = createSlice({
       .addCase(issueCredential.pending, (state) => {
         state.isIssueCredentialLoading = true
       })
-      .addCase(issueCredential.fulfilled, (state, action) => {
+      .addCase(issueCredential.fulfilled, (state) => {
         state.isIssueCredentialLoading = false
       })
       .addCase(fetchCredentialById.pending, (state) => {
         state.isLoading = true
       })
-      .addCase(fetchCredentialById.fulfilled, (state, action) => {
+      .addCase(fetchCredentialById.fulfilled, (state) => {
         state.isLoading = false
         // const index = state.credentials.findIndex((cred) => cred.id == action.payload.id)
 
@@ -75,7 +75,7 @@ const credentialSlice = createSlice({
       .addCase(deleteCredentialById.pending, (state) => {
         state.isLoading = true
       })
-      .addCase(deleteCredentialById.fulfilled, (state, action) => {
+      .addCase(deleteCredentialById.fulfilled, (state) => {
         state.isLoading = false
         // state.credentials.filter((cred) => cred.id !== action.payload)
         return state

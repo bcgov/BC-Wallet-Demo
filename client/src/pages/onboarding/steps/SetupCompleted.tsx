@@ -6,10 +6,9 @@ import { fadeX } from '../../../FramerAnimations'
 export interface Props {
   title: string
   text: string
-  characterName: string
 }
 
-export const SetupCompleted: React.FC<Props> = ({ title, text, characterName }) => {
+export const SetupCompleted: React.FC<Props> = ({ title, text }) => {
   const lastIndex = title.lastIndexOf(' ')
   const lastWord = <p className="inline text-bcgov-blue dark:text-bcgov-gold">{title.substring(lastIndex + 1)}</p>
   const newTitle = title.substring(0, lastIndex)

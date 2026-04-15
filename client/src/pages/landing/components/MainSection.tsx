@@ -7,15 +7,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { buttonHover, fade, fadeDelay, landingTitle } from '../../../FramerAnimations'
 import landingScreen from '../../../assets/light/landing-screen.svg'
-import { useAppDispatch } from '../../../hooks/hooks'
-import { useDarkMode } from '../../../hooks/useDarkMode'
-import { setOnboardingStep } from '../../../slices/onboarding/onboardingSlice'
 import { basePath } from '../../../utils/BasePath'
-import { addOnboardingProgress } from '../../../utils/OnboardingUtils'
 
 export const MainSection: React.FC = () => {
-  const darkMode = useDarkMode()
-  const dispatch = useAppDispatch()
   const { slug } = useParams()
 
   const navigate = useNavigate()

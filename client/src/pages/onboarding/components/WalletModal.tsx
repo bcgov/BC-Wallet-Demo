@@ -22,11 +22,10 @@ export interface Wallet {
 export interface Props {
   isWalletModalOpen: boolean
   setIsWalletModalOpen: (open: boolean) => void
-  wallet: Wallet
   onCompleted(): void
 }
 
-export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletModalOpen, wallet, onCompleted }) => {
+export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletModalOpen, onCompleted }) => {
   function isMobile() {
     return window.innerWidth <= 760
   }

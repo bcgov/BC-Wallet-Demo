@@ -8,7 +8,6 @@ import { fade } from '../../../FramerAnimations'
 import { Modal } from '../../../components/Modal'
 import { SmallButtonText } from '../../../components/SmallButtonText'
 import { useAppDispatch } from '../../../hooks/hooks'
-import { basePath } from '../../../utils/BasePath'
 import { prependApiUrl } from '../../../utils/Url'
 
 export interface Props {

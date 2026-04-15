@@ -14,4 +14,3 @@ describe('Protected Routes', () => {
     cy.contains('BC Wallet Showcase').should('be.visible')
   })
 })
-
