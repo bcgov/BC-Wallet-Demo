@@ -2,7 +2,7 @@
 
 Umbrella chart for the BC Wallet Demo **showcase** stack: **API server**, **web (Caddy)**, and optional **MongoDB**.
 
-Dependencies follow [OWF `charts/acapy`](https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy): **MongoDB** is installed from **CloudPirates** OCI (`oci://registry-1.docker.io/cloudpirates/mongodb`), not Bitnami. This chart does not use Bitnami subcharts; labels and image strings are templated locally.
+**MongoDB** (optional) is a **CloudPirates** OCI subchart (`oci://registry-1.docker.io/cloudpirates/mongodb`), not Bitnami—similar to how other charts pull data stores from the same registry (for example [OWF `acapy`](https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy) uses CloudPirates for Postgres). This umbrella chart does **not** deploy ACA-Py. Labels and image strings are templated locally (`templates/_helpers.tpl`).
 
 ## Prerequisites
 

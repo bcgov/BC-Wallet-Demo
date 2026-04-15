@@ -1,6 +1,5 @@
 ## Default values for the showcase umbrella chart (BC Wallet Demo web + server + optional MongoDB).
-## Database subchart follows the OWF acapy pattern (CloudPirates OCI) — see
-## https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy
+## Optional MongoDB is the CloudPirates OCI subchart (not Bitnami); see charts/showcase/README.md.
 
 global:
   imageRegistry: ""

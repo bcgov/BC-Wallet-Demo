@@ -22,4 +22,4 @@
 4. MongoDB (CloudPirates) primary service: {{ include "showcase.mongodb.host" . }}:27017
 {{- end }}
 
-Reference: https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy (CloudPirates OCI dependencies)
+MongoDB subchart: oci://registry-1.docker.io/cloudpirates/mongodb
