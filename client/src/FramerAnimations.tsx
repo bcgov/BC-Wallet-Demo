@@ -1,4 +1,6 @@
-export const page = {
+import type { Variants } from 'framer-motion'
+
+export const page: Variants = {
   hidden: {
     opacity: 0,
   },
@@ -18,7 +20,7 @@ export const page = {
   },
 }
 
-export const landingTitle = {
+export const landingTitle: Variants = {
   hidden: { x: 20 },
   show: {
     x: 0,

@@ -28,21 +28,28 @@ const rootReducer = combineReducers({
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pReducer = (state: any, action: any) => {
+  // Strip redux-persist's internal _persist key before passing to combineReducers
+  // so that it never warns about an unexpected key in the state shape.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { _persist, ...restState } = state ?? {}
+
   if (action.type === 'persist/REHYDRATE') {
-    const storageVersion = action.payload?._persist.version
+    const storageVersion = action.payload?._persist?.version
 
     if (storageVersion !== VERSION) {
       return rootReducer(undefined, action)
     }
 
-    return rootReducer(action.payload, action)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _persist: _p, ...rehydratedState } = action.payload ?? {}
+    return rootReducer(rehydratedState, action)
   }
 
   if (action.type === 'demo/RESET') {
     return rootReducer(undefined, action)
   }
 
-  return rootReducer(state, action)
+  return rootReducer(state === undefined ? undefined : restState, action)
 }
 
 export default pReducer
