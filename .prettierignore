@@ -1,0 +1,5 @@
+node_modules
+client/build
+server/build
+server/coverage
+coverage

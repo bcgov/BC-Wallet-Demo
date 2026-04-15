@@ -5,49 +5,49 @@ updates:
   # Maintain dependencies for GitHub Actions
   #  - Check for updates once a week
   #  - Group all updates into a single PR
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
     groups:
       all-actions:
-        patterns: [ "*" ]
+        patterns: ['*']
 
   # Maintain dependencies for TypeScript and JavaScript
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "04:00"
-      timezone: "Canada/Pacific"
+      interval: 'weekly'
+      day: 'monday'
+      time: '04:00'
+      timezone: 'Canada/Pacific'
     ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major", "version-update:semver-patch"]
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major', 'version-update:semver-patch']
 
   # Maintain dependencies for docker
-  - package-ecosystem: "docker"
-    directory: "/"
+  - package-ecosystem: 'docker'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "04:00"
-      timezone: "Canada/Pacific"
+      interval: 'weekly'
+      day: 'monday'
+      time: '04:00'
+      timezone: 'Canada/Pacific'
 
   # Maintain dependencies for docker
-  - package-ecosystem: "docker"
-    directory: "/client"
+  - package-ecosystem: 'docker'
+    directory: '/client'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "04:00"
-      timezone: "Canada/Pacific"
+      interval: 'weekly'
+      day: 'monday'
+      time: '04:00'
+      timezone: 'Canada/Pacific'
 
   # Maintain dependencies for docker
-  - package-ecosystem: "docker"
-    directory: "/server"
+  - package-ecosystem: 'docker'
+    directory: '/server'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "04:00"
-      timezone: "Canada/Pacific"
+      interval: 'weekly'
+      day: 'monday'
+      time: '04:00'
+      timezone: 'Canada/Pacific'

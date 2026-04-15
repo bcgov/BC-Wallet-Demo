@@ -7,9 +7,9 @@ services:
     environment:
       MONGO_INITDB_DATABASE: bcwallet_demo
     expose:
-      - "27017"
+      - '27017'
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -17,7 +17,7 @@ services:
 
   frontend:
     image: bc-wallet-demo-web
-    build: 
+    build:
       context: ./
       dockerfile: ./client/Dockerfile
     volumes:
@@ -25,18 +25,18 @@ services:
         source: ./client/Caddyfile
         target: /etc/caddy/Caddyfile
     ports:
-      - "3000:3000"
-    depends_on: 
+      - '3000:3000'
+    depends_on:
       - backend
     env_file:
       - ./client/.env
   backend:
     image: bc-wallet-demo-server
-    build: 
+    build:
       context: ./
       dockerfile: ./server/Dockerfile
     ports:
-      - "5000:5000"
+      - '5000:5000'
     env_file:
       - ./server/.env
     depends_on:
@@ -48,8 +48,8 @@ services:
       context: ./
       dockerfile: ./dev.dockerfile
     ports:
-      - "3000:3000"
-      - "5000:5000"
+      - '3000:3000'
+      - '5000:5000'
     volumes:
       - ./:/app
     depends_on:
