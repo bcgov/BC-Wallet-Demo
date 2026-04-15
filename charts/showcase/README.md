@@ -32,10 +32,10 @@ helm upgrade --install my-showcase . \
   --set mongodb.enabled=true \
   --set showcase.server.existingSecret=bc-wallet-server-env \
   --set showcase.publicBackendUrl='https://api.example.com' \
-  --set showcase.server.image.repository=your-registry/bc-wallet-demo-server \
-  --set showcase.server.image.tag=1.0.0 \
-  --set showcase.web.image.repository=your-registry/bc-wallet-demo-web \
-  --set showcase.web.image.tag=1.0.0
+  --set showcase.server.image.tag=main \
+  --set showcase.web.image.tag=main
 ```
+
+Default images point at [bcgov GitHub Packages](https://github.com/orgs/bcgov/packages?repo_name=BC-Wallet-Demo) (`ghcr.io/bcgov/bc-wallet-demo-server` and `ghcr.io/bcgov/bc-wallet-demo-web`). Override `registry` / `repository` / `tag` if you publish elsewhere.
 
 Create `bc-wallet-server-env` in that namespace before upgrading (keys as env names, values as strings).

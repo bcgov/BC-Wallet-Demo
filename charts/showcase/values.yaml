@@ -36,8 +36,9 @@ showcase:
   server:
     replicaCount: 1
     image:
-      registry: ""
-      repository: bc-wallet-demo-server
+      ## Matches bcgov GHCR packages (e.g. https://github.com/orgs/bcgov/packages?repo_name=BC-Wallet-Demo)
+      registry: ghcr.io
+      repository: bcgov/bc-wallet-demo-server
       tag: latest
       digest: ""
       pullPolicy: IfNotPresent
@@ -60,8 +61,8 @@ showcase:
   web:
     replicaCount: 1
     image:
-      registry: ""
-      repository: bc-wallet-demo-web
+      registry: ghcr.io
+      repository: bcgov/bc-wallet-demo-web
       tag: latest
       digest: ""
       pullPolicy: IfNotPresent
