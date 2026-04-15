@@ -1,6 +1,6 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, isAnyOf } from '@reduxjs/toolkit'
 
-import { createProof, createProofOOB, fetchProofById } from './proofThunks'
+import { createProof, createDeepProof, createProofOOB, fetchProofById } from './proofThunks'
 
 interface ProofState {
   proof?: any
@@ -28,13 +28,6 @@ const proofSlice = createSlice({
       .addCase('clearProof', (state) => {
         state.proof = undefined
       })
-      .addCase(createProof.pending, (state) => {
-        state.isLoading = true
-      })
-      .addCase(createProof.fulfilled, (state, action) => {
-        state.isLoading = false
-        state.proof = { ...action.payload, id: action.payload?.presentation_exchange_id ?? '' }
-      })
       .addCase(createProofOOB.pending, (state) => {
         state.isLoading = true
       })
@@ -58,6 +51,16 @@ const proofSlice = createSlice({
       })
       .addCase('clearUseCase', (state) => {
         state.proof = undefined
+        state.isLoading = false
+      })
+      .addMatcher(isAnyOf(createProof.pending, createDeepProof.pending), (state) => {
+        state.isLoading = true
+      })
+      .addMatcher(isAnyOf(createProof.fulfilled, createDeepProof.fulfilled), (state, action) => {
+        state.isLoading = false
+        state.proof = { ...action.payload, id: action.payload?.presentation_exchange_id ?? '' }
+      })
+      .addMatcher(isAnyOf(createProof.rejected, createDeepProof.rejected), (state) => {
         state.isLoading = false
       })
   },

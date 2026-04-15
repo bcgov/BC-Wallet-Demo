@@ -59,11 +59,11 @@ describe('isDataUrl', () => {
     expect(isDataUrl('/public/icon.png')).toBe(false)
   })
 
-  it('returns falsy for undefined', () => {
-    expect(isDataUrl(undefined)).toBeFalsy()
+  it('returns undefined for undefined', () => {
+    expect(isDataUrl(undefined)).toBeUndefined()
   })
 
-  it('returns falsy for an empty string', () => {
-    expect(isDataUrl('')).toBeFalsy()
+  it('returns an empty string for an empty string', () => {
+    expect(isDataUrl('')).toBe('')
   })
 })

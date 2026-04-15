@@ -2,8 +2,11 @@ import { configureStore } from '@reduxjs/toolkit'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('../../../utils/logger', () => ({
-  default: { debug: vi.fn(), info: vi.fn(), warn: vi.fn() },
+  default: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
+
+// Skip real exponential delays in all retry tests
+vi.useFakeTimers()
 
 vi.mock('../../../api/CredentialApi', () => ({
   issueCredential: vi.fn(),
@@ -73,12 +76,44 @@ describe('issueDeepCredential thunk — retry loop', () => {
       .mockResolvedValue({ data: { credential_exchange_id: 'deep-cred-1' } } as any)
 
     const store = makeStore()
-    const result = await store.dispatch(
+    const promise = store.dispatch(
       issueDeepCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' }) as any
     )
+    // advance through exponential back-off timers
+    await vi.runAllTimersAsync()
+    const result = await promise
 
     expect(result.payload).toEqual({ credential_exchange_id: 'deep-cred-1' })
     expect(CredentialApi.issueDeepCredential).toHaveBeenCalledTimes(3)
+  })
+
+  it('rejects with a descriptive message after max attempts', async () => {
+    vi.mocked(CredentialApi.issueDeepCredential).mockRejectedValue(new Error('always fails'))
+
+    const store = makeStore()
+    const promise = store.dispatch(
+      issueDeepCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' }) as any
+    )
+    await vi.runAllTimersAsync()
+    const result = await promise
+
+    expect(result.meta.requestStatus).toBe('rejected')
+    expect(result.payload).toMatch(/10 attempts/)
+    expect(CredentialApi.issueDeepCredential).toHaveBeenCalledTimes(10)
+  })
+
+  it('stops immediately when the thunk signal is aborted', async () => {
+    vi.mocked(CredentialApi.issueDeepCredential).mockRejectedValue(new Error('not ready'))
+
+    const store = makeStore()
+    const thunkAction = issueDeepCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' })
+    const promise = store.dispatch(thunkAction as any)
+    // abort before timers fire
+    ;(promise as any).abort('test abort')
+    await vi.runAllTimersAsync()
+    const result = await promise
+
+    expect(result.meta.requestStatus).toBe('rejected')
   })
 })
 

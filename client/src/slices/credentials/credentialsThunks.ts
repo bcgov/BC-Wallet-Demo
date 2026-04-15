@@ -18,30 +18,45 @@ export const issueCredential = createAsyncThunk(
   }
 )
 
+const DEEP_CRED_MAX_ATTEMPTS = 10
+const DEEP_CRED_BASE_DELAY_MS = 500
+
+const sleep = (ms: number, signal?: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(resolve, ms)
+    signal?.addEventListener('abort', () => {
+      clearTimeout(timer)
+      reject(new DOMException('Aborted', 'AbortError'))
+    })
+  })
+
 export const issueDeepCredential = createAsyncThunk(
-  'credentials/issueCredential',
-  async (data: { connectionId: string; cred: Credential; credDefId: string }) => {
+  'credentials/issueDeepCredential',
+  async (data: { connectionId: string; cred: Credential; credDefId: string }, thunkAPI) => {
     log.debug('[credentials] issuing deep-link credential, polling until connection ready', {
       connectionId: data.connectionId,
       credName: data.cred.name,
     })
-    let success = false
-    let response = undefined
-    let attempt = 0
-    while (!success) {
+    for (let attempt = 1; attempt <= DEEP_CRED_MAX_ATTEMPTS; attempt++) {
+      if (thunkAPI.signal.aborted) {
+        return thunkAPI.rejectWithValue('Cancelled')
+      }
       try {
-        attempt++
-        response = await Api.issueDeepCredential(data.connectionId, data.cred, data.credDefId)
-        success = true
+        const response = await Api.issueDeepCredential(data.connectionId, data.cred, data.credDefId)
         log.info('[credentials] deep-link credential offered', {
           attempt,
           credentialExchangeId: response.data?.credential_exchange_id,
         })
-      } catch {
-        log.debug('[credentials] deep-link credential attempt failed, retrying', { attempt })
+        return response.data
+      } catch (err) {
+        log.debug('[credentials] deep-link credential attempt failed', { attempt, maxAttempts: DEEP_CRED_MAX_ATTEMPTS })
+        if (attempt < DEEP_CRED_MAX_ATTEMPTS) {
+          await sleep(DEEP_CRED_BASE_DELAY_MS * 2 ** (attempt - 1), thunkAPI.signal)
+        }
       }
     }
-    return response?.data
+    log.error('[credentials] deep-link credential failed after max attempts', { maxAttempts: DEEP_CRED_MAX_ATTEMPTS })
+    return thunkAPI.rejectWithValue(`Failed to issue credential after ${DEEP_CRED_MAX_ATTEMPTS} attempts`)
   }
 )
 
