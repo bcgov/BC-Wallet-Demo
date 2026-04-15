@@ -1,3 +1,4 @@
+{{- include "showcase.validateMongoAuth" . }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -36,7 +37,11 @@ spec:
           ports:
             - name: http
               containerPort: 5000
-          {{- if or .Values.mongodb.enabled (not (empty .Values.showcase.server.secretEnv)) }}
+          {{- if .Values.showcase.server.existingSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.showcase.server.existingSecret | quote }}
+          {{- else if or .Values.mongodb.auth.rootPassword (not (empty .Values.showcase.server.secretEnv)) }}
           envFrom:
             - secretRef:
                 name: {{ include "showcase.server.secretName" . }}

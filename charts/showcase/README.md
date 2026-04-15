@@ -14,12 +14,23 @@ cd charts/showcase
 helm dependency update
 ```
 
+## Secrets (recommended: pre-provisioned Secret)
+
+Do **not** put credentials in `values.yaml` or `--set`. Create a Kubernetes `Secret` in the target namespace (manually, [External Secrets](https://external-secrets.io/), SealedSecrets, vault agent, etc.), then set **`showcase.server.existingSecret`** to that object’s name. The server container uses **`envFrom.secretRef`**, so every key in the Secret becomes an environment variable (`MONGODB_URI`, `TRACTION_URL`, `TENANT_ID`, `API_KEY`, `WEBHOOK_SECRET`, … — see repo `server/.env.example`).
+
+When **`mongodb.enabled`** is true and you use **`showcase.server.existingSecret`**, put a correct **`MONGODB_URI`** in that Secret (e.g. pointing at the in-cluster `{{ release }}-mongodb` service). You can also wire MongoDB’s own password via the CloudPirates subchart using **`mongodb.auth.existingSecret`** / **`mongodb.auth.existingSecretPasswordKey`** (see upstream chart values).
+
+### Dev-only: chart-managed Secret
+
+If **`showcase.server.existingSecret`** is empty, the chart may create **`{{ release }}-showcase-server-env`** when you set **`mongodb.auth.rootPassword`** and/or **`showcase.server.secretEnv`**. That path is intended for local testing, not production.
+
 ## Install (example)
 
 ```bash
 helm upgrade --install my-showcase . \
   --namespace bc-wallet-demo --create-namespace \
-  --set mongodb.auth.rootPassword='choose-a-strong-password' \
+  --set mongodb.enabled=true \
+  --set showcase.server.existingSecret=bc-wallet-server-env \
   --set showcase.publicBackendUrl='https://api.example.com' \
   --set showcase.server.image.repository=your-registry/bc-wallet-demo-server \
   --set showcase.server.image.tag=1.0.0 \
@@ -27,4 +38,4 @@ helm upgrade --install my-showcase . \
   --set showcase.web.image.tag=1.0.0
 ```
 
-Set `showcase.server.secretEnv` for Traction and other server keys (see `server/.env.example`). Use `mongodb.enabled=false` for an external MongoDB and supply `MONGODB_URI` via `showcase.server.secretEnv` if needed.
+Create `bc-wallet-server-env` in that namespace before upgrading (keys as env names, values as strings).

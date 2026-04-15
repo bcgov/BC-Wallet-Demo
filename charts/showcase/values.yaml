@@ -13,14 +13,19 @@ kubeVersion: ""
 commonLabels: {}
 commonAnnotations: {}
 
-## CloudPirates MongoDB (optional). Pass `mongodb.auth.rootPassword` at install when enabled.
-## Values under `mongodb:` are forwarded to the subchart.
+## CloudPirates MongoDB (optional). All keys under `mongodb:` are forwarded to the subchart.
+## For GitOps, prefer `auth.existingSecret` / `auth.existingSecretPasswordKey` (see CloudPirates chart docs)
+## and mount server env (including `MONGODB_URI`) via `showcase.server.existingSecret`.
 mongodb:
-  enabled: true
+  ## When true, either set `showcase.server.existingSecret` (with MONGODB_URI) or `auth.rootPassword`
+  ## for a chart-managed Secret (dev only).
+  enabled: false
   auth:
     enabled: true
     rootUsername: admin
     rootPassword: ""
+    existingSecret: ""
+    existingSecretPasswordKey: ""
   persistence:
     enabled: true
     size: 8Gi
@@ -38,7 +43,12 @@ showcase:
       pullPolicy: IfNotPresent
     resources: {}
     extraEnv: []
-    ## Extra keys merged into the server env Secret (plain strings; prefer existingSecret for prod).
+    ## Name of a pre-created Secret in the release namespace. If set, the chart does not create
+    ## `*-server-env`; the Deployment uses envFrom with this Secret (e.g. ExternalSecrets, SealedSecrets).
+    ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, API_KEY, etc.).
+    existingSecret: ""
+    ## Only used when existingSecret is empty: non-sensitive keys merged into the chart-managed Secret.
+    ## Do not use for production credentials; use existingSecret instead.
     secretEnv: {}
     podAnnotations: {}
     podLabels: {}

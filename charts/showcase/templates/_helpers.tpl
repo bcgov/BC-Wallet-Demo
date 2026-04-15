@@ -131,3 +131,12 @@ Web ConfigMap name (Caddyfile).
 {{- define "showcase.web.configmapName" -}}
 {{- printf "%s-web-caddy" (include "showcase.fullname" .) }}
 {{- end }}
+
+{{/*
+Fail when bundled MongoDB is on but neither a pre-provisioned server Secret nor rootPassword is set.
+*/}}
+{{- define "showcase.validateMongoAuth" -}}
+{{- if and .Values.mongodb.enabled (not .Values.showcase.server.existingSecret) (not .Values.mongodb.auth.rootPassword) }}
+{{- fail "When mongodb.enabled is true: set showcase.server.existingSecret to a Secret that includes MONGODB_URI (recommended), or set mongodb.auth.rootPassword for a chart-managed server Secret (dev only)." }}
+{{- end }}
+{{- end }}

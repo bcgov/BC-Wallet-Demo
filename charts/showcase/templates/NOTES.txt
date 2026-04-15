@@ -9,10 +9,17 @@
 2. API service (ClusterIP):
    {{ include "showcase.server.fullname" . }}:5000
 
+{{- if .Values.showcase.server.existingSecret }}
+
+3. Server env comes from Secret `{{ .Values.showcase.server.existingSecret }}` (envFrom).
+{{- else if or .Values.mongodb.auth.rootPassword (not (empty .Values.showcase.server.secretEnv)) }}
+
+3. Server env comes from chart Secret `{{ include "showcase.server.secretName" . }}`.
+{{- end }}
+
 {{- if .Values.mongodb.enabled }}
 
-3. MongoDB is enabled (CloudPirates chart). Set `mongodb.auth.rootPassword` to match the generated `MONGODB_URI` on the server.
-   Primary host from this release: {{ include "showcase.mongodb.host" . }}:27017
+4. MongoDB (CloudPirates) primary service: {{ include "showcase.mongodb.host" . }}:27017
 {{- end }}
 
 Reference: https://github.com/openwallet-foundation/helm-charts/tree/main/charts/acapy (CloudPirates OCI dependencies)
