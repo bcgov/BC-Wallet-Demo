@@ -1,9 +1,9 @@
 import type { RevocationRecord } from '../types'
 import type { SerializedError } from '@reduxjs/toolkit'
 
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, isAnyOf } from '@reduxjs/toolkit'
 
-import { fetchCredentialById, issueCredential, deleteCredentialById } from './credentialsThunks'
+import { fetchCredentialById, issueCredential, issueDeepCredential, deleteCredentialById } from './credentialsThunks'
 
 interface CredentialState {
   issuedCredentials: string[]
@@ -84,6 +84,16 @@ const credentialSlice = createSlice({
         // state.credentials.map((x) => isCredIssued(x.state) && state.issuedCredentials.push(x))
         // state.credentials = []
         state.isLoading = false
+      })
+      .addMatcher(isAnyOf(issueCredential.pending, issueDeepCredential.pending), (state) => {
+        state.isIssueCredentialLoading = true
+      })
+      .addMatcher(isAnyOf(issueCredential.fulfilled, issueDeepCredential.fulfilled), (state) => {
+        state.isIssueCredentialLoading = false
+      })
+      .addMatcher(isAnyOf(issueCredential.rejected, issueDeepCredential.rejected), (state, action) => {
+        state.isIssueCredentialLoading = false
+        state.error = action.error
       })
   },
 })

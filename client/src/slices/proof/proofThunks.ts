@@ -15,25 +15,39 @@ export const createProof = createAsyncThunk('proof/createProof', async (data: Pr
   return response.data
 })
 
-export const createDeepProof = createAsyncThunk('proof/createProof', async (data: ProofRequestData) => {
+export const createDeepProof = createAsyncThunk('proof/createDeepProof', async (data: ProofRequestData, thunkAPI) => {
   log.debug('[proof] requesting deep-link proof, polling until connection ready', { connectionId: data.connectionId })
-  let success = false
-  let response = undefined
-  let attempt = 0
-  while (!success) {
+  const MAX_ATTEMPTS = 10
+  const BASE_DELAY_MS = 500
+  const sleep = (ms: number) =>
+    new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(resolve, ms)
+      thunkAPI.signal.addEventListener('abort', () => {
+        clearTimeout(timer)
+        reject(new DOMException('Aborted', 'AbortError'))
+      })
+    })
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    if (thunkAPI.signal.aborted) {
+      return thunkAPI.rejectWithValue('Cancelled')
+    }
     try {
-      attempt++
-      response = await Api.createDeepProofRequest(data)
-      success = true
+      const response = await Api.createDeepProofRequest(data)
       log.info('[proof] deep-link proof request sent', {
         attempt,
         presentationExchangeId: response.data?.presentation_exchange_id,
       })
+      return response.data
     } catch {
-      log.debug('[proof] deep-link proof attempt failed, retrying', { attempt })
+      log.debug('[proof] deep-link proof attempt failed', { attempt, maxAttempts: MAX_ATTEMPTS })
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(BASE_DELAY_MS * 2 ** (attempt - 1))
+      }
     }
   }
-  return response?.data
+  log.error('[proof] deep-link proof failed after max attempts', { maxAttempts: MAX_ATTEMPTS })
+  return thunkAPI.rejectWithValue(`Failed to create deep proof after ${MAX_ATTEMPTS} attempts`)
 })
 
 export const createProofOOB = createAsyncThunk('proof/createProofOOB', async (data: ProofRequestData) => {

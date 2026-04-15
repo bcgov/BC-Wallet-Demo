@@ -47,8 +47,8 @@ describe('createInvitation thunk', () => {
     // isLoading should be true while the thunk is running
     expect(store.getState().connection.isLoading).toBe(true)
     await dispatchResult
-    // After rejection the slice has no rejected handler so isLoading stays; just check no throw
-    expect(store.getState().connection).toBeDefined()
+    // After rejection the thunk should clear the loading state
+    expect(store.getState().connection.isLoading).toBe(false)
   })
 
   it('calls createInvitation API with correct arguments', async () => {
