@@ -1,6 +1,6 @@
 import { newTracker, enableActivityTracking, trackPageView } from '@snowplow/browser-tracker'
 import React from 'react'
-import { render } from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import { PersistGate } from 'redux-persist/integration/react'
@@ -21,7 +21,9 @@ newTracker('sp1', 'spt.apps.gov.bc.ca', {
 })
 enableActivityTracking({ minimumVisitLength: 15, heartbeatDelay: 30 })
 trackPageView()
-render(
+
+const container = document.getElementById('root') as HTMLElement
+createRoot(container).render(
   <React.StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
@@ -32,7 +34,5 @@ render(
         </BrowserRouter>
       </PersistGate>
     </Provider>
-  </React.StrictMode>,
-
-  document.getElementById('root')
+  </React.StrictMode>
 )

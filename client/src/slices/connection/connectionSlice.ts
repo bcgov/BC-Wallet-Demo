@@ -48,6 +48,9 @@ const connectionSlice = createSlice({
         state.state = 'invited'
         state.invitationUrl = action.payload.invitation_url
       })
+      .addCase(createInvitation.rejected, (state) => {
+        state.isLoading = false
+      })
       .addCase('clearUseCase', (state) => {
         state.id = undefined
         state.state = undefined
