@@ -26,7 +26,7 @@ export const StepInformation: React.FC<Props> = ({ title, text, textWithImage })
       </div>
       <div className="pt-4 flex-1 mb-6 dark:text-white">
         {textWithImage ? (
-          textWithImage.map((item, i) => (
+          textWithImage.map((item) => (
             <>
               {item.text && <p>{item.text}</p>}
               {item.image && (

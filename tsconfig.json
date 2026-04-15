@@ -1,4 +1,15 @@
 {
   "extends": "./tsconfig.build.json",
-  "exclude": ["node_modules", "build"]
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "exclude": [
+    "node_modules",
+    "build",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
 }

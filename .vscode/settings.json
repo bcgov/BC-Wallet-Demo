@@ -10,5 +10,5 @@
     "usecases",
     "whook"
   ],
-  "js/ts.format.semicolons": "remove",
+  "js/ts.format.semicolons": "remove"
 }

@@ -25,7 +25,7 @@ export interface Props {
 
 export const StepConnection: React.FC<Props> = ({ step, connection, newConnection }) => {
   const dispatch = useAppDispatch()
-  const { id, state, invitationUrl } = connection
+  const { state, invitationUrl } = connection
   const { message } = useSocket()
   const isCompleted = isConnected(state as string)
   const deepLink = `bcwallet://aries_connection_invitation?${invitationUrl?.split('?')[1]}`

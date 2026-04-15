@@ -1,4 +1,4 @@
-import type { CustomCharacter, RevocationInfoItem, RevocationRecord } from '../../../slices/types'
+import type { RevocationInfoItem, RevocationRecord } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import { startCase } from 'lodash'

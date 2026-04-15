@@ -1,5 +1,4 @@
 import type { RevocationRecord } from '../slices/types'
-import type { AxiosResponse } from 'axios'
 
 import { apiCall } from './BaseUrl'
 

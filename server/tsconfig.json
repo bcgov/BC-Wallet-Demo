@@ -13,8 +13,5 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "exclude": [
-    "src/**/__tests__/**",
-    "src/**/*.test.ts"
-  ]
+  "exclude": ["src/**/__tests__/**", "src/**/*.test.ts"]
 }
