@@ -39,3 +39,12 @@ helm upgrade --install my-showcase . \
 Default images point at [bcgov GitHub Packages](https://github.com/orgs/bcgov/packages?repo_name=BC-Wallet-Demo) (`ghcr.io/bcgov/bc-wallet-demo-server` and `ghcr.io/bcgov/bc-wallet-demo-web`). Override `registry` / `repository` / `tag` if you publish elsewhere.
 
 Create `bc-wallet-server-env` in that namespace before upgrading (keys as env names, values as strings).
+
+## Caddy: CSP and `trusted_proxies`
+
+- **`showcase.web.contentSecurityPolicy`** — Default policy is **permissive** (`default-src *`, `'unsafe-inline'`, `'unsafe-eval'`) so the bundled React build and dev-style tooling behave predictably. For hardened deployments, set a stricter policy once you have enumerated `connect-src`, `script-src`, WebSocket endpoints, and any CDNs.
+- **`showcase.web.trustedProxies`** — Defaults to **`private_ranges`** (Caddy: trust RFC1918 / loopback clients when interpreting forwarded headers on `reverse_proxy`). This replaces trusting **`0.0.0.0/0`**, which would treat every client as a trusted proxy. If your platform terminates TLS or forwards from unusual **public** source addresses, adjust deliberately.
+
+## CI
+
+Pull requests that touch `charts/showcase/**` run **Helm dependency update**, **`helm lint`**, and a **`helm template`** smoke render (see `.github/workflows/helm-lint-showcase.yaml`).

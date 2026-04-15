@@ -9,7 +9,7 @@ data:
   Caddyfile: |
     :3000 {
         header {
-            Content-Security-Policy "default-src * data: blob: filesystem: 'unsafe-inline' 'unsafe-eval'";
+            Content-Security-Policy {{ .Values.showcase.web.contentSecurityPolicy | quote }};
             Strict-Transport-Security "max-age=86400; includeSubDomains";
             X-Content-Type-Options "nosniff";
             X-XSS-Protection 1;
@@ -49,7 +49,7 @@ data:
                 path {$REACT_APP_BASE_ROUTE}/demo/* {$REACT_APP_BASE_ROUTE}/server/* {$REACT_APP_BASE_ROUTE}/agent/ready {$REACT_APP_BASE_ROUTE}/public/* {$REACT_APP_BASE_ROUTE}/qr
             }
             reverse_proxy @pass {{ include "showcase.server.fullname" . }}:5000 {
-                trusted_proxies 0.0.0.0/0
+                trusted_proxies {{ .Values.showcase.web.trustedProxies }}
                 header_up Host {upstream_hostport}
                 header_up X-Forwarded-Host {host}
             }

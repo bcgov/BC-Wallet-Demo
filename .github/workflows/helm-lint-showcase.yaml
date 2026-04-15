@@ -1,0 +1,41 @@
+name: Helm lint (showcase)
+
+on:
+  pull_request:
+    paths:
+      - "charts/showcase/**"
+      - ".github/workflows/helm-lint-showcase.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "charts/showcase/**"
+      - ".github/workflows/helm-lint-showcase.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  helm-lint-showcase:
+    name: helm dependency update + lint + template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Helm dependency update
+        working-directory: charts/showcase
+        run: helm dependency update
+
+      - name: Helm lint
+        working-directory: charts/showcase
+        run: helm lint . --set showcase.publicBackendUrl=https://example.com/api
+
+      - name: Helm template (smoke)
+        working-directory: charts/showcase
+        run: |
+          helm template smoke . \
+            --set showcase.publicBackendUrl=https://example.com/api \
+            >/dev/null

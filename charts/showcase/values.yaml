@@ -63,6 +63,11 @@ showcase:
   ## Showcase web (Caddy + static build)
   web:
     replicaCount: 1
+    ## Caddy Content-Security-Policy header. Default is permissive for CRA/React + API/WS; tighten for production.
+    contentSecurityPolicy: "default-src * data: blob: filesystem: 'unsafe-inline' 'unsafe-eval'"
+    ## Caddy reverse_proxy trusted_proxies: use private_ranges (RFC1918 + loopback) for typical K8s ingress → pod hops.
+    ## Only use 0.0.0.0/0 if you must trust X-Forwarded-* from arbitrary client addresses (not recommended).
+    trustedProxies: private_ranges
     image:
       registry: ghcr.io
       repository: bcgov/bc-wallet-demo-web
