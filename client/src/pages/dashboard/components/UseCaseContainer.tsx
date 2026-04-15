@@ -12,6 +12,7 @@ import { UseCaseItem } from './UseCaseItem'
 export interface Props {
   currentCharacter: CustomCharacter
   completedUseCaseSlugs: string[]
+  issuedCredentials: string[]
 }
 
 export const UseCaseContainer: React.FC<Props> = ({ currentCharacter, completedUseCaseSlugs }) => {

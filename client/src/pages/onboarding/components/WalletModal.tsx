@@ -22,6 +22,7 @@ export interface Wallet {
 export interface Props {
   isWalletModalOpen: boolean
   setIsWalletModalOpen: (open: boolean) => void
+  wallet: Wallet
   onCompleted(): void
 }
 

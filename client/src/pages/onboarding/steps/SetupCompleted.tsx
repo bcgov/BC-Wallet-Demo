@@ -6,6 +6,7 @@ import { fadeX } from '../../../FramerAnimations'
 export interface Props {
   title: string
   text: string
+  characterName?: string
 }
 
 export const SetupCompleted: React.FC<Props> = ({ title, text }) => {
