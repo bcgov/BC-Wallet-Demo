@@ -1,114 +1,28 @@
-// const API_URL = Cypress.env('apiUrl')
+describe('Onboarding Page', () => {
+  const BASE_ROUTE = '/digital-trust/showcase'
+  beforeEach(() => {
+    cy.intercept('GET', '**/demo/characters', { fixture: 'characters.json' }).as('getCharacters')
+    cy.intercept('GET', '**/demo/wallets', { body: [] }).as('getWallets')
+    cy.visit(`${BASE_ROUTE}/demo`)
+    cy.wait('@getCharacters')
+  })
 
-// describe('Onboarding Page', () => {
-//   beforeEach(() => {
-//     cy.visit('/demo')
-//     cy.get('[data-cy=next-onboarding-step]').click()
-//     cy.get('[data-cy=use-wallet]').first().click()
-//     cy.get('[data-cy=small-button]').click()
-//   })
+  it('shows the character picker', () => {
+    cy.get('[data-cy=select-char]').should('have.length.at.least', 1)
+  })
 
-//   it('successfully completes onboarding as student', () => {
-//     cy.get('[data-cy=select-char]').first().click()
+  it('NEXT button is disabled before a character is selected', () => {
+    cy.get('[data-cy=next-onboarding-step] [data-cy=standard-button]').should('be.disabled')
+  })
 
-//     cy.intercept('POST', `${API_URL}/connections/create-invitation`).as('createInvitation')
-//     cy.get('[data-cy=next-onboarding-step]').click()
+  it('NEXT button is enabled after selecting a character', () => {
+    cy.get('[data-cy=select-char]').first().click()
+    cy.get('[data-cy=next-onboarding-step] [data-cy=standard-button]').should('not.be.disabled')
+  })
 
-//     cy.wait('@createInvitation').then((interception) => {
-//       const body = { invitation: interception.response?.body.invitation, autoAcceptConnection: true }
-//       const id = interception.response?.body.connection.id
-
-//       cy.intercept('GET', `${API_URL}/connections/${id}`).as('getConnection')
-//       cy.request('POST', `${API_URL}/connections/receive-invitation`, body)
-//       cy.wait(['@getConnection']).its('response.body._tags.state').should('not.equal', 'invited')
-//     })
-
-//     cy.intercept('POST', '/credentials/offer-credential').as('offerCredential')
-
-//     cy.get('[data-cy=next-onboarding-step]').click()
-
-//     cy.wait('@offerCredential').then((interception) => {
-//       const threadId = interception.response?.body.threadId
-
-//       cy.request('GET', `${API_URL}/credentials/`).should((response) => {
-//         const record = response.body.find((x) => x.threadId === threadId && x.state === 'offer-received')
-//         cy.request('POST', `${API_URL}/credentials/${record.id}/accept-offer`).then((response) => {
-//           cy.get('[data-cy=next-onboarding-step]').click()
-//         })
-//       })
-//     })
-//     cy.get('[data-cy=next-onboarding-step]').click()
-//     cy.url().should('be.equal', `${Cypress.config('baseUrl')}/dashboard`)
-//   })
-
-//   it('successfully completes onboarding as businesswoman', () => {
-//     cy.get('[data-cy=select-char]').eq(1).click()
-
-//     cy.intercept('POST', `${API_URL}/connections/create-invitation`).as('createInvitation')
-//     cy.get('[data-cy=next-onboarding-step]').click()
-
-//     cy.wait('@createInvitation').then((interception) => {
-//       const body = { invitation: interception.response?.body.invitation, autoAcceptConnection: true }
-//       const id = interception.response?.body.connection.id
-
-//       cy.intercept('GET', `${API_URL}/connections/${id}`).as('getConnection')
-//       cy.request('POST', `${API_URL}/connections/receive-invitation`, body)
-//       cy.wait(['@getConnection']).its('response.body._tags.state').should('not.equal', 'invited')
-//     })
-
-//     cy.intercept('POST', `${API_URL}/credentials/offer-credential`).as('offerCredential')
-
-//     cy.get('[data-cy=next-onboarding-step]').click()
-
-//     cy.wait(['@offerCredential', '@offerCredential']).then((response) => {
-//       response.map((interception) => {
-//         const threadId = interception.response?.body.threadId
-
-//         cy.request('GET', `${API_URL}/credentials/`).should((response) => {
-//           const record = response.body.find((x) => x.threadId === threadId && x.state === 'offer-received')
-//           cy.request('POST', `${API_URL}/credentials/${record.id}/accept-offer`).then((response) => {
-//             cy.get('[data-cy=next-onboarding-step]').click()
-//           })
-//         })
-//       })
-//     })
-//     cy.get('[data-cy=next-onboarding-step]').click()
-//     cy.url().should('be.equal', `${Cypress.config('baseUrl')}/dashboard`)
-//   })
-
-//   it('successfully completes onboarding as millennial', () => {
-//     cy.get('[data-cy=select-char]').eq(2).click()
-
-//     cy.intercept('POST', `${API_URL}/connections/create-invitation`).as('createInvitation')
-//     cy.get('[data-cy=next-onboarding-step]').click()
-
-//     cy.wait('@createInvitation').then((interception) => {
-//       const body = { invitation: interception.response?.body.invitation, autoAcceptConnection: true }
-//       const id = interception.response?.body.connection.id
-
-//       cy.intercept('GET', `${API_URL}/connections/${id}`).as('getConnection')
-//       cy.request('POST', `${API_URL}/connections/receive-invitation`, body)
-//       cy.wait(['@getConnection']).its('response.body._tags.state').should('not.equal', 'invited')
-//     })
-
-//     cy.intercept('POST', `${API_URL}/credentials/offer-credential`).as('offerCredential')
-
-//     cy.get('[data-cy=next-onboarding-step]').click()
-
-//     cy.wait(['@offerCredential', '@offerCredential', '@offerCredential']).then((response) => {
-//       response.map((interception) => {
-//         const threadId = interception.response?.body.threadId
-
-//         cy.request('GET', `${API_URL}/credentials/`).should((response) => {
-//           const record = response.body.find((x) => x.threadId === threadId && x.state === 'offer-received')
-//           cy.request('POST', `${API_URL}/credentials/${record.id}/accept-offer`).then((response) => {
-//             cy.get('[data-cy=next-onboarding-step]').click()
-//           })
-//         })
-//       })
-//     })
-
-//     cy.get('[data-cy=next-onboarding-step]').click()
-//     cy.url().should('be.equal', `${Cypress.config('baseUrl')}/dashboard`)
-//   })
-// })
+  it('advances to the next step after selecting a character and clicking NEXT', () => {
+    cy.get('[data-cy=select-char]').first().click()
+    cy.get('[data-cy=next-onboarding-step] [data-cy=standard-button]').click()
+    cy.contains("Let's get started!").should('be.visible')
+  })
+})
