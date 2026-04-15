@@ -1,7 +1,6 @@
 import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 import axios from 'axios'
-import moment from 'moment'
 
 import logger from './logger'
 
@@ -13,6 +12,9 @@ const safeAxiosError = (err: unknown) => {
     url: e.config?.url,
   }
 }
+
+const olderThanHours = (dateStr: string, hours: number) =>
+  (Date.now() - new Date(dateStr).getTime()) / 3_600_000 >= hours
 
 export let agentKey = ''
 
@@ -76,9 +78,7 @@ export const tractionGarbageCollection = async () => {
       const connections: any[] = (await tractionRequest.get('/connections')).data.results
       const stale = connections.filter(
         (conn) =>
-          moment().diff(moment(conn.created_at), 'hours') >= 12 &&
-          conn.alias !== 'endorser' &&
-          conn.alias !== 'bcovrin-test-endorser'
+          olderThanHours(conn.created_at, 12) && conn.alias !== 'endorser' && conn.alias !== 'bcovrin-test-endorser'
       )
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale connections')
       await Promise.all(stale.map((conn) => tractionRequest.delete(`/connections/${conn.connection_id}`)))
@@ -89,7 +89,7 @@ export const tractionGarbageCollection = async () => {
   const cleanupExchangeRecords = async () => {
     try {
       const records: any[] = (await tractionRequest.get('/issue-credential/records')).data.results
-      const stale = records.filter((record) => moment().diff(moment(record.created_at), 'hours') >= 12)
+      const stale = records.filter((record) => olderThanHours(record.created_at, 12))
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale credential exchange records')
       await Promise.all(
         stale.map((record) => tractionRequest.delete(`/issue-credential/records/${record.credential_exchange_id}`))
@@ -101,7 +101,7 @@ export const tractionGarbageCollection = async () => {
   const cleanupProofRecords = async () => {
     try {
       const proofs: any[] = (await tractionRequest.get('/present-proof/records')).data.results
-      const stale = proofs.filter((proof) => moment().diff(moment(proof.created_at), 'hours') >= 12)
+      const stale = proofs.filter((proof) => olderThanHours(proof.created_at, 12))
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale proof records')
       await Promise.all(
         stale.map((proof) => tractionRequest.delete(`/present-proof/records/${proof.presentation_exchange_id}`))

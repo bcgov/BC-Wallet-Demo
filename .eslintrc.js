@@ -72,6 +72,7 @@ module.exports = {
         '*.test.ts',
         '**/__tests__/**',
         '**/tests/**',
+        '**/setupTests.*',
         'jest.*.ts',
         'vitest.config.ts',
         '*.config.ts',
