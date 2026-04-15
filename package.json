@@ -30,14 +30,14 @@
   },
   "devDependencies": {
     "concurrently": "^7.0.0",
-    "cypress": "^9.5.1",
-    "eslint-plugin-cypress": "^2.12.1",
+    "cypress": "^13",
+    "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-typescript": "^2.7.0",
+    "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^7.0.1",
-    "prettier": "^2.6.1",
-    "eslint-config-prettier": "^8.3.0"
+    "prettier": "^2.6.1"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
