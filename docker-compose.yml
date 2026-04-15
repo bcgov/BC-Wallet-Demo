@@ -1,5 +1,20 @@
-version: "3.9"
 services:
+  mongodb:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: bcwallet_demo
+    expose:
+      - "27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   frontend:
     image: bc-wallet-demo-web
     build: 
@@ -24,6 +39,9 @@ services:
       - "5000:5000"
     env_file:
       - ./server/.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
   dev:
     image: bc-wallet-demo-dev
     build:
@@ -34,4 +52,9 @@ services:
       - "5000:5000"
     volumes:
       - ./:/app
-  
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
