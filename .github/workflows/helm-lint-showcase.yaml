@@ -3,13 +3,13 @@ name: Helm lint (showcase)
 on:
   pull_request:
     paths:
-      - "charts/showcase/**"
-      - ".github/workflows/helm-lint-showcase.yaml"
+      - 'charts/showcase/**'
+      - '.github/workflows/helm-lint-showcase.yaml'
   push:
     branches: [main]
     paths:
-      - "charts/showcase/**"
-      - ".github/workflows/helm-lint-showcase.yaml"
+      - 'charts/showcase/**'
+      - '.github/workflows/helm-lint-showcase.yaml'
 
 permissions:
   contents: read

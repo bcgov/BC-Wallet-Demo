@@ -2,13 +2,13 @@
 ## Optional MongoDB is the CloudPirates OCI subchart (not Bitnami); see charts/showcase/README.md.
 
 global:
-  imageRegistry: ""
+  imageRegistry: ''
   imagePullSecrets: []
 
-nameOverride: ""
-fullnameOverride: ""
-namespaceOverride: ""
-kubeVersion: ""
+nameOverride: ''
+fullnameOverride: ''
+namespaceOverride: ''
+kubeVersion: ''
 commonLabels: {}
 commonAnnotations: {}
 
@@ -26,9 +26,9 @@ mongodb:
   auth:
     enabled: true
     rootUsername: admin
-    rootPassword: ""
-    existingSecret: ""
-    existingSecretPasswordKey: ""
+    rootPassword: ''
+    existingSecret: ''
+    existingSecretPasswordKey: ''
   persistence:
     enabled: true
     size: 8Gi
@@ -43,14 +43,14 @@ showcase:
       registry: ghcr.io
       repository: bcgov/bc-wallet-demo-server
       tag: latest
-      digest: ""
+      digest: ''
       pullPolicy: IfNotPresent
     resources: {}
     extraEnv: []
     ## Name of a pre-created Secret in the release namespace. If set, the chart does not create
     ## `*-server-env`; the Deployment uses envFrom with this Secret (e.g. ExternalSecrets, SealedSecrets).
     ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, API_KEY, etc.).
-    existingSecret: ""
+    existingSecret: ''
     ## Only used when existingSecret is empty: non-sensitive keys merged into the chart-managed Secret.
     ## Do not use for production credentials; use existingSecret instead.
     secretEnv: {}
@@ -72,7 +72,7 @@ showcase:
       registry: ghcr.io
       repository: bcgov/bc-wallet-demo-web
       tag: latest
-      digest: ""
+      digest: ''
       pullPolicy: IfNotPresent
     resources: {}
     podAnnotations: {}
@@ -82,16 +82,16 @@ showcase:
     affinity: {}
 
   ## Public URL of the API as seen by browsers (scheme + host + port if needed). Baked into web env for CRA.
-  publicBackendUrl: ""
+  publicBackendUrl: ''
   ## Optional Microsoft Clarity / App Insights project id for the web bundle.
-  insightsProjectId: ""
+  insightsProjectId: ''
 
 ingress:
   enabled: false
-  className: ""
+  className: ''
   annotations: {}
   web:
     hostname: showcase.example.com
     path: /
     tls: false
-    tlsSecret: ""
+    tlsSecret: ''
