@@ -1,18 +1,33 @@
-name: Continuous Deployment
+name: Build and Publish Packages
 
 on:
-  push:
-    branches: ['release']
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      run_cypress:
+        description: 'Run Cypress (browser E2E) before building images'
+        type: boolean
+        default: false
+
+# Default least-privilege token; jobs that push GHCR images add packages: write.
+permissions:
+  contents: read
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  FRONTEND: frontend
-  SERVER: server
+  FRONTEND_DIR: frontend
+  SERVER_DIR: server
+  SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
+  SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
 
 jobs:
   cypress-run:
+    name: Cypress E2E (optional)
     runs-on: ubuntu-latest
+    if: github.event_name == 'release' || inputs.run_cypress == 'true'
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,17 +55,26 @@ jobs:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-and-push-image-server:
-    needs:
-      - cypress-run
+  cypress-skipped:
+    name: Cypress skipped
     runs-on: ubuntu-latest
+    if: github.event_name != 'release' && inputs.run_cypress != 'true'
+    permissions:
+      contents: read
+    steps:
+      - run: echo "Skipping Cypress (manual run with run_cypress=false)"
+
+  build-and-push-image-server:
+    runs-on: ubuntu-latest
+    needs: [cypress-run, cypress-skipped]
+    if: always() && (needs.cypress-run.result == 'success' || needs.cypress-skipped.result == 'success')
     permissions:
       contents: read
       packages: write
 
     defaults:
       run:
-        working-directory: ${{ env.SERVER }}
+        working-directory: ${{ env.SERVER_DIR }}
 
     steps:
       - name: Checkout repository
@@ -77,27 +101,28 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.SERVER }}
+          images: ${{ env.SHOWCASE_SERVER_IMAGE }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: ./server
+          context: .
+          file: ./server/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   build-and-push-image-frontend:
-    needs:
-      - cypress-run
     runs-on: ubuntu-latest
+    needs: [cypress-run, cypress-skipped]
+    if: always() && (needs.cypress-run.result == 'success' || needs.cypress-skipped.result == 'success')
     permissions:
       contents: read
       packages: write
 
     defaults:
       run:
-        working-directory: ${{ env.FRONTEND }}
+        working-directory: ${{ env.FRONTEND_DIR }}
 
     steps:
       - name: Checkout repository
@@ -119,43 +144,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.FRONTEND }}
+          images: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: ./frontend
+          context: .
+          file: ./frontend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs:
-      - build-and-push-image-frontend
-      - build-and-push-image-server
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Copy stack file to remote
-        uses: garygrossgarten/github-action-scp@v0.7.3
-        with:
-          local: docker-compose.yml
-          remote: animo-demo/docker-compose.yml
-          host: dashboard.dev.animo.id
-          username: root
-          privateKey: ${{ secrets.DOCKER_SSH_PRIVATE_KEY }}
-
-      - name: Deploy to Docker Swarm via SSH action
-        uses: appleboy/ssh-action@v0.1.4
-        env:
-          AGENT_PUBLIC_DID_SEED: ${{ secrets.AGENT_PUBLIC_DID_SEED }}
-          AGENT_WALLET_KEY: ${{ secrets.AGENT_WALLET_KEY }}
-        with:
-          host: dashboard.dev.animo.id
-          username: root
-          key: ${{ secrets.DOCKER_SSH_PRIVATE_KEY }}
-          envs: AGENT_PUBLIC_DID_SEED,AGENT_WALLET_KEY
-          script: |
-            AGENT_PUBLIC_DID_SEED=${AGENT_PUBLIC_DID_SEED} AGENT_WALLET_KEY=${AGENT_WALLET_KEY} docker stack deploy --compose-file animo-demo/docker-compose.yml demo --with-registry-auth
