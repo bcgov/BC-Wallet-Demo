@@ -1,3 +1,4 @@
+# Optional web UI for MongoDB: docker compose --profile mongo-ui up
 services:
   mongodb:
     image: mongo:8
@@ -6,14 +7,30 @@ services:
       - mongo-data:/data/db
     environment:
       MONGO_INITDB_DATABASE: bcwallet_demo
-    expose:
-      - '27017'
+    ports:
+      # Published to loopback only — mongosh/Compass on the host; in-cluster use hostname `mongodb`
+      - '127.0.0.1:27017:27017'
     healthcheck:
       test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
+
+  mongo-express:
+    image: mongo-express:1
+    restart: unless-stopped
+    profiles:
+      - mongo-ui
+    ports:
+      - '127.0.0.1:8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: dev
+      ME_CONFIG_BASICAUTH_PASSWORD: dev
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   frontend:
     image: bc-wallet-demo-web
@@ -39,6 +56,11 @@ services:
       - '5000:5000'
     env_file:
       - ./server/.env
+    environment:
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: '27017'
+      MONGODB_DB_NAME: bcwallet_demo
+      MONGODB_URI: mongodb://mongodb:27017/bcwallet_demo
     depends_on:
       mongodb:
         condition: service_healthy
@@ -52,6 +74,11 @@ services:
       - '5000:5000'
     volumes:
       - ./:/app
+    environment:
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: '27017'
+      MONGODB_DB_NAME: bcwallet_demo
+      MONGODB_URI: mongodb://mongodb:27017/bcwallet_demo
     depends_on:
       mongodb:
         condition: service_healthy
