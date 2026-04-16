@@ -1,8 +1,8 @@
-ARG build_image=node:18-alpine
+ARG build_image=node:22-alpine
 ARG runtime_image=caddy:alpine
 
 # build stage
-FROM ${build_image} as build-stage
+FROM ${build_image} AS build-stage
 WORKDIR /app
 COPY . .
 RUN yarn install
@@ -10,7 +10,7 @@ RUN yarn build
 
 
 # production stage
-FROM ${runtime_image} as production-stage
+FROM ${runtime_image} AS production-stage
 RUN mkdir -p /srv/digital-trust/showcase
 COPY --from=build-stage /app/client/build /srv/digital-trust/showcase
 

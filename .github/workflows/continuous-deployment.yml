@@ -23,7 +23,7 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
         with:
-          node-version: 16
+          node-version: 22
 
       - name: Start App
         run: |
@@ -65,7 +65,7 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
         with:
-          node-version: 16
+          node-version: 22
 
       - name: Install dependencies
         run: yarn install
