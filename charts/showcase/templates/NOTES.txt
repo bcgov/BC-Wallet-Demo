@@ -2,8 +2,8 @@
 {{- if .Values.ingress.enabled }}
    https://{{ .Values.ingress.web.hostname }}{{ .Values.ingress.web.path }}
 {{- else }}
-   kubectl --namespace {{ include "showcase.namespace" . }} port-forward svc/{{ include "showcase.web.fullname" . }} 3000:3000
-   Then open http://127.0.0.1:3000
+   kubectl --namespace {{ include "showcase.namespace" . }} port-forward svc/{{ include "showcase.web.fullname" . }} {{ .Values.showcase.web.containerPort }}:{{ .Values.showcase.web.containerPort }}
+   Then open http://127.0.0.1:{{ .Values.showcase.web.containerPort }}
 {{- end }}
 
 2. API service (ClusterIP):

@@ -63,6 +63,8 @@ showcase:
   ## Showcase web (Caddy + static build)
   web:
     replicaCount: 1
+    ## HTTP listen port for Caddy (Caddyfile site block, container, and Service must match).
+    containerPort: 3000
     ## Caddy Content-Security-Policy header. Default is permissive for CRA/React + API/WS; tighten for production.
     contentSecurityPolicy: "default-src * data: blob: filesystem: 'unsafe-inline' 'unsafe-eval'"
     ## Caddy reverse_proxy trusted_proxies: use private_ranges (RFC1918 + loopback) for typical K8s ingress → pod hops.

@@ -12,5 +12,5 @@ spec:
     app.kubernetes.io/component: web
   ports:
     - name: http
-      port: 3000
+      port: {{ .Values.showcase.web.containerPort }}
       targetPort: http

@@ -35,7 +35,7 @@ spec:
           imagePullPolicy: {{ .Values.showcase.web.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 3000
+              containerPort: {{ .Values.showcase.web.containerPort }}
           env:
             - name: REACT_APP_BASE_ROUTE
               value: {{ .Values.showcase.baseRoute | quote }}

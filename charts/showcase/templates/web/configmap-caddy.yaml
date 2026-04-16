@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/component: web
 data:
   Caddyfile: |
-    :3000 {
+    :{{ .Values.showcase.web.containerPort }} {
         header {
             Content-Security-Policy {{ .Values.showcase.web.contentSecurityPolicy | quote }};
             Strict-Transport-Security "max-age=86400; includeSubDomains";
