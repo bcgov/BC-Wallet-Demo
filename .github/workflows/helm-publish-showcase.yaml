@@ -1,0 +1,74 @@
+name: Publish showcase Helm chart (GHCR OCI)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feat/helm-showcase-mongodb
+    paths:
+      - 'charts/showcase/**'
+      - '.github/workflows/helm-publish-showcase.yaml'
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: helm-publish-showcase-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Package and push to ghcr.io (OCI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Lowercase OCI repository path
+        run: |
+          echo "OCI_REPOSITORY=$(echo "${{ github.repository_owner }}/bc-wallet-showcase-chart" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - name: Helm dependency update and package
+        working-directory: charts/showcase
+        run: |
+          set -euo pipefail
+          helm dependency update
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          helm package . --destination "$GITHUB_WORKSPACE/dist"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push chart (OCI)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          charts=(dist/showcase-*.tgz)
+          if [[ ${#charts[@]} -ne 1 ]]; then
+            echo "Expected exactly one dist/showcase-*.tgz, got: ${charts[*]-none}"
+            exit 1
+          fi
+          echo "Pushing ${charts[0]} to oci://ghcr.io/${OCI_REPOSITORY}"
+          helm push "${charts[0]}" "oci://ghcr.io/${OCI_REPOSITORY}"
+
+      - name: Install summary
+        run: |
+          ver=$(basename dist/showcase-*.tgz .tgz | sed 's/^showcase-//')
+          echo "### Showcase chart published" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Version:** \`${ver}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Install (Helm 3.8+):" >> "$GITHUB_STEP_SUMMARY"
+          echo '```bash' >> "$GITHUB_STEP_SUMMARY"
+          echo "helm install showcase oci://ghcr.io/${OCI_REPOSITORY} --version ${ver} \\" >> "$GITHUB_STEP_SUMMARY"
+          echo '  --set showcase.publicBackendUrl=https://your-api.example' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
