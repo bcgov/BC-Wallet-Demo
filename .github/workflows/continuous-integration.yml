@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [main, release]
 
+permissions:
+  contents: read
+
 jobs:
   server-unit-tests:
     name: Server Unit Tests
@@ -23,8 +26,8 @@ jobs:
       - name: Run server unit tests
         run: yarn workspace server test
 
-  client-unit-tests:
-    name: Client Unit Tests
+  frontend-unit-tests:
+    name: Frontend Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,8 +41,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run client unit tests
-        run: yarn workspace client test:unit
+      - name: Run frontend unit tests
+        run: yarn workspace frontend test:unit
 
   cypress-run:
     name: Cypress E2E Tests
@@ -69,7 +72,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           install: false
-          start: yarn workspace client start
+          start: yarn workspace frontend start
           wait-on: 'http://localhost:3000'
           browser: chrome
         env:

@@ -6,12 +6,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/setupTests.ts'],
+    setupFiles: ['./src/client/setupTests.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['src/index.tsx', 'src/react-app-env.d.ts', 'src/**/__tests__/**', 'src/**/*.test.{ts,tsx}'],
+      exclude: ['src/index.tsx', 'src/client/react-app-env.d.ts', 'src/**/__tests__/**', 'src/**/*.test.{ts,tsx}'],
     },
   },
 })

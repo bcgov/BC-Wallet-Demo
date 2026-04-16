@@ -17,7 +17,7 @@
     "jsx": "react-jsx",
     "skipLibCheck": true
   },
-  "include": ["client", "server"],
+  "include": ["frontend", "server"],
   "exclude": [
     "node_modules",
     "build",

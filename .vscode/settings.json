@@ -5,6 +5,7 @@
     "bcgov-lightgrey",
     "didcomm",
     "ditp",
+    "persistor",
     "typedi",
     "usecase",
     "usecases",

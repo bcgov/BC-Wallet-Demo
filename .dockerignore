@@ -1,4 +1,4 @@
 node_modules
-client/node_modules
+frontend/node_modules
 server/build
 server/node_modules

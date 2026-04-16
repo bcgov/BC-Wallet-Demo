@@ -24,7 +24,7 @@ One last thing that needs to be done is to ensure that your traction agent is se
 There are two .env files that you need to create and configure on the showcase. They go in the same folder as the .env.example file. In the server folder the .env file should look like this:
 
 ```bash
-TENANT_ID=<YOUR_TENNANT_ID>
+TENANT_ID=<YOUR_TENANT_ID>
 API_KEY=<YOUR_API_KEY>
 TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
 TRACTION_DID=<YOUR_AGENTS_DID>
@@ -36,7 +36,7 @@ WEBHOOK_SECRET=<YOUR_WEBHOOK_SECRET>
 ```
 
 populate the values with the API key, and webhook secret that you made in the previous step. You'll also need you agent's DID which can be found under `Profile > Public DID` after clicking the wallet icon on the top right.  
-In the client folder the .env file should look like this:
+In the frontend folder the .env file should look like this:
 
 ```bash
 SNOWPLOW_ENDPOINT=spm.apps.gov.bc.ca
@@ -49,25 +49,25 @@ When adding environment variables to this file in the future, ensure that they s
 
 Ensure that both the env files are named `.env` and that they're in the same folder as their respective `.env.example` files, otherwise they won't get loaded.
 
-In the command line, go to the project directory and run `yarn install` then run `yarn run dev` this will install all dependancies and start the front and backend. Your development environment should be accessible on port http://localhost:3000
+In the command line, go to the project directory and run `yarn install` then run `yarn run dev` this will install all dependencies and start the front and backend. Your development environment should be accessible on port http://localhost:3000
 
 ## Project Structure
 
-As stated in the previous section, the application is split up in to a frontend and backend. The code for each is located in the `client` and `server` folders respectively.
+As stated in the previous section, the application is split up in to a frontend and backend. The code for each is located in the `frontend` and `server` folders respectively.
 
-### Client Structure:
+### Frontend Structure:
 
-The are two main flows on the Client, the onboarding flow where a user gets their credentials, and the useCase where the user presents information about their credentials in proof requests. These are located in `client > src > pages > onboarding > steps`. Here's an overview of the steps and their role:
+The are two main flows on the Client, the onboarding flow where a user gets their credentials, and the useCase where the user presents information about their credentials in proof requests. These are located in `frontend > client > src > pages > onboarding > steps`. Here's an overview of the steps and their role:
 
 - SetupConnection.tsx: generates a QR code to establish a connection with the user's wallet
 - AcceptCredential.tsx: issues the configured credential to the existing connection
 - BasicSlide.tsx: displays the configured text and images for the current step
 - ChooseWallet.tsx: displays the choose wallet screen that instructs users to install BC Wallet
-- PickCharater.tsx: the character selection screen that allows you to select different characters based on the configuration
+- PickCharacter.tsx: the character selection screen that allows you to select different characters based on the configuration
 - SetupStart.tsx: provides a preamble about what credentials you'll be receiving and the usecases
 - SetupCompleted.tsx: displays a success screen that shows after the onboarding is completed
 
-The structure is similar for the client use cases as well. The useCase screens are located at `client > src > pages > useCase > steps`. Here's an overview of the steps and their role:
+The structure is similar for the client use cases as well. The useCase screens are located at `frontend > client > src > pages > useCase > steps`. Here's an overview of the steps and their role:
 
 - StartContainer.tsx: used to show a preamble about the proof and provide a start button
 - StepConnection.tsx: generates a QR Code to establish a connection with the user's wallet

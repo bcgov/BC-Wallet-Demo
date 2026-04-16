@@ -7,7 +7,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  CLIENT: client
+  FRONTEND: frontend
   SERVER: server
 
 jobs:
@@ -16,9 +16,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Libindy
-        uses: ./.github/actions/setup-libindy
 
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
@@ -59,9 +56,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Libindy
-        uses: ./.github/actions/setup-libindy
-
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
         with:
@@ -93,7 +87,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  build-and-push-image-client:
+  build-and-push-image-frontend:
     needs:
       - cypress-run
     runs-on: ubuntu-latest
@@ -103,14 +97,11 @@ jobs:
 
     defaults:
       run:
-        working-directory: ${{ env.CLIENT }}
+        working-directory: ${{ env.FRONTEND }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup Libindy
-        uses: ./.github/actions/setup-libindy
 
       - name: Install dependencies
         run: yarn install
@@ -128,12 +119,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.CLIENT }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.FRONTEND }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: ./client
+          context: ./frontend
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -141,7 +132,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs:
-      - build-and-push-image-client
+      - build-and-push-image-frontend
       - build-and-push-image-server
     steps:
       - name: Checkout repository
