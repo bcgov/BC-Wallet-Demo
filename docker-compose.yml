@@ -36,17 +36,17 @@ services:
     image: bc-wallet-demo-web
     build:
       context: ./
-      dockerfile: ./client/Dockerfile
+      dockerfile: ./frontend/Dockerfile
     volumes:
       - type: bind
-        source: ./client/Caddyfile
+        source: ./frontend/Caddyfile
         target: /etc/caddy/Caddyfile
     ports:
       - '3000:3000'
     depends_on:
       - backend
     env_file:
-      - ./client/.env
+      - ./frontend/.env
   backend:
     image: bc-wallet-demo-server
     build:

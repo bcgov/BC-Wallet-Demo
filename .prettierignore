@@ -1,5 +1,5 @@
 node_modules
-client/build
+frontend/build
 server/build
 server/coverage
 coverage

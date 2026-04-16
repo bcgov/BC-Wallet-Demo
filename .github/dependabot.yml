@@ -36,7 +36,7 @@ updates:
 
   # Maintain dependencies for docker
   - package-ecosystem: 'docker'
-    directory: '/client'
+    directory: '/frontend'
     schedule:
       interval: 'weekly'
       day: 'monday'

@@ -31,7 +31,7 @@ const socketMap = new Map()
 const connectionMap = new Map()
 
 ws.on('connection', (socket) => {
-  logger.debug({ socketId: socket.id }, 'WebSocket client connected')
+  logger.debug({ socketId: socket.id }, 'WebSocket frontend connected')
   socket.on('subscribe', ({ connectionId }) => {
     if (connectionId) {
       socketMap.set(connectionId, socket)
@@ -45,7 +45,7 @@ ws.on('connection', (socket) => {
     if (connectionId) {
       socketMap.delete(connectionId)
     }
-    logger.debug({ socketId: socket.id, connectionId }, 'WebSocket client disconnected')
+    logger.debug({ socketId: socket.id, connectionId }, 'WebSocket frontend disconnected')
   })
 })
 
