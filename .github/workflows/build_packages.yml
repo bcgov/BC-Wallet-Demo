@@ -17,8 +17,6 @@ permissions:
 env:
   HUSKY: '0'
   REGISTRY: ghcr.io
-  FRONTEND_DIR: frontend
-  SERVER_DIR: server
   SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
   SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
 
@@ -44,8 +42,16 @@ jobs:
           yarn install --frozen-lockfile --network-timeout 600000
           NODE_ENV=test AGENT_WALLET_KEY=ba8e2462-f9ac-4da0-a9c6-99592a7dbc12 REACT_APP_HOST_BACKEND=http://localhost:5000 AGENT_PUBLIC_DID_SEED=testtesttesttesttesttesttesttest yarn dev &
 
-      - name: Wait for credential defs to be created
-        run: sleep 120s
+      - name: Wait for dev servers (HTTP)
+        run: >
+          npx --yes wait-on@8
+          http://localhost:3000
+          http://localhost:5000
+          --timeout 600000
+          --interval 5000
+
+      - name: Warm-up for agent / credential defs
+        run: sleep 45s
         shell: bash
 
       - name: Cypress run
@@ -71,14 +77,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     needs: [cypress-run, cypress-skipped]
-    if: always() && (needs.cypress-run.result == 'success' || needs.cypress-skipped.result == 'success')
+    if: ${{ !cancelled() && needs.cypress-run.result != 'failure' && needs.cypress-skipped.result != 'failure' && (needs.cypress-run.result == 'success' || needs.cypress-skipped.result == 'success') }}
     permissions:
       contents: read
       packages: write
-
-    defaults:
-      run:
-        working-directory: ${{ env.SERVER_DIR }}
 
     steps:
       - name: Checkout repository
@@ -89,10 +91,11 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
+      - name: Install dependencies (workspace root)
         run: yarn install --frozen-lockfile --network-timeout 600000
 
-      - run: yarn build
+      - name: Build server
+        run: yarn workspace server build
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -100,6 +103,9 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -108,26 +114,24 @@ jobs:
           images: ${{ env.SHOWCASE_SERVER_IMAGE }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./server/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=min
+          sbom: true
 
   build-and-push-image-frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     needs: [cypress-run, cypress-skipped]
-    if: always() && (needs.cypress-run.result == 'success' || needs.cypress-skipped.result == 'success')
+    if: ${{ !cancelled() && needs.cypress-run.result != 'failure' && needs.cypress-skipped.result != 'failure' && (needs.cypress-run.result == 'success' || needs.cypress-skipped.result == 'success') }}
     permissions:
       contents: read
       packages: write
-
-    defaults:
-      run:
-        working-directory: ${{ env.FRONTEND_DIR }}
 
     steps:
       - name: Checkout repository
@@ -138,10 +142,14 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
+      - name: Install dependencies (workspace root)
         run: yarn install --frozen-lockfile --network-timeout 600000
 
-      - run: REACT_APP_INSIGHTS_PROJECT_ID=${{ secrets.REACT_APP_INSIGHTS_PROJECT_ID }} REACT_APP_HOST_BACKEND=${{ secrets.REACT_APP_HOST_BACKEND }} yarn build
+      - name: Build frontend
+        env:
+          REACT_APP_INSIGHTS_PROJECT_ID: ${{ secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
+          REACT_APP_HOST_BACKEND: ${{ secrets.REACT_APP_HOST_BACKEND }}
+        run: yarn workspace frontend build
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -150,6 +158,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -157,10 +168,12 @@ jobs:
           images: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./frontend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=min
+          sbom: true

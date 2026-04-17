@@ -11,6 +11,11 @@ on:
       - 'server/**'
       - 'package.json'
       - 'yarn.lock'
+      - '.dockerignore'
+      - '.github/workflows/**'
+      - 'dev.dockerfile'
+      - 'frontend/Dockerfile'
+      - 'server/Dockerfile'
     types:
       - opened
       - synchronize
