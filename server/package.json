@@ -34,11 +34,12 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^2",
+    "@types/node": "^22.13.0",
+    "@vitest/coverage-v8": "^4.1.4",
     "dotenv": "^16",
     "pino-pretty": "^11",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5",
-    "vitest": "^2"
+    "vitest": "^4.1.4"
   }
 }

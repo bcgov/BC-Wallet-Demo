@@ -72,7 +72,7 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - run: REACT_APP_INSIGHTS_PROJECT_ID=${{ secrets.REACT_APP_INSIGHTS_PROJECT_ID }} REACT_APP_HOST_BACKEND=${{ secrets.REACT_APP_HOST_BACKEND }} yarn build
+      - run: VITE_INSIGHTS_PROJECT_ID=${{ secrets.REACT_APP_INSIGHTS_PROJECT_ID }} VITE_HOST_BACKEND=${{ secrets.REACT_APP_HOST_BACKEND }} yarn build
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9

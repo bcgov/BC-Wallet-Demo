@@ -62,7 +62,14 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['jest.config.ts', 'vitest.config.ts', '.eslintrc.js'],
+      files: ['frontend/vite.config.ts'],
+      rules: {
+        // Resolved from the frontend workspace at runtime; root ESLint resolver does not follow it.
+        'import/no-unresolved': 'off',
+      },
+    },
+    {
+      files: ['jest.config.ts', 'vitest.config.ts', 'vite.config.ts', '.eslintrc.js'],
       env: {
         node: true,
       },
@@ -75,6 +82,7 @@ module.exports = {
         '**/setupTests.*',
         'jest.*.ts',
         'vitest.config.ts',
+        'vite.config.ts',
         '*.config.ts',
         'samples/**',
       ],

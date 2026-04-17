@@ -13,7 +13,7 @@
     "server"
   ],
   "scripts": {
-    "check-types": "tsc --noEmit",
+    "check-types": "yarn workspace frontend exec tsc --noEmit -p tsconfig.json && yarn workspace server exec tsc --noEmit -p tsconfig.json",
     "prettier": "prettier '**/*.+(js|json|ts|md|yml|yaml)'",
     "lint": "eslint --ignore-path .gitignore .",
     "format": "yarn prettier --write",
@@ -31,6 +31,7 @@
   "devDependencies": {
     "concurrently": "^7.0.0",
     "cypress": "^13",
+    "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-typescript": "^2.7.0",
     "eslint-plugin-cypress": "^2.12.1",

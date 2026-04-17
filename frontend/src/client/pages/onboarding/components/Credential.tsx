@@ -1,7 +1,7 @@
 import type { CredentialData } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
-import { startCase } from 'lodash'
+import startCase from 'lodash/startCase'
 import React from 'react'
 
 import { fadeX } from '../../../FramerAnimations'

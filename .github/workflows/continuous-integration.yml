@@ -76,5 +76,5 @@ jobs:
           wait-on: 'http://localhost:3000'
           browser: chrome
         env:
-          REACT_APP_HOST_BACKEND: http://localhost:5000
+          VITE_HOST_BACKEND: http://localhost:5000
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
