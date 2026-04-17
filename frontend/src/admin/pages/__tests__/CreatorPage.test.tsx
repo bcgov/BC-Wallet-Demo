@@ -8,7 +8,7 @@ const renderCreatorPage = () =>
   render(
     <MemoryRouter>
       <CreatorPage />
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 
 describe('CreatorPage', () => {

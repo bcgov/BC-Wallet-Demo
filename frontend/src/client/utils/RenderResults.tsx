@@ -14,7 +14,7 @@ const ResultItem = forwardRef(
       active: boolean
       currentRootActionId: ActionId
     },
-    ref: React.Ref<HTMLDivElement>
+    ref: React.Ref<HTMLDivElement>,
   ) => {
     const ancestors = useMemo(() => {
       if (!currentRootActionId) return action.ancestors
@@ -94,7 +94,7 @@ const ResultItem = forwardRef(
         ) : null}
       </div>
     )
-  }
+  },
 )
 
 export const RenderResults = () => {

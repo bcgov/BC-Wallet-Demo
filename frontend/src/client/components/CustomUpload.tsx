@@ -30,7 +30,7 @@ export const CustomUpload: React.FC = () => {
           callback: () => {
             dispatch(setUploadingStatus(false))
           },
-        })
+        }),
       )
     }
     reader.readAsText(uploadFile)

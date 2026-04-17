@@ -50,7 +50,7 @@ describe('issueCredential thunk', () => {
 
     const store = makeStore()
     const promise = store.dispatch(
-      issueCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' }) as any
+      issueCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' }) as any,
     )
     expect(store.getState().credentials.isIssueCredentialLoading).toBe(true)
     await promise
@@ -77,7 +77,7 @@ describe('issueDeepCredential thunk — retry loop', () => {
 
     const store = makeStore()
     const promise = store.dispatch(
-      issueDeepCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' }) as any
+      issueDeepCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' }) as any,
     )
     // advance through exponential back-off timers
     await vi.runAllTimersAsync()
@@ -92,7 +92,7 @@ describe('issueDeepCredential thunk — retry loop', () => {
 
     const store = makeStore()
     const promise = store.dispatch(
-      issueDeepCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' }) as any
+      issueDeepCredential({ connectionId: 'conn-1', cred: mockCred, credDefId: 'def-1' }) as any,
     )
     await vi.runAllTimersAsync()
     const result = await promise
@@ -148,7 +148,7 @@ describe('credentialsSlice reducers', () => {
         revoc_reg_id: 'rev-reg-1',
         connection_id: 'conn-1',
         revocation_id: 'rev-1',
-      })
+      }),
     )
     expect(store.getState().credentials.issuedCredentials).toContain('CredentialName')
   })

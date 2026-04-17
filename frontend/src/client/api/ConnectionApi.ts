@@ -5,7 +5,7 @@ import { apiCall } from './BaseUrl'
 export const createInvitation = (
   agentName?: string,
   goalCode?: string,
-  agentImageUrl?: string
+  agentImageUrl?: string,
 ): Promise<AxiosResponse> => {
   return apiCall.post('/demo/connections/createInvite', {
     my_label: agentName,

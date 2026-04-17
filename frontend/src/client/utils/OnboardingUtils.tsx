@@ -52,7 +52,7 @@ export const addOnboardingProgress = (
   dispatch: Dispatch<any>,
   onboardingStep: string,
   currentCharacter?: CustomCharacter,
-  step?: number
+  step?: number,
 ) => {
   const inc = step ?? 1
   const steps = currentCharacter?.onboarding.map((screen) => screen.screenId)
@@ -71,7 +71,7 @@ export const addOnboardingProgress = (
 export const removeOnboardingProgress = (
   dispatch: Dispatch<any>,
   onboardingStep: string,
-  currentCharacter?: CustomCharacter
+  currentCharacter?: CustomCharacter,
 ) => {
   const steps = currentCharacter?.onboarding.map((screen) => screen.screenId)
   const currentIndex = steps?.indexOf(onboardingStep)
