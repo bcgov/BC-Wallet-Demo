@@ -1,0 +1,70 @@
+{{- include "showcase.validateMongoAuth" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "showcase.server.fullname" . }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.showcase.server.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server
+  template:
+    metadata:
+      labels:
+        {{- include "showcase.labels" . | nindent 8 }}
+        app.kubernetes.io/component: server
+        {{- range $k, $v := .Values.showcase.server.podLabels }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
+      {{- if .Values.showcase.server.podAnnotations }}
+      annotations: {{- toYaml .Values.showcase.server.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: server
+          image: {{ include "showcase.server.image" . }}
+          imagePullPolicy: {{ .Values.showcase.server.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+          {{- if .Values.showcase.server.existingSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.showcase.server.existingSecret | quote }}
+          {{- else if or .Values.mongodb.auth.rootPassword (not (empty .Values.showcase.server.secretEnv)) }}
+          envFrom:
+            - secretRef:
+                name: {{ include "showcase.server.secretName" . }}
+          {{- end }}
+          {{- range .Values.showcase.server.extraEnv }}
+          - name: {{ .name }}
+            value: {{ .value | quote }}
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ printf "%s/server/ready" .Values.showcase.baseRoute }}
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          {{- with .Values.showcase.server.resources }}
+          resources: {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.showcase.server.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.showcase.server.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.showcase.server.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

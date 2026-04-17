@@ -1,0 +1,99 @@
+## Default values for the showcase umbrella chart (BC Wallet Demo web + server + optional MongoDB).
+## Optional MongoDB is the CloudPirates OCI subchart (not Bitnami); see charts/showcase/README.md.
+
+global:
+  imageRegistry: ''
+  imagePullSecrets: []
+
+nameOverride: ''
+fullnameOverride: ''
+namespaceOverride: ''
+kubeVersion: ''
+commonLabels: {}
+commonAnnotations: {}
+
+## CloudPirates MongoDB (optional). All keys under `mongodb:` are forwarded to the subchart.
+## For GitOps, prefer `auth.existingSecret` / `auth.existingSecretPasswordKey` (see CloudPirates chart docs)
+## and mount server env (including `MONGODB_URI`) via `showcase.server.existingSecret`.
+##
+## True for Chart.lock dependency mongodb 0.15.x: the CloudPirates subchart defaults to Docker Hub's
+## official `mongo` image on MongoDB 8.x (upstream default tag is a pinned 8.2.x + digest). Override
+## `mongodb.image.registry` / `repository` / `tag` here if you need a different major or digest.
+mongodb:
+  ## When true, either set `showcase.server.existingSecret` (with MONGODB_URI) or `auth.rootPassword`
+  ## for a chart-managed Secret (dev only).
+  enabled: false
+  auth:
+    enabled: true
+    rootUsername: admin
+    rootPassword: ''
+    existingSecret: ''
+    existingSecretPasswordKey: ''
+  persistence:
+    enabled: true
+    size: 8Gi
+
+## Showcase API (Express server)
+showcase:
+  baseRoute: /digital-trust/showcase
+  server:
+    replicaCount: 1
+    image:
+      ## Matches bcgov GHCR packages (e.g. https://github.com/orgs/bcgov/packages?repo_name=BC-Wallet-Demo)
+      registry: ghcr.io
+      repository: bcgov/bc-wallet-demo-server
+      tag: latest
+      digest: ''
+      pullPolicy: IfNotPresent
+    resources: {}
+    extraEnv: []
+    ## Name of a pre-created Secret in the release namespace. If set, the chart does not create
+    ## `*-server-env`; the Deployment uses envFrom with this Secret (e.g. ExternalSecrets, SealedSecrets).
+    ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, API_KEY, etc.).
+    existingSecret: ''
+    ## Only used when existingSecret is empty: non-sensitive keys merged into the chart-managed Secret.
+    ## Do not use for production credentials; use existingSecret instead.
+    secretEnv: {}
+    podAnnotations: {}
+    podLabels: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  ## Showcase web (Caddy + static build)
+  web:
+    replicaCount: 1
+    ## HTTP listen port for Caddy (Caddyfile site block, container, and Service must match).
+    containerPort: 3000
+    ## Caddy Content-Security-Policy header. Default is permissive for CRA/React + API/WS; tighten for production.
+    contentSecurityPolicy: "default-src * data: blob: filesystem: 'unsafe-inline' 'unsafe-eval'"
+    ## Caddy reverse_proxy trusted_proxies: use private_ranges (RFC1918 + loopback) for typical K8s ingress → pod hops.
+    ## Only use 0.0.0.0/0 if you must trust X-Forwarded-* from arbitrary client addresses (not recommended).
+    trustedProxies: private_ranges
+    image:
+      registry: ghcr.io
+      repository: bcgov/bc-wallet-demo-web
+      tag: latest
+      digest: ''
+      pullPolicy: IfNotPresent
+    resources: {}
+    podAnnotations: {}
+    podLabels: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  ## Public URL of the API as seen by browsers (scheme + host + port if needed). Baked into web env for CRA.
+  publicBackendUrl: ''
+  ## Optional Microsoft Clarity / App Insights project id for the web bundle.
+  insightsProjectId: ''
+
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  web:
+    hostname: showcase.example.com
+    path: /
+    tls: false
+    tlsSecret: ''

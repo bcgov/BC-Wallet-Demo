@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "showcase.web.fullname" . }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.showcase.web.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        {{- include "showcase.labels" . | nindent 8 }}
+        app.kubernetes.io/component: web
+        {{- range $k, $v := .Values.showcase.web.podLabels }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
+      {{- if .Values.showcase.web.podAnnotations }}
+      annotations: {{- toYaml .Values.showcase.web.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: {{ include "showcase.web.image" . }}
+          imagePullPolicy: {{ .Values.showcase.web.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.showcase.web.containerPort }}
+          env:
+            - name: REACT_APP_BASE_ROUTE
+              value: {{ .Values.showcase.baseRoute | quote }}
+            - name: REACT_APP_HOST_BACKEND
+              value: {{ required "showcase.publicBackendUrl must be set to the browser-reachable API base URL (scheme + host[:port])" .Values.showcase.publicBackendUrl | quote }}
+            {{- if .Values.showcase.insightsProjectId }}
+            - name: REACT_APP_INSIGHTS_PROJECT_ID
+              value: {{ .Values.showcase.insightsProjectId | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: caddyfile
+              mountPath: /etc/caddy/Caddyfile
+              subPath: Caddyfile
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- with .Values.showcase.web.resources }}
+          resources: {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: caddyfile
+          configMap:
+            name: {{ include "showcase.web.configmapName" . }}
+      {{- with .Values.showcase.web.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.showcase.web.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.showcase.web.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

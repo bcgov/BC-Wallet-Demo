@@ -1,0 +1,32 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "showcase.web.fullname" . }}-ingress
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.web.hostname | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.web.path | default "/" | quote }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "showcase.web.fullname" . }}
+                port:
+                  name: http
+  {{- if .Values.ingress.web.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.web.hostname | quote }}
+      secretName: {{ .Values.ingress.web.tlsSecret | required "ingress.web.tlsSecret is required when ingress.web.tls is true" }}
+  {{- end }}
+{{- end }}
