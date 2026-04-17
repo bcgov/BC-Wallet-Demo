@@ -3,10 +3,12 @@ import type { Express } from 'express'
 
 import { json, static as stx } from 'express'
 import * as http from 'http'
+import mongoose from 'mongoose'
 import { pinoHttp } from 'pino-http'
 import { createExpressServer } from 'routing-controllers'
 import { Server } from 'socket.io'
 
+import { connectDB, registerShutdownHandlers } from './db/connection'
 import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionRequest, tractionGarbageCollection } from './utils/tractionHelper'
 
@@ -50,6 +52,9 @@ ws.on('connection', (socket) => {
 })
 
 const run = async () => {
+  await connectDB()
+  registerShutdownHandlers()
+
   await tractionApiKeyUpdaterInit()
   await tractionGarbageCollection()
 
@@ -101,7 +106,8 @@ const run = async () => {
 
   // respond to ditp health checks
   app.get(`${baseRoute}/server/ready`, async (req, res) => {
-    res.json({ ready: true })
+    const dbReady = mongoose.connection.readyState === 1
+    res.status(dbReady ? 200 : 503).json({ ready: dbReady })
     return res
   })
 

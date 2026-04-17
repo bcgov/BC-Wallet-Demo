@@ -24,6 +24,7 @@
     "class-validator": "^0.14.4",
     "cors": "^2.8.6",
     "express": "^4.22.1",
+    "mongoose": "^9.4.1",
     "pino": "^9",
     "pino-http": "^10",
     "reflect-metadata": "^0.2.2",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@vitest/coverage-v8": "^2",
     "dotenv": "^16",
+    "mongodb-memory-server": "^11.0.1",
     "pino-pretty": "^11",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5",
