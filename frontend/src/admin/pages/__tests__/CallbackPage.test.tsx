@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react'
-import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -36,26 +35,23 @@ describe('CallbackPage', () => {
     expect(screen.getByText('Signing in...')).toBeInTheDocument()
   })
 
-  it('shows error message and back button when auth fails', () => {
+  it('shows signing in message when auth has errored', () => {
     mockUseAuth.mockReturnValue({
       isLoading: false,
       isAuthenticated: false,
       error: new Error('401 Unauthorized'),
     })
     renderCallbackPage()
-    expect(screen.getByRole('heading', { name: 'Authentication Failed' })).toBeInTheDocument()
-    expect(screen.getByText('401 Unauthorized')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Back to Login' })).toBeInTheDocument()
+    expect(screen.getByText('Signing in...')).toBeInTheDocument()
   })
 
-  it('navigates back to login when Back to Login is clicked', async () => {
+  it('navigates to login with authError param when auth fails', () => {
     mockUseAuth.mockReturnValue({
       isLoading: false,
       isAuthenticated: false,
       error: new Error('401 Unauthorized'),
     })
     renderCallbackPage()
-    await userEvent.click(screen.getByRole('button', { name: 'Back to Login' }))
-    expect(mockNavigate).toHaveBeenCalledWith('..', { replace: true })
+    expect(mockNavigate).toHaveBeenCalledWith('..?authError=true', { replace: true })
   })
 })

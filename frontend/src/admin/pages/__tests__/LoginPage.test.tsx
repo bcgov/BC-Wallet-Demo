@@ -60,4 +60,14 @@ describe('LoginPage', () => {
     renderLoginPage('/?signedOut=true')
     expect(screen.getByText('You have been successfully signed out.')).toBeInTheDocument()
   })
+
+  it('does not show auth error banner by default', () => {
+    renderLoginPage()
+    expect(screen.queryByText(/Login authorization failed/)).not.toBeInTheDocument()
+  })
+
+  it('shows auth error banner when authError query param is true', () => {
+    renderLoginPage('/?authError=true')
+    expect(screen.getByText('Login authorization failed. Please try again.')).toBeInTheDocument()
+  })
 })

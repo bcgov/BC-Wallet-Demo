@@ -7,21 +7,20 @@ export function LoginPage() {
   const auth = useAuth()
   const location = useLocation()
   const signedOut = new URLSearchParams(location.search).get('signedOut') === 'true'
+  const authError = new URLSearchParams(location.search).get('authError') === 'true'
 
   return (
     <div className="container p-4 flex flex-col h-screen">
       <div className="flex flex-row my-8 md:pt-4 sm:my-4">
         <div className="flex-1" />
       </div>
+      {authError && (
+        <div className="w-1/2 mx-auto rounded-lg px-4 py-3 mb-4 text-sm text-center bg-red-100/50 border border-red-400 text-red-900">
+          Login authorization failed. Please try again.
+        </div>
+      )}
       {signedOut && (
-        <div
-          className="w-1/2 mx-auto rounded-lg px-4 py-3 mb-4 text-sm text-center"
-          style={{
-            backgroundColor: 'rgba(220, 38, 38, 0.15)',
-            border: '1px solid rgba(220, 38, 38, 0.5)',
-            color: '#7f1d1d',
-          }}
-        >
+        <div className="w-1/2 mx-auto rounded-lg px-4 py-3 mb-4 text-sm text-center bg-red-100/50 border border-red-400 text-red-900">
           You have been successfully signed out.
         </div>
       )}

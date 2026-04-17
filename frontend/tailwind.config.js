@@ -16,21 +16,21 @@ module.exports = {
       sxl: '1242px',
       xl: '1440px',
     },
-    colors: {
-      white: '#FFFFFF',
-      grey: '#808080',
-      black: '#000000',
-      'bcgov-white': '#F5F5F4',
-      'bcgov-blue': '#003366',
-      'bcgov-gold': '#FCBA19',
-      'bcgov-black': '#202223',
-      'bcgov-lightgrey': '#E5E5E5',
-      'bcgov-darkgrey': '#3A3B3B',
-    },
-    fontFamily: {
-      sans: ['montserrat', 'sans-serif'],
-    },
     extend: {
+      colors: {
+        white: '#FFFFFF',
+        grey: '#808080',
+        black: '#000000',
+        'bcgov-white': '#F5F5F4',
+        'bcgov-blue': '#003366',
+        'bcgov-gold': '#FCBA19',
+        'bcgov-black': '#202223',
+        'bcgov-lightgrey': '#E5E5E5',
+        'bcgov-darkgrey': '#3A3B3B',
+      },
+      fontFamily: {
+        sans: ['montserrat', 'sans-serif'],
+      },
       transitionProperty: {
         height: 'height',
       },
