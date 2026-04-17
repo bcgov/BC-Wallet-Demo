@@ -1,6 +1,6 @@
 import type { AuthProviderProps } from 'react-oidc-context'
 
-import { Log } from 'oidc-client-ts'
+import { InMemoryWebStorage, Log, WebStorageStateStore } from 'oidc-client-ts'
 
 import { baseRoute } from '../../client/api/BaseUrl'
 
@@ -20,4 +20,5 @@ export const oidcConfig: AuthProviderProps = {
   post_logout_redirect_uri: `${window.location.origin}${baseRoute}/admin`,
   scope: 'openid profile email',
   automaticSilentRenew: true,
+  userStore: new WebStorageStateStore({ store: new InMemoryWebStorage() }),
 }
