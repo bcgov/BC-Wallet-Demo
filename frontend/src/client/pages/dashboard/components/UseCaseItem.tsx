@@ -2,7 +2,7 @@ import type { CustomCharacter } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
-import { startCase } from 'lodash'
+import startCase from 'lodash/startCase'
 import React from 'react'
 
 import { rowFadeX } from '../../../FramerAnimations'
