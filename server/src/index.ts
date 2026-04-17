@@ -128,4 +128,7 @@ const run = async () => {
   logger.info('Server listening on port 5000')
 }
 
-run()
+run().catch((error: unknown) => {
+  logger.error({ err: error }, 'Fatal startup error')
+  process.exit(1)
+})

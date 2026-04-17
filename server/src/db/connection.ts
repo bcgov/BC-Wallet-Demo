@@ -40,23 +40,25 @@ export async function connectDB(): Promise<void> {
   }
 }
 
-export function registerShutdownHandlers(): void {
+type DisconnectFn = () => Promise<void>
+type OnceFn = (event: string, listener: () => void) => NodeJS.EventEmitter
+
+export function registerShutdownHandlers(
+  disconnectFn: DisconnectFn = () => mongoose.disconnect(),
+  once: OnceFn = process.once.bind(process)
+): void {
   const disconnect = async (signal: string) => {
     logger.info({ signal }, 'Disconnecting from MongoDB')
-    await mongoose.disconnect()
+    await disconnectFn()
     process.exit(0)
   }
 
-  process.once('SIGTERM', () => {
-    void disconnect('SIGTERM').catch((error: unknown) => {
-      logger.error({ signal: 'SIGTERM', error }, 'Failed to disconnect from MongoDB')
-      process.exit(1)
+  for (const signal of ['SIGTERM', 'SIGINT']) {
+    once(signal, () => {
+      void disconnect(signal).catch((error: unknown) => {
+        logger.error({ signal, error }, 'Failed to disconnect from MongoDB')
+        process.exit(1)
+      })
     })
-  })
-  process.once('SIGINT', () => {
-    void disconnect('SIGINT').catch((error: unknown) => {
-      logger.error({ signal: 'SIGINT', error }, 'Failed to disconnect from MongoDB')
-      process.exit(1)
-    })
-  })
+  }
 }
