@@ -32,4 +32,4 @@ COPY --from=build /app/server/build ./build
 
 EXPOSE 5000
 
-CMD ["node", "-r", "dotenv/config", "build/index.js"]
+CMD ["node", "-r", "dotenv/config", "build/src/index.js"]
