@@ -26,7 +26,6 @@ const rootReducer = combineReducers({
   useCases: useCaseSlice,
 })
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pReducer = (state: any, action: any) => {
   // Strip redux-persist's internal _persist key before passing to combineReducers
   // so that it never warns about an unexpected key in the state shape.

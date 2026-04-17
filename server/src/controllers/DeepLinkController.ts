@@ -18,7 +18,7 @@ export class DeeplinkController {
     }
     logger.warn(
       { connectionId: params.connection_id, state },
-      'Deep link: connection did not reach active state, credential not offered'
+      'Deep link: connection did not reach active state, credential not offered',
     )
   }
 
@@ -33,7 +33,7 @@ export class DeeplinkController {
     }
     logger.warn(
       { connectionId: params.connection_id, state },
-      'Deep link: connection did not reach active state, proof not requested'
+      'Deep link: connection did not reach active state, proof not requested',
     )
   }
 
