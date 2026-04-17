@@ -1,14 +1,47 @@
+import type { AuthProviderProps } from 'react-oidc-context'
+
+import { useEffect, useState } from 'react'
+import { AuthProvider } from 'react-oidc-context'
 import { Route, Routes } from 'react-router-dom'
 
+import { AuthGuard } from './auth/AuthGuard'
+import { loadOidcConfig } from './auth/keycloakConfig'
+import { CallbackPage } from './pages/CallbackPage'
 import { CreatorPage } from './pages/CreatorPage'
 import { LoginPage } from './pages/LoginPage'
 
+const onSigninCallback = () => {
+  window.history.replaceState({}, document.title, window.location.pathname)
+}
+
 function AdminApp() {
+  const [oidcConfig, setOidcConfig] = useState<AuthProviderProps | null>(null)
+
+  useEffect(() => {
+    loadOidcConfig()
+      .then(setOidcConfig)
+      .catch((err: unknown) => {
+        throw err
+      })
+  }, [])
+
+  if (!oidcConfig) return null
+
   return (
-    <Routes>
-      <Route index element={<LoginPage />} />
-      <Route path="creator" element={<CreatorPage />} />
-    </Routes>
+    <AuthProvider {...oidcConfig} onSigninCallback={onSigninCallback}>
+      <Routes>
+        <Route index element={<LoginPage />} />
+        <Route path="callback" element={<CallbackPage />} />
+        <Route
+          path="creator"
+          element={
+            <AuthGuard>
+              <CreatorPage />
+            </AuthGuard>
+          }
+        />
+      </Routes>
+    </AuthProvider>
   )
 }
 

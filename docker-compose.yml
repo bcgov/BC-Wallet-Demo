@@ -70,6 +70,8 @@ services:
         condition: service_healthy
   dev:
     image: bc-wallet-demo-dev
+    profiles:
+      - dev
     build:
       context: ./
       dockerfile: ./dev.dockerfile
@@ -86,6 +88,46 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      keycloak-db:
+        condition: service_healthy
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5
+    command: start-dev --import-realm
+    profiles:
+      - dev
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./keycloak/config:/opt/keycloak/data/import
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_ENABLED: true
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+
+  keycloak-db:
+    image: postgres:15-alpine
+    profiles:
+      - dev
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U keycloak']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mongo-data:
+  keycloak-db-data:

@@ -16,6 +16,7 @@
     "check-types": "yarn workspace frontend exec tsc --noEmit -p tsconfig.json && yarn workspace server exec tsc --noEmit -p tsconfig.json",
     "prettier": "prettier '**/*.+(js|json|ts|md|yml|yaml)'",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "yarn prettier --write",
     "prepare": "husky install",
     "frontend:start": "yarn workspace frontend start",

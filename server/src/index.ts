@@ -1,5 +1,5 @@
-import 'reflect-metadata'
 import type { Express } from 'express'
+import 'reflect-metadata'
 
 import { json, static as stx } from 'express'
 import * as http from 'http'
@@ -9,8 +9,10 @@ import { createExpressServer } from 'routing-controllers'
 import { Server } from 'socket.io'
 
 import { connectDB, registerShutdownHandlers } from './db/connection'
+import { requireAdmin } from './middleware/requireAdmin'
+import adminCharactersRouter from './routes/adminCharactersRouter'
 import logger from './utils/logger'
-import { tractionApiKeyUpdaterInit, tractionRequest, tractionGarbageCollection } from './utils/tractionHelper'
+import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
 
 const baseRoute = process.env.BASE_ROUTE
 
@@ -81,6 +83,10 @@ const run = async () => {
   )
 
   app.use(`${baseRoute}/public`, stx(__dirname + '/public'))
+
+  // All routes under /admin require a valid Keycloak-issued JWT.
+  app.use(`${baseRoute}/admin`, requireAdmin)
+  app.use(`${baseRoute}/admin/characters`, adminCharactersRouter)
 
   app.get(`${baseRoute}/server/last-reset`, async (req, res) => {
     res.send(new Date())
