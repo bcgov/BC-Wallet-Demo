@@ -1,13 +1,34 @@
+import { useAuth } from 'react-oidc-context'
+
+import { baseRoute } from '../../client/api/BaseUrl'
+
 export function CreatorPage() {
+  const auth = useAuth()
+
+  const handleSignOut = () => {
+    void auth.signoutRedirect({
+      post_logout_redirect_uri: `${window.location.origin}${baseRoute}/admin?signedOut=true`,
+    })
+  }
+
   return (
     <div className="container p-4 flex flex-col h-screen">
       <div className="flex flex-row my-8 md:pt-4 sm:my-4">
         <div className="flex-1" />
+        <button
+          className="bg-bcgov-blue text-white py-2 px-4 rounded-lg font-semibold shadow-sm select-none"
+          onClick={handleSignOut}
+        >
+          Sign Out
+        </button>
       </div>
 
       <div className="flex flex-col flex-grow items-center justify-center">
         <div className="w-full max-w-sm text-center">
           <h1 className="text-bcgov-black font-semibold text-3xl lg:text-4xl mb-4">Admin Portal</h1>
+          {auth.user?.profile?.name && (
+            <p className="text-bcgov-darkgrey text-lg mb-4">Welcome, {auth.user.profile.name}</p>
+          )}
           <p className="text-bcgov-darkgrey text-base">Admin dashboard coming soon.</p>
         </div>
       </div>
