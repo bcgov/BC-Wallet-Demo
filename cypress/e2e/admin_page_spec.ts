@@ -12,8 +12,8 @@ const ADMIN_PATH = '/digital-trust/showcase/admin'
 const CREATOR_PATH = `${ADMIN_PATH}/creator`
 
 // Must match the values in frontend/.env
-const KEYCLOAK_BASE = 'http://localhost:8080/realms/my-app'
-const KEYCLOAK_CLIENT_ID = 'frontend'
+const KEYCLOAK_BASE = 'http://localhost:8080/realms/showcase'
+const KEYCLOAK_CLIENT_ID = 'showcase-admin'
 
 // key used by oidc-client-ts to store the authenticated user
 const SESSION_KEY = `oidc.user:${KEYCLOAK_BASE}:${KEYCLOAK_CLIENT_ID}`

@@ -15,7 +15,6 @@
     "insights-js": "^1.2.10",
     "js-base64": "^3.7.2",
     "kbar": "^0.1.0-beta.48",
-    "keycloak-js": "^26.2.3",
     "lodash": "^4.17.21",
     "loglevel": "^1.9.2",
     "oidc-client-ts": "^3.5.0",

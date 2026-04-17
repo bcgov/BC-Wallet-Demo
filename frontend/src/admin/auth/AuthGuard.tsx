@@ -12,7 +12,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
-      navigate('..', { relative: 'path' })
+      navigate('..')
     }
   }, [auth.isLoading, auth.isAuthenticated, navigate])
 

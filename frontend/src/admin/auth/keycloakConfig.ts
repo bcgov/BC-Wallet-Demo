@@ -9,7 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
   Log.setLevel(Log.DEBUG)
 }
 
-const keycloakUrl = process.env.REACT_APP_KEYCLOAK_URL ?? 'http://localhost:3000'
+const keycloakUrl = process.env.REACT_APP_KEYCLOAK_URL ?? 'http://localhost:8080'
 const keycloakRealm = process.env.REACT_APP_KEYCLOAK_REALM ?? 'showcase'
 const keycloakClientId = process.env.REACT_APP_KEYCLOAK_CLIENT_ID ?? 'showcase-admin'
 
