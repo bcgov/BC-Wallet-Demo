@@ -13,7 +13,7 @@
     "server"
   ],
   "scripts": {
-    "check-types": "tsc --noEmit",
+    "check-types": "yarn workspace frontend exec tsc --noEmit -p tsconfig.json && yarn workspace server exec tsc --noEmit -p tsconfig.json",
     "prettier": "prettier '**/*.+(js|json|ts|md|yml|yaml)'",
     "lint": "eslint --ignore-path .gitignore .",
     "format": "yarn prettier --write",

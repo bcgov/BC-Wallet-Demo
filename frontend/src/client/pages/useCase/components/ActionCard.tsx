@@ -1,4 +1,4 @@
-import { startCase } from 'lodash'
+import startCase from 'lodash/startCase'
 import React from 'react'
 
 import { prependApiUrl } from '../../../utils/Url'

@@ -21,6 +21,7 @@
   "exclude": [
     "node_modules",
     "build",
+    "frontend/dist",
     "**/__tests__/**",
     "**/*.test.ts",
     "**/*.test.tsx",

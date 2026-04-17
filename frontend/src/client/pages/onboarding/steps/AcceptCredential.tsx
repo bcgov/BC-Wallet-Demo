@@ -3,7 +3,7 @@ import type { Credential, CustomCharacter } from '../../../slices/types'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
 import { track } from 'insights-js'
-import { startCase } from 'lodash'
+import startCase from 'lodash/startCase'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 

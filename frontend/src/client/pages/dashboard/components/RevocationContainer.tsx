@@ -1,7 +1,7 @@
 import type { RevocationInfoItem, RevocationRecord } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
-import { startCase } from 'lodash'
+import startCase from 'lodash/startCase'
 import React, { useState } from 'react'
 
 import { dashboardTitle, rowContainer } from '../../../FramerAnimations'

@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 module.exports = {
-  content: ['./public/*.html', './src/*.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
+  content: ['./index.html', './src/*.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
   darkMode: 'class',
   theme: {
     minWidth: {
