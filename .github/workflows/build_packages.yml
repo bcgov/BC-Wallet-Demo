@@ -58,7 +58,8 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           install: false
-          record: true
+          # Only record to Cypress Cloud when the repo/org secret is configured.
+          record: ${{ secrets.CYPRESS_RECORD_KEY != '' }}
           browser: chrome
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
