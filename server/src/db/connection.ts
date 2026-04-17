@@ -18,7 +18,7 @@ export async function connectDB(): Promise<void> {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      await mongoose.connect(uri)
+      await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 })
       logger.info({ uri: sanitizedUri }, 'Connected to MongoDB')
       return
     } catch (error) {

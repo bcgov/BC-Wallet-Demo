@@ -42,6 +42,7 @@ describe('connectDB retry behaviour', () => {
     vi.spyOn(mongoose, 'connect').mockResolvedValueOnce(mongoose)
     await expect(connectDB()).resolves.toBeUndefined()
     expect(mongoose.connect).toHaveBeenCalledTimes(1)
+    expect(mongoose.connect).toHaveBeenCalledWith(expect.any(String), { serverSelectionTimeoutMS: 3000 })
   })
 
   it('retries after a failed attempt and resolves on second', async () => {
