@@ -4,8 +4,9 @@ ARG runtime_image=caddy:alpine
 # build stage
 FROM ${build_image} AS build-stage
 WORKDIR /app
+ENV HUSKY=0
 COPY . .
-RUN yarn install
+RUN yarn install --frozen-lockfile --network-timeout 600000 --non-interactive
 RUN yarn build
 
 
