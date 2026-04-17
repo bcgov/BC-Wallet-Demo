@@ -4,9 +4,15 @@ ARG runtime_image=caddy:alpine
 # build stage
 FROM ${build_image} AS build-stage
 WORKDIR /app
+ENV HUSKY=0
 COPY . .
-RUN yarn install
-RUN yarn build
+# CRA inlines REACT_APP_* at compile time — pass from CI via --build-arg.
+ARG REACT_APP_INSIGHTS_PROJECT_ID
+ARG REACT_APP_HOST_BACKEND
+ENV REACT_APP_INSIGHTS_PROJECT_ID=$REACT_APP_INSIGHTS_PROJECT_ID
+ENV REACT_APP_HOST_BACKEND=$REACT_APP_HOST_BACKEND
+RUN yarn install --frozen-lockfile --network-timeout 600000
+RUN yarn workspace frontend build
 
 
 # production stage

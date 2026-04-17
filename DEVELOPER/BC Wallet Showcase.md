@@ -4,6 +4,10 @@ https://github.com/bcgov/BC-Wallet-Demo
 
 The BC Wallet Showcase is an application used to issue demo credentials and proof requests. It consists of a React frontend and a TS-Node Backend. Additionally it needs to be connected to a traction agent.
 
+## Continuous integration
+
+GitHub Actions run on pull requests (unit tests, lint, Cypress, Docker smoke builds) and on releases (optional Cypress, then publishing showcase images to GHCR). Node **22** is required in CI, matching the repo `engines` field. For workflow names, job graph, secrets used at Docker build time, and the reusable **setup-node** composite action, see **[.github/README.md](../.github/README.md)** in the repository.
+
 ## Setup: Local Development
 
 There are two env files that you need to configure. This stage assumes you already have access to a traction agent. If you have a fresh setup on your traction agent you'll need to do a couple things to connect it with the showcase. Log on to your traction agent, depending on the environment the url will be slightly different:

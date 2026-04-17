@@ -11,11 +11,20 @@ on:
       - 'server/**'
       - 'package.json'
       - 'yarn.lock'
+      - '.dockerignore'
+      - '.github/workflows/**'
+      - 'dev.dockerfile'
+      - 'frontend/Dockerfile'
+      - 'server/Dockerfile'
     types:
       - opened
       - synchronize
       - reopened
       - ready_for_review
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -26,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.draft == false }}
     timeout-minutes: 45
+    env:
+      DOCKER_BUILDKIT: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
