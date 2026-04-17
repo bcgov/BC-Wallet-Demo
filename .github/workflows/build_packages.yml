@@ -1,0 +1,157 @@
+name: Build and Publish Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      run_cypress:
+        description: 'Run Cypress (browser E2E) before building images'
+        type: boolean
+        default: false
+
+# Default least-privilege token; jobs that push GHCR images add packages: write.
+permissions:
+  contents: read
+
+env:
+  HUSKY: '0'
+  REGISTRY: ghcr.io
+  SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
+  SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
+
+jobs:
+  cypress-run:
+    name: Cypress E2E (optional)
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    if: github.event_name == 'release' || inputs.run_cypress == 'true'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/setup-node
+        with:
+          node-version: 22
+
+      - name: Start App
+        run: |
+          yarn install --frozen-lockfile --network-timeout 600000
+          NODE_ENV=test AGENT_WALLET_KEY=ba8e2462-f9ac-4da0-a9c6-99592a7dbc12 REACT_APP_HOST_BACKEND=http://localhost:5000 AGENT_PUBLIC_DID_SEED=testtesttesttesttesttesttesttest yarn dev &
+
+      - name: Wait for dev servers (HTTP)
+        run: >
+          npx --yes wait-on@8
+          http://localhost:3000
+          http://localhost:5000
+          --timeout 600000
+          --interval 5000
+
+      - name: Warm-up for agent / credential defs
+        run: sleep 45s
+        shell: bash
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          record: true
+          browser: chrome
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cypress-skipped:
+    name: Cypress skipped
+    runs-on: ubuntu-latest
+    if: github.event_name != 'release' && inputs.run_cypress != 'true'
+    permissions:
+      contents: read
+    steps:
+      - run: echo "Skipping Cypress (manual run with run_cypress=false)"
+
+  build-and-push-image-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    needs: [cypress-run, cypress-skipped]
+    if: ${{ !cancelled() && needs.cypress-run.result != 'failure' && needs.cypress-skipped.result != 'failure' && (needs.cypress-run.result == 'success' || needs.cypress-skipped.result == 'success') }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.SHOWCASE_SERVER_IMAGE }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=min
+          sbom: true
+
+  build-and-push-image-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    needs: [cypress-run, cypress-skipped]
+    if: ${{ !cancelled() && needs.cypress-run.result != 'failure' && needs.cypress-skipped.result != 'failure' && (needs.cypress-run.result == 'success' || needs.cypress-skipped.result == 'success') }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=min
+          sbom: true
+          build-args: |
+            REACT_APP_INSIGHTS_PROJECT_ID=${{ secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
+            REACT_APP_HOST_BACKEND=${{ secrets.REACT_APP_HOST_BACKEND }}

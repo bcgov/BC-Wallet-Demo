@@ -51,7 +51,7 @@
     ]
   },
   "devDependencies": {
-    "@testing-library/dom": "^9.3.4",
+    "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6",
     "@testing-library/react": "^14",
     "@testing-library/user-event": "^14",
@@ -69,5 +69,6 @@
     "typescript": "^5",
     "vite": "^8.0.8",
     "vitest": "^4.1.4"
-  }
+  },
+  "homepage": "/digital-trust/showcase/"
 }

@@ -25,7 +25,7 @@ updates:
       - dependency-name: '*'
         update-types: ['version-update:semver-major', 'version-update:semver-patch']
 
-  # Maintain dependencies for docker
+  # Docker base images: root dev image plus service Dockerfiles (one entry per directory)
   - package-ecosystem: 'docker'
     directory: '/'
     schedule:
@@ -34,7 +34,6 @@ updates:
       time: '04:00'
       timezone: 'Canada/Pacific'
 
-  # Maintain dependencies for docker
   - package-ecosystem: 'docker'
     directory: '/frontend'
     schedule:
@@ -43,7 +42,6 @@ updates:
       time: '04:00'
       timezone: 'Canada/Pacific'
 
-  # Maintain dependencies for docker
   - package-ecosystem: 'docker'
     directory: '/server'
     schedule:
