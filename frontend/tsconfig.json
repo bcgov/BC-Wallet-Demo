@@ -17,5 +17,5 @@
     "sourceMap": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src", "vite.config.ts"]
 }

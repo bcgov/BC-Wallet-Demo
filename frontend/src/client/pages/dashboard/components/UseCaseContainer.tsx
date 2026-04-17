@@ -30,7 +30,7 @@ export const UseCaseContainer: React.FC<Props> = ({ currentCharacter, completedU
         if (!requiredCredentials.includes(cred.name)) {
           requiredCredentials.push(cred.name)
         }
-      })
+      }),
     )
 
     const isCompleted = completedUseCaseSlugs.includes(item.id)

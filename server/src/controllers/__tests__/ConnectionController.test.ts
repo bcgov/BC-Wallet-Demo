@@ -84,7 +84,7 @@ describe('ConnectionController', () => {
           accept: expect.arrayContaining(['didcomm/aip1']),
           handshake_protocols: expect.arrayContaining(['https://didcomm.org/didexchange/1.0']),
           use_public_did: false,
-        })
+        }),
       )
     })
 
@@ -95,7 +95,7 @@ describe('ConnectionController', () => {
 
       expect(tractionRequest.post).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ my_label: 'Test Label' })
+        expect.objectContaining({ my_label: 'Test Label' }),
       )
     })
 

@@ -74,7 +74,7 @@ export class CredentialController {
   public async offerCredential(@Body() params: any) {
     logger.info(
       { connectionId: params.connection_id, credentialName: params.credential_preview?.attributes?.[0]?.name },
-      'Offering credential'
+      'Offering credential',
     )
     const response = await tractionRequest.post(`/issue-credential/send`, params)
     logger.info({ credentialExchangeId: response.data?.credential_exchange_id }, 'Credential offer sent')

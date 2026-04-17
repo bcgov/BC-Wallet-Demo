@@ -3,7 +3,7 @@ import type { Credential, CustomCharacter } from '../../../slices/types'
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
 import { track } from 'insights-js'
-import { startCase } from 'lodash'
+import startCase from 'lodash/startCase'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -59,7 +59,7 @@ export const AcceptCredential: React.FC<Props> = ({
 
   const issuedCredentialsStartCase = issuedCredentials.map((name) => startCase(name))
   const credentialsAccepted = credentials.every(
-    (cred) => issuedCredentials.includes(cred.name) || issuedCredentialsStartCase.includes(cred.name)
+    (cred) => issuedCredentials.includes(cred.name) || issuedCredentialsStartCase.includes(cred.name),
   )
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export const AcceptCredential: React.FC<Props> = ({
   const handleCredentialTimeout = () => {
     if (!isIssueCredentialLoading || !error) return
     setErrorMsg(
-      `The request timed out. We're sorry, but you're going to have to restart the demo. If this issue persists, please contact us.`
+      `The request timed out. We're sorry, but you're going to have to restart the demo. If this issue persists, please contact us.`,
     )
     setIsRejectedModalOpen(true)
   }
@@ -107,7 +107,7 @@ export const AcceptCredential: React.FC<Props> = ({
     if (error) {
       const msg = error.message ?? 'Issue Credential Error'
       setErrorMsg(
-        `The request has failed with the following error: ${msg}. We're sorry, but you're going to have to restart. If this issue persists, please contact us. `
+        `The request has failed with the following error: ${msg}. We're sorry, but you're going to have to restart. If this issue persists, please contact us. `,
       )
       setIsRejectedModalOpen(true)
     }

@@ -1,4 +1,8 @@
-# Optional web UI for MongoDB: docker compose --profile mongo-ui up
+# Do not start every service at once: `dev` and `frontend`+`backend` both use ports 3000 and 5000.
+# Typical stacks:
+#   docker compose up --build mongodb backend frontend
+#   docker compose up --build mongodb dev
+# Optional MongoDB web UI: docker compose --profile mongo-ui up … (see mongo-express service)
 services:
   mongodb:
     image: mongo:8

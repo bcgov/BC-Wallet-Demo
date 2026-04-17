@@ -51,7 +51,7 @@ describe('WebhookController', () => {
 
       expect(mockEmit).toHaveBeenCalledWith(
         'message',
-        expect.objectContaining({ connection_id: 'conn1', endpoint: 'connections' })
+        expect.objectContaining({ connection_id: 'conn1', endpoint: 'connections' }),
       )
     })
 
