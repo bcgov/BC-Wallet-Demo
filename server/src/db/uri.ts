@@ -3,7 +3,7 @@ export function getMongoUri(): string {
 
   const host = process.env.MONGODB_HOST || 'localhost'
   const port = process.env.MONGODB_PORT || '27017'
-  const db = process.env.MONGODB_DB_NAME || 'bcwallet_demo'
+  const db = process.env.MONGODB_DB_NAME || 'bc_wallet_showcase'
   const user = process.env.MONGODB_USER
   const pass = process.env.MONGODB_PASSWORD
 
