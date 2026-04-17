@@ -11,13 +11,13 @@ This application provides a showcase for the BC Wallet to illustrate the use cas
 
 ### Copy env files
 
-Copy the files server/.env.example and client/.env.example to server/.env and client/.env  
-Edit the .env files to match your project needs
+Copy `server/.env.example` → `server/.env` and `frontend/.env.example` → `frontend/.env`.  
+Edit the `.env` files to match your project needs (see [DEVELOPER/BC Wallet Showcase.md](DEVELOPER/BC%20Wallet%20Showcase.md) for Traction and webhook setup).
 
 ### Option 1 - Native
 
-Please make sure you have a recent version of node, npm, and yarn installed
-These steps are executed from the root folder of the project:
+Use **Node.js 22 or newer** (see `engines` in `package.json`), plus Yarn 1.x.  
+From the repository root:
 
 > yarn install
 
@@ -27,36 +27,43 @@ The application will now be running at http://localhost:3000
 
 ### Option 2 - Docker
 
-These steps assume that you have docker installed
+Requires Docker (BuildKit recommended). From the repository root:
 
-These steps are executed from the root folder of the project:
+Build the frontend (Caddy serves the static showcase). For a production-like bundle, pass Create React App variables at **build** time:
 
-Build the client:
-
-> docker build -t bc-wallet-demo-client . -f DockerfileClient
+```bash
+docker build -f frontend/Dockerfile \
+  --build-arg REACT_APP_INSIGHTS_PROJECT_ID="your-project-id" \
+  --build-arg REACT_APP_HOST_BACKEND="https://your-api-base" \
+  -t bc-wallet-demo-web:local .
+```
 
 Build the server:
 
-> docker build -t bc-wallet-demo-server . -f DockerfileServer
+```bash
+docker build -f server/Dockerfile -t bc-wallet-demo-server:local .
+```
 
-Start the server:
+Run the server (example):
 
-> docker run --name bc-wallet-demo-server -p5000:5000 --rm --env-file server/.env bc-wallet-demo-server
+```bash
+docker run --name bc-wallet-demo-server -p 5000:5000 --rm --env-file server/.env bc-wallet-demo-server:local
+```
 
-Start the client:
+Run the frontend (mount a `Caddyfile` if you need custom routing; see `frontend/Caddyfile` in this repo):
 
-> docker run --name bc-wallet-demo-client -p3000:3000 -v \`pwd\`/Caddyfile:/etc/caddy/Caddyfile --rm --env-file client/.env bc-wallet-demo-client
+```bash
+docker run --name bc-wallet-demo-web -p 3000:3000 \
+  -v "$(pwd)/frontend/Caddyfile:/etc/caddy/Caddyfile:ro" --rm \
+  --env-file frontend/.env bc-wallet-demo-web:local
+```
 
-The application will now be running at http://localhost:3000
+The app is then available at http://localhost:3000 (with defaults from your Caddyfile and env).
+
+For **CI workflows, GHCR image names, and the `setup-node` composite action**, see [.github/README.md](.github/README.md).
 
 ## Contributing
 
-**Pull requests are always welcome!**
+Pull requests and issues are welcome.
 
-Please see the [Contributions Guide](CONTRIBUTING.md) for the repo.
-
-Before contributing please run `yarn lint --fix` and fix any linter warnings in your code contribution.
-
-You may also create an issue if you would like to suggest additional resources to include in this repository.
-
-All contrbutions to this repository should adhere to our [Code of Conduct](./CODE_OF_CONDUCT).
+Before submitting a change, run `yarn lint` (use `yarn lint --fix` where appropriate) and keep formatting consistent with the project’s Prettier setup.
