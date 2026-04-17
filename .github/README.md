@@ -87,16 +87,11 @@ Images are pushed to **GitHub Container Registry** (`ghcr.io`):
 | `SHOWCASE_SERVER_IMAGE`   | `ghcr.io/<owner>/bc-wallet-showcase-server`   |
 | `SHOWCASE_FRONTEND_IMAGE` | `ghcr.io/<owner>/bc-wallet-showcase-frontend` |
 
-Jobs use `docker/login-action@v3`, `docker/setup-buildx-action@v3`, `docker/metadata-action@v5`, and `docker/build-push-action@v7` with **minimal provenance** and **SBOM** attestations (`provenance: mode=min`, `sbom: true`).
+Jobs use `docker/login-action@v3`, `docker/setup-buildx-action@v3`, `docker/metadata-action@v5`, and `docker/build-push-action@v7` with **minimal provenance** and **SBOM** attestations (`provenance: mode=min`, `sbom: true`). Image build jobs set **`permissions: id-token: write`** (with `packages: write`) so attestation upload to GHCR is supported.
 
 ### Frontend image: build-time configuration
 
-Create React App reads **`REACT_APP_*`** at **build** time. The release workflow passes secrets into the Docker build as **build-args** (see `build-args` on the frontend `docker/build-push-action` step). The **`frontend/Dockerfile`** declares matching `ARG`/`ENV` values before `yarn workspace frontend build`.
-
-Required repository **secrets** for a correct production frontend bundle (names must match the workflow):
-
-- `REACT_APP_INSIGHTS_PROJECT_ID`
-- `REACT_APP_HOST_BACKEND`
+Create React App reads **`REACT_APP_*`** at **build** time. Those values are **inlined into the client bundle**, so they are **not secret**—prefer **[repository Variables](https://docs.github.com/en/actions/learn-github-actions/variables)** (`REACT_APP_INSIGHTS_PROJECT_ID`, `REACT_APP_HOST_BACKEND`) so they are not treated as encrypted secrets. The workflow still falls back to **secrets** with the same names if variables are unset (see `build-args` on the frontend `docker/build-push-action` step). The **`frontend/Dockerfile`** declares matching `ARG`/`ENV` values before `yarn workspace frontend build`.
 
 Optional / other secrets (e.g. Cypress) are documented in the workflow file and org settings.
 
