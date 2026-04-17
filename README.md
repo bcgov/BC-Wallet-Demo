@@ -68,11 +68,11 @@ The admin portal is available at `<base_route>/admin` (e.g. `http://localhost:30
 
 The following variables are configured in `frontend/.env`:
 
-| Variable | Description | Default |
-|---|---|---|
-| `REACT_APP_KEYCLOAK_URL` | Base URL of your Keycloak server | `http://localhost:8080` |
-| `REACT_APP_KEYCLOAK_REALM` | Keycloak realm name | `showcase` |
-| `REACT_APP_KEYCLOAK_CLIENT_ID` | Keycloak client ID | `showcase-admin` |
+| Variable                       | Description                      | Default                 |
+| ------------------------------ | -------------------------------- | ----------------------- |
+| `REACT_APP_KEYCLOAK_URL`       | Base URL of your Keycloak server | `http://localhost:8080` |
+| `REACT_APP_KEYCLOAK_REALM`     | Keycloak realm name              | `showcase`              |
+| `REACT_APP_KEYCLOAK_CLIENT_ID` | Keycloak client ID               | `showcase-admin`        |
 
 The OIDC redirect URI is built automatically from the app's origin:
 
