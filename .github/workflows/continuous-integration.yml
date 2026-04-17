@@ -78,6 +78,8 @@ jobs:
       - name: Compile
         run: yarn check-types
 
+      # Cypress: only the Vite dev server is started. cypress.config.ts sets apiUrl to :5000 for
+      # specs that hit the API—if CI runs those, also start the server (e.g. concurrently) or align with build_packages.yml (yarn dev).
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
