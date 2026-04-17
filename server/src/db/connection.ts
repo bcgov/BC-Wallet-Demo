@@ -14,8 +14,19 @@ export function registerShutdownHandlers(): void {
   const disconnect = async (signal: string) => {
     logger.info({ signal }, 'Disconnecting from MongoDB')
     await mongoose.disconnect()
+    process.exit(0)
   }
 
-  process.once('SIGTERM', () => disconnect('SIGTERM'))
-  process.once('SIGINT', () => disconnect('SIGINT'))
+  process.once('SIGTERM', () => {
+    void disconnect('SIGTERM').catch((error: unknown) => {
+      logger.error({ signal: 'SIGTERM', error }, 'Failed to disconnect from MongoDB')
+      process.exit(1)
+    })
+  })
+  process.once('SIGINT', () => {
+    void disconnect('SIGINT').catch((error: unknown) => {
+      logger.error({ signal: 'SIGINT', error }, 'Failed to disconnect from MongoDB')
+      process.exit(1)
+    })
+  })
 }
