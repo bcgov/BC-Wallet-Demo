@@ -1,8 +1,14 @@
+import { Route, Routes } from 'react-router-dom'
+
+import { CreatorPage } from './pages/CreatorPage'
+import { LoginPage } from './pages/LoginPage'
+
 function AdminApp() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <h1>Hello, Admin!</h1>
-    </div>
+    <Routes>
+      <Route index element={<LoginPage />} />
+      <Route path="creator" element={<CreatorPage />} />
+    </Routes>
   )
 }
 
