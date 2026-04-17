@@ -21,7 +21,7 @@ export const RevocationContainer: React.FC<Props> = ({ revocationRecord, revocat
   const renderUseCases = revocationRecord.map((item) => {
     const revocationKey = item.revocationRegId.split(':')[6]
     const revocationDescription = revocationInfo.find(
-      (infoItem) => startCase(infoItem.credentialName) === startCase(revocationKey)
+      (infoItem) => startCase(infoItem.credentialName) === startCase(revocationKey),
     )
     return (
       <RevocationItem

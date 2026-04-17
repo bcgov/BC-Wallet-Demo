@@ -44,5 +44,5 @@ createRoot(container).render(
         />
       </Routes>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 )

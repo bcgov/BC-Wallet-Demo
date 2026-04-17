@@ -22,8 +22,8 @@ apiCall.interceptors.response.use(
   (error) => {
     log.warn(
       `[API] error ${error.response?.status ?? 'unknown'} ${error.config?.method?.toUpperCase()} ${error.config?.url}`,
-      error.message
+      error.message,
     )
     return Promise.reject(error)
-  }
+  },
 )

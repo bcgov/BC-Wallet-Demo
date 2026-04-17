@@ -15,7 +15,7 @@ export const issueCredential = createAsyncThunk(
     const response = await Api.issueCredential(data.connectionId, data.cred, data.credDefId)
     log.info('[credentials] credential offered', { credentialExchangeId: response.data?.credential_exchange_id })
     return response.data
-  }
+  },
 )
 
 const DEEP_CRED_MAX_ATTEMPTS = 10
@@ -48,7 +48,7 @@ export const issueDeepCredential = createAsyncThunk(
           credentialExchangeId: response.data?.credential_exchange_id,
         })
         return response.data
-      } catch (err) {
+      } catch {
         log.debug('[credentials] deep-link credential attempt failed', { attempt, maxAttempts: DEEP_CRED_MAX_ATTEMPTS })
         if (attempt < DEEP_CRED_MAX_ATTEMPTS) {
           await sleep(DEEP_CRED_BASE_DELAY_MS * 2 ** (attempt - 1), thunkAPI.signal)
@@ -57,7 +57,7 @@ export const issueDeepCredential = createAsyncThunk(
     }
     log.error('[credentials] deep-link credential failed after max attempts', { maxAttempts: DEEP_CRED_MAX_ATTEMPTS })
     return thunkAPI.rejectWithValue(`Failed to issue credential after ${DEEP_CRED_MAX_ATTEMPTS} attempts`)
-  }
+  },
 )
 
 export const fetchCredentialById = createAsyncThunk('credentials/fetchById', async (id: string) => {

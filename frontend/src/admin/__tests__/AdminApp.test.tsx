@@ -18,7 +18,7 @@ const renderAdminApp = (initialPath: string) =>
       <Routes>
         <Route path="/admin/*" element={<AdminApp />} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 
 describe('AdminApp', () => {

@@ -75,7 +75,7 @@ const run = async () => {
         req: () => undefined,
         res: () => undefined,
       },
-    })
+    }),
   )
 
   app.use(`${baseRoute}/public`, stx(__dirname + '/public'))
