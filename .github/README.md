@@ -10,9 +10,9 @@ This folder defines automation for the BC Wallet Demo monorepo (`frontend` and `
 
 **Inputs:**
 
-| Input           | Required | Description        |
-|-----------------|----------|--------------------|
-| `node-version`  | yes      | Node major or semver (e.g. `22`) |
+| Input          | Required | Description                      |
+| -------------- | -------- | -------------------------------- |
+| `node-version` | yes      | Node major or semver (e.g. `22`) |
 
 **Behaviour:**
 
@@ -39,11 +39,11 @@ This folder defines automation for the BC Wallet Demo monorepo (`frontend` and `
 
 **Global env:** `HUSKY=0` so Husky does not run during `yarn install` in CI.
 
-| Job                    | What it does |
-|------------------------|--------------|
-| **Server Unit Tests**  | `yarn install --frozen-lockfile`, then `yarn workspace server test` |
-| **Frontend Unit Tests**| `yarn install --frozen-lockfile`, then `yarn workspace frontend test:unit` |
-| **Cypress E2E Tests**  | Lint (`yarn lint`), Prettier check, `yarn check-types`, then Cypress with `yarn workspace frontend start` and `wait-on` for `http://localhost:3000` |
+| Job                     | What it does                                                                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Server Unit Tests**   | `yarn install --frozen-lockfile`, then `yarn workspace server test`                                                                                 |
+| **Frontend Unit Tests** | `yarn install --frozen-lockfile`, then `yarn workspace frontend test:unit`                                                                          |
+| **Cypress E2E Tests**   | Lint (`yarn lint`), Prettier check, `yarn check-types`, then Cypress with `yarn workspace frontend start` and `wait-on` for `http://localhost:3000` |
 
 ---
 
@@ -82,10 +82,10 @@ This folder defines automation for the BC Wallet Demo monorepo (`frontend` and `
 
 Images are pushed to **GitHub Container Registry** (`ghcr.io`):
 
-| Variable in workflow              | Image |
-|-----------------------------------|--------|
-| `SHOWCASE_SERVER_IMAGE`           | `ghcr.io/<owner>/bc-wallet-showcase-server` |
-| `SHOWCASE_FRONTEND_IMAGE`         | `ghcr.io/<owner>/bc-wallet-showcase-frontend` |
+| Variable in workflow      | Image                                         |
+| ------------------------- | --------------------------------------------- |
+| `SHOWCASE_SERVER_IMAGE`   | `ghcr.io/<owner>/bc-wallet-showcase-server`   |
+| `SHOWCASE_FRONTEND_IMAGE` | `ghcr.io/<owner>/bc-wallet-showcase-frontend` |
 
 Jobs use `docker/login-action@v3`, `docker/setup-buildx-action@v3`, `docker/metadata-action@v5`, and `docker/build-push-action@v7` with **minimal provenance** and **SBOM** attestations (`provenance: mode=min`, `sbom: true`).
 
