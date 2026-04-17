@@ -77,4 +77,7 @@ jobs:
           browser: chrome
         env:
           REACT_APP_HOST_BACKEND: http://localhost:5000
+          REACT_APP_KEYCLOAK_URL: http://localhost:8080
+          REACT_APP_KEYCLOAK_REALM: my-app
+          REACT_APP_KEYCLOAK_CLIENT_ID: frontend
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
