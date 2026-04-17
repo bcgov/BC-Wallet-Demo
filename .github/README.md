@@ -91,7 +91,7 @@ Jobs use `docker/login-action@v3`, `docker/setup-buildx-action@v3`, `docker/meta
 
 ### Frontend image: build-time configuration
 
-Create React App reads **`REACT_APP_*`** at **build** time. Those values are **inlined into the client bundle**, so they are **not secret**—prefer **[repository Variables](https://docs.github.com/en/actions/learn-github-actions/variables)** (`REACT_APP_INSIGHTS_PROJECT_ID`, `REACT_APP_HOST_BACKEND`) so they are not treated as encrypted secrets. The workflow still falls back to **secrets** with the same names if variables are unset (see `build-args` on the frontend `docker/build-push-action` step). The **`frontend/Dockerfile`** declares matching `ARG`/`ENV` values before `yarn workspace frontend build`.
+The frontend is built with **Vite**, which reads **`VITE_*`** at **build** time. CI still passes legacy **`REACT_APP_*`** names as Docker **build-args**; the **`frontend/Dockerfile`** maps them to `VITE_INSIGHTS_PROJECT_ID` and `VITE_HOST_BACKEND` before `yarn workspace frontend build`. Those values are **inlined into the client bundle**, so they are **not secret**—prefer **[repository Variables](https://docs.github.com/en/actions/learn-github-actions/variables)** (`REACT_APP_INSIGHTS_PROJECT_ID`, `REACT_APP_HOST_BACKEND`) so they are not treated as encrypted secrets. The workflow still falls back to **secrets** with the same names if variables are unset (see `build-args` on the frontend `docker/build-push-action` step).
 
 Optional / other secrets (e.g. Cypress) are documented in the workflow file and org settings.
 
