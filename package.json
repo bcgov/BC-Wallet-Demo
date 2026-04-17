@@ -16,6 +16,7 @@
     "check-types": "tsc --noEmit",
     "prettier": "prettier '**/*.+(js|json|ts|md|yml|yaml)'",
     "lint": "eslint --ignore-path .gitignore .",
+    "lint:fix": "eslint --ignore-path .gitignore . --fix",
     "format": "yarn prettier --write",
     "prepare": "husky install",
     "frontend:start": "yarn workspace frontend start",

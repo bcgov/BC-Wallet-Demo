@@ -5,18 +5,16 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { LoginPage } from '../LoginPage'
 
-const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  const actual = await vi.importActual('react-router-dom')
-  return { ...actual, useNavigate: () => mockNavigate }
-})
+const mockSigninRedirect = vi.fn()
+vi.mock('react-oidc-context', () => ({
+  useAuth: () => ({ signinRedirect: mockSigninRedirect }),
+}))
 
 vi.mock('../../../client/assets/light/landing-screen.svg', () => ({ default: 'landing-screen.svg' }))
 
-const renderLoginPage = () =>
+const renderLoginPage = (url = '/') =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[url]}>
       <LoginPage />
     </MemoryRouter>
   )
@@ -47,9 +45,29 @@ describe('LoginPage', () => {
     expect(screen.getByRole('link', { name: 'ditrust@gov.bc.ca' })).toBeInTheDocument()
   })
 
-  it('navigates to creator page when Admin Log In is clicked', async () => {
+  it('calls signinRedirect when Admin Log In is clicked', async () => {
     renderLoginPage()
     await userEvent.click(screen.getByRole('button', { name: 'Admin Log In' }))
-    expect(mockNavigate).toHaveBeenCalledWith('creator')
+    expect(mockSigninRedirect).toHaveBeenCalled()
+  })
+
+  it('does not show signed out message by default', () => {
+    renderLoginPage()
+    expect(screen.queryByText(/successfully signed out/)).not.toBeInTheDocument()
+  })
+
+  it('shows signed out message when signedOut query param is true', () => {
+    renderLoginPage('/?signedOut=true')
+    expect(screen.getByText('You have been successfully signed out.')).toBeInTheDocument()
+  })
+
+  it('does not show auth error banner by default', () => {
+    renderLoginPage()
+    expect(screen.queryByText(/Login authorization failed/)).not.toBeInTheDocument()
+  })
+
+  it('shows auth error banner when authError query param is true', () => {
+    renderLoginPage('/?authError=true')
+    expect(screen.getByText('Login authorization failed. Please try again.')).toBeInTheDocument()
   })
 })

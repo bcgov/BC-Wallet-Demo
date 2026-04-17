@@ -49,6 +49,45 @@ Start the client:
 
 The application will now be running at http://localhost:3000
 
+## Admin Portal
+
+The admin portal is available at `<base_route>/admin` (e.g. `http://localhost:3000/digital-trust/showcase/admin`). It is protected by Keycloak OIDC authentication.
+
+### Keycloak Setup
+
+1. Create a realm in your Keycloak instance (e.g. `showcase`).
+2. Create a client within that realm with the following settings:
+   - **Client ID**: your chosen client ID (e.g. `showcase-admin`)
+   - **Client authentication**: Off (public client)
+   - **Standard flow**: Enabled
+   - **Valid redirect URIs**: `http://localhost:3000/*` (adjust origin for production)
+   - **Web origins**: `*` (or restrict to your app's origin)
+3. Create at least one user in the realm and assign them a password.
+
+### Environment Variables
+
+The following variables are configured in `frontend/.env`:
+
+| Variable                       | Description                      | Default                 |
+| ------------------------------ | -------------------------------- | ----------------------- |
+| `REACT_APP_KEYCLOAK_URL`       | Base URL of your Keycloak server | `http://localhost:8080` |
+| `REACT_APP_KEYCLOAK_REALM`     | Keycloak realm name              | `showcase`              |
+| `REACT_APP_KEYCLOAK_CLIENT_ID` | Keycloak client ID               | `showcase-admin`        |
+
+The OIDC redirect URI is built automatically from the app's origin:
+
+```
+<window.location.origin><REACT_APP_BASE_ROUTE>/admin/callback
+```
+
+For a default local setup this resolves to:
+
+```
+http://localhost:3000/digital-trust/showcase/admin/callback
+```
+
+This URI must be listed under **Valid redirect URIs** in your Keycloak client settings.
+
 ## Contributing
 
 **Pull requests are always welcome!**

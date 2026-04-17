@@ -4,12 +4,25 @@ import { describe, expect, it, vi } from 'vitest'
 
 import AdminApp from '../AdminApp'
 
+vi.mock('react-oidc-context', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAuth: () => ({ isLoading: false, isAuthenticated: true }),
+}))
+
+vi.mock('../auth/AuthGuard', () => ({
+  AuthGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+
 vi.mock('../pages/LoginPage', () => ({
   LoginPage: () => <div>Login Page</div>,
 }))
 
 vi.mock('../pages/CreatorPage', () => ({
   CreatorPage: () => <div>Creator Page</div>,
+}))
+
+vi.mock('../pages/CallbackPage', () => ({
+  CallbackPage: () => <div>Callback Page</div>,
 }))
 
 const renderAdminApp = (initialPath: string) =>
@@ -25,6 +38,11 @@ describe('AdminApp', () => {
   it('renders LoginPage at the index route', () => {
     renderAdminApp('/admin')
     expect(screen.getByText('Login Page')).toBeInTheDocument()
+  })
+
+  it('renders CallbackPage at the callback route', () => {
+    renderAdminApp('/admin/callback')
+    expect(screen.getByText('Callback Page')).toBeInTheDocument()
   })
 
   it('renders CreatorPage at the creator route', () => {
