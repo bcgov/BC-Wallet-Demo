@@ -45,7 +45,7 @@ describe('getMongoUri', () => {
     vi.stubEnv('MONGODB_HOST', '')
     vi.stubEnv('MONGODB_PORT', '')
     vi.stubEnv('MONGODB_DB_NAME', '')
-    expect(getMongoUri()).toBe('mongodb://localhost:27017/bcwallet_demo')
+    expect(getMongoUri()).toBe('mongodb://localhost:27017/bc_wallet_showcase')
   })
 
   it('does not include credentials when only user is set without password', () => {

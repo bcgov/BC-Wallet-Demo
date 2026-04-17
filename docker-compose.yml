@@ -6,7 +6,7 @@ services:
     volumes:
       - mongo-data:/data/db
     environment:
-      MONGO_INITDB_DATABASE: bcwallet_demo
+      MONGO_INITDB_DATABASE: bc_wallet_showcase
     ports:
       # Published to loopback only — mongosh/Compass on the host; in-cluster use hostname `mongodb`
       - '127.0.0.1:27017:27017'
@@ -59,8 +59,8 @@ services:
     environment:
       MONGODB_HOST: mongodb
       MONGODB_PORT: '27017'
-      MONGODB_DB_NAME: bcwallet_demo
-      MONGODB_URI: mongodb://mongodb:27017/bcwallet_demo
+      MONGODB_DB_NAME: bc_wallet_showcase
+      MONGODB_URI: mongodb://mongodb:27017/bc_wallet_showcase
     depends_on:
       mongodb:
         condition: service_healthy
@@ -77,8 +77,8 @@ services:
     environment:
       MONGODB_HOST: mongodb
       MONGODB_PORT: '27017'
-      MONGODB_DB_NAME: bcwallet_demo
-      MONGODB_URI: mongodb://mongodb:27017/bcwallet_demo
+      MONGODB_DB_NAME: bc_wallet_showcase
+      MONGODB_URI: mongodb://mongodb:27017/bc_wallet_showcase
     depends_on:
       mongodb:
         condition: service_healthy
