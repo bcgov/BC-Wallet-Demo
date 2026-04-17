@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
-  "main": "build/index.js",
+  "main": "build/src/index.js",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "start:prod": "yarn build && yarn start",
-    "start": "node -r dotenv/config build/index.js",
+    "start": "node -r dotenv/config build/src/index.js",
     "dev": "tsnd -r dotenv/config --respawn src/index.ts dotenv_config_path=.env",
-    "build": "rm -rf build && tsc && cp -r src/public build",
+    "build": "rm -rf build && tsc && cp -r src/public build/src",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
