@@ -72,9 +72,9 @@ This folder defines automation for the BC Wallet Demo monorepo (`frontend` and `
 
 ### Job graph
 
-1. **`cypress-run`** (conditional) — On every **release** publish, or when manual dispatch sets `run_cypress: true`. Checks out the repo, uses `setup-node` (Node 22), runs `yarn install --frozen-lockfile`, starts `yarn dev` in the background, waits with `wait-on` for `http://localhost:3000` and `http://localhost:5000`, short warm-up sleep, then runs **Cypress** (`cypress-io/github-action@v6`, `install: false`, optional Dashboard recording via `CYPRESS_RECORD_KEY`).
+1. **`cypress-run`** (conditional) — Runs on **release** publish, or on **`workflow_dispatch`** when the boolean input `run_cypress` is true. Checks out the repo, uses `setup-node` (Node 22), runs `yarn install --frozen-lockfile`, starts `yarn dev` in the background, waits with `wait-on` for `http://localhost:3000` and `http://localhost:5000`, short warm-up sleep, then runs **Cypress** (`cypress-io/github-action@v6`, `install: false`, optional Dashboard recording via `CYPRESS_RECORD_KEY`).
 
-2. **`cypress-skipped`** — Runs when Cypress is not required (manual dispatch with `run_cypress: false`). Satisfies `needs` for the image jobs without doing work.
+2. **`cypress-skipped`** — Runs only on **`workflow_dispatch`** when `run_cypress` is false. Satisfies `needs` for the image jobs without doing work.
 
 3. **`build-and-push-image-server`** and **`build-and-push-image-frontend`** — Both `need` the Cypress jobs and only proceed if nothing failed and at least one of the Cypress paths succeeded (see `if:` in the workflow). They **do not** run `yarn install` on the runner: the only install/build for the published images happens **inside Docker**, avoiding duplicate work.
 
@@ -87,16 +87,11 @@ Images are pushed to **GitHub Container Registry** (`ghcr.io`):
 | `SHOWCASE_SERVER_IMAGE`   | `ghcr.io/<owner>/bc-wallet-showcase-server`   |
 | `SHOWCASE_FRONTEND_IMAGE` | `ghcr.io/<owner>/bc-wallet-showcase-frontend` |
 
-Jobs use `docker/login-action@v3`, `docker/setup-buildx-action@v3`, `docker/metadata-action@v5`, and `docker/build-push-action@v7` with **minimal provenance** and **SBOM** attestations (`provenance: mode=min`, `sbom: true`).
+Jobs use `docker/login-action@v3`, `docker/setup-buildx-action@v3`, `docker/metadata-action@v5`, and `docker/build-push-action@v7` with **minimal provenance** and **SBOM** attestations (`provenance: mode=min`, `sbom: true`). Image build jobs set **`permissions: id-token: write`** (with `packages: write`) so attestation upload to GHCR is supported.
 
 ### Frontend image: build-time configuration
 
-The app is built with **Vite**; runtime config uses **`import.meta.env.VITE_*`** (see `frontend/src/vite-env.d.ts`). GitHub Actions still passes **legacy secret names** as Docker **build-args** (`REACT_APP_INSIGHTS_PROJECT_ID`, `REACT_APP_HOST_BACKEND`) so existing repository secrets do not need renaming. The **`frontend/Dockerfile`** maps those `ARG`s to **`ENV VITE_INSIGHTS_PROJECT_ID`** and **`ENV VITE_HOST_BACKEND`** before `yarn workspace frontend build`.
-
-Required repository **secrets** (names must match `build_packages.yml`):
-
-- `REACT_APP_INSIGHTS_PROJECT_ID` → inlined as `VITE_INSIGHTS_PROJECT_ID`
-- `REACT_APP_HOST_BACKEND` → inlined as `VITE_HOST_BACKEND`
+The app is built with **Vite**; runtime config uses **`import.meta.env.VITE_*`** (see `frontend/src/vite-env.d.ts`). Those values are **inlined into the client bundle**, so they are **not secret**—prefer **[repository Variables](https://docs.github.com/en/actions/learn-github-actions/variables)** named `REACT_APP_INSIGHTS_PROJECT_ID` and `REACT_APP_HOST_BACKEND` (same names as in `build_packages.yml`) so they are not stored as encrypted secrets. The workflow passes them as Docker **build-args** and falls back to **secrets** with the same names if variables are unset. The **`frontend/Dockerfile`** accepts those **`ARG`s** and maps them to **`ENV VITE_INSIGHTS_PROJECT_ID`** and **`ENV VITE_HOST_BACKEND`** before `yarn workspace frontend build`.
 
 Optional / other secrets (e.g. Cypress) are documented in the workflow file and org settings.
 

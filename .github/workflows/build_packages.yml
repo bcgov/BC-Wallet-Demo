@@ -25,7 +25,7 @@ jobs:
     name: Cypress E2E (optional)
     runs-on: ubuntu-latest
     timeout-minutes: 180
-    if: github.event_name == 'release' || inputs.run_cypress == 'true'
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.run_cypress)
     permissions:
       contents: read
     steps:
@@ -67,7 +67,7 @@ jobs:
   cypress-skipped:
     name: Cypress skipped
     runs-on: ubuntu-latest
-    if: github.event_name != 'release' && inputs.run_cypress != 'true'
+    if: github.event_name == 'workflow_dispatch' && !inputs.run_cypress
     permissions:
       contents: read
     steps:
@@ -81,6 +81,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -121,6 +122,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -153,5 +155,5 @@ jobs:
           provenance: mode=min
           sbom: true
           build-args: |
-            REACT_APP_INSIGHTS_PROJECT_ID=${{ secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
-            REACT_APP_HOST_BACKEND=${{ secrets.REACT_APP_HOST_BACKEND }}
+            REACT_APP_INSIGHTS_PROJECT_ID=${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
+            REACT_APP_HOST_BACKEND=${{ vars.REACT_APP_HOST_BACKEND || secrets.REACT_APP_HOST_BACKEND }}
