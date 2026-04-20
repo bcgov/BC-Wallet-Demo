@@ -29,19 +29,20 @@
     # Enable templates module - required for 
     templates
     
-    vars basePath {$REACT_APP_BASE_ROUTE}
+    # Matcher `*` is required: otherwise `basePath` is parsed as a path matcher (Caddy 2.8+ vars syntax).
+    vars * basePath {$VITE_BASE_ROUTE}
     
     # Health check for openshift
     handle /health {
         respond 200
     }
-    handle {$REACT_APP_BASE_ROUTE}/demo {
+    handle {$VITE_BASE_ROUTE}/demo {
         redir {vars.basePath}
     }
-    handle {$REACT_APP_BASE_ROUTE}/dashboard {
+    handle {$VITE_BASE_ROUTE}/dashboard {
         redir {vars.basePath}
     }
-    handle {$REACT_APP_BASE_ROUTE}* {
+    handle {$VITE_BASE_ROUTE}* {
         
         @websockets {
             header Connection *Upgrade*
@@ -52,7 +53,7 @@
 
          # Required for SPA router to work
         @spa_router {
-            not path {$REACT_APP_BASE_ROUTE}/demo/* {$REACT_APP_BASE_ROUTE}/server/* {$REACT_APP_BASE_ROUTE}/agent/ready {$REACT_APP_BASE_ROUTE}/public/* {$REACT_APP_BASE_ROUTE}/qr
+            not path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/ready {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr
             file {
                 try_files {path} /index.html
             }
@@ -61,7 +62,7 @@
 
         # pass API requests to backend
         @pass {
-            path {$REACT_APP_BASE_ROUTE}/demo/* {$REACT_APP_BASE_ROUTE}/server/* {$REACT_APP_BASE_ROUTE}/agent/ready {$REACT_APP_BASE_ROUTE}/public/* {$REACT_APP_BASE_ROUTE}/qr
+            path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/ready {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr
         }
 
         # Proxy requests to API service

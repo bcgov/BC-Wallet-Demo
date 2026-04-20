@@ -1,7 +1,7 @@
 import type { RevocationInfoItem, RevocationRecord } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
-import { startCase } from 'lodash'
+import startCase from 'lodash/startCase'
 import React, { useState } from 'react'
 
 import { dashboardTitle, rowContainer } from '../../../FramerAnimations'
@@ -21,7 +21,7 @@ export const RevocationContainer: React.FC<Props> = ({ revocationRecord, revocat
   const renderUseCases = revocationRecord.map((item) => {
     const revocationKey = item.revocationRegId.split(':')[6]
     const revocationDescription = revocationInfo.find(
-      (infoItem) => startCase(infoItem.credentialName) === startCase(revocationKey)
+      (infoItem) => startCase(infoItem.credentialName) === startCase(revocationKey),
     )
     return (
       <RevocationItem

@@ -13,7 +13,9 @@ import * as Redux from './client/store/configureStore'
 import { KBar } from './client/utils/KBar'
 
 const { store, persistor } = Redux
-newTracker('sp1', 'spt.apps.gov.bc.ca', {
+// Force https so local http://localhost dev does not hit http→https redirects on
+// POST preflight (browsers: "Redirect is not allowed for a preflight request").
+newTracker('sp1', 'https://spt.apps.gov.bc.ca', {
   appId: 'Snowplow_standalone_DIG',
   cookieLifetime: 86400 * 548,
   platform: 'web',
@@ -44,5 +46,5 @@ createRoot(container).render(
         />
       </Routes>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 )

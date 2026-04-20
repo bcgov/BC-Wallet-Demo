@@ -60,7 +60,7 @@ describe('ProofController', () => {
         '/out-of-band/create-invitation',
         expect.objectContaining({
           attachments: [{ id: 'pex1', type: 'present-proof' }],
-        })
+        }),
       )
       expect(result).toEqual({ proofUrl: 'https://example.com/invite', proof: mockProof })
     })

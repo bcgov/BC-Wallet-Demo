@@ -45,9 +45,8 @@ export const StepProof: React.FC<Props> = ({
   const { message } = useSocket()
 
   const createProofRequest = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const proofs: any = []
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const predicates: any = []
 
     requestedCredentials?.forEach((item) => {
@@ -90,7 +89,7 @@ export const StepProof: React.FC<Props> = ({
           attributes: proofs,
           predicates: predicates,
           requestOptions: { name: step.requestOptions?.title, comment: step.requestOptions?.text },
-        })
+        }),
       )
     } else {
       dispatch(
@@ -99,7 +98,7 @@ export const StepProof: React.FC<Props> = ({
           attributes: proofs,
           predicates: predicates,
           requestOptions: { name: step.requestOptions?.title, comment: step.requestOptions?.text },
-        })
+        }),
       )
     }
   }

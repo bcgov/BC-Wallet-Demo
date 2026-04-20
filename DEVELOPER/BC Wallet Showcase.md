@@ -44,12 +44,12 @@ In the frontend folder the .env file should look like this:
 
 ```bash
 SNOWPLOW_ENDPOINT=spm.apps.gov.bc.ca
-REACT_APP_HOST_BACKEND=http://127.0.0.1:5000
-REACT_APP_BASE_ROUTE=/digital-trust/showcase
-REACT_APP_INSIGHTS_PROJECT_ID=
+VITE_HOST_BACKEND=http://127.0.0.1:5000
+VITE_BASE_ROUTE=/digital-trust/showcase
+VITE_INSIGHTS_PROJECT_ID=
 ```
 
-When adding environment variables to this file in the future, ensure that they start with `REACT_APP_` otherwise react won't pick them up. Also note that the environment variables will only be present during development on the frontend. In production the frontend gets compiled down into static files and served with a caddy proxy. Caddy can still read the environment variables but the frontend code can't because they're just static files running on the user's browser at that point.
+When adding environment variables for the **Vite** dev client, use the `VITE_` prefix (see `frontend/.env.example`). In production the app is static files behind Caddy; **Caddy** reads `VITE_BASE_ROUTE` (and related vars) at runtime from the same `frontend/.env` when using Docker Compose.
 
 Ensure that both the env files are named `.env` and that they're in the same folder as their respective `.env.example` files, otherwise they won't get loaded.
 

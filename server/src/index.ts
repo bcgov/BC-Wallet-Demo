@@ -14,8 +14,10 @@ import { tractionApiKeyUpdaterInit, tractionRequest, tractionGarbageCollection }
 
 const baseRoute = process.env.BASE_ROUTE
 
+const controllerPattern = __filename.endsWith('.js') ? '/controllers/*.js' : '/controllers/*.ts'
+
 const app: Express = createExpressServer({
-  controllers: [__dirname + '/controllers/*.ts'],
+  controllers: [__dirname + controllerPattern],
   cors: true,
   routePrefix: `${baseRoute}/demo`,
 })
@@ -75,7 +77,7 @@ const run = async () => {
         req: () => undefined,
         res: () => undefined,
       },
-    })
+    }),
   )
 
   app.use(`${baseRoute}/public`, stx(__dirname + '/public'))

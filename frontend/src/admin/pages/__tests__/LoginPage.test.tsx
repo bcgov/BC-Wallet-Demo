@@ -7,7 +7,6 @@ import { LoginPage } from '../LoginPage'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   const actual = await vi.importActual('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }
 })
@@ -18,7 +17,7 @@ const renderLoginPage = () =>
   render(
     <MemoryRouter>
       <LoginPage />
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 
 describe('LoginPage', () => {

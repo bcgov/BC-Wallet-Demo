@@ -31,7 +31,7 @@ describe('CredentialController', () => {
 
       expect(tractionRequest.get).toHaveBeenCalledWith(
         '/issue-credential/records',
-        expect.objectContaining({ params: { connection_id: 'conn1' } })
+        expect.objectContaining({ params: { connection_id: 'conn1' } }),
       )
     })
 
