@@ -25,7 +25,7 @@ export async function connectDB(): Promise<void> {
       if (attempt === maxAttempts) {
         logger.error(
           { attempt, maxAttempts, uri: sanitizedUri, err: error },
-          'Failed to connect to MongoDB after maximum retry attempts'
+          'Failed to connect to MongoDB after maximum retry attempts',
         )
         throw error
       }
@@ -33,7 +33,7 @@ export async function connectDB(): Promise<void> {
       const backoffMs = initialBackoffMs * 2 ** (attempt - 1)
       logger.warn(
         { attempt, maxAttempts, backoffMs, uri: sanitizedUri, err: error },
-        'MongoDB connection attempt failed; retrying'
+        'MongoDB connection attempt failed; retrying',
       )
       await delay(backoffMs)
     }
@@ -45,7 +45,7 @@ type OnceFn = (event: string, listener: () => void) => NodeJS.EventEmitter
 
 export function registerShutdownHandlers(
   disconnectFn: DisconnectFn = () => mongoose.disconnect(),
-  once: OnceFn = process.once.bind(process)
+  once: OnceFn = process.once.bind(process),
 ): void {
   const disconnect = async (signal: string) => {
     logger.info({ signal }, 'Disconnecting from MongoDB')
