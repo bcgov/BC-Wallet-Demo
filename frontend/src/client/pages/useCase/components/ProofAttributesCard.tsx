@@ -1,6 +1,6 @@
 import type { Attribute, CredentialRequest } from '../../../slices/types'
 
-import { startCase } from 'lodash'
+import startCase from 'lodash/startCase'
 import React, { useEffect, useState } from 'react'
 
 import { CheckMark } from '../../../components/Checkmark'

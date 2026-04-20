@@ -78,7 +78,7 @@ export const tractionGarbageCollection = async () => {
       const connections: any[] = (await tractionRequest.get('/connections')).data.results
       const stale = connections.filter(
         (conn) =>
-          olderThanHours(conn.created_at, 12) && conn.alias !== 'endorser' && conn.alias !== 'bcovrin-test-endorser'
+          olderThanHours(conn.created_at, 12) && conn.alias !== 'endorser' && conn.alias !== 'bcovrin-test-endorser',
       )
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale connections')
       await Promise.all(stale.map((conn) => tractionRequest.delete(`/connections/${conn.connection_id}`)))
@@ -92,7 +92,7 @@ export const tractionGarbageCollection = async () => {
       const stale = records.filter((record) => olderThanHours(record.created_at, 12))
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale credential exchange records')
       await Promise.all(
-        stale.map((record) => tractionRequest.delete(`/issue-credential/records/${record.credential_exchange_id}`))
+        stale.map((record) => tractionRequest.delete(`/issue-credential/records/${record.credential_exchange_id}`)),
       )
     } catch (err) {
       logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up credential exchange records')
@@ -104,7 +104,7 @@ export const tractionGarbageCollection = async () => {
       const stale = proofs.filter((proof) => olderThanHours(proof.created_at, 12))
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale proof records')
       await Promise.all(
-        stale.map((proof) => tractionRequest.delete(`/present-proof/records/${proof.presentation_exchange_id}`))
+        stale.map((proof) => tractionRequest.delete(`/present-proof/records/${proof.presentation_exchange_id}`)),
       )
     } catch (err) {
       logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up proof records')
@@ -113,10 +113,13 @@ export const tractionGarbageCollection = async () => {
   cleanupConnections()
   cleanupExchangeRecords()
   cleanupProofRecords()
-  setInterval(async () => {
-    logger.debug('Running scheduled garbage collection')
-    cleanupConnections()
-    cleanupExchangeRecords()
-    cleanupProofRecords()
-  }, 6 * 60 * 60 * 1000)
+  setInterval(
+    async () => {
+      logger.debug('Running scheduled garbage collection')
+      cleanupConnections()
+      cleanupExchangeRecords()
+      cleanupProofRecords()
+    },
+    6 * 60 * 60 * 1000,
+  )
 }

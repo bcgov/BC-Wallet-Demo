@@ -1,6 +1,5 @@
 import type { Attribute } from '../slices/types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getAttributesFromProof = (proof: any) => {
   const proofData = proof.presentation.requested_proof.revealed_attr_groups
 

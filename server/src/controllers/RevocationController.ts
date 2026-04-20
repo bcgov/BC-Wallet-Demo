@@ -11,7 +11,7 @@ export class RevocationController {
   public async acceptProof(@Body() params: any) {
     logger.info(
       { connectionId: params.connection_id, credentialRevocationId: params.cred_rev_id },
-      'Revoking credential'
+      'Revoking credential',
     )
     const revocationResult = (await tractionRequest.post('/revocation/revoke', params)).data
     logger.info({ credentialRevocationId: params.cred_rev_id }, 'Credential revoked')

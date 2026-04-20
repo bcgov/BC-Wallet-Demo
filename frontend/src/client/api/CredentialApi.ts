@@ -6,7 +6,7 @@ import { apiCall } from './BaseUrl'
 export const issueCredential = async (
   connectionId: string,
   cred: Credential,
-  credDefId: string
+  credDefId: string,
 ): Promise<AxiosResponse> => {
   return apiCall.post(`/demo/credentials/offerCredential`, {
     connection_id: connectionId,
@@ -21,7 +21,7 @@ export const issueCredential = async (
 export const issueDeepCredential = async (
   connectionId: string,
   cred: Credential,
-  credDefId: string
+  credDefId: string,
 ): Promise<AxiosResponse> => {
   return apiCall.post(`/demo/deeplink/offerCredential`, {
     connection_id: connectionId,

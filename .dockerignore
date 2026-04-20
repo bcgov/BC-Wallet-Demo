@@ -1,4 +1,36 @@
+# Installed inside the image
 node_modules
 frontend/node_modules
-server/build
 server/node_modules
+
+# Rebuilt in the image
+frontend/dist
+server/build
+
+# VCS and CI (not needed for install/build)
+.git
+.github
+
+# Docs, compliance metadata, deploy charts
+*.md
+DEVELOPER
+charts
+COMPLIANCE.yaml
+
+# E2E (not part of workspace `yarn build`)
+cypress
+cypress.config.ts
+
+# Editor / local tooling
+.vscode
+.cursor
+
+# Git hooks — prepare uses husky; Dockerfiles set HUSKY=0 for installs
+.husky
+
+# Local compose / dev image definition (not used by service Dockerfiles)
+docker-compose.yml
+dev.dockerfile
+
+# Misc repo scripts not used by frontend/server build
+manage

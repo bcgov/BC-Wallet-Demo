@@ -35,7 +35,7 @@ describe('tractionRequest', () => {
       expect.objectContaining({
         timeout: 80000,
         headers: expect.objectContaining({ Authorization: expect.stringContaining('Bearer') }),
-      })
+      }),
     )
   })
 
@@ -46,7 +46,7 @@ describe('tractionRequest', () => {
 
     expect(axios.get).toHaveBeenCalledWith(
       'https://traction.example.com/connections',
-      expect.objectContaining({ params: { state: 'active' } })
+      expect.objectContaining({ params: { state: 'active' } }),
     )
   })
 
@@ -62,7 +62,7 @@ describe('tractionRequest', () => {
       expect.objectContaining({
         timeout: 80000,
         headers: expect.objectContaining({ Authorization: expect.stringContaining('Bearer') }),
-      })
+      }),
     )
   })
 
@@ -76,7 +76,7 @@ describe('tractionRequest', () => {
       expect.objectContaining({
         timeout: 80000,
         headers: expect.objectContaining({ Authorization: expect.stringContaining('Bearer') }),
-      })
+      }),
     )
   })
 
@@ -176,7 +176,7 @@ describe('tractionGarbageCollection', () => {
     expect(axios.delete).toHaveBeenCalledWith('https://traction.example.com/connections/stale-conn', expect.anything())
     expect(axios.delete).not.toHaveBeenCalledWith(
       'https://traction.example.com/connections/fresh-conn',
-      expect.anything()
+      expect.anything(),
     )
   })
 
@@ -225,7 +225,7 @@ describe('tractionGarbageCollection', () => {
 
     expect(axios.delete).toHaveBeenCalledWith(
       'https://traction.example.com/issue-credential/records/cred-exch-1',
-      expect.anything()
+      expect.anything(),
     )
   })
 })
