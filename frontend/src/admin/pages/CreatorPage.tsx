@@ -124,7 +124,7 @@ export function CreatorPage() {
         </div>
         <div className="flex justify-center select-none">
           <p className="self-center mr-2 text-sm text-bcgov-darkgrey">
-            Copyright &#169; 2022 Government of British Columbia
+            Copyright &#169; 2026 Government of British Columbia
           </p>
         </div>
       </div>
