@@ -1,4 +1,4 @@
-import type { CredentialDefinition } from '../../content/types'
+import type { CredentialDefinition, CredentialStatus, DidMethod } from '../../content/types'
 
 import { Schema, model } from 'mongoose'
 
@@ -18,10 +18,10 @@ const CredentialDefinitionSchema = new Schema<CredentialDefinition>(
     version: { type: String, required: true },
     icon: String,
     attributes: [AttributeSchema],
-    did_method: { type: String, enum: ['indy', 'webvh'], required: true },
+    did_method: { type: String, enum: ['indy', 'webvh'] satisfies DidMethod[], required: true },
     schema_id: String,
     cred_def_id: String,
-    status: { type: String, enum: ['active', 'retired'], default: 'active' },
+    status: { type: String, enum: ['active', 'retired'] satisfies CredentialStatus[], default: 'active' },
   },
   baseSchemaOptions,
 )

@@ -8,6 +8,9 @@ export interface Credential {
   }[]
 }
 
+export type DidMethod = 'indy' | 'webvh'
+export type CredentialStatus = 'active' | 'retired'
+
 // Persisted registry entry for a credential schema/definition pair.
 // schema_id and cred_def_id are populated after successful ledger registration.
 export interface CredentialDefinition {
@@ -15,10 +18,10 @@ export interface CredentialDefinition {
   version: string
   icon?: string
   attributes: { name: string; value: string }[]
-  did_method: 'indy' | 'webvh'
+  did_method: DidMethod
   schema_id?: string
   cred_def_id?: string
-  status: 'active' | 'retired'
+  status: CredentialStatus
 }
 
 export interface OnboardingStep {
