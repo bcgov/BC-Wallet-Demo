@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from 'express'
+import type { Request, Response } from 'express'
 
 import crypto from 'crypto'
 import express from 'express'
@@ -21,7 +21,8 @@ const { TEST_KEYCLOAK_URL, TEST_REALM } = vi.hoisted(() => ({
 // Mock fs so the middleware doesn't need a real keycloak.json — must be declared
 // before requireAdmin is imported since the config is read at module load time.
 vi.mock('fs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('fs')>()
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  const actual = await importOriginal<typeof import('node:fs')>()
   return {
     ...actual,
     readFileSync: (path: string, encoding?: string) => {
@@ -54,7 +55,7 @@ app.use(requireAdmin)
 app.get('/protected', (_req, res) => res.json({ ok: true }))
 
 // express-jwt calls next(err) on failure; map the error's status to the HTTP response.
-app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: unknown, _req: Request, res: Response) => {
   const status = (err as { status?: number }).status ?? 500
   res.status(status).json({ error: (err as Error).message })
 })
@@ -79,7 +80,10 @@ function signToken(
 describe('requireAdmin middleware (integration — real JWT verification)', () => {
   beforeAll(() => {
     // Intercept JWKS fetches for the duration of this suite.
-    nock(TEST_KEYCLOAK_URL).get(JWKS_PATH).reply(200, { keys: [testJwk] }).persist()
+    nock(TEST_KEYCLOAK_URL)
+      .get(JWKS_PATH)
+      .reply(200, { keys: [testJwk] })
+      .persist()
   })
 
   afterAll(() => {

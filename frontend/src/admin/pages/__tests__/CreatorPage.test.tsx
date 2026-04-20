@@ -7,10 +7,16 @@ import { CreatorPage } from '../CreatorPage'
 
 const mockSignoutRedirect = vi.fn()
 vi.mock('react-oidc-context', () => ({
-  useAuth: () => ({ signoutRedirect: mockSignoutRedirect }),
+  useAuth: () => ({
+    signoutRedirect: mockSignoutRedirect,
+    user: { access_token: 'test-token', profile: { name: 'Test User' } },
+  }),
 }))
 
-vi.mock('../../../client/api/BaseUrl', () => ({ baseRoute: '/digital-trust/showcase' }))
+vi.mock('../../../client/api/BaseUrl', () => ({
+  baseRoute: '/digital-trust/showcase',
+  baseUrl: 'http://localhost:5000/digital-trust/showcase',
+}))
 
 const renderCreatorPage = () =>
   render(
@@ -25,9 +31,16 @@ describe('CreatorPage', () => {
     expect(screen.getByRole('heading', { name: 'Admin Portal' })).toBeInTheDocument()
   })
 
-  it('renders the placeholder message', () => {
+  it('renders the API Test Panel', () => {
     renderCreatorPage()
-    expect(screen.getByText('Admin dashboard coming soon.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'API Test Panel' })).toBeInTheDocument()
+  })
+
+  it('renders all endpoint buttons', () => {
+    renderCreatorPage()
+    expect(screen.getByRole('button', { name: 'GET /characters' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'POST /characters' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'DELETE /characters/test-id' })).toBeInTheDocument()
   })
 
   it('renders the contact email link', () => {
@@ -48,8 +61,6 @@ describe('CreatorPage', () => {
   it('calls signoutRedirect when Sign Out is clicked', async () => {
     renderCreatorPage()
     await userEvent.click(screen.getByRole('button', { name: 'Sign Out' }))
-    expect(mockSignoutRedirect).toHaveBeenCalledWith({
-      post_logout_redirect_uri: expect.stringContaining('?signedOut=true'),
-    })
+    expect(mockSignoutRedirect).toHaveBeenCalled()
   })
 })

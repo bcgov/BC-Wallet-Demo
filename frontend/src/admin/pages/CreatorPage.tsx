@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { baseUrl } from '../../client/api/BaseUrl'
+import { baseRoute, baseUrl } from '../../client/api/BaseUrl'
 
 const adminBase = `${baseUrl}/admin`
 
@@ -49,7 +49,9 @@ export function CreatorPage() {
   }
 
   const handleSignOut = () => {
-    void auth.signoutRedirect()
+    void auth.signoutRedirect({
+      post_logout_redirect_uri: `${window.location.origin}${baseRoute}/admin?signedOut=true`,
+    })
   }
 
   const endpoints: { label: string; method: string; path: string; body?: unknown }[] = [
@@ -129,4 +131,3 @@ export function CreatorPage() {
     </div>
   )
 }
-
