@@ -4,6 +4,15 @@ import { Schema } from 'mongoose'
 
 import { embeddedSchemaOptions } from '../baseSchema'
 
+// Extracted into its own schema so Mongoose keeps the parent path undefined
+// when verifier is not provided. An inline nested object would be initialised
+// to {} and trigger the required validation on name even for screens that have
+// no verifier.
+const VerifierSchema = new Schema<{ name: string; icon?: string }>(
+  { name: { type: String, required: true }, icon: String },
+  embeddedSchemaOptions,
+)
+
 // predicates.value allows runtime functions in types.ts (e.g. to compute the
 // current date at issuance), but functions cannot be persisted in MongoDB.
 // Callers must resolve any function values before saving a document.
@@ -37,10 +46,7 @@ const UseCaseScreenSchema = new Schema<UseCaseScreen>(
     title: { type: String, required: true },
     text: { type: String, required: true },
     image: String,
-    verifier: {
-      name: String,
-      icon: String,
-    },
+    verifier: VerifierSchema,
     requestOptions: {
       title: String,
       text: String,

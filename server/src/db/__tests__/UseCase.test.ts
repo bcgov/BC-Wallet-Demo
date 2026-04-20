@@ -9,7 +9,9 @@ let mongod: MongoMemoryServer
 
 // Wrap the embedded schema in a throwaway top-level model so we can persist it.
 const HostSchema = new Schema({ useCases: [UseCaseSchema] }, baseSchemaOptions)
-const HostModel = model('UseCaseHost', HostSchema)
+// Guard prevents "Cannot overwrite model" errors when the module is re-evaluated
+// (e.g. vitest watch mode or hot reload).
+const HostModel = mongoose.models['UseCaseHost'] ?? model('UseCaseHost', HostSchema)
 
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create()

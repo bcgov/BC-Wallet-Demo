@@ -1,5 +1,7 @@
 import type { SchemaOptions } from 'mongoose'
 
+import { Schema } from 'mongoose'
+
 export const baseSchemaOptions: SchemaOptions = {
   timestamps: true,
   toJSON: {
@@ -12,9 +14,19 @@ export const baseSchemaOptions: SchemaOptions = {
 }
 
 export const embeddedSchemaOptions: SchemaOptions = {
+  // Prevents MongoDB from generating _id on every subdocument, which wastes
+  // storage and breaks array update operators like $pull by value.
+  _id: false,
   toJSON: {
     transform: (_doc, ret: Record<string, unknown>) => {
       delete ret['_id']
     },
   },
 }
+
+// Shared attribute schema used by CredentialDefinition and Credential to avoid
+// duplication and ensure name is always validated.
+export const AttributeSchema = new Schema<{ name: string; value: string }>(
+  { name: { type: String, required: true }, value: String },
+  embeddedSchemaOptions,
+)

@@ -2,12 +2,7 @@ import type { CredentialDefinition, CredentialStatus, DidMethod } from '../../co
 
 import { Schema, model } from 'mongoose'
 
-import { baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
-
-const AttributeSchema = new Schema<{ name: string; value: string }>(
-  { name: String, value: String },
-  embeddedSchemaOptions,
-)
+import { AttributeSchema, baseSchemaOptions } from '../baseSchema'
 
 // Maps to CredentialDefinition interface.
 // schema_id and cred_def_id start empty and are written back after Traction

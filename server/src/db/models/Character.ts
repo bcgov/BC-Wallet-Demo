@@ -8,7 +8,7 @@ import type {
 
 import { Schema, model } from 'mongoose'
 
-import { baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
+import { AttributeSchema, baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
 
 import { UseCaseSchema } from './UseCase'
 
@@ -19,7 +19,8 @@ const CredentialSchema = new Schema<Credential>(
     name: { type: String, required: true },
     icon: { type: String, required: true },
     version: { type: String, required: true },
-    attributes: [{ name: String, value: String }],
+    // Use shared AttributeSchema so name is required consistently.
+    attributes: [AttributeSchema],
   },
   embeddedSchemaOptions,
 )
@@ -68,8 +69,9 @@ const CharacterSchema = new Schema<CustomCharacter>(
     image: { type: String, required: true },
     hidden: { type: Boolean, default: false },
     description: String,
-    progressBar: [ProgressBarStepSchema],
-    onboarding: [OnboardingStepSchema],
+    // required + default to match types.ts where both fields are non-optional.
+    progressBar: { type: [ProgressBarStepSchema], required: true, default: [] },
+    onboarding: { type: [OnboardingStepSchema], required: true, default: [] },
     useCases: [UseCaseSchema],
     revocationInfo: [RevocationInfoItemSchema],
   },
