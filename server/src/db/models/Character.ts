@@ -21,7 +21,7 @@ const CredentialSchema = new Schema<Credential>(
     version: { type: String, required: true },
     attributes: [{ name: String, value: String }],
   },
-  embeddedSchemaOptions
+  embeddedSchemaOptions,
 )
 
 // Maps to OnboardingStep interface.
@@ -34,7 +34,7 @@ const OnboardingStepSchema = new Schema<OnboardingStep>(
     issuer_name: String,
     credentials: [CredentialSchema],
   },
-  embeddedSchemaOptions
+  embeddedSchemaOptions,
 )
 
 // Maps to ProgressBarStep interface.
@@ -45,7 +45,7 @@ const ProgressBarStepSchema = new Schema<ProgressBarStep>(
     iconLight: { type: String, required: true },
     iconDark: { type: String, required: true },
   },
-  embeddedSchemaOptions
+  embeddedSchemaOptions,
 )
 
 // Maps to RevocationInfoItem interface.
@@ -56,7 +56,7 @@ const RevocationInfoItemSchema = new Schema<RevocationInfoItem>(
     title: { type: String, required: true },
     description: { type: String, required: true },
   },
-  embeddedSchemaOptions
+  embeddedSchemaOptions,
 )
 
 // Maps to CustomCharacter interface. Top-level collection; type is the public
@@ -73,7 +73,7 @@ const CharacterSchema = new Schema<CustomCharacter>(
     useCases: [UseCaseSchema],
     revocationInfo: [RevocationInfoItemSchema],
   },
-  baseSchemaOptions
+  baseSchemaOptions,
 )
 
 export const CharacterModel = model<CustomCharacter>('Character', CharacterSchema)

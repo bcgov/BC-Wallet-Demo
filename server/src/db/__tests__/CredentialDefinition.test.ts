@@ -48,7 +48,7 @@ describe('CredentialDefinitionModel: compound unique index (name, version, did_m
   it('rejects a duplicate (name, version, did_method) triplet', async () => {
     await CredentialDefinitionModel.create({ name: 'Member Card', version: '1.0', did_method: 'indy' })
     await expect(
-      CredentialDefinitionModel.create({ name: 'Member Card', version: '1.0', did_method: 'indy' })
+      CredentialDefinitionModel.create({ name: 'Member Card', version: '1.0', did_method: 'indy' }),
     ).rejects.toThrow()
   })
 })
