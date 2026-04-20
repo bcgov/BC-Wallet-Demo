@@ -4,7 +4,7 @@ import { InMemoryWebStorage, Log, WebStorageStateStore } from 'oidc-client-ts'
 
 import { baseRoute } from '../../client/api/BaseUrl'
 
-if (process.env.NODE_ENV !== 'production') {
+if (import.meta.env.DEV) {
   Log.setLogger(console)
   Log.setLevel(Log.DEBUG)
 }
@@ -19,12 +19,12 @@ export const memStore = new InMemoryWebStorage()
 
 // Expose the store on the window in non-production so Cypress E2E tests
 // can pre-seed auth state via the __oidcMemStore property.
-if (process.env.NODE_ENV !== 'production') {
+if (import.meta.env.DEV) {
   ;(window as Window & { __oidcMemStore?: InMemoryWebStorage }).__oidcMemStore = memStore
 }
 
 export async function loadOidcConfig(): Promise<AuthProviderProps> {
-  const res = await fetch(`${process.env.PUBLIC_URL ?? ''}/config.json`)
+  const res = await fetch(`${import.meta.env.BASE_URL.replace(/\/$/, '')}/config.json`)
   if (!res.ok) throw new Error(`Failed to load /config.json: ${res.status}`)
   const { keycloakUrl, keycloakRealm, keycloakClientId } = (await res.json()) as AppConfig
 

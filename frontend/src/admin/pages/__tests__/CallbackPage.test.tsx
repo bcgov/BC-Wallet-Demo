@@ -19,7 +19,7 @@ const renderCallbackPage = () =>
   render(
     <MemoryRouter>
       <CallbackPage />
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 
 describe('CallbackPage', () => {
