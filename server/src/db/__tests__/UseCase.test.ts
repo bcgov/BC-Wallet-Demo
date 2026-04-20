@@ -107,7 +107,7 @@ describe('CredentialRequestSchema', () => {
             ],
           },
         ],
-      }),
+      })
     ).rejects.toThrow()
   })
 })

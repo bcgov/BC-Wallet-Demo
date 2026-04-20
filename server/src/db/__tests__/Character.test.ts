@@ -50,7 +50,12 @@ describe('OnboardingStep embedded schema', () => {
           text: 'Scan to receive',
           issuer_name: 'Best BC College',
           credentials: [
-            { name: 'Student Card', icon: '/icon.svg', version: '1.0', attributes: [{ name: 'student_id', value: '12345' }] },
+            {
+              name: 'Student Card',
+              icon: '/icon.svg',
+              version: '1.0',
+              attributes: [{ name: 'student_id', value: '12345' }],
+            },
           ],
         },
       ],
@@ -83,7 +88,12 @@ describe('RevocationInfoItem embedded schema', () => {
       ...minimal,
       type: 'Student-revocation',
       revocationInfo: [
-        { credentialName: 'Student Card', credentialIcon: '/icon.svg', title: 'Revoke', description: 'You can revoke if...' },
+        {
+          credentialName: 'Student Card',
+          credentialIcon: '/icon.svg',
+          title: 'Revoke',
+          description: 'You can revoke if...',
+        },
       ],
     })
     expect(doc.toJSON().revocationInfo[0].credentialName).toBe('Student Card')

@@ -30,15 +30,11 @@ describe('CredentialDefinitionModel', () => {
   })
 
   it('rejects an invalid did_method', async () => {
-    await expect(
-      CredentialDefinitionModel.create({ name: 'X', version: '1.0', did_method: 'cheqd' }),
-    ).rejects.toThrow()
+    await expect(CredentialDefinitionModel.create({ name: 'X', version: '1.0', did_method: 'cheqd' })).rejects.toThrow()
   })
 
   it('rejects an invalid status', async () => {
-    await expect(
-      CredentialDefinitionModel.create({ ...minimal, version: '1.1', status: 'pending' }),
-    ).rejects.toThrow()
+    await expect(CredentialDefinitionModel.create({ ...minimal, version: '1.1', status: 'pending' })).rejects.toThrow()
   })
 })
 
@@ -52,7 +48,7 @@ describe('CredentialDefinitionModel: compound unique index (name, version, did_m
   it('rejects a duplicate (name, version, did_method) triplet', async () => {
     await CredentialDefinitionModel.create({ name: 'Member Card', version: '1.0', did_method: 'indy' })
     await expect(
-      CredentialDefinitionModel.create({ name: 'Member Card', version: '1.0', did_method: 'indy' }),
+      CredentialDefinitionModel.create({ name: 'Member Card', version: '1.0', did_method: 'indy' })
     ).rejects.toThrow()
   })
 })
@@ -74,7 +70,10 @@ describe('CredentialDefinitionModel: optional fields', () => {
     const doc = await CredentialDefinitionModel.create({
       ...minimal,
       version: '2.1',
-      attributes: [{ name: 'student_id', value: '' }, { name: 'given_names', value: '' }],
+      attributes: [
+        { name: 'student_id', value: '' },
+        { name: 'given_names', value: '' },
+      ],
     })
     const attrs = doc.toJSON().attributes
     expect(attrs).toHaveLength(2)

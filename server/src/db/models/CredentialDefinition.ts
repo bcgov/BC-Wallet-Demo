@@ -6,7 +6,7 @@ import { baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
 
 const AttributeSchema = new Schema<{ name: string; value: string }>(
   { name: String, value: String },
-  embeddedSchemaOptions,
+  embeddedSchemaOptions
 )
 
 // Maps to CredentialDefinition interface.
@@ -23,7 +23,7 @@ const CredentialDefinitionSchema = new Schema<CredentialDefinition>(
     cred_def_id: String,
     status: { type: String, enum: ['active', 'retired'] satisfies CredentialStatus[], default: 'active' },
   },
-  baseSchemaOptions,
+  baseSchemaOptions
 )
 
 // Compound unique index: the same credential name+version can exist for both

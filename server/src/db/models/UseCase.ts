@@ -28,7 +28,7 @@ const CredentialRequestSchema = new Schema<PersistedCredentialRequest>(
       from: Number,
     },
   },
-  embeddedSchemaOptions,
+  embeddedSchemaOptions
 )
 
 const UseCaseScreenSchema = new Schema<UseCaseScreen>(
@@ -47,7 +47,7 @@ const UseCaseScreenSchema = new Schema<UseCaseScreen>(
       requestedCredentials: [CredentialRequestSchema],
     },
   },
-  embeddedSchemaOptions,
+  embeddedSchemaOptions
 )
 
 // Embedded within Character.useCases.
@@ -58,5 +58,5 @@ export const UseCaseSchema = new Schema<CustomUseCase>(
     hidden: { type: Boolean, default: false },
     screens: [UseCaseScreenSchema],
   },
-  embeddedSchemaOptions,
+  embeddedSchemaOptions
 )
