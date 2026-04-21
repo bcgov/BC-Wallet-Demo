@@ -1,4 +1,3 @@
-import type { Types } from 'mongoose'
 import type {
   Credential,
   CustomCharacter,
@@ -6,10 +5,10 @@ import type {
   ProgressBarStep,
   RevocationInfoItem,
 } from '../../content/types'
-
-import fs from 'node:fs/promises'
+import type { Types } from 'mongoose'
 
 import { Schema, model } from 'mongoose'
+import fs from 'node:fs/promises'
 
 import { AttributeSchema, baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
 
