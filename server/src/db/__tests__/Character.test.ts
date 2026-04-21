@@ -1,6 +1,6 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from 'mongoose'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { CharacterModel } from '../models/Character'
 
@@ -11,6 +11,11 @@ const minimal = { name: 'Alice', type: 'Student', image: '/public/student/studen
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create()
   await mongoose.connect(mongod.getUri())
+})
+
+// Clear between tests so documents from one test cannot affect another.
+afterEach(async () => {
+  await CharacterModel.deleteMany({})
 })
 
 afterAll(async () => {
