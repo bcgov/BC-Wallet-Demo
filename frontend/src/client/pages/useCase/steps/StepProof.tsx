@@ -73,13 +73,15 @@ export const StepProof: React.FC<Props> = ({
         }
       }
       if (item.predicates) {
-        predicates[item.name] = {
-          restrictions,
-          name: item.predicates?.name,
-          p_value: item.predicates?.value,
-          p_type: item.predicates?.type,
-          non_revoked: item.nonRevoked,
-        }
+        item.predicates.forEach((predicate) => {
+          predicates[`${item.name}_${predicate.name}`] = {
+            restrictions,
+            name: predicate.name,
+            p_value: predicate.value,
+            p_type: predicate.type,
+            non_revoked: item.nonRevoked,
+          }
+        })
       }
     })
     if (isDeepLink) {

@@ -17,7 +17,7 @@ const VerifierSchema = new Schema<{ name: string; icon?: string }>(
 // current date at issuance), but functions cannot be persisted in MongoDB.
 // Callers must resolve any function values before saving a document.
 type PersistedCredentialRequest = Omit<CredentialRequest, 'predicates'> & {
-  predicates?: { name: string; type: string; value?: string | number }
+  predicates?: { name: string; type: string; value?: string | number }[]
 }
 
 const CredentialRequestSchema = new Schema<PersistedCredentialRequest>(
@@ -26,11 +26,7 @@ const CredentialRequestSchema = new Schema<PersistedCredentialRequest>(
     icon: String,
     schema_id: String,
     cred_def_id: String,
-    predicates: {
-      name: String,
-      type: String,
-      value: Schema.Types.Mixed,
-    },
+    predicates: [{ name: String, type: String, value: Schema.Types.Mixed }],
     properties: [String],
     nonRevoked: {
       to: Number,

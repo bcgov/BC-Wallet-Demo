@@ -27,7 +27,7 @@ export interface CredentialRequest {
   icon?: string
   schema_id?: string
   cred_def_id?: string
-  predicates?: { name: string; value?: string | number | (() => string | number); type: string }
+  predicates?: { name: string; value?: string | number | (() => string | number); type: string }[]
   properties?: string[]
   nonRevoked?: { to: number; from?: number }
 }
