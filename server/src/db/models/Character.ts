@@ -1,3 +1,4 @@
+import type { Types } from 'mongoose'
 import type {
   Credential,
   CustomCharacter,
@@ -6,10 +7,13 @@ import type {
   RevocationInfoItem,
 } from '../../content/types'
 
+import fs from 'node:fs/promises'
+
 import { Schema, model } from 'mongoose'
 
 import { AttributeSchema, baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
 
+import { AssetModel } from './Asset'
 import { UseCaseSchema } from './UseCase'
 
 // Maps to Credential interface (credentials issued during onboarding steps).
@@ -77,5 +81,40 @@ const CharacterSchema = new Schema<CustomCharacter>(
   },
   baseSchemaOptions,
 )
+
+// Removes all asset documents and their files from disk for the given character.
+// Shared across deletion hooks to avoid duplication.
+// ENOENT is ignored (file already gone); all other errors propagate.
+// Note: deleteMany on CharacterModel is intentionally not hooked -- bulk deletes
+// that bypass middleware must handle cascade themselves.
+async function cascadeDeleteAssets(characterId: Types.ObjectId) {
+  const assets = await AssetModel.find({ showcase_id: characterId })
+  await Promise.all(
+    assets.map((a) =>
+      fs.unlink(a.path).catch((e: NodeJS.ErrnoException) => {
+        if (e.code !== 'ENOENT') throw e
+      }),
+    ),
+  )
+  await AssetModel.deleteMany({ showcase_id: characterId })
+}
+
+// Document-level: doc.deleteOne()
+CharacterSchema.post('deleteOne', { document: true, query: false }, async function () {
+  await cascadeDeleteAssets(this._id as Types.ObjectId)
+})
+
+// Query-level: CharacterModel.deleteOne({ ... })
+// Must be pre so the document can be found before it is deleted.
+CharacterSchema.pre('deleteOne', { document: false, query: true }, async function () {
+  const doc = await this.model.findOne(this.getFilter()).select('_id')
+  if (doc) await cascadeDeleteAssets(doc._id as Types.ObjectId)
+})
+
+// findByIdAndDelete / findOneAndDelete
+CharacterSchema.post('findOneAndDelete', async (doc) => {
+  if (!doc) return
+  await cascadeDeleteAssets(doc._id as Types.ObjectId)
+})
 
 export const CharacterModel = model<CustomCharacter>('Character', CharacterSchema)
