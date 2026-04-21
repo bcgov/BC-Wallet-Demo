@@ -40,6 +40,17 @@ const CredentialRequestSchema = new Schema<PersistedCredentialRequest>(
   embeddedSchemaOptions,
 )
 
+// Same reasoning as VerifierSchema -- sub-schema keeps requestOptions undefined
+// when absent, so required fields on title/text only fire when it is provided.
+const RequestOptionsSchema = new Schema<{ title: string; text: string; requestedCredentials: PersistedCredentialRequest[] }>(
+  {
+    title: { type: String, required: true },
+    text: { type: String, required: true },
+    requestedCredentials: [CredentialRequestSchema],
+  },
+  embeddedSchemaOptions,
+)
+
 const UseCaseScreenSchema = new Schema<UseCaseScreen>(
   {
     screenId: { type: String, required: true },
@@ -47,11 +58,7 @@ const UseCaseScreenSchema = new Schema<UseCaseScreen>(
     text: { type: String, required: true },
     image: String,
     verifier: VerifierSchema,
-    requestOptions: {
-      title: String,
-      text: String,
-      requestedCredentials: [CredentialRequestSchema],
-    },
+    requestOptions: RequestOptionsSchema,
   },
   embeddedSchemaOptions,
 )
