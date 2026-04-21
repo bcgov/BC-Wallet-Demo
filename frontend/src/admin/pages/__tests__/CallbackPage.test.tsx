@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -45,13 +45,15 @@ describe('CallbackPage', () => {
     expect(screen.getByText('Signing in...')).toBeInTheDocument()
   })
 
-  it('navigates to login with authError param when auth fails', () => {
+  it('navigates to login with authError param when auth fails', async () => {
     mockUseAuth.mockReturnValue({
       isLoading: false,
       isAuthenticated: false,
       error: new Error('401 Unauthorized'),
     })
     renderCallbackPage()
-    expect(mockNavigate).toHaveBeenCalledWith('..?authError=true', { replace: true })
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('..?authError=true', { replace: true })
+    })
   })
 })

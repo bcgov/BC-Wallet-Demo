@@ -94,14 +94,14 @@ This brings up the following services:
 | ------------- | ---------------------------------------------- | ------------------------------------------------------- |
 | `dev`         | Frontend + backend in development mode (watch) | http://localhost:3000 (UI), http://localhost:5000 (API) |
 | `mongodb`     | Application database                           | `127.0.0.1:27017`                                       |
-| `keycloak`    | Keycloak 26.5 identity provider                | http://localhost:8080/auth                              |
+| `keycloak`    | Keycloak 26.5 identity provider                | http://localhost:8080/                                  |
 | `keycloak-db` | PostgreSQL backing store for Keycloak          | (internal only)                                         |
 
 #### Keycloak
 
-Keycloak runs in development mode (`start-dev`) with an HTTP-relative path of `/auth`. On first boot it imports the realm configuration from `keycloak/config/showcase-realm.json` automatically.
+Keycloak runs in development mode (`start-dev`) with an HTTP-relative path of `/`. On first boot it imports the realm configuration from `keycloak/config/showcase-realm.json` automatically.
 
-- **Admin console**: http://localhost:8080/auth/admin — credentials `admin` / `admin`
+- **Admin console**: http://localhost:8080/admin — credentials `admin` / `admin`
 - **Realm**: `showcase`
 - **Client**: `showcase-admin` (public, PKCE S256 enforced)
 - **Default test user**: username `admin`, password `admin` (member of the `admin` realm role)
@@ -110,7 +110,7 @@ The `frontend/public/config.json` file controls which Keycloak instance the fron
 
 ```json
 {
-  "keycloakUrl": "http://localhost:8080/auth",
+  "keycloakUrl": "http://localhost:8080",
   "keycloakRealm": "showcase",
   "keycloakClientId": "showcase-admin"
 }
@@ -143,13 +143,13 @@ The admin portal is available at `<base_route>/admin` (e.g. `http://localhost:30
 
 ### Environment Variables
 
-The following variables are configured in `frontend/.env`:
+The following variables are configured in `frontend/public/config.json` for runtime configuration of the Keycloak connection. If you are using Docker, you can also pass these as build arguments to set them at build time (see the Docker section above).:
 
-| Variable                       | Description                      | Default                 |
-| ------------------------------ | -------------------------------- | ----------------------- |
-| `REACT_APP_KEYCLOAK_URL`       | Base URL of your Keycloak server | `http://localhost:8080` |
-| `REACT_APP_KEYCLOAK_REALM`     | Keycloak realm name              | `showcase`              |
-| `REACT_APP_KEYCLOAK_CLIENT_ID` | Keycloak client ID               | `showcase-admin`        |
+| Variable Name      | Description                                      | Example Value           |
+| ------------------ | ------------------------------------------------ | ----------------------- |
+| `keycloakUrl`      | The base URL of your Keycloak instance           | `http://localhost:8080` |
+| `keycloakRealm`    | The name of the Keycloak realm you created       | `showcase`              |
+| `keycloakClientId` | The client ID of the Keycloak client you created | `showcase-admin`        |
 
 The OIDC redirect URI is built automatically from the app's origin:
 

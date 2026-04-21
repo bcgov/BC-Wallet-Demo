@@ -16,16 +16,23 @@ const onSigninCallback = () => {
 
 function AdminApp() {
   const [oidcConfig, setOidcConfig] = useState<AuthProviderProps | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [configError, setConfigError] = useState<string | null>(null)
 
   useEffect(() => {
     loadOidcConfig()
       .then(setOidcConfig)
       .catch((err: unknown) => {
-        throw err
+        setConfigError(err instanceof Error ? err.message : 'Failed to load authentication configuration.')
+      })
+      .finally(() => {
+        setLoading(false)
       })
   }, [])
 
-  if (!oidcConfig) return null
+  if (loading) return <p>Loading...</p>
+
+  if (configError) return <p>Authentication configuration error: {configError}</p>
 
   return (
     <AuthProvider {...oidcConfig} onSigninCallback={onSigninCallback}>
