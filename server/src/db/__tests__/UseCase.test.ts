@@ -1,6 +1,6 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose, { Schema, model } from 'mongoose'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { baseSchemaOptions } from '../baseSchema'
 import { UseCaseSchema } from '../models/UseCase'
@@ -16,6 +16,11 @@ const HostModel = mongoose.models['UseCaseHost'] ?? model('UseCaseHost', HostSch
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create()
   await mongoose.connect(mongod.getUri())
+})
+
+// Clear between tests so documents from one test cannot affect another.
+afterEach(async () => {
+  await HostModel.deleteMany({})
 })
 
 afterAll(async () => {

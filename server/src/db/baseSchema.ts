@@ -5,6 +5,8 @@ import { Schema } from 'mongoose'
 export const baseSchemaOptions: SchemaOptions = {
   timestamps: true,
   toJSON: {
+    // virtuals: true exposes the 'id' virtual (string form of _id) in JSON
+    // output. API consumers receive 'id', not '_id', which is removed below.
     virtuals: true,
     transform: (_doc, ret: Record<string, unknown>) => {
       delete ret['_id']
@@ -17,11 +19,6 @@ export const embeddedSchemaOptions: SchemaOptions = {
   // Prevents MongoDB from generating _id on every subdocument, which wastes
   // storage and breaks array update operators like $pull by value.
   _id: false,
-  toJSON: {
-    transform: (_doc, ret: Record<string, unknown>) => {
-      delete ret['_id']
-    },
-  },
 }
 
 // Shared attribute schema used by Credential to ensure name is always validated.

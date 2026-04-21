@@ -1,0 +1,3 @@
+# Used by mise-enabling build images (install Node before yarn install).
+[tools]
+node = "22"
