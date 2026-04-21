@@ -82,17 +82,9 @@ describe('Admin Portal Authentication', () => {
     beforeEach(() => {
       cy.visit(CREATOR_PATH, {
         onBeforeLoad(win) {
-          // keycloakConfig.ts assigns __oidcMemStore (an InMemoryWebStorage instance)
-          // on the window in non-production. We intercept that assignment with a setter
-          // so the mock user is seeded atomically when the module runs, before
-          // AuthProvider reads the store.
-          Object.defineProperty(win, '__oidcMemStore', {
-            configurable: true,
-            set(store: { setItem(k: string, v: string): void }) {
-              store.setItem(SESSION_KEY, JSON.stringify(MOCK_USER))
-              Object.defineProperty(win, '__oidcMemStore', { value: store, configurable: true, writable: true })
-            },
-          })
+          // Seed sessionStorage with a mock OIDC user so oidc-client-ts considers
+          // the user authenticated without a real token exchange.
+          win.sessionStorage.setItem(SESSION_KEY, JSON.stringify(MOCK_USER))
         },
       })
     })

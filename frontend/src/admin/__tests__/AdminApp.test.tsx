@@ -15,7 +15,6 @@ vi.mock('react-oidc-context', () => ({
 
 vi.mock('../auth/keycloakConfig', () => ({
   loadOidcConfig: mockLoadOidcConfig,
-  memStore: { setItem: vi.fn(), getItem: vi.fn(), removeItem: vi.fn() },
 }))
 
 vi.mock('../auth/AuthGuard', () => ({
