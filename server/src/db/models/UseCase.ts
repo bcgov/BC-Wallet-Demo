@@ -20,13 +20,28 @@ type PersistedCredentialRequest = Omit<CredentialRequest, 'predicates'> & {
   predicates?: { name: string; type: string; value?: string | number }[]
 }
 
+const PredicateSchema = new Schema<{ name?: string; type?: string; value?: string | number }>(
+  {
+    name: String,
+    type: String,
+    value: {
+      type: Schema.Types.Mixed,
+      validate: {
+        validator: (value: unknown) => value === undefined || typeof value === 'string' || typeof value === 'number',
+        message: 'Predicate value must be a string or number',
+      },
+    },
+  },
+  embeddedSchemaOptions,
+)
+
 const CredentialRequestSchema = new Schema<PersistedCredentialRequest>(
   {
     name: { type: String, required: true },
     icon: String,
     schema_id: String,
     cred_def_id: String,
-    predicates: [{ name: String, type: String, value: Schema.Types.Mixed }],
+    predicates: [PredicateSchema],
     properties: [String],
     nonRevoked: {
       to: Number,
