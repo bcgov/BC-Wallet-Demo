@@ -42,12 +42,18 @@ export interface OnboardingStep {
   credentials?: Credential[]
 }
 
+export interface Predicate {
+  name: string
+  value?: string | number | (() => string | number)
+  type: string
+}
+
 export interface CredentialRequest {
   name: string
   icon?: string
   schema_id?: string
   cred_def_id?: string
-  predicates?: { name: string; value?: string | number | (() => string | number); type: string }[]
+  predicates?: Predicate[]
   properties?: string[]
   nonRevoked?: { to: number; from?: number }
 }

@@ -1,4 +1,4 @@
-import type { CredentialRequest, UseCaseScreen } from '../../../slices/types'
+import type { CredentialRequest, Predicate, UseCaseScreen } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
@@ -47,7 +47,7 @@ export const StepProof: React.FC<Props> = ({
   const createProofRequest = () => {
     const proofs: any = []
 
-    const predicates: any = []
+    const predicates: Predicate[] = []
 
     requestedCredentials?.forEach((item) => {
       const restrictions: any[] = [
