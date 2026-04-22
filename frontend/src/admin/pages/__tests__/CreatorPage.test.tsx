@@ -1,8 +1,22 @@
 import { render, screen } from '@testing-library/react'
+import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { CreatorPage } from '../CreatorPage'
+
+const mockSignoutRedirect = vi.fn()
+vi.mock('react-oidc-context', () => ({
+  useAuth: () => ({
+    signoutRedirect: mockSignoutRedirect,
+    user: { access_token: 'test-token', profile: { name: 'Test User' } },
+  }),
+}))
+
+vi.mock('../../../client/api/BaseUrl', () => ({
+  baseRoute: '/digital-trust/showcase',
+  baseUrl: 'http://localhost:5000/digital-trust/showcase',
+}))
 
 const renderCreatorPage = () =>
   render(
@@ -17,9 +31,16 @@ describe('CreatorPage', () => {
     expect(screen.getByRole('heading', { name: 'Admin Portal' })).toBeInTheDocument()
   })
 
-  it('renders the placeholder message', () => {
+  it('renders the API Test Panel', () => {
     renderCreatorPage()
-    expect(screen.getByText('Admin dashboard coming soon.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'API Test Panel' })).toBeInTheDocument()
+  })
+
+  it('renders all endpoint buttons', () => {
+    renderCreatorPage()
+    expect(screen.getByRole('button', { name: 'GET /characters' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'POST /characters' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'DELETE /characters/test-id' })).toBeInTheDocument()
   })
 
   it('renders the contact email link', () => {
@@ -30,5 +51,16 @@ describe('CreatorPage', () => {
   it('renders the copyright notice', () => {
     renderCreatorPage()
     expect(screen.getByText(/Government of British Columbia/)).toBeInTheDocument()
+  })
+
+  it('renders the Sign Out button', () => {
+    renderCreatorPage()
+    expect(screen.getByRole('button', { name: 'Sign Out' })).toBeInTheDocument()
+  })
+
+  it('calls signoutRedirect when Sign Out is clicked', async () => {
+    renderCreatorPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Sign Out' }))
+    expect(mockSignoutRedirect).toHaveBeenCalled()
   })
 })

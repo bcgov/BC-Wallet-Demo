@@ -1,5 +1,5 @@
-import 'reflect-metadata'
 import type { Express } from 'express'
+import 'reflect-metadata'
 
 import { json, static as stx } from 'express'
 import * as http from 'http'
@@ -9,8 +9,10 @@ import { createExpressServer } from 'routing-controllers'
 import { Server } from 'socket.io'
 
 import { connectDB, registerShutdownHandlers } from './db/connection'
+import { requireAdmin } from './middleware/requireAdmin'
+import adminCharactersRouter from './routes/adminCharactersRouter'
 import logger from './utils/logger'
-import { tractionApiKeyUpdaterInit, tractionRequest, tractionGarbageCollection } from './utils/tractionHelper'
+import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
 
 const baseRoute = process.env.BASE_ROUTE
 
@@ -62,6 +64,27 @@ const run = async () => {
 
   app.set('sockets', socketMap)
 
+  // CORS middleware — allows cross-origin requests from frontend during development and testing
+  app.use((req, res, next) => {
+    const origin = req.headers.origin
+    const isDev = process.env.NODE_ENV === 'development'
+    const isTest = process.env.NODE_ENV === 'test'
+
+    // In development/test, allow requests from localhost on any port
+    // In production, restrict to specific origins
+    if ((isDev || isTest) && origin?.includes('localhost')) {
+      res.setHeader('Access-Control-Allow-Origin', origin)
+      res.setHeader('Access-Control-Allow-Credentials', 'true')
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS')
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    }
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200)
+      return
+    }
+    next()
+  })
+
   app.use(json())
   app.use(
     pinoHttp({
@@ -81,6 +104,10 @@ const run = async () => {
   )
 
   app.use(`${baseRoute}/public`, stx(__dirname + '/public'))
+
+  // All routes under /admin require a valid Keycloak-issued JWT.
+  app.use(`${baseRoute}/admin`, requireAdmin)
+  app.use(`${baseRoute}/admin/characters`, adminCharactersRouter)
 
   app.get(`${baseRoute}/server/last-reset`, async (req, res) => {
     res.send(new Date())

@@ -16,6 +16,7 @@
     "check-types": "yarn workspace frontend exec tsc --noEmit -p tsconfig.json && yarn workspace server exec tsc --noEmit -p tsconfig.json",
     "prettier": "prettier '**/*.+(js|json|ts|md|yml|yaml)'",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "yarn prettier --write",
     "prepare": "husky install",
     "frontend:start": "yarn workspace frontend start",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.22.0",
+    "@types/node": "^25.6.0",
     "concurrently": "^7.0.0",
     "cypress": "^13",
     "eslint": "^9.22.0",
@@ -42,11 +44,12 @@
     "globals": "^16.0.0",
     "husky": "^7.0.1",
     "prettier": "^3.5.3",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.58.2"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+  "packageManager": "yarn@1.22.22"
 }
