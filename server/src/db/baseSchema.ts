@@ -21,8 +21,11 @@ export const embeddedSchemaOptions: SchemaOptions = {
   _id: false,
 }
 
-// Shared attribute schema used by Credential to ensure name is always validated.
+// Shared attribute schema used by Credential to ensure name and value are always validated.
 export const AttributeSchema = new Schema<{ name: string; value: string }>(
-  { name: { type: String, required: true }, value: String },
+  {
+    name: { type: String, required: true },
+    value: { type: String, required: true },
+  },
   embeddedSchemaOptions,
 )
