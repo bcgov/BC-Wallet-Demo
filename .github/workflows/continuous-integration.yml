@@ -88,5 +88,6 @@ jobs:
           wait-on: 'http://localhost:3000'
           browser: chrome
         env:
+          NODE_ENV: test
           VITE_HOST_BACKEND: http://localhost:5000
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

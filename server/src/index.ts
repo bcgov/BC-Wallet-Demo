@@ -64,6 +64,27 @@ const run = async () => {
 
   app.set('sockets', socketMap)
 
+  // CORS middleware — allows cross-origin requests from frontend during development and testing
+  app.use((req, res, next) => {
+    const origin = req.headers.origin
+    const isDev = process.env.NODE_ENV === 'development'
+    const isTest = process.env.NODE_ENV === 'test'
+
+    // In development/test, allow requests from localhost on any port
+    // In production, restrict to specific origins
+    if ((isDev || isTest) && origin?.includes('localhost')) {
+      res.setHeader('Access-Control-Allow-Origin', origin)
+      res.setHeader('Access-Control-Allow-Credentials', 'true')
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS')
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    }
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200)
+      return
+    }
+    next()
+  })
+
   app.use(json())
   app.use(
     pinoHttp({

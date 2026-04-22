@@ -4,7 +4,6 @@ export default defineConfig({
   projectId: 'idy916',
   viewportWidth: 1400,
   viewportHeight: 860,
-  chromeWebSecurity: false,
   env: {
     apiUrl: 'http://localhost:5000',
   },
