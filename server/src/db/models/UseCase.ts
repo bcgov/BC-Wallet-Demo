@@ -1,4 +1,4 @@
-import type { CredentialRequest, CustomUseCase, UseCaseScreen } from '../../content/types'
+import type { CredentialRequest, CustomUseCase, Predicate, UseCaseScreen } from '../../content/types'
 
 import { Schema } from 'mongoose'
 
@@ -16,11 +16,13 @@ const VerifierSchema = new Schema<{ name: string; icon?: string }>(
 // predicates.value allows runtime functions in types.ts (e.g. to compute the
 // current date at issuance), but functions cannot be persisted in MongoDB.
 // Callers must resolve any function values before saving a document.
+type PersistedPredicate = Omit<Predicate, 'value'> & { value?: string | number }
+
 type PersistedCredentialRequest = Omit<CredentialRequest, 'predicates'> & {
-  predicates?: { name: string; type: string; value?: string | number }[]
+  predicates?: PersistedPredicate[]
 }
 
-const PredicateSchema = new Schema<{ name?: string; type?: string; value?: string | number }>(
+const PredicateSchema = new Schema<PersistedPredicate>(
   {
     name: String,
     type: String,

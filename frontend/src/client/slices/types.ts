@@ -10,10 +10,30 @@ export interface Connection {
   invitationUrl: string
 }
 
+export interface ProofRestriction {
+  schema_name?: string
+  schema_id?: string
+  cred_def_id?: string
+}
+
+export interface ProofAttributeRequest {
+  restrictions: ProofRestriction[]
+  names: string[]
+  non_revoked?: { to: number; from?: number }
+}
+
+export interface ProofPredicateRequest {
+  restrictions: ProofRestriction[]
+  name: string
+  p_value?: string | number | (() => string | number)
+  p_type: string
+  non_revoked?: { to: number; from?: number }
+}
+
 export interface ProofRequestData {
   connectionId: string
-  attributes?: any[]
-  predicates?: any[]
+  attributes?: Record<string, ProofAttributeRequest>
+  predicates?: Record<string, ProofPredicateRequest>
   nonRevoked?: { to: number; from?: number }
   requestOptions?: RequestOptions
 }
