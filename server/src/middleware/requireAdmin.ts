@@ -1,4 +1,6 @@
+import type { KeycloakJWT } from '../types.d'
 import type { JsonWebKeyInput } from 'crypto'
+import type { NextFunction, Request, Response } from 'express'
 import type { GetVerificationKey } from 'express-jwt'
 
 import axios from 'axios'
@@ -97,3 +99,99 @@ export const requireAdmin = expressjwt({
   algorithms: ['RS256'],
   issuer,
 })
+
+/**
+ * Middleware factory that requires the user to have one or more specific roles.
+ *
+ * @param allowedRoles - Array of role names the user must have (realm-level roles from Keycloak)
+ * @returns Express middleware that checks for required roles
+ *
+ * Usage:
+ *   router.post('/', requireAdmin, requireRole(['admin', 'creator']), (req, res) => { ... })
+ *
+ * Note: This checks realm_access.roles. For client-specific roles, use requireClientRole instead.
+ */
+export function requireRole(allowedRoles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const auth = req.auth as KeycloakJWT | undefined
+
+    if (!auth) {
+      logger.warn('requireRole: no auth found (requireAdmin should have been applied first)')
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+
+    const userRoles = auth.realm_access?.roles ?? []
+    const hasRole = allowedRoles.some((role) => userRoles.includes(role))
+
+    if (!hasRole) {
+      logger.warn(
+        { username: auth.preferred_username, required: allowedRoles, has: userRoles },
+        'User does not have required role',
+      )
+      return res.status(403).json({ error: 'Forbidden: insufficient role' })
+    }
+
+    next()
+  }
+}
+
+/**
+ * Middleware factory that requires the user to have one or more specific client roles.
+ *
+ * @param clientId - The Keycloak client ID to check roles for (e.g., 'wallet-app')
+ * @param allowedRoles - Array of role names the user must have (client-specific roles)
+ * @returns Express middleware that checks for required client roles
+ *
+ * Usage:
+ *   router.post('/', requireAdmin, requireClientRole('my-app', ['admin']), (req, res) => { ... })
+ */
+export function requireClientRole(clientId: string, allowedRoles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const auth = req.auth as KeycloakJWT | undefined
+
+    if (!auth) {
+      logger.warn('requireClientRole: no auth found (requireAdmin should have been applied first)')
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+
+    const clientRoles = auth.resource_access?.[clientId]?.roles ?? []
+    const hasRole = allowedRoles.some((role) => clientRoles.includes(role))
+
+    if (!hasRole) {
+      logger.warn(
+        { username: auth.preferred_username, clientId, required: allowedRoles, has: clientRoles },
+        'User does not have required client role',
+      )
+      return res.status(403).json({ error: 'Forbidden: insufficient client role' })
+    }
+
+    next()
+  }
+}
+
+/**
+ * Utility function to check if a user has a specific realm role.
+ * Can be used inside route handlers instead of as middleware.
+ *
+ * @param auth - The KeycloakJWT from req.auth
+ * @param role - The role name to check for
+ * @returns boolean indicating if the user has the role
+ */
+export function userHasRole(auth: KeycloakJWT | undefined, role: string): boolean {
+  if (!auth) return false
+  return (auth.realm_access?.roles ?? []).includes(role)
+}
+
+/**
+ * Utility function to check if a user has a specific client role.
+ * Can be used inside route handlers instead of as middleware.
+ *
+ * @param auth - The KeycloakJWT from req.auth
+ * @param clientId - The Keycloak client ID
+ * @param role - The role name to check for
+ * @returns boolean indicating if the user has the role
+ */
+export function userHasClientRole(auth: KeycloakJWT | undefined, clientId: string, role: string): boolean {
+  if (!auth) return false
+  return (auth.resource_access?.[clientId]?.roles ?? []).includes(role)
+}
