@@ -1,0 +1,81 @@
+# Upgrades the showcase Helm release on OpenShift when relevant paths merge to `main`.
+#
+# Configure the bcgov repository (Settings → Secrets and variables → Actions):
+#   Variables (not secret):
+#     SHOWCASE_DEV_OC_URL        — API URL, e.g. https://api.silver.devops.gov.bc.ca:6443
+#     SHOWCASE_DEV_NAMESPACE     — Target namespace (must already exist)
+#   Optional variable:
+#     SHOWCASE_DEV_HELM_RELEASE  — Helm release name (default: showcase)
+#   Secret:
+#     SHOWCASE_DEV_OC_TOKEN      — Service account or user token with permission to
+#                                  helm upgrade/install resources in that namespace
+#
+# If any required variable or the token is missing, this job is skipped (forks stay green).
+
+name: Deploy showcase (dev)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'charts/showcase/**'
+      - 'frontend/**'
+      - 'server/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/deploy-showcase-dev.yaml'
+
+concurrency:
+  group: deploy-showcase-dev-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  helm-upgrade-dev:
+    name: Helm upgrade (OpenShift dev)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: >-
+      ${{ vars.SHOWCASE_DEV_OC_URL != '' &&
+          vars.SHOWCASE_DEV_NAMESPACE != '' &&
+          secrets.SHOWCASE_DEV_OC_TOKEN != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: '4.15'
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Log in to OpenShift
+        env:
+          SHOWCASE_DEV_OC_URL: ${{ vars.SHOWCASE_DEV_OC_URL }}
+          SHOWCASE_DEV_OC_TOKEN: ${{ secrets.SHOWCASE_DEV_OC_TOKEN }}
+        run: oc login "${SHOWCASE_DEV_OC_URL}" --token="${SHOWCASE_DEV_OC_TOKEN}"
+
+      - name: Helm dependency update
+        working-directory: charts/showcase
+        run: helm dependency update
+
+      - name: Helm upgrade --install
+        working-directory: charts/showcase
+        env:
+          SHOWCASE_DEV_NAMESPACE: ${{ vars.SHOWCASE_DEV_NAMESPACE }}
+          SHOWCASE_DEV_HELM_RELEASE: ${{ vars.SHOWCASE_DEV_HELM_RELEASE }}
+        run: |
+          set -euo pipefail
+          release="${SHOWCASE_DEV_HELM_RELEASE:-showcase}"
+          helm upgrade --install "${release}" . \
+            -f ../../deploy/showcase/values-dev.yaml \
+            --namespace "${SHOWCASE_DEV_NAMESPACE}" \
+            --wait \
+            --timeout 15m \
+            --atomic

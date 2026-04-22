@@ -1,0 +1,28 @@
+1. Get the frontend UI URL (in-cluster or via ingress):
+{{- if .Values.ingress.enabled }}
+{{- $o := urlParse .Values.showcase.publicOrigin }}
+   {{ $o.scheme }}://{{ include "showcase.ingressFrontendHost" . }}{{ .Values.ingress.frontend.path | default "/" }}
+{{- else }}
+   kubectl --namespace {{ include "showcase.namespace" . }} port-forward svc/{{ include "showcase.frontend.fullname" . }} {{ .Values.showcase.frontend.containerPort }}:{{ .Values.showcase.frontend.containerPort }}
+   Then open http://127.0.0.1:{{ .Values.showcase.frontend.containerPort }}
+{{- end }}
+
+2. API service (ClusterIP):
+   {{ include "showcase.server.fullname" . }}:{{ .Values.showcase.server.containerPort }}
+
+{{- if .Values.showcase.server.existingSecret }}
+
+3. Server env comes from Secret `{{ .Values.showcase.server.existingSecret }}` (envFrom).
+{{- else if eq (include "showcase.server.chartServerSecretNeeded" . | trim) "1" }}
+
+3. Server env comes from chart Secret `{{ include "showcase.server.secretName" . }}`.
+{{- end }}
+
+{{- if .Values.mongodb.enabled }}
+
+4. MongoDB (CloudPirates) primary service: {{ include "showcase.mongodb.host" . }}:27017
+{{- end }}
+
+MongoDB subchart: oci://registry-1.docker.io/cloudpirates/mongodb
+
+To apply chart changes (ConfigMap, NetworkPolicy, commands, etc.), run helm upgrade; oc rollout restart alone is not enough.

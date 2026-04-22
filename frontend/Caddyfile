@@ -23,12 +23,13 @@
     # Enable serving static files
     file_server
 
-    # Enable gzip, zstd compression
-    encode zstd gzip
+    # Long-poll / streaming (Socket.IO polling, APIs): do not compress — can break or buffer Engine.IO.
+    @encode_static {
+        not path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/* {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr
+    }
+    encode @encode_static zstd gzip
 
-    # Enable templates module - required for 
-    templates
-    
+    # No global `templates` — Engine.IO bodies can confuse the templates parser (see chart ConfigMap comment).
     # Matcher `*` is required: otherwise `basePath` is parsed as a path matcher (Caddy 2.8+ vars syntax).
     vars * basePath {$VITE_BASE_ROUTE}
     
@@ -36,10 +37,13 @@
     handle /health {
         respond 200
     }
-    handle {$VITE_BASE_ROUTE}/demo {
+    # Caddy `path` matches prefixes — `/demo` would also match `/demo/socket/…` and break Socket.IO polling.
+    @demo_root path_regexp demoRoot ^{$VITE_BASE_ROUTE}/demo/?$
+    handle @demo_root {
         redir {vars.basePath}
     }
-    handle {$VITE_BASE_ROUTE}/dashboard {
+    @dashboard_root path_regexp dashboardRoot ^{$VITE_BASE_ROUTE}/dashboard/?$
+    handle @dashboard_root {
         redir {vars.basePath}
     }
     handle {$VITE_BASE_ROUTE}* {

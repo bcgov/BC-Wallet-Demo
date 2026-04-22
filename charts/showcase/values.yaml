@@ -1,0 +1,156 @@
+## Default values for the showcase umbrella chart (BC Wallet Demo frontend + server + MongoDB).
+## MongoDB is the CloudPirates OCI subchart (not Bitnami); set `mongodb.enabled: false` for an external database only. See charts/showcase/README.md.
+## With Mongo on: either `showcase.server.existingSecret` (full env incl. MONGODB_URI), or chart-generated
+## `*-server-env` from chart-generated Mongo root password Secret (`mongodb.auth.existingSecret` + key lookup).
+
+global:
+  ## If set, used when `showcase.*.image.registry` is empty (see templates `_helpers.tpl` `showcase.image`).
+  imageRegistry: ''
+  imagePullSecrets: []
+
+## Optional Helm release overrides (usually leave empty).
+nameOverride: ''
+fullnameOverride: ''
+## If set, every namespaced resource uses this namespace instead of `helm install --namespace`.
+namespaceOverride: ''
+## If set, passed to subcharts that support `kubeVersion` constraints.
+kubeVersion: ''
+commonLabels: {}
+commonAnnotations: {}
+
+## CloudPirates MongoDB (subchart). Every key here is passed through to `mongodb` (see packaged chart
+## `charts/mongodb-*.tgz` → `values.yaml` for the full schema: probes, metrics, securityContext, etc.).
+##
+## GitOps: prefer `auth.existingSecret` for Mongo root password and `showcase.server.existingSecret` for
+## `MONGODB_URI` + app secrets, instead of inline passwords in this file.
+##
+## `customUsers`: optional extra DB users created at init (name, database, roles, optional existingSecret).
+## If you use a non-root app user for the API, set matching `showcase.server.mongodbConnection` fields
+## or supply `MONGODB_URI` yourself via `showcase.server.existingSecret`.
+mongodb:
+  ## When true, chart creates/reuses `{{ release }}-showcase-mongo-root` and points the Mongo subchart at it
+  ## via `auth.existingSecret`. Set `showcase.server.existingSecret` to bypass chart-managed server `MONGODB_URI`.
+  enabled: true
+  auth:
+    enabled: true
+    rootUsername: admin
+    rootPassword: ''
+    existingSecret: '{{ printf "%s-showcase-mongo-root" .Release.Name }}'
+    existingSecretPasswordKey: password
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: ''
+    accessMode: ReadWriteOnce
+  ## WiredTiger defaults to a large fraction of visible RAM; with a low cgroup memory limit the
+  ## process can be OOMKilled (mongod log ends with "Killed"). orgbook-publisher leaves resources
+  ## unset; we cap cache explicitly and give the pod enough headroom for connections + mongosh probes.
+  performance:
+    wiredTigerCacheSizeGB: '0.25'
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  ## Optional app users (CloudPirates init). Example (dev; do not commit real passwords):
+  ## customUsers:
+  ##   - name: showcase
+  ##     database: bcwallet_demo
+  ##     password: ''
+  ##     roles:
+  ##       - readWrite
+  ##       - dbAdmin
+  customUsers: []
+
+## Showcase API (Express server)
+showcase:
+  baseRoute: /digital-trust/showcase
+  ## Pod DNS suffix for in-cluster names (Service FQDNs). Override if the cluster uses a non-default domain.
+  clusterDNSDomain: cluster.local
+  ## Optional NetworkPolicies (deny-by-default namespaces, e.g. OpenShift Silver). See README "Networking".
+  networkPolicy:
+    enabled: false
+    openshiftIngressNamespace: openshift-ingress
+  server:
+    replicaCount: 1
+    ## HTTP listen port for the server container and Service.
+    containerPort: 5000
+    image:
+      ## ghcr.io/bcgov/bc-wallet-showcase-server:main (see https://github.com/orgs/bcgov/packages?repo_name=BC-Wallet-Demo)
+      registry: ghcr.io
+      repository: bcgov/bc-wallet-showcase-server
+      tag: main
+      digest: ''
+      pullPolicy: IfNotPresent
+    resources: {}
+    ## When mongodb.enabled, wait for Mongo TCP before starting the server (recommended). Set false only
+    ## to debug scheduling/SCC issues; the server may still fail until Mongo is reachable.
+    waitForMongoTcp: true
+    ## Init uses bash /dev/tcp against `showcase.mongodb.uriHost` (Service ClusterIP via Helm lookup when
+    ## possible, else Service FQDN) so the probe does not depend on pod DNS. Image must include bash.
+    mongoWaitInitContainerImage: docker.io/library/bash:5.2
+    ## Optional SecurityContext for the Mongo wait initContainer. Leave unset on OpenShift so the
+    ## namespace SCC assigns runAsUser (restricted-v2). Pin runAsUser only if your cluster allows it.
+    mongoWaitInitContainerSecurityContext: {}
+    extraEnv: []
+    ## Name of a pre-created Secret in the release namespace. If set, the chart does not create
+    ## `*-server-env`; the Deployment uses envFrom with this Secret (e.g. ExternalSecrets, SealedSecrets).
+    ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, API_KEY, etc.).
+    existingSecret: ''
+    ## Used only when the chart builds MONGODB_URI (no showcase.server.existingSecret).
+    ## Defaults target root auth + database `bcwallet_demo`.
+    mongodbConnection:
+      database: bcwallet_demo
+      authSource: admin
+    ## Non-sensitive runtime env vars for the server Deployment.
+    ## Use existingSecret for sensitive credentials and MONGODB_URI.
+    ## Example:
+    ## extraEnv:
+    ##   - name: LOG_LEVEL
+    ##     value: info
+    podAnnotations: {}
+    podLabels: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  ## Showcase frontend (Caddy + Vite static build)
+  frontend:
+    replicaCount: 1
+    ## HTTP listen port for Caddy (Caddyfile site block, container, and Service must match).
+    containerPort: 3000
+    ## Caddy Content-Security-Policy header. Default is permissive for Vite/React + API/WS; tighten for production.
+    contentSecurityPolicy: "default-src * data: blob: filesystem: 'unsafe-inline' 'unsafe-eval'"
+    ## Caddy reverse_proxy trusted_proxies: use private_ranges (RFC1918 + loopback) for typical K8s ingress → pod hops.
+    ## Only use 0.0.0.0/0 if you must trust X-Forwarded-* from arbitrary client addresses (not recommended).
+    trustedProxies: private_ranges
+    image:
+      ## ghcr.io/bcgov/bc-wallet-showcase-frontend:main
+      registry: ghcr.io
+      repository: bcgov/bc-wallet-showcase-frontend
+      tag: main
+      digest: ''
+      pullPolicy: IfNotPresent
+    resources: {}
+    podAnnotations: {}
+    podLabels: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  ## Browser-visible origin (scheme + host + optional port, no path) for `VITE_HOST_BACKEND`. Same URL the browser uses for UI + API through Caddy on one hostname.
+  ## Default matches repo `frontend/.env.example` (local `kubectl port-forward` to server :5000). When ingress.enabled and ingress.frontend.hostname is empty, the Ingress host is derived from this URL.
+  publicOrigin: 'http://127.0.0.1:5000'
+  ## Optional Microsoft Clarity / App Insights project id (`VITE_INSIGHTS_PROJECT_ID` on the frontend pod; typically baked at image build).
+  insightsProjectId: ''
+
+ingress:
+  enabled: false
+  ## Set when your cluster uses IngressClass (e.g. `openshift-default`, `nginx`).
+  className: ''
+  annotations: {}
+  frontend:
+    ## When empty and ingress.enabled, the host is derived from showcase.publicOrigin (single public origin).
+    hostname: ''
+    path: /

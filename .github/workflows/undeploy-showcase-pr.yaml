@@ -1,0 +1,56 @@
+# Remove Helm release and chart-scoped secrets/PVC when a PR is closed (traction-style cleanup).
+#
+# Requires bcgov repo + OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_NAMESPACE (same as deploy-showcase-pr).
+
+name: Showcase PR — uninstall
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'charts/showcase/**'
+      - 'deploy/showcase/**'
+      - 'frontend/**'
+      - 'server/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/deploy-showcase-pr.yaml'
+      - '.github/workflows/undeploy-showcase-pr.yaml'
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  uninstall:
+    name: Helm uninstall PR instance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ github.repository_owner == 'bcgov' && secrets.OPENSHIFT_TOKEN != '' && secrets.OPENSHIFT_SERVER != '' && secrets.OPENSHIFT_NAMESPACE != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      - name: Helm uninstall
+        continue-on-error: true
+        env:
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: helm uninstall "pr-${PR_NUM}-showcase"
+
+      - name: Delete leftover secrets and PVCs for this release
+        continue-on-error: true
+        env:
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: >
+          oc delete secret,pvc
+          -l "app.kubernetes.io/instance=pr-${PR_NUM}-showcase"
+          --ignore-not-found=true

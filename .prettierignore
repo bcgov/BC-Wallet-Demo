@@ -3,3 +3,8 @@ frontend/build
 server/build
 server/coverage
 coverage
+
+# Helm: Go templates are not valid YAML for Prettier; vendored packages are binary
+charts/showcase/templates/**
+charts/showcase/charts/**
+charts/showcase/.helmignore
