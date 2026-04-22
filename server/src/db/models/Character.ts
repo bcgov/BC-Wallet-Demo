@@ -87,7 +87,7 @@ const CharacterSchema = new Schema<CustomCharacter>(
 // Note: deleteMany on CharacterModel is intentionally not hooked -- bulk deletes
 // that bypass middleware must handle cascade themselves.
 async function cascadeDeleteAssets(characterId: Types.ObjectId) {
-  const assets = await AssetModel.find({ showcase_id: characterId })
+  const assets = await AssetModel.find({ showcase_id: characterId }).select('path')
   await Promise.all(
     assets.map((a) =>
       fs.unlink(a.path).catch((e: NodeJS.ErrnoException) => {
