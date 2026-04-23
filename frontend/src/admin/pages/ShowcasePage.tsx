@@ -1,12 +1,21 @@
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { baseRoute } from '../../client/api/BaseUrl'
 import { AdminNavbar } from '../components/AdminNavbar'
+import { SecondaryNavbar } from '../components/SecondaryNavbar'
 
 export function ShowcasePage() {
-  const { name } = useParams<{ name: string }>()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState<'persona' | 'introduction' | 'credentials' | 'scenarios'>('persona')
+
+  const tabs = [
+    { id: 'persona', label: 'Persona' },
+    { id: 'introduction', label: 'Introduction' },
+    { id: 'credentials', label: 'Credentials' },
+    { id: 'scenarios', label: 'Scenarios' },
+  ]
 
   const handleLogoClick = () => {
     navigate(`${baseRoute}/admin/creator`)
@@ -30,6 +39,12 @@ export function ShowcasePage() {
           <h5 className="text-gray-500 mt-2">Description of the showcase.</h5>
         </div>
       </div>
+      {/* Secondary navbar */}
+      <SecondaryNavbar
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as 'persona' | 'introduction' | 'credentials' | 'scenarios')}
+      />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto flex flex-col items-center justify-start"></div>
