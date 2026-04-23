@@ -1,11 +1,18 @@
+import type { CustomCharacter } from '../content/types'
 import type { Request, Response } from 'express'
 
 import { Router } from 'express'
 
 import { requireRole } from '../middleware/requireAdmin'
+import { businessCustom } from '../../config/businessCustom'
+import { lawyerCustom } from '../../config/lawyerCustom'
+import { studentCustom } from '../../config/studentCustom'
 import logger from '../utils/logger'
 
 const router = Router()
+
+// All available characters in order.
+const characters: CustomCharacter[] = [studentCustom, lawyerCustom, businessCustom]
 
 /**
  * GET /admin/characters
@@ -14,17 +21,24 @@ const router = Router()
  */
 router.get('/', requireRole(['admin', 'creator', 'viewer']), (_req: Request, res: Response) => {
   logger.debug('Admin: list characters')
-  res.json({ message: 'List characters — not yet implemented' })
+  res.json(characters)
 })
 
 /**
  * GET /admin/characters/:id
- * Get a single character by id.
+ * Get a single character by id (0-based index).
  * Requires: admin or creator or viewer role
  */
 router.get('/:id', requireRole(['admin', 'creator', 'viewer']), (req: Request, res: Response) => {
-  logger.debug({ id: req.params.id }, 'Admin: get character')
-  res.json({ message: `Get character ${req.params.id} — not yet implemented` })
+  const id = parseInt(req.params.id, 10)
+  logger.debug({ id }, 'Admin: get character')
+
+  if (Number.isNaN(id) || id < 0 || id >= characters.length) {
+    res.status(404).json({ error: `Character ${req.params.id} not found` })
+    return
+  }
+
+  res.json(characters[id])
 })
 
 /**
