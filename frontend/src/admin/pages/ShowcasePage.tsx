@@ -1,5 +1,5 @@
 import { UserIcon, CreditCardIcon, QueueListIcon, FilmIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { baseRoute, baseUrl } from '../../client/api/BaseUrl'
@@ -12,6 +12,12 @@ export function ShowcasePage() {
   const { character, isLoading } = useCharacter()
   const [activeTab, setActiveTab] = useState<'persona' | 'introduction' | 'credentials' | 'scenarios'>('persona')
   const [activeUseCase, setActiveUseCase] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (activeTab === 'scenarios' && character?.useCases?.length) {
+      setActiveUseCase(character.useCases[0].id)
+    }
+  }, [activeTab, character?.useCases])
 
   const tabs = [
     { id: 'persona', label: 'Persona', icon: <UserIcon className="w-5 h-5" /> },
