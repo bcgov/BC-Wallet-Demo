@@ -1,4 +1,4 @@
-import { UserIcon, CreditCardIcon, QueueListIcon, FilmIcon } from '@heroicons/react/24/outline'
+import { UserIcon, CreditCardIcon, QueueListIcon, FilmIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -31,6 +31,7 @@ export function ShowcasePage() {
           onClick={() => navigate(`${baseRoute}/admin/creator`)}
           className="text-bcgov-blue hover:text-bcgov-black hover:bg-gray-100 transition-all flex items-center gap-2 px-3 py-2 rounded-lg"
         >
+          <ArrowLeftIcon className="w-4 h-4" />
           <span className="font-medium">Back to Showcases</span>
         </button>
         <div className="w-full max-w-4xl">

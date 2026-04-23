@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
 
-import { baseRoute, baseUrl } from '../../client/api/BaseUrl'
+import { baseRoute } from '../../client/api/BaseUrl'
+import { getAllCharacters } from '../api/adminApi'
 
 import { ShowcaseCard } from './ShowcaseCard'
-
-const adminBase = `${baseUrl}/admin`
 
 export function ShowcasesPanel() {
   const auth = useAuth()
@@ -21,16 +20,8 @@ export function ShowcasesPanel() {
     const fetchCharacters = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`${adminBase}/characters`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
-            'Content-Type': 'application/json',
-          },
-        })
-        if (!res.ok) throw new Error(`Request failed: ${res.status}`)
-        const data = (await res.json()) as CustomCharacter[]
-        setCharacters(data)
+        const characters = await getAllCharacters(auth)
+        setCharacters(characters)
         setError(null)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch characters')
@@ -56,11 +47,7 @@ export function ShowcasesPanel() {
             <ShowcaseCard
               key={idx}
               character={character}
-              idx={idx}
-              isExpanded={false}
-              onToggle={() => navigate(`${baseRoute}/admin/creator/showcase/${character.name}`)}
-              expandedUseCase={null}
-              setExpandedUseCase={() => {}}
+              onClick={() => navigate(`${baseRoute}/admin/creator/showcase/${character.name}`)}
             />
           ))}
         </div>
