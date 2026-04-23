@@ -3,10 +3,10 @@ import type { Request, Response } from 'express'
 
 import { Router } from 'express'
 
-import { requireRole } from '../middleware/requireAdmin'
 import { businessCustom } from '../../config/businessCustom'
 import { lawyerCustom } from '../../config/lawyerCustom'
 import { studentCustom } from '../../config/studentCustom'
+import { requireRole } from '../middleware/requireAdmin'
 import logger from '../utils/logger'
 
 const router = Router()
@@ -26,19 +26,21 @@ router.get('/', requireRole(['admin', 'creator', 'viewer']), (_req: Request, res
 
 /**
  * GET /admin/characters/:id
- * Get a single character by id (0-based index).
+ * Get a single character by name.
  * Requires: admin or creator or viewer role
  */
 router.get('/:id', requireRole(['admin', 'creator', 'viewer']), (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10)
-  logger.debug({ id }, 'Admin: get character')
+  const name = req.params.id
+  logger.debug({ name }, 'Admin: get character')
 
-  if (Number.isNaN(id) || id < 0 || id >= characters.length) {
-    res.status(404).json({ error: `Character ${req.params.id} not found` })
+  const character = characters.find((c) => c.name === name)
+
+  if (!character) {
+    res.status(404).json({ error: `Character ${name} not found` })
     return
   }
 
-  res.json(characters[id])
+  res.json(character)
 })
 
 /**

@@ -47,7 +47,9 @@ export function ShowcasesPanel() {
             <ShowcaseCard
               key={idx}
               character={character}
-              onClick={() => navigate(`${baseRoute}/admin/creator/showcase/${character.name}`)}
+              onClick={() =>
+                navigate(`${baseRoute}/admin/creator/showcase/${character.name}`, { state: { character } })
+              }
             />
           ))}
         </div>

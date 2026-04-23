@@ -18,7 +18,7 @@ export const getAllCharacters = async (auth: AuthContextProps): Promise<CustomCh
   return data
 }
 
-export const getCharacter = async (auth: AuthContextProps, name: string): Promise<CustomCharacter> => {
+export const getCharacterByName = async (auth: AuthContextProps, name: string): Promise<CustomCharacter> => {
   const res = await fetch(`${adminBase}/characters/${encodeURIComponent(name)}`, {
     method: 'GET',
     headers: {
