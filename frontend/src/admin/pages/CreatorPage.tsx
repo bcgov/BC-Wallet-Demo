@@ -1,4 +1,4 @@
-import { PhotoIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
+import { PhotoIcon, CreditCardIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
 import { AdminNavbar } from '../components/AdminNavbar'
@@ -28,7 +28,7 @@ export function CreatorPage() {
             : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
         }`}
       >
-        <AcademicCapIcon className="w-5 h-5" />
+        <CreditCardIcon className="w-5 h-5" />
         Credentials
       </button>
     </div>
