@@ -69,14 +69,14 @@ export const ProofAttributesCard: React.FC<Props> = ({ entityName, requestedCred
               </div>
             )
           })}
-          {item.predicates && (
-            <div className="flex flex-row">
+          {item.predicates?.map((predicate) => (
+            <div key={predicate.name} className="flex flex-row">
               <p className="flex-1-1 text-sm bg-bcgov-lightgrey dark:bg-bcgov-darkgrey p-1 px-2 rounded-lg m-2">
-                {item.predicates.name.charAt(0).toUpperCase() + item.predicates.name.slice(1)}
+                {predicate.name.charAt(0).toUpperCase() + predicate.name.slice(1)}
               </p>
               <p className="flex-1 text-sm bg-white dark:bg-grey p-1 px-2 rounded-lg m-2">{proofReceived && 'OK'}</p>
             </div>
-          )}
+          ))}
         </div>
       </div>
     )

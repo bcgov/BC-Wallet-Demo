@@ -21,8 +21,8 @@ const makeStore = () => configureStore({ reducer: { proof: proofReducer } })
 
 const mockProofRequestData = {
   connectionId: 'conn-1',
-  attributes: [],
-  predicates: [],
+  attributes: {},
+  predicates: {},
 }
 
 beforeEach(() => {

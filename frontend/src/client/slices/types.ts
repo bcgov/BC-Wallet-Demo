@@ -10,10 +10,30 @@ export interface Connection {
   invitationUrl: string
 }
 
+export interface ProofRestriction {
+  schema_name?: string
+  schema_id?: string
+  cred_def_id?: string
+}
+
+export interface ProofAttributeRequest {
+  restrictions: ProofRestriction[]
+  names: string[]
+  non_revoked?: { to: number; from?: number }
+}
+
+export interface ProofPredicateRequest {
+  restrictions: ProofRestriction[]
+  name: string
+  p_value?: string | number | (() => string | number)
+  p_type: string
+  non_revoked?: { to: number; from?: number }
+}
+
 export interface ProofRequestData {
   connectionId: string
-  attributes?: any[]
-  predicates?: any[]
+  attributes?: Record<string, ProofAttributeRequest>
+  predicates?: Record<string, ProofPredicateRequest>
   nonRevoked?: { to: number; from?: number }
   requestOptions?: RequestOptions
 }
@@ -42,12 +62,18 @@ export interface OnboardingStep {
   credentials?: Credential[]
 }
 
+export interface Predicate {
+  name: string
+  value?: string | number | (() => string | number)
+  type: string
+}
+
 export interface CredentialRequest {
   name: string
   icon?: string
   schema_id?: string
   cred_def_id?: string
-  predicates?: { name: string; value?: string | number | (() => string | number); type: string }
+  predicates?: Predicate[]
   properties?: string[]
   nonRevoked?: { to: number; from?: number }
 }

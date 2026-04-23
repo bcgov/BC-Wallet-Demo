@@ -1,4 +1,10 @@
-import type { CredentialRequest, UseCaseScreen } from '../../../slices/types'
+import type {
+  CredentialRequest,
+  ProofAttributeRequest,
+  ProofPredicateRequest,
+  ProofRestriction,
+  UseCaseScreen,
+} from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
@@ -45,12 +51,12 @@ export const StepProof: React.FC<Props> = ({
   const { message } = useSocket()
 
   const createProofRequest = () => {
-    const proofs: any = []
+    const proofs: Record<string, ProofAttributeRequest> = {}
 
-    const predicates: any = []
+    const predicates: Record<string, ProofPredicateRequest> = {}
 
     requestedCredentials?.forEach((item) => {
-      const restrictions: any[] = [
+      const restrictions: ProofRestriction[] = [
         {
           schema_name: item.name,
         },
@@ -73,13 +79,15 @@ export const StepProof: React.FC<Props> = ({
         }
       }
       if (item.predicates) {
-        predicates[item.name] = {
-          restrictions,
-          name: item.predicates?.name,
-          p_value: item.predicates?.value,
-          p_type: item.predicates?.type,
-          non_revoked: item.nonRevoked,
-        }
+        item.predicates.forEach((predicate) => {
+          predicates[`${item.name}_${predicate.name}`] = {
+            restrictions,
+            name: predicate.name,
+            p_value: predicate.value,
+            p_type: predicate.type,
+            non_revoked: item.nonRevoked,
+          }
+        })
       }
     })
     if (isDeepLink) {
