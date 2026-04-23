@@ -2,8 +2,9 @@ import type { CustomCharacter } from '../types'
 
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
+import { useNavigate } from 'react-router-dom'
 
-import { baseUrl } from '../../client/api/BaseUrl'
+import { baseRoute, baseUrl } from '../../client/api/BaseUrl'
 
 import { CharacterCard } from './CharacterCard'
 
@@ -11,11 +12,10 @@ const adminBase = `${baseUrl}/admin`
 
 export function ShowcasesPanel() {
   const auth = useAuth()
+  const navigate = useNavigate()
   const [characters, setCharacters] = useState<CustomCharacter[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
-  const [expandedUseCase, setExpandedUseCase] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchCharacters = async () => {
@@ -57,10 +57,10 @@ export function ShowcasesPanel() {
               key={idx}
               character={character}
               idx={idx}
-              isExpanded={expandedIdx === idx}
-              onToggle={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
-              expandedUseCase={expandedUseCase}
-              setExpandedUseCase={setExpandedUseCase}
+              isExpanded={false}
+              onToggle={() => navigate(`${baseRoute}/admin/creator/showcase/${character.name}`)}
+              expandedUseCase={null}
+              setExpandedUseCase={() => {}}
             />
           ))}
         </div>

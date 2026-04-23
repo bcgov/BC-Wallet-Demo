@@ -1,67 +1,42 @@
-import { PhotoIcon, AcademicCapIcon, Squares2X2Icon, PowerIcon } from '@heroicons/react/24/outline'
+import { PhotoIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
-import { useAuth } from 'react-oidc-context'
 
-import { baseRoute } from '../../client/api/BaseUrl'
+import { AdminNavbar } from '../components/AdminNavbar'
 import { ShowcasesPanel } from '../components/ShowcasesPanel'
 
 export function CreatorPage() {
-  const auth = useAuth()
   const [activeTab, setActiveTab] = useState<'showcases' | 'credentials'>('showcases')
 
-  const handleSignOut = () => {
-    void auth.signoutRedirect({
-      post_logout_redirect_uri: `${window.location.origin}${baseRoute}/admin?signedOut=true`,
-    })
-  }
+  const tabsContent = (
+    <div className="flex gap-8">
+      <button
+        onClick={() => setActiveTab('showcases')}
+        className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
+          activeTab === 'showcases'
+            ? 'border-bcgov-blue text-bcgov-blue'
+            : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
+        }`}
+      >
+        <PhotoIcon className="w-5 h-5" />
+        Showcases
+      </button>
+      <button
+        onClick={() => setActiveTab('credentials')}
+        className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
+          activeTab === 'credentials'
+            ? 'border-bcgov-blue text-bcgov-blue'
+            : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
+        }`}
+      >
+        <AcademicCapIcon className="w-5 h-5" />
+        Credentials
+      </button>
+    </div>
+  )
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Top Navigation Bar */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4 flex items-center justify-between">
-          {/* Left: Logo/Title */}
-          <div className="flex items-center gap-3">
-            <Squares2X2Icon className="w-7 h-7 text-bcgov-blue" />
-            <div className="text-xl font-semibold text-bcgov-black">Showcase Admin</div>
-          </div>
-
-          {/* Center: Navigation Tabs */}
-          <div className="flex gap-8">
-            <button
-              onClick={() => setActiveTab('showcases')}
-              className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
-                activeTab === 'showcases'
-                  ? 'border-bcgov-blue text-bcgov-blue'
-                  : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
-              }`}
-            >
-              <PhotoIcon className="w-5 h-5" />
-              Showcases
-            </button>
-            <button
-              onClick={() => setActiveTab('credentials')}
-              className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
-                activeTab === 'credentials'
-                  ? 'border-bcgov-blue text-bcgov-blue'
-                  : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
-              }`}
-            >
-              <AcademicCapIcon className="w-5 h-5" />
-              Credentials
-            </button>
-          </div>
-
-          {/* Right: Sign Out Button */}
-          <button
-            onClick={handleSignOut}
-            className="text-bcgov-blue hover:text-bcgov-black hover:bg-gray-100 font-medium transition-colors flex items-center gap-2 px-3 py-2 rounded-lg"
-          >
-            <PowerIcon className="w-5 h-5" />
-            Sign Out
-          </button>
-        </div>
-      </div>
+      <AdminNavbar tabsContent={tabsContent} />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto flex flex-col items-center justify-start">

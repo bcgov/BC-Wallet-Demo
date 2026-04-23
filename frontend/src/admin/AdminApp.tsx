@@ -8,6 +8,7 @@ import { AuthGuard } from './auth/AuthGuard'
 import { loadOidcConfig } from './auth/keycloakConfig'
 import { CallbackPage } from './pages/CallbackPage'
 import { CreatorPage } from './pages/CreatorPage'
+import { ShowcasePage } from './pages/ShowcasePage'
 import { LoginPage } from './pages/LoginPage'
 
 const onSigninCallback = () => {
@@ -44,6 +45,14 @@ function AdminApp() {
           element={
             <AuthGuard>
               <CreatorPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="creator/showcase/:name"
+          element={
+            <AuthGuard>
+              <ShowcasePage />
             </AuthGuard>
           }
         />
