@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { baseRoute, baseUrl } from '../../client/api/BaseUrl'
 
-import { CharacterCard } from './CharacterCard'
+import { ShowcaseCard } from './ShowcaseCard'
 
 const adminBase = `${baseUrl}/admin`
 
@@ -53,7 +53,7 @@ export function ShowcasesPanel() {
       {!loading && !error && characters.length > 0 && (
         <div className="space-y-4">
           {characters.map((character, idx) => (
-            <CharacterCard
+            <ShowcaseCard
               key={idx}
               character={character}
               idx={idx}

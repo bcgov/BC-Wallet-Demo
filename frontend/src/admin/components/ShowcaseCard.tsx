@@ -2,11 +2,7 @@ import type { CustomCharacter } from '../types'
 
 import { baseUrl } from '../../client/api/BaseUrl'
 
-import { OnboardingSection } from './OnboardingSection'
-import { RevocationInfoSection } from './RevocationInfoSection'
-import { UseCasesSection } from './UseCasesSection'
-
-interface CharacterCardProps {
+interface ShowcaseCardProps {
   character: CustomCharacter
   idx: number
   isExpanded: boolean
@@ -15,14 +11,7 @@ interface CharacterCardProps {
   setExpandedUseCase: (value: string | null) => void
 }
 
-export function CharacterCard({
-  character,
-  idx,
-  isExpanded,
-  onToggle,
-  expandedUseCase,
-  setExpandedUseCase,
-}: CharacterCardProps) {
+export function ShowcaseCard({ character, isExpanded, onToggle }: ShowcaseCardProps) {
   return (
     <div>
       <button
@@ -53,19 +42,6 @@ export function CharacterCard({
           <div className="text-bcgov-blue font-bold text-xl flex-shrink-0">{isExpanded ? '−' : '+'}</div>
         </div>
       </button>
-
-      {isExpanded && (
-        <div className="border border-t-0 border-gray-200 rounded-b-lg p-5 bg-gray-50 space-y-4">
-          <OnboardingSection character={character} />
-          <RevocationInfoSection character={character} />
-          <UseCasesSection
-            character={character}
-            characterIdx={idx}
-            expandedUseCase={expandedUseCase}
-            setExpandedUseCase={setExpandedUseCase}
-          />
-        </div>
-      )}
     </div>
   )
 }
