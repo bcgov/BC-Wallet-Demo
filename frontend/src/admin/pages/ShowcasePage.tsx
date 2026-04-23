@@ -103,6 +103,32 @@ export function ShowcasePage() {
           </div>
         </div>
       )}
+      {activeTab === 'introduction' && (
+        <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
+          {/* Introduction Tab */}
+          <div className="w-full max-w-4xl mb-8">
+            <h2 className="text-2xl font-semibold text-bcgov-black">Introduction Screens</h2>
+            <h5 className="text-gray-500 mt-2">Configure the introduction screens.</h5>
+          </div>
+          <div className="w-full max-w-4xl px-6 space-y-6">
+            {character?.onboarding?.map((screen, idx) => (
+              <div key={idx} className="border border-gray-300 rounded-lg bg-white p-8">
+                <div className="mb-6">
+                  <p className="text-sm font-bold text-bcgov-black mb-2">
+                    {screen.screenId
+                      .replace(/_/g, ' ')
+                      .split(' ')
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ')}
+                  </p>
+                  <p className="text-xs font-semibold text-bcgov-black mb-1">{screen.title}</p>
+                  <p className="text-xs text-gray-600">{screen.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
