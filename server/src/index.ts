@@ -70,9 +70,9 @@ const run = async () => {
     const isDev = process.env.NODE_ENV === 'development'
     const isTest = process.env.NODE_ENV === 'test'
 
-    // In development/test, allow requests from localhost on any port
+    // In development/test, allow requests from localhost on any port (both 'localhost' and '127.0.0.1')
     // In production, restrict to specific origins
-    if ((isDev || isTest) && origin?.includes('localhost')) {
+    if ((isDev || isTest) && origin && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
       res.setHeader('Access-Control-Allow-Origin', origin)
       res.setHeader('Access-Control-Allow-Credentials', 'true')
       res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS')
