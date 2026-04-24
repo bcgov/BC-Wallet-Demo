@@ -30,3 +30,37 @@ export const getCharacterByName = async (auth: AuthContextProps, name: string): 
   const data = (await res.json()) as CustomCharacter
   return data
 }
+
+export interface SVGFile {
+  path: string
+  name: string
+}
+
+export const getAvailableSvgs = async (auth: AuthContextProps): Promise<string[]> => {
+  const res = await fetch(`${adminBase}/svgs`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  const data = (await res.json()) as { files: string[] }
+  return data.files
+}
+
+export const uploadSvg = async (auth: AuthContextProps, file: File): Promise<{ path: string; filename: string }> => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const res = await fetch(`${adminBase}/svgs`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+    },
+    body: formData,
+  })
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  const data = (await res.json()) as { path: string; filename: string }
+  return data
+}

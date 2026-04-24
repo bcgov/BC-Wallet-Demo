@@ -5,6 +5,8 @@ import { useState } from 'react'
 
 import { baseUrl } from '../../client/api/BaseUrl'
 
+import { ImageUploadModal } from './ImageUploadModal'
+
 interface PersonaTabProps {
   character: CustomCharacter | null
   isLoading: boolean
@@ -20,6 +22,7 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
     character?.description || 'Persona introduction text goes here.',
   )
   const [isEditingImage, setIsEditingImage] = useState(false)
+  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
 
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
@@ -126,19 +129,27 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
               )}
             </div>
             {isEditingImage && (
-              <button
-                onClick={() => {
-                  // Upload functionality will be added here
-                }}
-                className="px-4 py-2 bg-white text-bcgov-black font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors h-fit flex items-center gap-2"
-              >
-                <ArrowUpTrayIcon className="w-4 h-4" />
-                Upload Image
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setIsImageUploadModalOpen(true)}
+                  className="px-4 py-2 bg-white text-bcgov-black font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors h-fit flex items-center gap-2"
+                >
+                  <ArrowUpTrayIcon className="w-4 h-4" />
+                  Upload Image
+                </button>
+                <p className="text-xs text-gray-500">SVG up to 5MB</p>
+              </div>
             )}
           </div>
         </div>
       </div>
+      <ImageUploadModal
+        isOpen={isImageUploadModalOpen}
+        onClose={() => setIsImageUploadModalOpen(false)}
+        onSelectImage={() => {
+          // Image selection logic will be added here
+        }}
+      />
     </div>
   )
 }
