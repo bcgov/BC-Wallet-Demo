@@ -46,7 +46,7 @@ export const lawyerCustom: CustomCharacter = {
     },
     {
       name: 'notification',
-      onboardingStep: 'ACCEPT_PERSON',
+      onboardingStep: 'ACCEPT_CREDENTIAL',
       iconLight: '/public/common/icon-notification-light.svg',
       iconDark: '/public/common/icon-notification-dark.svg',
     },
@@ -131,7 +131,7 @@ export const lawyerCustom: CustomCharacter = {
       issuer_name: 'Service BC (Demo)',
     },
     {
-      screenId: 'ACCEPT_PERSON',
+      screenId: 'ACCEPT_CREDENTIAL',
       title: 'Accept your Person credential',
       text: 'Check your phone. You’ve received a credential offer from Service BC in your BC Wallet. You can use this credential to prove who you are online.',
       image: '/public/lawyer2/onboarding/personCredPhone.svg',
