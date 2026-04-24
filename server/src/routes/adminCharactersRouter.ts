@@ -2,17 +2,34 @@ import type { CustomCharacter } from '../content/types'
 import type { Request, Response } from 'express'
 
 import { Router } from 'express'
+import fs from 'fs'
+import path from 'path'
 
-import { businessCustom } from '../../config/businessCustom'
-import { lawyerCustom } from '../../config/lawyerCustom'
-import { studentCustom } from '../../config/studentCustom'
 import { requireRole } from '../middleware/requireAdmin'
 import logger from '../utils/logger'
 
 const router = Router()
 
-// All available characters in order.
-const characters: CustomCharacter[] = [studentCustom, lawyerCustom, businessCustom]
+// Dynamically load all Custom character files from /config/
+const configDir = path.join(__dirname, '../../config')
+const customCharacterFiles = fs
+  .readdirSync(configDir)
+  .filter((file) => file.endsWith('Custom.ts') || file.endsWith('Custom.js'))
+
+const characters: CustomCharacter[] = customCharacterFiles
+  .map((file) => {
+    const modulePath = path.join(configDir, file.replace(/\.(ts|js)$/, ''))
+    try {
+      const module = require(modulePath)
+      // Find the export that is a CustomCharacter (ends with 'Custom')
+      const customKey = Object.keys(module).find((key) => key.endsWith('Custom'))
+      return customKey ? module[customKey] : null
+    } catch (error) {
+      logger.error({ file, error }, 'Failed to load custom character')
+      return null
+    }
+  })
+  .filter((char): char is CustomCharacter => char !== null)
 
 /**
  * GET /admin/characters
@@ -45,12 +62,80 @@ router.get('/:id', requireRole(['admin', 'creator', 'viewer']), (req: Request, r
 
 /**
  * POST /admin/characters
- * Create a new character.
+ * Create a new showcase (development only).
  * Requires: admin or creator role
  */
 router.post('/', requireRole(['admin', 'creator']), (req: Request, res: Response) => {
-  logger.debug({ body: req.body }, 'Admin: create character')
-  res.status(201).json({ message: 'Create character — not yet implemented' })
+  try {
+    const { name, description } = req.body
+
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Showcase name is required' })
+    }
+
+    // Sanitize the name to create a valid filename
+    const sanitizedName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '')
+      .replace(/^[0-9]+/, '')
+
+    if (sanitizedName.length === 0) {
+      return res.status(400).json({ error: 'Invalid showcase name' })
+    }
+
+    const filename = `${sanitizedName}Custom.ts`
+    const configDir = path.join(__dirname, '../../config')
+    const filepath = path.join(configDir, filename)
+
+    // Check if file already exists
+    if (fs.existsSync(filepath)) {
+      return res.status(409).json({ error: 'Showcase with this name already exists' })
+    }
+
+    // Create the config file template
+    const template = `import type { CustomCharacter } from '../src/content/types'
+
+import { getDateInt } from '../src/utils/dateint'
+
+export const ${sanitizedName}Custom: CustomCharacter = {
+  name: '${name}',
+  type: 'Custom',
+  image: '/public/common/icon-person-light.svg',
+  description: '${description || ''}',
+  revocationInfo: [],
+  progressBar: [
+    {
+      name: 'person',
+      onboardingStep: 'PICK_CHARACTER',
+      iconLight: '/public/common/icon-person-light.svg',
+      iconDark: '/public/common/icon-person-dark.svg',
+    },
+  ],
+  onboarding: [
+    {
+      screenId: 'PICK_CHARACTER',
+      title: 'Meet ${name}',
+      text: 'This is a new showcase for ${name}.',
+    },
+  ],
+  useCases: [],
+}
+`
+
+    // Write the file
+    fs.writeFileSync(filepath, template)
+    logger.info(`Created new showcase config: ${filename}`)
+
+    res.status(201).json({
+      success: true,
+      message: 'Showcase created successfully',
+      filename,
+      name: sanitizedName,
+    })
+  } catch {
+    logger.error('Error creating showcase')
+    res.status(500).json({ error: 'Failed to create showcase' })
+  }
 })
 
 /**

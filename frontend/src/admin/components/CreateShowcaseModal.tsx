@@ -1,5 +1,8 @@
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
+import { useAuth } from 'react-oidc-context'
+
+import { createShowcase } from '../api/adminApi'
 
 interface CreateShowcaseModalProps {
   isOpen: boolean
@@ -7,10 +10,34 @@ interface CreateShowcaseModalProps {
 }
 
 export function CreateShowcaseModal({ isOpen, onClose }: CreateShowcaseModalProps) {
+  const auth = useAuth()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   if (!isOpen) return null
+
+  const handleCreate = async () => {
+    if (!title.trim()) {
+      setError('Please enter a showcase title')
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      setError(null)
+      await createShowcase(auth, title, description)
+      // Reset form and close modal
+      setTitle('')
+      setDescription('')
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create showcase')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -27,6 +54,7 @@ export function CreateShowcaseModal({ isOpen, onClose }: CreateShowcaseModalProp
           </button>
         </div>
         <div className="p-6 space-y-4">
+          {error && <div className="text-red-600 text-sm">{error}</div>}
           <div>
             <label className="block text-sm font-semibold text-bcgov-black mb-2">Showcase Title</label>
             <input
@@ -35,6 +63,7 @@ export function CreateShowcaseModal({ isOpen, onClose }: CreateShowcaseModalProp
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter showcase title"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue"
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -45,18 +74,24 @@ export function CreateShowcaseModal({ isOpen, onClose }: CreateShowcaseModalProp
               placeholder="Enter showcase description"
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue"
+              disabled={isLoading}
             />
           </div>
         </div>
         <div className="border-t border-gray-200 p-6 flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-bcgov-black font-semibold hover:bg-gray-50 transition-colors"
+            disabled={isLoading}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-bcgov-black font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
-          <button className="px-4 py-2 bg-bcgov-blue text-white font-semibold rounded-lg hover:bg-bcgov-blue-dark transition-colors">
-            Create
+          <button
+            onClick={handleCreate}
+            disabled={isLoading}
+            className="px-4 py-2 bg-bcgov-blue text-white font-semibold rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50"
+          >
+            {isLoading ? 'Creating...' : 'Create'}
           </button>
         </div>
       </div>

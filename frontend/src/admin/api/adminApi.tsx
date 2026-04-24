@@ -64,3 +64,21 @@ export const uploadSvg = async (auth: AuthContextProps, file: File): Promise<{ p
   const data = (await res.json()) as { path: string; filename: string }
   return data
 }
+
+export const createShowcase = async (
+  auth: AuthContextProps,
+  name: string,
+  description: string,
+): Promise<{ success: boolean; message: string; filename: string; name: string }> => {
+  const res = await fetch(`${adminBase}/characters`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name, description }),
+  })
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  const data = (await res.json()) as { success: boolean; message: string; filename: string; name: string }
+  return data
+}
