@@ -80,11 +80,11 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
 
   return (
     <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
-      <StepInfo title={step.title} description={step.text} />
+      <StepInfo title={step.name} description={step.text} />
       {step.image && !isMobile ? (
         <div
           className="bg-contain bg-center bg-no-repeat h-full flex justify-end"
-          title={step.title}
+          title={step.name}
           style={{ backgroundImage: `url(${prependApiUrl(step.image)})` }}
         >
           <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4 mr-8 shadow-lg dark:text-black">

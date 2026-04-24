@@ -51,7 +51,7 @@ describe('OnboardingStep embedded schema', () => {
       onboarding: [
         {
           screenId: 'PICK_CREDENTIAL',
-          title: 'Get your card',
+          name: 'Get your card',
           text: 'Scan to receive',
           issuer_name: 'Best BC College',
           credentials: [
@@ -96,7 +96,7 @@ describe('RevocationInfoItem embedded schema', () => {
         {
           credentialName: 'Student Card',
           credentialIcon: '/icon.svg',
-          title: 'Revoke',
+          name: 'Revoke',
           description: 'You can revoke if...',
         },
       ],
@@ -114,7 +114,7 @@ describe('UseCase embedded in Character', () => {
         {
           id: 'clothesOnline',
           name: 'Clothes Online',
-          screens: [{ screenId: 'START', title: 'Welcome', text: 'Begin the demo' }],
+          screens: [{ screenId: 'START', name: 'Welcome', text: 'Begin the demo' }],
         },
       ],
     })

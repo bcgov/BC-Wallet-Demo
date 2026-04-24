@@ -27,7 +27,7 @@ export const StepperCard: React.FC<Props> = ({ steps, currentStep }) => {
           )}
         </div>
         <div className={`flex flex-col mx-2 ${currentStepIsNotEqual && 'opacity-40'}`}>
-          <h1 className="font-medium">{item.title}</h1>
+          <h1 className="font-medium">{item.name}</h1>
           <div className="my-2 mb-6 text-xs md:text-sm"></div>
         </div>
       </div>

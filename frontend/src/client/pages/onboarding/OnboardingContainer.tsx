@@ -50,7 +50,7 @@ export const OnboardingContainer: React.FC<Props> = ({
   const { issuedCredentials } = useCredentials()
   const idToTitle: Record<string, string> = {}
   currentCharacter?.onboarding.forEach((item) => {
-    idToTitle[item.screenId] = item.title
+    idToTitle[item.screenId] = item.name
   })
 
   const connectionCompleted = isConnected(connectionState as string)
@@ -111,7 +111,7 @@ export const OnboardingContainer: React.FC<Props> = ({
     const characterContent = currentCharacter?.onboarding.find((screen) => screen.screenId === progress)
     if (characterContent) {
       return {
-        title: characterContent.title,
+        title: characterContent.name,
         text: characterContent.text,
         credentials: characterContent.credentials,
         issuer_name: characterContent.issuer_name,

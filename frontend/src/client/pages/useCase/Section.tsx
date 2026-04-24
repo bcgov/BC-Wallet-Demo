@@ -78,7 +78,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
         data: {
           action: 'leave',
           path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
-          step: step.title,
+          step: step.name,
         },
       },
     })
@@ -99,7 +99,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
           data: {
             action: 'usecase_completed',
             path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
-            step: step.title,
+            step: step.name,
           },
         },
       })
@@ -154,7 +154,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
           data: {
             action: 'next',
             path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
-            step: step.title,
+            step: step.name,
           },
         },
       })
@@ -233,7 +233,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                         data: {
                           action: 'back',
                           path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
-                          step: step.title,
+                          step: step.name,
                         },
                       },
                     })
@@ -253,7 +253,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                           data: {
                             action: 'next',
                             path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
-                            step: step.title,
+                            step: step.name,
                           },
                         },
                       })

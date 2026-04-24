@@ -32,7 +32,7 @@ const CredentialSchema = new Schema<Credential>(
 const OnboardingStepSchema = new Schema<OnboardingStep>(
   {
     screenId: { type: String, required: true },
-    title: { type: String, required: true },
+    name: { type: String, required: true },
     text: { type: String, required: true },
     image: String,
     issuer_name: String,
@@ -57,7 +57,7 @@ const RevocationInfoItemSchema = new Schema<RevocationInfoItem>(
   {
     credentialName: { type: String, required: true },
     credentialIcon: { type: String, required: true },
-    title: { type: String, required: true },
+    name: { type: String, required: true },
     description: { type: String, required: true },
   },
   embeddedSchemaOptions,

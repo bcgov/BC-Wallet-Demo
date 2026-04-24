@@ -10,7 +10,7 @@ export interface Credential {
 
 export interface OnboardingStep {
   screenId: string
-  title: string
+  name: string
   text: string
   image?: string
   issuer_name?: string
@@ -39,14 +39,14 @@ export interface CredentialRequest {
 }
 
 export interface CustomRequestOptions {
-  title: string
+  name: string
   text: string
   requestedCredentials: CredentialRequest[]
 }
 
 export interface UseCaseScreen {
   screenId: string
-  title: string
+  name: string
   text: string
   image?: string
   verifier?: { name: string; icon?: string }
@@ -70,7 +70,7 @@ export interface ProgressBarStep {
 export interface RevocationInfoItem {
   credentialName: string
   credentialIcon: string
-  title: string
+  name: string
   description: string
 }
 
@@ -87,7 +87,7 @@ export interface CustomCharacter {
 }
 
 export interface UseCaseCard {
-  title: string
+  name: string
   image?: string
   description: string
 }
@@ -122,7 +122,7 @@ export interface Overlay {
 
 export interface EndStepperItem {
   id: string
-  title: string
+  name: string
   description: string
   image: string
 }

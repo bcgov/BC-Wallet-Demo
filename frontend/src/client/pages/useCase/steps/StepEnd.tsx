@@ -14,8 +14,8 @@ export interface Props {
 export const StepEnd: React.FC<Props> = ({ step }) => {
   return (
     <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
-      <StepInfo title={step.title} description={step.text} />
-      {step.image && <img className="h-full w-1/2 m-auto" src={prependApiUrl(step.image)} alt={step.title} />}
+      <StepInfo title={step.name} description={step.text} />
+      {step.image && <img className="h-full w-1/2 m-auto" src={prependApiUrl(step.image)} alt={step.name} />}
     </motion.div>
   )
 }

@@ -96,7 +96,7 @@ export const StepProof: React.FC<Props> = ({
           connectionId: connectionId,
           attributes: proofs,
           predicates: predicates,
-          requestOptions: { name: step.requestOptions?.title, comment: step.requestOptions?.text },
+          requestOptions: { name: step.requestOptions?.name, comment: step.requestOptions?.text },
         }),
       )
     } else {
@@ -105,7 +105,7 @@ export const StepProof: React.FC<Props> = ({
           connectionId: connectionId,
           attributes: proofs,
           predicates: predicates,
-          requestOptions: { name: step.requestOptions?.title, comment: step.requestOptions?.text },
+          requestOptions: { name: step.requestOptions?.name, comment: step.requestOptions?.text },
         }),
       )
     }
@@ -147,7 +147,7 @@ export const StepProof: React.FC<Props> = ({
 
   return (
     <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
-      <StepInfo title={step.title} description={step.text} />
+      <StepInfo title={step.name} description={step.text} />
       <div className="flex flex-row m-auto w-full">
         <div className="w-full lg:w-2/3 sxl:w-2/3 m-auto">
           {proof && (
@@ -169,7 +169,7 @@ export const StepProof: React.FC<Props> = ({
               data: {
                 action: 'cred_not_received',
                 path: characterType,
-                step: step.title,
+                step: step.name,
               },
             },
           })

@@ -37,7 +37,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         data: {
           action: 'leave',
           path: `${characterType}_${slug}`,
-          step: step.title,
+          step: step.name,
         },
       },
     })
@@ -51,7 +51,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         data: {
           action: 'start',
           path: `${characterType}_${slug}`,
-          step: step.title,
+          step: step.name,
         },
       },
     })
@@ -69,7 +69,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
     >
       <div className="flex flex-col p-6 md:p-12 md:pb-6 xl:p-16 xl:pb-8 w-full lg:w-2/3 ">
         <StarterInfo
-          title={step.title}
+          title={step.name}
           description={step.text ?? ''}
           entity={entity}
           requestedCredentials={requestedCredentials}
@@ -83,7 +83,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         </div>
       </div>
       <div className="bg-bcgov-white dark:bg-bcgov-black hidden lg:flex lg:w-1/3 rounded-r-lg flex content-center p-4 select-none">
-        {step.image && <img className="p-8" src={prependApiUrl(step.image)} alt={step.title} />}
+        {step.image && <img className="p-8" src={prependApiUrl(step.image)} alt={step.name} />}
       </div>
     </motion.div>
   )

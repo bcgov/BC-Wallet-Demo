@@ -52,7 +52,7 @@ describe('UseCaseScreenSchema', () => {
           screens: [
             {
               screenId: 'PROOF',
-              title: 'Proof',
+              name: 'Proof',
               text: 'Show credentials',
               verifier: { name: 'BC Services', icon: '/icon.svg' },
             },
@@ -77,10 +77,10 @@ describe('CredentialRequestSchema', () => {
           screens: [
             {
               screenId: 'PROOF',
-              title: 'T',
+              name: 'T',
               text: 'X',
               requestOptions: {
-                title: 'Needed',
+                name: 'Needed',
                 text: 'Provide the following',
                 requestedCredentials: [
                   { name: 'Driver Licence', schema_id: 'abc:1:2:3', nonRevoked: { to: now, from: now - 3600 } },
@@ -107,9 +107,9 @@ describe('CredentialRequestSchema', () => {
             screens: [
               {
                 screenId: 'PROOF',
-                title: 'T',
+                name: 'T',
                 text: 'X',
-                requestOptions: { title: 'T', text: 'X', requestedCredentials: [{ icon: '/x.svg' }] },
+                requestOptions: { name: 'T', text: 'X', requestedCredentials: [{ icon: '/x.svg' }] },
               },
             ],
           },
