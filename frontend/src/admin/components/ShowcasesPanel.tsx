@@ -1,5 +1,6 @@
 import type { CustomCharacter } from '../types'
 
+import { PlusIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
@@ -7,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { baseRoute } from '../../client/api/BaseUrl'
 import { getAllCharacters } from '../api/adminApi'
 
+import { CreateShowcaseModal } from './CreateShowcaseModal'
 import { ShowcaseCard } from './ShowcaseCard'
 
 export function ShowcasesPanel() {
@@ -15,6 +17,7 @@ export function ShowcasesPanel() {
   const [characters, setCharacters] = useState<CustomCharacter[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   useEffect(() => {
     const fetchCharacters = async () => {
@@ -34,7 +37,16 @@ export function ShowcasesPanel() {
 
   return (
     <div>
-      <h2 className="text-bcgov-black font-semibold text-2xl mb-2 flex items-center gap-2">Showcases</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-bcgov-black font-semibold text-2xl">Showcases</h2>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 bg-bcgov-blue hover:bg-bcgov-blue-dark text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+        >
+          <PlusIcon className="w-5 h-5" />
+          Create Showcase
+        </button>
+      </div>
       <p className="text-bcgov-darkgrey mb-6">Manage your digital credential showcases.</p>
 
       {loading && <p className="text-bcgov-darkgrey">Loading showcases…</p>}
@@ -54,6 +66,8 @@ export function ShowcasesPanel() {
           ))}
         </div>
       )}
+
+      <CreateShowcaseModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
     </div>
   )
 }
