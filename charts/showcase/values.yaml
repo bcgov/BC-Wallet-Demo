@@ -125,6 +125,9 @@ showcase:
     ## Caddy reverse_proxy trusted_proxies: use private_ranges (RFC1918 + loopback) for typical K8s ingress → pod hops.
     ## Only use 0.0.0.0/0 if you must trust X-Forwarded-* from arbitrary client addresses (not recommended).
     trustedProxies: private_ranges
+    ## Optional full Caddy site config (Helm `tpl` over `.`). When empty, the chart uses `files/caddyfile.tpl`
+    ## (same behaviour as before); set this to override without a new chart version.
+    caddyfile: ''
     image:
       ## ghcr.io/bcgov/bc-wallet-showcase-frontend:main
       registry: ghcr.io
