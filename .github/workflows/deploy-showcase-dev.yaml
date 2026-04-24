@@ -1,6 +1,8 @@
 # Builds and pushes showcase images (tag `main`), then upgrades the dev Helm release on OpenShift
 # when relevant paths merge to `main` (bcgov repo only for GHCR push + deploy).
 #
+# Shared Docker / CLI setup lives under `.github/actions/showcase-*` (same builders as deploy-showcase-pr).
+#
 # Configure the bcgov repository (Settings → Secrets and variables → Actions):
 #   Variables (not secret):
 #     SHOWCASE_DEV_OC_URL        — API URL, e.g. https://api.silver.devops.gov.bc.ca:6443
@@ -30,6 +32,9 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - '.github/workflows/deploy-showcase-dev.yaml'
+      - '.github/actions/showcase-build-server/**'
+      - '.github/actions/showcase-build-frontend/**'
+      - '.github/actions/showcase-setup-oc-helm/**'
 
 concurrency:
   group: deploy-showcase-dev-${{ github.repository }}
@@ -55,32 +60,11 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/login-action@v3
+      - uses: ./.github/actions/showcase-build-server
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: docker/setup-buildx-action@v3
-
-      - id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.SHOWCASE_SERVER_IMAGE }}
-          tags: |
-            type=raw,value=main
-
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./server/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: mode=min
-          sbom: true
+          image: ${{ env.SHOWCASE_SERVER_IMAGE }}
+          tag: main
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   build-frontend:
     name: Build and push frontend image (main)
@@ -92,35 +76,13 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/login-action@v3
+      - uses: ./.github/actions/showcase-build-frontend
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: docker/setup-buildx-action@v3
-
-      - id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
-          tags: |
-            type=raw,value=main
-
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./frontend/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: mode=min
-          sbom: true
-          build-args: |
-            REACT_APP_INSIGHTS_PROJECT_ID=${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
-            REACT_APP_HOST_BACKEND=${{ vars.SHOWCASE_DEV_PUBLIC_ORIGIN || 'https://bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+          image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
+          tag: main
+          react_app_host_backend: ${{ vars.SHOWCASE_DEV_PUBLIC_ORIGIN || 'https://bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+          react_app_insights_project_id: ${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   helm-upgrade-dev:
     name: Helm upgrade (OpenShift dev)
@@ -140,15 +102,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install OpenShift CLI
-        uses: redhat-actions/openshift-tools-installer@v1
-        with:
-          oc: '4.15'
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: v3.16.3
+      - uses: ./.github/actions/showcase-setup-oc-helm
 
       - name: Log in to OpenShift
         env:

@@ -9,6 +9,9 @@ on:
       - '.github/workflows/deploy-showcase-dev.yaml'
       - '.github/workflows/deploy-showcase-pr.yaml'
       - '.github/workflows/undeploy-showcase-pr.yaml'
+      - '.github/actions/showcase-build-server/**'
+      - '.github/actions/showcase-build-frontend/**'
+      - '.github/actions/showcase-setup-oc-helm/**'
   push:
     branches: [main]
     paths:
@@ -18,6 +21,9 @@ on:
       - '.github/workflows/deploy-showcase-dev.yaml'
       - '.github/workflows/deploy-showcase-pr.yaml'
       - '.github/workflows/undeploy-showcase-pr.yaml'
+      - '.github/actions/showcase-build-server/**'
+      - '.github/actions/showcase-build-frontend/**'
+      - '.github/actions/showcase-setup-oc-helm/**'
 
 permissions:
   contents: read
