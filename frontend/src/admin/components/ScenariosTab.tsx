@@ -1,6 +1,7 @@
 import type { CustomCharacter } from '../types'
 
 import { useEffect, useState } from 'react'
+
 import { baseUrl } from '../../client/api/BaseUrl'
 
 interface ScenariosTabProps {
@@ -64,7 +65,11 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
                     </div>
                     {screen.image && (
                       <div className="flex-shrink-0">
-                        <img src={`${baseUrl}${screen.image}`} alt={screen.title} className="h-40 w-auto object-contain" />
+                        <img
+                          src={`${baseUrl}${screen.image}`}
+                          alt={screen.title}
+                          className="h-40 w-auto object-contain"
+                        />
                       </div>
                     )}
                   </div>
