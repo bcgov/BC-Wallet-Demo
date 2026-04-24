@@ -113,7 +113,11 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
             <div className="relative group w-fit">
               {character?.image && (
                 <div className="w-24 h-24 border border-gray-300 rounded-lg overflow-hidden bg-gray-100">
-                  <img src={`${baseUrl}${character.image}`} alt={character.name} className="w-full h-full object-contain" />
+                  <img
+                    src={`${baseUrl}${character.image}`}
+                    alt={character.name}
+                    className="w-full h-full object-contain"
+                  />
                   <PencilIcon
                     onClick={() => setIsEditingImage(true)}
                     className="absolute -top-2 -right-2 w-5 h-5 bg-bcgov-blue text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
