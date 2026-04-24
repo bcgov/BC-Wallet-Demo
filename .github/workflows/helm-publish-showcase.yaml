@@ -8,6 +8,7 @@ on:
     paths:
       - 'charts/showcase/**'
       - '.github/workflows/helm-publish-showcase.yaml'
+      - '.github/actions/showcase-helm-lint/**'
 
 permissions:
   contents: read
@@ -24,19 +25,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: azure/setup-helm@v4
+      - uses: ./.github/actions/showcase-helm-lint
         with:
-          version: v3.16.3
+          skip_checkout: 'true'
 
       - name: Lowercase OCI repository path
         run: |
           echo "OCI_REPOSITORY=$(echo "${{ github.repository_owner }}/bc-wallet-showcase-chart" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
-      - name: Helm dependency update and package
+      - name: Helm package
         working-directory: charts/showcase
         run: |
           set -euo pipefail
-          helm dependency update
           mkdir -p "$GITHUB_WORKSPACE/dist"
           helm package . --destination "$GITHUB_WORKSPACE/dist"
 

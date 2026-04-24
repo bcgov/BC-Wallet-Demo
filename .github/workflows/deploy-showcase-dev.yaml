@@ -35,6 +35,7 @@ on:
       - '.github/actions/showcase-build-server/**'
       - '.github/actions/showcase-build-frontend/**'
       - '.github/actions/showcase-setup-oc-helm/**'
+      - '.github/actions/showcase-helm-lint/**'
 
 concurrency:
   group: deploy-showcase-dev-${{ github.repository }}
@@ -110,9 +111,10 @@ jobs:
           SHOWCASE_DEV_OC_TOKEN: ${{ secrets.SHOWCASE_DEV_OC_TOKEN }}
         run: oc login "${SHOWCASE_DEV_OC_URL}" --token="${SHOWCASE_DEV_OC_TOKEN}"
 
-      - name: Helm dependency update
-        working-directory: charts/showcase
-        run: helm dependency update
+      - uses: ./.github/actions/showcase-helm-lint
+        with:
+          skip_checkout: 'true'
+          skip_helm_install: 'true'
 
       - name: Helm upgrade --install
         working-directory: charts/showcase

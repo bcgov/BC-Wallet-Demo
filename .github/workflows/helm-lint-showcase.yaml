@@ -9,9 +9,11 @@ on:
       - '.github/workflows/deploy-showcase-dev.yaml'
       - '.github/workflows/deploy-showcase-pr.yaml'
       - '.github/workflows/undeploy-showcase-pr.yaml'
+      - '.github/workflows/helm-publish-showcase.yaml'
       - '.github/actions/showcase-build-server/**'
       - '.github/actions/showcase-build-frontend/**'
       - '.github/actions/showcase-setup-oc-helm/**'
+      - '.github/actions/showcase-helm-lint/**'
   push:
     branches: [main]
     paths:
@@ -21,9 +23,11 @@ on:
       - '.github/workflows/deploy-showcase-dev.yaml'
       - '.github/workflows/deploy-showcase-pr.yaml'
       - '.github/workflows/undeploy-showcase-pr.yaml'
+      - '.github/workflows/helm-publish-showcase.yaml'
       - '.github/actions/showcase-build-server/**'
       - '.github/actions/showcase-build-frontend/**'
       - '.github/actions/showcase-setup-oc-helm/**'
+      - '.github/actions/showcase-helm-lint/**'
 
 permissions:
   contents: read
@@ -33,43 +37,4 @@ jobs:
     name: helm dependency update + lint + template
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: azure/setup-helm@v4
-        with:
-          version: v3.16.3
-
-      - name: Helm dependency update
-        working-directory: charts/showcase
-        run: helm dependency update
-
-      - name: Helm lint
-        working-directory: charts/showcase
-        run: >
-          helm lint .
-          --set showcase.publicOrigin=https://example.com
-          --set mongodb.auth.rootPassword=helm-ci-lint-placeholder
-
-      - name: Helm lint (values-dev overlay)
-        working-directory: charts/showcase
-        run: helm lint . -f ../../deploy/showcase/values-dev.yaml
-
-      - name: Helm template (smoke)
-        working-directory: charts/showcase
-        run: >
-          helm template smoke .
-          --set showcase.publicOrigin=https://example.com
-          --set mongodb.auth.rootPassword=helm-ci-lint-placeholder
-          >/dev/null
-
-      - name: Helm template (values-dev overlay)
-        working-directory: charts/showcase
-        run: helm template smoke-dev . -f ../../deploy/showcase/values-dev.yaml >/dev/null
-
-      - name: Helm lint (PR overlay)
-        working-directory: charts/showcase
-        run: helm lint . -f ../../deploy/showcase/values-pr.yaml
-
-      - name: Helm template (PR overlay)
-        working-directory: charts/showcase
-        run: helm template smoke-pr . -f ../../deploy/showcase/values-pr.yaml >/dev/null
+      - uses: ./.github/actions/showcase-helm-lint

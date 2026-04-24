@@ -28,6 +28,7 @@ on:
       - '.github/actions/showcase-build-server/**'
       - '.github/actions/showcase-build-frontend/**'
       - '.github/actions/showcase-setup-oc-helm/**'
+      - '.github/actions/showcase-helm-lint/**'
     types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
@@ -106,9 +107,10 @@ jobs:
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
 
-      - name: Helm dependency update
-        working-directory: charts/showcase
-        run: helm dependency update
+      - uses: ./.github/actions/showcase-helm-lint
+        with:
+          skip_checkout: 'true'
+          skip_helm_install: 'true'
 
       - name: Helm upgrade --install
         working-directory: charts/showcase
