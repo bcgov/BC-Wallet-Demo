@@ -1,39 +1,39 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-interface OnboardingState {
-  onboardingStep: string
+interface IntroductionState {
+  introductionStep: string
   connectionId?: string
   isCompleted: boolean
 }
 
-const initialState: OnboardingState = {
-  onboardingStep: 'PICK_CHARACTER',
+const initialState: IntroductionState = {
+  introductionStep: 'PICK_CHARACTER',
   connectionId: undefined,
   isCompleted: false,
 }
 
-const onboardingSlice = createSlice({
-  name: 'onboarding',
+const introductionSlice = createSlice({
+  name: 'introduction',
   initialState,
   reducers: {
     completeOnboarding(state) {
       state.isCompleted = true
     },
     setOnboardingStep(state, action) {
-      state.onboardingStep = action.payload
+      state.introductionStep = action.payload
     },
     setOnboardingConnectionId(state, action) {
       state.connectionId = action.payload
     },
     resetOnboarding(state) {
       state.connectionId = undefined
-      state.onboardingStep = 'PICK_CHARACTER'
+      state.introductionStep = 'PICK_CHARACTER'
       state.isCompleted = false
     },
   },
 })
 
 export const { completeOnboarding, setOnboardingStep, setOnboardingConnectionId, resetOnboarding } =
-  onboardingSlice.actions
+  introductionSlice.actions
 
-export default onboardingSlice.reducer
+export default introductionSlice.reducer

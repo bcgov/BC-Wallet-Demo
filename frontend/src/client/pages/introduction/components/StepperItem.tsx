@@ -13,11 +13,11 @@ export interface Props {
 
 export const StepperItem: React.FC<Props> = ({ item, currentStep, currentCharacter }) => {
   const darkMode = useDarkMode()
-  const stepNames = currentCharacter.onboarding.map((item) => item.screenId)
-  const currentStepIsEqual = item.onboardingStep === currentStep
-  const currentStepIsNotEqual = item.onboardingStep !== currentStep
-  const currentStepIsHigher = stepNames.indexOf(currentStep) > stepNames.indexOf(item.onboardingStep)
-  const currentStepIsLower = stepNames.indexOf(currentStep) < stepNames.indexOf(item.onboardingStep)
+  const stepNames = currentCharacter.introduction.map((item) => item.screenId)
+  const currentStepIsEqual = item.introductionStep === currentStep
+  const currentStepIsNotEqual = item.introductionStep !== currentStep
+  const currentStepIsHigher = stepNames.indexOf(currentStep) > stepNames.indexOf(item.introductionStep)
+  const currentStepIsLower = stepNames.indexOf(currentStep) < stepNames.indexOf(item.introductionStep)
   return (
     <>
       <div className="flex text-grey dark:text-white relative">
@@ -39,7 +39,7 @@ export const StepperItem: React.FC<Props> = ({ item, currentStep, currentCharact
           />
         </div>
       </div>
-      {item.onboardingStep !== 'SETUP_COMPLETED' && (
+      {item.introductionStep !== 'SETUP_COMPLETED' && (
         <div
           className={`flex-auto  transition duration-300 ease-in-out  ${
             currentStepIsHigher && currentStepIsNotEqual

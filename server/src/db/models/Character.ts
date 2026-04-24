@@ -1,7 +1,7 @@
 import type {
   Credential,
   CustomCharacter,
-  OnboardingStep,
+  IntroductionStep,
   ProgressBarStep,
   RevocationInfoItem,
 } from '../../content/types'
@@ -28,8 +28,8 @@ const CredentialSchema = new Schema<Credential>(
   embeddedSchemaOptions,
 )
 
-// Maps to OnboardingStep interface.
-const OnboardingStepSchema = new Schema<OnboardingStep>(
+// Maps to IntroductionStep interface.
+const IntroductionStepSchema = new Schema<IntroductionStep>(
   {
     screenId: { type: String, required: true },
     name: { type: String, required: true },
@@ -45,7 +45,7 @@ const OnboardingStepSchema = new Schema<OnboardingStep>(
 const ProgressBarStepSchema = new Schema<ProgressBarStep>(
   {
     name: { type: String, required: true },
-    onboardingStep: { type: String, required: true },
+    introductionStep: { type: String, required: true },
     iconLight: { type: String, required: true },
     iconDark: { type: String, required: true },
   },
@@ -74,7 +74,7 @@ const CharacterSchema = new Schema<CustomCharacter>(
     description: String,
     // required + default to match types.ts where both fields are non-optional.
     progressBar: { type: [ProgressBarStepSchema], required: true, default: [] },
-    onboarding: { type: [OnboardingStepSchema], required: true, default: [] },
+    introduction: { type: [IntroductionStepSchema], required: true, default: [] },
     useCases: [UseCaseSchema],
     revocationInfo: [RevocationInfoItemSchema],
   },

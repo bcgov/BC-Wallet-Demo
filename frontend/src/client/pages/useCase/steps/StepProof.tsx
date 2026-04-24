@@ -16,7 +16,7 @@ import { useAppDispatch } from '../../../hooks/hooks'
 import { useConnection } from '../../../slices/connection/connectionSelectors'
 import { createProof, deleteProofById, createDeepProof, fetchProofById } from '../../../slices/proof/proofThunks'
 import { useSocket } from '../../../slices/socket/socketSelector'
-import { FailedRequestModal } from '../../onboarding/components/FailedRequestModal'
+import { FailedRequestModal } from '../../introduction/components/FailedRequestModal'
 import { ProofAttributesCard } from '../components/ProofAttributesCard'
 import { StepInfo } from '../components/StepInfo'
 

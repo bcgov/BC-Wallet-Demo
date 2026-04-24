@@ -12,24 +12,24 @@ import { fetchAllCharacters } from '../../slices/characters/charactersThunks'
 import { useConnection } from '../../slices/connection/connectionSelectors'
 import { clearConnection } from '../../slices/connection/connectionSlice'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
-import { useOnboarding } from '../../slices/onboarding/onboardingSelectors'
-import { completeOnboarding } from '../../slices/onboarding/onboardingSlice'
+import { useOnboarding } from '../../slices/introduction/introductionSelectors'
+import { completeOnboarding } from '../../slices/introduction/introductionSlice'
 import { usePreferences } from '../../slices/preferences/preferencesSelectors'
 import { fetchWallets } from '../../slices/wallets/walletsThunks'
 import { basePath } from '../../utils/BasePath'
-import { OnboardingComplete } from '../../utils/OnboardingUtils'
+import { OnboardingComplete } from '../../utils/IntroductionUtils'
 
-import { OnboardingContainer } from './OnboardingContainer'
+import { IntroductionContainer } from './IntroductionContainer'
 import { Stepper } from './components/Stepper'
 
-export const OnboardingPage: React.FC = () => {
+export const IntroductionPage: React.FC = () => {
   useTitle('Get Started | BC Wallet Self-Sovereign Identity Demo')
 
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { characters, currentCharacter, uploadedCharacter } = useCharacters()
 
-  const { onboardingStep, isCompleted } = useOnboarding()
+  const { introductionStep, isCompleted } = useOnboarding()
   const { state, invitationUrl, id } = useConnection()
   const { characterUploadEnabled, showHiddenUseCases } = usePreferences()
 
@@ -46,7 +46,7 @@ export const OnboardingPage: React.FC = () => {
   }, [characters, uploadedCharacter, showHiddenUseCases])
 
   useEffect(() => {
-    if ((OnboardingComplete(onboardingStep) || isCompleted) && currentCharacter) {
+    if ((OnboardingComplete(introductionStep) || isCompleted) && currentCharacter) {
       dispatch(completeOnboarding())
       dispatch(clearCredentials())
       dispatch(clearConnection())
@@ -72,13 +72,13 @@ export const OnboardingPage: React.FC = () => {
         exit="exit"
         className="container flex flex-col items-center p-4"
       >
-        <Stepper currentCharacter={currentCharacter} onboardingStep={onboardingStep} />
+        <Stepper currentCharacter={currentCharacter} onboardingStep={introductionStep} />
         <AnimatePresence mode="wait">
           {mounted && (
-            <OnboardingContainer
+            <IntroductionContainer
               characters={allCharacters}
               currentCharacter={currentCharacter}
-              onboardingStep={onboardingStep}
+              onboardingStep={introductionStep}
               connectionId={id}
               connectionState={state}
               invitationUrl={invitationUrl}

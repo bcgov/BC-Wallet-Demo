@@ -2,7 +2,7 @@ import type { ReactChild, ReactFragment, ReactPortal } from 'react'
 
 import { createContext } from 'react'
 
-import { useOnboarding } from '../slices/onboarding/onboardingSelectors'
+import { useOnboarding } from '../slices/introduction/introductionSelectors'
 
 export const AuthContext = createContext({ auth: false })
 

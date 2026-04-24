@@ -13,7 +13,7 @@ import moonLight from '../assets/light/icon-moon-light.svg'
 import notificationLight from '../assets/light/icon-notification-light.svg'
 import personLight from '../assets/light/icon-person-light.svg'
 import walletLight from '../assets/light/icon-wallet-light.svg'
-import { setOnboardingStep } from '../slices/onboarding/onboardingSlice'
+import { setOnboardingStep } from '../slices/introduction/introductionSlice'
 
 export enum Progress {
   PICK_CHARACTER = 0,
@@ -31,57 +31,57 @@ export interface Content {
   text: string
 }
 
-export const OnboardingComplete = (onboardingStep: string): boolean => {
-  return onboardingStep === 'SETUP_COMPLETED'
+export const OnboardingComplete = (introductionStep: string): boolean => {
+  return introductionStep === 'SETUP_COMPLETED'
 }
 
 export const StepperItems = [
-  { name: 'person', onboardingStep: Progress.PICK_CHARACTER, iconLight: personLight, iconDark: personDark },
-  { name: 'moon', onboardingStep: Progress.SETUP_START, iconLight: moonLight, iconDark: moonDark },
-  { name: 'wallet', onboardingStep: Progress.CHOOSE_WALLET, iconLight: walletLight, iconDark: walletDark },
+  { name: 'person', introductionStep: Progress.PICK_CHARACTER, iconLight: personLight, iconDark: personDark },
+  { name: 'moon', introductionStep: Progress.SETUP_START, iconLight: moonLight, iconDark: moonDark },
+  { name: 'wallet', introductionStep: Progress.CHOOSE_WALLET, iconLight: walletLight, iconDark: walletDark },
   {
     name: 'notification',
-    onboardingStep: Progress.ACCEPT_CREDENTIAL,
+    introductionStep: Progress.ACCEPT_CREDENTIAL,
     iconLight: notificationLight,
     iconDark: notificationDark,
   },
-  { name: 'balloon', onboardingStep: Progress.SETUP_COMPLETED, iconLight: balloonLight, iconDark: balloonDark },
+  { name: 'balloon', introductionStep: Progress.SETUP_COMPLETED, iconLight: balloonLight, iconDark: balloonDark },
 ]
 
 export const addOnboardingProgress = (
   dispatch: Dispatch<any>,
-  onboardingStep: string,
+  introductionStep: string,
   currentCharacter?: CustomCharacter,
   step?: number,
 ) => {
   const inc = step ?? 1
-  const steps = currentCharacter?.onboarding.map((screen) => screen.screenId)
-  const currentIndex = steps?.indexOf(onboardingStep)
+  const steps = currentCharacter?.introduction.map((screen) => screen.screenId)
+  const currentIndex = steps?.indexOf(introductionStep)
   if (currentIndex !== undefined && steps && currentIndex >= 0 && currentIndex < steps.length - 1) {
     dispatch(setOnboardingStep(steps[currentIndex + inc]))
   }
   track({
     id: 'onboarding-step-completed',
     parameters: {
-      step: onboardingStep.toString(),
+      step: introductionStep.toString(),
     },
   })
 }
 
 export const removeOnboardingProgress = (
   dispatch: Dispatch<any>,
-  onboardingStep: string,
+  introductionStep: string,
   currentCharacter?: CustomCharacter,
 ) => {
-  const steps = currentCharacter?.onboarding.map((screen) => screen.screenId)
-  const currentIndex = steps?.indexOf(onboardingStep)
+  const steps = currentCharacter?.introduction.map((screen) => screen.screenId)
+  const currentIndex = steps?.indexOf(introductionStep)
   if (currentIndex && steps && currentIndex > 0 && currentIndex < steps.length) {
     dispatch(setOnboardingStep(steps[currentIndex - 1]))
   }
   track({
     id: 'onboarding-step-completed',
     parameters: {
-      step: onboardingStep.toString(),
+      step: introductionStep.toString(),
     },
   })
 }

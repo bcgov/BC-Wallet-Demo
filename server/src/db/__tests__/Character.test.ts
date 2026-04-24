@@ -43,12 +43,12 @@ describe('CharacterModel', () => {
   })
 })
 
-describe('OnboardingStep embedded schema', () => {
-  it('persists an onboarding step with nested credentials', async () => {
+describe('IntroductionStep embedded schema', () => {
+  it('persists an introduction step with nested credentials', async () => {
     const doc = await CharacterModel.create({
       ...minimal,
-      type: 'Student-onboarding',
-      onboarding: [
+      type: 'Student-introduction',
+      introduction: [
         {
           screenId: 'PICK_CREDENTIAL',
           name: 'Get your card',
@@ -65,7 +65,7 @@ describe('OnboardingStep embedded schema', () => {
         },
       ],
     })
-    const step = doc.toJSON().onboarding[0]
+    const step = doc.toJSON().introduction[0]
     expect(step.screenId).toBe('PICK_CREDENTIAL')
     expect(step.issuer_name).toBe('Best BC College')
     expect(step.credentials[0].attributes[0].value).toBe('12345')
@@ -78,12 +78,12 @@ describe('ProgressBarStep embedded schema', () => {
       ...minimal,
       type: 'Student-progress',
       progressBar: [
-        { name: 'person', onboardingStep: 'PICK_CHARACTER', iconLight: '/light.svg', iconDark: '/dark.svg' },
+        { name: 'person', introductionStep: 'PICK_CHARACTER', iconLight: '/light.svg', iconDark: '/dark.svg' },
       ],
     })
     const step = doc.toJSON().progressBar[0]
     expect(step.name).toBe('person')
-    expect(step.onboardingStep).toBe('PICK_CHARACTER')
+    expect(step.introductionStep).toBe('PICK_CHARACTER')
   })
 })
 

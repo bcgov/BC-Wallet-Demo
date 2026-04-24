@@ -31,7 +31,7 @@ const characterSlice = createSlice({
       state.uploadedCharacter = action.payload.character
       const promises: Promise<any>[] = []
       state.isUploading = true
-      action.payload.character.onboarding
+      action.payload.character.introduction
         .filter((screen) => screen.credentials)
         .forEach((screen) => screen.credentials?.forEach((cred) => promises.push(getOrCreateCredDefId(cred))))
       Promise.all(promises).then(() => {

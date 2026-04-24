@@ -17,36 +17,36 @@ export const studentCustom: CustomCharacter = {
   progressBar: [
     {
       name: 'person',
-      onboardingStep: 'PICK_CHARACTER',
+      introductionStep: 'PICK_CHARACTER',
       iconLight: '/public/common/icon-person-light.svg',
       iconDark: '/public/common/icon-person-dark.svg',
     },
     {
       name: 'moon',
-      onboardingStep: 'SETUP_START',
+      introductionStep: 'SETUP_START',
       iconLight: '/public/common/icon-moon-light.svg',
       iconDark: '/public/common/icon-moon-dark.svg',
     },
     {
       name: 'wallet',
-      onboardingStep: 'CHOOSE_WALLET',
+      introductionStep: 'CHOOSE_WALLET',
       iconLight: '/public/common/icon-wallet-light.svg',
       iconDark: '/public/common/icon-wallet-dark.svg',
     },
     {
       name: 'notification',
-      onboardingStep: 'ACCEPT_CREDENTIAL',
+      introductionStep: 'ACCEPT_CREDENTIAL',
       iconLight: '/public/common/icon-notification-light.svg',
       iconDark: '/public/common/icon-notification-dark.svg',
     },
     {
       name: 'balloon',
-      onboardingStep: 'SETUP_COMPLETED',
+      introductionStep: 'SETUP_COMPLETED',
       iconLight: '/public/common/icon-balloon-light.svg',
       iconDark: '/public/common/icon-balloon-dark.svg',
     },
   ],
-  onboarding: [
+  introduction: [
     {
       screenId: 'PICK_CHARACTER',
       name: 'Meet Alice',

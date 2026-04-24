@@ -53,7 +53,7 @@ export interface Credential {
   }[]
 }
 
-export interface OnboardingStep {
+export interface IntroductionStep {
   screenId: string
   name: string
   text: string
@@ -102,7 +102,7 @@ export interface CustomUseCase {
 
 export interface ProgressBarStep {
   name: string
-  onboardingStep: string
+  introductionStep: string
   iconLight: string
   iconDark: string
 }
@@ -121,7 +121,7 @@ export interface CustomCharacter {
   hidden?: boolean
   description?: string
   progressBar: ProgressBarStep[]
-  onboarding: OnboardingStep[]
+  introduction: IntroductionStep[]
   useCases: CustomUseCase[]
   revocationInfo?: RevocationInfoItem[]
 }

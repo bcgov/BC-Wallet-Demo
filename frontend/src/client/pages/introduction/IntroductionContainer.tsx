@@ -13,14 +13,14 @@ import { useAppDispatch } from '../../hooks/hooks'
 import { clearConnection } from '../../slices/connection/connectionSlice'
 import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
-import { completeOnboarding } from '../../slices/onboarding/onboardingSlice'
+import { completeOnboarding } from '../../slices/introduction/introductionSlice'
 import { basePath } from '../../utils/BasePath'
 import { isConnected } from '../../utils/Helpers'
-import { addOnboardingProgress, removeOnboardingProgress } from '../../utils/OnboardingUtils'
+import { addOnboardingProgress, removeOnboardingProgress } from '../../utils/IntroductionUtils'
 import { prependApiUrl } from '../../utils/Url'
 
 import { CharacterContent } from './components/CharacterContent'
-import { OnboardingBottomNav } from './components/OnboardingBottomNav'
+import { IntroductionBottomNav } from './components/IntroductionBottomNav'
 import { AcceptCredential } from './steps/AcceptCredential'
 import { BasicSlide } from './steps/BasicSlide'
 import { ChooseWallet } from './steps/ChooseWallet'
@@ -38,7 +38,7 @@ export interface Props {
   onboardingStep: string
 }
 
-export const OnboardingContainer: React.FC<Props> = ({
+export const IntroductionContainer: React.FC<Props> = ({
   characters,
   currentCharacter,
   onboardingStep,
@@ -49,12 +49,12 @@ export const OnboardingContainer: React.FC<Props> = ({
   const dispatch = useAppDispatch()
   const { issuedCredentials } = useCredentials()
   const idToTitle: Record<string, string> = {}
-  currentCharacter?.onboarding.forEach((item) => {
+  currentCharacter?.introduction.forEach((item) => {
     idToTitle[item.screenId] = item.name
   })
 
   const connectionCompleted = isConnected(connectionState as string)
-  const credentials = currentCharacter?.onboarding.find((step) => step.screenId === onboardingStep)?.credentials
+  const credentials = currentCharacter?.introduction.find((step) => step.screenId === onboardingStep)?.credentials
   const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.name))
 
   const isBackDisabled = ['PICK_CHARACTER', 'ACCEPT_CREDENTIAL'].includes(onboardingStep)
@@ -106,9 +106,9 @@ export const OnboardingContainer: React.FC<Props> = ({
     removeOnboardingProgress(dispatch, onboardingStep, currentCharacter)
   }
 
-  //override title and text content to make them character dependant
+  //override name and text content to make them character dependant
   const getCharacterContent = (progress: string) => {
-    const characterContent = currentCharacter?.onboarding.find((screen) => screen.screenId === progress)
+    const characterContent = currentCharacter?.introduction.find((screen) => screen.screenId === progress)
     if (characterContent) {
       return {
         title: characterContent.name,
@@ -248,7 +248,7 @@ export const OnboardingContainer: React.FC<Props> = ({
           </motion.button>
         </div>
         <AnimatePresence mode="wait">{getComponentToRender(onboardingStep)}</AnimatePresence>
-        <OnboardingBottomNav
+        <IntroductionBottomNav
           onboardingStep={onboardingStep}
           addOnboardingStep={nextOnboardingPage}
           removeOnboardingStep={prevOnboardingPage}

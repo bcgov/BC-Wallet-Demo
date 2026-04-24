@@ -14,7 +14,7 @@ export interface Props {
   onboardingCompleted(): void
 }
 
-export const OnboardingBottomNav: React.FC<Props> = ({
+export const IntroductionBottomNav: React.FC<Props> = ({
   onboardingStep,
   addOnboardingStep,
   removeOnboardingStep,

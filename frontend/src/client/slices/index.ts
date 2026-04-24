@@ -3,7 +3,7 @@ import { combineReducers } from 'redux'
 import charactersSlice from './characters/charactersSlice'
 import connectionSlice from './connection/connectionSlice'
 import credentialsSlice from './credentials/credentialsSlice'
-import onboardingSlice from './onboarding/onboardingSlice'
+import introductionSlice from './introduction/introductionSlice'
 import preferencesSlice from './preferences/preferencesSlice'
 import proofSlice from './proof/proofSlice'
 import sectionSlice from './section/sectionSlice'
@@ -19,7 +19,7 @@ const rootReducer = combineReducers({
   characters: charactersSlice,
   connection: connectionSlice,
   credentials: credentialsSlice,
-  onboarding: onboardingSlice,
+  introduction: introductionSlice,
   preferences: preferencesSlice,
   proof: proofSlice,
   section: sectionSlice,
