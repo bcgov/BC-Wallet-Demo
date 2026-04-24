@@ -7,9 +7,10 @@ import { createShowcase } from '../api/adminApi'
 interface CreateShowcaseModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: (showcaseName: string) => void
 }
 
-export function CreateShowcaseModal({ isOpen, onClose }: CreateShowcaseModalProps) {
+export function CreateShowcaseModal({ isOpen, onClose, onSuccess }: CreateShowcaseModalProps) {
   const auth = useAuth()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -27,11 +28,13 @@ export function CreateShowcaseModal({ isOpen, onClose }: CreateShowcaseModalProp
     try {
       setIsLoading(true)
       setError(null)
-      await createShowcase(auth, title, description)
+      const response = await createShowcase(auth, title, description)
       // Reset form and close modal
       setTitle('')
       setDescription('')
       onClose()
+      // Navigate to the new showcase
+      onSuccess?.(response.name)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create showcase')
     } finally {

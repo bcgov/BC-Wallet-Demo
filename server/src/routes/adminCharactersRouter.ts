@@ -74,16 +74,8 @@ router.post('/', requireRole(['admin', 'creator']), (req: Request, res: Response
     }
 
     // Sanitize the name to create a valid filename
-    const sanitizedName = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '')
-      .replace(/^[0-9]+/, '')
 
-    if (sanitizedName.length === 0) {
-      return res.status(400).json({ error: 'Invalid showcase name' })
-    }
-
-    const filename = `${sanitizedName}Custom.ts`
+    const filename = `${name}Custom.ts`
     const configDir = path.join(__dirname, '../../config')
     const filepath = path.join(configDir, filename)
 
@@ -97,9 +89,9 @@ router.post('/', requireRole(['admin', 'creator']), (req: Request, res: Response
 
 import { getDateInt } from '../src/utils/dateint'
 
-export const ${sanitizedName}Custom: CustomCharacter = {
+export const ${name}Custom: CustomCharacter = {
   name: '${name}',
-  type: 'Custom',
+  type: '${description}',
   image: '/public/common/icon-person-light.svg',
   description: '${description || ''}',
   revocationInfo: [],
@@ -130,7 +122,7 @@ export const ${sanitizedName}Custom: CustomCharacter = {
       success: true,
       message: 'Showcase created successfully',
       filename,
-      name: sanitizedName,
+      name: name,
     })
   } catch {
     logger.error('Error creating showcase')
