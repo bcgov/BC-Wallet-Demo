@@ -1,16 +1,22 @@
-# Upgrades the showcase Helm release on OpenShift when relevant paths merge to `main`.
+# Builds and pushes showcase images (tag `main`), then upgrades the dev Helm release on OpenShift
+# when relevant paths merge to `main` (bcgov repo only for GHCR push + deploy).
 #
 # Configure the bcgov repository (Settings → Secrets and variables → Actions):
 #   Variables (not secret):
 #     SHOWCASE_DEV_OC_URL        — API URL, e.g. https://api.silver.devops.gov.bc.ca:6443
 #     SHOWCASE_DEV_NAMESPACE     — Target namespace (must already exist)
+#     SHOWCASE_DEV_PUBLIC_ORIGIN — Optional. Browser origin for Vite `VITE_HOST_BACKEND` in the
+#                                  frontend image (scheme + host, no path). Defaults to the URL
+#                                  in deploy/showcase/values-dev.yaml — set this if dev hostname changes.
 #   Optional variable:
 #     SHOWCASE_DEV_HELM_RELEASE  — Helm release name (default: showcase)
 #   Secret:
 #     SHOWCASE_DEV_OC_TOKEN      — Service account or user token with permission to
 #                                  helm upgrade/install resources in that namespace
 #
-# If any required variable or the token is missing, this job is skipped (forks stay green).
+# If OpenShift variables/token are missing, image build + push to GHCR still runs on bcgov (so
+# `ghcr.io/bcgov/bc-wallet-showcase-*:main` stays current); the Helm job is skipped. Forks skip
+# GHCR jobs entirely (stay green).
 
 name: Deploy showcase (dev)
 
@@ -32,15 +38,104 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  HUSKY: '0'
+  REGISTRY: ghcr.io
+  SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
+  SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
+
 jobs:
+  build-server:
+    name: Build and push server image (main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: github.repository_owner == 'bcgov'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.SHOWCASE_SERVER_IMAGE }}
+          tags: |
+            type=raw,value=main
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=min
+          sbom: true
+
+  build-frontend:
+    name: Build and push frontend image (main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: github.repository_owner == 'bcgov'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
+          tags: |
+            type=raw,value=main
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=min
+          sbom: true
+          build-args: |
+            REACT_APP_INSIGHTS_PROJECT_ID=${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
+            REACT_APP_HOST_BACKEND=${{ vars.SHOWCASE_DEV_PUBLIC_ORIGIN || 'https://bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+
   helm-upgrade-dev:
     name: Helm upgrade (OpenShift dev)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: [build-server, build-frontend]
     if: >-
-      ${{ vars.SHOWCASE_DEV_OC_URL != '' &&
-          vars.SHOWCASE_DEV_NAMESPACE != '' &&
-          secrets.SHOWCASE_DEV_OC_TOKEN != '' }}
+      github.repository_owner == 'bcgov' &&
+      needs.build-server.result == 'success' &&
+      needs.build-frontend.result == 'success' &&
+      vars.SHOWCASE_DEV_OC_URL != '' &&
+      vars.SHOWCASE_DEV_NAMESPACE != '' &&
+      secrets.SHOWCASE_DEV_OC_TOKEN != ''
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -79,3 +174,24 @@ jobs:
             --wait \
             --timeout 15m \
             --atomic
+
+      # Same tag (`:main`) can point at a new digest; restart so workloads pull the image we just pushed.
+      - name: Rollout restart (pick up new main digest)
+        env:
+          SHOWCASE_DEV_NAMESPACE: ${{ vars.SHOWCASE_DEV_NAMESPACE }}
+          SHOWCASE_DEV_HELM_RELEASE: ${{ vars.SHOWCASE_DEV_HELM_RELEASE }}
+        run: |
+          set -euo pipefail
+          release="${SHOWCASE_DEV_HELM_RELEASE:-showcase}"
+          ns="${SHOWCASE_DEV_NAMESPACE}"
+          server_deploy="$(oc get deploy -n "${ns}" \
+            -l "app.kubernetes.io/instance=${release},app.kubernetes.io/component=server" \
+            -o jsonpath='{.items[0].metadata.name}')"
+          frontend_deploy="$(oc get deploy -n "${ns}" \
+            -l "app.kubernetes.io/instance=${release},app.kubernetes.io/component=frontend" \
+            -o jsonpath='{.items[0].metadata.name}')"
+          test -n "${server_deploy}" && test -n "${frontend_deploy}"
+          oc rollout restart "deployment/${server_deploy}" -n "${ns}"
+          oc rollout status "deployment/${server_deploy}" -n "${ns}" --timeout=15m
+          oc rollout restart "deployment/${frontend_deploy}" -n "${ns}"
+          oc rollout status "deployment/${frontend_deploy}" -n "${ns}" --timeout=15m
