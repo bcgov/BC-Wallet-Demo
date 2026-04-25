@@ -1,7 +1,7 @@
 import type { CustomCharacter } from '../types'
 
 import { ArrowUpTrayIcon, PencilIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { baseUrl } from '../../client/api/BaseUrl'
 
@@ -23,6 +23,14 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
   )
   const [isEditingImage, setIsEditingImage] = useState(false)
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
+
+  useEffect(() => {
+    if (character) {
+      setTitleValue(character.name || '')
+      setRoleValue(character.type || '')
+      setIntroductionValue(character.description || 'Persona introduction text goes here.')
+    }
+  }, [character])
 
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
