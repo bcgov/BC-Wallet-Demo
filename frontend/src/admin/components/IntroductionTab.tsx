@@ -1,12 +1,11 @@
 import type { CustomCharacter, OnboardingStep } from '../types'
 
-import { CreditCardIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
 import { baseUrl } from '../../client/api/BaseUrl'
-import { formatScreenId } from '../utils/formatScreenId'
 
 import { EditScreenModal } from './EditScreenModal'
+import { ScreenContentCard } from './ScreenContentCard'
 
 interface ProgressBar {
   name: string
@@ -80,37 +79,14 @@ export function IntroductionTab({ character }: IntroductionTabProps) {
               </div>
 
               {/* Screen Content */}
-              <div className="flex-1 border border-gray-300 rounded-lg bg-white p-8 flex items-center justify-between gap-6 relative">
-                <button
-                  onClick={() => handleEditClick(idx, screen)}
-                  className="absolute top-3 right-3 text-gray-500 hover:text-bcgov-blue transition-colors"
-                >
-                  <Cog6ToothIcon className="w-5 h-5" />
-                </button>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-bcgov-black mb-2">{formatScreenId(screen.screenId)}</p>
-                  <p className="text-xs font-semibold text-bcgov-black mb-1">{screen.title}</p>
-                  <p className="text-xs text-gray-600 mb-3">{screen.text}</p>
-                  {screen.credentials && screen.credentials.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {screen.credentials.map((cred, credIdx) => (
-                        <div
-                          key={credIdx}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
-                        >
-                          <CreditCardIcon className="w-3 h-3" />
-                          {cred.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {screen.image && (
-                  <div className="flex-shrink-0">
-                    <img src={`${baseUrl}${screen.image}`} alt={screen.title} className="h-40 w-auto object-contain" />
-                  </div>
-                )}
-              </div>
+              <ScreenContentCard
+                screenId={screen.screenId}
+                title={screen.title}
+                text={screen.text}
+                image={screen.image}
+                credentials={screen.credentials}
+                onEdit={() => handleEditClick(idx, screen)}
+              />
             </div>
           )
         })}

@@ -1,12 +1,9 @@
 import type { CustomCharacter, UseCaseScreen } from '../types'
 
-import { Cog6ToothIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
-import { baseUrl } from '../../client/api/BaseUrl'
-import { formatScreenId } from '../utils/formatScreenId'
-
 import { EditScreenModal } from './EditScreenModal'
+import { ScreenContentCard } from './ScreenContentCard'
 
 interface ScenariosTabProps {
   character: CustomCharacter | null
@@ -32,6 +29,8 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
     if (!character || editingScreenIdx === null) return
 
     // TODO: Call API to save changes to the character
+    // eslint-disable-next-line no-console
+    console.log('Saving updated screen:', updatedScreen)
 
     setEditingScreenIdx(null)
     setEditingScreen(null)
@@ -70,30 +69,16 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
           activeUseCase === useCase.id ? (
             <div key={useCase.id}>
               {useCase.screens?.map((screen, idx) => (
-                <div key={idx} className="border border-gray-300 rounded-lg bg-white p-8 mb-6 relative">
-                  <button
-                    onClick={() => handleEditClick(idx, screen)}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-bcgov-blue transition-colors"
-                  >
-                    <Cog6ToothIcon className="w-5 h-5" />
-                  </button>
-                  <div className="flex items-center justify-between gap-6">
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-bcgov-black mb-2">{formatScreenId(screen.screenId)}</p>
-                      <p className="text-xs font-semibold text-bcgov-black mb-1">{screen.title}</p>
-                      <p className="text-xs text-gray-600">{screen.text}</p>
-                    </div>
-                    {screen.image && (
-                      <div className="flex-shrink-0">
-                        <img
-                          src={`${baseUrl}${screen.image}`}
-                          alt={screen.title}
-                          className="h-40 w-auto object-contain"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ScreenContentCard
+                  key={idx}
+                  screenId={screen.screenId}
+                  title={screen.title}
+                  text={screen.text}
+                  image={screen.image}
+                  onEdit={() => handleEditClick(idx, screen)}
+                  containerClassName="border border-gray-300 rounded-lg bg-white p-8 mb-6 relative flex items-center justify-between gap-6"
+                  textMarginClass=""
+                />
               ))}
             </div>
           ) : null,
