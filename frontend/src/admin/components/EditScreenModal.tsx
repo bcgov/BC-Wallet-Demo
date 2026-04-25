@@ -4,6 +4,7 @@ import { PencilIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
 import { baseUrl } from '../../client/api/BaseUrl'
+import { formatScreenId } from '../utils/formatScreenId'
 
 import { ImageUploadModal } from './ImageUploadModal'
 
@@ -80,13 +81,7 @@ export function EditScreenModal({ isOpen, onClose, screen, progressBar, onSave }
         <div className="flex items-center justify-between border-b border-gray-200 p-6">
           <div>
             <h2 className="text-l font-semibold text-bcgov-black">Edit Screen</h2>
-            <h5 className="text-gray-500 mt-2">
-              {screen?.screenId
-                .replace(/_/g, ' ')
-                .split(' ')
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ')}
-            </h5>
+            <h5 className="text-gray-500 mt-2">{screen?.screenId && formatScreenId(screen.screenId)}</h5>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 transition-colors">
             <XMarkIcon className="w-6 h-6" />

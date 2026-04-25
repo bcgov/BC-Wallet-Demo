@@ -1,6 +1,7 @@
 import type { CustomCharacter } from '../types'
 
 import { baseUrl } from '../../client/api/BaseUrl'
+import { formatScreenId } from '../utils/formatScreenId'
 
 interface CredentialsTabProps {
   character: CustomCharacter | null
@@ -21,14 +22,7 @@ export function CredentialsTab({ character }: CredentialsTabProps) {
           (screen, idx) =>
             screen.credentials?.map((credential, credIdx) => (
               <div key={`${idx}-${credIdx}`} className="border border-gray-300 rounded-lg bg-white p-8">
-                <div className="text-xs text-gray-500 mb-3">
-                  From:{' '}
-                  {screen.screenId
-                    .replace(/_/g, ' ')
-                    .split(' ')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                    .join(' ')}
-                </div>
+                <div className="text-xs text-gray-500 mb-3">From: {formatScreenId(screen.screenId)}</div>
                 <div className="flex items-center gap-4 mb-6">
                   {credential.icon && (
                     <img

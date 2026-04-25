@@ -20,6 +20,7 @@ const characters: CustomCharacter[] = customCharacterFiles
   .map((file) => {
     const modulePath = path.join(configDir, file.replace(/\.(ts|js)$/, ''))
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const module = require(modulePath)
       // Find the export that is a CustomCharacter (ends with 'Custom')
       const customKey = Object.keys(module).find((key) => key.endsWith('Custom'))

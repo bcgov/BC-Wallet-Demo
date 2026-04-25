@@ -1,8 +1,12 @@
-import type { CustomCharacter } from '../types'
+import type { CustomCharacter, UseCaseScreen } from '../types'
 
+import { Cog6ToothIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
 import { baseUrl } from '../../client/api/BaseUrl'
+import { formatScreenId } from '../utils/formatScreenId'
+
+import { EditScreenModal } from './EditScreenModal'
 
 interface ScenariosTabProps {
   character: CustomCharacter | null
@@ -10,12 +14,28 @@ interface ScenariosTabProps {
 
 export function ScenariosTab({ character }: ScenariosTabProps) {
   const [activeUseCase, setActiveUseCase] = useState<string | null>(null)
+  const [editingScreenIdx, setEditingScreenIdx] = useState<number | null>(null)
+  const [editingScreen, setEditingScreen] = useState<UseCaseScreen | null>(null)
 
   useEffect(() => {
     if (character?.useCases?.length) {
       setActiveUseCase(character.useCases[0].id)
     }
   }, [character?.useCases])
+
+  const handleEditClick = (idx: number, screen: UseCaseScreen) => {
+    setEditingScreenIdx(idx)
+    setEditingScreen(screen)
+  }
+
+  const handleSaveScreen = (updatedScreen: UseCaseScreen) => {
+    if (!character || editingScreenIdx === null) return
+
+    // TODO: Call API to save changes to the character
+
+    setEditingScreenIdx(null)
+    setEditingScreen(null)
+  }
 
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
@@ -50,16 +70,16 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
           activeUseCase === useCase.id ? (
             <div key={useCase.id}>
               {useCase.screens?.map((screen, idx) => (
-                <div key={idx} className="border border-gray-300 rounded-lg bg-white p-8 mb-6">
+                <div key={idx} className="border border-gray-300 rounded-lg bg-white p-8 mb-6 relative">
+                  <button
+                    onClick={() => handleEditClick(idx, screen)}
+                    className="absolute top-3 right-3 text-gray-500 hover:text-bcgov-blue transition-colors"
+                  >
+                    <Cog6ToothIcon className="w-5 h-5" />
+                  </button>
                   <div className="flex items-center justify-between gap-6">
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-bcgov-black mb-2">
-                        {screen.screenId
-                          .replace(/_/g, ' ')
-                          .split(' ')
-                          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                          .join(' ')}
-                      </p>
+                      <p className="text-sm font-bold text-bcgov-black mb-2">{formatScreenId(screen.screenId)}</p>
                       <p className="text-xs font-semibold text-bcgov-black mb-1">{screen.title}</p>
                       <p className="text-xs text-gray-600">{screen.text}</p>
                     </div>
@@ -79,6 +99,18 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
           ) : null,
         )}
       </div>
+
+      <EditScreenModal
+        isOpen={editingScreenIdx !== null}
+        onClose={() => {
+          setEditingScreenIdx(null)
+          setEditingScreen(null)
+        }}
+        screen={editingScreen as any}
+        progressBar={null}
+        character={character}
+        onSave={(updatedScreen) => handleSaveScreen(updatedScreen as UseCaseScreen)}
+      />
     </div>
   )
 }

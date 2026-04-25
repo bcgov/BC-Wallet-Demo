@@ -4,6 +4,7 @@ import { CreditCardIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
 import { baseUrl } from '../../client/api/BaseUrl'
+import { formatScreenId } from '../utils/formatScreenId'
 
 import { EditScreenModal } from './EditScreenModal'
 
@@ -48,7 +49,6 @@ export function IntroductionTab({ character }: IntroductionTabProps) {
     }
 
     // TODO: Call API to save changes to the character
-    console.log('Updated character:', updatedCharacter)
 
     setEditingScreenIdx(null)
     setEditingScreen(null)
@@ -88,13 +88,7 @@ export function IntroductionTab({ character }: IntroductionTabProps) {
                   <Cog6ToothIcon className="w-5 h-5" />
                 </button>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-bcgov-black mb-2">
-                    {screen.screenId
-                      .replace(/_/g, ' ')
-                      .split(' ')
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                      .join(' ')}
-                  </p>
+                  <p className="text-sm font-bold text-bcgov-black mb-2">{formatScreenId(screen.screenId)}</p>
                   <p className="text-xs font-semibold text-bcgov-black mb-1">{screen.title}</p>
                   <p className="text-xs text-gray-600 mb-3">{screen.text}</p>
                   {screen.credentials && screen.credentials.length > 0 && (
