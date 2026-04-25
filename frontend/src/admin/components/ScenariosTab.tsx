@@ -2,6 +2,8 @@ import type { CustomCharacter, UseCaseScreen } from '../types'
 
 import { useEffect, useState } from 'react'
 
+import { useDragReorder } from '../utils/useDragReorder'
+
 import { EditScreenModal } from './EditScreenModal'
 import { ScreenContentCard } from './ScreenContentCard'
 
@@ -13,6 +15,9 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
   const [activeUseCase, setActiveUseCase] = useState<string | null>(null)
   const [editingScreenIdx, setEditingScreenIdx] = useState<number | null>(null)
   const [editingScreen, setEditingScreen] = useState<UseCaseScreen | null>(null)
+  const [reorderedScreens, setReorderedScreens] = useState<Record<string, UseCaseScreen[]>>({})
+  const { draggedIdx, dragOverIdx, handleDragStart, handleDragOver, handleDragLeave, setDraggedIdx, setDragOverIdx } =
+    useDragReorder()
 
   useEffect(() => {
     if (character?.useCases?.length) {
@@ -34,6 +39,26 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
 
     setEditingScreenIdx(null)
     setEditingScreen(null)
+  }
+
+  const handleDrop = (dropIdx: number) => {
+    if (draggedIdx === null || !activeUseCase || !character?.useCases) return
+
+    const activeUC = character.useCases.find((uc) => uc.id === activeUseCase)
+    if (!activeUC?.screens) return
+
+    const currentScreens = reorderedScreens[activeUseCase] || activeUC.screens
+    const newScreens = [...currentScreens]
+    const [draggedItem] = newScreens.splice(draggedIdx, 1)
+    newScreens.splice(dropIdx, 0, draggedItem)
+
+    // TODO: Call API to persist reordered screens
+
+    // Update local state to reflect the reorder
+    setReorderedScreens({ ...reorderedScreens, [activeUseCase]: newScreens })
+
+    setDraggedIdx(null)
+    setDragOverIdx(null)
   }
 
   return (
@@ -68,14 +93,21 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
         {character?.useCases?.map((useCase) =>
           activeUseCase === useCase.id ? (
             <div key={useCase.id}>
-              {useCase.screens?.map((screen, idx) => (
+              {(reorderedScreens[useCase.id] || useCase.screens)?.map((screen, idx) => (
                 <ScreenContentCard
                   key={idx}
+                  draggableId={`scenario-screen-${useCase.id}-${idx}`}
                   screenId={screen.screenId}
                   title={screen.title}
                   text={screen.text}
                   image={screen.image}
                   onEdit={() => handleEditClick(idx, screen)}
+                  isDragging={draggedIdx === idx}
+                  isDragOver={dragOverIdx === idx}
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={() => handleDrop(idx)}
                   containerClassName="border border-gray-300 rounded-lg bg-white p-8 mb-6 relative flex items-center justify-between gap-6"
                   textMarginClass=""
                 />

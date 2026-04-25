@@ -14,6 +14,13 @@ interface ScreenContentCardProps {
   onEdit: () => void
   containerClassName?: string
   textMarginClass?: string
+  draggableId?: string
+  isDragging?: boolean
+  isDragOver?: boolean
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void
+  onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void
+  onDragLeave?: (e: React.DragEvent<HTMLDivElement>) => void
+  onDrop?: (e: React.DragEvent<HTMLDivElement>) => void
 }
 
 export function ScreenContentCard({
@@ -25,9 +32,23 @@ export function ScreenContentCard({
   onEdit,
   containerClassName = 'flex-1 border border-gray-300 rounded-lg bg-white p-8 flex items-center justify-between gap-6 relative',
   textMarginClass = 'mb-3',
+  draggableId,
+  isDragging = false,
+  isDragOver = false,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: ScreenContentCardProps) {
   return (
-    <div className={containerClassName}>
+    <div
+      draggable={!!draggableId}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      className={`${containerClassName} ${isDragging ? 'opacity-50' : ''} ${isDragOver ? 'bg-blue-50 border-blue-400' : ''} ${draggableId ? 'cursor-move' : ''}`}
+    >
       <button onClick={onEdit} className="absolute top-3 right-3 text-gray-500 hover:text-bcgov-blue transition-colors">
         <Cog6ToothIcon className="w-5 h-5" />
       </button>
