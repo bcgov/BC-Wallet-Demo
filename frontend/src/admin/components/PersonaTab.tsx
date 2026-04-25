@@ -2,8 +2,10 @@ import type { CustomCharacter } from '../types'
 
 import { ArrowUpTrayIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
+import { useAuth } from 'react-oidc-context'
 
 import { baseUrl } from '../../client/api/BaseUrl'
+import { updateCharacter } from '../api/adminApi'
 
 import { ImageUploadModal } from './ImageUploadModal'
 
@@ -13,6 +15,7 @@ interface PersonaTabProps {
 }
 
 export function PersonaTab({ character, isLoading }: PersonaTabProps) {
+  const auth = useAuth()
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(character?.name || '')
   const [isEditingRole, setIsEditingRole] = useState(false)
@@ -23,6 +26,8 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
   )
   const [isEditingImage, setIsEditingImage] = useState(false)
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     if (character) {
@@ -31,6 +36,31 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
       setIntroductionValue(character.description || 'Persona introduction text goes here.')
     }
   }, [character])
+
+  const handleSave = async () => {
+    if (!character || !auth.user?.access_token) return
+
+    setSaveError(null)
+    setIsSaving(true)
+
+    try {
+      await updateCharacter(auth, character.name, {
+        name: titleValue,
+        type: roleValue,
+        description: introductionValue,
+      })
+
+      // Clear editing states after successful save
+      setIsEditingTitle(false)
+      setIsEditingRole(false)
+      setIsEditingIntroduction(false)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An error occurred while saving'
+      setSaveError(message)
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
@@ -43,14 +73,16 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
         {(titleValue !== character?.name ||
           roleValue !== character?.type ||
           introductionValue !== (character?.description || 'Persona introduction text goes here.')) && (
-          <button
-            onClick={() => {
-              // Save functionality will be added here
-            }}
-            className="px-4 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors"
-          >
-            Save
-          </button>
+          <div className="flex flex-col gap-2 items-end">
+            {saveError && <p className="text-red-600 text-xs">{saveError}</p>}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-4 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         )}
       </div>
       <div className="w-full max-w-4xl px-6 border border-gray-300 rounded-lg bg-white p-8">
@@ -122,7 +154,7 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
           <label className="block text-sm font-bold text-bcgov-black mb-2">Image</label>
           <div className="flex items-start gap-4">
             <div className="relative group w-fit">
-              {character?.image && (
+              {character?.image ? (
                 <div className="w-24 h-24 border border-gray-300 rounded-lg overflow-hidden bg-gray-100">
                   <img
                     src={`${baseUrl}${character.image}`}
@@ -134,9 +166,17 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
                     className="absolute -top-2 -right-2 w-5 h-5 bg-bcgov-blue text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   />
                 </div>
+              ) : (
+                <button
+                  onClick={() => setIsImageUploadModalOpen(true)}
+                  className="px-3 py-2 bg-white text-bcgov-black font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm flex items-center gap-2"
+                >
+                  <ArrowUpTrayIcon className="w-4 h-4" />
+                  Upload
+                </button>
               )}
             </div>
-            {isEditingImage && (
+            {isEditingImage && character?.image && (
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => setIsImageUploadModalOpen(true)}

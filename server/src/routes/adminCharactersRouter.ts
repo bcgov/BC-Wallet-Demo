@@ -88,29 +88,13 @@ router.post('/', requireRole(['admin', 'creator']), (req: Request, res: Response
     // Create the config file template
     const template = `import type { CustomCharacter } from '../src/content/types'
 
-import { getDateInt } from '../src/utils/dateint'
-
 export const ${name}Custom: CustomCharacter = {
   name: '${name}',
   type: '${description}',
-  image: '/public/common/icon-person-light.svg',
-  description: '${description || ''}',
+  image: '',
   revocationInfo: [],
-  progressBar: [
-    {
-      name: 'person',
-      onboardingStep: 'PICK_CHARACTER',
-      iconLight: '/public/common/icon-person-light.svg',
-      iconDark: '/public/common/icon-person-dark.svg',
-    },
-  ],
-  onboarding: [
-    {
-      screenId: 'PICK_CHARACTER',
-      title: 'Meet ${name}',
-      text: 'This is a new showcase for ${name}.',
-    },
-  ],
+  progressBar: [],
+  onboarding: [],
   useCases: [],
 }
 `
@@ -133,12 +117,59 @@ export const ${name}Custom: CustomCharacter = {
 
 /**
  * PUT /admin/characters/:id
- * Replace a character.
+ * Update a character.
  * Requires: admin or creator role
  */
 router.put('/:id', requireRole(['admin', 'creator']), (req: Request, res: Response) => {
-  logger.debug({ id: req.params.id, body: req.body }, 'Admin: update character')
-  res.json({ message: `Update character ${req.params.id} — not yet implemented` })
+  try {
+    const characterName = req.params.id
+    const updatedData = req.body as Partial<CustomCharacter>
+
+    logger.debug({ id: characterName, body: updatedData }, 'Admin: update character')
+
+    // Find the character to get its filename
+    const character = characters.find((c) => c.name === characterName)
+    if (!character) {
+      return res.status(404).json({ error: `Character ${characterName} not found` })
+    }
+
+    // Construct the filename (should be {name}Custom.ts)
+    const filename = `${characterName}Custom.ts`
+    const configDir = path.join(__dirname, '../../config')
+    const filepath = path.join(configDir, filename)
+
+    // Check if file exists
+    if (!fs.existsSync(filepath)) {
+      logger.error({ filename }, 'Character config file not found')
+      return res.status(404).json({ error: `Character config file not found: ${filename}` })
+    }
+
+    // Merge the existing character with updated data
+    const updatedCharacter: CustomCharacter = {
+      ...character,
+      ...updatedData,
+    }
+
+    // Generate the updated file content
+    const varName = `${characterName}Custom`
+    const fileContent = `import type { CustomCharacter } from '../src/content/types'
+
+export const ${varName}: CustomCharacter = ${JSON.stringify(updatedCharacter, null, 2)}
+`
+
+    // Write the updated file
+    fs.writeFileSync(filepath, fileContent)
+    logger.info({ filename }, 'Character config updated successfully')
+
+    res.json({
+      success: true,
+      message: `Character ${characterName} updated successfully`,
+      character: updatedCharacter,
+    })
+  } catch (error) {
+    logger.error({ error }, 'Error updating character')
+    res.status(500).json({ error: 'Failed to update character' })
+  }
 })
 
 /**

@@ -49,6 +49,27 @@ export const getAvailableSvgs = async (auth: AuthContextProps): Promise<string[]
   return data.files
 }
 
+export const updateCharacter = async (
+  auth: AuthContextProps,
+  characterName: string,
+  updates: Partial<CustomCharacter>,
+): Promise<CustomCharacter> => {
+  const res = await fetch(`${adminBase}/characters/${encodeURIComponent(characterName)}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updates),
+  })
+  if (!res.ok) {
+    const errorData = (await res.json()) as { error?: string }
+    throw new Error(errorData.error || `Request failed: ${res.status}`)
+  }
+  const data = (await res.json()) as CustomCharacter
+  return data
+}
+
 export const uploadSvg = async (auth: AuthContextProps, file: File): Promise<{ path: string; filename: string }> => {
   const formData = new FormData()
   formData.append('file', file)
