@@ -37,4 +37,9 @@ jobs:
     name: helm dependency update + lint + template
     runs-on: ubuntu-latest
     steps:
+      # Local composite actions require the repo on disk before `uses: ./.github/actions/...` resolves.
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/showcase-helm-lint
+        with:
+          skip_checkout: 'true'

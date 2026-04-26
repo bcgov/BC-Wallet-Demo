@@ -2,6 +2,8 @@ name: Showcase Helm lint
 description: |
   helm dependency update, helm lint (default + dev + PR overlays), and helm template smoke checks
   for charts/showcase. Use before packaging or upgrading the chart in CI.
+  When invoked as a local action (`uses: ./.github/actions/showcase-helm-lint`), the workflow must
+  run `actions/checkout` first, then pass `skip_checkout: true` so checkout is not duplicated.
 
 inputs:
   skip_checkout:
