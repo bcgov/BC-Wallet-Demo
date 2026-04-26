@@ -6,6 +6,11 @@ vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
+// Mock requireRole to allow tests to bypass role checks
+vi.mock('../../middleware/requireAdmin', () => ({
+  requireRole: () => (_req: any, _res: any, next: any) => next(),
+}))
+
 // requireAdmin is already applied in index.ts; here we test the router in
 // isolation by mounting it without the middleware.
 import adminCharactersRouter from '../adminCharactersRouter'
