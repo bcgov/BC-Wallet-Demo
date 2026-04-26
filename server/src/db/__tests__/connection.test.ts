@@ -30,19 +30,35 @@ describe('connectDB', () => {
 
 describe('connectDB retry behaviour', () => {
   beforeEach(() => {
+    delete process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS
     vi.useFakeTimers()
   })
 
   afterEach(() => {
     vi.useRealTimers()
     vi.restoreAllMocks()
+    delete process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS
   })
 
   it('resolves immediately on first successful connect', async () => {
     vi.spyOn(mongoose, 'connect').mockResolvedValueOnce(mongoose)
     await expect(connectDB()).resolves.toBeUndefined()
     expect(mongoose.connect).toHaveBeenCalledTimes(1)
-    expect(mongoose.connect).toHaveBeenCalledWith(expect.any(String), { serverSelectionTimeoutMS: 3000 })
+    expect(mongoose.connect).toHaveBeenCalledWith(expect.any(String), { serverSelectionTimeoutMS: 30000 })
+  })
+
+  it('uses MONGO_SERVER_SELECTION_TIMEOUT_MS when set to a positive number', async () => {
+    process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS = '12345'
+    vi.spyOn(mongoose, 'connect').mockResolvedValueOnce(mongoose)
+    await expect(connectDB()).resolves.toBeUndefined()
+    expect(mongoose.connect).toHaveBeenCalledWith(expect.any(String), { serverSelectionTimeoutMS: 12345 })
+  })
+
+  it('falls back to default timeout when MONGO_SERVER_SELECTION_TIMEOUT_MS is invalid', async () => {
+    process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS = 'not-a-number'
+    vi.spyOn(mongoose, 'connect').mockResolvedValueOnce(mongoose)
+    await expect(connectDB()).resolves.toBeUndefined()
+    expect(mongoose.connect).toHaveBeenCalledWith(expect.any(String), { serverSelectionTimeoutMS: 30000 })
   })
 
   it('retries after a failed attempt and resolves on second', async () => {

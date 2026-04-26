@@ -1,0 +1,12 @@
+name: Showcase OpenShift + Helm CLI
+description: Install pinned oc and Helm versions used by showcase deploy workflows
+runs:
+  using: composite
+  steps:
+    - uses: redhat-actions/openshift-tools-installer@v1
+      with:
+        oc: '4.15'
+
+    - uses: azure/setup-helm@v4
+      with:
+        version: v3.16.3

@@ -1,0 +1,115 @@
+{{- include "showcase.validateMongoAuth" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "showcase.server.fullname" . }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.showcase.server.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server
+  template:
+    metadata:
+      labels:
+        {{- include "showcase.labels" . | nindent 8 }}
+        app.kubernetes.io/component: server
+        {{- range $k, $v := .Values.showcase.server.podLabels }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
+      {{- if .Values.showcase.server.podAnnotations }}
+      annotations: {{- toYaml .Values.showcase.server.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.mongodb.enabled (default true .Values.showcase.server.waitForMongoTcp) }}
+      initContainers:
+        - name: wait-for-mongo-tcp
+          image: {{ .Values.showcase.server.mongoWaitInitContainerImage | quote }}
+          {{- with .Values.showcase.server.mongoWaitInitContainerSecurityContext }}
+          securityContext: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command:
+            - bash
+            - -c
+            - |
+              set -euo pipefail
+              host="{{ include "showcase.mongodb.uriHost" . }}"
+              tcp_open() {
+                local h="$1" pid t=0
+                bash -c "exec 3<>/dev/tcp/${h}/27017" &
+                pid=$!
+                while kill -0 "${pid}" 2>/dev/null && (( t < 40 )); do
+                  sleep 0.1
+                  t=$((t + 1))
+                done
+                if kill -0 "${pid}" 2>/dev/null; then
+                  kill "${pid}" 2>/dev/null || true
+                  wait "${pid}" 2>/dev/null || true
+                  return 1
+                fi
+                wait "${pid}" || return 1
+              }
+              echo "waiting for Mongo TCP on: ${host}"
+              for ((i = 0; i < 120; i++)); do
+                if tcp_open "${host}"; then
+                  echo "mongo tcp ok (${host})"
+                  exit 0
+                fi
+                if (( i % 15 == 0 && i > 0 )); then
+                  echo "still waiting (attempt block ${i}/120)..."
+                fi
+                sleep 2
+              done
+              echo "timeout waiting for mongo tcp (host: ${host})"
+              exit 1
+      {{- end }}
+      containers:
+        - name: server
+          image: {{ include "showcase.server.image" . }}
+          imagePullPolicy: {{ .Values.showcase.server.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.showcase.server.containerPort }}
+          {{- if .Values.showcase.server.existingSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.showcase.server.existingSecret | quote }}
+          {{- else if eq (include "showcase.server.chartServerSecretNeeded" . | trim) "1" }}
+          envFrom:
+            - secretRef:
+                name: {{ include "showcase.server.secretName" . }}
+          {{- end }}
+          env:
+            - name: BASE_ROUTE
+              value: {{ .Values.showcase.baseRoute | quote }}
+          {{- range .Values.showcase.server.extraEnv }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ printf "%s/server/ready" .Values.showcase.baseRoute }}
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          {{- with .Values.showcase.server.resources }}
+          resources: {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.showcase.server.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.showcase.server.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.showcase.server.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

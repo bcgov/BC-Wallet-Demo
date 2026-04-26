@@ -1,0 +1,50 @@
+## Ephemeral PR overlay (OpenShift Silver). CI sets:
+##   - showcase.publicOrigin → https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>
+##   - showcase.server.image.tag / showcase.frontend.image.tag → pr-<N>
+##
+## Requires repository variable SHOWCASE_PR_HOST_SUFFIX (e.g. bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca).
+
+ingress:
+  enabled: true
+  className: ''
+  annotations:
+    route.openshift.io/termination: edge
+    haproxy.router.openshift.io/timeout: 120s
+  frontend:
+    path: /
+    tls: false
+
+showcase:
+  autoProvisionSecrets: true
+  ## Overridden in CI; placeholder keeps helm lint/template valid locally.
+  publicOrigin: 'https://bc-wallet-showcase-pr-0.apps.silver.devops.gov.bc.ca'
+  networkPolicy:
+    enabled: true
+  server:
+    existingSecret: ''
+    image:
+      pullPolicy: Always
+    resources:
+      requests:
+        cpu: 25m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+  frontend:
+    trustedProxies: '0.0.0.0/0'
+    image:
+      pullPolicy: Always
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+mongodb:
+  enabled: true
+  auth:
+    rootUsername: admin
+    rootPassword: ''
+    existingSecret: '{{ printf "%s-showcase-mongo-root" .Release.Name }}'
+    existingSecretPasswordKey: password

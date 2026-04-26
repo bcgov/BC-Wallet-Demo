@@ -1,0 +1,153 @@
+# Builds and pushes showcase images (tag `main`), then upgrades the dev Helm release on OpenShift
+# when relevant paths merge to `main` (bcgov repo only for GHCR push + deploy).
+#
+# Shared Docker / CLI setup lives under `.github/actions/showcase-*` (same builders as deploy-showcase-pr).
+#
+# Configure the bcgov repository (Settings → Secrets and variables → Actions):
+#   Variables (not secret):
+#     SHOWCASE_DEV_OC_URL        — API URL, e.g. https://api.silver.devops.gov.bc.ca:6443
+#     SHOWCASE_DEV_NAMESPACE     — Target namespace (must already exist)
+#     SHOWCASE_DEV_PUBLIC_ORIGIN — Optional. Browser origin for Vite `VITE_HOST_BACKEND` in the
+#                                  frontend image (scheme + host, no path). Defaults to the URL
+#                                  in deploy/showcase/values-dev.yaml — set this if dev hostname changes.
+#   Optional variable:
+#     SHOWCASE_DEV_HELM_RELEASE  — Helm release name (default: showcase)
+#   Secret:
+#     SHOWCASE_DEV_OC_TOKEN      — Service account or user token with permission to
+#                                  helm upgrade/install resources in that namespace
+#
+# If OpenShift variables/token are missing, image build + push to GHCR still runs on bcgov (so
+# `ghcr.io/bcgov/bc-wallet-showcase-*:main` stays current); the Helm job is skipped. Forks skip
+# GHCR jobs entirely (stay green).
+
+name: Deploy showcase (dev)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'charts/showcase/**'
+      - 'frontend/**'
+      - 'server/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/deploy-showcase-dev.yaml'
+      - '.github/actions/showcase-build-server/**'
+      - '.github/actions/showcase-build-frontend/**'
+      - '.github/actions/showcase-setup-oc-helm/**'
+      - '.github/actions/showcase-helm-lint/**'
+
+concurrency:
+  group: deploy-showcase-dev-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  HUSKY: '0'
+  REGISTRY: ghcr.io
+  SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
+  SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
+
+jobs:
+  build-server:
+    name: Build and push server image (main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: github.repository_owner == 'bcgov'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: ./.github/actions/showcase-build-server
+        with:
+          image: ${{ env.SHOWCASE_SERVER_IMAGE }}
+          tag: main
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-frontend:
+    name: Build and push frontend image (main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: github.repository_owner == 'bcgov'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: ./.github/actions/showcase-build-frontend
+        with:
+          image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
+          tag: main
+          react_app_host_backend: ${{ vars.SHOWCASE_DEV_PUBLIC_ORIGIN || 'https://bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+          react_app_insights_project_id: ${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  helm-upgrade-dev:
+    name: Helm upgrade (OpenShift dev)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [build-server, build-frontend]
+    if: >-
+      github.repository_owner == 'bcgov' &&
+      needs.build-server.result == 'success' &&
+      needs.build-frontend.result == 'success' &&
+      vars.SHOWCASE_DEV_OC_URL != '' &&
+      vars.SHOWCASE_DEV_NAMESPACE != '' &&
+      secrets.SHOWCASE_DEV_OC_TOKEN != ''
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/showcase-setup-oc-helm
+
+      - name: Log in to OpenShift
+        env:
+          SHOWCASE_DEV_OC_URL: ${{ vars.SHOWCASE_DEV_OC_URL }}
+          SHOWCASE_DEV_OC_TOKEN: ${{ secrets.SHOWCASE_DEV_OC_TOKEN }}
+        run: oc login "${SHOWCASE_DEV_OC_URL}" --token="${SHOWCASE_DEV_OC_TOKEN}"
+
+      - uses: ./.github/actions/showcase-helm-lint
+        with:
+          skip_checkout: 'true'
+          skip_helm_install: 'true'
+
+      - name: Helm upgrade --install
+        working-directory: charts/showcase
+        env:
+          SHOWCASE_DEV_NAMESPACE: ${{ vars.SHOWCASE_DEV_NAMESPACE }}
+          SHOWCASE_DEV_HELM_RELEASE: ${{ vars.SHOWCASE_DEV_HELM_RELEASE }}
+        run: |
+          set -euo pipefail
+          release="${SHOWCASE_DEV_HELM_RELEASE:-showcase}"
+          helm upgrade --install "${release}" . \
+            -f ../../deploy/showcase/values-dev.yaml \
+            --namespace "${SHOWCASE_DEV_NAMESPACE}" \
+            --wait \
+            --timeout 15m \
+            --atomic
+
+      # Same tag (`:main`) can point at a new digest; restart so workloads pull the image we just pushed.
+      - name: Rollout restart (pick up new main digest)
+        env:
+          SHOWCASE_DEV_NAMESPACE: ${{ vars.SHOWCASE_DEV_NAMESPACE }}
+          SHOWCASE_DEV_HELM_RELEASE: ${{ vars.SHOWCASE_DEV_HELM_RELEASE }}
+        run: |
+          set -euo pipefail
+          release="${SHOWCASE_DEV_HELM_RELEASE:-showcase}"
+          ns="${SHOWCASE_DEV_NAMESPACE}"
+          server_deploy="$(oc get deploy -n "${ns}" \
+            -l "app.kubernetes.io/instance=${release},app.kubernetes.io/component=server" \
+            -o jsonpath='{.items[0].metadata.name}')"
+          frontend_deploy="$(oc get deploy -n "${ns}" \
+            -l "app.kubernetes.io/instance=${release},app.kubernetes.io/component=frontend" \
+            -o jsonpath='{.items[0].metadata.name}')"
+          test -n "${server_deploy}" && test -n "${frontend_deploy}"
+          oc rollout restart "deployment/${server_deploy}" -n "${ns}"
+          oc rollout status "deployment/${server_deploy}" -n "${ns}" --timeout=15m
+          oc rollout restart "deployment/${frontend_deploy}" -n "${ns}"
+          oc rollout status "deployment/${frontend_deploy}" -n "${ns}" --timeout=15m
