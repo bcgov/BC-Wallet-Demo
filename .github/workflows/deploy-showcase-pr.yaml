@@ -95,9 +95,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [ready, build_server, build_frontend]
-    if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.build_server.result == 'success' && needs.build_frontend.result == 'success' && secrets.OPENSHIFT_TOKEN != '' && secrets.OPENSHIFT_SERVER != '' && secrets.OPENSHIFT_NAMESPACE != '' }}
+    # Job-level `if` cannot use `secrets` (GitHub restriction). Verify OpenShift secrets in-step.
+    if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.build_server.result == 'success' && needs.build_frontend.result == 'success' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Verify OpenShift secrets for deploy
+        env:
+          OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
+          OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
+          OPENSHIFT_NAMESPACE: ${{ secrets.OPENSHIFT_NAMESPACE }}
+        run: |
+          if [[ -z "${OPENSHIFT_TOKEN}" || -z "${OPENSHIFT_SERVER}" || -z "${OPENSHIFT_NAMESPACE}" ]]; then
+            echo '::error::Missing OPENSHIFT_SERVER, OPENSHIFT_TOKEN, or OPENSHIFT_NAMESPACE for showcase PR deploy.'
+            exit 1
+          fi
 
       - uses: ./.github/actions/showcase-setup-oc-helm
 
