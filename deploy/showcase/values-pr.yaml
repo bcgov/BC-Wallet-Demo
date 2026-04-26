@@ -3,6 +3,8 @@
 ##   - showcase.server.image.tag / showcase.frontend.image.tag → pr-<N>
 ##
 ## Requires repository variable SHOWCASE_PR_HOST_SUFFIX (e.g. bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca).
+##
+## CI: trivial comment-only change to exercise deploy-showcase-pr workflow paths (revert after validation).
 
 ingress:
   enabled: true
