@@ -117,10 +117,10 @@ describe('adminCharactersRouter with role-based access control', () => {
     })
   })
 
-  describe('PUT /admin/characters/:id (requires admin role)', () => {
+  describe('PUT /admin/characters/:id (requires admin or creator role)', () => {
     const app = createAppWithRoles()
 
-    it('returns 403 when user does not have admin role', async () => {
+    it('returns 403 when user does not have admin or creator role', async () => {
       const auth = { sub: 'user1', realm_access: { roles: ['viewer'] } }
       const res = await request(app).put('/admin/characters/student').set('x-test-auth', JSON.stringify(auth)).send({
         name: 'Updated',
@@ -136,13 +136,22 @@ describe('adminCharactersRouter with role-based access control', () => {
       expect(res.status).toBe(200)
       expect(res.body.message).toContain('student')
     })
+
+    it('returns 200 when user has creator role', async () => {
+      const auth = { sub: 'user1', realm_access: { roles: ['creator'] } }
+      const res = await request(app).put('/admin/characters/student').set('x-test-auth', JSON.stringify(auth)).send({
+        name: 'Updated',
+      })
+      expect(res.status).toBe(200)
+      expect(res.body.message).toContain('student')
+    })
   })
 
-  describe('DELETE /admin/characters/:id (requires admin role)', () => {
+  describe('DELETE /admin/characters/:id (requires admin role only)', () => {
     const app = createAppWithRoles()
 
     it('returns 403 when user does not have admin role', async () => {
-      const auth = { sub: 'user1', realm_access: { roles: ['editor'] } }
+      const auth = { sub: 'user1', realm_access: { roles: ['creator'] } }
       const res = await request(app).delete('/admin/characters/student').set('x-test-auth', JSON.stringify(auth))
       expect(res.status).toBe(403)
     })

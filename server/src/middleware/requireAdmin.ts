@@ -1,4 +1,4 @@
-import type { KeycloakJWT } from '../types.d'
+import type { KeycloakJWT } from '../types'
 import type { JsonWebKeyInput } from 'crypto'
 import type { NextFunction, Request, Response } from 'express'
 import type { GetVerificationKey } from 'express-jwt'

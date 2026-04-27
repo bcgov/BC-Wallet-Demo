@@ -21,6 +21,8 @@ import { requireAdmin } from './middleware/requireAdmin'
 app.use(`${baseRoute}/admin`, requireAdmin)
 ```
 
+**Note:** When `requireAdmin` is mounted globally on a path prefix (as shown above), route-specific middleware like `requireRole()` and `requireClientRole()` can be applied without explicitly chaining `requireAdmin` again. Examples below assume this global setup unless otherwise specified.
+
 ### `requireRole(allowedRoles: string[])`
 
 Middleware factory that checks realm-level roles. Must be applied **after** `requireAdmin`.
@@ -35,7 +37,18 @@ Middleware factory that checks realm-level roles. Must be applied **after** `req
 import { requireRole } from './middleware/requireAdmin'
 
 // Only users with 'admin' or 'creator' role can POST
+// (Note: requireAdmin is already applied globally to the /admin prefix)
 router.post('/', requireRole(['admin', 'creator']), (req, res) => {
+  res.status(201).json({ created: true })
+})
+```
+
+**If not using a global `requireAdmin` mount**, include it explicitly:
+
+```typescript
+import { requireAdmin, requireRole } from './middleware/requireAdmin'
+
+router.post('/', requireAdmin, requireRole(['admin', 'creator']), (req, res) => {
   res.status(201).json({ created: true })
 })
 ```
@@ -61,7 +74,18 @@ Middleware factory that checks client-specific roles. Must be applied **after** 
 import { requireClientRole } from './middleware/requireAdmin'
 
 // Only users with 'admin' role in the 'admin-portal' client can DELETE
+// (Note: requireAdmin is already applied globally to the /admin prefix)
 router.delete('/:id', requireClientRole('admin-portal', ['admin']), (req, res) => {
+  res.status(204).send()
+})
+```
+
+**If not using a global `requireAdmin` mount**, include it explicitly:
+
+```typescript
+import { requireAdmin, requireClientRole } from './middleware/requireAdmin'
+
+router.delete('/:id', requireAdmin, requireClientRole('admin-portal', ['admin']), (req, res) => {
   res.status(204).send()
 })
 ```
@@ -143,9 +167,10 @@ The JWT token will contain role information like:
 ### Restricting to Admins Only
 
 ```typescript
-import { requireAdmin, requireRole } from './middleware/requireAdmin'
+import { requireRole } from './middleware/requireAdmin'
 
-router.delete('/:id', requireAdmin, requireRole(['admin']), (req, res) => {
+// Assuming requireAdmin is mounted globally on the /admin prefix:
+router.delete('/:id', requireRole(['admin']), (req, res) => {
   // Only admins can delete
   res.status(204).send()
 })
@@ -164,9 +189,10 @@ router.put('/:id', requireAdmin, requireRole(['admin', 'editor']), (req, res) =>
 ### Conditional Logic Inside Handler
 
 ```typescript
-import { requireAdmin, userHasRole } from './middleware/requireAdmin'
+import { userHasRole } from './middleware/requireAdmin'
 
-router.get('/stats', requireAdmin, (req, res) => {
+// Assuming requireAdmin is mounted globally on the /admin prefix:
+router.get('/stats', (req, res) => {
   const auth = req.auth
 
   // All authenticated users see basic stats
@@ -185,9 +211,10 @@ router.get('/stats', requireAdmin, (req, res) => {
 ### Client-Specific Roles
 
 ```typescript
-import { requireAdmin, requireClientRole } from './middleware/requireAdmin'
+import { requireClientRole } from './middleware/requireAdmin'
 
-router.post('/publish', requireAdmin, requireClientRole('content-app', ['publisher']), (req, res) => {
+// Assuming requireAdmin is mounted globally on the /admin prefix:
+router.post('/publish', requireClientRole('content-app', ['publisher']), (req, res) => {
   // Only users with the 'publisher' role in 'content-app' can publish
   res.json({ published: true })
 })
