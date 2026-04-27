@@ -2,7 +2,7 @@ import type { CustomCharacter, UseCaseScreen } from '../types'
 
 import { useEffect, useState } from 'react'
 
-import { useDragReorder } from '../utils/useDragReorder'
+import { useDragReorder } from '../hooks/useDragReorder'
 
 import { EditScreenModal } from './EditScreenModal'
 import { ScreenContentCard } from './ScreenContentCard'
