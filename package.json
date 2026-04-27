@@ -51,9 +51,5 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "yarn@1.22.22",
-  "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "heroicons": "^2.2.0"
-  }
+  "packageManager": "yarn@1.22.22"
 }
