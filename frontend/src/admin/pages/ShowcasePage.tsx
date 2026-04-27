@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom'
 
 import { baseRoute } from '../../client/api/BaseUrl'
 import { AdminNavbar } from '../components/AdminNavbar'
-import { CredentialsTab } from '../components/CredentialsTab'
-import { IntroductionTab } from '../components/IntroductionTab'
-import { PersonaTab } from '../components/PersonaTab'
-import { ScenariosTab } from '../components/ScenariosTab'
-import { SecondaryNavbar } from '../components/SecondaryNavbar'
+import { CredentialsTab } from '../components/showcase/CredentialsTab'
+import { IntroductionTab } from '../components/showcase/IntroductionTab'
+import { PersonaTab } from '../components/showcase/PersonaTab'
+import { ScenariosTab } from '../components/showcase/ScenariosTab'
+import { SecondaryNavbar } from '../components/showcase/SecondaryNavbar'
 import { useCharacter } from '../hooks/useCharacter'
 
 export function ShowcasePage() {
@@ -18,8 +18,8 @@ export function ShowcasePage() {
 
   const tabs = [
     { id: 'persona', label: 'Persona', icon: <UserIcon className="w-5 h-5" /> },
-    { id: 'introduction', label: 'Introduction', icon: <QueueListIcon className="w-5 h-5" /> },
     { id: 'credentials', label: 'Credentials', icon: <CreditCardIcon className="w-5 h-5" /> },
+    { id: 'introduction', label: 'Introduction', icon: <QueueListIcon className="w-5 h-5" /> },
     { id: 'scenarios', label: 'Scenarios', icon: <FilmIcon className="w-5 h-5" /> },
   ]
 
@@ -54,8 +54,8 @@ export function ShowcasePage() {
 
       {/* Main Content */}
       {activeTab === 'persona' && <PersonaTab character={character} isLoading={isLoading} />}
-      {activeTab === 'introduction' && <IntroductionTab character={character} />}
       {activeTab === 'credentials' && <CredentialsTab character={character} />}
+      {activeTab === 'introduction' && <IntroductionTab character={character} />}
       {activeTab === 'scenarios' && <ScenariosTab character={character} />}
     </div>
   )

@@ -1,13 +1,12 @@
-import type { CustomCharacter } from '../types'
+import type { CustomCharacter } from '../../types'
 
 import { ArrowUpTrayIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { baseUrl } from '../../client/api/BaseUrl'
-import { updateCharacter } from '../api/adminApi'
-
-import { ImageUploadModal } from './ImageUploadModal'
+import { baseUrl } from '../../../client/api/BaseUrl'
+import { updateCharacter } from '../../api/adminApi'
+import { ImageUploadModal } from '../ImageUploadModal'
 
 interface PersonaTabProps {
   character: CustomCharacter | null
@@ -67,7 +66,9 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
       <div className="w-full max-w-4xl mb-8 flex justify-between items-start">
         <div>
           <h2 className="text-2xl font-semibold text-bcgov-black">Setup Persona</h2>
-          <h5 className="text-gray-500 mt-2">Configure the details for your persona.</h5>
+          <h5 className="text-gray-500 mt-2">
+            Configure the details for your persona. This will be the credential holder going through the showcase.
+          </h5>
         </div>
         {(titleValue !== character?.name ||
           roleValue !== character?.type ||

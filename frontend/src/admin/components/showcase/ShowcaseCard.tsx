@@ -1,6 +1,6 @@
-import type { CustomCharacter } from '../types'
+import type { CustomCharacter } from '../../types'
 
-import { baseUrl } from '../../client/api/BaseUrl'
+import { baseUrl } from '../../../client/api/BaseUrl'
 
 interface ShowcaseCardProps {
   character: CustomCharacter

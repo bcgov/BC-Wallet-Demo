@@ -10,6 +10,7 @@ import { CallbackPage } from './pages/CallbackPage'
 import { CreatorPage } from './pages/CreatorPage'
 import { ShowcasePage } from './pages/ShowcasePage'
 import { LoginPage } from './pages/LoginPage'
+import { CredentialsPage } from './pages/CredentialsPage'
 
 const onSigninCallback = () => {
   window.history.replaceState({}, document.title, window.location.pathname)
@@ -53,6 +54,14 @@ function AdminApp() {
           element={
             <AuthGuard>
               <ShowcasePage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="creator/credentials"
+          element={
+            <AuthGuard>
+              <CredentialsPage />
             </AuthGuard>
           }
         />

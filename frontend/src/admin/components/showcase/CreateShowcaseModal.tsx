@@ -2,7 +2,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { createShowcase } from '../api/adminApi'
+import { createShowcase } from '../../api/adminApi'
 
 interface CreateShowcaseModalProps {
   isOpen: boolean

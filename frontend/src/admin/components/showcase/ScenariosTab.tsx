@@ -1,11 +1,11 @@
-import type { CustomCharacter, UseCaseScreen } from '../types'
+import type { CustomCharacter, UseCaseScreen } from '../../types'
 
 import { useEffect, useState } from 'react'
 
-import { useDragReorder } from '../hooks/useDragReorder'
+import { useDragReorder } from '../../hooks/useDragReorder'
 
 import { EditScreenModal } from './EditScreenModal'
-import { ScreenContentCard } from './ScreenContentCard'
+import { ScreenContentCard } from '../ScreenContentCard'
 
 interface ScenariosTabProps {
   character: CustomCharacter | null

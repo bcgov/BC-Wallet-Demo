@@ -1,12 +1,11 @@
-import type { CustomCharacter, OnboardingStep } from '../types'
+import type { CustomCharacter, OnboardingStep } from '../../types'
 
 import { PencilIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
-import { baseUrl } from '../../client/api/BaseUrl'
-import { formatScreenId } from '../utils/formatScreenId'
-
-import { ImageUploadModal } from './ImageUploadModal'
+import { baseUrl } from '../../../client/api/BaseUrl'
+import { formatScreenId } from '../../utils/formatScreenId'
+import { ImageUploadModal } from '../ImageUploadModal'
 
 interface ProgressBar {
   name: string

@@ -1,12 +1,12 @@
-import type { CustomCharacter, OnboardingStep } from '../types'
+import type { CustomCharacter, OnboardingStep } from '../../types'
 
 import { useState } from 'react'
 
-import { baseUrl } from '../../client/api/BaseUrl'
-import { useDragReorder } from '../hooks/useDragReorder'
+import { baseUrl } from '../../../client/api/BaseUrl'
+import { useDragReorder } from '../../hooks/useDragReorder'
 
 import { EditScreenModal } from './EditScreenModal'
-import { ScreenContentCard } from './ScreenContentCard'
+import { ScreenContentCard } from '../ScreenContentCard'
 
 interface ProgressBar {
   name: string

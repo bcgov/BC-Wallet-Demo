@@ -1,11 +1,14 @@
 import { PhotoIcon, CreditCardIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
+import { baseRoute } from '../../client/api/BaseUrl'
 import { AdminNavbar } from '../components/AdminNavbar'
-import { ShowcasesPanel } from '../components/ShowcasesPanel'
+import { ShowcasesPanel } from '../components/showcase/ShowcasesPanel'
 
 export function CreatorPage() {
   const [activeTab, setActiveTab] = useState<'showcases' | 'credentials'>('showcases')
+  const navigate = useNavigate()
 
   const tabsContent = (
     <div className="flex gap-8">
@@ -21,7 +24,7 @@ export function CreatorPage() {
         Showcases
       </button>
       <button
-        onClick={() => setActiveTab('credentials')}
+        onClick={() => navigate(`${baseRoute}/admin/creator/credentials`)}
         className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
           activeTab === 'credentials'
             ? 'border-bcgov-blue text-bcgov-blue'
@@ -44,13 +47,6 @@ export function CreatorPage() {
           <div className="w-full p-8 flex flex-col items-center">
             <div className="w-full max-w-4xl">
               <ShowcasesPanel />
-            </div>
-          </div>
-        )}
-        {activeTab === 'credentials' && (
-          <div className="w-full p-8 flex flex-col items-center">
-            <div className="w-full max-w-4xl">
-              <div className="text-gray-600">Credentials tab — not yet implemented</div>
             </div>
           </div>
         )}

@@ -103,3 +103,16 @@ export const createShowcase = async (
   const data = (await res.json()) as { success: boolean; message: string; filename: string; name: string }
   return data
 }
+
+export const getAllCredentials = async (auth: AuthContextProps): Promise<Credential[]> => {
+  const res = await fetch(`${adminBase}/credentials`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  const data = (await res.json()) as Credential[]
+  return data
+}
