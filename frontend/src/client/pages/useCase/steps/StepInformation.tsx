@@ -1,4 +1,4 @@
-import type { UseCaseScreen } from '../../../slices/types'
+import type { ScenarioScreen } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import React from 'react'
@@ -8,7 +8,7 @@ import { prependApiUrl } from '../../../utils/Url'
 import { StepInfo } from '../components/StepInfo'
 
 export interface Props {
-  step: UseCaseScreen
+  step: ScenarioScreen
 }
 
 export const StepInformation: React.FC<Props> = ({ step }) => {

@@ -1,4 +1,4 @@
-import type { CredentialRequest, CustomUseCase, Predicate, UseCaseScreen } from '../../content/types'
+import type { CredentialRequest, Predicate, Scenario, ScenarioScreen } from '../../content/types'
 
 import { Schema } from 'mongoose'
 
@@ -68,7 +68,7 @@ const RequestOptionsSchema = new Schema<{
   embeddedSchemaOptions,
 )
 
-const UseCaseScreenSchema = new Schema<UseCaseScreen>(
+const ScenarioScreenSchema = new Schema<ScenarioScreen>(
   {
     screenId: { type: String, required: true },
     name: { type: String, required: true },
@@ -80,13 +80,13 @@ const UseCaseScreenSchema = new Schema<UseCaseScreen>(
   embeddedSchemaOptions,
 )
 
-// Embedded within Character.useCases.
-export const UseCaseSchema = new Schema<CustomUseCase>(
+// Embedded within Character.scenarios.
+export const ScenarioSchema = new Schema<Scenario>(
   {
     id: { type: String, required: true },
     name: { type: String, required: true },
     hidden: { type: Boolean, default: false },
-    screens: [UseCaseScreenSchema],
+    screens: [ScenarioScreenSchema],
   },
   embeddedSchemaOptions,
 )

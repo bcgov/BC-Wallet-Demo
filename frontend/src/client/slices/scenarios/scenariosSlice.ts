@@ -1,19 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-interface UseCaseState {
+interface ScenarioState {
   sectionCount: number
   stepCount: number
   isLoading: boolean
 }
 
-const initialState: UseCaseState = {
+const initialState: ScenarioState = {
   sectionCount: 0,
   stepCount: 0,
   isLoading: false,
 }
 
-const useCaseSlice = createSlice({
-  name: 'useCase',
+const scenarioSlice = createSlice({
+  name: 'scenario',
   initialState,
   reducers: {
     nextSection: (state) => {
@@ -32,6 +32,6 @@ const useCaseSlice = createSlice({
   },
 })
 
-export const { nextSection, resetStep, nextStep, prevStep } = useCaseSlice.actions
+export const { nextSection, resetStep, nextStep, prevStep } = scenarioSlice.actions
 
-export default useCaseSlice.reducer
+export default scenarioSlice.reducer

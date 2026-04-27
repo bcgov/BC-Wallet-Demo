@@ -1,4 +1,4 @@
-import type { CredentialRequest, UseCaseScreen } from '../../../slices/types'
+import type { CredentialRequest, ScenarioScreen } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
@@ -10,14 +10,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { fadeExit } from '../../../FramerAnimations'
 import { SmallButton } from '../../../components/SmallButton'
 import { useAppDispatch } from '../../../hooks/hooks'
-import { nextStep } from '../../../slices/useCases/useCasesSlice'
+import { nextStep } from '../../../slices/scenarios/scenariosSlice'
 import { basePath } from '../../../utils/BasePath'
 import { prependApiUrl } from '../../../utils/Url'
 
 import { StarterInfo } from './StarterInfo'
 
 export interface Props {
-  step: UseCaseScreen
+  step: ScenarioScreen
   characterType?: string
   entity: { name: string; icon?: string }
   requestedCredentials?: CredentialRequest[]

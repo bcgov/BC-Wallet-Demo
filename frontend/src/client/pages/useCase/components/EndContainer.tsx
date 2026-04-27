@@ -1,4 +1,4 @@
-import type { UseCaseScreen } from '../../../slices/types'
+import type { ScenarioScreen } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import { track } from 'insights-js'
@@ -9,11 +9,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { fadeExit } from '../../../FramerAnimations'
 import { Button } from '../../../components/Button'
 import { useAppDispatch } from '../../../hooks/hooks'
-import { useCaseCompleted } from '../../../slices/preferences/preferencesSlice'
+import { scenarioCompleted } from '../../../slices/preferences/preferencesSlice'
 import { basePath } from '../../../utils/BasePath'
 
 export interface Props {
-  step: UseCaseScreen
+  step: ScenarioScreen
 }
 
 export const EndContainer: React.FC<Props> = ({ step }) => {
@@ -26,8 +26,8 @@ export const EndContainer: React.FC<Props> = ({ step }) => {
 
   useEffect(() => {
     if (completed && slug) {
-      dispatch(useCaseCompleted(slug))
-      dispatch({ type: 'clearUseCase' })
+      dispatch(scenarioCompleted(slug))
+      dispatch({ type: 'clearScenario' })
       navigate(`${basePath}/dashboard`)
       track({
         id: 'use-case-completed',

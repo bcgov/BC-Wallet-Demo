@@ -5,13 +5,13 @@ vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
-import { UseCaseController } from '../UseCaseController'
+import { ScenarioController } from '../ScenarioController'
 
-describe('UseCaseController', () => {
-  let controller: UseCaseController
+describe('ScenarioController', () => {
+  let controller: ScenarioController
 
   beforeEach(() => {
-    controller = new UseCaseController()
+    controller = new ScenarioController()
   })
 
   describe('getUseCaseBySlug', () => {

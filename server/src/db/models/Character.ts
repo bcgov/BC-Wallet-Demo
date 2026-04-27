@@ -13,7 +13,7 @@ import fs from 'node:fs/promises'
 import { AttributeSchema, baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
 
 import { AssetModel } from './Asset'
-import { UseCaseSchema } from './UseCase'
+import { ScenarioSchema } from './Scenario'
 
 // Maps to Credential interface (credentials issued during onboarding steps).
 // Not to be confused with CredentialRequest, which is for proof use case screens.
@@ -75,7 +75,7 @@ const CharacterSchema = new Schema<CustomCharacter>(
     // required + default to match types.ts where both fields are non-optional.
     progressBar: { type: [ProgressBarStepSchema], required: true, default: [] },
     introduction: { type: [IntroductionStepSchema], required: true, default: [] },
-    useCases: [UseCaseSchema],
+    scenarios: [ScenarioSchema],
     revocationInfo: [RevocationInfoItemSchema],
   },
   baseSchemaOptions,

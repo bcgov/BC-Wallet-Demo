@@ -167,9 +167,9 @@ describe('credentialsSlice reducers', () => {
     expect(names).toHaveLength(1)
   })
 
-  it('clearUseCase resets isLoading to false', () => {
+  it('clearScenario resets isLoading to false', () => {
     const store = makeStore()
-    store.dispatch({ type: 'clearUseCase' })
+    store.dispatch({ type: 'clearScenario' })
     expect(store.getState().credentials.isLoading).toBe(false)
   })
 })

@@ -6,10 +6,10 @@ import { fetchLastServerReset } from './preferencesThunks'
 
 interface PreferencesState {
   darkMode: boolean
-  showHiddenUseCases: boolean
+  showHiddenScenarios: boolean
   revocationEnabled: boolean
   characterUploadEnabled: boolean
-  completedUseCaseSlugs: string[]
+  completedScenarioSlugs: string[]
   demoCompleted: boolean
   completeCanceled: boolean
   connectionDate?: string
@@ -18,10 +18,10 @@ interface PreferencesState {
 
 const initialState: PreferencesState = {
   darkMode: false,
-  showHiddenUseCases: false,
+  showHiddenScenarios: false,
   revocationEnabled: false,
   characterUploadEnabled: false,
-  completedUseCaseSlugs: [],
+  completedScenarioSlugs: [],
   demoCompleted: false,
   completeCanceled: false,
   connectionDate: undefined,
@@ -46,20 +46,20 @@ const preferencesSlice = createSlice({
     setConnectionDate: (state, action) => {
       state.connectionDate = action.payload
     },
-    useCaseCompleted: (state, action: PayloadAction<string>) => {
-      if (!state.completedUseCaseSlugs.includes(action.payload)) {
-        state.completedUseCaseSlugs.push(action.payload)
+    scenarioCompleted: (state, action: PayloadAction<string>) => {
+      if (!state.completedScenarioSlugs.includes(action.payload)) {
+        state.completedScenarioSlugs.push(action.payload)
       }
       state.completeCanceled = false
     },
-    toggleHiddenUseCases: (state) => {
-      state.showHiddenUseCases = !state.showHiddenUseCases
+    toggleHiddenScenarios: (state) => {
+      state.showHiddenScenarios = !state.showHiddenScenarios
     },
     setDemoCompleted: (state, val) => {
       state.demoCompleted = val.payload
     },
     resetDashboard: (state) => {
-      state.completedUseCaseSlugs = []
+      state.completedScenarioSlugs = []
     },
     toggleRevocation: (state) => {
       state.revocationEnabled = !state.revocationEnabled
@@ -82,8 +82,8 @@ const preferencesSlice = createSlice({
 
 export const {
   setDarkMode,
-  toggleHiddenUseCases,
-  useCaseCompleted,
+  toggleHiddenScenarios,
+  scenarioCompleted,
   resetDashboard,
   setDemoCompleted,
   setConnectionDate,

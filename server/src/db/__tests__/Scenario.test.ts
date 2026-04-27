@@ -3,15 +3,15 @@ import mongoose, { Schema, model } from 'mongoose'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { baseSchemaOptions } from '../baseSchema'
-import { UseCaseSchema } from '../models/UseCase'
+import { ScenarioSchema } from '../models/Scenario'
 
 let mongod: MongoMemoryServer
 
 // Wrap the embedded schema in a throwaway top-level model so we can persist it.
-const HostSchema = new Schema({ useCases: [UseCaseSchema] }, baseSchemaOptions)
+const HostSchema = new Schema({ scenarios: [ScenarioSchema] }, baseSchemaOptions)
 // Guard prevents "Cannot overwrite model" errors when the module is re-evaluated
 // (e.g. vitest watch mode or hot reload).
-const HostModel = mongoose.models['UseCaseHost'] ?? model('UseCaseHost', HostSchema)
+const HostModel = mongoose.models['ScenarioHost'] ?? model('ScenarioHost', HostSchema)
 
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create()
@@ -28,24 +28,24 @@ afterAll(async () => {
   await mongod.stop()
 })
 
-describe('UseCaseSchema', () => {
-  it('persists a minimal UseCase with hidden defaulting to false', async () => {
-    const doc = await HostModel.create({ useCases: [{ id: 'clothesOnline', name: 'Clothes Online' }] })
-    const uc = doc.toJSON().useCases[0]
-    expect(uc.id).toBe('clothesOnline')
-    expect(uc.name).toBe('Clothes Online')
-    expect(uc.hidden).toBe(false)
+describe('ScenarioSchema', () => {
+  it('persists a minimal Scenario with hidden defaulting to false', async () => {
+    const doc = await HostModel.create({ scenarios: [{ id: 'clothesOnline', name: 'Clothes Online' }] })
+    const sc = doc.toJSON().scenarios[0]
+    expect(sc.id).toBe('clothesOnline')
+    expect(sc.name).toBe('Clothes Online')
+    expect(sc.hidden).toBe(false)
   })
 
-  it('rejects a UseCase missing a required field', async () => {
-    await expect(HostModel.create({ useCases: [{ name: 'No ID' }] })).rejects.toThrow()
+  it('rejects a Scenario missing a required field', async () => {
+    await expect(HostModel.create({ scenarios: [{ name: 'No ID' }] })).rejects.toThrow()
   })
 })
 
-describe('UseCaseScreenSchema', () => {
+describe('ScenarioScreenSchema', () => {
   it('persists a screen with optional verifier', async () => {
     const doc = await HostModel.create({
-      useCases: [
+      scenarios: [
         {
           id: 'uc1',
           name: 'UC1',
@@ -60,7 +60,7 @@ describe('UseCaseScreenSchema', () => {
         },
       ],
     })
-    const screen = doc.toJSON().useCases[0].screens[0]
+    const screen = doc.toJSON().scenarios[0].screens[0]
     expect(screen.screenId).toBe('PROOF')
     expect(screen.verifier.name).toBe('BC Services')
   })
@@ -70,7 +70,7 @@ describe('CredentialRequestSchema', () => {
   it('persists requestedCredentials with nonRevoked timestamps', async () => {
     const now = Math.floor(Date.now() / 1000)
     const doc = await HostModel.create({
-      useCases: [
+      scenarios: [
         {
           id: 'uc2',
           name: 'UC2',
@@ -91,7 +91,7 @@ describe('CredentialRequestSchema', () => {
         },
       ],
     })
-    const cred = doc.toJSON().useCases[0].screens[0].requestOptions.requestedCredentials[0]
+    const cred = doc.toJSON().scenarios[0].screens[0].requestOptions.requestedCredentials[0]
     expect(cred.name).toBe('Driver Licence')
     expect(cred.schema_id).toBe('abc:1:2:3')
     expect(cred.nonRevoked.to).toBe(now)
@@ -100,7 +100,7 @@ describe('CredentialRequestSchema', () => {
   it('rejects a CredentialRequest missing name', async () => {
     await expect(
       HostModel.create({
-        useCases: [
+        scenarios: [
           {
             id: 'uc3',
             name: 'UC3',

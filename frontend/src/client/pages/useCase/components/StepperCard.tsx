@@ -1,10 +1,10 @@
-import type { UseCaseScreen } from '../../../slices/types'
+import type { ScenarioScreen } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import React from 'react'
 
 export interface Props {
-  steps: UseCaseScreen[]
+  steps: ScenarioScreen[]
   currentStep: string
 }
 

@@ -135,7 +135,7 @@ export const businessCustom: CustomCharacter = {
       image: '/public/common/onboarding-completed-light.svg',
     },
   ],
-  useCases: [
+  scenarios: [
     {
       id: 'cityOfVancouver',
       name: 'City of Vancouver',

@@ -31,19 +31,19 @@ export const IntroductionPage: React.FC = () => {
 
   const { introductionStep, isCompleted } = useIntroduction()
   const { state, invitationUrl, id } = useConnection()
-  const { characterUploadEnabled, showHiddenUseCases } = usePreferences()
+  const { characterUploadEnabled, showHiddenScenarios } = usePreferences()
 
   const [mounted, setMounted] = useState(false)
 
   const allCharacters = useMemo(() => {
-    const allChars = [...characters].filter((char) => !char.hidden || showHiddenUseCases)
+    const allChars = [...characters].filter((char) => !char.hidden || showHiddenScenarios)
 
     if (uploadedCharacter) {
       allChars.push(uploadedCharacter)
     }
 
     return allChars
-  }, [characters, uploadedCharacter, showHiddenUseCases])
+  }, [characters, uploadedCharacter, showHiddenScenarios])
 
   useEffect(() => {
     if ((IntroductionComplete(introductionStep) || isCompleted) && currentCharacter) {
@@ -56,7 +56,7 @@ export const IntroductionPage: React.FC = () => {
       dispatch(fetchAllCharacters())
       setMounted(true)
     }
-  }, [dispatch, showHiddenUseCases])
+  }, [dispatch, showHiddenScenarios])
 
   useEffect(() => {
     trackPageView()

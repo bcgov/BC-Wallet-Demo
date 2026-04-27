@@ -49,7 +49,7 @@ const proofSlice = createSlice({
           state.proof = { ...action.payload, id: action.payload?.presentation_exchange_id }
         }
       })
-      .addCase('clearUseCase', (state) => {
+      .addCase('clearScenario', (state) => {
         state.proof = undefined
         state.isLoading = false
       })

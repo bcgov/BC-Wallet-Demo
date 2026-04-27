@@ -3,7 +3,7 @@ import type {
   ProofAttributeRequest,
   ProofPredicateRequest,
   ProofRestriction,
-  UseCaseScreen,
+  ScenarioScreen,
 } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
@@ -22,7 +22,7 @@ import { StepInfo } from '../components/StepInfo'
 
 export interface Props {
   proof?: any
-  step: UseCaseScreen
+  step: ScenarioScreen
   characterType?: string
   connectionId: string
   requestedCredentials: CredentialRequest[]

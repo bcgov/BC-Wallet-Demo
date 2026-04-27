@@ -51,7 +51,7 @@ describe('connectionSlice reducers', () => {
     })
   })
 
-  it('clearUseCase action resets connection fields', () => {
+  it('clearScenario action resets connection fields', () => {
     const preloaded = {
       id: 'conn-abc',
       state: 'complete',
@@ -59,7 +59,7 @@ describe('connectionSlice reducers', () => {
       isLoading: false,
       isDeepLink: false,
     }
-    const state = connectionReducer(preloaded, { type: 'clearUseCase' })
+    const state = connectionReducer(preloaded, { type: 'clearScenario' })
     expect(state.id).toBeUndefined()
     expect(state.state).toBeUndefined()
     expect(state.invitationUrl).toBeUndefined()

@@ -193,7 +193,7 @@ export const lawyerCustom: CustomCharacter = {
       image: '/public/lawyer2/onboarding/lawyer2Success.svg',
     },
   ],
-  useCases: [
+  scenarios: [
     {
       id: 'courtServices',
       name: 'Court Services',

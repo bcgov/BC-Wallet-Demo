@@ -6,9 +6,9 @@ import credentialsSlice from './credentials/credentialsSlice'
 import introductionSlice from './introduction/introductionSlice'
 import preferencesSlice from './preferences/preferencesSlice'
 import proofSlice from './proof/proofSlice'
+import scenarioSlice from './scenarios/scenariosSlice'
 import sectionSlice from './section/sectionSlice'
 import socketSlice from './socket/socketSlice'
-import useCaseSlice from './useCases/useCasesSlice'
 import walletsSlice from './wallets/walletsSlice'
 
 export const VERSION = 5
@@ -23,7 +23,7 @@ const rootReducer = combineReducers({
   preferences: preferencesSlice,
   proof: proofSlice,
   section: sectionSlice,
-  useCases: useCaseSlice,
+  scenarios: scenarioSlice,
 })
 
 const pReducer = (state: any, action: any) => {

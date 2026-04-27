@@ -29,19 +29,23 @@ export const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { issuedCredentials, revokableCredentials } = useCredentials()
-  const { completedUseCaseSlugs, demoCompleted, completeCanceled, revocationEnabled, showHiddenUseCases } =
+  const { completedScenarioSlugs, demoCompleted, completeCanceled, revocationEnabled, showHiddenScenarios } =
     usePreferences()
   const currentCharacter = {
     ...useCurrentCharacter(),
-    useCases: useCurrentCharacter()?.useCases.filter((item) => !item.hidden || showHiddenUseCases) ?? [],
+    scenarios: useCurrentCharacter()?.scenarios.filter((item) => !item.hidden || showHiddenScenarios) ?? [],
   } as CustomCharacter
-  const useCases = currentCharacter?.useCases
+  const useCases = currentCharacter?.scenarios
 
   useEffect(() => {
-    if (completedUseCaseSlugs.length !== 0 && completedUseCaseSlugs.length === useCases?.length && !completeCanceled) {
+    if (
+      completedScenarioSlugs.length !== 0 &&
+      completedScenarioSlugs.length === useCases?.length &&
+      !completeCanceled
+    ) {
       dispatch(setDemoCompleted(true))
     }
-  }, [completedUseCaseSlugs])
+  }, [completedScenarioSlugs])
 
   useEffect(() => {
     trackPageView()
@@ -89,7 +93,7 @@ export const DashboardPage: React.FC = () => {
             <div className="w-full lg:w-2/3 order-last lg:order-first">
               <UseCaseContainer
                 issuedCredentials={issuedCredentials}
-                completedUseCaseSlugs={completedUseCaseSlugs}
+                completedScenarioSlugs={completedScenarioSlugs}
                 currentCharacter={currentCharacter}
               />
               {revokableCredentials.length > 0 && revocationEnabled && currentCharacter.revocationInfo && (

@@ -51,7 +51,7 @@ const connectionSlice = createSlice({
       .addCase(createInvitation.rejected, (state) => {
         state.isLoading = false
       })
-      .addCase('clearUseCase', (state) => {
+      .addCase('clearScenario', (state) => {
         state.id = undefined
         state.state = undefined
         state.invitationUrl = undefined

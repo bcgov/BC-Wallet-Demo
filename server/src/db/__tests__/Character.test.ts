@@ -105,12 +105,12 @@ describe('RevocationInfoItem embedded schema', () => {
   })
 })
 
-describe('UseCase embedded in Character', () => {
-  it('persists use cases with screens', async () => {
+describe('Scenario embedded in Character', () => {
+  it('persists scenarios with screens', async () => {
     const doc = await CharacterModel.create({
       ...minimal,
-      type: 'Student-usecase',
-      useCases: [
+      type: 'Student-scenario',
+      scenarios: [
         {
           id: 'clothesOnline',
           name: 'Clothes Online',
@@ -118,8 +118,8 @@ describe('UseCase embedded in Character', () => {
         },
       ],
     })
-    const uc = doc.toJSON().useCases[0]
-    expect(uc.id).toBe('clothesOnline')
-    expect(uc.screens[0].screenId).toBe('START')
+    const sc = doc.toJSON().scenarios[0]
+    expect(sc.id).toBe('clothesOnline')
+    expect(sc.screens[0].screenId).toBe('START')
   })
 })

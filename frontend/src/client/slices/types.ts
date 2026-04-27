@@ -84,7 +84,7 @@ export interface CustomRequestOptions {
   requestedCredentials: CredentialRequest[]
 }
 
-export interface UseCaseScreen {
+export interface ScenarioScreen {
   screenId: string
   name: string
   text: string
@@ -93,11 +93,11 @@ export interface UseCaseScreen {
   requestOptions?: CustomRequestOptions
 }
 
-export interface CustomUseCase {
+export interface Scenario {
   id: string
   name: string
   hidden?: boolean
-  screens: UseCaseScreen[]
+  screens: ScenarioScreen[]
 }
 
 export interface ProgressBarStep {
@@ -122,11 +122,11 @@ export interface CustomCharacter {
   description?: string
   progressBar: ProgressBarStep[]
   introduction: IntroductionStep[]
-  useCases: CustomUseCase[]
+  scenarios: Scenario[]
   revocationInfo?: RevocationInfoItem[]
 }
 
-export interface UseCaseCard {
+export interface ScenarioCard {
   name: string
   image: string
   description: string

@@ -11,18 +11,18 @@ import { UseCaseItem } from './UseCaseItem'
 
 export interface Props {
   currentCharacter: CustomCharacter
-  completedUseCaseSlugs: string[]
+  completedScenarioSlugs: string[]
   issuedCredentials: string[]
 }
 
-export const UseCaseContainer: React.FC<Props> = ({ currentCharacter, completedUseCaseSlugs }) => {
+export const UseCaseContainer: React.FC<Props> = ({ currentCharacter, completedScenarioSlugs }) => {
   const navigate = useNavigate()
 
   const startUseCase = (slug: string) => {
     navigate(`${basePath}/uc/${slug}`)
   }
 
-  const renderUseCases = currentCharacter.useCases.map((item) => {
+  const renderUseCases = currentCharacter.scenarios.map((item) => {
     const requiredCredentials: string[] = []
     // item.screens.forEach(screen => requiredCredentials.push(...(screen.requestOptions?.requestedCredentials.map(item => item.name) ?? [])))
     item.screens.forEach((screen) =>
@@ -33,7 +33,7 @@ export const UseCaseContainer: React.FC<Props> = ({ currentCharacter, completedU
       }),
     )
 
-    const isCompleted = completedUseCaseSlugs.includes(item.id)
+    const isCompleted = completedScenarioSlugs.includes(item.id)
 
     return (
       <UseCaseItem

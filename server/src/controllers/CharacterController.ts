@@ -21,7 +21,7 @@ export class CharacterController {
     }
 
     logger.debug({ characterId }, 'Character found')
-    return { ...character, useCases: character.useCases }
+    return { ...character, scenarios: character.scenarios }
   }
 
   /**

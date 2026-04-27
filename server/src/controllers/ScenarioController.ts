@@ -4,23 +4,23 @@ import { Service } from 'typedi'
 import characters from '../content/Characters'
 import logger from '../utils/logger'
 
-const useCases = characters.map((c) => c.useCases)
+const scenarios = characters.map((c) => c.scenarios)
 @JsonController('/usecases')
 @Service()
-export class UseCaseController {
+export class ScenarioController {
   /**
    * Retrieve use case by slug
    */
   @Get('/:useCaseSlug')
   public async getUseCaseBySlug(@Param('useCaseSlug') useCaseSlug: string) {
     logger.debug({ useCaseSlug }, 'Fetching use case by slug')
-    const useCase = useCases.flat().find((x) => x.id === useCaseSlug)
+    const scenario = scenarios.flat().find((x) => x.id === useCaseSlug)
 
-    if (!useCase) {
-      logger.warn({ useCaseSlug }, 'Use case not found')
+    if (!scenario) {
+      logger.warn({ useCaseSlug }, 'Scenario not found')
       throw new NotFoundError(`use case with slug "${useCaseSlug}" not found.`)
     }
-    return useCase
+    return scenario
   }
 
   /**
@@ -29,13 +29,13 @@ export class UseCaseController {
   @Get('/character/:type')
   public async getUseCasesByCharType(@Param('type') type: string, @QueryParam('showHidden') showHidden?: boolean) {
     logger.debug({ type, showHidden }, 'Fetching use cases by character type')
-    const UCs = characters.find((c) => c.type === type)
+    const character = characters.find((c) => c.type === type)
 
-    if (!UCs) {
-      logger.warn({ type }, 'Character type not found for use case lookup')
+    if (!character) {
+      logger.warn({ type }, 'Character type not found for scenario lookup')
       throw new NotFoundError(`Use cases for character with type "${type}" not found.`)
     }
 
-    return showHidden ? UCs.useCases : UCs.useCases.filter((usecase) => !usecase.hidden)
+    return showHidden ? character.scenarios : character.scenarios.filter((s) => !s.hidden)
   }
 }

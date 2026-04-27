@@ -105,7 +105,7 @@ export const studentCustom: CustomCharacter = {
       image: '/public/common/onboarding-completed-light.svg',
     },
   ],
-  useCases: [
+  scenarios: [
     {
       id: 'clothesOnline',
       name: 'Cool Clothes Online',

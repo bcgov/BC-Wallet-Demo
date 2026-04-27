@@ -21,11 +21,11 @@ describe('CharacterController', () => {
       expect(result).toMatchObject({ type: 'Student' })
     })
 
-    it('includes useCases in returned character', async () => {
+    it('includes scenarios in returned character', async () => {
       const result = await controller.getCharacterById('Student')
 
-      expect(result.useCases).toBeDefined()
-      expect(Array.isArray(result.useCases)).toBe(true)
+      expect(result.scenarios).toBeDefined()
+      expect(Array.isArray(result.scenarios)).toBe(true)
     })
 
     it('throws NotFoundError when characterId does not match any character', async () => {

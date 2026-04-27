@@ -1,5 +1,5 @@
 import type { ConnectionState } from '../../slices/connection/connectionSlice'
-import type { UseCaseScreen } from '../../slices/types'
+import type { ScenarioScreen } from '../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -14,8 +14,8 @@ import { Modal } from '../../components/Modal'
 import { SmallButton } from '../../components/SmallButton'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useCurrentCharacter } from '../../slices/characters/charactersSelectors'
-import { useCaseCompleted } from '../../slices/preferences/preferencesSlice'
-import { nextStep, prevStep, resetStep } from '../../slices/useCases/useCasesSlice'
+import { scenarioCompleted } from '../../slices/preferences/preferencesSlice'
+import { nextStep, prevStep, resetStep } from '../../slices/scenarios/scenariosSlice'
 import { basePath } from '../../utils/BasePath'
 import { isConnected, isCredIssued } from '../../utils/Helpers'
 
@@ -28,7 +28,7 @@ import { StepInformation } from './steps/StepInformation'
 import { StepProof } from './steps/StepProof'
 
 export interface Props {
-  section: UseCaseScreen[]
+  section: ScenarioScreen[]
   connection: ConnectionState
   stepCount: number
   sectionCount: number
@@ -83,14 +83,14 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
       },
     })
     navigate(`${basePath}/dashboard`)
-    dispatch({ type: 'clearUseCase' })
+    dispatch({ type: 'clearScenario' })
     dispatch(resetStep())
   }
 
   useEffect(() => {
     if (completed && slug) {
-      dispatch(useCaseCompleted(slug))
-      dispatch({ type: 'clearUseCase' })
+      dispatch(scenarioCompleted(slug))
+      dispatch({ type: 'clearScenario' })
       navigate(`${basePath}/dashboard`)
       dispatch(resetStep())
       trackSelfDescribingEvent({
