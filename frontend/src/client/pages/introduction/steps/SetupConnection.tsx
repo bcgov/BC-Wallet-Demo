@@ -71,8 +71,7 @@ export const SetupConnection: React.FC<Props> = ({
   useEffect(() => {
     if (connectionId) {
       dispatch(setIntroductionConnectionId(connectionId))
-      const date = new Date()
-      dispatch(setConnectionDate(date))
+      dispatch(setConnectionDate(new Date().toISOString()))
     }
   }, [connectionId])
 

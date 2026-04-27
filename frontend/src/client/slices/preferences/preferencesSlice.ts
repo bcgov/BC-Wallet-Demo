@@ -12,8 +12,8 @@ interface PreferencesState {
   completedUseCaseSlugs: string[]
   demoCompleted: boolean
   completeCanceled: boolean
-  connectionDate?: Date
-  lastServerReset?: Date
+  connectionDate?: string
+  lastServerReset?: string
 }
 
 const initialState: PreferencesState = {

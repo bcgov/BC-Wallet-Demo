@@ -55,6 +55,8 @@ ws.on('connection', (socket) => {
   })
 })
 
+const serverStartTime = new Date().toISOString()
+
 const run = async () => {
   await connectDB()
   registerShutdownHandlers()
@@ -109,8 +111,8 @@ const run = async () => {
   app.use(`${baseRoute}/admin`, requireAdmin)
   app.use(`${baseRoute}/admin/characters`, adminCharactersRouter)
 
-  app.get(`${baseRoute}/server/last-reset`, async (req, res) => {
-    res.send(new Date())
+  app.get(`${baseRoute}/server/last-reset`, (_req, res) => {
+    res.send(serverStartTime)
   })
 
   // Redirect QR code scans for installing bc wallet to the apple or google play store
