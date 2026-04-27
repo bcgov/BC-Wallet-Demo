@@ -4,10 +4,7 @@ This document explains how to use the role-based authentication system in the ad
 
 ## Overview
 
-The admin API supports two types of role checks:
-
-1. **Realm Roles** — Keycloak-wide roles defined at the realm level
-2. **Client Roles** — Application-specific roles defined for a particular client
+The admin API supports role-based access control using **realm-level roles** defined in Keycloak.
 
 ## Middleware Functions
 
@@ -21,7 +18,7 @@ import { requireAdmin } from './middleware/requireAdmin'
 app.use(`${baseRoute}/admin`, requireAdmin)
 ```
 
-**Note:** When `requireAdmin` is mounted globally on a path prefix (as shown above), route-specific middleware like `requireRole()` and `requireClientRole()` can be applied without explicitly chaining `requireAdmin` again. Examples below assume this global setup unless otherwise specified.
+**Note:** When `requireAdmin` is mounted globally on a path prefix (as shown above), route-specific middleware like `requireRole()` can be applied without explicitly chaining `requireAdmin` again. Examples below assume this global setup unless otherwise specified.
 
 ### `requireRole(allowedRoles: string[])`
 
@@ -59,43 +56,6 @@ router.post('/', requireAdmin, requireRole(['admin', 'creator']), (req, res) => 
 - **403 Forbidden** — User lacks required roles
 - **Next** — User has at least one of the required roles
 
-### `requireClientRole(clientId: string, allowedRoles: string[])`
-
-Middleware factory that checks client-specific roles. Must be applied **after** `requireAdmin`.
-
-**Parameters:**
-
-- `clientId` — The Keycloak client ID (e.g., `'admin-portal'`)
-- `allowedRoles` — Array of client role names required to access the route
-
-**Example:**
-
-```typescript
-import { requireClientRole } from './middleware/requireAdmin'
-
-// Only users with 'admin' role in the 'admin-portal' client can DELETE
-// (Note: requireAdmin is already applied globally to the /admin prefix)
-router.delete('/:id', requireClientRole('admin-portal', ['admin']), (req, res) => {
-  res.status(204).send()
-})
-```
-
-**If not using a global `requireAdmin` mount**, include it explicitly:
-
-```typescript
-import { requireAdmin, requireClientRole } from './middleware/requireAdmin'
-
-router.delete('/:id', requireAdmin, requireClientRole('admin-portal', ['admin']), (req, res) => {
-  res.status(204).send()
-})
-```
-
-**Returns:**
-
-- **401 Unauthorized** — No valid JWT provided
-- **403 Forbidden** — User lacks required client roles
-- **Next** — User has at least one of the required roles
-
 ## Utility Functions
 
 ### `userHasRole(auth: KeycloakJWT | undefined, role: string): boolean`
@@ -113,35 +73,13 @@ router.get('/', (req, res) => {
 })
 ```
 
-### `userHasClientRole(auth: KeycloakJWT | undefined, clientId: string, role: string): boolean`
-
-Check if a user has a specific client role inside a route handler.
-
-```typescript
-router.get('/:id', (req, res) => {
-  const auth = req.auth
-  if (userHasClientRole(auth, 'admin-portal', 'editor')) {
-    // User can view and edit
-  }
-})
-```
-
 ## Keycloak Configuration
 
 ### Setting Up Realm Roles
 
 1. In Keycloak Admin Console, go to **Realm Roles**
-2. Create roles like `admin`, `creator`, `viewer`, `editor`, etc.
+2. Create roles like `admin`, `creator`, `viewer`, etc.
 3. Assign roles to users in the **Users** section
-
-### Setting Up Client Roles
-
-1. In Keycloak Admin Console, go to **Clients**
-2. Open your client (e.g., `admin-portal`)
-3. Navigate to **Roles**
-4. Create client-specific roles
-5. In **Client Scopes**, add a scope that includes the role mapper
-6. Users can be assigned client roles via their user profile or client role mappings
 
 ### JWT Token Structure
 
@@ -153,11 +91,6 @@ The JWT token will contain role information like:
   "preferred_username": "john.doe",
   "realm_access": {
     "roles": ["admin", "user", "offline_access", "uma_authorization"]
-  },
-  "resource_access": {
-    "admin-portal": {
-      "roles": ["view-dashboard", "edit-characters"]
-    }
   }
 }
 ```
@@ -208,18 +141,6 @@ router.get('/stats', (req, res) => {
 })
 ```
 
-### Client-Specific Roles
-
-```typescript
-import { requireClientRole } from './middleware/requireAdmin'
-
-// Assuming requireAdmin is mounted globally on the /admin prefix:
-router.post('/publish', requireClientRole('content-app', ['publisher']), (req, res) => {
-  // Only users with the 'publisher' role in 'content-app' can publish
-  res.json({ published: true })
-})
-```
-
 ## TypeScript Type Safety
 
 The `req.auth` property is typed as `KeycloakJWT` which includes:
@@ -232,11 +153,6 @@ export interface KeycloakJWT {
   email?: string // Email
   realm_access?: {
     roles: string[] // Realm-level roles
-  }
-  resource_access?: {
-    [clientId: string]: {
-      roles: string[] // Client-specific roles
-    }
   }
   [key: string]: unknown // Other JWT claims
 }
@@ -259,10 +175,9 @@ User does not have required role { username: 'john.doe', required: ['admin'], ha
 
 1. **Apply `requireAdmin` globally** to the `/admin` route prefix in `index.ts`
 2. **Apply `requireRole()` selectively** only to endpoints that need role restrictions
-3. **Use realm roles for broad permissions** (admin, viewer, editor)
-4. **Use client roles for fine-grained permissions** (publish, delete, moderate)
-5. **Log role check failures** for audit and debugging purposes
-6. **Test role restrictions** in your test suite using mocked JWT tokens
+3. **Use realm roles for granular permissions** (admin, creator, viewer)
+4. **Log role check failures** for audit and debugging purposes
+5. **Test role restrictions** in your test suite using mocked JWT tokens
 
 ## Testing
 

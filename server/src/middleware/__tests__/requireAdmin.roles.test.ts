@@ -42,7 +42,7 @@ vi.mock('express-jwt', () => ({
   },
 }))
 
-import { requireAdmin, requireClientRole, requireRole, userHasClientRole, userHasRole } from '../requireAdmin'
+import { requireAdmin, requireRole, userHasRole } from '../requireAdmin'
 
 describe('Role-based authentication middleware', () => {
   describe('requireRole middleware', () => {
@@ -98,73 +98,6 @@ describe('Role-based authentication middleware', () => {
     })
   })
 
-  describe('requireClientRole middleware', () => {
-    const app = express()
-    app.use(requireAdmin)
-
-    // Test endpoint that requires client-specific role
-    app.get('/publisher-only', requireClientRole('content-app', ['publisher']), (_req, res) => {
-      res.json({ ok: true })
-    })
-
-    app.get('/editor-or-admin', requireClientRole('cms', ['editor', 'admin']), (_req, res) => {
-      res.json({ ok: true })
-    })
-
-    it('returns 403 when user does not have the required client role', async () => {
-      const auth = {
-        sub: 'user1',
-        resource_access: {
-          'content-app': { roles: ['viewer'] },
-        },
-      }
-      const res = await request(app).get('/publisher-only').set('x-test-auth', JSON.stringify(auth))
-      expect(res.status).toBe(403)
-      expect(res.body.error).toContain('insufficient client role')
-    })
-
-    it('allows access when user has the required client role', async () => {
-      const auth = {
-        sub: 'user1',
-        resource_access: {
-          'content-app': { roles: ['publisher', 'viewer'] },
-        },
-      }
-      const res = await request(app).get('/publisher-only').set('x-test-auth', JSON.stringify(auth))
-      expect(res.status).toBe(200)
-      expect(res.body).toEqual({ ok: true })
-    })
-
-    it('allows access when user has one of multiple required client roles', async () => {
-      const auth = {
-        sub: 'user1',
-        resource_access: {
-          cms: { roles: ['editor'] },
-        },
-      }
-      const res = await request(app).get('/editor-or-admin').set('x-test-auth', JSON.stringify(auth))
-      expect(res.status).toBe(200)
-      expect(res.body).toEqual({ ok: true })
-    })
-
-    it('returns 403 when user has roles in different client', async () => {
-      const auth = {
-        sub: 'user1',
-        resource_access: {
-          'other-app': { roles: ['admin'] },
-        },
-      }
-      const res = await request(app).get('/publisher-only').set('x-test-auth', JSON.stringify(auth))
-      expect(res.status).toBe(403)
-    })
-
-    it('handles missing resource_access gracefully', async () => {
-      const auth = { sub: 'user1' }
-      const res = await request(app).get('/publisher-only').set('x-test-auth', JSON.stringify(auth))
-      expect(res.status).toBe(403)
-    })
-  })
-
   describe('userHasRole utility function', () => {
     it('returns true when user has the role', () => {
       const auth = { sub: 'user1', realm_access: { roles: ['admin', 'user'] } }
@@ -188,57 +121,6 @@ describe('Role-based authentication middleware', () => {
     it('returns false when roles array is empty', () => {
       const auth = { sub: 'user1', realm_access: { roles: [] } }
       expect(userHasRole(auth, 'admin')).toBe(false)
-    })
-  })
-
-  describe('userHasClientRole utility function', () => {
-    it('returns true when user has the client role', () => {
-      const auth = {
-        sub: 'user1',
-        resource_access: {
-          'my-app': { roles: ['editor', 'viewer'] },
-        },
-      }
-      expect(userHasClientRole(auth, 'my-app', 'editor')).toBe(true)
-    })
-
-    it('returns false when user does not have the client role', () => {
-      const auth = {
-        sub: 'user1',
-        resource_access: {
-          'my-app': { roles: ['viewer'] },
-        },
-      }
-      expect(userHasClientRole(auth, 'my-app', 'editor')).toBe(false)
-    })
-
-    it('returns false when user has roles in different client', () => {
-      const auth = {
-        sub: 'user1',
-        resource_access: {
-          'other-app': { roles: ['editor'] },
-        },
-      }
-      expect(userHasClientRole(auth, 'my-app', 'editor')).toBe(false)
-    })
-
-    it('returns false when auth is undefined', () => {
-      expect(userHasClientRole(undefined, 'my-app', 'editor')).toBe(false)
-    })
-
-    it('returns false when resource_access is missing', () => {
-      const auth = { sub: 'user1' }
-      expect(userHasClientRole(auth, 'my-app', 'editor')).toBe(false)
-    })
-
-    it('returns false when client has no roles', () => {
-      const auth = {
-        sub: 'user1',
-        resource_access: {
-          'my-app': { roles: [] },
-        },
-      }
-      expect(userHasClientRole(auth, 'my-app', 'editor')).toBe(false)
     })
   })
 })
