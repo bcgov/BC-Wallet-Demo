@@ -13,10 +13,10 @@ import { WalletModal } from '../components/WalletModal'
 export interface Props {
   title: string
   text: string
-  addOnboardingProgress(): void
+  addIntroductionProgress(): void
 }
 
-export const ChooseWallet: React.FC<Props> = ({ title, text, addOnboardingProgress }) => {
+export const ChooseWallet: React.FC<Props> = ({ title, text, addIntroductionProgress }) => {
   const { wallets } = useWallets()
 
   const [isChooseWalletModalOpen, setIsChooseWalletModalOpen] = useState(false)
@@ -44,7 +44,7 @@ export const ChooseWallet: React.FC<Props> = ({ title, text, addOnboardingProgre
     setIsChooseWalletModalOpen(false)
 
     setTimeout(function () {
-      addOnboardingProgress()
+      addIntroductionProgress()
     }, 300)
   }
 

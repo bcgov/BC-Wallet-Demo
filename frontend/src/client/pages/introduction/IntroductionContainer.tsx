@@ -13,10 +13,10 @@ import { useAppDispatch } from '../../hooks/hooks'
 import { clearConnection } from '../../slices/connection/connectionSlice'
 import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
-import { completeOnboarding } from '../../slices/introduction/introductionSlice'
+import { completeIntroduction } from '../../slices/introduction/introductionSlice'
 import { basePath } from '../../utils/BasePath'
 import { isConnected } from '../../utils/Helpers'
-import { addOnboardingProgress, removeOnboardingProgress } from '../../utils/IntroductionUtils'
+import { addIntroductionProgress, removeIntroductionProgress } from '../../utils/IntroductionUtils'
 import { prependApiUrl } from '../../utils/Url'
 
 import { CharacterContent } from './components/CharacterContent'
@@ -35,13 +35,13 @@ export interface Props {
   connectionId?: string
   connectionState?: string
   invitationUrl?: string
-  onboardingStep: string
+  introductionStep: string
 }
 
 export const IntroductionContainer: React.FC<Props> = ({
   characters,
   currentCharacter,
-  onboardingStep,
+  introductionStep,
   connectionId,
   connectionState,
   invitationUrl,
@@ -54,56 +54,56 @@ export const IntroductionContainer: React.FC<Props> = ({
   })
 
   const connectionCompleted = isConnected(connectionState as string)
-  const credentials = currentCharacter?.introduction.find((step) => step.screenId === onboardingStep)?.credentials
+  const credentials = currentCharacter?.introduction.find((step) => step.screenId === introductionStep)?.credentials
   const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.name))
 
-  const isBackDisabled = ['PICK_CHARACTER', 'ACCEPT_CREDENTIAL'].includes(onboardingStep)
+  const isBackDisabled = ['PICK_CHARACTER', 'ACCEPT_CREDENTIAL'].includes(introductionStep)
   const isForwardDisabled =
-    (onboardingStep.startsWith('CONNECT') && !connectionCompleted) ||
-    (onboardingStep === 'ACCEPT_CREDENTIAL' && !credentialsAccepted) ||
-    (onboardingStep === 'ACCEPT_CREDENTIAL' && credentials?.length === 0) ||
-    (onboardingStep === 'PICK_CHARACTER' && !currentCharacter)
+    (introductionStep.startsWith('CONNECT') && !connectionCompleted) ||
+    (introductionStep === 'ACCEPT_CREDENTIAL' && !credentialsAccepted) ||
+    (introductionStep === 'ACCEPT_CREDENTIAL' && credentials?.length === 0) ||
+    (introductionStep === 'PICK_CHARACTER' && !currentCharacter)
 
-  const jumpOnboardingPage = () => {
+  const jumpIntroductionPage = () => {
     trackSelfDescribingEvent({
       event: {
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'skip_credential',
           path: currentCharacter?.type.toLowerCase(),
-          step: idToTitle[onboardingStep],
+          step: idToTitle[introductionStep],
         },
       },
     })
-    addOnboardingProgress(dispatch, onboardingStep, currentCharacter, 2)
+    addIntroductionProgress(dispatch, introductionStep, currentCharacter, 2)
   }
 
-  const nextOnboardingPage = () => {
+  const nextIntroductionPage = () => {
     trackSelfDescribingEvent({
       event: {
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'next',
           path: currentCharacter?.type.toLowerCase(),
-          step: idToTitle[onboardingStep],
+          step: idToTitle[introductionStep],
         },
       },
     })
-    addOnboardingProgress(dispatch, onboardingStep, currentCharacter)
+    addIntroductionProgress(dispatch, introductionStep, currentCharacter)
   }
 
-  const prevOnboardingPage = () => {
+  const prevIntroductionPage = () => {
     trackSelfDescribingEvent({
       event: {
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'back',
           path: currentCharacter?.type.toLowerCase(),
-          step: idToTitle[onboardingStep],
+          step: idToTitle[introductionStep],
         },
       },
     })
-    removeOnboardingProgress(dispatch, onboardingStep, currentCharacter)
+    removeIntroductionProgress(dispatch, introductionStep, currentCharacter)
   }
 
   //override name and text content to make them character dependant
@@ -121,8 +121,8 @@ export const IntroductionContainer: React.FC<Props> = ({
     return { title: '', text: '' }
   }
   useEffect(() => {
-    if (onboardingStep.startsWith('CONNECT') && connectionCompleted) {
-      nextOnboardingPage()
+    if (introductionStep.startsWith('CONNECT') && connectionCompleted) {
+      nextIntroductionPage()
     }
   }, [connectionState])
 
@@ -141,14 +141,14 @@ export const IntroductionContainer: React.FC<Props> = ({
     } else if (progress === 'SETUP_START') {
       return <SetupStart key={progress} title={title} text={text} />
     } else if (progress === 'CHOOSE_WALLET') {
-      return <ChooseWallet key={progress} title={title} text={text} addOnboardingProgress={nextOnboardingPage} />
+      return <ChooseWallet key={progress} title={title} text={text} addIntroductionProgress={nextIntroductionPage} />
     } else if (progress.startsWith('CONNECT')) {
       return (
         <SetupConnection
           key={progress}
           connectionId={connectionId}
-          skipIssuance={jumpOnboardingPage}
-          nextSlide={nextOnboardingPage}
+          skipIssuance={jumpIntroductionPage}
+          nextSlide={nextIntroductionPage}
           invitationUrl={invitationUrl}
           issuerName={issuer_name ?? 'Unknown'}
           newConnection
@@ -200,12 +200,12 @@ export const IntroductionContainer: React.FC<Props> = ({
   }
 
   const navigate = useNavigate()
-  const onboardingCompleted = () => {
+  const introductionCompleted = () => {
     if (connectionId && currentCharacter) {
       navigate(`${basePath}/dashboard`)
       dispatch(clearCredentials())
       dispatch(clearConnection())
-      dispatch(completeOnboarding())
+      dispatch(completeIntroduction())
     } else {
       // something went wrong so reset
       navigate(`${basePath}/`)
@@ -228,7 +228,7 @@ export const IntroductionContainer: React.FC<Props> = ({
         data: {
           action: 'leave',
           path: currentCharacter?.type.toLowerCase(),
-          step: idToTitle[onboardingStep],
+          step: idToTitle[introductionStep],
         },
       },
     })
@@ -247,19 +247,19 @@ export const IntroductionContainer: React.FC<Props> = ({
             <FiLogOut className="inline h-12 cursor-pointer dark:text-white" />
           </motion.button>
         </div>
-        <AnimatePresence mode="wait">{getComponentToRender(onboardingStep)}</AnimatePresence>
+        <AnimatePresence mode="wait">{getComponentToRender(introductionStep)}</AnimatePresence>
         <IntroductionBottomNav
-          onboardingStep={onboardingStep}
-          addOnboardingStep={nextOnboardingPage}
-          removeOnboardingStep={prevOnboardingPage}
+          introductionStep={introductionStep}
+          addIntroductionStep={nextIntroductionPage}
+          removeIntroductionStep={prevIntroductionPage}
           forwardDisabled={isForwardDisabled}
           backDisabled={isBackDisabled}
-          onboardingCompleted={onboardingCompleted}
+          introductionCompleted={introductionCompleted}
         />
       </div>
       {!isMobile && (
         <div className="bg-bcgov-white dark:bg-bcgov-black hidden lg:flex lg:w-1/3 rounded-r-lg flex-col justify-center h-full select-none">
-          <AnimatePresence mode="wait">{getImageToRender(onboardingStep)}</AnimatePresence>
+          <AnimatePresence mode="wait">{getImageToRender(introductionStep)}</AnimatePresence>
         </div>
       )}
       {leaveModal && (

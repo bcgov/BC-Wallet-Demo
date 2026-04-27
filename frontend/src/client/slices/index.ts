@@ -11,7 +11,7 @@ import socketSlice from './socket/socketSlice'
 import useCaseSlice from './useCases/useCasesSlice'
 import walletsSlice from './wallets/walletsSlice'
 
-export const VERSION = 4
+export const VERSION = 5
 
 const rootReducer = combineReducers({
   socket: socketSlice,

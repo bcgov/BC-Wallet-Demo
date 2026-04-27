@@ -12,12 +12,12 @@ import { fetchAllCharacters } from '../../slices/characters/charactersThunks'
 import { useConnection } from '../../slices/connection/connectionSelectors'
 import { clearConnection } from '../../slices/connection/connectionSlice'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
-import { useOnboarding } from '../../slices/introduction/introductionSelectors'
-import { completeOnboarding } from '../../slices/introduction/introductionSlice'
+import { useIntroduction } from '../../slices/introduction/introductionSelectors'
+import { completeIntroduction } from '../../slices/introduction/introductionSlice'
 import { usePreferences } from '../../slices/preferences/preferencesSelectors'
 import { fetchWallets } from '../../slices/wallets/walletsThunks'
 import { basePath } from '../../utils/BasePath'
-import { OnboardingComplete } from '../../utils/IntroductionUtils'
+import { IntroductionComplete } from '../../utils/IntroductionUtils'
 
 import { IntroductionContainer } from './IntroductionContainer'
 import { Stepper } from './components/Stepper'
@@ -29,7 +29,7 @@ export const IntroductionPage: React.FC = () => {
   const navigate = useNavigate()
   const { characters, currentCharacter, uploadedCharacter } = useCharacters()
 
-  const { introductionStep, isCompleted } = useOnboarding()
+  const { introductionStep, isCompleted } = useIntroduction()
   const { state, invitationUrl, id } = useConnection()
   const { characterUploadEnabled, showHiddenUseCases } = usePreferences()
 
@@ -46,8 +46,8 @@ export const IntroductionPage: React.FC = () => {
   }, [characters, uploadedCharacter, showHiddenUseCases])
 
   useEffect(() => {
-    if ((OnboardingComplete(introductionStep) || isCompleted) && currentCharacter) {
-      dispatch(completeOnboarding())
+    if ((IntroductionComplete(introductionStep) || isCompleted) && currentCharacter) {
+      dispatch(completeIntroduction())
       dispatch(clearCredentials())
       dispatch(clearConnection())
       navigate(`${basePath}/dashboard`)
@@ -72,13 +72,13 @@ export const IntroductionPage: React.FC = () => {
         exit="exit"
         className="container flex flex-col items-center p-4"
       >
-        <Stepper currentCharacter={currentCharacter} onboardingStep={introductionStep} />
+        <Stepper currentCharacter={currentCharacter} introductionStep={introductionStep} />
         <AnimatePresence mode="wait">
           {mounted && (
             <IntroductionContainer
               characters={allCharacters}
               currentCharacter={currentCharacter}
-              onboardingStep={introductionStep}
+              introductionStep={introductionStep}
               connectionId={id}
               connectionState={state}
               invitationUrl={invitationUrl}

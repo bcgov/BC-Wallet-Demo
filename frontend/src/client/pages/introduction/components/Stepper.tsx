@@ -8,13 +8,15 @@ import { topDown } from '../../../FramerAnimations'
 import { StepperItem } from './StepperItem'
 
 export interface Props {
-  onboardingStep: string
+  introductionStep: string
   currentCharacter?: CustomCharacter
 }
 
-export const Stepper: React.FC<Props> = ({ currentCharacter, onboardingStep }) => {
+export const Stepper: React.FC<Props> = ({ currentCharacter, introductionStep }) => {
   const renderSteps = currentCharacter?.progressBar?.map((item) => {
-    return <StepperItem key={item.name} item={item} currentStep={onboardingStep} currentCharacter={currentCharacter} />
+    return (
+      <StepperItem key={item.name} item={item} currentStep={introductionStep} currentCharacter={currentCharacter} />
+    )
   })
 
   return (

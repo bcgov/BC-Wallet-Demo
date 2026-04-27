@@ -13,7 +13,7 @@ import moonLight from '../assets/light/icon-moon-light.svg'
 import notificationLight from '../assets/light/icon-notification-light.svg'
 import personLight from '../assets/light/icon-person-light.svg'
 import walletLight from '../assets/light/icon-wallet-light.svg'
-import { setOnboardingStep } from '../slices/introduction/introductionSlice'
+import { setIntroductionStep } from '../slices/introduction/introductionSlice'
 
 export enum Progress {
   PICK_CHARACTER = 0,
@@ -31,7 +31,7 @@ export interface Content {
   text: string
 }
 
-export const OnboardingComplete = (introductionStep: string): boolean => {
+export const IntroductionComplete = (introductionStep: string): boolean => {
   return introductionStep === 'SETUP_COMPLETED'
 }
 
@@ -48,7 +48,7 @@ export const StepperItems = [
   { name: 'balloon', introductionStep: Progress.SETUP_COMPLETED, iconLight: balloonLight, iconDark: balloonDark },
 ]
 
-export const addOnboardingProgress = (
+export const addIntroductionProgress = (
   dispatch: Dispatch<any>,
   introductionStep: string,
   currentCharacter?: CustomCharacter,
@@ -58,7 +58,7 @@ export const addOnboardingProgress = (
   const steps = currentCharacter?.introduction.map((screen) => screen.screenId)
   const currentIndex = steps?.indexOf(introductionStep)
   if (currentIndex !== undefined && steps && currentIndex >= 0 && currentIndex < steps.length - 1) {
-    dispatch(setOnboardingStep(steps[currentIndex + inc]))
+    dispatch(setIntroductionStep(steps[currentIndex + inc]))
   }
   track({
     id: 'onboarding-step-completed',
@@ -68,7 +68,7 @@ export const addOnboardingProgress = (
   })
 }
 
-export const removeOnboardingProgress = (
+export const removeIntroductionProgress = (
   dispatch: Dispatch<any>,
   introductionStep: string,
   currentCharacter?: CustomCharacter,
@@ -76,7 +76,7 @@ export const removeOnboardingProgress = (
   const steps = currentCharacter?.introduction.map((screen) => screen.screenId)
   const currentIndex = steps?.indexOf(introductionStep)
   if (currentIndex && steps && currentIndex > 0 && currentIndex < steps.length) {
-    dispatch(setOnboardingStep(steps[currentIndex - 1]))
+    dispatch(setIntroductionStep(steps[currentIndex - 1]))
   }
   track({
     id: 'onboarding-step-completed',

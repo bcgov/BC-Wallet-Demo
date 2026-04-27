@@ -10,7 +10,7 @@ import { useAppDispatch } from '../../../hooks/hooks'
 import { clearConnection, setConnection, setDeepLink } from '../../../slices/connection/connectionSlice'
 import { createInvitation } from '../../../slices/connection/connectionThunks'
 import { clearCredentials } from '../../../slices/credentials/credentialsSlice'
-import { setOnboardingConnectionId } from '../../../slices/introduction/introductionSlice'
+import { setIntroductionConnectionId } from '../../../slices/introduction/introductionSlice'
 import { setConnectionDate } from '../../../slices/preferences/preferencesSlice'
 import { useSocket } from '../../../slices/socket/socketSelector'
 import { isConnected } from '../../../utils/Helpers'
@@ -70,7 +70,7 @@ export const SetupConnection: React.FC<Props> = ({
 
   useEffect(() => {
     if (connectionId) {
-      dispatch(setOnboardingConnectionId(connectionId))
+      dispatch(setIntroductionConnectionId(connectionId))
       const date = new Date()
       dispatch(setConnectionDate(date))
     }

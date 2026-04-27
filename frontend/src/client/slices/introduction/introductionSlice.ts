@@ -16,16 +16,16 @@ const introductionSlice = createSlice({
   name: 'introduction',
   initialState,
   reducers: {
-    completeOnboarding(state) {
+    completeIntroduction(state) {
       state.isCompleted = true
     },
-    setOnboardingStep(state, action) {
+    setIntroductionStep(state, action) {
       state.introductionStep = action.payload
     },
-    setOnboardingConnectionId(state, action) {
+    setIntroductionConnectionId(state, action) {
       state.connectionId = action.payload
     },
-    resetOnboarding(state) {
+    resetIntroduction(state) {
       state.connectionId = undefined
       state.introductionStep = 'PICK_CHARACTER'
       state.isCompleted = false
@@ -33,7 +33,7 @@ const introductionSlice = createSlice({
   },
 })
 
-export const { completeOnboarding, setOnboardingStep, setOnboardingConnectionId, resetOnboarding } =
+export const { completeIntroduction, setIntroductionStep, setIntroductionConnectionId, resetIntroduction } =
   introductionSlice.actions
 
 export default introductionSlice.reducer

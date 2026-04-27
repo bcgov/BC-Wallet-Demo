@@ -6,34 +6,34 @@ import { BackButton } from '../../../components/BackButton'
 import { Button } from '../../../components/Button'
 
 export interface Props {
-  onboardingStep: string
-  addOnboardingStep(): void
-  removeOnboardingStep(): void
+  introductionStep: string
+  addIntroductionStep(): void
+  removeIntroductionStep(): void
   forwardDisabled: boolean
   backDisabled: boolean
-  onboardingCompleted(): void
+  introductionCompleted(): void
 }
 
 export const IntroductionBottomNav: React.FC<Props> = ({
-  onboardingStep,
-  addOnboardingStep,
-  removeOnboardingStep,
+  introductionStep,
+  addIntroductionStep,
+  removeIntroductionStep,
   forwardDisabled,
   backDisabled,
-  onboardingCompleted,
+  introductionCompleted,
 }) => {
   const [label, setLabel] = useState('NEXT')
-  const isCompleted = onboardingStep === 'SETUP_COMPLETED'
+  const isCompleted = introductionStep === 'SETUP_COMPLETED'
 
   useEffect(() => {
     if (isCompleted) {
       setLabel('FINISH')
-    } else if (onboardingStep === 'CHOOSE_WALLET') {
+    } else if (introductionStep === 'CHOOSE_WALLET') {
       setLabel('SKIP')
     } else {
       setLabel('NEXT')
     }
-  }, [isCompleted, onboardingStep])
+  }, [isCompleted, introductionStep])
 
   return (
     <motion.div
@@ -44,12 +44,12 @@ export const IntroductionBottomNav: React.FC<Props> = ({
       className="flex w-full justify-between mb-4 h-8 self-end select-none"
     >
       <div className="flex self-center">
-        <BackButton onClick={removeOnboardingStep} disabled={backDisabled} data-cy="prev-onboarding-step" />
+        <BackButton onClick={removeIntroductionStep} disabled={backDisabled} data-cy="prev-onboarding-step" />
       </div>
       <AnimatePresence mode="wait">
         <motion.div variants={fadeExit} initial="hidden" animate="show" exit="exit" data-cy="next-onboarding-step">
           <Button
-            onClick={isCompleted ? onboardingCompleted : addOnboardingStep}
+            onClick={isCompleted ? introductionCompleted : addIntroductionStep}
             text={label}
             disabled={forwardDisabled}
           />
