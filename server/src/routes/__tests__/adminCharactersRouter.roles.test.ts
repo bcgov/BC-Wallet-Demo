@@ -102,7 +102,7 @@ describe('adminCharactersRouter with role-based access control', () => {
       expect(res.body).toHaveProperty('message')
     })
 
-    it('returns 201 when user has admin or creator role', async () => {
+    it('returns 201 when user has creator role', async () => {
       const auth = { sub: 'user1', realm_access: { roles: ['creator'] } }
       const res = await request(app).post('/admin/characters').set('x-test-auth', JSON.stringify(auth)).send({
         name: 'New Character',
