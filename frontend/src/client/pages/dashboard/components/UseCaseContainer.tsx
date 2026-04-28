@@ -1,4 +1,4 @@
-import type { CustomCharacter } from '../../../slices/types'
+import type { Showcase } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import React from 'react'
@@ -10,19 +10,19 @@ import { basePath } from '../../../utils/BasePath'
 import { UseCaseItem } from './UseCaseItem'
 
 export interface Props {
-  currentCharacter: CustomCharacter
+  currentShowcase: Showcase
   completedScenarioSlugs: string[]
   issuedCredentials: string[]
 }
 
-export const UseCaseContainer: React.FC<Props> = ({ currentCharacter, completedScenarioSlugs }) => {
+export const UseCaseContainer: React.FC<Props> = ({ currentShowcase, completedScenarioSlugs }) => {
   const navigate = useNavigate()
 
   const startUseCase = (slug: string) => {
     navigate(`${basePath}/uc/${slug}`)
   }
 
-  const renderUseCases = currentCharacter.scenarios.map((item) => {
+  const renderUseCases = currentShowcase.scenarios.map((item) => {
     const requiredCredentials: string[] = []
     // item.screens.forEach(screen => requiredCredentials.push(...(screen.requestOptions?.requestedCredentials.map(item => item.name) ?? [])))
     item.screens.forEach((screen) =>
@@ -41,7 +41,7 @@ export const UseCaseContainer: React.FC<Props> = ({ currentCharacter, completedS
         slug={item.id}
         title={item.name}
         requiredCredentials={requiredCredentials}
-        currentCharacter={currentCharacter}
+        currentShowcase={currentShowcase}
         start={startUseCase}
         isLocked={false}
         isCompleted={isCompleted}

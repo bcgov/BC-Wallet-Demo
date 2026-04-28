@@ -1,6 +1,5 @@
 import { combineReducers } from 'redux'
 
-import charactersSlice from './characters/charactersSlice'
 import connectionSlice from './connection/connectionSlice'
 import credentialsSlice from './credentials/credentialsSlice'
 import introductionSlice from './introduction/introductionSlice'
@@ -8,15 +7,16 @@ import preferencesSlice from './preferences/preferencesSlice'
 import proofSlice from './proof/proofSlice'
 import scenarioSlice from './scenarios/scenariosSlice'
 import sectionSlice from './section/sectionSlice'
+import showcasesSlice from './showcases/showcasesSlice'
 import socketSlice from './socket/socketSlice'
 import walletsSlice from './wallets/walletsSlice'
 
-export const VERSION = 5
+export const VERSION = 6
 
 const rootReducer = combineReducers({
   socket: socketSlice,
   wallets: walletsSlice,
-  characters: charactersSlice,
+  showcases: showcasesSlice,
   connection: connectionSlice,
   credentials: credentialsSlice,
   introduction: introductionSlice,

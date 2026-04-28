@@ -1,4 +1,4 @@
-import type { Credential, CustomCharacter } from '../../../slices/types'
+import type { Credential, Showcase } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -26,7 +26,7 @@ import { StepInformation } from '../components/StepInformation'
 export interface Props {
   connectionId: string
   credentials: Credential[]
-  currentCharacter?: CustomCharacter
+  currentShowcase?: Showcase
   title: string
   text: string
   onCredentialAccepted?: () => void
@@ -35,7 +35,7 @@ export interface Props {
 export const AcceptCredential: React.FC<Props> = ({
   connectionId,
   credentials,
-  currentCharacter,
+  currentShowcase,
   title,
   text,
   onCredentialAccepted,
@@ -79,7 +79,7 @@ export const AcceptCredential: React.FC<Props> = ({
       })
       setCredentialsIssued(true)
     }
-  }, [currentCharacter, connectionId])
+  }, [currentShowcase, connectionId])
 
   useEffect(() => {
     if (credentialsAccepted && onCredentialAccepted) {
@@ -171,7 +171,7 @@ export const AcceptCredential: React.FC<Props> = ({
               schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
               data: {
                 action: 'cred_not_received',
-                path: currentCharacter?.type.toLowerCase(),
+                path: currentShowcase?.persona.type.toLowerCase(),
                 step: title,
               },
             },

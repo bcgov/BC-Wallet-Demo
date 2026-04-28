@@ -13,9 +13,9 @@ import { Button } from '../../components/Button'
 import { Modal } from '../../components/Modal'
 import { SmallButton } from '../../components/SmallButton'
 import { useAppDispatch } from '../../hooks/hooks'
-import { useCurrentCharacter } from '../../slices/characters/charactersSelectors'
 import { scenarioCompleted } from '../../slices/preferences/preferencesSlice'
 import { nextStep, prevStep, resetStep } from '../../slices/scenarios/scenariosSlice'
+import { useCurrentShowcase } from '../../slices/showcases/showcasesSelectors'
 import { basePath } from '../../utils/BasePath'
 import { isConnected, isCredIssued } from '../../utils/Helpers'
 
@@ -69,7 +69,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
   const { slug } = useParams()
 
   const verifier = section.find((x) => x.verifier !== undefined)?.verifier ?? { name: 'Unkown' }
-  const currentCharacter = useCurrentCharacter()
+  const currentShowcase = useCurrentShowcase()
 
   const leave = () => {
     trackSelfDescribingEvent({
@@ -77,7 +77,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'leave',
-          path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+          path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
           step: step.name,
         },
       },
@@ -98,7 +98,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
           data: {
             action: 'usecase_completed',
-            path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+            path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
             step: step.name,
           },
         },
@@ -153,7 +153,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
           data: {
             action: 'next',
-            path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+            path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
             step: step.name,
           },
         },
@@ -175,7 +175,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
       return (
         <StartContainer
           key={step.screenId}
-          characterType={currentCharacter?.type.toLowerCase()}
+          characterType={currentShowcase?.persona.type.toLowerCase()}
           step={step}
           entity={verifier}
           requestedCredentials={step.requestOptions?.requestedCredentials}
@@ -214,7 +214,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                   <StepProof
                     key={step.screenId}
                     entityName={verifier.name}
-                    characterType={currentCharacter?.type.toLowerCase()}
+                    characterType={currentShowcase?.persona.type.toLowerCase()}
                     proof={proof}
                     step={step}
                     connectionId={connection.id}
@@ -232,7 +232,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
                         data: {
                           action: 'back',
-                          path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+                          path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
                           step: step.name,
                         },
                       },
@@ -252,7 +252,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
                           data: {
                             action: 'next',
-                            path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+                            path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
                             step: step.name,
                           },
                         },

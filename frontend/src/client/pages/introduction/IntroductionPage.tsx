@@ -7,14 +7,14 @@ import { page } from '../../FramerAnimations'
 import { CustomUpload } from '../../components/CustomUpload'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useTitle } from '../../hooks/useTitle'
-import { useCharacters } from '../../slices/characters/charactersSelectors'
-import { fetchAllCharacters } from '../../slices/characters/charactersThunks'
 import { useConnection } from '../../slices/connection/connectionSelectors'
 import { clearConnection } from '../../slices/connection/connectionSlice'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
 import { useIntroduction } from '../../slices/introduction/introductionSelectors'
 import { completeIntroduction } from '../../slices/introduction/introductionSlice'
 import { usePreferences } from '../../slices/preferences/preferencesSelectors'
+import { useShowcases } from '../../slices/showcases/showcasesSelectors'
+import { fetchAllShowcases } from '../../slices/showcases/showcasesThunks'
 import { fetchWallets } from '../../slices/wallets/walletsThunks'
 import { basePath } from '../../utils/BasePath'
 import { IntroductionComplete } from '../../utils/IntroductionUtils'
@@ -27,33 +27,33 @@ export const IntroductionPage: React.FC = () => {
 
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { characters, currentCharacter, uploadedCharacter } = useCharacters()
+  const { showcases, currentShowcase, uploadedShowcase } = useShowcases()
 
   const { introductionStep, isCompleted } = useIntroduction()
   const { state, invitationUrl, id } = useConnection()
-  const { characterUploadEnabled, showHiddenScenarios } = usePreferences()
+  const { showcaseUploadEnabled, showHiddenScenarios } = usePreferences()
 
   const [mounted, setMounted] = useState(false)
 
-  const allCharacters = useMemo(() => {
-    const allChars = [...characters].filter((char) => !char.hidden || showHiddenScenarios)
+  const allShowcases = useMemo(() => {
+    const all = [...showcases].filter((showcase) => !showcase.hidden || showHiddenScenarios)
 
-    if (uploadedCharacter) {
-      allChars.push(uploadedCharacter)
+    if (uploadedShowcase) {
+      all.push(uploadedShowcase)
     }
 
-    return allChars
-  }, [characters, uploadedCharacter, showHiddenScenarios])
+    return all
+  }, [showcases, uploadedShowcase, showHiddenScenarios])
 
   useEffect(() => {
-    if ((IntroductionComplete(introductionStep) || isCompleted) && currentCharacter) {
+    if ((IntroductionComplete(introductionStep) || isCompleted) && currentShowcase) {
       dispatch(completeIntroduction())
       dispatch(clearCredentials())
       dispatch(clearConnection())
       navigate(`${basePath}/dashboard`)
     } else {
       dispatch(fetchWallets())
-      dispatch(fetchAllCharacters())
+      dispatch(fetchAllShowcases())
       setMounted(true)
     }
   }, [dispatch, showHiddenScenarios])
@@ -64,7 +64,7 @@ export const IntroductionPage: React.FC = () => {
 
   return (
     <>
-      {characterUploadEnabled && <CustomUpload />}
+      {showcaseUploadEnabled && <CustomUpload />}
       <motion.div
         variants={page}
         initial="hidden"
@@ -72,12 +72,12 @@ export const IntroductionPage: React.FC = () => {
         exit="exit"
         className="container flex flex-col items-center p-4"
       >
-        <Stepper currentCharacter={currentCharacter} introductionStep={introductionStep} />
+        <Stepper currentShowcase={currentShowcase} introductionStep={introductionStep} />
         <AnimatePresence mode="wait">
           {mounted && (
             <IntroductionContainer
-              characters={allCharacters}
-              currentCharacter={currentCharacter}
+              showcases={allShowcases}
+              currentShowcase={currentShowcase}
               introductionStep={introductionStep}
               connectionId={id}
               connectionState={state}

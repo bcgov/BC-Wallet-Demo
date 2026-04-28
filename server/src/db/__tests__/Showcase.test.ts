@@ -2,11 +2,14 @@ import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from 'mongoose'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import { CharacterModel } from '../models/Character'
+import { ShowcaseModel } from '../models/Showcase'
 
 let mongod: MongoMemoryServer
 
-const minimal = { name: 'Alice', type: 'Student', image: '/public/student/student.svg' }
+const minimal = {
+  name: 'Student Showcase',
+  persona: { name: 'Alice', type: 'Student', image: '/public/student/student.svg' },
+}
 
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create()
@@ -15,7 +18,7 @@ beforeAll(async () => {
 
 // Clear between tests so documents from one test cannot affect another.
 afterEach(async () => {
-  await CharacterModel.deleteMany({})
+  await ShowcaseModel.deleteMany({})
 })
 
 afterAll(async () => {
@@ -23,31 +26,34 @@ afterAll(async () => {
   await mongod.stop()
 })
 
-describe('CharacterModel', () => {
-  it('persists a character with required fields', async () => {
-    const doc = await CharacterModel.create(minimal)
+describe('ShowcaseModel', () => {
+  it('persists a showcase with required fields', async () => {
+    const doc = await ShowcaseModel.create(minimal)
     const json = doc.toJSON()
-    expect(json.name).toBe('Alice')
-    expect(json.type).toBe('Student')
-    expect(json.image).toBe('/public/student/student.svg')
+    expect(json.name).toBe('Student Showcase')
+    expect(json.persona.name).toBe('Alice')
+    expect(json.persona.type).toBe('Student')
+    expect(json.persona.image).toBe('/public/student/student.svg')
     expect(json.hidden).toBe(false)
   })
 
-  it('rejects a character with a missing required field', async () => {
-    await expect(CharacterModel.create({ name: 'Alice', image: '/x.svg' })).rejects.toThrow()
+  it('rejects a showcase with a missing required field', async () => {
+    await expect(ShowcaseModel.create({ name: 'Student Showcase' })).rejects.toThrow()
   })
 
-  it('enforces unique index on type', async () => {
-    await CharacterModel.create({ ...minimal, type: 'UniqueType' })
-    await expect(CharacterModel.create({ name: 'Bob', type: 'UniqueType', image: '/b.svg' })).rejects.toThrow()
+  it('enforces unique index on persona.type', async () => {
+    await ShowcaseModel.create({ ...minimal, persona: { ...minimal.persona, type: 'UniqueType' } })
+    await expect(
+      ShowcaseModel.create({ name: 'Other Showcase', persona: { name: 'Bob', type: 'UniqueType', image: '/b.svg' } }),
+    ).rejects.toThrow()
   })
 })
 
 describe('IntroductionStep embedded schema', () => {
   it('persists an introduction step with nested credentials', async () => {
-    const doc = await CharacterModel.create({
+    const doc = await ShowcaseModel.create({
       ...minimal,
-      type: 'Student-introduction',
+      persona: { ...minimal.persona, type: 'Student-introduction' },
       introduction: [
         {
           screenId: 'PICK_CREDENTIAL',
@@ -74,9 +80,9 @@ describe('IntroductionStep embedded schema', () => {
 
 describe('ProgressBarStep embedded schema', () => {
   it('persists progress bar steps', async () => {
-    const doc = await CharacterModel.create({
+    const doc = await ShowcaseModel.create({
       ...minimal,
-      type: 'Student-progress',
+      persona: { ...minimal.persona, type: 'Student-progress' },
       progressBar: [
         { name: 'person', introductionStep: 'PICK_CHARACTER', iconLight: '/light.svg', iconDark: '/dark.svg' },
       ],
@@ -89,9 +95,9 @@ describe('ProgressBarStep embedded schema', () => {
 
 describe('RevocationInfoItem embedded schema', () => {
   it('persists revocation info', async () => {
-    const doc = await CharacterModel.create({
+    const doc = await ShowcaseModel.create({
       ...minimal,
-      type: 'Student-revocation',
+      persona: { ...minimal.persona, type: 'Student-revocation' },
       revocationInfo: [
         {
           credentialName: 'Student Card',
@@ -105,11 +111,11 @@ describe('RevocationInfoItem embedded schema', () => {
   })
 })
 
-describe('Scenario embedded in Character', () => {
+describe('Scenario embedded in Showcase', () => {
   it('persists scenarios with screens', async () => {
-    const doc = await CharacterModel.create({
+    const doc = await ShowcaseModel.create({
       ...minimal,
-      type: 'Student-scenario',
+      persona: { ...minimal.persona, type: 'Student-scenario' },
       scenarios: [
         {
           id: 'clothesOnline',

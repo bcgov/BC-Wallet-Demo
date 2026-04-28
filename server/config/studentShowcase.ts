@@ -1,10 +1,13 @@
-import type { CustomCharacter } from '../src/content/types'
+import type { Showcase } from '../src/content/types'
 
 import { getDateInt } from '../src/utils/dateint'
-export const studentCustom: CustomCharacter = {
-  name: 'Alice',
-  type: 'Student',
-  image: '/public/student/student.svg',
+export const studentShowcase: Showcase = {
+  name: 'Student Showcase',
+  persona: {
+    name: 'Alice',
+    type: 'Student',
+    image: '/public/student/student.svg',
+  },
   revocationInfo: [
     {
       credentialName: 'Student Card',

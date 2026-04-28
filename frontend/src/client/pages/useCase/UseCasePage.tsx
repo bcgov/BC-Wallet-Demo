@@ -10,7 +10,6 @@ import { Loader } from '../../components/Loader'
 import { Modal } from '../../components/Modal'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useTitle } from '../../hooks/useTitle'
-import { useCurrentCharacter } from '../../slices/characters/charactersSelectors'
 import { useConnection } from '../../slices/connection/connectionSelectors'
 import { clearConnection } from '../../slices/connection/connectionSlice'
 import { useCredentials } from '../../slices/credentials/credentialsSelectors'
@@ -21,6 +20,7 @@ import { useScenarioState } from '../../slices/scenarios/scenariosSelectors'
 import { nextSection } from '../../slices/scenarios/scenariosSlice'
 import { useSection } from '../../slices/section/sectionSelectors'
 import { setSection } from '../../slices/section/sectionSlice'
+import { useCurrentShowcase } from '../../slices/showcases/showcasesSelectors'
 import { basePath } from '../../utils/BasePath'
 
 import { Section } from './Section'
@@ -29,7 +29,7 @@ export const UseCasePage: React.FC = () => {
   const dispatch = useAppDispatch()
   const { slug } = useParams()
   const { stepCount, sectionCount, isLoading } = useScenarioState()
-  const currentCharacter = useCurrentCharacter()
+  const currentShowcase = useCurrentShowcase()
   const { section } = useSection()
   const connection = useConnection()
   const { issuedCredentials } = useCredentials()
@@ -40,8 +40,8 @@ export const UseCasePage: React.FC = () => {
   useTitle(`${currentUseCase?.name ?? 'Use case'} | BC Wallet Self-Sovereign Identity Demo`)
 
   useEffect(() => {
-    if (currentCharacter && slug) {
-      setCurrentUseCase(currentCharacter.scenarios.find((item) => item.id === slug))
+    if (currentShowcase && slug) {
+      setCurrentUseCase(currentShowcase.scenarios.find((item) => item.id === slug))
     }
   }, [])
 
@@ -90,7 +90,7 @@ export const UseCasePage: React.FC = () => {
         </div>
       ) : (
         <AnimatePresence mode="wait">
-          {currentCharacter && section && currentUseCase ? (
+          {currentShowcase && section && currentUseCase ? (
             <motion.div
               key={'sectionDiv' + section.screenId}
               initial={{ opacity: 0 }}

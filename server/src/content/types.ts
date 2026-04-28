@@ -74,12 +74,17 @@ export interface RevocationInfoItem {
   description: string
 }
 
-export interface CustomCharacter {
+export interface Persona {
   name: string
   type: string
   image: string
+}
+
+export interface Showcase {
+  name: string
   hidden?: boolean
   description?: string
+  persona: Persona
   progressBar: ProgressBarStep[]
   introduction: IntroductionStep[]
   scenarios: Scenario[]

@@ -1,4 +1,4 @@
-import type { CustomCharacter } from '../../slices/types'
+import type { Showcase } from '../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -30,8 +30,8 @@ import { SetupConnection } from './steps/SetupConnection'
 import { SetupStart } from './steps/SetupStart'
 
 export interface Props {
-  characters: CustomCharacter[]
-  currentCharacter?: CustomCharacter
+  showcases: Showcase[]
+  currentShowcase?: Showcase
   connectionId?: string
   connectionState?: string
   invitationUrl?: string
@@ -39,8 +39,8 @@ export interface Props {
 }
 
 export const IntroductionContainer: React.FC<Props> = ({
-  characters,
-  currentCharacter,
+  showcases,
+  currentShowcase,
   introductionStep,
   connectionId,
   connectionState,
@@ -49,12 +49,12 @@ export const IntroductionContainer: React.FC<Props> = ({
   const dispatch = useAppDispatch()
   const { issuedCredentials } = useCredentials()
   const idToTitle: Record<string, string> = {}
-  currentCharacter?.introduction.forEach((item) => {
+  currentShowcase?.introduction.forEach((item) => {
     idToTitle[item.screenId] = item.name
   })
 
   const connectionCompleted = isConnected(connectionState as string)
-  const credentials = currentCharacter?.introduction.find((step) => step.screenId === introductionStep)?.credentials
+  const credentials = currentShowcase?.introduction.find((step) => step.screenId === introductionStep)?.credentials
   const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.name))
 
   const isBackDisabled = ['PICK_CHARACTER', 'ACCEPT_CREDENTIAL'].includes(introductionStep)
@@ -62,7 +62,7 @@ export const IntroductionContainer: React.FC<Props> = ({
     (introductionStep.startsWith('CONNECT') && !connectionCompleted) ||
     (introductionStep === 'ACCEPT_CREDENTIAL' && !credentialsAccepted) ||
     (introductionStep === 'ACCEPT_CREDENTIAL' && credentials?.length === 0) ||
-    (introductionStep === 'PICK_CHARACTER' && !currentCharacter)
+    (introductionStep === 'PICK_CHARACTER' && !currentShowcase)
 
   const jumpIntroductionPage = () => {
     trackSelfDescribingEvent({
@@ -70,12 +70,12 @@ export const IntroductionContainer: React.FC<Props> = ({
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'skip_credential',
-          path: currentCharacter?.type.toLowerCase(),
+          path: currentShowcase?.persona.type.toLowerCase(),
           step: idToTitle[introductionStep],
         },
       },
     })
-    addIntroductionProgress(dispatch, introductionStep, currentCharacter, 2)
+    addIntroductionProgress(dispatch, introductionStep, currentShowcase, 2)
   }
 
   const nextIntroductionPage = () => {
@@ -84,12 +84,12 @@ export const IntroductionContainer: React.FC<Props> = ({
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'next',
-          path: currentCharacter?.type.toLowerCase(),
+          path: currentShowcase?.persona.type.toLowerCase(),
           step: idToTitle[introductionStep],
         },
       },
     })
-    addIntroductionProgress(dispatch, introductionStep, currentCharacter)
+    addIntroductionProgress(dispatch, introductionStep, currentShowcase)
   }
 
   const prevIntroductionPage = () => {
@@ -98,17 +98,17 @@ export const IntroductionContainer: React.FC<Props> = ({
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'back',
-          path: currentCharacter?.type.toLowerCase(),
+          path: currentShowcase?.persona.type.toLowerCase(),
           step: idToTitle[introductionStep],
         },
       },
     })
-    removeIntroductionProgress(dispatch, introductionStep, currentCharacter)
+    removeIntroductionProgress(dispatch, introductionStep, currentShowcase)
   }
 
-  //override name and text content to make them character dependant
+  //override name and text content to make them showcase dependant
   const getCharacterContent = (progress: string) => {
-    const characterContent = currentCharacter?.introduction.find((screen) => screen.screenId === progress)
+    const characterContent = currentShowcase?.introduction.find((screen) => screen.screenId === progress)
     if (characterContent) {
       return {
         title: characterContent.name,
@@ -132,8 +132,8 @@ export const IntroductionContainer: React.FC<Props> = ({
       return (
         <PickCharacter
           key={progress}
-          currentCharacter={currentCharacter}
-          characters={characters}
+          currentShowcase={currentShowcase}
+          showcases={showcases}
           title={title}
           text={text}
         />
@@ -156,7 +156,7 @@ export const IntroductionContainer: React.FC<Props> = ({
           connectionState={connectionState}
           title={title}
           text={text}
-          backgroundImage={currentCharacter?.image}
+          backgroundImage={currentShowcase?.persona.image}
         />
       )
     } else if (progress.startsWith('ACCEPT') && credentials && connectionId) {
@@ -165,14 +165,19 @@ export const IntroductionContainer: React.FC<Props> = ({
           key={progress}
           connectionId={connectionId}
           credentials={credentials}
-          currentCharacter={currentCharacter}
+          currentShowcase={currentShowcase}
           title={title}
           text={text}
         />
       )
     } else if (progress === 'SETUP_COMPLETED') {
       return (
-        <SetupCompleted key={progress} title={title} text={text} characterName={currentCharacter?.name ?? 'Unknown'} />
+        <SetupCompleted
+          key={progress}
+          title={title}
+          text={text}
+          characterName={currentShowcase?.persona.name ?? 'Unknown'}
+        />
       )
     } else {
       return <BasicSlide title={title} text={text} />
@@ -182,7 +187,7 @@ export const IntroductionContainer: React.FC<Props> = ({
   const getImageToRender = (progress: string) => {
     const { image } = getCharacterContent(progress)
     if (progress === 'PICK_CHARACTER') {
-      return <CharacterContent key={progress} character={currentCharacter} />
+      return <CharacterContent key={progress} showcase={currentShowcase} />
     } else {
       return (
         <motion.img
@@ -201,7 +206,7 @@ export const IntroductionContainer: React.FC<Props> = ({
 
   const navigate = useNavigate()
   const introductionCompleted = () => {
-    if (connectionId && currentCharacter) {
+    if (connectionId && currentShowcase) {
       navigate(`${basePath}/dashboard`)
       dispatch(clearCredentials())
       dispatch(clearConnection())
@@ -227,7 +232,7 @@ export const IntroductionContainer: React.FC<Props> = ({
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'leave',
-          path: currentCharacter?.type.toLowerCase(),
+          path: currentShowcase?.persona.type.toLowerCase(),
           step: idToTitle[introductionStep],
         },
       },

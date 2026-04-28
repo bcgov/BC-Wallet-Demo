@@ -1,4 +1,4 @@
-import type { CustomCharacter } from '../../../slices/types'
+import type { Showcase } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import React from 'react'
@@ -9,14 +9,12 @@ import { StepperItem } from './StepperItem'
 
 export interface Props {
   introductionStep: string
-  currentCharacter?: CustomCharacter
+  currentShowcase?: Showcase
 }
 
-export const Stepper: React.FC<Props> = ({ currentCharacter, introductionStep }) => {
-  const renderSteps = currentCharacter?.progressBar?.map((item) => {
-    return (
-      <StepperItem key={item.name} item={item} currentStep={introductionStep} currentCharacter={currentCharacter} />
-    )
+export const Stepper: React.FC<Props> = ({ currentShowcase, introductionStep }) => {
+  const renderSteps = currentShowcase?.progressBar?.map((item) => {
+    return <StepperItem key={item.name} item={item} currentStep={introductionStep} currentShowcase={currentShowcase} />
   })
 
   return (

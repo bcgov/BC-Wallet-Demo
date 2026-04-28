@@ -1,4 +1,4 @@
-import type { CustomCharacter } from '../slices/types'
+import type { Showcase } from '../slices/types'
 import type { Dispatch } from 'react'
 
 import { track } from 'insights-js'
@@ -51,11 +51,11 @@ export const StepperItems = [
 export const addIntroductionProgress = (
   dispatch: Dispatch<any>,
   introductionStep: string,
-  currentCharacter?: CustomCharacter,
+  currentShowcase?: Showcase,
   step?: number,
 ) => {
   const inc = step ?? 1
-  const steps = currentCharacter?.introduction.map((screen) => screen.screenId)
+  const steps = currentShowcase?.introduction.map((screen) => screen.screenId)
   const currentIndex = steps?.indexOf(introductionStep)
   if (currentIndex !== undefined && steps && currentIndex >= 0 && currentIndex < steps.length - 1) {
     dispatch(setIntroductionStep(steps[currentIndex + inc]))
@@ -71,9 +71,9 @@ export const addIntroductionProgress = (
 export const removeIntroductionProgress = (
   dispatch: Dispatch<any>,
   introductionStep: string,
-  currentCharacter?: CustomCharacter,
+  currentShowcase?: Showcase,
 ) => {
-  const steps = currentCharacter?.introduction.map((screen) => screen.screenId)
+  const steps = currentShowcase?.introduction.map((screen) => screen.screenId)
   const currentIndex = steps?.indexOf(introductionStep)
   if (currentIndex && steps && currentIndex > 0 && currentIndex < steps.length) {
     dispatch(setIntroductionStep(steps[currentIndex - 1]))

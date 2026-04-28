@@ -5,49 +5,49 @@ vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
-import { CharacterController } from '../CharacterController'
+import { ShowcaseController } from '../ShowcaseController.ts'
 
-describe('CharacterController', () => {
-  let controller: CharacterController
+describe('ShowcaseController', () => {
+  let controller: ShowcaseController
 
   beforeEach(() => {
-    controller = new CharacterController()
+    controller = new ShowcaseController()
   })
 
-  describe('getCharacterById', () => {
-    it('returns the character when found by type', async () => {
-      const result = await controller.getCharacterById('Student')
+  describe('getShowcaseById', () => {
+    it('returns the showcase when found by type', async () => {
+      const result = await controller.getShowcaseById('Student')
 
-      expect(result).toMatchObject({ type: 'Student' })
+      expect(result).toMatchObject({ persona: { type: 'Student' } })
     })
 
     it('includes scenarios in returned character', async () => {
-      const result = await controller.getCharacterById('Student')
+      const result = await controller.getShowcaseById('Student')
 
       expect(result.scenarios).toBeDefined()
       expect(Array.isArray(result.scenarios)).toBe(true)
     })
 
     it('throws NotFoundError when characterId does not match any character', async () => {
-      await expect(controller.getCharacterById('NonExistent')).rejects.toThrow(NotFoundError)
+      await expect(controller.getShowcaseById('NonExistent')).rejects.toThrow(NotFoundError)
     })
 
     it('NotFoundError message references the missing characterId', async () => {
-      await expect(controller.getCharacterById('Ghost')).rejects.toThrow(/"Ghost"/)
+      await expect(controller.getShowcaseById('Ghost')).rejects.toThrow(/"Ghost"/)
     })
   })
 
-  describe('getCharacters', () => {
-    it('returns an array of all characters', async () => {
-      const result = await controller.getCharacters()
+  describe('getShowcases', () => {
+    it('returns an array of all showcases', async () => {
+      const result = await controller.getShowcases()
 
       expect(Array.isArray(result)).toBe(true)
       expect(result.length).toBeGreaterThan(0)
     })
 
-    it('contains the Student, Lawyer, and Proprietor character types', async () => {
-      const result = await controller.getCharacters()
-      const types = result.map((c) => c.type)
+    it('contains the Student, Lawyer, and Proprietor showcase types', async () => {
+      const result = await controller.getShowcases()
+      const types = result.map((c) => c.persona.type)
 
       expect(types).toContain('Student')
       expect(types).toContain('Lawyer')

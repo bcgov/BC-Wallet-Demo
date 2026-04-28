@@ -1,4 +1,4 @@
-import type { CustomCharacter, ProgressBarStep } from '../../../slices/types'
+import type { ProgressBarStep, Showcase } from '../../../slices/types'
 
 import React from 'react'
 
@@ -6,14 +6,14 @@ import { useDarkMode } from '../../../hooks/useDarkMode'
 import { prependApiUrl } from '../../../utils/Url'
 
 export interface Props {
-  currentCharacter: CustomCharacter
+  currentShowcase: Showcase
   item: ProgressBarStep
   currentStep: string
 }
 
-export const StepperItem: React.FC<Props> = ({ item, currentStep, currentCharacter }) => {
+export const StepperItem: React.FC<Props> = ({ item, currentStep, currentShowcase }) => {
   const darkMode = useDarkMode()
-  const stepNames = currentCharacter.introduction.map((item) => item.screenId)
+  const stepNames = currentShowcase.introduction.map((item) => item.screenId)
   const currentStepIsEqual = item.introductionStep === currentStep
   const currentStepIsNotEqual = item.introductionStep !== currentStep
   const currentStepIsHigher = stepNames.indexOf(currentStep) > stepNames.indexOf(item.introductionStep)

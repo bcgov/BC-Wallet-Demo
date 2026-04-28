@@ -1,11 +1,14 @@
-import type { CustomCharacter } from '../src/content/types'
+import type { Showcase } from '../src/content/types'
 
 import { getDateInt } from '../src/utils/dateint'
 
-export const businessCustom: CustomCharacter = {
-  name: 'Dave',
-  type: 'Proprietor',
-  image: '/public/student/student.svg',
+export const businessShowcase: Showcase = {
+  name: 'Proprietor Showcase',
+  persona: {
+    name: 'Dave',
+    type: 'Proprietor',
+    image: '/public/student/student.svg',
+  },
   hidden: true,
   revocationInfo: [
     {

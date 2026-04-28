@@ -1,13 +1,16 @@
-import type { CustomCharacter } from '../src/content/types'
+import type { Showcase } from '../src/content/types'
 
 import { getDateInt } from '../src/utils/dateint'
 
 const now = () => Math.floor(new Date().getTime() / 1000)
 
-export const lawyerCustom: CustomCharacter = {
-  name: 'Joyce',
-  type: 'Lawyer',
-  image: '/public/lawyer2/lawyer2.svg',
+export const lawyerShowcase: Showcase = {
+  name: 'Lawyer Showcase',
+  persona: {
+    name: 'Joyce',
+    type: 'Lawyer',
+    image: '/public/lawyer2/lawyer2.svg',
+  },
   description: 'Joyce is a member of the Law Society of British Columbia looking to access court materials online.',
   revocationInfo: [
     {

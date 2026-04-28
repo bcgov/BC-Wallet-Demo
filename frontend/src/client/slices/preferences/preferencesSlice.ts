@@ -8,7 +8,7 @@ interface PreferencesState {
   darkMode: boolean
   showHiddenScenarios: boolean
   revocationEnabled: boolean
-  characterUploadEnabled: boolean
+  showcaseUploadEnabled: boolean
   completedScenarioSlugs: string[]
   demoCompleted: boolean
   completeCanceled: boolean
@@ -20,7 +20,7 @@ const initialState: PreferencesState = {
   darkMode: false,
   showHiddenScenarios: false,
   revocationEnabled: false,
-  characterUploadEnabled: false,
+  showcaseUploadEnabled: false,
   completedScenarioSlugs: [],
   demoCompleted: false,
   completeCanceled: false,
@@ -64,8 +64,8 @@ const preferencesSlice = createSlice({
     toggleRevocation: (state) => {
       state.revocationEnabled = !state.revocationEnabled
     },
-    toggleCharacterUpload: (state) => {
-      state.characterUploadEnabled = !state.characterUploadEnabled
+    toggleShowcaseUpload: (state) => {
+      state.showcaseUploadEnabled = !state.showcaseUploadEnabled
     },
   },
   extraReducers: (builder) => {
@@ -88,7 +88,7 @@ export const {
   setDemoCompleted,
   setConnectionDate,
   toggleRevocation,
-  toggleCharacterUpload,
+  toggleShowcaseUpload,
 } = preferencesSlice.actions
 
 export default preferencesSlice.reducer
