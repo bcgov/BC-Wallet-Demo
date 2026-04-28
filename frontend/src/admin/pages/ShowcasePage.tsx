@@ -1,6 +1,8 @@
+import type { Credential } from '../types'
+
 import { UserIcon, CreditCardIcon, QueueListIcon, FilmIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { baseRoute } from '../../client/api/BaseUrl'
 import { AdminNavbar } from '../components/AdminNavbar'
@@ -11,16 +13,35 @@ import { ScenariosTab } from '../components/showcase/ScenariosTab'
 import { SecondaryNavbar } from '../components/showcase/SecondaryNavbar'
 import { useCharacter } from '../hooks/useCharacter'
 
+type TabId = 'persona' | 'introduction' | 'credentials' | 'scenarios'
+
 export function ShowcasePage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { character, isLoading } = useCharacter()
-  const tabFromUrl = (searchParams.get('tab') || 'persona') as 'persona' | 'introduction' | 'credentials' | 'scenarios'
-  const [activeTab, setActiveTab] = useState<'persona' | 'introduction' | 'credentials' | 'scenarios'>(tabFromUrl)
+  const { character, isLoading, refetch } = useCharacter()
+  const [isNewShowcase, setIsNewShowcase] = useState(location.state?.isNewShowcase || false)
+  const [selectedCredential, setSelectedCredential] = useState<Credential | undefined>(
+    location.state?.selectedCredential,
+  )
+  const tabFromUrl = (searchParams.get('tab') || 'persona') as TabId
+  const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl)
 
   useEffect(() => {
     setSearchParams({ tab: activeTab }, { replace: true })
   }, [activeTab, setSearchParams])
+
+  useEffect(() => {
+    if (location.state?.isNewShowcase !== undefined) {
+      setIsNewShowcase(location.state.isNewShowcase)
+    }
+  }, [location.state?.isNewShowcase])
+
+  useEffect(() => {
+    if (location.state?.selectedCredential !== undefined) {
+      setSelectedCredential(location.state.selectedCredential)
+    }
+  }, [location.state?.selectedCredential])
 
   const tabs = [
     { id: 'persona', label: 'Persona', icon: <UserIcon className="w-5 h-5" /> },
@@ -52,17 +73,48 @@ export function ShowcasePage() {
         </div>
       </div>
       {/* Secondary navbar */}
-      <SecondaryNavbar
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={(tabId) => setActiveTab(tabId as 'persona' | 'introduction' | 'credentials' | 'scenarios')}
-      />
+      <SecondaryNavbar tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as TabId)} />
 
-      {/* Main Content */}
-      {activeTab === 'persona' && <PersonaTab character={character} isLoading={isLoading} />}
-      {activeTab === 'credentials' && <CredentialsTab character={character} />}
-      {activeTab === 'introduction' && <IntroductionTab character={character} />}
-      {activeTab === 'scenarios' && <ScenariosTab character={character} />}
+      {/* Loading state */}
+      {isLoading && !character && (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-bcgov-blue"></div>
+            <p className="mt-4 text-gray-600">Loading showcase...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content - only show when character is loaded */}
+      {character && (
+        <>
+          {activeTab === 'persona' && (
+            <PersonaTab
+              character={character}
+              isLoading={isLoading}
+              isNewShowcase={isNewShowcase}
+              onTabChange={(tab) => setActiveTab(tab as TabId)}
+            />
+          )}
+          {activeTab === 'credentials' && (
+            <CredentialsTab
+              character={character}
+              isNewShowcase={isNewShowcase}
+              onTabChange={(tab) => setActiveTab(tab as TabId)}
+              selectedCredential={selectedCredential}
+              onRefresh={refetch}
+            />
+          )}
+          {activeTab === 'introduction' && (
+            <IntroductionTab
+              character={character}
+              isNewShowcase={isNewShowcase}
+              onTabChange={(tab) => setActiveTab(tab as TabId)}
+            />
+          )}
+          {activeTab === 'scenarios' && <ScenariosTab character={character} />}
+        </>
+      )}
     </div>
   )
 }

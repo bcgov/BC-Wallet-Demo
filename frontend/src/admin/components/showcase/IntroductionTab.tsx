@@ -4,9 +4,10 @@ import { useState } from 'react'
 
 import { baseUrl } from '../../../client/api/BaseUrl'
 import { useDragReorder } from '../../hooks/useDragReorder'
+import { OnboardingInitializedModal } from '../OnboardingInitializedModal'
+import { ScreenContentCard } from '../ScreenContentCard'
 
 import { EditScreenModal } from './EditScreenModal'
-import { ScreenContentCard } from '../ScreenContentCard'
 
 interface ProgressBar {
   name: string
@@ -17,13 +18,16 @@ interface ProgressBar {
 
 interface IntroductionTabProps {
   character: CustomCharacter | null
+  isNewShowcase?: boolean
+  onTabChange?: (tab: string) => void
 }
 
-export function IntroductionTab({ character }: IntroductionTabProps) {
+export function IntroductionTab({ character, isNewShowcase, onTabChange }: IntroductionTabProps) {
   const [editingScreenIdx, setEditingScreenIdx] = useState<number | null>(null)
   const [editingScreen, setEditingScreen] = useState<OnboardingStep | null>(null)
   const [editingProgressBar, setEditingProgressBar] = useState<ProgressBar | null>(null)
   const [reorderedOnboarding, setReorderedOnboarding] = useState<OnboardingStep[] | null>(null)
+  const [showOnboardingModal, setShowOnboardingModal] = useState<boolean>(isNewShowcase ?? false)
   const { draggedIdx, dragOverIdx, handleDragStart, handleDragOver, handleDragLeave, setDraggedIdx, setDragOverIdx } =
     useDragReorder()
 
@@ -131,6 +135,21 @@ export function IntroductionTab({ character }: IntroductionTabProps) {
         character={character}
         onSave={handleSaveScreen}
       />
+      <OnboardingInitializedModal
+        isOpen={showOnboardingModal}
+        onClose={() => setShowOnboardingModal(false)}
+        characterName={character?.name}
+      />
+      {isNewShowcase && (
+        <div className="w-full max-w-6xl mt-8 px-6 flex justify-center">
+          <button
+            onClick={() => onTabChange?.('scenarios')}
+            className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors"
+          >
+            Next Step
+          </button>
+        </div>
+      )}
     </div>
   )
 }

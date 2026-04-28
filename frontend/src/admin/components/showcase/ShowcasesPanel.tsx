@@ -72,7 +72,7 @@ export function ShowcasesPanel() {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={(showcaseName) => {
           setIsCreateModalOpen(false)
-          navigate(`${baseRoute}/admin/creator/showcase/${showcaseName}`)
+          navigate(`${baseRoute}/admin/creator/showcase/${showcaseName}`, { state: { isNewShowcase: true } })
         }}
       />
     </div>

@@ -1,6 +1,6 @@
 import type { CustomCharacter } from '../types'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useLocation, useParams } from 'react-router-dom'
 
@@ -14,37 +14,41 @@ export function useCharacter() {
   const [isLoading, setIsLoading] = useState(!passedCharacter)
   const [error, setError] = useState<string | null>(null)
   const auth = useAuth()
+  const accessToken = auth.user?.access_token
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const refetchRef = useRef(() => setRefreshTrigger((prev) => prev + 1))
 
   useEffect(() => {
-    // If character was passed via state, no need to fetch
+    // Always fetch by name from URL if available (more reliable than state which is transient)
+    if (name && accessToken) {
+      const fetchCharacter = async () => {
+        try {
+          setIsLoading(true)
+          const character = await getCharacterByName(auth, name)
+          setCharacter(character)
+          setError(null)
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch character')
+          setCharacter(null)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
+      void fetchCharacter()
+      return
+    }
+
+    // Fallback: use passed character via state
     if (passedCharacter) {
       setCharacter(passedCharacter)
       setIsLoading(false)
       return
     }
 
-    // Otherwise fetch by name
-    if (!name) {
-      setIsLoading(false)
-      return
-    }
+    // No way to get character
+    setIsLoading(false)
+  }, [name, accessToken, passedCharacter, auth, refreshTrigger])
 
-    const fetchCharacter = async () => {
-      try {
-        setIsLoading(true)
-        const character = await getCharacterByName(auth, name)
-        setCharacter(character)
-        setError(null)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch character')
-        setCharacter(null)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    void fetchCharacter()
-  }, [name, passedCharacter, auth])
-
-  return { character, isLoading, error }
+  return { character, isLoading, error, refetch: refetchRef.current }
 }

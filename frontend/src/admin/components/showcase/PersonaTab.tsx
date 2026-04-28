@@ -11,9 +11,11 @@ import { ImageUploadModal } from '../ImageUploadModal'
 interface PersonaTabProps {
   character: CustomCharacter | null
   isLoading: boolean
+  isNewShowcase?: boolean
+  onTabChange?: (tab: string) => void
 }
 
-export function PersonaTab({ character, isLoading }: PersonaTabProps) {
+export function PersonaTab({ character, isLoading, isNewShowcase, onTabChange }: PersonaTabProps) {
   const auth = useAuth()
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(character?.name || '')
@@ -60,6 +62,29 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
     }
   }
 
+  const handleNextStep = async () => {
+    if (!character || !auth.user?.access_token) return
+
+    setSaveError(null)
+    setIsSaving(true)
+
+    try {
+      await updateCharacter(auth, character.name, {
+        name: titleValue,
+        type: roleValue,
+        description: introductionValue,
+      })
+
+      // Switch to credentials tab
+      onTabChange?.('credentials')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An error occurred while saving'
+      setSaveError(message)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
       {/* Persona Tab */}
@@ -95,9 +120,9 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
               value={titleValue}
               onChange={(e) => setTitleValue(e.target.value)}
               disabled={isLoading}
-              readOnly={!isEditingTitle}
+              readOnly={!isEditingTitle && !isNewShowcase}
               className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue ${
-                isEditingTitle ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
+                isEditingTitle || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
               }`}
             />
             <PencilIcon
@@ -116,9 +141,9 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
               value={roleValue}
               onChange={(e) => setRoleValue(e.target.value)}
               disabled={isLoading}
-              readOnly={!isEditingRole}
+              readOnly={!isEditingRole && !isNewShowcase}
               className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue ${
-                isEditingRole ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
+                isEditingRole || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
               }`}
             />
             <PencilIcon
@@ -136,9 +161,9 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
               value={introductionValue}
               onChange={(e) => setIntroductionValue(e.target.value)}
               disabled={isLoading}
-              readOnly={!isEditingIntroduction}
+              readOnly={!isEditingIntroduction && !isNewShowcase}
               className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue resize-none ${
-                isEditingIntroduction ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
+                isEditingIntroduction || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
               }`}
               rows={4}
             />
@@ -177,6 +202,17 @@ export function PersonaTab({ character, isLoading }: PersonaTabProps) {
           </div>
         </div>
       </div>
+      {isNewShowcase && (
+        <div className="w-full max-w-4xl mt-8 px-6 flex justify-center">
+          <button
+            onClick={handleNextStep}
+            disabled={isSaving}
+            className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSaving ? 'Saving...' : 'Next Step'}
+          </button>
+        </div>
+      )}
       <ImageUploadModal
         isOpen={isImageUploadModalOpen}
         onClose={() => setIsImageUploadModalOpen(false)}

@@ -1,17 +1,94 @@
-import type { CustomCharacter } from '../../types'
+import type { CustomCharacter, Credential, OnboardingStep } from '../../types'
 
 import { PlusIcon } from '@heroicons/react/24/outline'
+import { useEffect } from 'react'
+import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
 
 import { baseRoute } from '../../../client/api/BaseUrl'
+import { updateCharacter } from '../../api/adminApi'
 import { CredentialCard } from '../credential/CredentialCard'
 
 interface CredentialsTabProps {
   character: CustomCharacter | null
+  isNewShowcase?: boolean
+  onTabChange?: (tab: string) => void
+  selectedCredential?: Credential
+  onRefresh?: () => void
 }
 
-export function CredentialsTab({ character }: CredentialsTabProps) {
+export function CredentialsTab({
+  character,
+  isNewShowcase,
+  onTabChange,
+  selectedCredential,
+  onRefresh,
+}: CredentialsTabProps) {
+  const auth = useAuth()
   const navigate = useNavigate()
+
+  const initializeBaseOnboarding = async () => {
+    if (!isNewShowcase || !character || character.onboarding?.length || !auth.user?.access_token) {
+      return
+    }
+
+    const baseOnboarding: OnboardingStep[] = [
+      {
+        screenId: 'INTRO_START',
+        title: `Meet ${character.name}`,
+        text: `${character.name} is a ${character.type}. In this demo, ${character.name} will use digital credentials from their BC Wallet to complete various tasks.`,
+      },
+      {
+        screenId: 'SETUP_START',
+        title: "Let's get started!",
+        text: 'BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas.\nUsing your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed.',
+      },
+    ]
+
+    // Add credential-specific screens if selectedCredential is defined
+    if (selectedCredential) {
+      baseOnboarding.push({
+        screenId: 'CONNECT',
+        title: `Connect to receive credential`,
+        text: `Scan the QR code to connect and receive the ${selectedCredential.name} credential.`,
+        issuer_name: character.name,
+      })
+
+      baseOnboarding.push({
+        screenId: 'ACCEPT_CREDENTIAL',
+        title: `Accept your ${selectedCredential.name}`,
+        text: `Your wallet now has a connection. You should have received an offer for the ${selectedCredential.name} credential.\nReview what is being sent, and choose 'Accept offer'.`,
+        credentials: [selectedCredential],
+      })
+    }
+
+    baseOnboarding.push({
+      screenId: 'SETUP_COMPLETED',
+      title: "You're all set!",
+      text: 'Congratulations! You have successfully completed the onboarding. Your credentials are now ready to be used.',
+    })
+
+    try {
+      await updateCharacter(auth, character.name, {
+        onboarding: baseOnboarding,
+      })
+      onRefresh?.()
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to initialize onboarding:', error)
+    }
+  }
+
+  const handleNextStep = async () => {
+    await initializeBaseOnboarding()
+    onTabChange?.('introduction')
+  }
+
+  useEffect(() => {
+    if (selectedCredential && !character?.onboarding?.length) {
+      initializeBaseOnboarding()
+    }
+  }, [selectedCredential, character?.onboarding?.length])
 
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
@@ -27,7 +104,7 @@ export function CredentialsTab({ character }: CredentialsTabProps) {
         <button
           onClick={() =>
             navigate(`${baseRoute}/admin/creator/credentials`, {
-              state: { fromShowcase: true, characterName: character?.name },
+              state: { fromShowcase: true, characterName: character?.name, isNewShowcase },
             })
           }
           className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
@@ -46,6 +123,16 @@ export function CredentialsTab({ character }: CredentialsTabProps) {
           )}
         </div>
       </div>
+      {isNewShowcase && (
+        <div className="w-full max-w-6xl mt-8 px-6 flex justify-center">
+          <button
+            onClick={handleNextStep}
+            className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors"
+          >
+            Next Step
+          </button>
+        </div>
+      )}
     </div>
   )
 }
