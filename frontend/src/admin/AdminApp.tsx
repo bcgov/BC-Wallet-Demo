@@ -8,9 +8,9 @@ import { AuthGuard } from './auth/AuthGuard'
 import { loadOidcConfig } from './auth/keycloakConfig'
 import { CallbackPage } from './pages/CallbackPage'
 import { CreatorPage } from './pages/CreatorPage'
-import { ShowcasePage } from './pages/ShowcasePage'
-import { LoginPage } from './pages/LoginPage'
 import { CredentialsPage } from './pages/CredentialsPage'
+import { LoginPage } from './pages/LoginPage'
+import { ShowcasePage } from './pages/ShowcasePage'
 
 const onSigninCallback = () => {
   window.history.replaceState({}, document.title, window.location.pathname)

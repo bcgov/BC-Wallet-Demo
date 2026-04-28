@@ -25,7 +25,11 @@ export function CredentialsTab({ character }: CredentialsTabProps) {
           </h5>
         </div>
         <button
-          onClick={() => navigate(`${baseRoute}/admin/creator/credentials`, { state: { fromTab: true } })}
+          onClick={() =>
+            navigate(`${baseRoute}/admin/creator/credentials`, {
+              state: { fromShowcase: true, characterName: character?.name },
+            })
+          }
           className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
         >
           <PlusIcon className="w-5 h-5" />

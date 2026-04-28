@@ -1,6 +1,6 @@
 import { UserIcon, CreditCardIcon, QueueListIcon, FilmIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { baseRoute } from '../../client/api/BaseUrl'
 import { AdminNavbar } from '../components/AdminNavbar'
@@ -13,8 +13,14 @@ import { useCharacter } from '../hooks/useCharacter'
 
 export function ShowcasePage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { character, isLoading } = useCharacter()
-  const [activeTab, setActiveTab] = useState<'persona' | 'introduction' | 'credentials' | 'scenarios'>('persona')
+  const tabFromUrl = (searchParams.get('tab') || 'persona') as 'persona' | 'introduction' | 'credentials' | 'scenarios'
+  const [activeTab, setActiveTab] = useState<'persona' | 'introduction' | 'credentials' | 'scenarios'>(tabFromUrl)
+
+  useEffect(() => {
+    setSearchParams({ tab: activeTab }, { replace: true })
+  }, [activeTab, setSearchParams])
 
   const tabs = [
     { id: 'persona', label: 'Persona', icon: <UserIcon className="w-5 h-5" /> },

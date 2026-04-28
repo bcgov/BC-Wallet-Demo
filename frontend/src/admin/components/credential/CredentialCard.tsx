@@ -8,7 +8,7 @@ interface CredentialCardProps {
 
 export function CredentialCard({ credential }: CredentialCardProps) {
   return (
-    <div className="border border-gray-300 rounded-lg bg-white p-8">
+    <div className="border border-gray-300 rounded-lg bg-white p-8 h-full min-h-[320px] flex flex-col">
       <div className="flex items-center gap-4 mb-6">
         {credential.icon && (
           <img

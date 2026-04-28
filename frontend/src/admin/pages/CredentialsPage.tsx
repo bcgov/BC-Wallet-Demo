@@ -3,7 +3,9 @@ import type { Credential } from '../types'
 import { CreditCardIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
+import { useLocation, useNavigate } from 'react-router-dom'
 
+import { baseRoute } from '../../client/api/BaseUrl'
 import { getAllCharacters } from '../api/adminApi'
 import { AdminNavbar } from '../components/AdminNavbar'
 import { CreateCredentialModal } from '../components/credential/CreateCredentialModal'
@@ -11,6 +13,8 @@ import { CredentialCard } from '../components/credential/CredentialCard'
 
 export function CredentialsPage() {
   const auth = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [credentials, setCredentials] = useState<Credential[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +51,12 @@ export function CredentialsPage() {
           <div className="w-11/12">
             {/* Header with Create Button */}
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-semibold text-bcgov-black">Credentials</h2>
+              <div>
+                <h2 className="text-2xl font-semibold text-bcgov-black">Credentials</h2>
+                {location.state?.fromShowcase && (
+                  <h5 className="text-gray-500 mt-2">Select or Create a credential for the showcase</h5>
+                )}
+              </div>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
@@ -77,7 +86,19 @@ export function CredentialsPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {credentials.map((credential) => (
-                  <CredentialCard key={credential.name} credential={credential} />
+                  <button
+                    key={credential.name}
+                    type="button"
+                    onClick={() => {
+                      if (location.state?.fromShowcase && location.state?.characterName) {
+                        navigate(`${baseRoute}/admin/creator/showcase/${location.state.characterName}?tab=credentials`)
+                      }
+                    }}
+                    className="p-0 bg-transparent border-none text-left hover:shadow-lg transition-shadow focus:outline-none h-full"
+                    style={{ appearance: 'none' }}
+                  >
+                    <CredentialCard credential={credential} />
+                  </button>
                 ))}
               </div>
             )}
