@@ -1,41 +1,12 @@
-import { PhotoIcon, CreditCardIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 
-import { baseRoute } from '../../client/api/BaseUrl'
 import { AdminNavbar } from '../components/AdminNavbar'
 import { ShowcasesPanel } from '../components/showcase/ShowcasesPanel'
+import { useCreatorTabs } from '../hooks/useCreatorTabs'
 
 export function CreatorPage() {
   const [activeTab, setActiveTab] = useState<'showcases' | 'credentials'>('showcases')
-  const navigate = useNavigate()
-
-  const tabsContent = (
-    <div className="flex gap-8">
-      <button
-        onClick={() => setActiveTab('showcases')}
-        className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
-          activeTab === 'showcases'
-            ? 'border-bcgov-blue text-bcgov-blue'
-            : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
-        }`}
-      >
-        <PhotoIcon className="w-5 h-5" />
-        Showcases
-      </button>
-      <button
-        onClick={() => navigate(`${baseRoute}/admin/creator/credentials`)}
-        className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
-          activeTab === 'credentials'
-            ? 'border-bcgov-blue text-bcgov-blue'
-            : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
-        }`}
-      >
-        <CreditCardIcon className="w-5 h-5" />
-        Credentials
-      </button>
-    </div>
-  )
+  const tabsContent = useCreatorTabs({ activeTab, onTabChange: setActiveTab })
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

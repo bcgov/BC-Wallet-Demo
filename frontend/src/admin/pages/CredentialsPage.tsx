@@ -10,6 +10,7 @@ import { getAllCharacters } from '../api/adminApi'
 import { AdminNavbar } from '../components/AdminNavbar'
 import { CreateCredentialModal } from '../components/credential/CreateCredentialModal'
 import { CredentialCard } from '../components/credential/CredentialCard'
+import { useCreatorTabs } from '../hooks/useCreatorTabs'
 
 export function CredentialsPage() {
   const auth = useAuth()
@@ -19,6 +20,8 @@ export function CredentialsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'showcases' | 'credentials'>('credentials')
+  const tabsContent = useCreatorTabs({ activeTab, onTabChange: setActiveTab })
 
   const fetchCredentials = async () => {
     try {
@@ -44,7 +47,7 @@ export function CredentialsPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <AdminNavbar />
+      <AdminNavbar tabsContent={!location.state?.fromShowcase ? tabsContent : undefined} />
       {/* Main Content */}
       <div className="flex-1 overflow-auto flex flex-col items-center justify-start">
         <div className="w-full p-8 flex flex-col items-center">
