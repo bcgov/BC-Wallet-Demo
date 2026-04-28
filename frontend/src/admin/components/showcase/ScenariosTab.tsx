@@ -1,29 +1,41 @@
 import type { CustomCharacter, UseCaseScreen } from '../../types'
 
+import { PlusIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
+import { useAuth } from 'react-oidc-context'
+import { useNavigate } from 'react-router-dom'
 
+import { baseRoute } from '../../../client/api/BaseUrl'
 import { useDragReorder } from '../../hooks/useDragReorder'
-
-import { EditScreenModal } from './EditScreenModal'
 import { ScreenContentCard } from '../ScreenContentCard'
+
+import { CreateScenarioModal } from './CreateScenarioModal'
+import { EditScreenModal } from './EditScreenModal'
 
 interface ScenariosTabProps {
   character: CustomCharacter | null
+  isNewShowcase?: boolean
+  onTabChange?: (tab: string) => void
+  onRefresh?: () => void
 }
 
-export function ScenariosTab({ character }: ScenariosTabProps) {
-  const [activeUseCase, setActiveUseCase] = useState<string | null>(null)
+export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosTabProps) {
+  const navigate = useNavigate()
+  const auth = useAuth()
+  const [activeScenario, setActiveScenario] = useState<string | null>(null)
   const [editingScreenIdx, setEditingScreenIdx] = useState<number | null>(null)
   const [editingScreen, setEditingScreen] = useState<UseCaseScreen | null>(null)
   const [reorderedScreens, setReorderedScreens] = useState<Record<string, UseCaseScreen[]>>({})
+  const [isCreateScenarioModalOpen, setIsCreateScenarioModalOpen] = useState(false)
   const { draggedIdx, dragOverIdx, handleDragStart, handleDragOver, handleDragLeave, setDraggedIdx, setDragOverIdx } =
     useDragReorder()
 
   useEffect(() => {
-    if (character?.useCases?.length) {
-      setActiveUseCase(character.useCases[0].id)
+    // Only set initial scenario if not already set
+    if (character?.useCases?.length && !activeScenario) {
+      setActiveScenario(character.useCases[0].id)
     }
-  }, [character?.useCases])
+  }, [character?.useCases?.length])
 
   const handleEditClick = (idx: number, screen: UseCaseScreen) => {
     setEditingScreenIdx(idx)
@@ -42,12 +54,12 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
   }
 
   const handleDrop = (dropIdx: number) => {
-    if (draggedIdx === null || !activeUseCase || !character?.useCases) return
+    if (draggedIdx === null || !activeScenario || !character?.useCases) return
 
-    const activeUC = character.useCases.find((uc) => uc.id === activeUseCase)
+    const activeUC = character.useCases.find((uc) => uc.id === activeScenario)
     if (!activeUC?.screens) return
 
-    const currentScreens = reorderedScreens[activeUseCase] || activeUC.screens
+    const currentScreens = reorderedScreens[activeScenario] || activeUC.screens
     const newScreens = [...currentScreens]
     const [draggedItem] = newScreens.splice(draggedIdx, 1)
     newScreens.splice(dropIdx, 0, draggedItem)
@@ -55,7 +67,7 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
     // TODO: Call API to persist reordered screens
 
     // Update local state to reflect the reorder
-    setReorderedScreens({ ...reorderedScreens, [activeUseCase]: newScreens })
+    setReorderedScreens({ ...reorderedScreens, [activeScenario]: newScreens })
 
     setDraggedIdx(null)
     setDragOverIdx(null)
@@ -64,9 +76,18 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
       {/* Scenarios Tab */}
-      <div className="w-full max-w-6xl mb-8 px-6">
-        <h2 className="text-2xl font-semibold text-bcgov-black">Scenarios</h2>
-        <h5 className="text-gray-500 mt-2">Create scenarios to walk users through credential usage.</h5>
+      <div className="w-full max-w-6xl mb-8 px-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-bcgov-black">Scenarios</h2>
+          <h5 className="text-gray-500 mt-2">Create scenarios to walk users through credential usage.</h5>
+        </div>
+        <button
+          onClick={() => setIsCreateScenarioModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
+        >
+          <PlusIcon className="w-5 h-5" />
+          Create Scenario
+        </button>
       </div>
 
       {/* Inner Tabs for Use Cases */}
@@ -75,9 +96,9 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
           {character?.useCases?.map((useCase) => (
             <button
               key={useCase.id}
-              onClick={() => setActiveUseCase(useCase.id)}
+              onClick={() => setActiveScenario(useCase.id)}
               className={`py-2 px-3 font-medium transition-colors border-b-2 ${
-                activeUseCase === useCase.id
+                activeScenario === useCase.id
                   ? 'border-bcgov-blue-light text-bcgov-blue-light'
                   : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
               }`}
@@ -91,7 +112,7 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
       {/* Use Case Content */}
       <div className="w-full max-w-6xl px-6 space-y-6">
         {character?.useCases?.map((useCase) =>
-          activeUseCase === useCase.id ? (
+          activeScenario === useCase.id ? (
             <div key={useCase.id}>
               {(reorderedScreens[useCase.id] || useCase.screens)?.map((screen, idx) => (
                 <ScreenContentCard
@@ -128,6 +149,29 @@ export function ScenariosTab({ character }: ScenariosTabProps) {
         character={character}
         onSave={(updatedScreen) => handleSaveScreen(updatedScreen as UseCaseScreen)}
       />
+
+      <CreateScenarioModal
+        isOpen={isCreateScenarioModalOpen}
+        onClose={() => setIsCreateScenarioModalOpen(false)}
+        character={character}
+        auth={auth}
+        onRefresh={onRefresh}
+        onScenarioCreated={(scenarioId) => {
+          setIsCreateScenarioModalOpen(false)
+          setActiveScenario(scenarioId)
+        }}
+      />
+
+      {isNewShowcase && (
+        <div className="w-full max-w-6xl mt-8 px-6 flex justify-center">
+          <button
+            onClick={() => navigate(`${baseRoute}/admin/creator`)}
+            className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors"
+          >
+            Finish
+          </button>
+        </div>
+      )}
     </div>
   )
 }
