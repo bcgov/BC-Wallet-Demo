@@ -56,6 +56,7 @@ describe('IntroductionStep embedded schema', () => {
       persona: { ...minimal.persona, type: 'Student-introduction' },
       credentials: [
         {
+          schema_id: 'QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6',
           name: 'Student Card',
           icon: '/icon.svg',
           version: '1.0',
@@ -68,7 +69,7 @@ describe('IntroductionStep embedded schema', () => {
           name: 'Get your card',
           text: 'Scan to receive',
           issuer_name: 'Best BC College',
-          credentialNames: ['Student Card'],
+          credentialSchemaIds: ['QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6'],
         },
       ],
     })
@@ -76,7 +77,7 @@ describe('IntroductionStep embedded schema', () => {
     const step = json.introduction[0]
     expect(step.screenId).toBe('PICK_CREDENTIAL')
     expect(step.issuer_name).toBe('Best BC College')
-    expect(step.credentialNames[0]).toBe('Student Card')
+    expect(step.credentialSchemaIds[0]).toBe('QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6')
     expect(json.credentials[0].attributes[0].value).toBe('12345')
   })
 })

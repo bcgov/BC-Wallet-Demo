@@ -44,6 +44,7 @@ export interface TextWithImage {
 }
 
 export interface Credential {
+  schema_id: string
   name: string
   icon: string
   version: string
@@ -59,7 +60,7 @@ export interface IntroductionStep {
   text: string
   issuer_name?: string
   image?: string
-  credentialNames?: string[]
+  credentialSchemaIds?: string[]
 }
 
 export interface Predicate {

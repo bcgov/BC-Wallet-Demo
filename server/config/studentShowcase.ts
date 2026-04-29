@@ -10,6 +10,7 @@ export const studentShowcase: Showcase = {
   },
   credentials: [
     {
+      schema_id: 'QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6',
       name: 'student_card',
       version: process.env.STUDENT_VERSION ?? '1.0',
       icon: '/public/student/icon-student.svg',
@@ -91,7 +92,7 @@ export const studentShowcase: Showcase = {
       name: 'Accept your student card',
       text: "Your wallet now has a secure and private connection with BestBC College. You should have received an offer in BC Wallet for a Student Card.\nReview what they are sending, and choose 'Accept offer'.",
       image: '/public/common/onboarding-credential-light.svg',
-      credentialNames: ['student_card'],
+      credentialSchemaIds: ['QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6'],
     },
     {
       screenId: 'SETUP_COMPLETED',

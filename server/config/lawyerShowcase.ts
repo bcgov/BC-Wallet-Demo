@@ -14,6 +14,7 @@ export const lawyerShowcase: Showcase = {
   description: 'Joyce is a member of the Law Society of British Columbia looking to access court materials online.',
   credentials: [
     {
+      schema_id: 'QEquAHkM35w4XVT3Ku5yat:2:member_card:1.54',
       name: 'member_card',
       version: process.env.LAWYER_VERSION ?? '1.0',
       icon: '/public/lawyer2/connection/lsbc-logo.png',
@@ -26,6 +27,7 @@ export const lawyerShowcase: Showcase = {
       ],
     },
     {
+      schema_id: 'QEquAHkM35w4XVT3Ku5yat:2:Person:1.3',
       name: 'Person',
       version: process.env.PERSON_VERSION ?? '1.0',
       icon: '/public/lawyer2/connection/bc-logo.png',
@@ -47,6 +49,7 @@ export const lawyerShowcase: Showcase = {
       ],
     },
     {
+      schema_id: 'QEquAHkM35w4XVT3Ku5yat:2:Person:1.3',
       name: 'Person',
       version: process.env.PERSON_VERSION ?? '1.0',
       icon: '/public/lawyer2/connection/bc-logo.png',
@@ -179,7 +182,7 @@ export const lawyerShowcase: Showcase = {
       name: 'Accept your lawyer credential',
       text: 'Check your phone. You’ve received a credential offer from the Law Society of British Columbia in your BC Wallet. You can use this credential to prove you’re a lawyer online.',
       image: '/public/lawyer2/onboarding/lawyerCredPhone.svg',
-      credentialNames: ['member_card'],
+      credentialSchemaIds: ['QEquAHkM35w4XVT3Ku5yat:2:member_card:1.54'],
     },
     {
       screenId: 'CONNECT_PERSON',
@@ -193,7 +196,7 @@ export const lawyerShowcase: Showcase = {
       name: 'Accept your Person credential',
       text: "Check your phone. You've received a credential offer from Service BC in your BC Wallet. You can use this credential to prove who you are online.",
       image: '/public/lawyer2/onboarding/personCredPhone.svg',
-      credentialNames: ['Person'],
+      credentialSchemaIds: ['QEquAHkM35w4XVT3Ku5yat:2:Person:1.3'],
     },
     {
       screenId: 'SETUP_COMPLETED',

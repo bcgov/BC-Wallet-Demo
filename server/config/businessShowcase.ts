@@ -12,6 +12,7 @@ export const businessShowcase: Showcase = {
   hidden: true,
   credentials: [
     {
+      schema_id: 'K9igebFysBL6jcBwR8bKuN:2:Digital Business Card:1.0.0',
       name: 'Digital Business Card',
       version: process.env.BUSINESS_VERSION ?? '1.0.0',
       icon: '/public/student/icon-student.svg',
@@ -100,7 +101,7 @@ export const businessShowcase: Showcase = {
       name: 'Accept your digital business card',
       text: "Your wallet now has a secure and private connection with BC Registries. You should have received an offer in BC Wallet for a Digital Business Card.\nReview what they are sending, and choose 'Accept offer'.",
       image: '/public/common/onboarding-credential-light.svg',
-      credentialNames: ['Digital Business Card'],
+      credentialSchemaIds: ['K9igebFysBL6jcBwR8bKuN:2:Digital Business Card:1.0.0'],
     },
     {
       screenId: 'SETUP_COMPLETED',

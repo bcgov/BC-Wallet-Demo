@@ -20,6 +20,7 @@ import { ScenarioSchema } from './Scenario'
 // Not to be confused with CredentialRequest, which is for proof use case screens.
 const CredentialSchema = new Schema<Credential>(
   {
+    schema_id: { type: String, required: true },
     name: { type: String, required: true },
     icon: { type: String, required: true },
     version: { type: String, required: true },
@@ -37,7 +38,7 @@ const IntroductionStepSchema = new Schema<IntroductionStep>(
     text: { type: String, required: true },
     image: String,
     issuer_name: String,
-    credentialNames: [String],
+    credentialSchemaIds: [String],
   },
   embeddedSchemaOptions,
 )
