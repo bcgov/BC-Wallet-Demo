@@ -2,9 +2,11 @@ import type { CustomCharacter, OnboardingStep } from '../../../types'
 
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
+import { useAuth } from 'react-oidc-context'
 
-import { publicBaseUrl } from '../../../api/adminApi'
+import { publicBaseUrl, updateCharacter } from '../../../api/adminApi'
 import { useDragReorder } from '../../../hooks/useDragReorder'
+import { toSnakeCase } from '../../../utils/toSnakeCase'
 import { OnboardingInitializedModal } from '../../OnboardingInitializedModal'
 import { ScreenContentCard } from '../../ScreenContentCard'
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
@@ -20,12 +22,15 @@ interface IntroductionTabProps {
   character: CustomCharacter | null
   isNewShowcase?: boolean
   onTabChange?: (tab: string) => void
+  onRefresh?: () => void | Promise<void>
 }
 
-export function IntroductionTab({ character, isNewShowcase, onTabChange }: IntroductionTabProps) {
+export function IntroductionTab({ character, isNewShowcase, onTabChange, onRefresh }: IntroductionTabProps) {
+  const auth = useAuth()
   const [editingScreenIdx, setEditingScreenIdx] = useState<number | null>(null)
   const [editingScreen, setEditingScreen] = useState<OnboardingStep | null>(null)
   const [editingProgressBar, setEditingProgressBar] = useState<ProgressBar | null>(null)
+  const [insertionIdx, setInsertionIdx] = useState<number | null>(null)
   const [reorderedOnboarding, setReorderedOnboarding] = useState<OnboardingStep[] | null>(null)
   const [showOnboardingModal, setShowOnboardingModal] = useState<boolean>(isNewShowcase ?? false)
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
@@ -39,27 +44,63 @@ export function IntroductionTab({ character, isNewShowcase, onTabChange }: Intro
     setEditingProgressBar(progressStep || null)
   }
 
-  const handleAddScreenClick = () => {
+  const handleAddScreenClick = (afterIdx: number) => {
     // Create a new empty screen template
     const newScreen: OnboardingStep = {
       screenId: '',
       title: '',
       text: '',
     }
+    setInsertionIdx(afterIdx + 1) // Insert after the hovered position
     setEditingScreenIdx(-1) // Indicator for new screen
     setEditingScreen(newScreen)
     setEditingProgressBar(null)
   }
 
-  const handleSaveScreen = () => {
-    if (!character) return
+  const handleSaveScreen = async (updatedScreen: OnboardingStep) => {
+    if (!character || !auth.user?.access_token) return
 
-    // TODO: Call API to save changes to the character
-    // For now, just close the modal
+    try {
+      const currentOnboarding = reorderedOnboarding || character.onboarding || []
 
-    setEditingScreenIdx(null)
-    setEditingScreen(null)
-    setEditingProgressBar(null)
+      // Convert screenId to uppercase snake case
+      const screenWithFormattedId = {
+        ...updatedScreen,
+        screenId: updatedScreen.screenId ? toSnakeCase(updatedScreen.screenId) : '',
+      }
+
+      let updatedOnboarding: OnboardingStep[]
+
+      if (editingScreenIdx === -1) {
+        // New screen - insert at insertionIdx
+        updatedOnboarding = [...currentOnboarding]
+        const insertPos = insertionIdx ?? currentOnboarding.length
+        updatedOnboarding.splice(insertPos, 0, screenWithFormattedId)
+      } else {
+        // Existing screen - replace at index
+        updatedOnboarding = [...currentOnboarding]
+        if (editingScreenIdx !== null) updatedOnboarding[editingScreenIdx] = screenWithFormattedId
+      }
+
+      // Call API to persist the changes
+      await updateCharacter(auth, character.name, { onboarding: updatedOnboarding })
+
+      // Refetch character data to ensure UI is in sync
+      if (onRefresh) {
+        await Promise.resolve(onRefresh())
+      } else {
+        // Fallback to local state update if no refetch callback
+        setReorderedOnboarding(updatedOnboarding)
+      }
+
+      setEditingScreenIdx(null)
+      setEditingScreen(null)
+      setEditingProgressBar(null)
+      setInsertionIdx(null)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error saving screen:', error)
+    }
   }
 
   const handleDrop = (dropIdx: number) => {
@@ -134,7 +175,7 @@ export function IntroductionTab({ character, isNewShowcase, onTabChange }: Intro
                 >
                   {hoverIdx === idx && (
                     <button
-                      onClick={() => handleAddScreenClick()}
+                      onClick={() => handleAddScreenClick(idx)}
                       className="w-7 h-7 rounded-full bg-bcgov-blue text-white flex items-center justify-center hover:bg-bcgov-blue-dark transition-colors shadow-md"
                       title="Add screen"
                     >

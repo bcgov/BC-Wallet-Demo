@@ -110,6 +110,7 @@ export function ShowcasePage() {
               character={character}
               isNewShowcase={isNewShowcase}
               onTabChange={(tab) => setActiveTab(tab as TabId)}
+              onRefresh={refetch}
             />
           )}
           {activeTab === 'scenarios' && (
