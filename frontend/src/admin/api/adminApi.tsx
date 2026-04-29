@@ -1,12 +1,13 @@
 import type { CustomCharacter } from '../types'
 import type { AuthContextProps } from 'react-oidc-context'
 
-import { baseUrl } from '../../client/api/BaseUrl'
-
-const adminBase = `${baseUrl}/admin`
+const baseRoute = import.meta.env.VITE_BASE_ROUTE || '/digital-trust/showcase'
+export const adminBaseRoute = `${baseRoute}/admin`
+export const adminBaseUrl = (import.meta.env.VITE_HOST_BACKEND || '') + adminBaseRoute
+export const publicBaseUrl = (import.meta.env.VITE_HOST_BACKEND || '') + baseRoute
 
 export const getAllCharacters = async (auth: AuthContextProps): Promise<CustomCharacter[]> => {
-  const res = await fetch(`${adminBase}/characters`, {
+  const res = await fetch(`${adminBaseUrl}/characters`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -19,7 +20,7 @@ export const getAllCharacters = async (auth: AuthContextProps): Promise<CustomCh
 }
 
 export const getCharacterByName = async (auth: AuthContextProps, name: string): Promise<CustomCharacter> => {
-  const res = await fetch(`${adminBase}/characters/${encodeURIComponent(name)}`, {
+  const res = await fetch(`${adminBaseUrl}/characters/${encodeURIComponent(name)}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -37,7 +38,7 @@ export interface SVGFile {
 }
 
 export const getAvailableSvgs = async (auth: AuthContextProps): Promise<string[]> => {
-  const res = await fetch(`${adminBase}/svgs`, {
+  const res = await fetch(`${adminBaseUrl}/svgs`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -54,7 +55,7 @@ export const updateCharacter = async (
   characterName: string,
   updates: Partial<CustomCharacter>,
 ): Promise<CustomCharacter> => {
-  const res = await fetch(`${adminBase}/characters/${encodeURIComponent(characterName)}`, {
+  const res = await fetch(`${adminBaseUrl}/characters/${encodeURIComponent(characterName)}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -74,7 +75,7 @@ export const uploadSvg = async (auth: AuthContextProps, file: File): Promise<{ p
   const formData = new FormData()
   formData.append('file', file)
 
-  const res = await fetch(`${adminBase}/svgs`, {
+  const res = await fetch(`${adminBaseUrl}/svgs`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -91,7 +92,7 @@ export const createShowcase = async (
   name: string,
   description: string,
 ): Promise<{ success: boolean; message: string; filename: string; name: string }> => {
-  const res = await fetch(`${adminBase}/characters`, {
+  const res = await fetch(`${adminBaseUrl}/characters`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -105,7 +106,7 @@ export const createShowcase = async (
 }
 
 export const getAllCredentials = async (auth: AuthContextProps): Promise<Credential[]> => {
-  const res = await fetch(`${adminBase}/credentials`, {
+  const res = await fetch(`${adminBaseUrl}/credentials`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,

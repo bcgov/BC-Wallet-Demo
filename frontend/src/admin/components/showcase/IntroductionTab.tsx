@@ -3,7 +3,7 @@ import type { CustomCharacter, OnboardingStep } from '../../types'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
-import { baseUrl } from '../../../client/api/BaseUrl'
+import { publicBaseUrl } from '../../api/adminApi'
 import { useDragReorder } from '../../hooks/useDragReorder'
 import { OnboardingInitializedModal } from '../OnboardingInitializedModal'
 import { ScreenContentCard } from '../ScreenContentCard'
@@ -96,7 +96,11 @@ export function IntroductionTab({ character, isNewShowcase, onTabChange }: Intro
                   {progressStep ? (
                     <>
                       <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-bcgov-blue bg-blue-50">
-                        <img src={`${baseUrl}${progressStep.iconLight}`} alt={progressStep.name} className="w-6 h-6" />
+                        <img
+                          src={`${publicBaseUrl}${progressStep.iconLight}`}
+                          alt={progressStep.name}
+                          className="w-6 h-6"
+                        />
                       </div>
                     </>
                   ) : (

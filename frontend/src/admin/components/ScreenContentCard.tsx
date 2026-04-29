@@ -2,7 +2,7 @@ import type { Credential } from '../types'
 
 import { CreditCardIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 
-import { baseUrl } from '../../client/api/BaseUrl'
+import { publicBaseUrl } from '../api/adminApi'
 import { formatScreenId } from '../utils/formatScreenId'
 
 interface ScreenContentCardProps {
@@ -72,7 +72,7 @@ export function ScreenContentCard({
       </div>
       {image && (
         <div className="flex-shrink-0">
-          <img src={`${baseUrl}${image}`} alt={title} className="h-40 w-auto object-contain" />
+          <img src={`${publicBaseUrl}${image}`} alt={title} className="h-40 w-auto object-contain" />
         </div>
       )}
     </div>

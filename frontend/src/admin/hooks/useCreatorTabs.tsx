@@ -1,7 +1,7 @@
 import { PhotoIcon, CreditCardIcon } from '@heroicons/react/24/outline'
 import { useNavigate } from 'react-router-dom'
 
-import { baseRoute } from '../../client/api/BaseUrl'
+import { adminBaseRoute } from '../api/adminApi'
 
 interface UseCreatorTabsProps {
   activeTab: 'showcases' | 'credentials'
@@ -16,7 +16,7 @@ export function useCreatorTabs({ activeTab, onTabChange }: UseCreatorTabsProps) 
       <button
         onClick={() => {
           onTabChange('showcases')
-          navigate(`${baseRoute}/admin/creator`)
+          navigate(`${adminBaseRoute}/creator`)
         }}
         className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
           activeTab === 'showcases'
@@ -28,7 +28,7 @@ export function useCreatorTabs({ activeTab, onTabChange }: UseCreatorTabsProps) 
         Showcases
       </button>
       <button
-        onClick={() => navigate(`${baseRoute}/admin/creator/credentials`)}
+        onClick={() => navigate(`${adminBaseRoute}/creator/credentials`)}
         className={`pb-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${
           activeTab === 'credentials'
             ? 'border-bcgov-blue text-bcgov-blue'

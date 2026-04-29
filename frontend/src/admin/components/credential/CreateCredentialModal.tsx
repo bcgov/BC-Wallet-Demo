@@ -1,7 +1,7 @@
 import { ArrowUpTrayIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
-import { baseUrl } from '../../../client/api/BaseUrl'
+import { publicBaseUrl } from '../../api/adminApi'
 import { ImageUploadModal } from '../ImageUploadModal'
 
 interface Attribute {
@@ -101,7 +101,7 @@ export function CreateCredentialModal({ isOpen, onClose }: CreateCredentialModal
               {image ? (
                 <div className="w-24 h-24 border border-gray-300 rounded-lg overflow-hidden bg-gray-100">
                   <img
-                    src={`${baseUrl}${image}`}
+                    src={`${publicBaseUrl}${image}`}
                     alt="Credential icon preview"
                     className="w-full h-full object-contain"
                   />

@@ -1,6 +1,6 @@
 import type { CustomCharacter } from '../../types'
 
-import { baseUrl } from '../../../client/api/BaseUrl'
+import { publicBaseUrl } from '../../api/adminApi'
 
 interface ShowcaseCardProps {
   character: CustomCharacter
@@ -17,7 +17,7 @@ export function ShowcaseCard({ character, onClick }: ShowcaseCardProps) {
         <div className="flex items-start gap-4">
           {character.image && (
             <img
-              src={`${baseUrl}${character.image as string}`}
+              src={`${publicBaseUrl}${character.image as string}`}
               alt={character.name as string}
               className="h-12 w-12 rounded-lg object-contain flex-shrink-0 bg-gray-100"
             />

@@ -5,8 +5,7 @@ import { useEffect } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
 
-import { baseRoute } from '../../../../client/api/BaseUrl'
-import { updateCharacter } from '../../../api/adminApi'
+import { adminBaseRoute, updateCharacter } from '../../../api/adminApi'
 import { CredentialCard } from '../../credential/CredentialCard'
 
 interface CredentialsTabProps {
@@ -132,7 +131,7 @@ export function CredentialsTab({
         </div>
         <button
           onClick={() =>
-            navigate(`${baseRoute}/admin/creator/credentials`, {
+            navigate(`${adminBaseRoute}/creator/credentials`, {
               state: { fromShowcase: true, characterName: character?.name, isNewShowcase },
             })
           }

@@ -5,8 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { baseRoute } from '../../client/api/BaseUrl'
-import { getAllCharacters } from '../api/adminApi'
+import { adminBaseRoute, getAllCharacters } from '../api/adminApi'
 import { AdminNavbar } from '../components/AdminNavbar'
 import { CreateCredentialModal } from '../components/credential/CreateCredentialModal'
 import { CredentialCard } from '../components/credential/CredentialCard'
@@ -95,7 +94,7 @@ export function CredentialsPage() {
                     onClick={() => {
                       if (location.state?.fromShowcase && location.state?.characterName) {
                         navigate(
-                          `${baseRoute}/admin/creator/showcase/${location.state.characterName}?tab=credentials`,
+                          `${adminBaseRoute}/creator/showcase/${location.state.characterName}?tab=credentials`,
                           {
                             state: {
                               selectedCredential: credential,

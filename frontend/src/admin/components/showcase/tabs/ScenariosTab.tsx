@@ -5,10 +5,9 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
 
-import { baseRoute } from '../../../../client/api/BaseUrl'
+import { adminBaseRoute } from '../../../api/adminApi'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import { ScreenContentCard } from '../../ScreenContentCard'
-
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
 import { CreateScenarioModal } from '../modals/CreateScenarioModal'
 
@@ -199,7 +198,7 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
       {isNewShowcase && (
         <div className="w-full max-w-6xl mt-8 px-6 flex justify-center">
           <button
-            onClick={() => navigate(`${baseRoute}/admin/creator`)}
+            onClick={() => navigate(`${adminBaseRoute}/creator`)}
             className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors"
           >
             Finish

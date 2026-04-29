@@ -1,7 +1,7 @@
 import { PowerIcon, Squares2X2Icon } from '@heroicons/react/24/outline'
 import { useAuth } from 'react-oidc-context'
 
-import { baseRoute } from '../../client/api/BaseUrl'
+import { adminBaseRoute } from '../api/adminApi'
 
 interface AdminNavbarProps {
   onLogoClick?: () => void
@@ -13,7 +13,7 @@ export function AdminNavbar({ onLogoClick, tabsContent }: AdminNavbarProps) {
 
   const handleSignOut = () => {
     void auth.signoutRedirect({
-      post_logout_redirect_uri: `${window.location.origin}${baseRoute}/admin?signedOut=true`,
+      post_logout_redirect_uri: `${window.location.origin}${adminBaseRoute}?signedOut=true`,
     })
   }
 

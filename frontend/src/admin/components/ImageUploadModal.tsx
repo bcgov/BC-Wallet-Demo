@@ -2,8 +2,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { baseUrl } from '../../client/api/BaseUrl'
-import { getAvailableSvgs, uploadSvg } from '../api/adminApi'
+import { publicBaseUrl, getAvailableSvgs, uploadSvg } from '../api/adminApi'
 
 interface ImageUploadModalProps {
   isOpen: boolean
@@ -90,7 +89,7 @@ export function ImageUploadModal({ isOpen, onClose, onSelectImage }: ImageUpload
                   }}
                   className="flex flex-col items-center justify-center p-4 border-2 border-gray-300 rounded-lg hover:border-bcgov-blue transition-colors bg-gray-50 h-40"
                 >
-                  <img src={`${baseUrl}${imagePath}`} alt={imagePath} className="w-20 h-20 object-contain mb-2" />
+                  <img src={`${publicBaseUrl}${imagePath}`} alt={imagePath} className="w-20 h-20 object-contain mb-2" />
                 </button>
               ))}
             </div>

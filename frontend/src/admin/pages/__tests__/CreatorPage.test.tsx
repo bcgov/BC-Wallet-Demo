@@ -13,9 +13,10 @@ vi.mock('react-oidc-context', () => ({
   }),
 }))
 
-vi.mock('../../../client/api/BaseUrl', () => ({
-  baseRoute: '/digital-trust/showcase',
-  baseUrl: 'http://localhost:5000/digital-trust/showcase',
+vi.mock('../../api/adminApi', () => ({
+  adminBaseRoute: '/digital-trust/showcase/admin',
+  adminBaseUrl: 'http://localhost:5000/digital-trust/showcase/admin',
+  publicBaseUrl: 'http://localhost:5000/digital-trust/showcase/public',
 }))
 
 const renderCreatorPage = () =>
@@ -28,19 +29,17 @@ const renderCreatorPage = () =>
 describe('CreatorPage', () => {
   it('renders the Admin Portal heading', () => {
     renderCreatorPage()
-    expect(screen.getByRole('heading', { name: 'Admin Portal' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Showcases' })).toBeInTheDocument()
   })
 
   it('renders the API Test Panel', () => {
     renderCreatorPage()
-    expect(screen.getByRole('heading', { name: 'API Test Panel' })).toBeInTheDocument()
+    expect(screen.getByText('Manage your digital credential showcases.')).toBeInTheDocument()
   })
 
   it('renders all endpoint buttons', () => {
     renderCreatorPage()
-    expect(screen.getByRole('button', { name: 'GET /characters' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'POST /characters' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'DELETE /characters/test-id' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create Showcase' })).toBeInTheDocument()
   })
 
   it('renders the contact email link', () => {

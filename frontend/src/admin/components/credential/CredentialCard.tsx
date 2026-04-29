@@ -1,6 +1,6 @@
 import type { Credential } from '../../types'
 
-import { baseUrl } from '../../../client/api/BaseUrl'
+import { publicBaseUrl } from '../../api/adminApi'
 
 interface CredentialCardProps {
   credential: Credential
@@ -12,7 +12,7 @@ export function CredentialCard({ credential }: CredentialCardProps) {
       <div className="flex items-center gap-4 mb-6">
         {credential.icon && (
           <img
-            src={`${baseUrl}${credential.icon}`}
+            src={`${publicBaseUrl}${credential.icon}`}
             alt={credential.name}
             className="w-12 h-12 rounded-lg object-contain bg-gray-100"
           />

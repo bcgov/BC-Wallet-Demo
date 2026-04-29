@@ -4,8 +4,7 @@ import { ArrowUpTrayIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { baseUrl } from '../../../../client/api/BaseUrl'
-import { updateCharacter } from '../../../api/adminApi'
+import { publicBaseUrl, updateCharacter } from '../../../api/adminApi'
 import { ImageUploadModal } from '../../ImageUploadModal'
 
 interface PersonaTabProps {
@@ -181,7 +180,7 @@ export function PersonaTab({ character, isLoading, isNewShowcase, onTabChange }:
             {character?.image ? (
               <div className="w-24 h-24 border border-gray-300 rounded-lg overflow-hidden bg-gray-100">
                 <img
-                  src={`${baseUrl}${character.image}`}
+                  src={`${publicBaseUrl}${character.image}`}
                   alt={character.name}
                   className="w-full h-full object-contain"
                 />

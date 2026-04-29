@@ -5,8 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
 
-import { baseRoute } from '../../../client/api/BaseUrl'
-import { getAllCharacters } from '../../api/adminApi'
+import { adminBaseRoute, getAllCharacters } from '../../api/adminApi'
 
 import { ShowcaseCard } from './ShowcaseCard'
 import { CreateShowcaseModal } from './modals/CreateShowcaseModal'
@@ -59,9 +58,7 @@ export function ShowcasesPanel() {
             <ShowcaseCard
               key={idx}
               character={character}
-              onClick={() =>
-                navigate(`${baseRoute}/admin/creator/showcase/${character.name}`, { state: { character } })
-              }
+              onClick={() => navigate(`${adminBaseRoute}/creator/showcase/${character.name}`, { state: { character } })}
             />
           ))}
         </div>
@@ -72,7 +69,7 @@ export function ShowcasesPanel() {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={(showcaseName) => {
           setIsCreateModalOpen(false)
-          navigate(`${baseRoute}/admin/creator/showcase/${showcaseName}`, { state: { isNewShowcase: true } })
+          navigate(`${adminBaseRoute}/creator/showcase/${showcaseName}`, { state: { isNewShowcase: true } })
         }}
       />
     </div>

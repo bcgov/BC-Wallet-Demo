@@ -4,7 +4,7 @@ import { UserIcon, CreditCardIcon, QueueListIcon, FilmIcon, ArrowLeftIcon } from
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { baseRoute } from '../../client/api/BaseUrl'
+import { adminBaseRoute } from '../api/adminApi'
 import { AdminNavbar } from '../components/AdminNavbar'
 import { SecondaryNavbar } from '../components/showcase/SecondaryNavbar'
 import { CredentialsTab } from '../components/showcase/tabs/CredentialsTab'
@@ -51,7 +51,7 @@ export function ShowcasePage() {
   ]
 
   const handleLogoClick = () => {
-    navigate(`${baseRoute}/admin/creator`)
+    navigate(`${adminBaseRoute}/creator`)
   }
 
   return (
@@ -61,7 +61,7 @@ export function ShowcasePage() {
       {/* Back to Showcases Button */}
       <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
         <button
-          onClick={() => navigate(`${baseRoute}/admin/creator`)}
+          onClick={() => navigate(`${adminBaseRoute}/creator`)}
           className="text-bcgov-blue hover:text-bcgov-black hover:bg-gray-100 transition-all flex items-center gap-2 px-3 py-2 rounded-lg"
         >
           <ArrowLeftIcon className="w-4 h-4" />
