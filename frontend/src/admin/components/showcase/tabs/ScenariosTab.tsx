@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { adminBaseRoute } from '../../../api/adminApi'
 import { useDragReorder } from '../../../hooks/useDragReorder'
+import { saveScreenToCharacter } from '../../../utils/saveScreenToCharacter'
 import { ScreenContentCard } from '../../ScreenContentCard'
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
 import { CreateScenarioModal } from '../modals/CreateScenarioModal'
@@ -15,7 +16,7 @@ interface ScenariosTabProps {
   character: CustomCharacter | null
   isNewShowcase?: boolean
   onTabChange?: (tab: string) => void
-  onRefresh?: () => void
+  onRefresh?: () => void | Promise<void>
 }
 
 export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosTabProps) {
@@ -24,6 +25,7 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
   const [activeScenario, setActiveScenario] = useState<string | null>(null)
   const [editingScreenIdx, setEditingScreenIdx] = useState<number | null>(null)
   const [editingScreen, setEditingScreen] = useState<UseCaseScreen | null>(null)
+  const [insertionIdx, setInsertionIdx] = useState<number | null>(null)
   const [reorderedScreens, setReorderedScreens] = useState<Record<string, UseCaseScreen[]>>({})
   const [isCreateScenarioModalOpen, setIsCreateScenarioModalOpen] = useState(false)
   const [hoverIdx, setHoverIdx] = useState<string | null>(null)
@@ -42,26 +44,49 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
     setEditingScreen(screen)
   }
 
-  const handleAddScreenClick = () => {
+  const handleAddScreenClick = (afterIdx: number) => {
     // Create a new empty screen template
     const newScreen: UseCaseScreen = {
       screenId: '',
       title: '',
       text: '',
     }
+    setInsertionIdx(afterIdx + 1) // Insert after the hovered position
     setEditingScreenIdx(-1) // Indicator for new screen
     setEditingScreen(newScreen)
   }
 
-  const handleSaveScreen = (updatedScreen: UseCaseScreen) => {
-    if (!character || editingScreenIdx === null) return
+  const handleSaveScreen = async (updatedScreen: UseCaseScreen) => {
+    if (!character || !activeScenario || !auth.user?.access_token) return
 
-    // TODO: Call API to save changes to the character
-    // eslint-disable-next-line no-console
-    console.log('Saving updated screen:', updatedScreen)
+    try {
+      const activeUC = character.useCases?.find((uc) => uc.id === activeScenario)
+      if (!activeUC) return
 
-    setEditingScreenIdx(null)
-    setEditingScreen(null)
+      const currentScreens = reorderedScreens[activeScenario] || activeUC.screens || []
+
+      const { updatedItems } = await saveScreenToCharacter({
+        character,
+        auth,
+        updatedScreen,
+        editingScreenIdx,
+        insertionIdx,
+        screenType: 'scenarios',
+        activeScenarioId: activeScenario,
+        onRefresh,
+        currentItems: currentScreens,
+      })
+
+      // Update local state
+      setReorderedScreens({ ...reorderedScreens, [activeScenario]: updatedItems as UseCaseScreen[] })
+
+      setEditingScreenIdx(null)
+      setEditingScreen(null)
+      setInsertionIdx(null)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error saving screen:', error)
+    }
   }
 
   const handleDrop = (dropIdx: number) => {
@@ -154,7 +179,7 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
                     >
                       {hoverIdx === `${useCase.id}-${idx}` && (
                         <button
-                          onClick={() => handleAddScreenClick()}
+                          onClick={() => handleAddScreenClick(idx)}
                           className="w-7 h-7 rounded-full bg-bcgov-blue text-white flex items-center justify-center hover:bg-bcgov-blue-dark transition-colors shadow-md"
                           title="Add screen"
                         >

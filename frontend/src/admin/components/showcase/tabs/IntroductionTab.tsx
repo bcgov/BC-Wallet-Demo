@@ -4,9 +4,9 @@ import { PlusIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { publicBaseUrl, updateCharacter } from '../../../api/adminApi'
+import { publicBaseUrl } from '../../../api/adminApi'
 import { useDragReorder } from '../../../hooks/useDragReorder'
-import { toSnakeCase } from '../../../utils/toSnakeCase'
+import { saveScreenToCharacter } from '../../../utils/saveScreenToCharacter'
 import { OnboardingInitializedModal } from '../../OnboardingInitializedModal'
 import { ScreenContentCard } from '../../ScreenContentCard'
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
@@ -63,35 +63,19 @@ export function IntroductionTab({ character, isNewShowcase, onTabChange, onRefre
     try {
       const currentOnboarding = reorderedOnboarding || character.onboarding || []
 
-      // Convert screenId to uppercase snake case
-      const screenWithFormattedId = {
-        ...updatedScreen,
-        screenId: updatedScreen.screenId ? toSnakeCase(updatedScreen.screenId) : '',
-      }
+      const { updatedItems } = await saveScreenToCharacter({
+        character,
+        auth,
+        updatedScreen,
+        editingScreenIdx,
+        insertionIdx,
+        screenType: 'onboarding',
+        onRefresh,
+        currentItems: currentOnboarding,
+      })
 
-      let updatedOnboarding: OnboardingStep[]
-
-      if (editingScreenIdx === -1) {
-        // New screen - insert at insertionIdx
-        updatedOnboarding = [...currentOnboarding]
-        const insertPos = insertionIdx ?? currentOnboarding.length
-        updatedOnboarding.splice(insertPos, 0, screenWithFormattedId)
-      } else {
-        // Existing screen - replace at index
-        updatedOnboarding = [...currentOnboarding]
-        if (editingScreenIdx !== null) updatedOnboarding[editingScreenIdx] = screenWithFormattedId
-      }
-
-      // Call API to persist the changes
-      await updateCharacter(auth, character.name, { onboarding: updatedOnboarding })
-
-      // Refetch character data to ensure UI is in sync
-      if (onRefresh) {
-        await Promise.resolve(onRefresh())
-      } else {
-        // Fallback to local state update if no refetch callback
-        setReorderedOnboarding(updatedOnboarding)
-      }
+      // Update local state
+      setReorderedOnboarding(updatedItems as OnboardingStep[])
 
       setEditingScreenIdx(null)
       setEditingScreen(null)
