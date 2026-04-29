@@ -88,6 +88,7 @@ router.post('/', requireRole(['admin', 'creator']), (req: Request, res: Response
       name,
       type: description || '',
       image: '',
+      credentials: [],
       revocationInfo: [],
       progressBar: [],
       onboarding: [],

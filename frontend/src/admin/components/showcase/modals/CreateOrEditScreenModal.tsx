@@ -1,9 +1,9 @@
 import { PencilIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
-import { baseUrl } from '../../../client/api/BaseUrl'
-import { formatScreenId, type CustomCharacter, type OnboardingStep } from '../../types'
-import { ImageUploadModal } from '../ImageUploadModal'
+import { baseUrl } from '../../../../client/api/BaseUrl'
+import { formatScreenId, type CustomCharacter, type OnboardingStep } from '../../../types'
+import { ImageUploadModal } from '../../ImageUploadModal'
 
 interface ProgressBar {
   name: string
@@ -107,6 +107,9 @@ export function CreateOrEditScreenModal({
               placeholder="Enter screen ID"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Used to identify this screen in the showcase creator. Not shown in the showcase UI.
+            </p>
           </div>
 
           <div>

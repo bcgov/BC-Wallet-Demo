@@ -84,6 +84,7 @@ export interface CustomCharacter {
   onboarding: OnboardingStep[]
   useCases: CustomUseCase[]
   revocationInfo?: RevocationInfoItem[]
+  credentials: Credential[]
 }
 
 export interface UseCaseCard {

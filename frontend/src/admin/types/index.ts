@@ -69,6 +69,7 @@ export interface CustomCharacter {
   image: string
   hidden?: boolean
   description?: string
+  credentials: Credential[]
   progressBar: ProgressBarStep[]
   onboarding: OnboardingStep[]
   useCases: CustomUseCase[]

@@ -6,11 +6,11 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { baseRoute } from '../../client/api/BaseUrl'
 import { AdminNavbar } from '../components/AdminNavbar'
-import { CredentialsTab } from '../components/showcase/CredentialsTab'
-import { IntroductionTab } from '../components/showcase/IntroductionTab'
-import { PersonaTab } from '../components/showcase/PersonaTab'
-import { ScenariosTab } from '../components/showcase/ScenariosTab'
 import { SecondaryNavbar } from '../components/showcase/SecondaryNavbar'
+import { CredentialsTab } from '../components/showcase/tabs/CredentialsTab'
+import { IntroductionTab } from '../components/showcase/tabs/IntroductionTab'
+import { PersonaTab } from '../components/showcase/tabs/PersonaTab'
+import { ScenariosTab } from '../components/showcase/tabs/ScenariosTab'
 import { useCharacter } from '../hooks/useCharacter'
 
 type TabId = 'persona' | 'introduction' | 'credentials' | 'scenarios'
@@ -112,7 +112,14 @@ export function ShowcasePage() {
               onTabChange={(tab) => setActiveTab(tab as TabId)}
             />
           )}
-          {activeTab === 'scenarios' && <ScenariosTab character={character} isNewShowcase={isNewShowcase} onTabChange={(tab) => setActiveTab(tab as TabId)} onRefresh={refetch} />}
+          {activeTab === 'scenarios' && (
+            <ScenariosTab
+              character={character}
+              isNewShowcase={isNewShowcase}
+              onTabChange={(tab) => setActiveTab(tab as TabId)}
+              onRefresh={refetch}
+            />
+          )}
         </>
       )}
     </div>

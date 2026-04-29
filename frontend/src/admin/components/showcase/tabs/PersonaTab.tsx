@@ -1,12 +1,12 @@
-import type { CustomCharacter } from '../../types'
+import type { CustomCharacter } from '../../../types'
 
 import { ArrowUpTrayIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { baseUrl } from '../../../client/api/BaseUrl'
-import { updateCharacter } from '../../api/adminApi'
-import { ImageUploadModal } from '../ImageUploadModal'
+import { baseUrl } from '../../../../client/api/BaseUrl'
+import { updateCharacter } from '../../../api/adminApi'
+import { ImageUploadModal } from '../../ImageUploadModal'
 
 interface PersonaTabProps {
   character: CustomCharacter | null

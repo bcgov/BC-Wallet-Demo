@@ -1,14 +1,14 @@
-import type { CustomCharacter, OnboardingStep } from '../../types'
+import type { CustomCharacter, OnboardingStep } from '../../../types'
 
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
-import { baseUrl } from '../../../client/api/BaseUrl'
-import { useDragReorder } from '../../hooks/useDragReorder'
-import { OnboardingInitializedModal } from '../OnboardingInitializedModal'
-import { ScreenContentCard } from '../ScreenContentCard'
+import { baseUrl } from '../../../../client/api/BaseUrl'
+import { useDragReorder } from '../../../hooks/useDragReorder'
+import { OnboardingInitializedModal } from '../../OnboardingInitializedModal'
+import { ScreenContentCard } from '../../ScreenContentCard'
 
-import { CreateOrEditScreenModal } from './modals/CreateOrEditScreenModal'
+import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
 
 interface ProgressBar {
   name: string

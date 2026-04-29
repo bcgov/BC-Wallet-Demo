@@ -1,10 +1,10 @@
-import type { CustomCharacter, CustomUseCase } from '../../types'
+import type { CustomCharacter, CustomUseCase } from '../../../types'
 import type { AuthContextProps } from 'react-oidc-context'
 
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
-import { updateCharacter } from '../../api/adminApi'
+import { updateCharacter } from '../../../api/adminApi'
 
 interface CreateScenarioModalProps {
   isOpen: boolean

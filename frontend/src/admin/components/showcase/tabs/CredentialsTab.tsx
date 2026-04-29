@@ -1,13 +1,13 @@
-import type { CustomCharacter, Credential, OnboardingStep } from '../../types'
+import type { CustomCharacter, Credential, OnboardingStep } from '../../../types'
 
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { useEffect } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
 
-import { baseRoute } from '../../../client/api/BaseUrl'
-import { updateCharacter } from '../../api/adminApi'
-import { CredentialCard } from '../credential/CredentialCard'
+import { baseRoute } from '../../../../client/api/BaseUrl'
+import { updateCharacter } from '../../../api/adminApi'
+import { CredentialCard } from '../../credential/CredentialCard'
 
 interface CredentialsTabProps {
   character: CustomCharacter | null
@@ -84,7 +84,36 @@ export function CredentialsTab({
     onTabChange?.('introduction')
   }
 
+  const addCredentialToCharacter = async (credential: Credential) => {
+    if (!character || !auth.user?.access_token) {
+      return
+    }
+
+    // Check if credential already exists by name, filtering out nulls
+    const credentialExists = character.credentials?.some((cred) => cred?.name === credential.name)
+    if (credentialExists) {
+      // eslint-disable-next-line no-console
+      console.warn(`Credential "${credential.name}" already exists in character`)
+      return
+    }
+
+    const updatedCredentials = [...(character.credentials?.filter((c) => c != null) || []), credential]
+
+    try {
+      await updateCharacter(auth, character.name, {
+        credentials: updatedCredentials,
+      })
+      onRefresh?.()
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to add credential to character:', error)
+    }
+  }
+
   useEffect(() => {
+    if (selectedCredential) {
+      addCredentialToCharacter(selectedCredential)
+    }
     if (selectedCredential && !character?.onboarding?.length) {
       initializeBaseOnboarding()
     }
@@ -115,12 +144,11 @@ export function CredentialsTab({
       </div>
       <div className="w-full max-w-6xl px-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-          {character?.onboarding?.flatMap(
-            (screen, idx) =>
-              screen.credentials?.map((credential, credIdx) => (
-                <CredentialCard key={`${idx}-${credIdx}`} credential={credential} />
-              )) || [],
-          )}
+          {character?.credentials
+            ?.filter((credential) => credential != null)
+            .map((credential, idx) => (
+              <CredentialCard key={idx} credential={credential} />
+            ))}
         </div>
       </div>
       {isNewShowcase && (

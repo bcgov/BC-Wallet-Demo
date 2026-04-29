@@ -28,10 +28,10 @@ export function CredentialsPage() {
       setIsLoading(true)
       setError(null)
       const characters = await getAllCharacters(auth)
-      const allCredentials = characters.flatMap((character) =>
-        character.onboarding.flatMap((step) => step.credentials ?? []),
-      )
-      setCredentials(allCredentials)
+      const allCredentials = characters.flatMap((character) => character.credentials?.filter((c) => c != null) ?? [])
+      // Remove duplicates by credential name
+      const uniqueCredentials = Array.from(new Map(allCredentials.map((cred) => [cred.name, cred])).values())
+      setCredentials(uniqueCredentials)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

@@ -8,8 +8,8 @@ import { useNavigate } from 'react-router-dom'
 import { baseRoute } from '../../../client/api/BaseUrl'
 import { getAllCharacters } from '../../api/adminApi'
 
-import { CreateShowcaseModal } from './CreateShowcaseModal'
 import { ShowcaseCard } from './ShowcaseCard'
+import { CreateShowcaseModal } from './modals/CreateShowcaseModal'
 
 export function ShowcasesPanel() {
   const auth = useAuth()
