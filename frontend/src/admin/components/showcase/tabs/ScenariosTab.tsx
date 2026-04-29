@@ -177,15 +177,17 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
                       onMouseEnter={() => setHoverIdx(`${useCase.id}-${idx}`)}
                       onMouseLeave={() => setHoverIdx(null)}
                     >
-                      {hoverIdx === `${useCase.id}-${idx}` && (
-                        <button
-                          onClick={() => handleAddScreenClick(idx)}
-                          className="w-7 h-7 rounded-full bg-bcgov-blue text-white flex items-center justify-center hover:bg-bcgov-blue-dark transition-colors shadow-md"
-                          title="Add screen"
-                        >
-                          <PlusIcon className="w-4 h-4" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleAddScreenClick(idx)}
+                        className={`w-7 h-7 rounded-full bg-bcgov-blue text-white flex items-center justify-center hover:bg-bcgov-blue-dark transition-all duration-200 shadow-md ${
+                          hoverIdx === `${useCase.id}-${idx}`
+                            ? 'opacity-100 scale-100 pointer-events-auto'
+                            : 'opacity-0 scale-95 pointer-events-none'
+                        }`}
+                        title="Add screen"
+                      >
+                        <PlusIcon className="w-4 h-4" />
+                      </button>
                     </div>
                   )}
                 </div>
