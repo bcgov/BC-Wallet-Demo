@@ -207,6 +207,7 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
         progressBar={null}
         character={character}
         isCreate={editingScreenIdx === -1}
+        screenType="scenarios"
         onSave={(updatedScreen) => handleSaveScreen(updatedScreen as UseCaseScreen)}
       />
 

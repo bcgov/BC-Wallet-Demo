@@ -186,6 +186,7 @@ export function IntroductionTab({ character, isNewShowcase, onTabChange, onRefre
         progressBar={editingProgressBar}
         character={character}
         isCreate={editingScreenIdx === -1}
+        screenType="onboarding"
         onSave={handleSaveScreen}
       />
       <OnboardingInitializedModal

@@ -1,8 +1,8 @@
-import { PencilIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { useEffect, useState } from 'react'
+import { PencilIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { useEffect, useState, useRef } from 'react'
 
 import { publicBaseUrl } from '../../../api/adminApi'
-import { formatScreenId, type CustomCharacter, type OnboardingStep } from '../../../types'
+import { formatScreenId, type CustomCharacter, type OnboardingStep, type Credential } from '../../../types'
 import { ImageUploadModal } from '../../ImageUploadModal'
 
 interface ProgressBar {
@@ -19,6 +19,7 @@ interface CreateOrEditScreenModalProps {
   progressBar: ProgressBar | null
   character: CustomCharacter | null
   isCreate?: boolean
+  screenType?: 'onboarding' | 'scenarios'
   onSave: (updatedScreen: OnboardingStep, updatedProgressBar?: ProgressBar) => void
 }
 
@@ -27,7 +28,9 @@ export function CreateOrEditScreenModal({
   onClose,
   screen,
   progressBar,
+  character,
   isCreate = false,
+  screenType = 'onboarding',
   onSave,
 }: CreateOrEditScreenModalProps) {
   const [screenId, setScreenId] = useState('')
@@ -36,10 +39,13 @@ export function CreateOrEditScreenModal({
   const [image, setImage] = useState('')
   const [iconLight, setIconLight] = useState('')
   const [iconDark, setIconDark] = useState('')
+  const [credentials, setCredentials] = useState<Credential[]>([])
+  const [showCredentialsList, setShowCredentialsList] = useState(false)
   const [isImageUploadOpen, setIsImageUploadOpen] = useState(false)
   const [isIconLightUploadOpen, setIsIconLightUploadOpen] = useState(false)
   const [isIconDarkUploadOpen, setIsIconDarkUploadOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const credentialsDropdownRef = useRef<HTMLDivElement>(null)
 
   // Update state when screen or progressBar props change
   useEffect(() => {
@@ -48,12 +54,27 @@ export function CreateOrEditScreenModal({
       setTitle(screen.title ?? '')
       setText(screen.text ?? '')
       setImage(screen.image ?? '')
+      setCredentials(screen.credentials ?? [])
     }
     if (progressBar) {
       setIconLight(progressBar.iconLight ?? '')
       setIconDark(progressBar.iconDark ?? '')
     }
   }, [screen, progressBar, isOpen])
+
+  // Close credentials dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (credentialsDropdownRef.current && !credentialsDropdownRef.current.contains(event.target as Node)) {
+        setShowCredentialsList(false)
+      }
+    }
+
+    if (showCredentialsList) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showCredentialsList])
 
   if (!isOpen || !screen) return null
 
@@ -69,6 +90,7 @@ export function CreateOrEditScreenModal({
       title,
       text,
       image: image || undefined,
+      credentials: credentials.length > 0 ? credentials : undefined,
     } as OnboardingStep
 
     const updatedProgressBar = progressBar
@@ -158,6 +180,76 @@ export function CreateOrEditScreenModal({
               )}
             </div>
           </div>
+
+          {screenType === 'onboarding' && (
+            <div>
+              <label className="block text-sm font-semibold text-bcgov-black mb-4">Credentials</label>
+              <p className="text-sm text-gray-500 italic">Credentials will appear as a QR code.</p>
+              <div className="space-y-3">
+                {credentials.length > 0 ? (
+                  <div className="space-y-2">
+                    {credentials.map((cred, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          {cred.icon && (
+                            <img src={`${publicBaseUrl}${cred.icon}`} alt={cred.name} className="w-8 h-8" />
+                          )}
+                          <div>
+                            <p className="font-medium text-sm text-bcgov-black">{cred.name}</p>
+                            <p className="text-xs text-gray-500">v{cred.version}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setCredentials(credentials.filter((_, i) => i !== idx))}
+                          className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                          title="Remove credential"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No credentials added yet.</p>
+                )}
+                <div className="relative flex justify-center" ref={credentialsDropdownRef}>
+                  <button
+                    onClick={() => setShowCredentialsList(!showCredentialsList)}
+                    className="w-1/2 px-4 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors text-sm"
+                  >
+                    + Add Credential
+                  </button>
+                  {showCredentialsList && character?.credentials && character.credentials.length > 0 && (
+                    <div className="absolute bottom-full mb-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                      {character.credentials
+                        .filter((cred) => !credentials.some((c) => c.name === cred.name))
+                        .map((cred) => (
+                          <button
+                            key={cred.name}
+                            onClick={() => {
+                              setCredentials([...credentials, cred])
+                              setShowCredentialsList(false)
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-3 border-b border-gray-200 last:border-b-0 transition-colors"
+                          >
+                            {cred.icon && (
+                              <img src={`${publicBaseUrl}${cred.icon}`} alt={cred.name} className="w-6 h-6" />
+                            )}
+                            <div>
+                              <p className="text-sm font-medium text-bcgov-black">{cred.name}</p>
+                              <p className="text-xs text-gray-500">v{cred.version}</p>
+                            </div>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {progressBar && (
             <div>
