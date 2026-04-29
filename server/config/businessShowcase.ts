@@ -10,6 +10,25 @@ export const businessShowcase: Showcase = {
     image: '/public/student/student.svg',
   },
   hidden: true,
+  credentials: [
+    {
+      name: 'Digital Business Card',
+      version: process.env.BUSINESS_VERSION ?? '1.0.0',
+      icon: '/public/student/icon-student.svg',
+      attributes: [
+        { name: 'business_name', value: `DAVE'S CUPCAKES` },
+        { name: 'business_type', value: 'BC Sole Proprietorship' },
+        { name: 'company_status', value: 'ACTIVE' },
+        { name: 'cra_business_number', value: '000000000000001' },
+        { name: 'credential_id', value: '00000001' },
+        { name: 'family_name', value: 'CHUNG' },
+        { name: 'given_names', value: 'DAVID, THOMAS' },
+        { name: 'identifier', value: 'FM000001' },
+        { name: 'registered_on_dateint', value: `${getDateInt(-1)}` },
+        { name: 'role', value: 'PROPRIETOR' },
+      ],
+    },
+  ],
   revocationInfo: [
     {
       credentialName: 'Digital Business Card',
@@ -81,55 +100,7 @@ export const businessShowcase: Showcase = {
       name: 'Accept your digital business card',
       text: "Your wallet now has a secure and private connection with BC Registries. You should have received an offer in BC Wallet for a Digital Business Card.\nReview what they are sending, and choose 'Accept offer'.",
       image: '/public/common/onboarding-credential-light.svg',
-      credentials: [
-        {
-          name: 'Digital Business Card',
-          version: process.env.BUSINESS_VERSION ?? '1.0.0',
-          icon: '/public/student/icon-student.svg',
-          attributes: [
-            {
-              name: 'business_name',
-              value: `DAVE'S CUPCAKES`,
-            },
-            {
-              name: 'business_type',
-              value: 'BC Sole Proprietorship',
-            },
-            {
-              name: 'company_status',
-              value: 'ACTIVE',
-            },
-            {
-              name: 'cra_business_number',
-              value: '000000000000001',
-            },
-            {
-              name: 'credential_id',
-              value: '00000001',
-            },
-            {
-              name: 'family_name',
-              value: 'CHUNG',
-            },
-            {
-              name: 'given_names',
-              value: 'DAVID, THOMAS',
-            },
-            {
-              name: 'identifier',
-              value: 'FM000001',
-            },
-            {
-              name: 'registered_on_dateint',
-              value: `${getDateInt(-1)}`,
-            },
-            {
-              name: 'role',
-              value: 'PROPRIETOR',
-            },
-          ],
-        },
-      ],
+      credentialNames: ['Digital Business Card'],
     },
     {
       screenId: 'SETUP_COMPLETED',

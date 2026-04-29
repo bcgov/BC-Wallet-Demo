@@ -59,7 +59,7 @@ export interface IntroductionStep {
   text: string
   issuer_name?: string
   image?: string
-  credentials?: Credential[]
+  credentialNames?: string[]
 }
 
 export interface Predicate {
@@ -125,6 +125,7 @@ export interface Showcase {
   hidden?: boolean
   description?: string
   persona: Persona
+  credentials: Credential[]
   progressBar: ProgressBarStep[]
   introduction: IntroductionStep[]
   scenarios: Scenario[]

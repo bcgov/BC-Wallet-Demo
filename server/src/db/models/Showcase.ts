@@ -37,7 +37,7 @@ const IntroductionStepSchema = new Schema<IntroductionStep>(
     text: { type: String, required: true },
     image: String,
     issuer_name: String,
-    credentials: [CredentialSchema],
+    credentialNames: [String],
   },
   embeddedSchemaOptions,
 )
@@ -83,6 +83,7 @@ const ShowcaseSchema = new Schema<Showcase>(
     persona: { type: PersonaSchema, required: true },
     hidden: { type: Boolean, default: false },
     description: String,
+    credentials: { type: [CredentialSchema], required: true, default: [] },
     // required + default to match types.ts where both fields are non-optional.
     progressBar: { type: [ProgressBarStepSchema], required: true, default: [] },
     introduction: { type: [IntroductionStepSchema], required: true, default: [] },

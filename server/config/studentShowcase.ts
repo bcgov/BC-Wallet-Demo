@@ -8,6 +8,18 @@ export const studentShowcase: Showcase = {
     type: 'Student',
     image: '/public/student/student.svg',
   },
+  credentials: [
+    {
+      name: 'student_card',
+      version: process.env.STUDENT_VERSION ?? '1.0',
+      icon: '/public/student/icon-student.svg',
+      attributes: [
+        { name: 'student_first_name', value: 'Alice' },
+        { name: 'student_last_name', value: 'Smith' },
+        { name: 'expiry_date', value: `${getDateInt(4)}` },
+      ],
+    },
+  ],
   revocationInfo: [
     {
       credentialName: 'Student Card',
@@ -79,27 +91,7 @@ export const studentShowcase: Showcase = {
       name: 'Accept your student card',
       text: "Your wallet now has a secure and private connection with BestBC College. You should have received an offer in BC Wallet for a Student Card.\nReview what they are sending, and choose 'Accept offer'.",
       image: '/public/common/onboarding-credential-light.svg',
-      credentials: [
-        {
-          name: 'student_card',
-          version: process.env.STUDENT_VERSION ?? '1.0',
-          icon: '/public/student/icon-student.svg',
-          attributes: [
-            {
-              name: 'student_first_name',
-              value: 'Alice',
-            },
-            {
-              name: 'student_last_name',
-              value: 'Smith',
-            },
-            {
-              name: 'expiry_date',
-              value: `${getDateInt(4)}`,
-            },
-          ],
-        },
-      ],
+      credentialNames: ['student_card'],
     },
     {
       screenId: 'SETUP_COMPLETED',

@@ -14,7 +14,7 @@ export interface IntroductionStep {
   text: string
   image?: string
   issuer_name?: string
-  credentials?: Credential[]
+  credentialNames?: string[]
 }
 
 export interface CustomWebSocket extends WebSocket {
@@ -85,6 +85,7 @@ export interface Showcase {
   hidden?: boolean
   description?: string
   persona: Persona
+  credentials: Credential[]
   progressBar: ProgressBarStep[]
   introduction: IntroductionStep[]
   scenarios: Scenario[]

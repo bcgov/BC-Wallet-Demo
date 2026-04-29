@@ -50,31 +50,34 @@ describe('ShowcaseModel', () => {
 })
 
 describe('IntroductionStep embedded schema', () => {
-  it('persists an introduction step with nested credentials', async () => {
+  it('persists an introduction step with credentialNames and top-level credentials', async () => {
     const doc = await ShowcaseModel.create({
       ...minimal,
       persona: { ...minimal.persona, type: 'Student-introduction' },
+      credentials: [
+        {
+          name: 'Student Card',
+          icon: '/icon.svg',
+          version: '1.0',
+          attributes: [{ name: 'student_id', value: '12345' }],
+        },
+      ],
       introduction: [
         {
           screenId: 'PICK_CREDENTIAL',
           name: 'Get your card',
           text: 'Scan to receive',
           issuer_name: 'Best BC College',
-          credentials: [
-            {
-              name: 'Student Card',
-              icon: '/icon.svg',
-              version: '1.0',
-              attributes: [{ name: 'student_id', value: '12345' }],
-            },
-          ],
+          credentialNames: ['Student Card'],
         },
       ],
     })
-    const step = doc.toJSON().introduction[0]
+    const json = doc.toJSON()
+    const step = json.introduction[0]
     expect(step.screenId).toBe('PICK_CREDENTIAL')
     expect(step.issuer_name).toBe('Best BC College')
-    expect(step.credentials[0].attributes[0].value).toBe('12345')
+    expect(step.credentialNames[0]).toBe('Student Card')
+    expect(json.credentials[0].attributes[0].value).toBe('12345')
   })
 })
 
