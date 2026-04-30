@@ -2,8 +2,8 @@
 #
 # Shared Docker steps live under `.github/actions/showcase-build-*` (also used by deploy-showcase-dev).
 #
-# Configure on bcgov/BC-Wallet-Demo (same secret names as traction PR workflows):
-#   Secrets: OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_NAMESPACE
+# Configure on bcgov/BC-Wallet-Demo (repository Actions secrets):
+#   Secrets: OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_DEV_NAMESPACE
 #   Variables: SHOWCASE_PR_HOST_SUFFIX — hostname without scheme, e.g.
 #     bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca
 #     Public URL becomes https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>
@@ -107,10 +107,10 @@ jobs:
         env:
           OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
           OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
-          OPENSHIFT_NAMESPACE: ${{ secrets.OPENSHIFT_NAMESPACE }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: |
-          if [[ -z "${OPENSHIFT_TOKEN}" || -z "${OPENSHIFT_SERVER}" || -z "${OPENSHIFT_NAMESPACE}" ]]; then
-            echo '::error::Missing OPENSHIFT_SERVER, OPENSHIFT_TOKEN, or OPENSHIFT_NAMESPACE for showcase PR deploy.'
+          if [[ -z "${OPENSHIFT_TOKEN}" || -z "${OPENSHIFT_SERVER}" || -z "${OPENSHIFT_DEV_NAMESPACE}" ]]; then
+            echo '::error::Missing OPENSHIFT_SERVER, OPENSHIFT_TOKEN, or OPENSHIFT_DEV_NAMESPACE for showcase PR deploy.'
             exit 1
           fi
 
@@ -120,7 +120,7 @@ jobs:
         with:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
+          namespace: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
 
       - uses: ./.github/actions/showcase-helm-lint
         with:
