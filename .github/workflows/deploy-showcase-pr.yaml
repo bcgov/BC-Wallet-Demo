@@ -71,6 +71,7 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/showcase-build-server
         with:
           image: ${{ env.SHOWCASE_SERVER_IMAGE }}
@@ -88,6 +89,7 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/showcase-build-frontend
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
