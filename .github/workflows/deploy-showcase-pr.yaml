@@ -144,7 +144,8 @@ jobs:
           set -euo pipefail
           origin="https://pr-${PR_NUM}-${HOST_SUFFIX}"
           owner_lc="$(echo "${OWNER_LOWER}" | tr '[:upper:]' '[:lower:]')"
-          helm upgrade --install "pr-${PR_NUM}-showcase" . \
+          helm dependency update
+          if ! helm upgrade --install "pr-${PR_NUM}-showcase" . \
             -f ../../deploy/showcase/values-pr.yaml \
             --set-string "showcase.publicOrigin=${origin}" \
             --set "showcase.server.image.repository=${owner_lc}/bc-wallet-showcase-server" \
@@ -153,7 +154,13 @@ jobs:
             --set "showcase.frontend.image.tag=pr-${PR_NUM}" \
             --wait \
             --timeout 15m \
-            --atomic
+            --atomic \
+            --debug; then
+            echo '::error::helm upgrade failed; status and recent events follow.'
+            helm status "pr-${PR_NUM}-showcase" 2>/dev/null || true
+            oc get events --sort-by='.lastTimestamp' 2>/dev/null | tail -40 || true
+            exit 1
+          fi
 
       # Same image tag (:pr-N) may point at a new digest; restart pulls new layers. Wait so the job does not succeed before pods are ready.
       - name: Restart deployments and wait for rollouts
