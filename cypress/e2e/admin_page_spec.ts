@@ -80,6 +80,11 @@ describe('Admin Portal Authentication', () => {
 
   describe('when authenticated', () => {
     beforeEach(() => {
+      // Mock API endpoints
+      cy.intercept('GET', '/digital-trust/showcase/admin/characters', { statusCode: 200, body: [] })
+      cy.intercept('GET', '/digital-trust/showcase/admin/credentials', { statusCode: 200, body: [] })
+      cy.intercept('GET', '/digital-trust/showcase/admin/svgs', { statusCode: 200, body: { files: [] } })
+
       cy.visit(CREATOR_PATH, {
         onBeforeLoad(win) {
           // Seed sessionStorage with a mock OIDC user so oidc-client-ts considers
@@ -89,13 +94,21 @@ describe('Admin Portal Authentication', () => {
       })
     })
 
-    it('shows the creator page with a welcome message', () => {
-      cy.contains('h1', 'Admin Portal').should('be.visible')
-      cy.contains('Welcome, Test Admin').should('be.visible')
+    it('shows the creator page with admin navbar', () => {
+      cy.contains('Showcase Admin').should('be.visible')
     })
 
     it('shows a sign out button', () => {
       cy.contains('button', 'Sign Out').should('be.visible')
+    })
+
+    it('shows the showcases panel', () => {
+      cy.contains('h2', 'Showcases').should('be.visible')
+    })
+
+    it('displays footer with contact email and copyright', () => {
+      cy.contains('a', 'ditrust@gov.bc.ca').should('be.visible')
+      cy.contains('Copyright ©').should('be.visible')
     })
 
     it('returns to the login page with a signed out message after signing out', () => {

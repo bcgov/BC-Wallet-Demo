@@ -8,7 +8,9 @@ import { AuthGuard } from './auth/AuthGuard'
 import { loadOidcConfig } from './auth/keycloakConfig'
 import { CallbackPage } from './pages/CallbackPage'
 import { CreatorPage } from './pages/CreatorPage'
+import { CredentialsPage } from './pages/CredentialsPage'
 import { LoginPage } from './pages/LoginPage'
+import { ShowcasePage } from './pages/ShowcasePage'
 
 const onSigninCallback = () => {
   window.history.replaceState({}, document.title, window.location.pathname)
@@ -44,6 +46,22 @@ function AdminApp() {
           element={
             <AuthGuard>
               <CreatorPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="creator/showcase/:name"
+          element={
+            <AuthGuard>
+              <ShowcasePage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="creator/credentials"
+          element={
+            <AuthGuard>
+              <CredentialsPage />
             </AuthGuard>
           }
         />

@@ -11,6 +11,7 @@ import { Server } from 'socket.io'
 import { connectDB, registerShutdownHandlers } from './db/connection'
 import { requireAdmin } from './middleware/requireAdmin'
 import adminCharactersRouter from './routes/adminCharactersRouter'
+import adminSvgRouter from './routes/adminSvgRouter'
 import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
 
@@ -108,6 +109,7 @@ const run = async () => {
   // All routes under /admin require a valid Keycloak-issued JWT.
   app.use(`${baseRoute}/admin`, requireAdmin)
   app.use(`${baseRoute}/admin/characters`, adminCharactersRouter)
+  app.use(`${baseRoute}/admin/svgs`, adminSvgRouter)
 
   app.get(`${baseRoute}/server/last-reset`, async (req, res) => {
     res.send(new Date())

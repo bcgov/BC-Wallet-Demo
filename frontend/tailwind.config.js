@@ -22,6 +22,7 @@ module.exports = {
         black: '#000000',
         'bcgov-white': '#F5F5F4',
         'bcgov-blue': '#003366',
+        'bcgov-blue-light': '#0066CC',
         'bcgov-gold': '#FCBA19',
         'bcgov-black': '#202223',
         'bcgov-lightgrey': '#E5E5E5',

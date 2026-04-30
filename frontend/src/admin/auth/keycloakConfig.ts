@@ -2,7 +2,7 @@ import type { AuthProviderProps } from 'react-oidc-context'
 
 import { Log, WebStorageStateStore } from 'oidc-client-ts'
 
-import { baseRoute } from '../../client/api/BaseUrl'
+import { adminBaseRoute } from '../api/adminApi'
 
 if (import.meta.env.DEV) {
   Log.setLogger(console)
@@ -23,8 +23,8 @@ export async function loadOidcConfig(): Promise<AuthProviderProps> {
   return {
     authority: `${keycloakUrl}/realms/${keycloakRealm}`,
     client_id: keycloakClientId,
-    redirect_uri: `${window.location.origin}${baseRoute}/admin/callback`,
-    post_logout_redirect_uri: `${window.location.origin}${baseRoute}/admin`,
+    redirect_uri: `${window.location.origin}${adminBaseRoute}/callback`,
+    post_logout_redirect_uri: `${window.location.origin}${adminBaseRoute}`,
     scope: 'openid profile email',
     automaticSilentRenew: true,
     userStore: new WebStorageStateStore({ store: window.sessionStorage }),

@@ -17,23 +17,12 @@ export interface OnboardingStep {
   credentials?: Credential[]
 }
 
-export interface CustomWebSocket extends WebSocket {
-  isAlive: boolean
-  connectionId?: string
-}
-
-export interface Predicate {
-  name: string
-  type: string
-  value?: string | number | (() => string | number)
-}
-
 export interface CredentialRequest {
   name: string
   icon?: string
   schema_id?: string
   cred_def_id?: string
-  predicates?: Predicate[]
+  predicates?: { name: string; value?: string | number | (() => string | number); type: string }
   properties?: string[]
   nonRevoked?: { to: number; from?: number }
 }
@@ -80,72 +69,16 @@ export interface CustomCharacter {
   image: string
   hidden?: boolean
   description?: string
+  credentials: Credential[]
   progressBar: ProgressBarStep[]
   onboarding: OnboardingStep[]
   useCases: CustomUseCase[]
   revocationInfo?: RevocationInfoItem[]
-  credentials: Credential[]
 }
 
-export interface UseCaseCard {
-  title: string
-  image?: string
-  description: string
-}
-
-export interface CredentialData {
-  id: string
-  name: string
-  icon: string
-  credentialDefinition?: string
-  attributes: Attribute[]
-  connectionId: string
-}
-
-export interface Attribute {
-  name: string
-  value: string | number | (() => string | number)
-}
-
-export interface StepperItem {
-  id: string
-  name: string
-  description: string
-  steps: number
-  section: number
-}
-
-export interface Overlay {
-  header?: string
-  subheader?: string
-  footer?: string
-}
-
-export interface EndStepperItem {
-  id: string
-  title: string
-  description: string
-  image: string
-}
-
-export interface Colors {
-  primary: string
-  secondary: string
-}
-
-export interface RequestOptions {
-  name?: string
-  comment?: string
-}
-
-export interface Wallet {
-  id: number
-  name: string
-  organization: string
-  recommended: boolean
-  icon: string
-  url: string
-  apple: string
-  android: string
-  ledgerImage?: string
+export function formatScreenId(id: string): string {
+  return id
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
 }

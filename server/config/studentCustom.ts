@@ -5,6 +5,27 @@ export const studentCustom: CustomCharacter = {
   name: 'Alice',
   type: 'Student',
   image: '/public/student/student.svg',
+  credentials: [
+    {
+      name: 'student_card',
+      version: process.env.STUDENT_VERSION ?? '1.0',
+      icon: '/public/student/icon-student.svg',
+      attributes: [
+        {
+          name: 'student_first_name',
+          value: 'Alice',
+        },
+        {
+          name: 'student_last_name',
+          value: 'Smith',
+        },
+        {
+          name: 'expiry_date',
+          value: `${getDateInt(4)}`,
+        },
+      ],
+    },
+  ],
   revocationInfo: [
     {
       credentialName: 'Student Card',
