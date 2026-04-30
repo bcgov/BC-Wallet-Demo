@@ -35,6 +35,8 @@ concurrency:
   group: showcase-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+# GHCR push needs packages:write; orgs may also require Actions "Read and write" workflow permissions
+# and linking the repo to the package. ghcr login uses repository_owner + GITHUB_TOKEN (see showcase-build-* actions).
 permissions:
   contents: read
   packages: write
