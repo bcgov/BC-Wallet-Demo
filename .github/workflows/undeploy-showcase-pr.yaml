@@ -20,6 +20,8 @@ on:
 
 permissions:
   contents: read
+  # Delete GHCR package versions tagged pr-<N> after uninstall (same token scope as PR image push).
+  packages: write
 
 jobs:
   uninstall:
@@ -73,3 +75,43 @@ jobs:
           oc delete secret,pvc
           -l "app.kubernetes.io/instance=pr-${PR_NUM}-showcase"
           --ignore-not-found=true
+
+      # GHCR cleanup: deploy-showcase-pr pushes server/frontend tags pr-<N>. Remove those package versions
+      # so tags do not accumulate (see PR review on showcase PR uninstall workflow).
+      - name: Delete GHCR package versions tagged pr-${{ github.event.pull_request.number }}
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          set -uo pipefail
+          tag="pr-${PR_NUM}"
+          owner_lc="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          for pkg in bc-wallet-showcase-server bc-wallet-showcase-frontend; do
+            echo "Looking for ${pkg} versions with tag ${tag} under org ${owner_lc}..."
+            if ! ids_raw="$(
+              gh api -H "Accept: application/vnd.github+json" \
+                "/orgs/${owner_lc}/packages/container/${pkg}/versions?per_page=100" \
+                --jq ".[] | select((.metadata.container.tags // []) | index(\"${tag}\") != null) | .id" 2>/dev/null
+            )"; then
+              echo "WARN: could not list GHCR versions for ${pkg} (missing package or no API access)."
+              continue
+            fi
+            mapfile -t ids < <(printf '%s\n' "${ids_raw}" | sort -u)
+            if [[ ${#ids[@]} -eq 0 || -z "${ids[0]:-}" ]]; then
+              echo "No package versions tagged ${tag} for ${pkg}."
+              continue
+            fi
+            for vid in "${ids[@]}"; do
+              [[ -z "${vid}" ]] && continue
+              echo "Deleting ${pkg} package version id=${vid}..."
+              if gh api --method DELETE \
+                -H "Accept: application/vnd.github+json" \
+                "/orgs/${owner_lc}/packages/container/${pkg}/versions/${vid}"; then
+                echo "Deleted ${pkg}@${vid}"
+              else
+                echo "WARN: delete failed for ${pkg}@${vid}"
+              fi
+            done
+          done
