@@ -1,4 +1,4 @@
-import type { CustomCharacter, Credential, OnboardingStep } from '../../../types'
+import type { CustomCharacter, Credential, OnboardingStep, ProgressBarStep } from '../../../types'
 
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { useEffect } from 'react'
@@ -67,9 +67,49 @@ export function CredentialsTab({
       text: 'Congratulations! You have successfully completed the onboarding. Your credentials are now ready to be used.',
     })
 
+    // Create corresponding progress bar
+    const progressBar: ProgressBarStep[] = [
+      {
+        name: 'person',
+        onboardingStep: 'INTRO_START',
+        iconLight: '/public/common/icon-person-light.svg',
+        iconDark: '/public/common/icon-person-dark.svg',
+      },
+      {
+        name: 'moon',
+        onboardingStep: 'SETUP_START',
+        iconLight: '/public/common/icon-moon-light.svg',
+        iconDark: '/public/common/icon-moon-dark.svg',
+      },
+    ]
+
+    if (selectedCredential) {
+      progressBar.push({
+        name: 'wallet',
+        onboardingStep: 'CONNECT',
+        iconLight: '/public/common/icon-wallet-light.svg',
+        iconDark: '/public/common/icon-wallet-dark.svg',
+      })
+
+      progressBar.push({
+        name: 'notification',
+        onboardingStep: 'ACCEPT_CREDENTIAL',
+        iconLight: '/public/common/icon-notification-light.svg',
+        iconDark: '/public/common/icon-notification-dark.svg',
+      })
+    }
+
+    progressBar.push({
+      name: 'balloon',
+      onboardingStep: 'SETUP_COMPLETED',
+      iconLight: '/public/common/icon-balloon-light.svg',
+      iconDark: '/public/common/icon-balloon-dark.svg',
+    })
+
     try {
       await updateCharacter(auth, character.name, {
         onboarding: baseOnboarding,
+        progressBar: progressBar,
       })
       onRefresh?.()
     } catch (error) {
