@@ -23,10 +23,12 @@ export interface CustomWebSocket extends WebSocket {
   connectionId?: string
 }
 
+type DateIntMarker = `$dateint:${number}`
+
 export interface Predicate {
   name: string
   type: string
-  value?: string | number | (() => string | number)
+  value?: number | DateIntMarker
 }
 
 export interface CredentialRequest {
@@ -36,7 +38,7 @@ export interface CredentialRequest {
   cred_def_id?: string
   predicates?: Predicate[]
   properties?: string[]
-  nonRevoked?: { to: number; from?: number }
+  nonRevoked?: { to: number | '$now'; from?: number | '$now' }
 }
 
 export interface CustomRequestOptions {
@@ -110,7 +112,7 @@ export interface CredentialData {
 
 export interface Attribute {
   name: string
-  value: string | number | (() => string | number)
+  value: string | number
 }
 
 export interface StepperItem {

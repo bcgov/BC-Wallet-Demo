@@ -46,8 +46,8 @@ const CredentialRequestSchema = new Schema<PersistedCredentialRequest>(
     predicates: [PredicateSchema],
     properties: [String],
     nonRevoked: {
-      to: Number,
-      from: Number,
+      to: Schema.Types.Mixed,
+      from: Schema.Types.Mixed,
     },
   },
   embeddedSchemaOptions,

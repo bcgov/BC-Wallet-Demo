@@ -12,6 +12,7 @@
     "start": "node -r dotenv/config build/src/index.js",
     "dev": "tsnd -r dotenv/config --respawn src/index.ts dotenv_config_path=.env",
     "build": "rm -rf build && tsc && cp -r src/public build/src",
+    "seed": "ts-node -r dotenv/config scripts/seed.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },

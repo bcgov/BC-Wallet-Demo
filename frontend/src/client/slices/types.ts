@@ -25,7 +25,8 @@ export interface ProofAttributeRequest {
 export interface ProofPredicateRequest {
   restrictions: ProofRestriction[]
   name: string
-  p_value?: string | number | (() => string | number)
+  //  Should already be resolved to a number by the time this gets to the frontend
+  p_value?: number
   p_type: string
   non_revoked?: { to: number; from?: number }
 }
@@ -63,9 +64,11 @@ export interface IntroductionStep {
   credentialSchemaIds?: string[]
 }
 
+type DateIntMarker = `$dateint:${number}`
+
 export interface Predicate {
   name: string
-  value?: string | number | (() => string | number)
+  value?: number | DateIntMarker
   type: string
 }
 
@@ -76,7 +79,7 @@ export interface CredentialRequest {
   cred_def_id?: string
   predicates?: Predicate[]
   properties?: string[]
-  nonRevoked?: { to: number; from?: number }
+  nonRevoked?: { to: number | '$now'; from?: number | '$now' }
 }
 
 export interface CustomRequestOptions {

@@ -1,7 +1,7 @@
 import { Get, JsonController, NotFoundError, Param } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import showcases from '../content/Showcases'
+import { ShowcaseModel } from '../db/models/Showcase'
 import logger from '../utils/logger'
 
 @JsonController('/showcases')
@@ -13,7 +13,7 @@ export class ShowcaseController {
   @Get('/:showcaseId')
   public async getShowcaseById(@Param('showcaseId') showcaseId: string) {
     logger.debug({ showcaseId }, 'Fetching showcase by id')
-    const showcase = showcases.find((x) => x.persona.type === showcaseId)
+    const showcase = await ShowcaseModel.findOne({ 'persona.type': showcaseId }).lean()
 
     if (!showcase) {
       logger.warn({ showcaseId }, 'Showcase not found')
@@ -21,7 +21,7 @@ export class ShowcaseController {
     }
 
     logger.debug({ showcaseId }, 'Showcase found')
-    return { ...showcase, scenarios: showcase.scenarios }
+    return showcase
   }
 
   /**
@@ -29,6 +29,7 @@ export class ShowcaseController {
    */
   @Get('/')
   public async getShowcases() {
+    const showcases = await ShowcaseModel.find().lean()
     logger.debug({ count: showcases.length }, 'Fetching all showcases')
     return showcases
   }

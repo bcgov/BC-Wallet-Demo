@@ -1,16 +1,40 @@
 import { NotFoundError } from 'routing-controllers'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { MongoMemoryServer } from 'mongodb-memory-server'
+import mongoose from 'mongoose'
+import { vi, describe, it, expect, beforeAll, afterAll } from 'vitest'
 
 vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
+import { ShowcaseModel } from '../../db/models/Showcase'
 import { ShowcaseController } from '../ShowcaseController.ts'
+import showcases from '../../content/Showcases'
+
+let mongod: MongoMemoryServer
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create()
+  await mongoose.connect(mongod.getUri())
+  await Promise.all(
+    showcases.map((s) =>
+      ShowcaseModel.findOneAndUpdate({ 'persona.type': s.persona.type }, { $set: s }, {
+        upsert: true,
+        setDefaultsOnInsert: true,
+      }),
+    ),
+  )
+})
+
+afterAll(async () => {
+  await mongoose.disconnect()
+  await mongod.stop()
+})
 
 describe('ShowcaseController', () => {
   let controller: ShowcaseController
 
-  beforeEach(() => {
+  beforeAll(() => {
     controller = new ShowcaseController()
   })
 

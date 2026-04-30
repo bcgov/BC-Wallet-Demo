@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['reflect-metadata'],
+    exclude: ['build/**', 'node_modules/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
