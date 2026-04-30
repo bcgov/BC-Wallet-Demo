@@ -1,8 +1,8 @@
 ## Ephemeral PR overlay (OpenShift Silver). CI sets:
-##   - showcase.publicOrigin → https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>
+##   - showcase.publicOrigin → https://pr-<N>-<host-suffix> (default suffix in deploy-showcase-pr.yaml)
 ##   - showcase.server.image.tag / showcase.frontend.image.tag → pr-<N>
 ##
-## Requires repository variable SHOWCASE_PR_HOST_SUFFIX (e.g. bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca).
+## Optional: override host suffix via repository variable SHOWCASE_PR_HOST_SUFFIX if DNS differs.
 ##
 ## CI: trivial comment-only change to exercise deploy-showcase-pr workflow paths (revert after validation).
 

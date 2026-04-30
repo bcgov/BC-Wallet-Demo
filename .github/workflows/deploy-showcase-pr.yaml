@@ -4,13 +4,13 @@
 #
 # Configure on bcgov/BC-Wallet-Demo (repository Actions secrets):
 #   Secrets: OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_DEV_NAMESPACE
-#   Variables: SHOWCASE_PR_HOST_SUFFIX — hostname without scheme, e.g.
-#     bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca
-#     Public URL becomes https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>
+# Optional variable: SHOWCASE_PR_HOST_SUFFIX — hostname without scheme (overrides workflow default).
+#   Default is Silver dev ingress (see env.SHOWCASE_PR_HOST_SUFFIX). Public URL:
+#   https://pr-<N>-<suffix>/digital-trust/showcase
 # Optional build-args (same as build_packages): REACT_APP_* via repo Variables or Secrets.
 #
-# Skips when not bcgov, when SHOWCASE_PR_HOST_SUFFIX is unset, on draft PRs (no deploy), or when
-# OpenShift secrets are missing (no deploy). Fork PRs do not receive org secrets on the runner.
+# Skips when not bcgov, on draft PRs (no deploy), or when OpenShift secrets are missing at deploy time.
+# Fork PRs do not receive org secrets on the runner (deploy may fail until secrets exist).
 
 name: Showcase PR — build and deploy
 
@@ -45,14 +45,17 @@ env:
   REGISTRY: ghcr.io
   SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
   SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
+  # PR Route host fragment (no scheme): https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>/…
+  # Override per-repo with Actions variable SHOWCASE_PR_HOST_SUFFIX if your cluster DNS differs.
+  SHOWCASE_PR_HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX != '' && vars.SHOWCASE_PR_HOST_SUFFIX || 'bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
 
 jobs:
   ready:
     name: Ready gates
     runs-on: ubuntu-latest
     outputs:
-      deploy: ${{ github.repository_owner == 'bcgov' && github.event.pull_request.draft != true && vars.SHOWCASE_PR_HOST_SUFFIX != '' }}
-      build: ${{ github.repository_owner == 'bcgov' && vars.SHOWCASE_PR_HOST_SUFFIX != '' }}
+      deploy: ${{ github.repository_owner == 'bcgov' && github.event.pull_request.draft != true }}
+      build: ${{ github.repository_owner == 'bcgov' }}
     steps:
       - name: Compute gate outputs
         run: 'true'
@@ -89,7 +92,7 @@ jobs:
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
           tag: pr-${{ github.event.pull_request.number }}
-          react_app_host_backend: https://pr-${{ github.event.pull_request.number }}-${{ vars.SHOWCASE_PR_HOST_SUFFIX }}
+          react_app_host_backend: https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           react_app_insights_project_id: ${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -131,7 +134,7 @@ jobs:
         working-directory: charts/showcase
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
-          HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX }}
+          HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           OWNER_LOWER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
@@ -182,7 +185,7 @@ jobs:
           body: |
             | Showcase PR | |
             | --- | --- |
-            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ vars.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
+            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
 
             Showcase PR deployment URL (Helm release `pr-${{ github.event.pull_request.number }}-showcase`).
 
@@ -195,6 +198,6 @@ jobs:
           body: |
             | Showcase PR | |
             | --- | --- |
-            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ vars.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
+            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
 
             Showcase PR deployment URL (Helm release `pr-${{ github.event.pull_request.number }}-showcase`).
