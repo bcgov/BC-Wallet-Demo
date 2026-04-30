@@ -63,6 +63,7 @@ jobs:
         if: steps.openshift.outputs.continue == 'true'
         continue-on-error: true
         env:
+          HELM_DRIVER: configmap
           PR_NUM: ${{ github.event.pull_request.number }}
         run: helm uninstall "pr-${PR_NUM}-showcase"
 

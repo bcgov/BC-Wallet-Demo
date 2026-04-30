@@ -137,6 +137,8 @@ jobs:
       - name: Helm upgrade --install
         working-directory: charts/showcase
         env:
+          # Default secret driver needs list secrets; github-cicd SA is often denied. ConfigMap driver matches typical RBAC.
+          HELM_DRIVER: configmap
           PR_NUM: ${{ github.event.pull_request.number }}
           HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           OWNER_LOWER: ${{ github.repository_owner }}
