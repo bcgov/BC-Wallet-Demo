@@ -62,9 +62,16 @@ jobs:
       - name: Helm release storage RBAC (uninstall)
         if: steps.openshift.outputs.continue == 'true'
         id: helm_rbac
+        env:
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: |
           set -euo pipefail
-          ns="$(oc project -q)"
+          ns="${OPENSHIFT_DEV_NAMESPACE}"
+          if [[ -z "${ns}" ]]; then
+            echo 'can_helm=false' >> "${GITHUB_OUTPUT}"
+            echo '::warning::OPENSHIFT_DEV_NAMESPACE empty; skipping helm uninstall.'
+            exit 0
+          fi
           if oc auth can-i list secrets -n "${ns}" --quiet >/dev/null 2>&1; then
             echo "can_helm=true" >> "${GITHUB_OUTPUT}"
           elif oc auth can-i list configmaps -n "${ns}" --quiet >/dev/null 2>&1; then
@@ -80,15 +87,18 @@ jobs:
         continue-on-error: true
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
-        run: helm uninstall "pr-${PR_NUM}-showcase"
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+        run: helm uninstall "pr-${PR_NUM}-showcase" --namespace "${OPENSHIFT_DEV_NAMESPACE}"
 
       - name: Delete leftover secrets and PVCs for this release
         if: steps.openshift.outputs.continue == 'true'
         continue-on-error: true
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: >
           oc delete secret,pvc
+          -n "${OPENSHIFT_DEV_NAMESPACE}"
           -l "app.kubernetes.io/instance=pr-${PR_NUM}-showcase"
           --ignore-not-found=true
 

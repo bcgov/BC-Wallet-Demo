@@ -133,9 +133,16 @@ jobs:
           namespace: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
 
       - name: Helm release storage RBAC
+        env:
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: |
           set -euo pipefail
-          ns="$(oc project -q)"
+          # Do not use `oc project -q`: some CI tokens cannot *view* the Project but can still act in the namespace.
+          ns="${OPENSHIFT_DEV_NAMESPACE}"
+          if [[ -z "${ns}" ]]; then
+            echo '::error::OPENSHIFT_DEV_NAMESPACE is empty.'
+            exit 1
+          fi
           if oc auth can-i list secrets -n "${ns}" --quiet >/dev/null 2>&1; then
             echo "Helm will use default Secret release storage in namespace ${ns}."
           elif oc auth can-i list configmaps -n "${ns}" --quiet >/dev/null 2>&1; then
@@ -157,6 +164,7 @@ jobs:
           PR_NUM: ${{ github.event.pull_request.number }}
           HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           OWNER_LOWER: ${{ github.repository_owner }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: |
           set -euo pipefail
           origin="https://pr-${PR_NUM}-${HOST_SUFFIX}"
@@ -164,6 +172,7 @@ jobs:
           helm dependency update
           if ! helm upgrade --install "pr-${PR_NUM}-showcase" . \
             -f ../../deploy/showcase/values-pr.yaml \
+            --namespace "${OPENSHIFT_DEV_NAMESPACE}" \
             --set-string "showcase.publicOrigin=${origin}" \
             --set "showcase.server.image.repository=${owner_lc}/bc-wallet-showcase-server" \
             --set "showcase.server.image.tag=pr-${PR_NUM}" \
@@ -174,8 +183,8 @@ jobs:
             --atomic \
             --debug; then
             echo '::error::helm upgrade failed; status and recent events follow.'
-            helm status "pr-${PR_NUM}-showcase" 2>/dev/null || true
-            oc get events --sort-by='.lastTimestamp' 2>/dev/null | tail -40 || true
+            helm status "pr-${PR_NUM}-showcase" -n "${OPENSHIFT_DEV_NAMESPACE}" 2>/dev/null || true
+            oc get events -n "${OPENSHIFT_DEV_NAMESPACE}" --sort-by='.lastTimestamp' 2>/dev/null | tail -40 || true
             exit 1
           fi
 
@@ -183,12 +192,14 @@ jobs:
       - name: Restart deployments and wait for rollouts
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: |
           set -euo pipefail
-          oc rollout restart "deployment/pr-${PR_NUM}-showcase-server"
-          oc rollout status "deployment/pr-${PR_NUM}-showcase-server" --timeout=15m
-          oc rollout restart "deployment/pr-${PR_NUM}-showcase-frontend"
-          oc rollout status "deployment/pr-${PR_NUM}-showcase-frontend" --timeout=15m
+          ns="${OPENSHIFT_DEV_NAMESPACE}"
+          oc rollout restart "deployment/pr-${PR_NUM}-showcase-server" -n "${ns}"
+          oc rollout status "deployment/pr-${PR_NUM}-showcase-server" -n "${ns}" --timeout=15m
+          oc rollout restart "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}"
+          oc rollout status "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}" --timeout=15m
 
   pr_urls_comment:
     name: PR deployment comment
