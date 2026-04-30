@@ -10,7 +10,7 @@
 # Optional build-args (same as build_packages): REACT_APP_* via repo Variables or Secrets.
 #
 # Skips when not bcgov, on draft PRs (no deploy), or when OpenShift secrets are missing at deploy time.
-# Fork PRs do not receive org secrets on the runner (deploy may fail until secrets exist).
+# Expect PR branches on bcgov/BC-Wallet-Demo (same-repo PRs) so Actions secrets/vars apply; fork PRs lack secrets.
 
 name: Showcase PR — build and deploy
 
@@ -72,10 +72,6 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Fork PRs: checkout PR head so `.github/actions/*` from the contributor repo exists on disk.
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/actions/showcase-build-server
         with:
           image: ${{ env.SHOWCASE_SERVER_IMAGE }}
@@ -94,9 +90,6 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/actions/showcase-build-frontend
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
@@ -114,9 +107,6 @@ jobs:
     if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.build_server.result == 'success' && needs.build_frontend.result == 'success' }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Verify OpenShift secrets for deploy
         env:
@@ -181,9 +171,6 @@ jobs:
     if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.deploy.result == 'success' }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: peter-evans/find-comment@v3
         id: fc
