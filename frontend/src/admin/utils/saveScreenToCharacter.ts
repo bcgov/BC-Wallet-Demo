@@ -2,6 +2,7 @@ import type { CustomCharacter, OnboardingStep, UseCaseScreen } from '../types'
 import type { AuthContextProps } from 'react-oidc-context'
 
 import { updateCharacter } from '../api/adminApi'
+
 import { toSnakeCase } from './toSnakeCase'
 
 type Screen = OnboardingStep | UseCaseScreen

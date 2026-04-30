@@ -93,15 +93,12 @@ export function CredentialsPage() {
                     type="button"
                     onClick={() => {
                       if (location.state?.fromShowcase && location.state?.characterName) {
-                        navigate(
-                          `${adminBaseRoute}/creator/showcase/${location.state.characterName}?tab=credentials`,
-                          {
-                            state: {
-                              selectedCredential: credential,
-                              isNewShowcase: location.state?.isNewShowcase,
-                            },
+                        navigate(`${adminBaseRoute}/creator/showcase/${location.state.characterName}?tab=credentials`, {
+                          state: {
+                            selectedCredential: credential,
+                            isNewShowcase: location.state?.isNewShowcase,
                           },
-                        )
+                        })
                       }
                     }}
                     className="p-0 bg-transparent border-none text-left hover:shadow-lg transition-shadow focus:outline-none h-full"
