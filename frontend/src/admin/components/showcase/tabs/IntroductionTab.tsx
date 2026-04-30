@@ -4,7 +4,7 @@ import { PlusIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { publicBaseUrl } from '../../../api/adminApi'
+import { publicBaseUrl, updateCharacter } from '../../../api/adminApi'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import { saveScreenToCharacter } from '../../../utils/saveScreenToCharacter'
 import { OnboardingInitializedModal } from '../../OnboardingInitializedModal'
@@ -87,17 +87,26 @@ export function IntroductionTab({ character, isNewShowcase, onTabChange, onRefre
     }
   }
 
-  const handleDrop = (dropIdx: number) => {
+  const handleDrop = async (dropIdx: number) => {
     if (draggedIdx === null || !character?.onboarding) return
 
     const newOnboarding = [...(reorderedOnboarding || character.onboarding)]
     const [draggedItem] = newOnboarding.splice(draggedIdx, 1)
     newOnboarding.splice(dropIdx, 0, draggedItem)
 
-    // TODO: Call API to persist reordered onboarding
+    try {
+      // Call API to persist reordered onboarding
+      await updateCharacter(auth, character.name, { onboarding: newOnboarding })
 
-    // Update local state to reflect the reorder
-    setReorderedOnboarding(newOnboarding)
+      // Refresh component with backend results
+      await onRefresh?.()
+
+      // Clear local reordering state to use fresh data from backend
+      setReorderedOnboarding(null)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error reordering onboarding screens:', error)
+    }
 
     setDraggedIdx(null)
     setDragOverIdx(null)

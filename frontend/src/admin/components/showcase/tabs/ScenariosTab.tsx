@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
 
-import { adminBaseRoute } from '../../../api/adminApi'
+import { adminBaseRoute, updateCharacter } from '../../../api/adminApi'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import { saveScreenToCharacter } from '../../../utils/saveScreenToCharacter'
 import { ScreenContentCard } from '../../ScreenContentCard'
@@ -89,7 +89,7 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
     }
   }
 
-  const handleDrop = (dropIdx: number) => {
+  const handleDrop = async (dropIdx: number) => {
     if (draggedIdx === null || !activeScenario || !character?.useCases) return
 
     const activeUC = character.useCases.find((uc) => uc.id === activeScenario)
@@ -100,10 +100,24 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
     const [draggedItem] = newScreens.splice(draggedIdx, 1)
     newScreens.splice(dropIdx, 0, draggedItem)
 
-    // TODO: Call API to persist reordered screens
+    try {
+      // Update the useCases array with the reordered screens for this scenario
+      const updatedUseCases = character.useCases.map((uc) =>
+        uc.id === activeScenario ? { ...uc, screens: newScreens } : uc,
+      )
 
-    // Update local state to reflect the reorder
-    setReorderedScreens({ ...reorderedScreens, [activeScenario]: newScreens })
+      // Call API to persist reordered screens
+      await updateCharacter(auth, character.name, { useCases: updatedUseCases })
+
+      // Refresh component with backend results
+      await onRefresh?.()
+
+      // Clear local reordering state to use fresh data from backend
+      setReorderedScreens({})
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error reordering scenario screens:', error)
+    }
 
     setDraggedIdx(null)
     setDragOverIdx(null)
