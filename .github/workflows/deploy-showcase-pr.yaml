@@ -149,7 +149,12 @@ jobs:
             echo "HELM_DRIVER=configmap" >> "${GITHUB_ENV}"
             echo "Helm will use ConfigMap release storage (list secrets denied in ${ns})."
           else
-            echo '::error::Helm cannot run: this token must be allowed to list Secrets or ConfigMaps in namespace '"${ns}"' for Helm 3 release history (https://helm.sh/docs/topics/advanced/). Grant the CI service account get,list,create,update,patch,delete on secrets or on configmaps in that namespace.'
+            echo '::notice::oc whoami: '"$(oc whoami 2>&1 || true)"
+            echo '::notice::SubjectAccessReview list secrets:'
+            oc auth can-i list secrets -n "${ns}" 2>&1 || true
+            echo '::notice::SubjectAccessReview list configmaps:'
+            oc auth can-i list configmaps -n "${ns}" 2>&1 || true
+            echo '::error::Helm cannot run: this token must be allowed to list Secrets or ConfigMaps in namespace '"${ns}"' for Helm 3 release history (https://helm.sh/docs/topics/advanced/). Grant the CI service account get,list,create,update,patch,delete on secrets or on configmaps in that namespace (same pattern as bcgov/traction PR deploy).'
             exit 1
           fi
 
