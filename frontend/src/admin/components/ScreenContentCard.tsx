@@ -1,6 +1,6 @@
-import type { Credential } from '../types'
+import type { Credential, CustomRequestOptions } from '../types'
 
-import { CreditCardIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
+import { CreditCardIcon, Cog6ToothIcon, CheckBadgeIcon } from '@heroicons/react/24/outline'
 
 import { publicBaseUrl } from '../api/adminApi'
 import { formatScreenId } from '../utils/formatScreenId'
@@ -11,6 +11,7 @@ interface ScreenContentCardProps {
   text: string
   image?: string
   credentials?: Credential[]
+  requestOptions?: CustomRequestOptions
   onEdit: () => void
   containerClassName?: string
   textMarginClass?: string
@@ -29,6 +30,7 @@ export function ScreenContentCard({
   text,
   image,
   credentials,
+  requestOptions,
   onEdit,
   containerClassName = 'flex-1 border border-gray-300 rounded-lg bg-white p-8 flex items-center justify-between gap-6 relative',
   textMarginClass = 'mb-3',
@@ -57,7 +59,7 @@ export function ScreenContentCard({
         <p className="text-xs font-semibold text-bcgov-black mb-1">{title}</p>
         <p className={`text-xs text-gray-600 ${textMarginClass}`}>{text}</p>
         {credentials && credentials.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             {credentials.map((cred, credIdx) => (
               <div
                 key={credIdx}
@@ -67,6 +69,14 @@ export function ScreenContentCard({
                 {cred.name}
               </div>
             ))}
+          </div>
+        )}
+        {requestOptions && requestOptions.requestedCredentials && requestOptions.requestedCredentials.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+              <CheckBadgeIcon className="w-3 h-3" />
+              {requestOptions.title || `Request (${requestOptions.requestedCredentials.length} credentials)`}
+            </div>
           </div>
         )}
       </div>

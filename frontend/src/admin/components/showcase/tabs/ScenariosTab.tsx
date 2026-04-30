@@ -159,6 +159,7 @@ export function ScenariosTab({ character, isNewShowcase, onRefresh }: ScenariosT
                     title={screen.title}
                     text={screen.text}
                     image={screen.image}
+                    requestOptions={screen.requestOptions}
                     onEdit={() => handleEditClick(idx, screen)}
                     isDragging={draggedIdx === idx}
                     isDragOver={dragOverIdx === idx}

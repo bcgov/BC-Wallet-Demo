@@ -2,8 +2,16 @@ import { PencilIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState, useRef } from 'react'
 
 import { publicBaseUrl } from '../../../api/adminApi'
-import { formatScreenId, type CustomCharacter, type OnboardingStep, type Credential } from '../../../types'
+import {
+  formatScreenId,
+  type CustomCharacter,
+  type OnboardingStep,
+  type Credential,
+  type CustomRequestOptions,
+} from '../../../types'
 import { ImageUploadModal } from '../../ImageUploadModal'
+
+import { RequestedCredentialsEditor } from './RequestedCredentialsEditor'
 
 interface ProgressBar {
   name: string
@@ -41,6 +49,8 @@ export function CreateOrEditScreenModal({
   const [iconDark, setIconDark] = useState('')
   const [credentials, setCredentials] = useState<Credential[]>([])
   const [showCredentialsList, setShowCredentialsList] = useState(false)
+  const [requestOptions, setRequestOptions] = useState<CustomRequestOptions | null>(null)
+  const [showRequestOptions, setShowRequestOptions] = useState(false)
   const [isImageUploadOpen, setIsImageUploadOpen] = useState(false)
   const [isIconLightUploadOpen, setIsIconLightUploadOpen] = useState(false)
   const [isIconDarkUploadOpen, setIsIconDarkUploadOpen] = useState(false)
@@ -55,6 +65,15 @@ export function CreateOrEditScreenModal({
       setText(screen.text ?? '')
       setImage(screen.image ?? '')
       setCredentials(screen.credentials ?? [])
+      // Handle requestOptions for scenario screens
+      const useCaseScreen = screen as any
+      if (useCaseScreen.requestOptions) {
+        setRequestOptions(useCaseScreen.requestOptions)
+        setShowRequestOptions(true)
+      } else {
+        setRequestOptions(null)
+        setShowRequestOptions(false)
+      }
     }
     if (progressBar) {
       setIconLight(progressBar.iconLight ?? '')
@@ -92,6 +111,13 @@ export function CreateOrEditScreenModal({
       image: image || undefined,
       credentials: credentials.length > 0 ? credentials : undefined,
     } as OnboardingStep
+
+    // Add requestOptions for scenario screens
+    if (screenType === 'scenarios' && requestOptions) {
+      ;(updatedScreen as any).requestOptions = requestOptions
+    } else if (screenType === 'scenarios') {
+      ;(updatedScreen as any).requestOptions = undefined
+    }
 
     const updatedProgressBar = progressBar
       ? {
@@ -247,6 +273,63 @@ export function CreateOrEditScreenModal({
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {screenType === 'scenarios' && (
+            <div>
+              <label className="block text-sm font-semibold text-bcgov-black mb-4">Presentation Request</label>
+              <div className="space-y-3">
+                {showRequestOptions && requestOptions ? (
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-bcgov-black mb-1">Title</label>
+                      <input
+                        type="text"
+                        value={requestOptions.title}
+                        onChange={(e) => setRequestOptions({ ...requestOptions, title: e.target.value })}
+                        placeholder="Presentation title"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-bcgov-black mb-1">Text</label>
+                      <textarea
+                        value={requestOptions.text}
+                        onChange={(e) => setRequestOptions({ ...requestOptions, text: e.target.value })}
+                        placeholder="Presentation description"
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue"
+                      />
+                    </div>
+
+                    {requestOptions && (
+                      <RequestedCredentialsEditor
+                        requestOptions={requestOptions}
+                        onUpdateRequestOptions={setRequestOptions}
+                        onError={setError}
+                      />
+                    )}
+
+                    <button
+                      onClick={() => setShowRequestOptions(false)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-bcgov-black font-medium hover:bg-gray-100 transition-colors text-sm"
+                    >
+                      Done Editing Presentations
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setRequestOptions({ title: '', text: '', requestedCredentials: [] })
+                      setShowRequestOptions(true)
+                    }}
+                    className="w-1/2 mx-auto block px-4 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors text-sm"
+                  >
+                    + Add Presentation
+                  </button>
+                )}
               </div>
             </div>
           )}
