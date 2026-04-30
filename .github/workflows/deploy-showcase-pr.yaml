@@ -9,6 +9,9 @@
 #   https://pr-<N>-<suffix>/digital-trust/showcase
 # Optional build-args (same as build_packages): REACT_APP_* via repo Variables or Secrets.
 #
+# Helm 3 stores release metadata in the target namespace (default: Secrets; optional: ConfigMaps).
+# The OpenShift token must be allowed to list (and create/update/delete/get) that resource type there.
+#
 # Skips when not bcgov, on draft PRs (no deploy), or when OpenShift secrets are missing at deploy time.
 # Expect PR branches on bcgov/BC-Wallet-Demo (same-repo PRs) so Actions secrets/vars apply; fork PRs lack secrets.
 
@@ -129,6 +132,20 @@ jobs:
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           namespace: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
 
+      - name: Helm release storage RBAC
+        run: |
+          set -euo pipefail
+          ns="$(oc project -q)"
+          if oc auth can-i list secrets -n "${ns}" --quiet >/dev/null 2>&1; then
+            echo "Helm will use default Secret release storage in namespace ${ns}."
+          elif oc auth can-i list configmaps -n "${ns}" --quiet >/dev/null 2>&1; then
+            echo "HELM_DRIVER=configmap" >> "${GITHUB_ENV}"
+            echo "Helm will use ConfigMap release storage (list secrets denied in ${ns})."
+          else
+            echo '::error::Helm cannot run: this token must be allowed to list Secrets or ConfigMaps in namespace '"${ns}"' for Helm 3 release history (https://helm.sh/docs/topics/advanced/). Grant the CI service account get,list,create,update,patch,delete on secrets or on configmaps in that namespace.'
+            exit 1
+          fi
+
       - uses: ./.github/actions/showcase-helm-lint
         with:
           skip_checkout: 'true'
@@ -137,8 +154,6 @@ jobs:
       - name: Helm upgrade --install
         working-directory: charts/showcase
         env:
-          # Default secret driver needs list secrets; github-cicd SA is often denied. ConfigMap driver matches typical RBAC.
-          HELM_DRIVER: configmap
           PR_NUM: ${{ github.event.pull_request.number }}
           HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           OWNER_LOWER: ${{ github.repository_owner }}
