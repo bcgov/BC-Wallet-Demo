@@ -137,5 +137,49 @@ describe('CredentialController', () => {
 
       expect(result).toEqual(mockData)
     })
+
+    it('resolves $dateint markers in credential_preview attributes before posting', async () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2025-06-15T00:00:00.000Z'))
+
+      const params = {
+        connection_id: 'conn1',
+        credential_preview: {
+          attributes: [
+            { name: 'expiry_date', value: '$dateint:4' },
+            { name: 'given_names', value: 'Alice' },
+          ],
+        },
+      }
+      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { credential_exchange_id: 'cred-exch-1' } })
+
+      await controller.offerCredential(params)
+
+      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential/send', {
+        connection_id: 'conn1',
+        credential_preview: {
+          attributes: [
+            { name: 'expiry_date', value: 20290615 },
+            { name: 'given_names', value: 'Alice' },
+          ],
+        },
+      })
+
+      vi.useRealTimers()
+    })
+
+    it('does not modify params when no $dateint markers present', async () => {
+      const params = {
+        connection_id: 'conn1',
+        credential_preview: {
+          attributes: [{ name: 'given_names', value: 'Bob' }],
+        },
+      }
+      vi.mocked(tractionRequest.post).mockResolvedValue({ data: {} })
+
+      await controller.offerCredential(params)
+
+      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential/send', params)
+    })
   })
 })

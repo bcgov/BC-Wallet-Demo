@@ -45,6 +45,7 @@ export interface TextWithImage {
 }
 
 export interface Credential {
+  id: string
   schema_id: string
   name: string
   icon: string
@@ -61,7 +62,7 @@ export interface IntroductionStep {
   text: string
   issuer_name?: string
   image?: string
-  credentialSchemaIds?: string[]
+  credentials?: string[]
 }
 
 type DateIntMarker = `$dateint:${number}`

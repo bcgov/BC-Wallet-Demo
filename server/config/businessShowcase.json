@@ -6,26 +6,7 @@
     "image": "/public/student/student.svg"
   },
   "hidden": true,
-  "credentials": [
-    {
-      "schema_id": "K9igebFysBL6jcBwR8bKuN:2:Digital Business Card:1.0.0",
-      "name": "Digital Business Card",
-      "version": "1.0.0",
-      "icon": "/public/student/icon-student.svg",
-      "attributes": [
-        { "name": "business_name", "value": "DAVE'S CUPCAKES" },
-        { "name": "business_type", "value": "BC Sole Proprietorship" },
-        { "name": "company_status", "value": "ACTIVE" },
-        { "name": "cra_business_number", "value": "000000000000001" },
-        { "name": "credential_id", "value": "00000001" },
-        { "name": "family_name", "value": "CHUNG" },
-        { "name": "given_names", "value": "DAVID, THOMAS" },
-        { "name": "identifier", "value": "FM000001" },
-        { "name": "registered_on_dateint", "value": "$dateint:-1" },
-        { "name": "role", "value": "PROPRIETOR" }
-      ]
-    }
-  ],
+  "credentials": ["business-digital-card"],
   "revocationInfo": [
     {
       "credentialName": "Digital Business Card",
@@ -96,7 +77,7 @@
       "name": "Accept your digital business card",
       "text": "Your wallet now has a secure and private connection with BC Registries. You should have received an offer in BC Wallet for a Digital Business Card.\nReview what they are sending, and choose 'Accept offer'.",
       "image": "/public/common/onboarding-credential-light.svg",
-      "credentialSchemaIds": ["K9igebFysBL6jcBwR8bKuN:2:Digital Business Card:1.0.0"]
+      "credentials": ["business-digital-card"]
     },
     {
       "screenId": "SETUP_COMPLETED",

@@ -44,32 +44,27 @@ describe('ShowcaseModel', () => {
   it('enforces unique index on persona.type', async () => {
     await ShowcaseModel.create({ ...minimal, persona: { ...minimal.persona, type: 'UniqueType' } })
     await expect(
-      ShowcaseModel.create({ name: 'Other Showcase', persona: { name: 'Bob', type: 'UniqueType', image: '/b.svg' } }),
+      ShowcaseModel.create({
+        name: 'Other Showcase',
+        persona: { name: 'Bob', type: 'UniqueType', image: '/b.svg' },
+      }),
     ).rejects.toThrow()
   })
 })
 
 describe('IntroductionStep embedded schema', () => {
-  it('persists an introduction step with credentialNames and top-level credentials', async () => {
+  it('persists an introduction step with credential references and top-level credential IDs', async () => {
     const doc = await ShowcaseModel.create({
       ...minimal,
       persona: { ...minimal.persona, type: 'Student-introduction' },
-      credentials: [
-        {
-          schema_id: 'QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6',
-          name: 'Student Card',
-          icon: '/icon.svg',
-          version: '1.0',
-          attributes: [{ name: 'student_id', value: '12345' }],
-        },
-      ],
+      credentials: ['student-card'],
       introduction: [
         {
           screenId: 'PICK_CREDENTIAL',
           name: 'Get your card',
           text: 'Scan to receive',
           issuer_name: 'Best BC College',
-          credentialSchemaIds: ['QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6'],
+          credentials: ['student-card'],
         },
       ],
     })
@@ -77,8 +72,8 @@ describe('IntroductionStep embedded schema', () => {
     const step = json.introduction[0]
     expect(step.screenId).toBe('PICK_CREDENTIAL')
     expect(step.issuer_name).toBe('Best BC College')
-    expect(step.credentialSchemaIds[0]).toBe('QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6')
-    expect(json.credentials[0].attributes[0].value).toBe('12345')
+    expect(step.credentials?.[0]).toBe('student-card')
+    expect(json.credentials[0]).toBe('student-card')
   })
 })
 

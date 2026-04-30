@@ -1,8 +1,18 @@
 import { Get, JsonController, NotFoundError, Param } from 'routing-controllers'
 import { Service } from 'typedi'
 
+import { Showcase } from '../content/types'
+import { CredentialModel } from '../db/models/Credential'
 import { ShowcaseModel } from '../db/models/Showcase'
 import logger from '../utils/logger'
+
+async function hydrateCredentials(showcase: Showcase) {
+  const ids = showcase.credentials
+  if (!ids?.length) return showcase
+  const creds = await CredentialModel.find({ _id: { $in: ids } }).lean()
+  const credMap = new Map(creds.map((c) => [String(c._id), c]))
+  return { ...showcase, credentials: ids.map((id) => credMap.get(id)).filter(Boolean) }
+}
 
 @JsonController('/showcases')
 @Service()
@@ -21,7 +31,7 @@ export class ShowcaseController {
     }
 
     logger.debug({ showcaseId }, 'Showcase found')
-    return showcase
+    return hydrateCredentials(showcase)
   }
 
   /**
@@ -31,6 +41,6 @@ export class ShowcaseController {
   public async getShowcases() {
     const showcases = await ShowcaseModel.find().lean()
     logger.debug({ count: showcases.length }, 'Fetching all showcases')
-    return showcases
+    return Promise.all(showcases.map(hydrateCredentials))
   }
 }

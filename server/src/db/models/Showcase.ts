@@ -1,34 +1,13 @@
-import type {
-  Credential,
-  IntroductionStep,
-  Persona,
-  ProgressBarStep,
-  RevocationInfoItem,
-  Showcase,
-} from '../../content/types'
+import type { IntroductionStep, Persona, ProgressBarStep, RevocationInfoItem, Showcase } from '../../content/types'
 import type { Types } from 'mongoose'
 
 import { Schema, model } from 'mongoose'
 import fs from 'node:fs/promises'
 
-import { AttributeSchema, baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
+import { baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
 
 import { AssetModel } from './Asset'
 import { ScenarioSchema } from './Scenario'
-
-// Maps to Credential interface (credentials issued during onboarding steps).
-// Not to be confused with CredentialRequest, which is for proof use case screens.
-const CredentialSchema = new Schema<Credential>(
-  {
-    schema_id: { type: String, required: true },
-    name: { type: String, required: true },
-    icon: { type: String, required: true },
-    version: { type: String, required: true },
-    // Use shared AttributeSchema so name is required consistently.
-    attributes: [AttributeSchema],
-  },
-  embeddedSchemaOptions,
-)
 
 // Maps to IntroductionStep interface.
 const IntroductionStepSchema = new Schema<IntroductionStep>(
@@ -38,7 +17,7 @@ const IntroductionStepSchema = new Schema<IntroductionStep>(
     text: { type: String, required: true },
     image: String,
     issuer_name: String,
-    credentialSchemaIds: [String],
+    credentials: [String],
   },
   embeddedSchemaOptions,
 )
@@ -84,7 +63,7 @@ const ShowcaseSchema = new Schema<Showcase>(
     persona: { type: PersonaSchema, required: true },
     hidden: { type: Boolean, default: false },
     description: String,
-    credentials: { type: [CredentialSchema], required: true, default: [] },
+    credentials: { type: [String], required: true, default: [] },
     // required + default to match types.ts where both fields are non-optional.
     progressBar: { type: [ProgressBarStepSchema], required: true, default: [] },
     introduction: { type: [IntroductionStepSchema], required: true, default: [] },

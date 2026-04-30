@@ -55,8 +55,8 @@ export const IntroductionContainer: React.FC<Props> = ({
 
   const connectionCompleted = isConnected(connectionState as string)
   const introStep = currentShowcase?.introduction.find((step) => step.screenId === introductionStep)
-  const credentials = introStep?.credentialSchemaIds
-    ?.map((id) => currentShowcase?.credentials.find((c) => c.schema_id === id))
+  const credentials = introStep?.credentials
+    ?.map((id) => currentShowcase?.credentials.find((c) => c.id === id))
     .filter(Boolean) as Credential[] | undefined
   const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.name))
 
@@ -113,8 +113,8 @@ export const IntroductionContainer: React.FC<Props> = ({
   const getCharacterContent = (progress: string) => {
     const characterContent = currentShowcase?.introduction.find((screen) => screen.screenId === progress)
     if (characterContent) {
-      const stepCredentials = characterContent.credentialSchemaIds
-        ?.map((id) => currentShowcase?.credentials.find((c) => c.schema_id === id))
+      const stepCredentials = characterContent.credentials
+        ?.map((id) => currentShowcase?.credentials.find((c) => c.id === id))
         .filter(Boolean) as Credential[] | undefined
       return {
         title: characterContent.name,

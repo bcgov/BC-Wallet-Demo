@@ -3,6 +3,7 @@ import { Service } from 'typedi'
 
 import { Credential } from '../content/types'
 import logger from '../utils/logger'
+import { resolveCredentialAttributes } from '../utils/resolveMarkers'
 import { tractionRequest } from '../utils/tractionHelper'
 
 @JsonController('/credentials')
@@ -72,11 +73,21 @@ export class CredentialController {
 
   @Post('/offerCredential')
   public async offerCredential(@Body() params: any) {
+    const resolvedParams =
+      params.credential_preview?.attributes != null
+        ? {
+            ...params,
+            credential_preview: {
+              ...params.credential_preview,
+              attributes: resolveCredentialAttributes(params.credential_preview.attributes),
+            },
+          }
+        : params
     logger.info(
       { connectionId: params.connection_id, credentialName: params.credential_preview?.attributes?.[0]?.name },
       'Offering credential',
     )
-    const response = await tractionRequest.post(`/issue-credential/send`, params)
+    const response = await tractionRequest.post(`/issue-credential/send`, resolvedParams)
     logger.info({ credentialExchangeId: response.data?.credential_exchange_id }, 'Credential offer sent')
     return response.data
   }
