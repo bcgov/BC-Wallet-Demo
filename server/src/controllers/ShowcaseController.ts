@@ -1,17 +1,19 @@
 import { Get, JsonController, NotFoundError, Param } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import { Showcase } from '../content/types'
+import { Credential, Showcase } from '../content/types'
 import { CredentialModel } from '../db/models/Credential'
 import { ShowcaseModel } from '../db/models/Showcase'
 import logger from '../utils/logger'
 
-async function hydrateCredentials(showcase: Showcase) {
+type HydratedShowcase = Omit<Showcase, 'credentials'> & { credentials: Credential[] }
+
+async function hydrateCredentials(showcase: Showcase): Promise<HydratedShowcase> {
   const ids = showcase.credentials
-  if (!ids?.length) return showcase
+  if (!ids?.length) return { ...showcase, credentials: [] }
   const creds = await CredentialModel.find({ _id: { $in: ids } }).lean()
   const credMap = new Map(creds.map((c) => [String(c._id), c]))
-  return { ...showcase, credentials: ids.map((id) => credMap.get(id)).filter(Boolean) }
+  return { ...showcase, credentials: ids.map((id) => credMap.get(id)).filter(Boolean) as Credential[] }
 }
 
 @JsonController('/showcases')

@@ -38,6 +38,17 @@ export interface Props {
   introductionStep: string
 }
 
+const resolveCredentials = (ids: string[] | undefined, showcase: Showcase | undefined): Credential[] | undefined => {
+  if (!ids || !showcase) return undefined
+  return ids
+    .map((id) => {
+      const cred = showcase.credentials.find((c) => c.id === id)
+      if (!cred) console.warn(`Credential ID "${id}" not found in showcase "${showcase.name}"`)
+      return cred
+    })
+    .filter(Boolean) as Credential[]
+}
+
 export const IntroductionContainer: React.FC<Props> = ({
   showcases,
   currentShowcase,
@@ -55,9 +66,7 @@ export const IntroductionContainer: React.FC<Props> = ({
 
   const connectionCompleted = isConnected(connectionState as string)
   const introStep = currentShowcase?.introduction.find((step) => step.screenId === introductionStep)
-  const credentials = introStep?.credentials
-    ?.map((id) => currentShowcase?.credentials.find((c) => c.id === id))
-    .filter(Boolean) as Credential[] | undefined
+  const credentials = resolveCredentials(introStep?.credentials, currentShowcase)
   const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.name))
 
   const isBackDisabled = ['PICK_CHARACTER', 'ACCEPT_CREDENTIAL'].includes(introductionStep)
@@ -113,9 +122,7 @@ export const IntroductionContainer: React.FC<Props> = ({
   const getCharacterContent = (progress: string) => {
     const characterContent = currentShowcase?.introduction.find((screen) => screen.screenId === progress)
     if (characterContent) {
-      const stepCredentials = characterContent.credentials
-        ?.map((id) => currentShowcase?.credentials.find((c) => c.id === id))
-        .filter(Boolean) as Credential[] | undefined
+      const stepCredentials = resolveCredentials(characterContent.credentials, currentShowcase)
       return {
         title: characterContent.name,
         text: characterContent.text,

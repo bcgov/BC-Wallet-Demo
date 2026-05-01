@@ -31,7 +31,13 @@ const showcaseSlice = createSlice({
       state.uploadedShowcase = action.payload.showcase
       const promises: Promise<any>[] = []
       state.isUploading = true
-      action.payload.showcase.credentials.forEach((cred) => promises.push(getOrCreateCredDefId(cred)))
+      action.payload.showcase.credentials.forEach((cred) => {
+        if (typeof cred === 'string') {
+          console.warn(`uploadShowcase: credential "${cred}" is a string ID, not a hydrated Credential object. Skipping getOrCreateCredDefId.`)
+          return
+        }
+        promises.push(getOrCreateCredDefId(cred))
+      })
       Promise.all(promises).then(() => {
         if (action.payload.callback) {
           action.payload.callback()

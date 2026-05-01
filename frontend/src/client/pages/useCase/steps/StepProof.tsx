@@ -29,6 +29,41 @@ export interface Props {
   entityName: string
 }
 
+/**
+ * Resolves a template marker stored in showcase config to a concrete number at request time.
+ *
+ * Supported markers:
+ *   `$now`          → current Unix timestamp in seconds (for nonRevoked windows)
+ *   `$dateint:N`    → today's date shifted by N years, formatted as YYYYMMDD integer
+ *                     (e.g. `$dateint:0` = today, `$dateint:-19` = 19 years ago)
+ *
+ * Plain numbers pass through unchanged. Unrecognised strings return undefined.
+ */
+const resolveMarker = (val: string | number | undefined): number | undefined => {
+  if (typeof val !== 'string') return val as number | undefined
+  if (val === '$now') return Math.floor(Date.now() / 1000)
+  const m = val.match(/^\$dateint:(-?\d+)$/)
+  if (m) {
+    const d = new Date()
+    d.setFullYear(d.getFullYear() + parseInt(m[1]))
+    return parseInt(d.toISOString().split('T')[0].replace(/-/g, ''))
+  }
+  console.warn(`resolveMarker: unrecognised marker "${val}", proof request may be malformed`)
+  return undefined
+}
+
+const resolveNonRevoked = (
+  nr: { to: number | string; from?: number | string } | undefined,
+): { to: number; from?: number } | undefined => {
+  if (!nr) return undefined
+  const to = resolveMarker(nr.to)
+  if (to === undefined) {
+    console.warn(`resolveNonRevoked: "to" field resolved to undefined (value: ${JSON.stringify(nr.to)}), skipping nonRevoked`)
+    return undefined
+  }
+  return { to, from: resolveMarker(nr.from) }
+}
+
 export const StepProof: React.FC<Props> = ({
   proof,
   step,
@@ -49,35 +84,6 @@ export const StepProof: React.FC<Props> = ({
 
   const { isDeepLink } = useConnection()
   const { message } = useSocket()
-
-  /**
-   * Resolves a template marker stored in showcase config to a concrete number at request time.
-   *
-   * Supported markers:
-   *   `$now`          → current Unix timestamp in seconds (for nonRevoked windows)
-   *   `$dateint:N`    → today's date shifted by N years, formatted as YYYYMMDD integer
-   *                     (e.g. `$dateint:0` = today, `$dateint:-19` = 19 years ago)
-   *
-   * Plain numbers pass through unchanged. Unrecognised strings return undefined.
-   */
-  const resolveMarker = (val: string | number | undefined): number | undefined => {
-    if (typeof val !== 'string') return val as number | undefined
-    if (val === '$now') return Math.floor(Date.now() / 1000)
-    const m = val.match(/^\$dateint:(-?\d+)$/)
-    if (m) {
-      const d = new Date()
-      d.setFullYear(d.getFullYear() + parseInt(m[1]))
-      return parseInt(d.toISOString().split('T')[0].replace(/-/g, ''))
-    }
-    return undefined
-  }
-
-  const resolveNonRevoked = (
-    nr: { to: number | string; from?: number | string } | undefined,
-  ): { to: number; from?: number } | undefined => {
-    if (!nr) return undefined
-    return { to: resolveMarker(nr.to) as number, from: resolveMarker(nr.from) }
-  }
 
   const createProofRequest = () => {
     const proofs: Record<string, ProofAttributeRequest> = {}

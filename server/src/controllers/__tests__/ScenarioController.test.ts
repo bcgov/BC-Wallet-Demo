@@ -5,6 +5,31 @@ vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
+vi.mock('../../db/models/Showcase', () => {
+  const showcases = [
+    {
+      persona: { type: 'Student', name: 'Student', image: '' },
+      scenarios: [
+        { id: 'clothesOnline', name: 'Clothes Online', hidden: false, screens: [] },
+        { id: 'hiddenUseCase', name: 'Hidden', hidden: true, screens: [] },
+      ],
+    },
+    {
+      persona: { type: 'Lawyer', name: 'Lawyer', image: '' },
+      scenarios: [{ id: 'lawyerCase', name: 'Lawyer Case', hidden: false, screens: [] }],
+    },
+  ]
+
+  return {
+    ShowcaseModel: {
+      find: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue(showcases) }),
+      findOne: vi.fn().mockImplementation(({ 'persona.type': type }: { 'persona.type': string }) => ({
+        lean: vi.fn().mockResolvedValue(showcases.find((s) => s.persona.type === type) ?? null),
+      })),
+    },
+  }
+})
+
 import { ScenarioController } from '../ScenarioController'
 
 describe('ScenarioController', () => {
@@ -12,6 +37,7 @@ describe('ScenarioController', () => {
 
   beforeEach(() => {
     controller = new ScenarioController()
+    vi.clearAllMocks()
   })
 
   describe('getUseCaseBySlug', () => {
@@ -53,7 +79,6 @@ describe('ScenarioController', () => {
       const all = await controller.getUseCasesByCharType('Student', true)
       const visible = await controller.getUseCasesByCharType('Student', false)
 
-      // when showHidden=true, result should be >= visible count
       expect(all.length).toBeGreaterThanOrEqual(visible.length)
     })
   })

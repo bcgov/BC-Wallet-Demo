@@ -44,10 +44,10 @@ export const IntroductionBottomNav: React.FC<Props> = ({
       className="flex w-full justify-between mb-4 h-8 self-end select-none"
     >
       <div className="flex self-center">
-        <BackButton onClick={removeIntroductionStep} disabled={backDisabled} data-cy="prev-onboarding-step" />
+        <BackButton onClick={removeIntroductionStep} disabled={backDisabled} data-cy="prev-introduction-step" />
       </div>
       <AnimatePresence mode="wait">
-        <motion.div variants={fadeExit} initial="hidden" animate="show" exit="exit" data-cy="next-onboarding-step">
+        <motion.div variants={fadeExit} initial="hidden" animate="show" exit="exit" data-cy="next-introduction-step">
           <Button
             onClick={isCompleted ? introductionCompleted : addIntroductionStep}
             text={label}

@@ -79,7 +79,7 @@ export const removeIntroductionProgress = (
     dispatch(setIntroductionStep(steps[currentIndex - 1]))
   }
   track({
-    id: 'onboarding-step-completed',
+    id: 'introduction-step-removed',
     parameters: {
       step: introductionStep.toString(),
     },

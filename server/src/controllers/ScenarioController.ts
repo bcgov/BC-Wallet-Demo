@@ -1,10 +1,9 @@
 import { Get, JsonController, NotFoundError, Param, QueryParam } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import showcases from '../content/Showcases'
+import { ShowcaseModel } from '../db/models/Showcase'
 import logger from '../utils/logger'
 
-const scenarios = showcases.map((s) => s.scenarios)
 @JsonController('/usecases')
 @Service()
 export class ScenarioController {
@@ -14,7 +13,8 @@ export class ScenarioController {
   @Get('/:useCaseSlug')
   public async getUseCaseBySlug(@Param('useCaseSlug') useCaseSlug: string) {
     logger.debug({ useCaseSlug }, 'Fetching use case by slug')
-    const scenario = scenarios.flat().find((x) => x.id === useCaseSlug)
+    const showcases = await ShowcaseModel.find().lean()
+    const scenario = showcases.flatMap((s) => s.scenarios).find((x) => x.id === useCaseSlug)
 
     if (!scenario) {
       logger.warn({ useCaseSlug }, 'Scenario not found')
@@ -29,7 +29,7 @@ export class ScenarioController {
   @Get('/character/:type')
   public async getUseCasesByCharType(@Param('type') type: string, @QueryParam('showHidden') showHidden?: boolean) {
     logger.debug({ type, showHidden }, 'Fetching use cases by character type')
-    const character = showcases.find((s) => s.persona.type === type)
+    const character = await ShowcaseModel.findOne({ 'persona.type': type }).lean()
 
     if (!character) {
       logger.warn({ type }, 'Character type not found for scenario lookup')
