@@ -46,7 +46,6 @@ export interface TextWithImage {
 
 export interface Credential {
   id: string
-  schema_id: string
   name: string
   icon: string
   version: string

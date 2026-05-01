@@ -9,7 +9,6 @@ import { AttributeSchema, baseSchemaOptions } from '../baseSchema'
 const CredentialSchema = new Schema(
   {
     _id: { type: String },
-    schema_id: { type: String, required: true },
     name: { type: String, required: true },
     icon: { type: String, required: true },
     version: { type: String, required: true },

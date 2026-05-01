@@ -23,7 +23,6 @@ const makeStore = () => configureStore({ reducer: { credentials: credentialsRedu
 
 const mockCred = {
   id: 'person-credential',
-  schema_id: 'QEquAHkM35w4XVT3Ku5yat:2:Person:1.3',
   name: 'Person Credential',
   icon: '/icon.png',
   version: '1.0',

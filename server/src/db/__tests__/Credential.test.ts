@@ -24,7 +24,6 @@ describe('CredentialModel', () => {
   it('persists a credential with a string id', async () => {
     const doc = await CredentialModel.create({
       _id: 'student-card',
-      schema_id: 'schema:student',
       name: 'Student Card',
       icon: '/icon.svg',
       version: '1.0.0',
@@ -33,7 +32,6 @@ describe('CredentialModel', () => {
 
     const json = doc.toJSON()
     expect(json.id).toBe('student-card')
-    expect(json.schema_id).toBe('schema:student')
     expect(json.attributes[0].name).toBe('student_id')
     expect(json.attributes[0].value).toBe('12345')
   })
@@ -42,7 +40,6 @@ describe('CredentialModel', () => {
     await expect(
       CredentialModel.create({
         _id: 'missing-fields',
-        schema_id: 'schema:missing',
         // name missing
         icon: '/icon.svg',
         version: '1.0.0',
@@ -54,7 +51,6 @@ describe('CredentialModel', () => {
   it('allows updating an existing credential', async () => {
     await CredentialModel.create({
       _id: 'student-card',
-      schema_id: 'schema:student',
       name: 'Student Card',
       icon: '/icon.svg',
       version: '1.0.0',
