@@ -47,6 +47,7 @@ describe('CredentialController', () => {
 
   describe('getOrCreateCredDef — existing schema and credential definition', () => {
     const credential = {
+      id: 'student-card',
       name: 'Student Card',
       version: '1.6',
       icon: '/public/student/icon.svg',
@@ -67,6 +68,7 @@ describe('CredentialController', () => {
 
   describe('getOrCreateCredDef — new schema and credential definition', () => {
     const credential = {
+      id: 'new-card',
       name: 'New Card',
       version: '1.0',
       icon: '/public/icon.svg',
@@ -97,6 +99,7 @@ describe('CredentialController', () => {
 
   describe('getOrCreateCredDef — existing schema, new credential definition', () => {
     const credential = {
+      id: 'existing-schema-card',
       name: 'Existing Schema Card',
       version: '2.0',
       icon: '/icon.svg',
