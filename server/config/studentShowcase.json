@@ -1,5 +1,6 @@
 {
   "name": "Student Showcase",
+  "description": "Alice is a student at Best BC College who receives a digital Student Card credential and uses it to prove her identity online.",
   "persona": {
     "name": "Alice",
     "type": "Student",

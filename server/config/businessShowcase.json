@@ -1,5 +1,6 @@
 {
   "name": "Proprietor Showcase",
+  "description": "Dave is a sole proprietor registered with BC Registries who receives a Digital Business Card credential to verify his business identity online.",
   "persona": {
     "name": "Dave",
     "type": "Proprietor",
