@@ -4,7 +4,7 @@
   "persona": {
     "name": "Alice",
     "type": "Student",
-    "image": "public/student/student.svg"
+    "image": "/public/student/student.svg"
   },
   "credentials": ["student-card"],
   "revocationInfo": [
