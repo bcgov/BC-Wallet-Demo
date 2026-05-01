@@ -3,9 +3,10 @@ description: Install pinned oc and Helm versions used by showcase deploy workflo
 runs:
   using: composite
   steps:
+    # Pin patch version so the installer does not ambiguously pick among many 4.15.* tarballs (and cache keys stay stable).
     - uses: redhat-actions/openshift-tools-installer@v1
       with:
-        oc: '4.15'
+        oc: '4.15.63'
 
     - uses: azure/setup-helm@v4
       with:

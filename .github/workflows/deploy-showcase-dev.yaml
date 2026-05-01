@@ -16,8 +16,9 @@
 #     SHOWCASE_DEV_OC_TOKEN      — Service account or user token with permission to
 #                                  helm upgrade/install resources in that namespace
 #
-# If OpenShift variables/token are missing, image build + push to GHCR still runs on bcgov (so
-# `ghcr.io/bcgov/bc-wallet-showcase-*:main` stays current); the Helm job is skipped. Forks skip
+# If SHOWCASE_DEV_OC_URL or SHOWCASE_DEV_NAMESPACE is unset, the Helm deploy job is skipped while
+# image builds still run on bcgov. If both are set but SHOWCASE_DEV_OC_TOKEN is missing, the deploy
+# job fails at preflight with a clear error (secrets cannot be used in job-level `if`). Forks skip
 # GHCR jobs entirely (stay green).
 
 name: Deploy showcase (dev)
@@ -61,6 +62,7 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/showcase-build-server
         with:
           image: ${{ env.SHOWCASE_SERVER_IMAGE }}
@@ -77,6 +79,7 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/showcase-build-frontend
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
@@ -90,18 +93,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [build-server, build-frontend]
+    # Job-level `if` cannot use the `secrets` context (GitHub restriction). Gate on vars + builds;
+    # verify the token in the first step so a missing secret fails with a clear error.
     if: >-
       github.repository_owner == 'bcgov' &&
       needs.build-server.result == 'success' &&
       needs.build-frontend.result == 'success' &&
       vars.SHOWCASE_DEV_OC_URL != '' &&
-      vars.SHOWCASE_DEV_NAMESPACE != '' &&
-      secrets.SHOWCASE_DEV_OC_TOKEN != ''
+      vars.SHOWCASE_DEV_NAMESPACE != ''
     permissions:
       contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify OpenShift token is configured
+        env:
+          SHOWCASE_DEV_OC_TOKEN: ${{ secrets.SHOWCASE_DEV_OC_TOKEN }}
+        run: |
+          if [ -z "${SHOWCASE_DEV_OC_TOKEN}" ]; then
+            echo '::error::Missing repository secret SHOWCASE_DEV_OC_TOKEN (required when SHOWCASE_DEV_OC_URL and SHOWCASE_DEV_NAMESPACE are set).'
+            exit 1
+          fi
 
       - uses: ./.github/actions/showcase-setup-oc-helm
 

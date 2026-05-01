@@ -2,15 +2,18 @@
 #
 # Shared Docker steps live under `.github/actions/showcase-build-*` (also used by deploy-showcase-dev).
 #
-# Configure on bcgov/BC-Wallet-Demo (same secret names as traction PR workflows):
-#   Secrets: OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_NAMESPACE
-#   Variables: SHOWCASE_PR_HOST_SUFFIX — hostname without scheme, e.g.
-#     bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca
-#     Public URL becomes https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>
+# Configure on bcgov/BC-Wallet-Demo (repository Actions secrets):
+#   Secrets: OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_DEV_NAMESPACE
+# Optional variable: SHOWCASE_PR_HOST_SUFFIX — hostname without scheme (overrides workflow default).
+#   Default is Silver dev ingress (see env.SHOWCASE_PR_HOST_SUFFIX). Public URL:
+#   https://pr-<N>-<suffix>/digital-trust/showcase
 # Optional build-args (same as build_packages): REACT_APP_* via repo Variables or Secrets.
 #
-# Skips when not bcgov, when SHOWCASE_PR_HOST_SUFFIX is unset, on draft PRs (no deploy), or when
-# OpenShift secrets are missing (no deploy). Fork PRs do not receive org secrets on the runner.
+# Helm 3 stores release metadata in the target namespace (default: Secrets; optional: ConfigMaps).
+# The OpenShift token must be allowed to list (and create/update/delete/get) that resource type there.
+#
+# Skips when not bcgov, on draft PRs (no deploy), or when OpenShift secrets are missing at deploy time.
+# Expect PR branches on bcgov/BC-Wallet-Demo (same-repo PRs) so Actions secrets/vars apply; fork PRs lack secrets.
 
 name: Showcase PR — build and deploy
 
@@ -35,6 +38,8 @@ concurrency:
   group: showcase-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+# GHCR push needs packages:write; orgs may also require Actions "Read and write" workflow permissions
+# and linking the repo to the package. ghcr login uses repository_owner + GITHUB_TOKEN (see showcase-build-* actions).
 permissions:
   contents: read
   packages: write
@@ -45,14 +50,20 @@ env:
   REGISTRY: ghcr.io
   SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
   SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
+  # PR Route host fragment (no scheme): https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>/…
+  # Override per-repo with Actions variable SHOWCASE_PR_HOST_SUFFIX if your cluster DNS differs.
+  SHOWCASE_PR_HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX != '' && vars.SHOWCASE_PR_HOST_SUFFIX || 'bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
 
 jobs:
   ready:
     name: Ready gates
     runs-on: ubuntu-latest
     outputs:
-      deploy: ${{ github.repository_owner == 'bcgov' && github.event.pull_request.draft != true && vars.SHOWCASE_PR_HOST_SUFFIX != '' }}
-      build: ${{ github.repository_owner == 'bcgov' && vars.SHOWCASE_PR_HOST_SUFFIX != '' }}
+      deploy: ${{ github.repository_owner == 'bcgov' && github.event.pull_request.draft != true }}
+      build: ${{ github.repository_owner == 'bcgov' }}
+    steps:
+      - name: Compute gate outputs
+        run: 'true'
 
   build_server:
     name: Build and push server image
@@ -65,6 +76,7 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/showcase-build-server
         with:
           image: ${{ env.SHOWCASE_SERVER_IMAGE }}
@@ -82,11 +94,12 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/showcase-build-frontend
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
           tag: pr-${{ github.event.pull_request.number }}
-          react_app_host_backend: https://pr-${{ github.event.pull_request.number }}-${{ vars.SHOWCASE_PR_HOST_SUFFIX }}
+          react_app_host_backend: https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           react_app_insights_project_id: ${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -95,9 +108,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [ready, build_server, build_frontend]
-    if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.build_server.result == 'success' && needs.build_frontend.result == 'success' && secrets.OPENSHIFT_TOKEN != '' && secrets.OPENSHIFT_SERVER != '' && secrets.OPENSHIFT_NAMESPACE != '' }}
+    # Job-level `if` cannot use `secrets` (GitHub restriction). Verify OpenShift secrets in-step.
+    if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.build_server.result == 'success' && needs.build_frontend.result == 'success' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Verify OpenShift secrets for deploy
+        env:
+          OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
+          OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+        run: |
+          if [[ -z "${OPENSHIFT_TOKEN}" || -z "${OPENSHIFT_SERVER}" || -z "${OPENSHIFT_DEV_NAMESPACE}" ]]; then
+            echo '::error::Missing OPENSHIFT_SERVER, OPENSHIFT_TOKEN, or OPENSHIFT_DEV_NAMESPACE for showcase PR deploy.'
+            exit 1
+          fi
 
       - uses: ./.github/actions/showcase-setup-oc-helm
 
@@ -105,7 +130,33 @@ jobs:
         with:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
+          namespace: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+
+      - name: Helm release storage RBAC
+        env:
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+        run: |
+          set -euo pipefail
+          # Do not use `oc project -q`: some CI tokens cannot *view* the Project but can still act in the namespace.
+          ns="${OPENSHIFT_DEV_NAMESPACE}"
+          if [[ -z "${ns}" ]]; then
+            echo '::error::OPENSHIFT_DEV_NAMESPACE is empty.'
+            exit 1
+          fi
+          if oc auth can-i list secrets -n "${ns}" --quiet >/dev/null 2>&1; then
+            echo "Helm will use default Secret release storage in namespace ${ns}."
+          elif oc auth can-i list configmaps -n "${ns}" --quiet >/dev/null 2>&1; then
+            echo "HELM_DRIVER=configmap" >> "${GITHUB_ENV}"
+            echo "Helm will use ConfigMap release storage (list secrets denied in ${ns})."
+          else
+            echo '::notice::oc whoami: '"$(oc whoami 2>&1 || true)"
+            echo '::notice::SubjectAccessReview list secrets:'
+            oc auth can-i list secrets -n "${ns}" 2>&1 || true
+            echo '::notice::SubjectAccessReview list configmaps:'
+            oc auth can-i list configmaps -n "${ns}" 2>&1 || true
+            echo '::error::Helm cannot run: this token must be allowed to list Secrets or ConfigMaps in namespace '"${ns}"' for Helm 3 release history (https://helm.sh/docs/topics/advanced/). Grant the CI service account get,list,create,update,patch,delete on secrets or on configmaps in that namespace (same pattern as bcgov/traction PR deploy).'
+            exit 1
+          fi
 
       - uses: ./.github/actions/showcase-helm-lint
         with:
@@ -116,33 +167,57 @@ jobs:
         working-directory: charts/showcase
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
-          HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX }}
+          HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           OWNER_LOWER: ${{ github.repository_owner }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: |
           set -euo pipefail
           origin="https://pr-${PR_NUM}-${HOST_SUFFIX}"
           owner_lc="$(echo "${OWNER_LOWER}" | tr '[:upper:]' '[:lower:]')"
-          helm upgrade --install "pr-${PR_NUM}-showcase" . \
+          helm dependency update
+          if ! helm upgrade --install "pr-${PR_NUM}-showcase" . \
             -f ../../deploy/showcase/values-pr.yaml \
+            --namespace "${OPENSHIFT_DEV_NAMESPACE}" \
             --set-string "showcase.publicOrigin=${origin}" \
             --set "showcase.server.image.repository=${owner_lc}/bc-wallet-showcase-server" \
             --set "showcase.server.image.tag=pr-${PR_NUM}" \
             --set "showcase.frontend.image.repository=${owner_lc}/bc-wallet-showcase-frontend" \
             --set "showcase.frontend.image.tag=pr-${PR_NUM}" \
             --wait \
-            --timeout 15m \
-            --atomic
+            --timeout 10m \
+            --debug; then
+            echo '::error::helm upgrade failed; status and recent events follow.'
+            helm status "pr-${PR_NUM}-showcase" -n "${OPENSHIFT_DEV_NAMESPACE}" 2>/dev/null || true
+            oc get events -n "${OPENSHIFT_DEV_NAMESPACE}" --sort-by='.lastTimestamp' 2>/dev/null | tail -40 || true
+            inst="pr-${PR_NUM}-showcase"
+            p="$(
+              oc get pods -n "${OPENSHIFT_DEV_NAMESPACE}" \
+                -l "app.kubernetes.io/component=server,app.kubernetes.io/instance=${inst}" \
+                -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true
+            )"
+            if [[ -n "${p}" ]]; then
+              echo '::notice::--- oc describe pod '"${p}"' (tail) ---'
+              oc describe pod "${p}" -n "${OPENSHIFT_DEV_NAMESPACE}" 2>/dev/null | tail -80 || true
+              echo '::notice::--- oc logs '"${p}"' -c wait-for-mongo-tcp (tail) ---'
+              oc logs "${p}" -n "${OPENSHIFT_DEV_NAMESPACE}" -c wait-for-mongo-tcp --tail=60 2>/dev/null || true
+              echo '::notice::--- oc logs '"${p}"' -c server (tail) ---'
+              oc logs "${p}" -n "${OPENSHIFT_DEV_NAMESPACE}" -c server --tail=80 2>/dev/null || true
+            fi
+            exit 1
+          fi
 
       # Same image tag (:pr-N) may point at a new digest; restart pulls new layers. Wait so the job does not succeed before pods are ready.
       - name: Restart deployments and wait for rollouts
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: |
           set -euo pipefail
-          oc rollout restart "deployment/pr-${PR_NUM}-showcase-server"
-          oc rollout status "deployment/pr-${PR_NUM}-showcase-server" --timeout=15m
-          oc rollout restart "deployment/pr-${PR_NUM}-showcase-frontend"
-          oc rollout status "deployment/pr-${PR_NUM}-showcase-frontend" --timeout=15m
+          ns="${OPENSHIFT_DEV_NAMESPACE}"
+          oc rollout restart "deployment/pr-${PR_NUM}-showcase-server" -n "${ns}"
+          oc rollout status "deployment/pr-${PR_NUM}-showcase-server" -n "${ns}" --timeout=10m
+          oc rollout restart "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}"
+          oc rollout status "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}" --timeout=10m
 
   pr_urls_comment:
     name: PR deployment comment
@@ -167,7 +242,7 @@ jobs:
           body: |
             | Showcase PR | |
             | --- | --- |
-            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ vars.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
+            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
 
             Showcase PR deployment URL (Helm release `pr-${{ github.event.pull_request.number }}-showcase`).
 
@@ -180,6 +255,6 @@ jobs:
           body: |
             | Showcase PR | |
             | --- | --- |
-            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ vars.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
+            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
 
             Showcase PR deployment URL (Helm release `pr-${{ github.event.pull_request.number }}-showcase`).
