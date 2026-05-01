@@ -184,12 +184,25 @@ jobs:
             --set "showcase.frontend.image.repository=${owner_lc}/bc-wallet-showcase-frontend" \
             --set "showcase.frontend.image.tag=pr-${PR_NUM}" \
             --wait \
-            --timeout 15m \
-            --atomic \
+            --timeout 10m \
             --debug; then
             echo '::error::helm upgrade failed; status and recent events follow.'
             helm status "pr-${PR_NUM}-showcase" -n "${OPENSHIFT_DEV_NAMESPACE}" 2>/dev/null || true
             oc get events -n "${OPENSHIFT_DEV_NAMESPACE}" --sort-by='.lastTimestamp' 2>/dev/null | tail -40 || true
+            inst="pr-${PR_NUM}-showcase"
+            p="$(
+              oc get pods -n "${OPENSHIFT_DEV_NAMESPACE}" \
+                -l "app.kubernetes.io/component=server,app.kubernetes.io/instance=${inst}" \
+                -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true
+            )"
+            if [[ -n "${p}" ]]; then
+              echo '::notice::--- oc describe pod '"${p}"' (tail) ---'
+              oc describe pod "${p}" -n "${OPENSHIFT_DEV_NAMESPACE}" 2>/dev/null | tail -80 || true
+              echo '::notice::--- oc logs '"${p}"' -c wait-for-mongo-tcp (tail) ---'
+              oc logs "${p}" -n "${OPENSHIFT_DEV_NAMESPACE}" -c wait-for-mongo-tcp --tail=60 2>/dev/null || true
+              echo '::notice::--- oc logs '"${p}"' -c server (tail) ---'
+              oc logs "${p}" -n "${OPENSHIFT_DEV_NAMESPACE}" -c server --tail=80 2>/dev/null || true
+            fi
             exit 1
           fi
 
@@ -202,9 +215,9 @@ jobs:
           set -euo pipefail
           ns="${OPENSHIFT_DEV_NAMESPACE}"
           oc rollout restart "deployment/pr-${PR_NUM}-showcase-server" -n "${ns}"
-          oc rollout status "deployment/pr-${PR_NUM}-showcase-server" -n "${ns}" --timeout=15m
+          oc rollout status "deployment/pr-${PR_NUM}-showcase-server" -n "${ns}" --timeout=10m
           oc rollout restart "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}"
-          oc rollout status "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}" --timeout=15m
+          oc rollout status "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}" --timeout=10m
 
   pr_urls_comment:
     name: PR deployment comment
