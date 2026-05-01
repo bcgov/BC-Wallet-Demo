@@ -1,0 +1,27 @@
+{{- /* MongoDB: ingress from API only. Keep this policy ingress-only; workload egress belongs on the server Deployment, not on MongoDB pods. */}}
+{{- if and .Values.showcase.networkPolicy.enabled .Values.mongodb.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "showcase.mongodb.host" . }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mongodb
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mongodb
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 27017
+      from:
+        - podSelector:
+            matchLabels:
+              {{- include "showcase.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: server
+{{- end }}

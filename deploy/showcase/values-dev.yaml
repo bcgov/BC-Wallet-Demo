@@ -1,0 +1,45 @@
+## Shared dev overlay (BC Gov OpenShift Silver + public dev URL). Merge with chart defaults:
+## From `charts/showcase`: `helm upgrade --install <rel> . -f ../../deploy/showcase/values-dev.yaml -n <ns>`
+## Set `showcase.publicOrigin` to your HTTPS origin (no path). Ingress host is derived unless `ingress.frontend.hostname` is set.
+## Secrets: chart always creates/reuses `{{ release }}-showcase-mongo-root` for Mongo root password. Set
+## `showcase.server.existingSecret` to use a pre-created server env secret instead of chart-managed `MONGODB_URI`.
+## Enable `showcase.networkPolicy` for deny-by-default namespaces. Route timeout matches bcgov demo web (Socket.IO long-poll).
+
+ingress:
+  enabled: true
+  className: ''
+  annotations:
+    route.openshift.io/termination: edge
+    haproxy.router.openshift.io/timeout: 120s
+  frontend:
+    path: /
+    tls: false
+
+showcase:
+  publicOrigin: 'https://bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca'
+  networkPolicy:
+    enabled: true
+  server:
+    existingSecret: ''
+    resources:
+      requests:
+        cpu: 25m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+  frontend:
+    trustedProxies: '0.0.0.0/0'
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+## Mongo root password Secret name (tpl). If you replace the Secret but keep the PVC, expect SCRAM errors until PVC/auth align — see README.
+mongodb:
+  enabled: true
+  auth:
+    rootUsername: admin
+    existingSecret: '{{ printf "%s-showcase-mongo-root" .Release.Name }}'
+    existingSecretPasswordKey: password

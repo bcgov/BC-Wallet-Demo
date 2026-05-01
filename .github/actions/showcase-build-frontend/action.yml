@@ -1,0 +1,52 @@
+name: Showcase build frontend image
+description: Build and push bc-wallet-showcase-frontend to GHCR (Vite build-args, provenance + SBOM)
+inputs:
+  image:
+    description: Full image reference without tag (e.g. ghcr.io/bcgov/bc-wallet-showcase-frontend)
+    required: true
+  tag:
+    description: Image tag (e.g. main or pr-42)
+    required: true
+  react_app_host_backend:
+    description: Value for REACT_APP_HOST_BACKEND (Vite VITE_HOST_BACKEND at build time)
+    required: true
+  react_app_insights_project_id:
+    description: Optional REACT_APP_INSIGHTS_PROJECT_ID (may be empty)
+    required: false
+    default: ''
+  github_token:
+    description: Token with packages write (typically secrets.GITHUB_TOKEN)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+
+    - uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.github_token }}
+
+    - uses: docker/setup-buildx-action@v3
+
+    - id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ inputs.image }}
+        tags: |
+          type=raw,value=${{ inputs.tag }}
+
+    - uses: docker/build-push-action@v7
+      with:
+        context: .
+        file: ./frontend/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        provenance: mode=min
+        sbom: true
+        build-args: |
+          REACT_APP_INSIGHTS_PROJECT_ID=${{ inputs.react_app_insights_project_id }}
+          REACT_APP_HOST_BACKEND=${{ inputs.react_app_host_backend }}

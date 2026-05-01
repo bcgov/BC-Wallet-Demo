@@ -1,0 +1,73 @@
+name: Showcase Helm lint
+description: |
+  helm dependency update, helm lint (default + dev + PR overlays), and helm template smoke checks
+  for charts/showcase. Use before packaging or upgrading the chart in CI.
+  When invoked as a local action (`uses: ./.github/actions/showcase-helm-lint`), the workflow must
+  run `actions/checkout` first, then pass `skip_checkout: true` so checkout is not duplicated.
+
+inputs:
+  skip_checkout:
+    description: Set to the string `true` if this job already ran actions/checkout
+    required: false
+    default: 'false'
+  skip_helm_install:
+    description: Set to `true` if Helm is already on PATH (e.g. after showcase-setup-oc-helm)
+    required: false
+    default: 'false'
+  helm_version:
+    description: Helm CLI version for azure/setup-helm when skip_helm_install is false
+    required: false
+    default: 'v3.16.3'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      if: ${{ inputs.skip_checkout != 'true' }}
+
+    - uses: azure/setup-helm@v4
+      if: ${{ inputs.skip_helm_install != 'true' }}
+      with:
+        version: ${{ inputs.helm_version }}
+
+    - name: Helm dependency update
+      shell: bash
+      working-directory: charts/showcase
+      run: helm dependency update
+
+    - name: Helm lint
+      shell: bash
+      working-directory: charts/showcase
+      run: >
+        helm lint .
+        --set showcase.publicOrigin=https://example.com
+        --set mongodb.auth.rootPassword=helm-ci-lint-placeholder
+
+    - name: Helm lint (values-dev overlay)
+      shell: bash
+      working-directory: charts/showcase
+      run: helm lint . -f ../../deploy/showcase/values-dev.yaml
+
+    - name: Helm template (smoke)
+      shell: bash
+      working-directory: charts/showcase
+      run: >
+        helm template smoke .
+        --set showcase.publicOrigin=https://example.com
+        --set mongodb.auth.rootPassword=helm-ci-lint-placeholder
+        >/dev/null
+
+    - name: Helm template (values-dev overlay)
+      shell: bash
+      working-directory: charts/showcase
+      run: helm template smoke-dev . -f ../../deploy/showcase/values-dev.yaml >/dev/null
+
+    - name: Helm lint (PR overlay)
+      shell: bash
+      working-directory: charts/showcase
+      run: helm lint . -f ../../deploy/showcase/values-pr.yaml
+
+    - name: Helm template (PR overlay)
+      shell: bash
+      working-directory: charts/showcase
+      run: helm template smoke-pr . -f ../../deploy/showcase/values-pr.yaml >/dev/null

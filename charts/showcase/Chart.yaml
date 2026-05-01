@@ -1,0 +1,11 @@
+apiVersion: v2
+name: showcase
+description: Helm chart for the BC Wallet Demo showcase (frontend + server API + MongoDB by default)
+type: application
+version: 0.4.0
+appVersion: '1.0.0'
+dependencies:
+  - name: mongodb
+    version: 0.15.0
+    repository: oci://registry-1.docker.io/cloudpirates
+    condition: mongodb.enabled

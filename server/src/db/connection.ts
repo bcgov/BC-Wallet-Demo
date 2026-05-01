@@ -4,6 +4,18 @@ import logger from '../utils/logger'
 
 import { getMongoUri } from './uri'
 
+function mongoConnectOptions(): mongoose.ConnectOptions {
+  const raw = process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS
+  let serverSelectionTimeoutMS = 30000
+  if (raw !== undefined && raw !== '') {
+    const n = Number(raw)
+    if (Number.isFinite(n) && n > 0) {
+      serverSelectionTimeoutMS = n
+    }
+  }
+  return { serverSelectionTimeoutMS }
+}
+
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms)
@@ -18,7 +30,7 @@ export async function connectDB(): Promise<void> {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 })
+      await mongoose.connect(uri, mongoConnectOptions())
       logger.info({ uri: sanitizedUri }, 'Connected to MongoDB')
       return
     } catch (error) {

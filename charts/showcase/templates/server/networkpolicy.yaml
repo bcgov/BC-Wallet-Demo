@@ -1,0 +1,63 @@
+{{- if .Values.showcase.networkPolicy.enabled }}
+---
+# API ingress from frontend only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "showcase.fullname" . }}-server-ingress
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: {{ .Values.showcase.server.containerPort }}
+      from:
+        - podSelector:
+            matchLabels:
+              {{- include "showcase.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: frontend
+---
+# API egress: Mongo (if enabled), DNS, HTTPS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "showcase.fullname" . }}-server-egress
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server
+  policyTypes:
+    - Egress
+  egress:
+    {{- if .Values.mongodb.enabled }}
+    # Restrict Mongo traffic to MongoDB workload pods for this Helm release.
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: mongodb
+              app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      ports:
+        - protocol: TCP
+          port: 27017
+    {{- end }}
+    # DNS + HTTPS: no `to` peers — cluster DNS backends vary (Service IP, hostNetwork, node-local); Caddy/server need outbound 443.
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+        - protocol: TCP
+          port: 443
+{{- end }}

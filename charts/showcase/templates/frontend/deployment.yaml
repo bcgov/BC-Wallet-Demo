@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+{{- include "showcase.validatePublicOrigin" . }}
+metadata:
+  name: {{ include "showcase.frontend.fullname" . }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.showcase.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "showcase.labels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+        {{- range $k, $v := .Values.showcase.frontend.podLabels }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
+      {{- if .Values.showcase.frontend.podAnnotations }}
+      annotations: {{- toYaml .Values.showcase.frontend.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      enableServiceLinks: true
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: frontend
+          image: {{ include "showcase.frontend.image" . }}
+          imagePullPolicy: {{ .Values.showcase.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.showcase.frontend.containerPort }}
+          env:
+            {{- $apiSvcEnv := include "showcase.server.serviceEnvPrefix" . }}
+            - name: SHOWCASE_API_UPSTREAM
+              value: {{ printf "http://$(%s_SERVICE_HOST):$(%s_SERVICE_PORT_HTTP)" $apiSvcEnv $apiSvcEnv | quote }}
+            # Caddyfile runtime vars; SPA paths are baked at image build — keep baseRoute in sync with the image.
+            - name: VITE_BASE_ROUTE
+              value: {{ .Values.showcase.baseRoute | quote }}
+            - name: VITE_HOST_BACKEND
+              value: {{ .Values.showcase.publicOrigin | quote }}
+            {{- if .Values.showcase.insightsProjectId }}
+            - name: VITE_INSIGHTS_PROJECT_ID
+              value: {{ .Values.showcase.insightsProjectId | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: caddyfile
+              mountPath: /etc/caddy/Caddyfile
+              subPath: Caddyfile
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- with .Values.showcase.frontend.resources }}
+          resources: {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: caddyfile
+          configMap:
+            name: {{ include "showcase.frontend.configmapName" . }}
+      {{- with .Values.showcase.frontend.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.showcase.frontend.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.showcase.frontend.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

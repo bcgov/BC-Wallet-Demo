@@ -1,0 +1,64 @@
+{{- if .Values.showcase.networkPolicy.enabled }}
+{{- $ingNs := .Values.showcase.networkPolicy.openshiftIngressNamespace | default "openshift-ingress" }}
+---
+# Ingress / OpenShift router -> frontend (Caddy).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "showcase.fullname" . }}-frontend-from-ingress
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $ingNs | quote }}
+        - namespaceSelector:
+            matchLabels:
+              policy-group.network.openshift.io/ingress: ""
+      ports:
+        - protocol: TCP
+          port: {{ .Values.showcase.frontend.containerPort }}
+---
+# Frontend egress: API, DNS, HTTPS (Caddy reverse_proxy + external calls).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "showcase.fullname" . }}-frontend-egress
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "showcase.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  policyTypes:
+    - Egress
+  egress:
+    # API pods
+    - to:
+        - podSelector:
+            matchLabels:
+              {{- include "showcase.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: server
+      ports:
+        - protocol: TCP
+          port: {{ .Values.showcase.server.containerPort }}
+    # DNS + HTTPS: no `to` peers — cluster DNS paths vary on OpenShift; Caddy needs 443 for upstream TLS.
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+        - protocol: TCP
+          port: 443
+{{- end }}

@@ -1,0 +1,45 @@
+name: Helm lint (showcase)
+
+on:
+  pull_request:
+    paths:
+      - 'charts/showcase/**'
+      - 'deploy/showcase/**'
+      - '.github/workflows/helm-lint-showcase.yaml'
+      - '.github/workflows/deploy-showcase-dev.yaml'
+      - '.github/workflows/deploy-showcase-pr.yaml'
+      - '.github/workflows/undeploy-showcase-pr.yaml'
+      - '.github/workflows/helm-publish-showcase.yaml'
+      - '.github/actions/showcase-build-server/**'
+      - '.github/actions/showcase-build-frontend/**'
+      - '.github/actions/showcase-setup-oc-helm/**'
+      - '.github/actions/showcase-helm-lint/**'
+  push:
+    branches: [main]
+    paths:
+      - 'charts/showcase/**'
+      - 'deploy/showcase/**'
+      - '.github/workflows/helm-lint-showcase.yaml'
+      - '.github/workflows/deploy-showcase-dev.yaml'
+      - '.github/workflows/deploy-showcase-pr.yaml'
+      - '.github/workflows/undeploy-showcase-pr.yaml'
+      - '.github/workflows/helm-publish-showcase.yaml'
+      - '.github/actions/showcase-build-server/**'
+      - '.github/actions/showcase-build-frontend/**'
+      - '.github/actions/showcase-setup-oc-helm/**'
+      - '.github/actions/showcase-helm-lint/**'
+
+permissions:
+  contents: read
+
+jobs:
+  helm-lint-showcase:
+    name: helm dependency update + lint + template
+    runs-on: ubuntu-latest
+    steps:
+      # Local composite actions require the repo on disk before `uses: ./.github/actions/...` resolves.
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/showcase-helm-lint
+        with:
+          skip_checkout: 'true'
