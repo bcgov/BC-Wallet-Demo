@@ -1,4 +1,4 @@
-import type { CustomCharacter } from '../../slices/types'
+import type { Showcase } from '../../slices/types'
 
 import { trackPageView } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -10,10 +10,10 @@ import { page } from '../../FramerAnimations'
 import { Modal } from '../../components/Modal'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useTitle } from '../../hooks/useTitle'
-import { useCurrentCharacter } from '../../slices/characters/charactersSelectors'
 import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { usePreferences } from '../../slices/preferences/preferencesSelectors'
 import { setDemoCompleted } from '../../slices/preferences/preferencesSlice'
+import { useCurrentShowcase } from '../../slices/showcases/showcasesSelectors'
 import { basePath } from '../../utils/BasePath'
 import { Footer } from '../landing/components/Footer'
 import { NavBar } from '../landing/components/Navbar'
@@ -29,19 +29,23 @@ export const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { issuedCredentials, revokableCredentials } = useCredentials()
-  const { completedUseCaseSlugs, demoCompleted, completeCanceled, revocationEnabled, showHiddenUseCases } =
+  const { completedScenarioSlugs, demoCompleted, completeCanceled, revocationEnabled, showHiddenScenarios } =
     usePreferences()
-  const currentCharacter = {
-    ...useCurrentCharacter(),
-    useCases: useCurrentCharacter()?.useCases.filter((item) => !item.hidden || showHiddenUseCases) ?? [],
-  } as CustomCharacter
-  const useCases = currentCharacter?.useCases
+  const currentShowcase = {
+    ...useCurrentShowcase(),
+    scenarios: useCurrentShowcase()?.scenarios.filter((item) => !item.hidden || showHiddenScenarios) ?? [],
+  } as Showcase
+  const useCases = currentShowcase?.scenarios
 
   useEffect(() => {
-    if (completedUseCaseSlugs.length !== 0 && completedUseCaseSlugs.length === useCases?.length && !completeCanceled) {
+    if (
+      completedScenarioSlugs.length !== 0 &&
+      completedScenarioSlugs.length === useCases?.length &&
+      !completeCanceled
+    ) {
       dispatch(setDemoCompleted(true))
     }
-  }, [completedUseCaseSlugs])
+  }, [completedScenarioSlugs])
 
   useEffect(() => {
     trackPageView()
@@ -58,11 +62,11 @@ export const DashboardPage: React.FC = () => {
     navigate(`${basePath}/`)
     dispatch({ type: 'demo/RESET' })
 
-    if (currentCharacter) {
+    if (currentShowcase) {
       track({
         id: 'demo-character-completed',
         parameters: {
-          character: currentCharacter.name,
+          character: currentShowcase.persona.name,
         },
       })
     }
@@ -83,24 +87,24 @@ export const DashboardPage: React.FC = () => {
       <div className="mx-8 my-4">
         <NavBar />
       </div>
-      {currentCharacter ? (
+      {currentShowcase ? (
         <>
           <div className="flex flex-col lg:flex-row mb-auto">
             <div className="w-full lg:w-2/3 order-last lg:order-first">
               <UseCaseContainer
                 issuedCredentials={issuedCredentials}
-                completedUseCaseSlugs={completedUseCaseSlugs}
-                currentCharacter={currentCharacter}
+                completedScenarioSlugs={completedScenarioSlugs}
+                currentShowcase={currentShowcase}
               />
-              {revokableCredentials.length > 0 && revocationEnabled && currentCharacter.revocationInfo && (
+              {revokableCredentials.length > 0 && revocationEnabled && currentShowcase.revocationInfo && (
                 <RevocationContainer
-                  revocationInfo={currentCharacter.revocationInfo}
+                  revocationInfo={currentShowcase.revocationInfo}
                   revocationRecord={revokableCredentials}
                 />
               )}
             </div>
             <div className="flex flex-1 flex-col p-2 mx-2 dark:text-white">
-              <ProfileCard currentCharacter={currentCharacter} />
+              <ProfileCard currentShowcase={currentShowcase} />
             </div>
           </div>
         </>

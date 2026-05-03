@@ -6,15 +6,15 @@ import { useNavigate } from 'react-router-dom'
 
 import { confettiFade } from '../FramerAnimations'
 import { useAppDispatch } from '../hooks/hooks'
-import { fetchAllCharacters } from '../slices/characters/charactersThunks'
 import { usePreferences } from '../slices/preferences/preferencesSelectors'
 import {
   resetDashboard,
   setDarkMode,
   toggleRevocation,
-  toggleCharacterUpload,
-  toggleHiddenUseCases,
+  toggleShowcaseUpload,
+  toggleHiddenScenarios,
 } from '../slices/preferences/preferencesSlice'
+import { fetchAllShowcases } from '../slices/showcases/showcasesThunks'
 import { fetchWallets } from '../slices/wallets/walletsThunks'
 
 import { basePath } from './BasePath'
@@ -57,7 +57,7 @@ export const KBar: React.FC<Props> = ({ children }) => {
       name: 'Show/Hide hidden use cases',
       keywords: 'use case toggle hide',
       perform: () => {
-        dispatch(toggleHiddenUseCases())
+        dispatch(toggleHiddenScenarios())
       },
     },
     {
@@ -69,11 +69,11 @@ export const KBar: React.FC<Props> = ({ children }) => {
       },
     },
     {
-      id: 'toggleCharacterUpload',
-      name: 'Toggle character upload on/off',
-      keywords: 'toggle character upload',
+      id: 'toggleShowcaseUpload',
+      name: 'Toggle showcase upload on/off',
+      keywords: 'toggle showcase upload',
       perform: () => {
-        dispatch(toggleCharacterUpload())
+        dispatch(toggleShowcaseUpload())
       },
     },
     {
@@ -94,7 +94,7 @@ export const KBar: React.FC<Props> = ({ children }) => {
         navigate(`${basePath}/`)
         dispatch({ type: 'demo/RESET' })
         dispatch(fetchWallets())
-        dispatch(fetchAllCharacters())
+        dispatch(fetchAllShowcases())
       },
     },
     {

@@ -1,10 +1,10 @@
-import type { UseCaseScreen } from '../types'
+import type { ScenarioScreen } from '../types'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 import { createSlice } from '@reduxjs/toolkit'
 
 export interface SectionState {
-  section?: UseCaseScreen
+  section?: ScenarioScreen
 }
 
 const initialState: SectionState = {
@@ -15,7 +15,7 @@ const sectionSlice = createSlice({
   name: 'section',
   initialState,
   reducers: {
-    setSection: (state, action: PayloadAction<UseCaseScreen>) => {
+    setSection: (state, action: PayloadAction<ScenarioScreen>) => {
       state.section = action.payload
     },
     clearSection: (state) => {
@@ -23,7 +23,7 @@ const sectionSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase('clearUseCase', (state) => {
+    builder.addCase('clearScenario', (state) => {
       state.section = undefined
     })
   },

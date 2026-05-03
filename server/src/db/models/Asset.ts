@@ -14,8 +14,8 @@ export interface Asset {
 
 const AssetSchema = new Schema<Asset>(
   {
-    // Reference to the owning Character; indexed for efficient per-character listing.
-    showcase_id: { type: Schema.Types.ObjectId, ref: 'Character', required: true, index: true },
+    // Reference to the owning Showcase; indexed for efficient per-showcase listing.
+    showcase_id: { type: Schema.Types.ObjectId, ref: 'Showcase', required: true, index: true },
     filename: { type: String, required: true },
     // Filesystem path where the file is stored on disk.
     path: { type: String, required: true },

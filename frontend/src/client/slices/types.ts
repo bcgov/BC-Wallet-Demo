@@ -25,7 +25,8 @@ export interface ProofAttributeRequest {
 export interface ProofPredicateRequest {
   restrictions: ProofRestriction[]
   name: string
-  p_value?: string | number | (() => string | number)
+  //  Should already be resolved to a number by the time this gets to the frontend
+  p_value?: number
   p_type: string
   non_revoked?: { to: number; from?: number }
 }
@@ -44,6 +45,7 @@ export interface TextWithImage {
 }
 
 export interface Credential {
+  id: string
   name: string
   icon: string
   version: string
@@ -53,18 +55,20 @@ export interface Credential {
   }[]
 }
 
-export interface OnboardingStep {
+export interface IntroductionStep {
   screenId: string
-  title: string
+  name: string
   text: string
   issuer_name?: string
   image?: string
-  credentials?: Credential[]
+  credentials?: string[]
 }
+
+type DateIntMarker = `$dateint:${number}`
 
 export interface Predicate {
   name: string
-  value?: string | number | (() => string | number)
+  value?: number | DateIntMarker
   type: string
 }
 
@@ -75,34 +79,34 @@ export interface CredentialRequest {
   cred_def_id?: string
   predicates?: Predicate[]
   properties?: string[]
-  nonRevoked?: { to: number; from?: number }
+  nonRevoked?: { to: number | '$now'; from?: number | '$now' }
 }
 
 export interface CustomRequestOptions {
-  title: string
+  name: string
   text: string
   requestedCredentials: CredentialRequest[]
 }
 
-export interface UseCaseScreen {
+export interface ScenarioScreen {
   screenId: string
-  title: string
+  name: string
   text: string
   image?: string
   verifier?: { name: string; icon?: string }
   requestOptions?: CustomRequestOptions
 }
 
-export interface CustomUseCase {
+export interface Scenario {
   id: string
   name: string
   hidden?: boolean
-  screens: UseCaseScreen[]
+  screens: ScenarioScreen[]
 }
 
 export interface ProgressBarStep {
   name: string
-  onboardingStep: string
+  introductionStep: string
   iconLight: string
   iconDark: string
 }
@@ -110,24 +114,30 @@ export interface ProgressBarStep {
 export interface RevocationInfoItem {
   credentialName: string
   credentialIcon: string
-  title: string
+  name: string
   description: string
 }
 
-export interface CustomCharacter {
+export interface Persona {
   name: string
   type: string
   image: string
+}
+
+export interface Showcase {
+  name: string
   hidden?: boolean
   description?: string
+  persona: Persona
+  credentials: Credential[]
   progressBar: ProgressBarStep[]
-  onboarding: OnboardingStep[]
-  useCases: CustomUseCase[]
+  introduction: IntroductionStep[]
+  scenarios: Scenario[]
   revocationInfo?: RevocationInfoItem[]
 }
 
-export interface UseCaseCard {
-  title: string
+export interface ScenarioCard {
+  name: string
   image: string
   description: string
 }
@@ -162,7 +172,7 @@ export interface Overlay {
 
 export interface EndStepperItem {
   id: string
-  title: string
+  name: string
   description: string
   image: string
 }

@@ -1,4 +1,4 @@
-import type { CustomUseCase } from '../../slices/types'
+import type { Scenario } from '../../slices/types'
 
 import { trackPageView } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -10,17 +10,17 @@ import { Loader } from '../../components/Loader'
 import { Modal } from '../../components/Modal'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useTitle } from '../../hooks/useTitle'
-import { useCurrentCharacter } from '../../slices/characters/charactersSelectors'
 import { useConnection } from '../../slices/connection/connectionSelectors'
 import { clearConnection } from '../../slices/connection/connectionSlice'
 import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
 import { useProof } from '../../slices/proof/proofSelectors'
 import { clearProof } from '../../slices/proof/proofSlice'
+import { useScenarioState } from '../../slices/scenarios/scenariosSelectors'
+import { nextSection } from '../../slices/scenarios/scenariosSlice'
 import { useSection } from '../../slices/section/sectionSelectors'
 import { setSection } from '../../slices/section/sectionSlice'
-import { useUseCaseState } from '../../slices/useCases/useCasesSelectors'
-import { nextSection } from '../../slices/useCases/useCasesSlice'
+import { useCurrentShowcase } from '../../slices/showcases/showcasesSelectors'
 import { basePath } from '../../utils/BasePath'
 
 import { Section } from './Section'
@@ -28,20 +28,20 @@ import { Section } from './Section'
 export const UseCasePage: React.FC = () => {
   const dispatch = useAppDispatch()
   const { slug } = useParams()
-  const { stepCount, sectionCount, isLoading } = useUseCaseState()
-  const currentCharacter = useCurrentCharacter()
+  const { stepCount, sectionCount, isLoading } = useScenarioState()
+  const currentShowcase = useCurrentShowcase()
   const { section } = useSection()
   const connection = useConnection()
   const { issuedCredentials } = useCredentials()
   const { proof, proofUrl } = useProof()
-  const [currentUseCase, setCurrentUseCase] = useState<CustomUseCase>()
+  const [currentUseCase, setCurrentUseCase] = useState<Scenario>()
 
   const navigate = useNavigate()
   useTitle(`${currentUseCase?.name ?? 'Use case'} | BC Wallet Self-Sovereign Identity Demo`)
 
   useEffect(() => {
-    if (currentCharacter && slug) {
-      setCurrentUseCase(currentCharacter.useCases.find((item) => item.id === slug))
+    if (currentShowcase && slug) {
+      setCurrentUseCase(currentShowcase.scenarios.find((item) => item.id === slug))
     }
   }, [])
 
@@ -90,7 +90,7 @@ export const UseCasePage: React.FC = () => {
         </div>
       ) : (
         <AnimatePresence mode="wait">
-          {currentCharacter && section && currentUseCase ? (
+          {currentShowcase && section && currentUseCase ? (
             <motion.div
               key={'sectionDiv' + section.screenId}
               initial={{ opacity: 0 }}

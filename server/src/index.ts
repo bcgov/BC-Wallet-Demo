@@ -10,7 +10,7 @@ import { Server } from 'socket.io'
 
 import { connectDB, registerShutdownHandlers } from './db/connection'
 import { requireAdmin } from './middleware/requireAdmin'
-import adminCharactersRouter from './routes/adminCharactersRouter'
+import adminShowcasesRouter from './routes/adminShowcasesRouter'
 import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
 
@@ -54,6 +54,8 @@ ws.on('connection', (socket) => {
     logger.debug({ socketId: socket.id, connectionId }, 'WebSocket frontend disconnected')
   })
 })
+
+const serverStartTime = new Date().toISOString()
 
 const run = async () => {
   await connectDB()
@@ -107,10 +109,10 @@ const run = async () => {
 
   // All routes under /admin require a valid Keycloak-issued JWT.
   app.use(`${baseRoute}/admin`, requireAdmin)
-  app.use(`${baseRoute}/admin/characters`, adminCharactersRouter)
+  app.use(`${baseRoute}/admin/showcases`, adminShowcasesRouter)
 
-  app.get(`${baseRoute}/server/last-reset`, async (req, res) => {
-    res.send(new Date())
+  app.get(`${baseRoute}/server/last-reset`, (_req, res) => {
+    res.send(serverStartTime)
   })
 
   // Redirect QR code scans for installing bc wallet to the apple or google play store

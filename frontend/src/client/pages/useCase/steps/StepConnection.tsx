@@ -1,5 +1,5 @@
 import type { ConnectionState } from '../../../slices/connection/connectionSlice'
-import type { UseCaseScreen } from '../../../slices/types'
+import type { ScenarioScreen } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import React, { useEffect } from 'react'
@@ -11,14 +11,14 @@ import { QRCode } from '../../../components/QRCode'
 import { useAppDispatch } from '../../../hooks/hooks'
 import { setConnection, setDeepLink } from '../../../slices/connection/connectionSlice'
 import { createInvitation } from '../../../slices/connection/connectionThunks'
+import { nextStep } from '../../../slices/scenarios/scenariosSlice'
 import { useSocket } from '../../../slices/socket/socketSelector'
-import { nextStep } from '../../../slices/useCases/useCasesSlice'
 import { isConnected } from '../../../utils/Helpers'
 import { prependApiUrl } from '../../../utils/Url'
 import { StepInfo } from '../components/StepInfo'
 
 export interface Props {
-  step: UseCaseScreen
+  step: ScenarioScreen
   connection: ConnectionState
   newConnection?: boolean
 }
@@ -80,11 +80,11 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
 
   return (
     <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
-      <StepInfo title={step.title} description={step.text} />
+      <StepInfo title={step.name} description={step.text} />
       {step.image && !isMobile ? (
         <div
           className="bg-contain bg-center bg-no-repeat h-full flex justify-end"
-          title={step.title}
+          title={step.name}
           style={{ backgroundImage: `url(${prependApiUrl(step.image)})` }}
         >
           <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4 mr-8 shadow-lg dark:text-black">

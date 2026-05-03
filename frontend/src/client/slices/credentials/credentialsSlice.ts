@@ -80,7 +80,7 @@ const credentialSlice = createSlice({
         // state.credentials.filter((cred) => cred.id !== action.payload)
         return state
       })
-      .addCase('clearUseCase', (state) => {
+      .addCase('clearScenario', (state) => {
         // state.credentials.map((x) => isCredIssued(x.state) && state.issuedCredentials.push(x))
         // state.credentials = []
         state.isLoading = false

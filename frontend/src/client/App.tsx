@@ -10,8 +10,8 @@ import { useAppDispatch } from './hooks/hooks'
 import { useAnalytics } from './hooks/useAnalytics'
 import { PageNotFound } from './pages/PageNotFound'
 import { DashboardPage } from './pages/dashboard/DashboardPage'
+import { IntroductionPage } from './pages/introduction/IntroductionPage'
 import { LandingPage } from './pages/landing/LandingPage'
-import { OnboardingPage } from './pages/onboarding/OnboardingPage'
 import { UseCasePage } from './pages/useCase/UseCasePage'
 import { useConnection } from './slices/connection/connectionSelectors'
 import { usePreferences } from './slices/preferences/preferencesSelectors'
@@ -79,8 +79,8 @@ function App() {
             {basePath !== '/' && <Route path="/" element={<Navigate to={basePath} />}></Route>}
             <Route path={`${basePath}/`} element={<LandingPage />} />
             <Route path={`${basePath}/:slug`} element={<LandingPage />} />
-            <Route path={`${basePath}/demo`} element={<OnboardingPage />} />
-            <Route path={`${basePath}/demo/:slug`} element={<OnboardingPage />} />
+            <Route path={`${basePath}/demo`} element={<IntroductionPage />} />
+            <Route path={`${basePath}/demo/:slug`} element={<IntroductionPage />} />
             <Route
               path={`${basePath}/dashboard`}
               element={

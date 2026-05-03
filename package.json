@@ -23,6 +23,7 @@
     "frontend:build": "yarn workspace frontend build",
     "server:dev": "yarn workspace server dev",
     "server:build": "yarn workspace server build",
+    "server:seed": "yarn workspace server seed",
     "dev": "concurrently -n 'frontend,server ' -c 'green.bold,red.bold' 'yarn frontend:start' 'yarn server:dev'",
     "test": "yarn run cypress open",
     "build": "yarn workspace frontend build && yarn workspace server build",

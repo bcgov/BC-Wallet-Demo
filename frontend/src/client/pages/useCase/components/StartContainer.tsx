@@ -1,4 +1,4 @@
-import type { CredentialRequest, UseCaseScreen } from '../../../slices/types'
+import type { CredentialRequest, ScenarioScreen } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
@@ -10,14 +10,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { fadeExit } from '../../../FramerAnimations'
 import { SmallButton } from '../../../components/SmallButton'
 import { useAppDispatch } from '../../../hooks/hooks'
-import { nextStep } from '../../../slices/useCases/useCasesSlice'
+import { nextStep } from '../../../slices/scenarios/scenariosSlice'
 import { basePath } from '../../../utils/BasePath'
 import { prependApiUrl } from '../../../utils/Url'
 
 import { StarterInfo } from './StarterInfo'
 
 export interface Props {
-  step: UseCaseScreen
+  step: ScenarioScreen
   characterType?: string
   entity: { name: string; icon?: string }
   requestedCredentials?: CredentialRequest[]
@@ -37,7 +37,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         data: {
           action: 'leave',
           path: `${characterType}_${slug}`,
-          step: step.title,
+          step: step.name,
         },
       },
     })
@@ -51,7 +51,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         data: {
           action: 'start',
           path: `${characterType}_${slug}`,
-          step: step.title,
+          step: step.name,
         },
       },
     })
@@ -69,7 +69,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
     >
       <div className="flex flex-col p-6 md:p-12 md:pb-6 xl:p-16 xl:pb-8 w-full lg:w-2/3 ">
         <StarterInfo
-          title={step.title}
+          title={step.name}
           description={step.text ?? ''}
           entity={entity}
           requestedCredentials={requestedCredentials}
@@ -83,7 +83,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         </div>
       </div>
       <div className="bg-bcgov-white dark:bg-bcgov-black hidden lg:flex lg:w-1/3 rounded-r-lg flex content-center p-4 select-none">
-        {step.image && <img className="p-8" src={prependApiUrl(step.image)} alt={step.title} />}
+        {step.image && <img className="p-8" src={prependApiUrl(step.image)} alt={step.name} />}
       </div>
     </motion.div>
   )

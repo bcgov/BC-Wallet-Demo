@@ -1,4 +1,4 @@
-import type { CustomCharacter } from '../../../slices/types'
+import type { Showcase } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
@@ -13,16 +13,16 @@ import { StartButton } from './StartButton'
 export interface Props {
   slug: string
   title: string
-  currentCharacter: CustomCharacter
+  currentShowcase: Showcase
   requiredCredentials: string[]
   isCompleted: boolean
   isLocked: boolean
   start(slug: string): void
 }
 
-const getCredIcon = (currChar: CustomCharacter, credName: string) => {
+const getCredIcon = (currShowcase: Showcase, credName: string) => {
   let icon = ''
-  currChar.useCases.forEach((useCase) => {
+  currShowcase.scenarios.forEach((useCase) => {
     useCase.screens.forEach((screen) => {
       if (screen) {
         screen.requestOptions?.requestedCredentials.forEach((cred) => {
@@ -43,7 +43,7 @@ export const UseCaseItem: React.FC<Props> = ({
   requiredCredentials,
   isLocked,
   start,
-  currentCharacter,
+  currentShowcase,
 }) => {
   return (
     <motion.div variants={rowFadeX} key={slug}>
@@ -61,7 +61,7 @@ export const UseCaseItem: React.FC<Props> = ({
                 <div key={item} className={`flex flex-row mb-2`}>
                   <img
                     className="w-4 h-4 lg:w-6 lg:h-6 mx-2"
-                    src={prependApiUrl(getCredIcon(currentCharacter, item))}
+                    src={prependApiUrl(getCredIcon(currentShowcase, item))}
                     alt="credential icon"
                   />
                   <p className="text-xs sxl:text-sm">{startCase(item)}&nbsp;</p>
@@ -76,7 +76,7 @@ export const UseCaseItem: React.FC<Props> = ({
                       schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
                       data: {
                         action: 'start',
-                        path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+                        path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
                         step: 'usecase_start',
                       },
                     },

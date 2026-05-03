@@ -1,4 +1,4 @@
-import type { UseCaseScreen } from '../../slices/types'
+import type { ScenarioScreen } from '../../slices/types'
 
 import { motion } from 'framer-motion'
 import React from 'react'
@@ -12,7 +12,7 @@ import { ProofCard } from './components/ProofCard'
 import { StepperCard } from './components/StepperCard'
 
 export interface Props {
-  steps: UseCaseScreen[]
+  steps: ScenarioScreen[]
   currentStep: string
   entity: { name: string; icon?: string }
   showLeaveModal(): void
