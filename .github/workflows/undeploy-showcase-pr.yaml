@@ -47,10 +47,8 @@ jobs:
             echo "continue=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: azure/setup-helm@v4
+      - uses: ./.github/actions/showcase-setup-oc-helm
         if: steps.openshift.outputs.continue == 'true'
-        with:
-          version: v3.16.3
 
       - uses: redhat-actions/oc-login@v1
         if: steps.openshift.outputs.continue == 'true'
