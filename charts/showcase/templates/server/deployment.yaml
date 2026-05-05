@@ -42,7 +42,10 @@ spec:
             - -c
             - |
               set -euo pipefail
-              host="{{ include "showcase.mongodb.uriHost" . }}"
+              host="${{ include "showcase.mongodb.serviceEnvPrefix" . }}_SERVICE_HOST"
+              if [[ -z "${host}" ]]; then
+                host="{{ include "showcase.mongodb.uriHost" . }}"
+              fi
               tcp_open() {
                 local h="$1" pid t=0
                 bash -c "exec 3<>/dev/tcp/${h}/27017" &
@@ -89,6 +92,17 @@ spec:
                 name: {{ include "showcase.server.secretName" . }}
           {{- end }}
           env:
+            {{- if and .Values.mongodb.enabled (not .Values.showcase.server.existingSecret) }}
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl (.Values.mongodb.auth.existingSecret | toString) . | quote }}
+                  key: {{ .Values.mongodb.auth.existingSecretPasswordKey | quote }}
+            - name: MONGODB_HOST
+              value: {{ printf "$(%s_SERVICE_HOST)" (include "showcase.mongodb.serviceEnvPrefix" .) | quote }}
+            - name: MONGODB_URI
+              value: {{ printf "mongodb://%s:$(MONGODB_PASSWORD)@$(MONGODB_HOST):27017/%s?authSource=%s%s" (.Values.mongodb.auth.rootUsername | default "admin") (.Values.showcase.server.mongodbConnection.database | default "bcwallet_demo") (.Values.showcase.server.mongodbConnection.authSource | default "admin") (include "showcase.mongodb.uriDriverQuerySuffix" .) | quote }}
+            {{- end }}
             - name: BASE_ROUTE
               value: {{ .Values.showcase.baseRoute | quote }}
           {{- range .Values.showcase.server.extraEnv }}
