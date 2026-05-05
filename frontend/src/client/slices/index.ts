@@ -1,29 +1,29 @@
 import { combineReducers } from 'redux'
 
+import charactersSlice from './characters/charactersSlice'
 import connectionSlice from './connection/connectionSlice'
 import credentialsSlice from './credentials/credentialsSlice'
-import introductionSlice from './introduction/introductionSlice'
+import onboardingSlice from './onboarding/onboardingSlice'
 import preferencesSlice from './preferences/preferencesSlice'
 import proofSlice from './proof/proofSlice'
-import scenarioSlice from './scenarios/scenariosSlice'
 import sectionSlice from './section/sectionSlice'
-import showcasesSlice from './showcases/showcasesSlice'
 import socketSlice from './socket/socketSlice'
+import useCaseSlice from './useCases/useCasesSlice'
 import walletsSlice from './wallets/walletsSlice'
 
-export const VERSION = 6
+export const VERSION = 4
 
 const rootReducer = combineReducers({
   socket: socketSlice,
   wallets: walletsSlice,
-  showcases: showcasesSlice,
+  characters: charactersSlice,
   connection: connectionSlice,
   credentials: credentialsSlice,
-  introduction: introductionSlice,
+  onboarding: onboardingSlice,
   preferences: preferencesSlice,
   proof: proofSlice,
   section: sectionSlice,
-  scenarios: scenarioSlice,
+  useCases: useCaseSlice,
 })
 
 const pReducer = (state: any, action: any) => {

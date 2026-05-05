@@ -3,7 +3,7 @@ import type {
   ProofAttributeRequest,
   ProofPredicateRequest,
   ProofRestriction,
-  ScenarioScreen,
+  UseCaseScreen,
 } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
@@ -16,55 +16,17 @@ import { useAppDispatch } from '../../../hooks/hooks'
 import { useConnection } from '../../../slices/connection/connectionSelectors'
 import { createProof, deleteProofById, createDeepProof, fetchProofById } from '../../../slices/proof/proofThunks'
 import { useSocket } from '../../../slices/socket/socketSelector'
-import log from '../../../utils/logger'
-import { FailedRequestModal } from '../../introduction/components/FailedRequestModal'
+import { FailedRequestModal } from '../../onboarding/components/FailedRequestModal'
 import { ProofAttributesCard } from '../components/ProofAttributesCard'
 import { StepInfo } from '../components/StepInfo'
 
 export interface Props {
   proof?: any
-  step: ScenarioScreen
+  step: UseCaseScreen
   characterType?: string
   connectionId: string
   requestedCredentials: CredentialRequest[]
   entityName: string
-}
-
-/**
- * Resolves a template marker stored in showcase config to a concrete number at request time.
- *
- * Supported markers:
- *   `$now`          → current Unix timestamp in seconds (for nonRevoked windows)
- *   `$dateint:N`    → today's date shifted by N years, formatted as YYYYMMDD integer
- *                     (e.g. `$dateint:0` = today, `$dateint:-19` = 19 years ago)
- *
- * Plain numbers pass through unchanged. Unrecognised strings return undefined.
- */
-const resolveMarker = (val: string | number | undefined): number | undefined => {
-  if (typeof val !== 'string') return val as number | undefined
-  if (val === '$now') return Math.floor(Date.now() / 1000)
-  const m = val.match(/^\$dateint:(-?\d+)$/)
-  if (m) {
-    const d = new Date()
-    d.setFullYear(d.getFullYear() + parseInt(m[1]))
-    return parseInt(d.toISOString().split('T')[0].replace(/-/g, ''))
-  }
-  log.warn(`resolveMarker: unrecognised marker "${val}", proof request may be malformed`)
-  return undefined
-}
-
-const resolveNonRevoked = (
-  nr: { to: number | string; from?: number | string } | undefined,
-): { to: number; from?: number } | undefined => {
-  if (!nr) return undefined
-  const to = resolveMarker(nr.to)
-  if (to === undefined) {
-    log.warn(
-      `resolveNonRevoked: "to" field resolved to undefined (value: ${JSON.stringify(nr.to)}), skipping nonRevoked`,
-    )
-    return undefined
-  }
-  return { to, from: resolveMarker(nr.from) }
 }
 
 export const StepProof: React.FC<Props> = ({
@@ -113,7 +75,7 @@ export const StepProof: React.FC<Props> = ({
         proofs[item.name] = {
           restrictions,
           names: item.properties,
-          non_revoked: resolveNonRevoked(item.nonRevoked),
+          non_revoked: item.nonRevoked,
         }
       }
       if (item.predicates) {
@@ -121,9 +83,9 @@ export const StepProof: React.FC<Props> = ({
           predicates[`${item.name}_${predicate.name}`] = {
             restrictions,
             name: predicate.name,
-            p_value: resolveMarker(predicate.value),
+            p_value: predicate.value,
             p_type: predicate.type,
-            non_revoked: resolveNonRevoked(item.nonRevoked),
+            non_revoked: item.nonRevoked,
           }
         })
       }
@@ -134,7 +96,7 @@ export const StepProof: React.FC<Props> = ({
           connectionId: connectionId,
           attributes: proofs,
           predicates: predicates,
-          requestOptions: { name: step.requestOptions?.name, comment: step.requestOptions?.text },
+          requestOptions: { name: step.requestOptions?.title, comment: step.requestOptions?.text },
         }),
       )
     } else {
@@ -143,7 +105,7 @@ export const StepProof: React.FC<Props> = ({
           connectionId: connectionId,
           attributes: proofs,
           predicates: predicates,
-          requestOptions: { name: step.requestOptions?.name, comment: step.requestOptions?.text },
+          requestOptions: { name: step.requestOptions?.title, comment: step.requestOptions?.text },
         }),
       )
     }
@@ -185,7 +147,7 @@ export const StepProof: React.FC<Props> = ({
 
   return (
     <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
-      <StepInfo title={step.name} description={step.text} />
+      <StepInfo title={step.title} description={step.text} />
       <div className="flex flex-row m-auto w-full">
         <div className="w-full lg:w-2/3 sxl:w-2/3 m-auto">
           {proof && (
@@ -207,7 +169,7 @@ export const StepProof: React.FC<Props> = ({
               data: {
                 action: 'cred_not_received',
                 path: characterType,
-                step: step.name,
+                step: step.title,
               },
             },
           })

@@ -1,5 +1,4 @@
 export interface Credential {
-  id: string
   name: string
   icon: string
   version: string
@@ -9,13 +8,13 @@ export interface Credential {
   }[]
 }
 
-export interface IntroductionStep {
+export interface OnboardingStep {
   screenId: string
-  name: string
+  title: string
   text: string
   image?: string
   issuer_name?: string
-  credentials?: string[]
+  credentials?: Credential[]
 }
 
 export interface CustomWebSocket extends WebSocket {
@@ -23,12 +22,10 @@ export interface CustomWebSocket extends WebSocket {
   connectionId?: string
 }
 
-type DateIntMarker = `$dateint:${number}`
-
 export interface Predicate {
   name: string
   type: string
-  value?: number | DateIntMarker
+  value?: string | number | (() => string | number)
 }
 
 export interface CredentialRequest {
@@ -38,34 +35,34 @@ export interface CredentialRequest {
   cred_def_id?: string
   predicates?: Predicate[]
   properties?: string[]
-  nonRevoked?: { to: number | '$now'; from?: number | '$now' }
+  nonRevoked?: { to: number; from?: number }
 }
 
 export interface CustomRequestOptions {
-  name: string
+  title: string
   text: string
   requestedCredentials: CredentialRequest[]
 }
 
-export interface ScenarioScreen {
+export interface UseCaseScreen {
   screenId: string
-  name: string
+  title: string
   text: string
   image?: string
   verifier?: { name: string; icon?: string }
   requestOptions?: CustomRequestOptions
 }
 
-export interface Scenario {
+export interface CustomUseCase {
   id: string
   name: string
   hidden?: boolean
-  screens: ScenarioScreen[]
+  screens: UseCaseScreen[]
 }
 
 export interface ProgressBarStep {
   name: string
-  introductionStep: string
+  onboardingStep: string
   iconLight: string
   iconDark: string
 }
@@ -73,32 +70,24 @@ export interface ProgressBarStep {
 export interface RevocationInfoItem {
   credentialName: string
   credentialIcon: string
-  name: string
+  title: string
   description: string
 }
 
-export interface Persona {
+export interface CustomCharacter {
   name: string
   type: string
   image: string
-}
-
-export type ShowcaseStatus = 'active' | 'hidden' | 'pending'
-
-export interface Showcase {
-  name: string
-  status: ShowcaseStatus
+  hidden?: boolean
   description?: string
-  persona: Persona
-  credentials: string[]
   progressBar: ProgressBarStep[]
-  introduction: IntroductionStep[]
-  scenarios: Scenario[]
+  onboarding: OnboardingStep[]
+  useCases: CustomUseCase[]
   revocationInfo?: RevocationInfoItem[]
 }
 
-export interface ScenarioCard {
-  name: string
+export interface UseCaseCard {
+  title: string
   image?: string
   description: string
 }
@@ -114,7 +103,7 @@ export interface CredentialData {
 
 export interface Attribute {
   name: string
-  value: string | number
+  value: string | number | (() => string | number)
 }
 
 export interface StepperItem {
@@ -133,7 +122,7 @@ export interface Overlay {
 
 export interface EndStepperItem {
   id: string
-  name: string
+  title: string
   description: string
   image: string
 }

@@ -1,4 +1,4 @@
-import type { ScenarioScreen } from '../../../slices/types'
+import type { UseCaseScreen } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
 import { track } from 'insights-js'
@@ -9,11 +9,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { fadeExit } from '../../../FramerAnimations'
 import { Button } from '../../../components/Button'
 import { useAppDispatch } from '../../../hooks/hooks'
-import { scenarioCompleted } from '../../../slices/preferences/preferencesSlice'
+import { useCaseCompleted } from '../../../slices/preferences/preferencesSlice'
 import { basePath } from '../../../utils/BasePath'
 
 export interface Props {
-  step: ScenarioScreen
+  step: UseCaseScreen
 }
 
 export const EndContainer: React.FC<Props> = ({ step }) => {
@@ -26,8 +26,8 @@ export const EndContainer: React.FC<Props> = ({ step }) => {
 
   useEffect(() => {
     if (completed && slug) {
-      dispatch(scenarioCompleted(slug))
-      dispatch({ type: 'clearScenario' })
+      dispatch(useCaseCompleted(slug))
+      dispatch({ type: 'clearUseCase' })
       navigate(`${basePath}/dashboard`)
       track({
         id: 'use-case-completed',
@@ -67,7 +67,7 @@ export const EndContainer: React.FC<Props> = ({ step }) => {
       data-cy="end-container"
     >
       <div className="flex flex-col">
-        <h1 className="text-4xl	font-bold my-4">{step.name}</h1>
+        <h1 className="text-4xl	font-bold my-4">{step.title}</h1>
         <p>{step.text}</p>
       </div>
       {/* <div className="flex flex-col md:flex-row m-auto ">{renderEndSteps}</div> */}

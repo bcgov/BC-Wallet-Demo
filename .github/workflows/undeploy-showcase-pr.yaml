@@ -1,6 +1,6 @@
 # Remove Helm release and chart-scoped secrets/PVC when a PR is closed (traction-style cleanup).
 #
-# Requires bcgov repo + OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_NAMESPACE (same as deploy-showcase-pr).
+# Requires bcgov repo + OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_DEV_NAMESPACE (same as deploy-showcase-pr).
 
 name: Showcase PR — uninstall
 
@@ -20,37 +20,124 @@ on:
 
 permissions:
   contents: read
+  # Delete GHCR package versions tagged pr-<N> after uninstall (same token scope as PR image push).
+  packages: write
 
 jobs:
   uninstall:
     name: Helm uninstall PR instance
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.repository_owner == 'bcgov' && secrets.OPENSHIFT_TOKEN != '' && secrets.OPENSHIFT_SERVER != '' && secrets.OPENSHIFT_NAMESPACE != '' }}
+    # Job-level `if` cannot use `secrets`. Skip uninstall steps when secrets are unset (notice only).
+    if: github.repository_owner == 'bcgov'
     steps:
       - uses: actions/checkout@v4
 
+      - id: openshift
+        name: Preflight OpenShift secrets
+        env:
+          OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
+          OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+        run: |
+          if [[ -z "${OPENSHIFT_TOKEN}" || -z "${OPENSHIFT_SERVER}" || -z "${OPENSHIFT_DEV_NAMESPACE}" ]]; then
+            echo '::notice::Skipping uninstall: OpenShift secrets are not configured.'
+            echo "continue=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "continue=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: azure/setup-helm@v4
+        if: steps.openshift.outputs.continue == 'true'
         with:
           version: v3.16.3
 
       - uses: redhat-actions/oc-login@v1
+        if: steps.openshift.outputs.continue == 'true'
         with:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
+          namespace: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+
+      - name: Helm release storage RBAC (uninstall)
+        if: steps.openshift.outputs.continue == 'true'
+        id: helm_rbac
+        env:
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+        run: |
+          set -euo pipefail
+          ns="${OPENSHIFT_DEV_NAMESPACE}"
+          if [[ -z "${ns}" ]]; then
+            echo 'can_helm=false' >> "${GITHUB_OUTPUT}"
+            echo '::warning::OPENSHIFT_DEV_NAMESPACE empty; skipping helm uninstall.'
+            exit 0
+          fi
+          if oc auth can-i list secrets -n "${ns}" --quiet >/dev/null 2>&1; then
+            echo "can_helm=true" >> "${GITHUB_OUTPUT}"
+          elif oc auth can-i list configmaps -n "${ns}" --quiet >/dev/null 2>&1; then
+            echo "HELM_DRIVER=configmap" >> "${GITHUB_ENV}"
+            echo "can_helm=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "can_helm=false" >> "${GITHUB_OUTPUT}"
+            echo '::warning::Skipping helm uninstall: token cannot list secrets or configmaps in '"${ns}"' (Helm 3 release storage). Workloads may still be removed by the next step; ask platform to extend CI RBAC or delete Helm metadata manually.'
+          fi
 
       - name: Helm uninstall
+        if: steps.openshift.outputs.continue == 'true' && steps.helm_rbac.outputs.can_helm == 'true'
         continue-on-error: true
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
-        run: helm uninstall "pr-${PR_NUM}-showcase"
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+        run: helm uninstall "pr-${PR_NUM}-showcase" --namespace "${OPENSHIFT_DEV_NAMESPACE}"
 
       - name: Delete leftover secrets and PVCs for this release
+        if: steps.openshift.outputs.continue == 'true'
         continue-on-error: true
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
         run: >
           oc delete secret,pvc
+          -n "${OPENSHIFT_DEV_NAMESPACE}"
           -l "app.kubernetes.io/instance=pr-${PR_NUM}-showcase"
           --ignore-not-found=true
+
+      # GHCR cleanup: deploy-showcase-pr pushes server/frontend tags pr-<N>. Remove those package versions
+      # so tags do not accumulate (see PR review on showcase PR uninstall workflow).
+      - name: Delete GHCR package versions tagged pr-${{ github.event.pull_request.number }}
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          set -uo pipefail
+          tag="pr-${PR_NUM}"
+          owner_lc="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          for pkg in bc-wallet-showcase-server bc-wallet-showcase-frontend; do
+            echo "Looking for ${pkg} versions with tag ${tag} under org ${owner_lc}..."
+            if ! ids_raw="$(
+              gh api -H "Accept: application/vnd.github+json" \
+                "/orgs/${owner_lc}/packages/container/${pkg}/versions?per_page=100" \
+                --jq ".[] | select((.metadata.container.tags // []) | index(\"${tag}\") != null) | .id" 2>/dev/null
+            )"; then
+              echo "WARN: could not list GHCR versions for ${pkg} (missing package or no API access)."
+              continue
+            fi
+            mapfile -t ids < <(printf '%s\n' "${ids_raw}" | sort -u)
+            if [[ ${#ids[@]} -eq 0 || -z "${ids[0]:-}" ]]; then
+              echo "No package versions tagged ${tag} for ${pkg}."
+              continue
+            fi
+            for vid in "${ids[@]}"; do
+              [[ -z "${vid}" ]] && continue
+              echo "Deleting ${pkg} package version id=${vid}..."
+              if gh api --method DELETE \
+                -H "Accept: application/vnd.github+json" \
+                "/orgs/${owner_lc}/packages/container/${pkg}/versions/${vid}"; then
+                echo "Deleted ${pkg}@${vid}"
+              else
+                echo "WARN: delete failed for ${pkg}@${vid}"
+              fi
+            done
+          done

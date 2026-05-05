@@ -1,5 +1,5 @@
 import type { ConnectionState } from '../../slices/connection/connectionSlice'
-import type { ScenarioScreen } from '../../slices/types'
+import type { UseCaseScreen } from '../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -13,9 +13,9 @@ import { Button } from '../../components/Button'
 import { Modal } from '../../components/Modal'
 import { SmallButton } from '../../components/SmallButton'
 import { useAppDispatch } from '../../hooks/hooks'
-import { scenarioCompleted } from '../../slices/preferences/preferencesSlice'
-import { nextStep, prevStep, resetStep } from '../../slices/scenarios/scenariosSlice'
-import { useCurrentShowcase } from '../../slices/showcases/showcasesSelectors'
+import { useCurrentCharacter } from '../../slices/characters/charactersSelectors'
+import { useCaseCompleted } from '../../slices/preferences/preferencesSlice'
+import { nextStep, prevStep, resetStep } from '../../slices/useCases/useCasesSlice'
 import { basePath } from '../../utils/BasePath'
 import { isConnected, isCredIssued } from '../../utils/Helpers'
 
@@ -28,7 +28,7 @@ import { StepInformation } from './steps/StepInformation'
 import { StepProof } from './steps/StepProof'
 
 export interface Props {
-  section: ScenarioScreen[]
+  section: UseCaseScreen[]
   connection: ConnectionState
   stepCount: number
   sectionCount: number
@@ -69,7 +69,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
   const { slug } = useParams()
 
   const verifier = section.find((x) => x.verifier !== undefined)?.verifier ?? { name: 'Unkown' }
-  const currentShowcase = useCurrentShowcase()
+  const currentCharacter = useCurrentCharacter()
 
   const leave = () => {
     trackSelfDescribingEvent({
@@ -77,20 +77,20 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
         data: {
           action: 'leave',
-          path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
-          step: step.name,
+          path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+          step: step.title,
         },
       },
     })
     navigate(`${basePath}/dashboard`)
-    dispatch({ type: 'clearScenario' })
+    dispatch({ type: 'clearUseCase' })
     dispatch(resetStep())
   }
 
   useEffect(() => {
     if (completed && slug) {
-      dispatch(scenarioCompleted(slug))
-      dispatch({ type: 'clearScenario' })
+      dispatch(useCaseCompleted(slug))
+      dispatch({ type: 'clearUseCase' })
       navigate(`${basePath}/dashboard`)
       dispatch(resetStep())
       trackSelfDescribingEvent({
@@ -98,8 +98,8 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
           data: {
             action: 'usecase_completed',
-            path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
-            step: step.name,
+            path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+            step: step.title,
           },
         },
       })
@@ -153,8 +153,8 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
           data: {
             action: 'next',
-            path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
-            step: step.name,
+            path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+            step: step.title,
           },
         },
       })
@@ -175,7 +175,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
       return (
         <StartContainer
           key={step.screenId}
-          characterType={currentShowcase?.persona.type.toLowerCase()}
+          characterType={currentCharacter?.type.toLowerCase()}
           step={step}
           entity={verifier}
           requestedCredentials={step.requestOptions?.requestedCredentials}
@@ -214,7 +214,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                   <StepProof
                     key={step.screenId}
                     entityName={verifier.name}
-                    characterType={currentShowcase?.persona.type.toLowerCase()}
+                    characterType={currentCharacter?.type.toLowerCase()}
                     proof={proof}
                     step={step}
                     connectionId={connection.id}
@@ -232,8 +232,8 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                         schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
                         data: {
                           action: 'back',
-                          path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
-                          step: step.name,
+                          path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+                          step: step.title,
                         },
                       },
                     })
@@ -252,8 +252,8 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
                           data: {
                             action: 'next',
-                            path: `${currentShowcase?.persona.type.toLowerCase()}_${slug}`,
-                            step: step.name,
+                            path: `${currentCharacter?.type.toLowerCase()}_${slug}`,
+                            step: step.title,
                           },
                         },
                       })

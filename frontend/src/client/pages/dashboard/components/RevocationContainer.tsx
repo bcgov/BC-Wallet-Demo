@@ -25,7 +25,7 @@ export const RevocationContainer: React.FC<Props> = ({ revocationRecord, revocat
     )
     return (
       <RevocationItem
-        title={revocationDescription?.name}
+        title={revocationDescription?.title}
         description={revocationDescription?.description}
         credentialName={revocationDescription?.credentialName}
         credentialIcon={revocationDescription?.credentialIcon}

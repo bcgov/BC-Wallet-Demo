@@ -16,7 +16,7 @@ There are two env files that you need to configure. This stage assumes you alrea
 - test: https://traction-tenant-ui-test.apps.silver.devops.gov.bc.ca/
 - prod: https://traction-tenant-ui.apps.silver.devops.gov.bc.ca/
 
-once logged in navigate to the API keys section under the wallet icon to the top right.
+once logged in navigate to to the API keys section under the wallet icon to the top right.
 ![](Pasted%20image%2020241002093928.png)
 Create a new API key and save the key and tenant ID in a password manager. You should only have to do this once when migrating to a new traction agent.
 

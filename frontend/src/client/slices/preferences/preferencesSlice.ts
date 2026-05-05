@@ -6,22 +6,22 @@ import { fetchLastServerReset } from './preferencesThunks'
 
 interface PreferencesState {
   darkMode: boolean
-  showHiddenScenarios: boolean
+  showHiddenUseCases: boolean
   revocationEnabled: boolean
-  showcaseUploadEnabled: boolean
-  completedScenarioSlugs: string[]
+  characterUploadEnabled: boolean
+  completedUseCaseSlugs: string[]
   demoCompleted: boolean
   completeCanceled: boolean
-  connectionDate?: string
-  lastServerReset?: string
+  connectionDate?: Date
+  lastServerReset?: Date
 }
 
 const initialState: PreferencesState = {
   darkMode: false,
-  showHiddenScenarios: false,
+  showHiddenUseCases: false,
   revocationEnabled: false,
-  showcaseUploadEnabled: false,
-  completedScenarioSlugs: [],
+  characterUploadEnabled: false,
+  completedUseCaseSlugs: [],
   demoCompleted: false,
   completeCanceled: false,
   connectionDate: undefined,
@@ -46,26 +46,26 @@ const preferencesSlice = createSlice({
     setConnectionDate: (state, action) => {
       state.connectionDate = action.payload
     },
-    scenarioCompleted: (state, action: PayloadAction<string>) => {
-      if (!state.completedScenarioSlugs.includes(action.payload)) {
-        state.completedScenarioSlugs.push(action.payload)
+    useCaseCompleted: (state, action: PayloadAction<string>) => {
+      if (!state.completedUseCaseSlugs.includes(action.payload)) {
+        state.completedUseCaseSlugs.push(action.payload)
       }
       state.completeCanceled = false
     },
-    toggleHiddenScenarios: (state) => {
-      state.showHiddenScenarios = !state.showHiddenScenarios
+    toggleHiddenUseCases: (state) => {
+      state.showHiddenUseCases = !state.showHiddenUseCases
     },
     setDemoCompleted: (state, val) => {
       state.demoCompleted = val.payload
     },
     resetDashboard: (state) => {
-      state.completedScenarioSlugs = []
+      state.completedUseCaseSlugs = []
     },
     toggleRevocation: (state) => {
       state.revocationEnabled = !state.revocationEnabled
     },
-    toggleShowcaseUpload: (state) => {
-      state.showcaseUploadEnabled = !state.showcaseUploadEnabled
+    toggleCharacterUpload: (state) => {
+      state.characterUploadEnabled = !state.characterUploadEnabled
     },
   },
   extraReducers: (builder) => {
@@ -82,13 +82,13 @@ const preferencesSlice = createSlice({
 
 export const {
   setDarkMode,
-  toggleHiddenScenarios,
-  scenarioCompleted,
+  toggleHiddenUseCases,
+  useCaseCompleted,
   resetDashboard,
   setDemoCompleted,
   setConnectionDate,
   toggleRevocation,
-  toggleShowcaseUpload,
+  toggleCharacterUpload,
 } = preferencesSlice.actions
 
 export default preferencesSlice.reducer

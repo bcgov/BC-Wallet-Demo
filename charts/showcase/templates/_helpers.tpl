@@ -137,6 +137,14 @@ MongoDB Service metadata.name / in-cluster short DNS host (must match CloudPirat
 {{- end }}
 
 {{/*
+Kubernetes service-link env prefix for MongoDB Service `metadata.name` (uppercase, `-` -> `_`).
+Example: pr-403-showcase-mongodb -> PR_403_SHOWCASE_MONGODB
+*/}}
+{{- define "showcase.mongodb.serviceEnvPrefix" -}}
+{{- upper (replace "-" "_" (include "showcase.mongodb.host" .)) -}}
+{{- end }}
+
+{{/*
 Fully-qualified in-cluster DNS name for the MongoDB Service (fallback when Service ClusterIP is unavailable).
 */}}
 {{- define "showcase.mongodb.serviceFqdn" -}}

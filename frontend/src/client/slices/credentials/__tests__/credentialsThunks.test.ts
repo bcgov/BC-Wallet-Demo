@@ -22,7 +22,6 @@ import { issueCredential, issueDeepCredential, fetchCredentialById, deleteCreden
 const makeStore = () => configureStore({ reducer: { credentials: credentialsReducer } })
 
 const mockCred = {
-  id: 'person-credential',
   name: 'Person Credential',
   icon: '/icon.png',
   version: '1.0',
@@ -168,9 +167,9 @@ describe('credentialsSlice reducers', () => {
     expect(names).toHaveLength(1)
   })
 
-  it('clearScenario resets isLoading to false', () => {
+  it('clearUseCase resets isLoading to false', () => {
     const store = makeStore()
-    store.dispatch({ type: 'clearScenario' })
+    store.dispatch({ type: 'clearUseCase' })
     expect(store.getState().credentials.isLoading).toBe(false)
   })
 })

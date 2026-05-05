@@ -5,7 +5,7 @@ describe('Landing Page', () => {
   })
 
   it('has a Get started button that navigates to the onboarding page', () => {
-    cy.intercept('GET', '**/demo/showcases', { fixture: 'showcases.json' }).as('getShowcases')
+    cy.intercept('GET', '**/demo/characters', { fixture: 'characters.json' }).as('getCharacters')
     cy.intercept('GET', '**/demo/wallets', { body: [] }).as('getWallets')
     cy.visit('/')
     cy.contains('button', 'Get started').click()

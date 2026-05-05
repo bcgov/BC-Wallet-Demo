@@ -123,9 +123,9 @@ describe('proofSlice reducers', () => {
     expect(store.getState().proof.isLoading).toBe(false)
   })
 
-  it('clearScenario action resets proof state', () => {
+  it('clearUseCase action resets proof state', () => {
     const store = makeStore()
-    store.dispatch({ type: 'clearScenario' })
+    store.dispatch({ type: 'clearUseCase' })
     expect(store.getState().proof.proof).toBeUndefined()
     expect(store.getState().proof.isLoading).toBe(false)
   })
