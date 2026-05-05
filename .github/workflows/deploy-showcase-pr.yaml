@@ -232,7 +232,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: Showcase PR deployment URL
+          body-includes: <!-- showcase-pr-url -->
 
       - name: Create PR deployment comment
         if: steps.fc.outputs.comment-id == ''
@@ -240,6 +240,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
+            <!-- showcase-pr-url -->
             | Showcase PR | |
             | --- | --- |
             | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
@@ -254,6 +255,7 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
           body: |
+            <!-- showcase-pr-url -->
             | Showcase PR | |
             | --- | --- |
             | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
