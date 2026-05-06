@@ -19,7 +19,7 @@ interface ScenariosTabProps {
   onRefresh?: () => void | Promise<void>
 }
 
-export function ScenariosTab({ showcase: showcase, isNewShowcase, onRefresh }: ScenariosTabProps) {
+export function ScenariosTab({ showcase, isNewShowcase, onRefresh }: ScenariosTabProps) {
   const navigate = useNavigate()
   const auth = useAuth()
   const [activeScenario, setActiveScenario] = useState<string | null>(null)
@@ -66,7 +66,7 @@ export function ScenariosTab({ showcase: showcase, isNewShowcase, onRefresh }: S
       const currentScreens = reorderedScreens[activeScenario] || activeScreen.screens || []
 
       const { updatedItems } = await saveScreenToShowcase({
-        showcase: showcase,
+        showcase,
         auth,
         updatedScreen,
         editingScreenIdx,

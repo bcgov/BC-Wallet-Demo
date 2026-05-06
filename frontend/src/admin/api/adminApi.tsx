@@ -46,7 +46,6 @@ export const createShowcase = async (
     description,
     persona: {
       name: '',
-      type: '',
       image: '',
     },
     introduction: [],

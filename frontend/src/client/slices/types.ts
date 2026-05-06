@@ -61,7 +61,7 @@ export interface IntroductionStep {
   text: string
   issuer_name?: string
   image?: string
-  credentials?: string[]
+  credentials?: Credential[]
 }
 
 type DateIntMarker = `$dateint:${number}`

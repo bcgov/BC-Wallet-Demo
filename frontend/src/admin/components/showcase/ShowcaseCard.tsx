@@ -5,7 +5,7 @@ interface ShowcaseCardProps {
   onClick: () => void
 }
 
-export function ShowcaseCard({ showcase: showcase, onClick }: ShowcaseCardProps) {
+export function ShowcaseCard({ showcase, onClick }: ShowcaseCardProps) {
   return (
     <div>
       <button

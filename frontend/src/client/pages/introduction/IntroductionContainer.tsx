@@ -1,4 +1,4 @@
-import type { Credential, Showcase } from '../../slices/types'
+import type { Showcase } from '../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -18,7 +18,6 @@ import { basePath } from '../../utils/BasePath'
 import { isConnected } from '../../utils/Helpers'
 import { addIntroductionProgress, removeIntroductionProgress } from '../../utils/IntroductionUtils'
 import { prependApiUrl } from '../../utils/Url'
-import log from '../../utils/logger'
 
 import { CharacterContent } from './components/CharacterContent'
 import { IntroductionBottomNav } from './components/IntroductionBottomNav'
@@ -39,17 +38,6 @@ export interface Props {
   introductionStep: string
 }
 
-const resolveCredentials = (ids: string[] | undefined, showcase: Showcase | undefined): Credential[] | undefined => {
-  if (!ids || !showcase) return undefined
-  return ids
-    .map((id) => {
-      const cred = showcase.credentials.find((c) => c.id === id)
-      if (!cred) log.warn(`Credential ID "${id}" not found in showcase "${showcase.name}"`)
-      return cred
-    })
-    .filter(Boolean) as Credential[]
-}
-
 export const IntroductionContainer: React.FC<Props> = ({
   showcases,
   currentShowcase,
@@ -67,7 +55,7 @@ export const IntroductionContainer: React.FC<Props> = ({
 
   const connectionCompleted = isConnected(connectionState as string)
   const introStep = currentShowcase?.introduction.find((step) => step.screenId === introductionStep)
-  const credentials = resolveCredentials(introStep?.credentials, currentShowcase)
+  const credentials = introStep?.credentials
   const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.name))
 
   const isBackDisabled = ['PICK_CHARACTER', 'ACCEPT_CREDENTIAL'].includes(introductionStep)
@@ -123,7 +111,7 @@ export const IntroductionContainer: React.FC<Props> = ({
   const getCharacterContent = (progress: string) => {
     const characterContent = currentShowcase?.introduction.find((screen) => screen.screenId === progress)
     if (characterContent) {
-      const stepCredentials = resolveCredentials(characterContent.credentials, currentShowcase)
+      const stepCredentials = characterContent.credentials
       return {
         title: characterContent.name,
         text: characterContent.text,
@@ -171,6 +159,7 @@ export const IntroductionContainer: React.FC<Props> = ({
           title={title}
           text={text}
           backgroundImage={currentShowcase?.persona?.image}
+          onConnectionComplete={nextIntroductionPage}
         />
       )
     } else if (progress.startsWith('ACCEPT') && credentials && connectionId) {

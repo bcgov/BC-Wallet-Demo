@@ -57,7 +57,7 @@ export function IntroductionTab({ showcase, isNewShowcase, onTabChange, onRefres
       const currentOnboarding = reorderedIntroduction || showcase.introduction || []
 
       const { updatedItems } = await saveScreenToShowcase({
-        showcase: showcase,
+        showcase,
         auth,
         updatedScreen,
         editingScreenIdx,

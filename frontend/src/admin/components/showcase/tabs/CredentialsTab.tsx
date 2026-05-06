@@ -57,6 +57,7 @@ export function CredentialsTab({
         screenId: 'CONNECT',
         name: `Connect to receive credential`,
         text: `Scan the QR code to connect and receive the ${selectedCredential.name} credential.`,
+        image: '/public/student/onboarding-connect-light.svg',
         issuer_name: showcase.persona?.name,
       })
 

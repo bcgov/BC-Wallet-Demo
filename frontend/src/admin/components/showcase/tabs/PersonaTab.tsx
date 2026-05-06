@@ -15,7 +15,7 @@ interface PersonaTabProps {
   onRefresh?: () => void | Promise<void>
 }
 
-export function PersonaTab({ showcase: showcase, isLoading, isNewShowcase, onTabChange, onRefresh }: PersonaTabProps) {
+export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, onRefresh }: PersonaTabProps) {
   const auth = useAuth()
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(showcase.persona?.name || '')
