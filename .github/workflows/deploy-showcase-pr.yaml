@@ -243,7 +243,7 @@ jobs:
             <!-- showcase-pr-url -->
             | Showcase PR | |
             | --- | --- |
-            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
+            | UI (same host as API) | [Open showcase](https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase) |
 
             Showcase PR deployment URL (Helm release `pr-${{ github.event.pull_request.number }}-showcase`).
 
@@ -258,6 +258,6 @@ jobs:
             <!-- showcase-pr-url -->
             | Showcase PR | |
             | --- | --- |
-            | UI (same host as API) | `https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase` |
+            | UI (same host as API) | [Open showcase](https://pr-${{ github.event.pull_request.number }}-${{ env.SHOWCASE_PR_HOST_SUFFIX }}/digital-trust/showcase) |
 
             Showcase PR deployment URL (Helm release `pr-${{ github.event.pull_request.number }}-showcase`).
