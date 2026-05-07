@@ -31,12 +31,11 @@ There are two .env files that you need to create and configure on the showcase. 
 TENANT_ID=<YOUR_TENANT_ID>
 API_KEY=<YOUR_API_KEY>
 TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
-TRACTION_DID=<YOUR_AGENTS_DID>
 BASE_ROUTE=/digital-trust/showcase
 WEBHOOK_SECRET=<YOUR_WEBHOOK_SECRET>
 ```
 
-populate the values with the API key, and webhook secret that you made in the previous step. You'll also need you agent's DID which can be found under `Profile > Public DID` after clicking the wallet icon on the top right.  
+populate the values with the API key and webhook secret that you made in the previous step.  
 In the frontend folder the .env file should look like this:
 
 ```bash
