@@ -83,6 +83,9 @@ services:
       - '5000:5000'
     volumes:
       - ./:/app
+      # Preserve node_modules installed in the image — the bind mount above would
+      # otherwise shadow /app/node_modules with whatever is (or isn't) on the host.
+      - dev-node-modules:/app/node_modules
     env_file:
       # Copy server/.env.example → server/.env before running.
       # `required: false` lets the stack start even without the file (useful in CI).
@@ -140,3 +143,4 @@ services:
 volumes:
   mongo-data:
   keycloak-db-data:
+  dev-node-modules:
