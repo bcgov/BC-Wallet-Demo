@@ -2,6 +2,7 @@
   "realm": "showcase",
   "enabled": true,
   "displayName": "BC Wallet Showcase",
+  "sslRequired": "none",
   "registrationAllowed": false,
   "resetPasswordAllowed": false,
   "bruteForceProtected": true,
