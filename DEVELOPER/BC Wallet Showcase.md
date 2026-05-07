@@ -33,9 +33,6 @@ API_KEY=<YOUR_API_KEY>
 TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
 TRACTION_DID=<YOUR_AGENTS_DID>
 BASE_ROUTE=/digital-trust/showcase
-STUDENT_VERSION=1.6
-LAWYER_VERSION=1.54
-PERSON_VERSION=1.3
 WEBHOOK_SECRET=<YOUR_WEBHOOK_SECRET>
 ```
 
@@ -175,7 +172,7 @@ export const studentCustom: CustomCharacter = {
 			credentials: [
 				{
 					name: 'student_card',
-					version: process.env.STUDENT_VERSION ?? '1.0',
+					version: '1.0',
 					icon: '/public/student/icon-student.svg',
 					attributes: [
 					{
