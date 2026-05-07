@@ -9,104 +9,64 @@ This application provides a showcase for the BC Wallet to illustrate the use cas
 
 ## Running
 
-### Copy env files
+### 1. Configure environment variables
 
-Copy `server/.env.example` → `server/.env` and `frontend/.env.example` → `frontend/.env`.  
-Edit the `.env` files to match your project needs (see [DEVELOPER/BC Wallet Showcase.md](DEVELOPER/BC%20Wallet%20Showcase.md) for Traction and webhook setup).
-
-### Option 1 - Native
-
-Use **Node.js 22 or newer** (see `engines` in `package.json`), plus Yarn 1.x.  
-From the repository root:
-
-> yarn install
-
-> yarn dev
-
-The application will now be running at http://localhost:3000
-
-### Option 2 - Docker
-
-Requires Docker (BuildKit recommended). From the repository root.
-
-#### Build static frontend image
-
-The showcase frontend is a **Vite** production build, served by **Caddy**. Pass **`REACT_APP_*` build-args** at **image build** time (CI and older scripts still use those names); **`frontend/Dockerfile`** maps them to **`VITE_*`** for `vite build`.
+Copy the example env files and edit them to match your setup:
 
 ```bash
-docker build -f frontend/Dockerfile \
-  --build-arg REACT_APP_INSIGHTS_PROJECT_ID="your-project-id" \
-  --build-arg REACT_APP_HOST_BACKEND="https://your-api-base" \
-  -t bc-wallet-demo-web:local .
+cp server/.env.example server/.env
+cp frontend/.env.example frontend/.env
 ```
 
-#### Build server image
+The placeholder values in `.env.example` are enough to start the app locally. To issue or verify **real** credentials you need a [Traction](https://digital.gov.bc.ca/digital-trust/technical-resources/traction/) tenant — set `TENANT_ID`, `API_KEY`, `TRACTION_URL`, `TRACTION_DID`, and `WEBHOOK_SECRET` in `server/.env`. See [DEVELOPER/BC Wallet Showcase.md](DEVELOPER/BC%20Wallet%20Showcase.md) for the full Traction and ngrok webhook setup.
+
+### 2. Start the stack
+
+#### Docker Compose — recommended
+
+Requires Docker. A single command starts the frontend, backend, MongoDB, Keycloak, and its database — no local Node.js toolchain needed:
 
 ```bash
-docker build -f server/Dockerfile -t bc-wallet-demo-server:local .
+docker compose --profile dev up --build
 ```
 
-#### Run containers (examples)
+On first run Docker builds the dev image; subsequent starts skip the build. The bind-mount means **code changes are picked up immediately** without rebuilding.
 
-Server:
+| Service       | URL / port                                              |
+| ------------- | ------------------------------------------------------- |
+| Frontend (UI) | http://localhost:3000/digital-trust/showcase/           |
+| Backend (API) | http://localhost:5000                                   |
+| Keycloak      | http://localhost:8080 (admin / admin)                   |
+| MongoDB       | 127.0.0.1:27017 (host only)                             |
+
+To also open the optional MongoDB web UI:
 
 ```bash
-docker run --name bc-wallet-demo-server -p 5000:5000 --rm --env-file server/.env bc-wallet-demo-server:local
+docker compose --profile dev --profile mongo-ui up --build
 ```
 
-Frontend (mount `frontend/Caddyfile` when you need the repo routing; see that file for `VITE_BASE_ROUTE`):
+#### Native (Node.js 22+ and Yarn 1.x)
+
+MongoDB must be running separately (e.g. `docker compose up mongodb`).
 
 ```bash
-docker run --name bc-wallet-demo-web -p 3000:3000 \
-  -v "$(pwd)/frontend/Caddyfile:/etc/caddy/Caddyfile:ro" --rm \
-  --env-file frontend/.env bc-wallet-demo-web:local
+yarn install
+yarn dev
 ```
 
-With the default production **`base`** in Vite, browse **`http://localhost:3000/digital-trust/showcase/`** (must match **`VITE_BASE_ROUTE`** in `frontend/.env` and your Caddyfile).
+Frontend runs at http://localhost:3000 and the API at http://localhost:5000.
 
-#### Docker Compose
+---
 
-`docker-compose.yml` includes **MongoDB**, optional **mongo-express** (profile **`mongo-ui`**), a **`backend` + `frontend`** pair (built images), and a **`dev`** service (repo bind-mounted, runs `yarn dev`). **`dev` and the `frontend`/`backend` pair both bind ports 3000 and 5000**, so do **not** run `docker compose up` with every service at once.
+### Keycloak (included in the Docker Compose dev profile)
 
-Typical commands:
-
-- **Production-like stack:** `docker compose up --build mongodb backend frontend`
-- **Single dev container + Mongo:** `docker compose up --build mongodb dev`
-- **Mongo Express UI:** add **`--profile mongo-ui`** and include **`mongo-express`** (see the comment at the top of `docker-compose.yml`).
-
-#### CI: Cypress on pull requests
-
-**`.github/workflows/continuous-integration.yml`** runs Cypress with **`yarn workspace frontend start`** only (Vite on port 3000). `cypress.config.ts` still sets **`apiUrl`** to **`http://localhost:5000`** for specs that call the API—if those paths run in CI, start the server as well (for example with **`concurrently`**, or mirror **`build_packages.yml`**, which starts **`yarn dev`** for both processes).
-
-For **GHCR image names, release workflows, and the `setup-node` composite action**, see [.github/README.md](.github/README.md).
-
-### Option 3 - Docker Compose (Dev Profile)
-
-The `dev` Docker Compose profile starts the full local stack — including the application, MongoDB, Keycloak, and its backing PostgreSQL database — with a single command:
-
-```sh
-docker compose --profile dev up
-```
-
-This brings up the following services:
-
-| Service       | Description                                    | Default URL / Port                                      |
-| ------------- | ---------------------------------------------- | ------------------------------------------------------- |
-| `dev`         | Frontend + backend in development mode (watch) | http://localhost:3000 (UI), http://localhost:5000 (API) |
-| `mongodb`     | Application database                           | `127.0.0.1:27017`                                       |
-| `keycloak`    | Keycloak 26.5 identity provider                | http://localhost:8080/                                  |
-| `keycloak-db` | PostgreSQL backing store for Keycloak          | (internal only)                                         |
-
-#### Keycloak
-
-Keycloak runs in development mode (`start-dev`) with an HTTP-relative path of `/`. On first boot it imports the realm configuration from `keycloak/config/showcase-realm.json` automatically.
+Keycloak runs in development mode and imports the realm from `keycloak/config/showcase-realm.json` automatically on first boot.
 
 - **Admin console**: http://localhost:8080/admin — credentials `admin` / `admin`
-- **Realm**: `showcase`
-- **Client**: `showcase-admin` (public, PKCE S256 enforced)
-- **Default test user**: username `admin`, password `admin` (member of the `admin` realm role)
+- **Realm**: `showcase` | **Client**: `showcase-admin` (public, PKCE S256)
+- **Default test user**: `admin` / `admin` (member of the `admin` realm role)
 
-The `frontend/public/config.json` file controls which Keycloak instance the frontend connects to at runtime:
+`frontend/public/config.json` controls which Keycloak instance the frontend connects to at runtime. Update it when pointing at a shared dev or staging server:
 
 ```json
 {
@@ -116,54 +76,67 @@ The `frontend/public/config.json` file controls which Keycloak instance the fron
 }
 ```
 
-Update this file if you are pointing at a different Keycloak instance (e.g. a shared dev or staging server).
+### Advanced: production-like Docker builds
 
-To also open the optional MongoDB UI, add the `mongo-ui` profile:
+These are the individual image builds used by CI and the production `backend`/`frontend` Compose services. Most contributors can skip this section.
 
-```sh
-docker compose --profile dev --profile mongo-ui up
+```bash
+# Frontend (static Vite build served by Caddy)
+docker build -f frontend/Dockerfile \
+  --build-arg REACT_APP_INSIGHTS_PROJECT_ID="your-project-id" \
+  --build-arg REACT_APP_HOST_BACKEND="https://your-api-base" \
+  -t bc-wallet-demo-web:local .
+
+# Backend
+docker build -f server/Dockerfile -t bc-wallet-demo-server:local .
+
+# Production-like Compose stack (no Keycloak, no hot-reload)
+docker compose --profile prod up --build
 ```
+
+Browse the frontend at `http://localhost:3000/digital-trust/showcase/` — the path must match `VITE_BASE_ROUTE` in `frontend/.env` and `frontend/Caddyfile`.
+
+For **GHCR image names, release workflows, and the `setup-node` composite action**, see [.github/README.md](.github/README.md).
+
+#### CI: Cypress on pull requests
+
+**`.github/workflows/continuous-integration.yml`** runs Cypress with `yarn workspace frontend start` only (Vite on port 3000). `cypress.config.ts` sets `apiUrl` to `http://localhost:5000` for specs that call the API — if those run in CI, start the server too (e.g. with `concurrently`, mirroring `build_packages.yml` which runs `yarn dev` for both processes).
 
 ---
 
 ## Admin Portal
 
-The admin portal is available at `<base_route>/admin` (e.g. `http://localhost:3000/digital-trust/showcase/admin`). It is protected by Keycloak OIDC authentication.
+The admin portal is at `<base_route>/admin` (e.g. `http://localhost:3000/digital-trust/showcase/admin`), protected by Keycloak OIDC.
 
-### Keycloak Setup
+The Docker Compose dev profile ships a pre-configured Keycloak realm — no manual setup needed locally. For a **custom or production Keycloak instance**:
 
-1. Create a realm in your Keycloak instance (e.g. `showcase`).
-2. Create a client within that realm with the following settings:
-   - **Client ID**: your chosen client ID (e.g. `showcase-admin`)
+1. Create a realm (e.g. `showcase`).
+2. Create a client with these settings:
+   - **Client ID**: e.g. `showcase-admin`
    - **Client authentication**: Off (public client)
    - **Standard flow**: Enabled
-   - **Valid redirect URIs**: `http://localhost:3000/*` (adjust origin for production)
+   - **Valid redirect URIs**: `http://localhost:3000/*` (adjust for production)
    - **Web origins**: `*` (or restrict to your app's origin)
-3. Create at least one user in the realm and assign them a password.
+3. Create at least one user and assign them the `admin` realm role.
 
-### Environment Variables
-
-The following variables are configured in `frontend/public/config.json` for runtime configuration of the Keycloak connection. If you are using Docker, you can also pass these as build arguments to set them at build time (see the Docker section above).:
-
-| Variable Name      | Description                                      | Example Value           |
-| ------------------ | ------------------------------------------------ | ----------------------- |
-| `keycloakUrl`      | The base URL of your Keycloak instance           | `http://localhost:8080` |
-| `keycloakRealm`    | The name of the Keycloak realm you created       | `showcase`              |
-| `keycloakClientId` | The client ID of the Keycloak client you created | `showcase-admin`        |
-
-The OIDC redirect URI is built automatically from the app's origin:
+The OIDC redirect URI is built automatically:
 
 ```
-<window.location.origin><REACT_APP_BASE_ROUTE>/admin/callback
-```
-
-For a default local setup this resolves to:
-
-```
-http://localhost:3000/digital-trust/showcase/admin/callback
+<window.location.origin><VITE_BASE_ROUTE>/admin/callback
+# e.g. http://localhost:3000/digital-trust/showcase/admin/callback
 ```
 
 This URI must be listed under **Valid redirect URIs** in your Keycloak client settings.
+
+### Keycloak environment variables
+
+Configured in `frontend/public/config.json` at runtime:
+
+| Variable           | Description                        | Example                 |
+| ------------------ | ---------------------------------- | ----------------------- |
+| `keycloakUrl`      | Base URL of your Keycloak instance | `http://localhost:8080` |
+| `keycloakRealm`    | Realm name                         | `showcase`              |
+| `keycloakClientId` | Client ID                          | `showcase-admin`        |
 
 ## Contributing
 
