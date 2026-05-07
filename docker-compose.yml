@@ -120,6 +120,11 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_HTTP_ENABLED: true
+      # Disable HTTPS requirement for local development.
+      # KC_HOSTNAME_STRICT=false allows plain HTTP on localhost.
+      # KC_HTTP_RELATIVE_PATH keeps the admin console reachable at /admin.
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME: localhost
     depends_on:
       keycloak-db:
         condition: service_healthy
