@@ -1,8 +1,7 @@
-# Do not start every service at once: `dev` and `frontend`+`backend` both use ports 3000 and 5000.
-# Typical stacks:
-#   docker compose up --build mongodb backend frontend
-#   docker compose up --build mongodb dev
-# Optional MongoDB web UI: docker compose --profile mongo-ui up … (see mongo-express service)
+# Two mutually exclusive stacks — do NOT run both at once (ports 3000 and 5000 conflict):
+#   Dev (hot-reload, Keycloak included):  docker compose --profile dev up --build
+#   Production-like (pre-built images):   docker compose --profile prod up --build
+# Optional MongoDB web UI: add --profile mongo-ui to either command (see mongo-express service)
 services:
   mongodb:
     image: mongo:8
@@ -38,6 +37,8 @@ services:
 
   frontend:
     image: bc-wallet-demo-web
+    profiles:
+      - prod
     build:
       context: ./
       dockerfile: ./frontend/Dockerfile
@@ -53,6 +54,8 @@ services:
       - ./frontend/.env
   backend:
     image: bc-wallet-demo-server
+    profiles:
+      - prod
     build:
       context: ./
       dockerfile: ./server/Dockerfile
@@ -80,7 +83,13 @@ services:
       - '5000:5000'
     volumes:
       - ./:/app
+    env_file:
+      # Copy server/.env.example → server/.env before running.
+      # `required: false` lets the stack start even without the file (useful in CI).
+      - path: ./server/.env
+        required: false
     environment:
+      # These always override anything in server/.env so MongoDB stays on the Compose network.
       MONGODB_HOST: mongodb
       MONGODB_PORT: '27017'
       MONGODB_DB_NAME: bc_wallet_showcase
