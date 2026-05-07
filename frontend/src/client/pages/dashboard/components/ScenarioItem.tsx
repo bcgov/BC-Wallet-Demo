@@ -22,8 +22,8 @@ export interface Props {
 
 const getCredIcon = (currShowcase: Showcase, credName: string) => {
   let icon = ''
-  currShowcase.scenarios.forEach((useCase) => {
-    useCase.screens.forEach((screen) => {
+  currShowcase.scenarios.forEach((scenario) => {
+    scenario.screens.forEach((screen) => {
       if (screen) {
         screen.requestOptions?.requestedCredentials.forEach((cred) => {
           if (cred.name === credName) {
@@ -36,7 +36,7 @@ const getCredIcon = (currShowcase: Showcase, credName: string) => {
   return icon
 }
 
-export const UseCaseItem: React.FC<Props> = ({
+export const ScenarioItem: React.FC<Props> = ({
   slug,
   title,
   isCompleted,
@@ -77,7 +77,7 @@ export const UseCaseItem: React.FC<Props> = ({
                       data: {
                         action: 'start',
                         path: `${currentShowcase?.persona?.type?.toLowerCase()}_${slug}`,
-                        step: 'usecase_start',
+                        step: 'scenario_start',
                       },
                     },
                   })

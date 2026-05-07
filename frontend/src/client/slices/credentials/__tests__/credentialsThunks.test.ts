@@ -145,7 +145,13 @@ describe('credentialsSlice reducers', () => {
     const store = makeStore()
     store.dispatch(
       setCredential({
-        credential_definition_id: 'ISSUER123:3:CL:100:CredentialName',
+        by_format: {
+          cred_issue: {
+            indy: {
+              cred_def_id: 'ISSUER123:3:CL:100:CredentialName',
+            },
+          },
+        },
         revoc_reg_id: 'rev-reg-1',
         connection_id: 'conn-1',
         revocation_id: 'rev-1',
@@ -157,7 +163,13 @@ describe('credentialsSlice reducers', () => {
   it('setCredential does not add a duplicate credName', () => {
     const store = makeStore()
     const payload = {
-      credential_definition_id: 'ISSUER123:3:CL:100:MyCredential',
+      by_format: {
+        cred_issue: {
+          indy: {
+            cred_def_id: 'ISSUER123:3:CL:100:MyCredential',
+          },
+        },
+      },
       revoc_reg_id: 'rev-reg-2',
       connection_id: 'conn-2',
       revocation_id: 'rev-2',

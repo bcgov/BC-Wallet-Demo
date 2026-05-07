@@ -8,7 +8,7 @@ import type {
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { motion } from 'framer-motion'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { fadeX } from '../../../FramerAnimations'
 import { ActionCTA } from '../../../components/ActionCTA'
@@ -76,8 +76,9 @@ export const StepProof: React.FC<Props> = ({
   characterType,
 }) => {
   const dispatch = useAppDispatch()
+  const proofRequestCreatedRef = useRef(false)
   const proofReceived =
-    (proof?.state as string) === 'presentation_received' ||
+    (proof?.state as string) === 'presentation-received' ||
     (proof?.state as string) === 'verified' ||
     proof?.state === 'done'
 
@@ -109,14 +110,14 @@ export const StepProof: React.FC<Props> = ({
           cred_def_id: item.cred_def_id,
         })
       }
-      if (item.properties) {
+      if (item.properties?.length) {
         proofs[item.name] = {
           restrictions,
           names: item.properties,
           non_revoked: resolveNonRevoked(item.nonRevoked),
         }
       }
-      if (item.predicates) {
+      if (item.predicates?.length) {
         item.predicates.forEach((predicate) => {
           predicates[`${item.name}_${predicate.name}`] = {
             restrictions,
@@ -150,7 +151,8 @@ export const StepProof: React.FC<Props> = ({
   }
 
   useEffect(() => {
-    if (!proof) {
+    if (!proofRequestCreatedRef.current && !proof) {
+      proofRequestCreatedRef.current = true
       createProofRequest()
     }
     return () => {
@@ -163,8 +165,8 @@ export const StepProof: React.FC<Props> = ({
       return
     }
     const { endpoint, state } = message
-    if (endpoint === 'present_proof' && (state === 'presentation_received' || state === 'verified')) {
-      dispatch(fetchProofById(message.presentation_exchange_id))
+    if (endpoint === 'present_proof_v2_0' && (state === 'presentation-received' || state === 'done')) {
+      dispatch(fetchProofById(message.pres_ex_id))
     }
   }, [message])
 

@@ -12,7 +12,7 @@ import { PageNotFound } from './pages/PageNotFound'
 import { DashboardPage } from './pages/dashboard/DashboardPage'
 import { IntroductionPage } from './pages/introduction/IntroductionPage'
 import { LandingPage } from './pages/landing/LandingPage'
-import { UseCasePage } from './pages/useCase/UseCasePage'
+import { ScenarioPage } from './pages/scenario/Scenario'
 import { useConnection } from './slices/connection/connectionSelectors'
 import { usePreferences } from './slices/preferences/preferencesSelectors'
 import { setDarkMode } from './slices/preferences/preferencesSlice'
@@ -93,7 +93,7 @@ function App() {
               path={`${basePath}/uc/:slug`}
               element={
                 <PrivateRoute>
-                  <UseCasePage />
+                  <ScenarioPage />
                 </PrivateRoute>
               }
             />

@@ -119,22 +119,49 @@ export class CredentialController {
 
   @Post('/offerCredential')
   public async offerCredential(@Body() params: any) {
-    const resolvedParams =
+    logger.debug({ incomingParams: params }, 'Incoming credential offer params')
+    const resolvedAttributes =
       params.credential_preview?.attributes != null
-        ? {
-            ...params,
-            credential_preview: {
-              ...params.credential_preview,
-              attributes: resolveCredentialAttributes(params.credential_preview.attributes),
-            },
-          }
-        : params
+        ? resolveCredentialAttributes(params.credential_preview.attributes).map((attr: any) => ({
+            ...attr,
+            value: String(attr.value), // Ensure all values are strings for credential preview
+          }))
+        : []
+
     logger.info(
       { connectionId: params.connection_id, credentialName: params.credential_preview?.attributes?.[0]?.name },
       'Offering credential',
     )
-    const response = await tractionRequest.post(`/issue-credential/send`, resolvedParams)
-    logger.info({ credentialExchangeId: response.data?.credential_exchange_id }, 'Credential offer sent')
-    return response.data
+
+    // Construct the new payload format
+    const payload = {
+      auto_issue: params.auto_issue ?? true,
+      auto_remove: params.auto_remove ?? false,
+      connection_id: params.connection_id,
+      credential_preview: {
+        '@type': 'issue-credential/2.0/credential-preview',
+        attributes: resolvedAttributes,
+      },
+      filter: params.filter,
+      trace: params.trace ?? false,
+    }
+
+    logger.debug({ payload }, 'Credential offer payload')
+
+    try {
+      const response = await tractionRequest.post(`/issue-credential-2.0/send-offer`, payload)
+      logger.info({ credentialExchangeId: response.data?.credential_exchange_id }, 'Credential offer sent')
+      return response.data
+    } catch (error: any) {
+      logger.error(
+        {
+          status: error.response?.status,
+          data: error.response?.data,
+          payload,
+        },
+        'Failed to send credential offer',
+      )
+      throw error
+    }
   }
 }

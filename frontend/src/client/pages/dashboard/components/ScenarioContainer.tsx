@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { dashboardTitle, rowContainer } from '../../../FramerAnimations'
 import { basePath } from '../../../utils/BasePath'
 
-import { UseCaseItem } from './UseCaseItem'
+import { ScenarioItem } from './ScenarioItem'
 
 export interface Props {
   currentShowcase: Showcase
@@ -15,14 +15,14 @@ export interface Props {
   issuedCredentials: string[]
 }
 
-export const UseCaseContainer: React.FC<Props> = ({ currentShowcase, completedScenarioSlugs }) => {
+export const ScenarioContainer: React.FC<Props> = ({ currentShowcase, completedScenarioSlugs }) => {
   const navigate = useNavigate()
 
-  const startUseCase = (slug: string) => {
+  const startScenario = (slug: string) => {
     navigate(`${basePath}/uc/${slug}`)
   }
 
-  const renderUseCases = currentShowcase.scenarios.map((item) => {
+  const renderScenarios = currentShowcase.scenarios.map((item) => {
     const requiredCredentials: string[] = []
     // item.screens.forEach(screen => requiredCredentials.push(...(screen.requestOptions?.requestedCredentials.map(item => item.name) ?? [])))
     item.screens.forEach((screen) =>
@@ -36,13 +36,13 @@ export const UseCaseContainer: React.FC<Props> = ({ currentShowcase, completedSc
     const isCompleted = completedScenarioSlugs.includes(item.id)
 
     return (
-      <UseCaseItem
+      <ScenarioItem
         key={item.id}
         slug={item.id}
         title={item.name}
         requiredCredentials={requiredCredentials}
         currentShowcase={currentShowcase}
-        start={startUseCase}
+        start={startScenario}
         isLocked={false}
         isCompleted={isCompleted}
       />
@@ -55,7 +55,7 @@ export const UseCaseContainer: React.FC<Props> = ({ currentShowcase, completedSc
         Using your credentials
       </motion.h1>
       <motion.div variants={rowContainer} className="flex flex-col w-auto overflow-x-hidden md:overflow-x-visible">
-        {renderUseCases}
+        {renderScenarios}
       </motion.div>
     </div>
   )

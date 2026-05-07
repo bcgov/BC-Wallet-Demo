@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { isMobile } from 'react-device-detect'
 import { FiExternalLink } from 'react-icons/fi'
 
@@ -49,13 +49,15 @@ export const SetupConnection: React.FC<Props> = ({
   const deepLink = `bcwallet://aries_connection_invitation?${invitationUrl?.split('?')[1]}`
 
   const dispatch = useAppDispatch()
+  const invitationCreatedRef = useRef(false)
 
   const isCompleted = isConnected(connectionState as string)
 
   const { message } = useSocket()
 
   useEffect(() => {
-    if (!isCompleted || newConnection) {
+    if (!invitationCreatedRef.current && (!isCompleted || newConnection)) {
+      invitationCreatedRef.current = true
       dispatch(clearConnection())
       dispatch(createInvitation({ issuer: issuerName, goalCode: 'aries.vc.issue' }))
       dispatch(clearCredentials())

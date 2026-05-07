@@ -53,9 +53,9 @@ export const KBar: React.FC<Props> = ({ children }) => {
       },
     },
     {
-      id: 'toggleHiddenUsecases',
-      name: 'Show/Hide hidden use cases',
-      keywords: 'use case toggle hide',
+      id: 'toggleHiddenScenarios',
+      name: 'Show/Hide hidden scenarios',
+      keywords: 'scenario toggle hide',
       perform: () => {
         dispatch(toggleHiddenScenarios())
       },

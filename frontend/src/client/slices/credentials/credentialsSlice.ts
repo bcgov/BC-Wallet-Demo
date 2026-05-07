@@ -31,7 +31,7 @@ const credentialSlice = createSlice({
     },
     setCredential: (state, action) => {
       const credentialData = action.payload
-      const credDefParts = credentialData.credential_definition_id.split(':')
+      const credDefParts = credentialData.by_format.cred_issue.indy.cred_def_id.split(':')
       const credName = credDefParts[credDefParts.length - 1]
       if (!state.issuedCredentials.includes(credName)) {
         state.issuedCredentials.push(credName)

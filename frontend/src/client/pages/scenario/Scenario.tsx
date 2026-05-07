@@ -25,7 +25,7 @@ import { basePath } from '../../utils/BasePath'
 
 import { Section } from './Section'
 
-export const UseCasePage: React.FC = () => {
+export const ScenarioPage: React.FC = () => {
   const dispatch = useAppDispatch()
   const { slug } = useParams()
   const { stepCount, sectionCount, isLoading } = useScenarioState()
@@ -34,22 +34,22 @@ export const UseCasePage: React.FC = () => {
   const connection = useConnection()
   const { issuedCredentials } = useCredentials()
   const { proof, proofUrl } = useProof()
-  const [currentUseCase, setCurrentUseCase] = useState<Scenario>()
+  const [currentScenario, setCurrentScenario] = useState<Scenario>()
 
   const navigate = useNavigate()
-  useTitle(`${currentUseCase?.name ?? 'Use case'} | BC Wallet Self-Sovereign Identity Demo`)
+  useTitle(`${currentScenario?.name ?? 'Use case'} | BC Wallet Self-Sovereign Identity Demo`)
 
   useEffect(() => {
     if (currentShowcase && slug) {
-      setCurrentUseCase(currentShowcase.scenarios.find((item) => item.id === slug))
+      setCurrentScenario(currentShowcase.scenarios.find((item) => item.id === slug))
     }
   }, [])
 
   useEffect(() => {
-    if (currentUseCase) {
-      const steps = currentUseCase.screens
+    if (currentScenario) {
+      const steps = currentScenario.screens
       // check if the next section contains a connection step, if not: keep the current connection in state to use for next section
-      const newConnection = currentUseCase.screens[sectionCount + 1]?.screenId.startsWith('CONNECTION')
+      const newConnection = currentScenario.screens[sectionCount + 1]?.screenId.startsWith('CONNECTION')
 
       if (steps.length === stepCount) {
         dispatch(nextSection())
@@ -58,13 +58,13 @@ export const UseCasePage: React.FC = () => {
         if (newConnection) dispatch(clearConnection())
       }
     }
-  }, [currentUseCase, stepCount, sectionCount])
+  }, [currentScenario, stepCount, sectionCount])
 
   useEffect(() => {
-    if (currentUseCase?.id) {
-      dispatch(setSection(currentUseCase.screens[sectionCount]))
+    if (currentScenario?.id) {
+      dispatch(setSection(currentScenario.screens[sectionCount]))
     }
-  }, [currentUseCase, sectionCount])
+  }, [currentScenario, sectionCount])
 
   useEffect(() => {
     trackPageView()
@@ -90,7 +90,7 @@ export const UseCasePage: React.FC = () => {
         </div>
       ) : (
         <AnimatePresence mode="wait">
-          {currentShowcase && section && currentUseCase ? (
+          {currentShowcase && section && currentScenario ? (
             <motion.div
               key={'sectionDiv' + section.screenId}
               initial={{ opacity: 0 }}
@@ -101,7 +101,7 @@ export const UseCasePage: React.FC = () => {
             >
               <Section
                 key={section.screenId}
-                section={currentUseCase.screens}
+                section={currentScenario.screens}
                 connection={connection}
                 sectionCount={sectionCount}
                 stepCount={stepCount}

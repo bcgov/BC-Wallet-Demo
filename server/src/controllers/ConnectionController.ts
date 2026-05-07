@@ -29,7 +29,7 @@ export class ConnectionController {
       ...params,
       accept: ['didcomm/aip1', 'didcomm/aip2;env=rfc19'],
       alias: 'connection',
-      goal: '',
+      goal: 'create connection',
       handshake_protocols: ['https://didcomm.org/didexchange/1.0', 'https://didcomm.org/connections/1.0'],
       protocol_version: '1.1',
       use_public_did: false,

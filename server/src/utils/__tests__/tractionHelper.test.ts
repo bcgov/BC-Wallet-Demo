@@ -224,7 +224,7 @@ describe('tractionGarbageCollection', () => {
     for (let i = 0; i < 10; i++) await Promise.resolve()
 
     expect(axios.delete).toHaveBeenCalledWith(
-      'https://traction.example.com/issue-credential/records/cred-exch-1',
+      'https://traction.example.com/issue-credential-2.0/records/cred-exch-1',
       expect.anything(),
     )
   })

@@ -33,20 +33,18 @@ const proofSlice = createSlice({
       })
       .addCase(createProofOOB.fulfilled, (state, action) => {
         state.isLoading = false
-        // const url = action.payload.message.split('?')[0] + '?id=' + action.payload.proofRecord.id
         state.proofUrl = action.payload.proofUrl
-        state.proof = action.payload.proof
-        if (action.payload.proof.presentation_exchange_id) {
-          state.proof = { ...action.payload.proof, id: action.payload.proof?.presentation_exchange_id }
-        }
+        const proofId = action.payload.proof?.pres_ex_id || action.payload.proof?.presentation_exchange_id
+        state.proof = { ...action.payload.proof, id: proofId || '' }
       })
       .addCase(fetchProofById.pending, (state) => {
         state.isLoading = true
       })
       .addCase(fetchProofById.fulfilled, (state, action) => {
         state.isLoading = false
-        if (action.payload.presentation_exchange_id) {
-          state.proof = { ...action.payload, id: action.payload?.presentation_exchange_id }
+        const proofId = action.payload?.pres_ex_id || action.payload?.presentation_exchange_id || action.payload?.id
+        if (proofId) {
+          state.proof = { ...action.payload, id: proofId }
         }
       })
       .addCase('clearScenario', (state) => {
@@ -58,7 +56,8 @@ const proofSlice = createSlice({
       })
       .addMatcher(isAnyOf(createProof.fulfilled, createDeepProof.fulfilled), (state, action) => {
         state.isLoading = false
-        state.proof = { ...action.payload, id: action.payload?.presentation_exchange_id ?? '' }
+        const proofId = action.payload?.pres_ex_id || action.payload?.presentation_exchange_id || action.payload?.id
+        state.proof = { ...action.payload, id: proofId || '' }
       })
       .addMatcher(isAnyOf(createProof.rejected, createDeepProof.rejected), (state) => {
         state.isLoading = false

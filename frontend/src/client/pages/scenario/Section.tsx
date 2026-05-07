@@ -60,7 +60,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
 
   const isConnectionCompleted = isConnected(connection.state as string)
   const isProofCompleted =
-    (proof?.state as string) === 'presentation_received' ||
+    (proof?.state as string) === 'presentation-received' ||
     (proof?.state as string) === 'verified' ||
     proof?.state === 'done'
   const credentialsReceived = Object.values(credentials).every((x) => isCredIssued(x.state))
@@ -97,7 +97,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
         event: {
           schema: 'iglu:ca.bc.gov.digital/action/jsonschema/1-0-0',
           data: {
-            action: 'usecase_completed',
+            action: 'scenario_completed',
             path: `${currentShowcase?.persona?.type?.toLowerCase()}_${slug}`,
             step: step.name,
           },

@@ -21,7 +21,7 @@ import { NavBar } from '../landing/components/Navbar'
 import { DemoCompletedModal } from './components/DemoCompletedModal'
 import { ProfileCard } from './components/ProfileCard'
 import { RevocationContainer } from './components/RevocationContainer'
-import { UseCaseContainer } from './components/UseCaseContainer'
+import { ScenarioContainer } from './components/ScenarioContainer'
 
 export const DashboardPage: React.FC = () => {
   useTitle('Dashboard | BC Wallet Self-Sovereign Identity Demo')
@@ -35,12 +35,12 @@ export const DashboardPage: React.FC = () => {
     ...useCurrentShowcase(),
     scenarios: useCurrentShowcase()?.scenarios.filter((item) => !item.hidden || showHiddenScenarios) ?? [],
   } as Showcase
-  const useCases = currentShowcase?.scenarios
+  const scenarios = currentShowcase?.scenarios
 
   useEffect(() => {
     if (
       completedScenarioSlugs.length !== 0 &&
-      completedScenarioSlugs.length === useCases?.length &&
+      completedScenarioSlugs.length === scenarios?.length &&
       !completeCanceled
     ) {
       dispatch(setDemoCompleted(true))
@@ -91,7 +91,7 @@ export const DashboardPage: React.FC = () => {
         <>
           <div className="flex flex-col lg:flex-row mb-auto">
             <div className="w-full lg:w-2/3 order-last lg:order-first">
-              <UseCaseContainer
+              <ScenarioContainer
                 issuedCredentials={issuedCredentials}
                 completedScenarioSlugs={completedScenarioSlugs}
                 currentShowcase={currentShowcase}
