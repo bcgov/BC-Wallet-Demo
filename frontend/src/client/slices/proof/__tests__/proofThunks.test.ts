@@ -86,7 +86,7 @@ describe('createProofOOB thunk', () => {
 
     const proofState = store.getState().proof
     expect(proofState.proofUrl).toBe('http://oob-url')
-    expect(proofState.proof).toMatchObject({ id: 'pex-oob-1' })
+    expect(proofState.proof).toMatchObject({ presentation_exchange_id: 'pex-oob-1', id: 'pex-oob-1' })
   })
 })
 
@@ -101,7 +101,11 @@ describe('fetchProofById thunk', () => {
 
     const proofState = store.getState().proof
     expect(proofState.isLoading).toBe(false)
-    expect(proofState.proof).toMatchObject({ id: 'pex-fetch-1', state: 'verified' })
+    expect(proofState.proof).toMatchObject({
+      presentation_exchange_id: 'pex-fetch-1',
+      id: 'pex-fetch-1',
+      state: 'verified',
+    })
   })
 })
 

@@ -33,7 +33,7 @@ const connectionSlice = createSlice({
       state.isDeepLink = false
     },
     setConnection: (state, action) => {
-      state.id = action.payload.connection_id
+      state.id = action.payload.connectionId || action.payload.connection_id
       state.state = action.payload.state
     },
   },

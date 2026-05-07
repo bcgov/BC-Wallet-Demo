@@ -88,11 +88,11 @@ export const tractionGarbageCollection = async () => {
   }
   const cleanupExchangeRecords = async () => {
     try {
-      const records: any[] = (await tractionRequest.get('/issue-credential/records')).data.results
+      const records: any[] = (await tractionRequest.get('/issue-credential-2.0/records')).data.results
       const stale = records.filter((record) => olderThanHours(record.created_at, 12))
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale credential exchange records')
       await Promise.all(
-        stale.map((record) => tractionRequest.delete(`/issue-credential/records/${record.credential_exchange_id}`)),
+        stale.map((record) => tractionRequest.delete(`/issue-credential-2.0/records/${record.credential_exchange_id}`)),
       )
     } catch (err) {
       logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up credential exchange records')
@@ -100,11 +100,11 @@ export const tractionGarbageCollection = async () => {
   }
   const cleanupProofRecords = async () => {
     try {
-      const proofs: any[] = (await tractionRequest.get('/present-proof/records')).data.results
+      const proofs: any[] = (await tractionRequest.get('/present-proof-2.0/records')).data.results
       const stale = proofs.filter((proof) => olderThanHours(proof.created_at, 12))
       logger.info({ count: stale.length }, 'Garbage collection: deleting stale proof records')
       await Promise.all(
-        stale.map((proof) => tractionRequest.delete(`/present-proof/records/${proof.presentation_exchange_id}`)),
+        stale.map((proof) => tractionRequest.delete(`/present-proof-2.0/records/${proof.presentation_exchange_id}`)),
       )
     } catch (err) {
       logger.warn(safeAxiosError(err), 'Garbage collection: failed to clean up proof records')

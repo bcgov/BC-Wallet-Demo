@@ -129,7 +129,14 @@ describe('CredentialController', () => {
 
       await controller.offerCredential(params)
 
-      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential/send', params)
+      expect(tractionRequest.post).toHaveBeenCalledWith(
+        '/issue-credential-2.0/send-offer',
+        expect.objectContaining({
+          connection_id: 'conn1',
+          auto_issue: true,
+          auto_remove: false,
+        }),
+      )
     })
 
     it('returns the response data', async () => {
@@ -158,15 +165,20 @@ describe('CredentialController', () => {
 
       await controller.offerCredential(params)
 
-      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential/send', {
-        connection_id: 'conn1',
-        credential_preview: {
-          attributes: [
-            { name: 'expiry_date', value: 20290615 },
-            { name: 'given_names', value: 'Alice' },
-          ],
-        },
-      })
+      expect(tractionRequest.post).toHaveBeenCalledWith(
+        '/issue-credential-2.0/send-offer',
+        expect.objectContaining({
+          connection_id: 'conn1',
+          credential_preview: expect.objectContaining({
+            attributes: [
+              { name: 'expiry_date', value: '20290615' },
+              { name: 'given_names', value: 'Alice' },
+            ],
+          }),
+          auto_issue: true,
+          auto_remove: false,
+        }),
+      )
 
       vi.useRealTimers()
     })
@@ -182,7 +194,14 @@ describe('CredentialController', () => {
 
       await controller.offerCredential(params)
 
-      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential/send', params)
+      expect(tractionRequest.post).toHaveBeenCalledWith(
+        '/issue-credential-2.0/send-offer',
+        expect.objectContaining({
+          connection_id: 'conn1',
+          auto_issue: true,
+          auto_remove: false,
+        }),
+      )
     })
   })
 })

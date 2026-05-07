@@ -4,7 +4,7 @@ import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
 import { track } from 'insights-js'
 import startCase from 'lodash/startCase'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { fade, fadeX } from '../../../FramerAnimations'
@@ -42,6 +42,7 @@ export const AcceptCredential: React.FC<Props> = ({
 }) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const credentialsIssuedRef = useRef(false)
 
   const [isRejectedModalOpen, setIsRejectedModalOpen] = useState(false)
   const [isFailedRequestModalOpen, setIsFailedRequestModalOpen] = useState(false)
@@ -63,7 +64,8 @@ export const AcceptCredential: React.FC<Props> = ({
   )
 
   useEffect(() => {
-    if (credentials.length > 0) {
+    if (!credentialsIssuedRef.current && credentials.length > 0) {
+      credentialsIssuedRef.current = true
       credentials.forEach(async (item) => {
         const credDefId = (await getOrCreateCredDefId(item)).data
         if (item !== undefined) {
@@ -79,7 +81,7 @@ export const AcceptCredential: React.FC<Props> = ({
       })
       setCredentialsIssued(true)
     }
-  }, [currentShowcase, connectionId])
+  }, [credentials, connectionId, isDeepLink, dispatch])
 
   useEffect(() => {
     if (credentialsAccepted && onCredentialAccepted) {
@@ -118,7 +120,7 @@ export const AcceptCredential: React.FC<Props> = ({
       return
     }
     const { endpoint, state } = message
-    if (endpoint === 'issue_credential' && state === 'credential_issued') {
+    if (endpoint === 'issue_credential_v2_0' && state === 'credential-issued') {
       dispatch(setCredential(message))
     }
   }, [message])

@@ -30,9 +30,9 @@ export const EndContainer: React.FC<Props> = ({ step }) => {
       dispatch({ type: 'clearScenario' })
       navigate(`${basePath}/dashboard`)
       track({
-        id: 'use-case-completed',
+        id: 'scenario-completed',
         parameters: {
-          useCase: slug,
+          scenario: slug,
         },
       })
     }

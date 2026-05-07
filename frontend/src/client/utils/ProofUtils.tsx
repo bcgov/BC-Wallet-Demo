@@ -1,7 +1,7 @@
 import type { Attribute } from '../slices/types'
 
 export const getAttributesFromProof = (proof: any) => {
-  const proofData = proof.presentation.requested_proof.revealed_attr_groups
+  const proofData = proof.by_format.pres.indy.requested_proof.revealed_attrs
 
   const attributes: Attribute[] = []
   for (const prop in proofData) {

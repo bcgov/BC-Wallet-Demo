@@ -9,7 +9,7 @@ export const createProof = createAsyncThunk('proof/createProof', async (data: Pr
   log.debug('[proof] requesting proof from connection', { connectionId: data.connectionId })
   const response = await Api.createProofRequest(data)
   log.info('[proof] proof request sent', {
-    presentationExchangeId: response.data?.presentation_exchange_id,
+    presentationExchangeId: response.data?.pres_ex_id,
     state: response.data?.state,
   })
   return response.data
@@ -36,7 +36,7 @@ export const createDeepProof = createAsyncThunk('proof/createDeepProof', async (
       const response = await Api.createDeepProofRequest(data)
       log.info('[proof] deep-link proof request sent', {
         attempt,
-        presentationExchangeId: response.data?.presentation_exchange_id,
+        presentationExchangeId: response.data?.pres_ex_id,
       })
       return response.data
     } catch {
@@ -54,7 +54,7 @@ export const createProofOOB = createAsyncThunk('proof/createProofOOB', async (da
   log.debug('[proof] creating out-of-band proof request')
   const response = await Api.createOOBProofRequest(data)
   log.info('[proof] OOB proof request created', {
-    presentationExchangeId: response.data?.proof?.presentation_exchange_id,
+    presentationExchangeId: response.data?.proof?.pres_ex_id,
   })
   return response.data
 })

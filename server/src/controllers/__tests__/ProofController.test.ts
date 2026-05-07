@@ -31,7 +31,7 @@ describe('ProofController', () => {
       const result = await controller.getAllCredentialsByConnectionId('pex1')
 
       expect(result).toEqual(mockData)
-      expect(tractionRequest.get).toHaveBeenCalledWith('/present-proof/records/pex1')
+      expect(tractionRequest.get).toHaveBeenCalledWith('/present-proof-2.0/records/pex1')
     })
 
     it('returns an empty string when the request throws', async () => {
@@ -45,7 +45,7 @@ describe('ProofController', () => {
 
   describe('requestProofOOB', () => {
     it('creates a proof request then wraps it in an OOB invitation', async () => {
-      const mockProof = { presentation_exchange_id: 'pex1' }
+      const mockProof = { presentation_exchange_id: 'pex1', pres_ex_id: 'pex1' }
       const mockInvite = { invitation_url: 'https://example.com/invite' }
 
       vi.mocked(tractionRequest.post)
@@ -54,14 +54,17 @@ describe('ProofController', () => {
 
       const result = await controller.requestProofOOB({ requested_attributes: {} })
 
-      expect(tractionRequest.post).toHaveBeenNthCalledWith(1, '/present-proof/create-request', expect.any(Object))
-      expect(tractionRequest.post).toHaveBeenNthCalledWith(
-        2,
-        '/out-of-band/create-invitation',
-        expect.objectContaining({
-          attachments: [{ id: 'pex1', type: 'present-proof' }],
-        }),
-      )
+      expect(tractionRequest.post).toHaveBeenNthCalledWith(1, '/present-proof-2.0/create-request', expect.any(Object))
+      expect(tractionRequest.post).toHaveBeenNthCalledWith(2, '/out-of-band/create-invitation', {
+        accept: ['didcomm/aip1', 'didcomm/aip2;env=rfc19'],
+        alias: 'BC Wallet Showcase',
+        attachments: [{ id: 'pex1', type: 'present-proof-v2' }],
+        handshake_protocols: ['https://didcomm.org/didexchange/1.0'],
+        metadata: {},
+        my_label: 'Proof Invitation',
+        protocol_version: '1.1',
+        use_public_did: true,
+      })
       expect(result).toEqual({ proofUrl: 'https://example.com/invite', proof: mockProof })
     })
   })
@@ -73,7 +76,7 @@ describe('ProofController', () => {
 
       const result = await controller.requestProof({ connection_id: 'conn1' })
 
-      expect(tractionRequest.post).toHaveBeenCalledWith('/present-proof/send-request', {
+      expect(tractionRequest.post).toHaveBeenCalledWith('/present-proof-2.0/send-request', {
         connection_id: 'conn1',
       })
       expect(result).toEqual(mockData)
@@ -86,7 +89,7 @@ describe('ProofController', () => {
 
       await controller.deleteProofById('pex1')
 
-      expect(tractionRequest.delete).toHaveBeenCalledWith('/present-proof/records/pex1')
+      expect(tractionRequest.delete).toHaveBeenCalledWith('/present-proof-2.0/records/pex1')
     })
 
     it('returns the deleted record data', async () => {
@@ -106,7 +109,10 @@ describe('ProofController', () => {
 
       const result = await controller.acceptProof({}, 'pex1')
 
-      expect(tractionRequest.post).toHaveBeenCalledWith('/present-proof/records/pex1/verify-presentation', undefined)
+      expect(tractionRequest.post).toHaveBeenCalledWith(
+        '/present-proof-2.0/records/pex1/verify-presentation',
+        undefined,
+      )
       expect(result).toEqual(mockData)
     })
   })

@@ -4,49 +4,54 @@ import type { AxiosResponse } from 'axios'
 import { apiCall } from './BaseUrl'
 
 export const createProofRequest = (data: ProofRequestData): Promise<AxiosResponse> => {
-  const proofRequest = {
-    requested_attributes: Object.assign({}, data.attributes),
-    requested_predicates: Object.assign({}, data.predicates),
-    version: '1.0.0',
-    name: data.requestOptions?.name,
-  }
-
   return apiCall.post(`/demo/proofs/requestProof`, {
     connection_id: data.connectionId,
-    comment: data.requestOptions?.comment,
-    proof_request: proofRequest,
+    presentation_request: {
+      indy: {
+        requested_attributes: Object.assign({}, data.attributes),
+        requested_predicates: Object.assign({}, data.predicates),
+        version: '1.0.0',
+        name: data.requestOptions?.name,
+      },
+    },
+    auto_remove_on_failure: true,
+    auto_remove: true,
     auto_verify: true,
+    comment: data.requestOptions?.comment,
   })
 }
 
 export const createDeepProofRequest = (data: ProofRequestData): Promise<AxiosResponse> => {
-  const proofRequest = {
-    requested_attributes: Object.assign({}, data.attributes),
-    requested_predicates: Object.assign({}, data.predicates),
-    version: '1.0.0',
-    name: data.requestOptions?.name,
-  }
-
   return apiCall.post(`/demo/deeplink/requestProof`, {
     connection_id: data.connectionId,
-    proof_request: proofRequest,
-    comment: data.requestOptions?.comment ?? '',
+    presentation_request: {
+      indy: {
+        requested_attributes: Object.assign({}, data.attributes),
+        requested_predicates: Object.assign({}, data.predicates),
+        version: '1.0.0',
+        name: data.requestOptions?.name,
+      },
+    },
+    auto_remove_on_failure: true,
+    auto_remove: true,
     auto_verify: true,
+    comment: data.requestOptions?.comment ?? '',
   })
 }
 
 export const createOOBProofRequest = (data: ProofRequestData): Promise<AxiosResponse> => {
-  const proofRequest = {
-    requested_attributes: Object.assign({}, data.attributes),
-    requested_predicates: Object.assign({}, data.predicates),
-    version: '1.0.0',
-    name: data.requestOptions?.name,
-    auto_verify: true,
-    auto_present: true,
-  }
-
   return apiCall.post(`/demo/proofs/requestProofOOB`, {
-    proof_request: proofRequest,
+    presentation_request: {
+      indy: {
+        requested_attributes: Object.assign({}, data.attributes),
+        requested_predicates: Object.assign({}, data.predicates),
+        version: '1.0.0',
+        name: data.requestOptions?.name,
+      },
+    },
+    auto_remove_on_failure: true,
+    auto_remove: true,
+    auto_verify: true,
     comment: data.requestOptions?.comment,
   })
 }

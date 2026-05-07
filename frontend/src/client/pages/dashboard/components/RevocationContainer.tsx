@@ -18,7 +18,7 @@ export const RevocationContainer: React.FC<Props> = ({ revocationRecord, revocat
   const [completedRevocations, setCompletedRevocations] = useState<string[]>([])
   const [loadingRevocations, setLoadingRevocations] = useState<string[]>([])
   const [menuExpanded, setMenuExpanded] = useState<boolean>(false)
-  const renderUseCases = revocationRecord.map((item) => {
+  const renderScenarios = revocationRecord.map((item) => {
     const revocationKey = item.revocationRegId.split(':')[6]
     const revocationDescription = revocationInfo.find(
       (infoItem) => startCase(infoItem.credentialName) === startCase(revocationKey),
@@ -63,7 +63,7 @@ export const RevocationContainer: React.FC<Props> = ({ revocationRecord, revocat
       </p>
       {menuExpanded && (
         <motion.div variants={rowContainer} className="flex flex-col w-auto overflow-x-hidden md:overflow-x-visible">
-          {renderUseCases}
+          {renderScenarios}
         </motion.div>
       )}
       <motion.div

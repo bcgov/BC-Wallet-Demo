@@ -12,7 +12,7 @@ export class ProofController {
     logger.debug({ proofId }, 'Fetching proof record')
     let proofRecord = ''
     try {
-      proofRecord = (await tractionRequest.get(`/present-proof/records/${proofId}`)).data
+      proofRecord = (await tractionRequest.get(`/present-proof-2.0/records/${proofId}`)).data
     } catch {
       logger.warn({ proofId }, 'Proof record not found')
     }
@@ -22,15 +22,15 @@ export class ProofController {
   @Post('/requestProofOOB')
   public async requestProofOOB(@Body() params: any) {
     logger.info('Creating out-of-band proof request')
-    const proofRecord = (await tractionRequest.post('/present-proof/create-request', params)).data
+    const proofRecord = (await tractionRequest.post('/present-proof-2.0/create-request', params)).data
 
     const template = {
       accept: ['didcomm/aip1', 'didcomm/aip2;env=rfc19'],
       alias: 'BC Wallet Showcase',
       attachments: [
         {
-          id: proofRecord.presentation_exchange_id,
-          type: 'present-proof',
+          id: proofRecord.pres_ex_id,
+          type: 'present-proof-v2',
         },
       ],
       handshake_protocols: ['https://didcomm.org/didexchange/1.0'],
@@ -40,23 +40,22 @@ export class ProofController {
       use_public_did: true,
     }
     const invite = (await tractionRequest.post('/out-of-band/create-invitation', template)).data
-    logger.info({ presentationExchangeId: proofRecord.presentation_exchange_id }, 'Out-of-band proof request created')
+    logger.info({ presentationExchangeId: proofRecord.pres_ex_id }, 'Out-of-band proof request created')
     return { proofUrl: invite.invitation_url, proof: proofRecord }
   }
 
   @Post('/requestProof')
   public async requestProof(@Body() params: any) {
     logger.info({ connectionId: params.connection_id }, 'Requesting proof from connection')
-    const proofRecord = (await tractionRequest.post('/present-proof/send-request', params)).data
+    const proofRecord = (await tractionRequest.post('/present-proof-2.0/send-request', params)).data
     logger.info({ presentationExchangeId: proofRecord.presentation_exchange_id }, 'Proof request sent')
     return proofRecord
   }
 
-  ///present-proof/records/{pres_ex_id}
   @Delete('/:proofId')
   public async deleteProofById(@Param('proofId') proofId: string) {
     logger.info({ proofId }, 'Deleting proof record')
-    const proofRecord = (await tractionRequest.delete(`/present-proof/records/${proofId}`)).data
+    const proofRecord = (await tractionRequest.delete(`/present-proof-2.0/records/${proofId}`)).data
     return proofRecord
   }
 
@@ -64,7 +63,7 @@ export class ProofController {
   public async acceptProof(@Body() params: any, @Param('proofId') proofId: string) {
     logger.info({ proofId }, 'Accepting proof presentation')
     const proofAcceptanceRecord = (
-      await tractionRequest.post(`/present-proof/records/${proofId}/verify-presentation`, undefined)
+      await tractionRequest.post(`/present-proof-2.0/records/${proofId}/verify-presentation`, undefined)
     ).data
     logger.info({ proofId, state: proofAcceptanceRecord?.state }, 'Proof presentation accepted')
     return proofAcceptanceRecord

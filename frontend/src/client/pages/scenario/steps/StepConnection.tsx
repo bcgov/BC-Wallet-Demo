@@ -2,7 +2,7 @@ import type { ConnectionState } from '../../../slices/connection/connectionSlice
 import type { ScenarioScreen } from '../../../slices/types'
 
 import { motion } from 'framer-motion'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { isMobile } from 'react-device-detect'
 import { FiExternalLink } from 'react-icons/fi'
 
@@ -25,15 +25,18 @@ export interface Props {
 
 export const StepConnection: React.FC<Props> = ({ step, connection, newConnection }) => {
   const dispatch = useAppDispatch()
+  const invitationCreatedRef = useRef(false)
   const { state, invitationUrl } = connection
   const { message } = useSocket()
   const isCompleted = isConnected(state as string)
   const deepLink = `bcwallet://aries_connection_invitation?${invitationUrl?.split('?')[1]}`
 
   useEffect(() => {
-    if (!isCompleted || newConnection)
+    if (!invitationCreatedRef.current && (!isCompleted || newConnection)) {
+      invitationCreatedRef.current = true
       dispatch(createInvitation({ issuer: step.verifier?.name ?? 'Unknown', goalCode: 'aries.vc.verify.once' }))
-  }, [])
+    }
+  }, [isCompleted, newConnection, dispatch])
 
   useEffect(() => {
     if (!message || !message.endpoint || !message.state) {

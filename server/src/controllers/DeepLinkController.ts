@@ -28,7 +28,7 @@ export class DeeplinkController {
     const state = await this.waitUntilConnected(params.connection_id)
     if (this.isConnected(state)) {
       logger.info({ connectionId: params.connection_id }, 'Deep link: connection established, sending proof request')
-      const resp = await tractionRequest.post('/present-proof/send-request', params)
+      const resp = await tractionRequest.post('/present-proof-2.0/send-request', params)
       return resp.data
     }
     logger.warn(

@@ -84,7 +84,7 @@ describe('DeeplinkController', () => {
       const result = await promise
 
       expect(result).toEqual({ presentation_exchange_id: 'pex1' })
-      expect(tractionRequest.post).toHaveBeenCalledWith('/present-proof/send-request', { connection_id: 'conn1' })
+      expect(tractionRequest.post).toHaveBeenCalledWith('/present-proof-2.0/send-request', { connection_id: 'conn1' })
     })
 
     it('returns undefined when connection never becomes active', async () => {
