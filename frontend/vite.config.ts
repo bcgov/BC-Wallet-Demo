@@ -22,6 +22,8 @@ export default defineConfig(
     server: {
       port: 3000,
       strictPort: true,
+      // Bind to all interfaces so Docker port mapping works inside containers.
+      host: command === 'serve' ? true : undefined,
     },
     test: {
       globals: true,
