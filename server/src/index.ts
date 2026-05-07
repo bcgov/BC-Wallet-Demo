@@ -1,7 +1,8 @@
-import type { Express } from 'express'
+import type { Express, NextFunction, Request, Response } from 'express'
 import 'reflect-metadata'
 
 import { json, static as stx } from 'express'
+import { UnauthorizedError } from 'express-jwt'
 import * as http from 'http'
 import mongoose from 'mongoose'
 import { pinoHttp } from 'pino-http'
@@ -151,6 +152,18 @@ const run = async () => {
     const response = await tractionRequest.get(`/status/ready`)
     res.send(response.data)
     return response
+  })
+
+  // Map express-jwt UnauthorizedError → 401. Without this, Express's default
+  // error handler returns 500 for any error that isn't handled by a route.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof UnauthorizedError) {
+      res.status(401).json({ error: err.message })
+      return
+    }
+    logger.error({ err }, 'Unhandled server error')
+    res.status(500).json({ error: 'Internal server error' })
   })
 
   await new Promise<void>((resolve, reject) => {

@@ -33,7 +33,11 @@ try {
 }
 
 const { keycloakUrl, keycloakRealm } = keycloakConfig
-const jwksUri = `${keycloakUrl}/realms/${keycloakRealm}/protocol/openid-connect/certs`
+// KEYCLOAK_INTERNAL_URL lets the server reach Keycloak via its Docker service name
+// (e.g. http://keycloak:8080) while the issuer still matches the external URL that
+// the browser used during login (http://localhost:8080).
+const internalKeycloakUrl = process.env.KEYCLOAK_INTERNAL_URL ?? keycloakUrl
+const jwksUri = `${internalKeycloakUrl}/realms/${keycloakRealm}/protocol/openid-connect/certs`
 const issuer = `${keycloakUrl}/realms/${keycloakRealm}`
 
 interface Jwk {

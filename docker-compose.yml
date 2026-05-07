@@ -97,6 +97,10 @@ services:
       MONGODB_PORT: '27017'
       MONGODB_DB_NAME: bc_wallet_showcase
       MONGODB_URI: mongodb://mongodb:27017/bc_wallet_showcase
+      # Server-side JWKS fetch must use the Docker service name, not localhost.
+      # The issuer in config/keycloak.json stays as localhost:8080 to match
+      # the URL the browser used when logging in.
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
     depends_on:
       mongodb:
         condition: service_healthy
