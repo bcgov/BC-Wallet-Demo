@@ -136,8 +136,18 @@ The progress bar section configures the progress bar at the top of the app durin
 {
   "introduction": [
     { "screenId": "PICK_CHARACTER", "name": "Meet Alice", "text": "..." },
-    { "screenId": "SETUP_START", "name": "Let's get started!", "text": "...", "image": "/public/common/getStarted.svg" },
-    { "screenId": "CHOOSE_WALLET", "name": "Install BC Wallet", "text": "...", "image": "/public/common/app-store-screenshots.png" },
+    {
+      "screenId": "SETUP_START",
+      "name": "Let's get started!",
+      "text": "...",
+      "image": "/public/common/getStarted.svg"
+    },
+    {
+      "screenId": "CHOOSE_WALLET",
+      "name": "Install BC Wallet",
+      "text": "...",
+      "image": "/public/common/app-store-screenshots.png"
+    },
     {
       "screenId": "CONNECT",
       "name": "Connect with BestBC College",
@@ -152,7 +162,12 @@ The progress bar section configures the progress bar at the top of the app durin
       "image": "/public/common/onboarding-credential-light.svg",
       "credentials": ["student-card"]
     },
-    { "screenId": "SETUP_COMPLETED", "name": "You're all set!", "text": "...", "image": "/public/common/onboarding-completed-light.svg" }
+    {
+      "screenId": "SETUP_COMPLETED",
+      "name": "You're all set!",
+      "text": "...",
+      "image": "/public/common/onboarding-completed-light.svg"
+    }
   ]
 }
 ```
@@ -181,7 +196,12 @@ Screen IDs must be unique within a showcase, hence the wildcards on `ACCEPT*` an
       "id": "clothesOnline",
       "name": "Cool Clothes Online",
       "screens": [
-        { "screenId": "START", "name": "Getting a student discount", "text": "...", "image": "/public/student/useCases/store/card-school.svg" },
+        {
+          "screenId": "START",
+          "name": "Getting a student discount",
+          "text": "...",
+          "image": "/public/student/useCases/store/card-school.svg"
+        },
         {
           "screenId": "CONNECTION",
           "name": "Start proving you're a student",
@@ -206,7 +226,12 @@ Screen IDs must be unique within a showcase, hence the wildcards on `ACCEPT*` an
             ]
           }
         },
-        { "screenId": "STEP_END", "name": "You're done!", "text": "...", "image": "/public/student/student-accepted.svg" }
+        {
+          "screenId": "STEP_END",
+          "name": "You're done!",
+          "text": "...",
+          "image": "/public/student/student-accepted.svg"
+        }
       ]
     }
   ]

@@ -32,12 +32,12 @@ docker compose --profile dev up --build
 
 On first run Docker builds the dev image; subsequent starts skip the build. The bind-mount means **code changes are picked up immediately** without rebuilding.
 
-| Service       | URL / port                                              |
-| ------------- | ------------------------------------------------------- |
-| Frontend (UI) | http://localhost:3000/digital-trust/showcase/           |
-| Backend (API) | http://localhost:5000                                   |
-| Keycloak      | http://localhost:8080 (admin / admin)                   |
-| MongoDB       | 127.0.0.1:27017 (host only)                             |
+| Service       | URL / port                                    |
+| ------------- | --------------------------------------------- |
+| Frontend (UI) | http://localhost:3000/digital-trust/showcase/ |
+| Backend (API) | http://localhost:5000                         |
+| Keycloak      | http://localhost:8080 (admin / admin)         |
+| MongoDB       | 127.0.0.1:27017 (host only)                   |
 
 To also open the optional MongoDB web UI:
 
