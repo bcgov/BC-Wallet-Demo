@@ -249,6 +249,7 @@ export function CreateCredentialModal({ isOpen, onClose, onCredentialCreated }: 
       <ImageUploadModal
         isOpen={isImageUploadModalOpen}
         onClose={() => setIsImageUploadModalOpen(false)}
+        type="icon"
         onSelectImage={(imagePath) => {
           setImage(imagePath)
           setIsImageUploadModalOpen(false)

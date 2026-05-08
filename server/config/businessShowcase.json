@@ -4,14 +4,14 @@
   "persona": {
     "name": "Dave",
     "type": "Proprietor",
-    "image": "/public/student/student.svg"
+    "image": "/public/common/persona/student.svg"
   },
   "status": "hidden",
   "credentials": ["business-digital-card"],
   "revocationInfo": [
     {
       "credentialName": "Digital Business Card",
-      "credentialIcon": "/public/student/icon-student.svg",
+      "credentialIcon": "/public/common/persona/icon-student.svg",
       "name": "Revoke your Digital Business Card",
       "description": "BC Registries allows you to revoke your Digital Business Card \"\"if\"\":\n• there is a problem with your credential.\n• your device was lost or stolen and you want to secure your personal information."
     }
@@ -20,32 +20,32 @@
     {
       "name": "person",
       "introductionStep": "PICK_CHARACTER",
-      "iconLight": "/public/common/icon-person-light.svg",
-      "iconDark": "/public/common/icon-person-dark.svg"
+      "iconLight": "/public/common/icon/icon-person-light.svg",
+      "iconDark": "/public/common/icon/icon-person-dark.svg"
     },
     {
       "name": "moon",
       "introductionStep": "SETUP_START",
-      "iconLight": "/public/common/icon-moon-light.svg",
-      "iconDark": "/public/common/icon-moon-dark.svg"
+      "iconLight": "/public/common/icon/icon-moon-light.svg",
+      "iconDark": "/public/common/icon/icon-moon-dark.svg"
     },
     {
       "name": "wallet",
       "introductionStep": "CHOOSE_WALLET",
-      "iconLight": "/public/common/icon-wallet-light.svg",
-      "iconDark": "/public/common/icon-wallet-dark.svg"
+      "iconLight": "/public/common/icon/icon-wallet-light.svg",
+      "iconDark": "/public/common/icon/icon-wallet-dark.svg"
     },
     {
       "name": "notification",
       "introductionStep": "ACCEPT_CREDENTIAL",
-      "iconLight": "/public/common/icon-notification-light.svg",
-      "iconDark": "/public/common/icon-notification-dark.svg"
+      "iconLight": "/public/common/icon/icon-notification-light.svg",
+      "iconDark": "/public/common/icon/icon-notification-dark.svg"
     },
     {
       "name": "balloon",
       "introductionStep": "SETUP_COMPLETED",
-      "iconLight": "/public/common/icon-balloon-light.svg",
-      "iconDark": "/public/common/icon-balloon-dark.svg"
+      "iconLight": "/public/common/icon/icon-balloon-light.svg",
+      "iconDark": "/public/common/icon/icon-balloon-dark.svg"
     }
   ],
   "introduction": [
@@ -58,33 +58,33 @@
       "screenId": "SETUP_START",
       "name": "Let's get started!",
       "text": "BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. \nUsing your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed. \nIn this demo, you will use your Digital Business Card to prove who you are and access services online instead of in-person.",
-      "image": "/public/common/getStarted.svg"
+      "image": "/public/common/screen/getStarted.svg"
     },
     {
       "screenId": "CHOOSE_WALLET",
       "name": "Install BC Wallet",
       "text": "First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.",
-      "image": "/public/common/app-store-screenshots.png"
+      "image": "/public/common/screen/app-store-screenshots.png"
     },
     {
       "screenId": "CONNECT",
       "name": "Connect with BC Registries",
       "text": "Imagine, as Dave, you are logged into the BC Registries website (see below). They want to offer you a Digital Business Card. Use your BC Wallet to scan the QR code from the website.",
-      "image": "/public/student/onboarding-connect-light.svg",
+      "image": "/public/common/screen/onboarding-connect-light.svg",
       "issuer_name": "BC Registries"
     },
     {
       "screenId": "ACCEPT_CREDENTIAL",
       "name": "Accept your digital business card",
       "text": "Your wallet now has a secure and private connection with BC Registries. You should have received an offer in BC Wallet for a Digital Business Card.\nReview what they are sending, and choose 'Accept offer'.",
-      "image": "/public/common/onboarding-credential-light.svg",
+      "image": "/public/common/screen/onboarding-credential-light.svg",
       "credentials": ["business-digital-card"]
     },
     {
       "screenId": "SETUP_COMPLETED",
       "name": "You're all set!",
       "text": "Congratulations, you’ve just received your first digital credential. It is safely stored in your wallet and ready to be used. So, what are you waiting for? Let’s go!",
-      "image": "/public/common/onboarding-completed-light.svg"
+      "image": "/public/common/screen/onboarding-completed-light.svg"
     }
   ],
   "scenarios": [
@@ -96,14 +96,14 @@
           "screenId": "START",
           "name": "Getting a <Result of Successful Proof>",
           "text": "Dave (that's you in this demo!) can get <Result of Successful Proof>. In this example, you will just tell City of Vancouver you're the owner of your business.",
-          "image": "/public/student/useCases/store/card-school.svg"
+          "image": "/public/common/screen/card-school.svg"
         },
         {
           "screenId": "CONNECTION",
           "name": "Start proving you're the owner of your business",
           "text": "Imagine, as Dave, you are in <Process> for City of Vancouver. They're offering you <Service> if you can prove you're the owner of your business. First, scan the QR code.",
-          "image": "/public/student/useCases/store/cool-clothes-no-overlay.png",
-          "verifier": { "name": "City of Vancouver", "icon": "/public/student/useCases/store/logo-university.png" }
+          "image": "/public/common/screen/cool-clothes-no-overlay.png",
+          "verifier": { "name": "City of Vancouver", "icon": "/public/common/icon/logo-university.png" }
         },
         {
           "screenId": "PROOF",
@@ -114,7 +114,7 @@
             "text": "City of Vancouver would like some of your business information.",
             "requestedCredentials": [
               {
-                "icon": "/public/student/useCases/school/icon-university-card.png",
+                "icon": "/public/common/icon/icon-university-card.png",
                 "name": "Digital Business Card",
                 "schema_id": "K9igebFysBL6jcBwR8bKuN:2:Digital Business Card:1.0.0",
                 "properties": ["business_name", "business_type", "company_status", "family_name", "given_names"]
@@ -126,7 +126,7 @@
           "screenId": "STEP_END",
           "name": "You're done!",
           "text": "You proved that you're the owner of your business, and City of Vancouver <Result of Successful Proof>. It only took a few seconds, you revealed minimal information, and City of Vancouver could easily and automatically trust what you sent.",
-          "image": "/public/student/student-accepted.svg"
+          "image": "/public/common/screen/student-accepted.svg"
         }
       ]
     }

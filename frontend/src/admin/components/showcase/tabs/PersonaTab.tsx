@@ -203,6 +203,7 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
       <ImageUploadModal
         isOpen={isImageUploadModalOpen}
         onClose={() => setIsImageUploadModalOpen(false)}
+        type="persona"
         onSelectImage={() => {}}
         showcase={localShowcase}
         propertyPath="persona.image"

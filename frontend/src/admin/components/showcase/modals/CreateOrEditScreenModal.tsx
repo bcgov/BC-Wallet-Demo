@@ -417,6 +417,7 @@ export function CreateOrEditScreenModal({
       <ImageUploadModal
         isOpen={isImageUploadOpen}
         onClose={() => setIsImageUploadOpen(false)}
+        type="screen"
         onSelectImage={(imagePath) => {
           setImage(imagePath)
           setIsImageUploadOpen(false)
@@ -425,6 +426,7 @@ export function CreateOrEditScreenModal({
       <ImageUploadModal
         isOpen={isIconLightUploadOpen}
         onClose={() => setIsIconLightUploadOpen(false)}
+        type="icon"
         onSelectImage={(imagePath) => {
           setIconLight(imagePath)
           setIsIconLightUploadOpen(false)
@@ -433,6 +435,7 @@ export function CreateOrEditScreenModal({
       <ImageUploadModal
         isOpen={isIconDarkUploadOpen}
         onClose={() => setIsIconDarkUploadOpen(false)}
+        type="icon"
         onSelectImage={(imagePath) => {
           setIconDark(imagePath)
           setIsIconDarkUploadOpen(false)

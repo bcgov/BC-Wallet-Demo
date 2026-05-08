@@ -4,13 +4,13 @@
   "persona": {
     "name": "Alice",
     "type": "Student",
-    "image": "/public/student/student.svg"
+    "image": "/public/common/persona/student.svg"
   },
   "credentials": ["student-card"],
   "revocationInfo": [
     {
       "credentialName": "Student Card",
-      "credentialIcon": "/public/student/icon-student.svg",
+      "credentialIcon": "/public/common/persona/icon-student.svg",
       "name": "Revoke your Student Card",
       "description": "Best BC College allows you to revoke your Student Card \"\"if\"\":\n• there is a problem with your credential.\n• your device was lost or stolen and you want to secure your personal information."
     }
@@ -19,32 +19,32 @@
     {
       "name": "person",
       "introductionStep": "PICK_CHARACTER",
-      "iconLight": "/public/common/icon-person-light.svg",
-      "iconDark": "/public/common/icon-person-dark.svg"
+      "iconLight": "/public/common/icon/icon-person-light.svg",
+      "iconDark": "/public/common/icon/icon-person-dark.svg"
     },
     {
       "name": "moon",
       "introductionStep": "SETUP_START",
-      "iconLight": "/public/common/icon-moon-light.svg",
-      "iconDark": "/public/common/icon-moon-dark.svg"
+      "iconLight": "/public/common/icon/icon-moon-light.svg",
+      "iconDark": "/public/common/icon/icon-moon-dark.svg"
     },
     {
       "name": "wallet",
       "introductionStep": "CHOOSE_WALLET",
-      "iconLight": "/public/common/icon-wallet-light.svg",
-      "iconDark": "/public/common/icon-wallet-dark.svg"
+      "iconLight": "/public/common/icon/icon-wallet-light.svg",
+      "iconDark": "/public/common/icon/icon-wallet-dark.svg"
     },
     {
       "name": "notification",
       "introductionStep": "ACCEPT_CREDENTIAL",
-      "iconLight": "/public/common/icon-notification-light.svg",
-      "iconDark": "/public/common/icon-notification-dark.svg"
+      "iconLight": "/public/common/icon/icon-notification-light.svg",
+      "iconDark": "/public/common/icon/icon-notification-dark.svg"
     },
     {
       "name": "balloon",
       "introductionStep": "SETUP_COMPLETED",
-      "iconLight": "/public/common/icon-balloon-light.svg",
-      "iconDark": "/public/common/icon-balloon-dark.svg"
+      "iconLight": "/public/common/icon/icon-balloon-light.svg",
+      "iconDark": "/public/common/icon/icon-balloon-dark.svg"
     }
   ],
   "introduction": [
@@ -57,19 +57,19 @@
       "screenId": "SETUP_START",
       "name": "Let's get started!",
       "text": "BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. \nUsing your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed. \nIn this demo, you will use two credentials to prove who you are and access court materials online instead of in-person.",
-      "image": "/public/common/getStarted.svg"
+      "image": "/public/common/screen/getStarted.svg"
     },
     {
       "screenId": "CHOOSE_WALLET",
       "name": "Install BC Wallet",
       "text": "First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.",
-      "image": "/public/common/app-store-screenshots.png"
+      "image": "/public/common/screen/app-store-screenshots.png"
     },
     {
       "screenId": "CONNECT",
       "name": "Connect with BestBC College",
       "text": "Imagine, as Alice, you are logged into the BestBC College website (see below). They want to offer you a Digital Student Card. Use your BC Wallet to scan the QR code from the website.",
-      "image": "/public/student/onboarding-connect-light.svg",
+      "image": "/public/common/screen/onboarding-connect-light.svg",
       "issuer_name": "BestBC College"
     },
     {
@@ -95,14 +95,14 @@
           "screenId": "START",
           "name": "Getting a student discount",
           "text": "Alice (that's you in this demo!) can get a student discount on her online purchase. In this example, you will just tell Cool Clothes Online you're a student.",
-          "image": "/public/student/useCases/store/card-school.svg"
+          "image": "/public/common/screen/card-school.svg"
         },
         {
           "screenId": "CONNECTION",
           "name": "Start proving you're a student",
           "text": "Imagine, as Alice, you are in the checkout process for Cool Clothes Online. They're offering you a 15% discount on your purchase if you can prove you're a student. First, scan the QR code.",
-          "image": "/public/student/useCases/store/cool-clothes-no-overlay.png",
-          "verifier": { "name": "Cool Clothes Online", "icon": "/public/student/useCases/store/logo-university.png" }
+          "image": "/public/common/screen/cool-clothes-no-overlay.png",
+          "verifier": { "name": "Cool Clothes Online", "icon": "/public/common/icon/logo-university.png" }
         },
         {
           "screenId": "PROOF",
@@ -125,7 +125,7 @@
           "screenId": "STEP_END",
           "name": "You're done!",
           "text": "You proved that you're a student, and Cool Clothes Online gave you the discount. It only took a few seconds, you revealed minimal information, and Cool Clothes Online could easily and automatically trust what you sent.",
-          "image": "/public/student/student-accepted.svg"
+          "image": "/public/common/screen/student-accepted.svg"
         }
       ]
     },
@@ -137,14 +137,14 @@
           "screenId": "START",
           "name": "Book a study room",
           "text": "Alice has lots of work to do, and needs a study room for some peace and quiet. In this example, we'll present some info from our Student Card, but just what's needed to book the room.",
-          "image": "/public/student/useCases/school/card-school.svg"
+          "image": "/public/common/screen/card-school.svg"
         },
         {
           "screenId": "CONNECTION",
           "name": "Start booking the room",
           "text": "Imagine you're on the room booking page for BestBC College, abd you've chosen a data and time. Now they just need to confirm a few details. Scan the QR code to continue.",
-          "image": "/public/student/useCases/school/best-bc-college-no-overlay.png",
-          "verifier": { "name": "BestBC College", "icon": "/public/student/useCases/school/logo-university.png" }
+          "image": "/public/common/screen/best-bc-college-no-overlay.png",
+          "verifier": { "name": "BestBC College", "icon": "/public/common/icon/logo-university.png" }
         },
         {
           "screenId": "PROOF",
@@ -155,7 +155,7 @@
             "text": "BestBC College would like some of your personal information.",
             "requestedCredentials": [
               {
-                "icon": "/public/student/useCases/school/icon-university-card.png",
+                "icon": "/public/common/icon/icon-university-card.png",
                 "name": "student_card",
                 "schema_id": "QEquAHkM35w4XVT3Ku5yat:2:student_card:1.6",
                 "properties": ["student_first_name"]
@@ -167,7 +167,7 @@
           "screenId": "STEP_END",
           "name": "You're done!",
           "text": "The room is booked. Just by proving your first name, Best BC College could trust you are a current student, and could let others know there's a booking without revealing too much about you.",
-          "image": "/public/student/student-accepted.svg"
+          "image": "/public/common/screen/student-accepted.svg"
         }
       ]
     }

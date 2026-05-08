@@ -1,9 +1,5 @@
 import React from 'react'
 
-// import animoDark from '../../../assets/dark/animo-logo-dark.png'
-// import animoLight from '../../../assets/light/animo-logo-light.png'
-// import { useDarkMode } from '../../../hooks/useDarkMode'
-
 export const Footer: React.FC = () => {
   // const darkMode = useDarkMode()
 

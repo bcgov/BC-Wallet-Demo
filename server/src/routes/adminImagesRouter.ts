@@ -7,42 +7,26 @@ import path from 'path'
 
 import { requireRole } from '../middleware/requireAdmin'
 import logger from '../utils/logger'
+import { sanitizeFilename } from '../utils/sanitizeFilename'
+import { sanitizeSVG } from '../utils/sanitizeSVG'
+import { validateFileType } from '../utils/validateFileType'
 
 const router = Router()
-
-/**
- * Sanitize SVG content by removing potentially dangerous elements and attributes
- * Removes: script tags, event handlers (on*), external references, style tags with expressions
- */
-function sanitizeSVG(content: string): string {
-  let sanitized = content
-  // Remove script tags and content
-  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  // Remove event handlers (onclick, onerror, onload, etc.)
-  sanitized = sanitized.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
-  sanitized = sanitized.replace(/\s+on\w+\s*=\s*[^\s>]*/gi, '')
-  // Remove style tags that could contain expressions
-  sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-  // Remove external entity declarations
-  sanitized = sanitized.replace(/<!ENTITY[^>]*>/gi, '')
-  // Remove CDATA sections with potential code
-  sanitized = sanitized.replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, '')
-  // Remove href/xlink:href that reference javascript:
-  sanitized = sanitized.replace(/\s+(href|xlink:href)\s*=\s*["']javascript:[^"']*["']/gi, '')
-  return sanitized
-}
 
 // Configure multer for image file uploads
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (_req, _file, cb) => {
-      // Upload all images to /public/common so GET /admin/images can list them
+    destination: (req, _file, cb) => {
+      // Get type from request (POST body should have it)
+      // Files are organized by type: /public/common/{type}/
       const commonDir = path.join(__dirname, '../public/common')
       cb(null, commonDir)
     },
-    filename: (_req, file, cb) => {
-      // Sanitize filename
-      const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')
+    filename: (req, file, cb) => {
+      // Get the destination directory to check for collisions
+      const commonDir = path.join(__dirname, '../public/common')
+      // Sanitize filename and make it unique if needed
+      const sanitizedName = sanitizeFilename(file.originalname, commonDir)
       cb(null, sanitizedName)
     },
   }),
@@ -63,16 +47,28 @@ const upload = multer({
 })
 
 /**
- * GET /admin/images
- * List all available image files in the public/common directory.
+ * GET /admin/images/:type
+ * List all available image files in a specific subdirectory.
+ * Type must be one of: icon, screen, persona
  * Requires: admin or creator or viewer role
  */
-router.get('/', requireRole(['admin', 'creator', 'viewer']), (_req: Request, res: Response) => {
-  logger.debug('Admin: list available image files')
+router.get('/:type', requireRole(['admin', 'creator', 'viewer']), (req: Request, res: Response) => {
+  const { type } = req.params
+  const allowedTypes = ['icon', 'screen', 'persona']
+
+  // Validate type parameter
+  if (!allowedTypes.includes(type)) {
+    res.status(400).json({
+      error: `Invalid image type. Must be one of: ${allowedTypes.join(', ')}`,
+    })
+    return
+  }
+
+  logger.debug({ type }, 'Admin: list available image files by type')
 
   try {
-    const commonDir = path.join(__dirname, '../public/common')
-    const files = readdirSync(commonDir)
+    const typeDir = path.join(__dirname, '../public/common', type)
+    const files = readdirSync(typeDir)
 
     // Filter for image files
     const allowedExtensions = ['.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp']
@@ -81,9 +77,9 @@ router.get('/', requireRole(['admin', 'creator', 'viewer']), (_req: Request, res
         const ext = path.extname(file).toLowerCase()
         return allowedExtensions.includes(ext)
       })
-      .map((file) => `/public/common/${file}`)
+      .map((file) => `/public/common/${type}/${file}`)
 
-    res.json({ files: availableImages })
+    res.json({ type, files: availableImages })
   } catch (error) {
     logger.error(error, 'Error reading images directory')
     res.status(500).json({ error: 'Failed to read images directory' })
@@ -91,28 +87,80 @@ router.get('/', requireRole(['admin', 'creator', 'viewer']), (_req: Request, res
 })
 
 /**
- * POST /admin/images
- * Upload a new image file to the public/common directory.
+ * POST /admin/images/:type
+ * Upload a new image file to the type-specific subdirectory.
+ * Type must be one of: icon, screen, persona
  * SVG files are sanitized server-side to remove potentially dangerous content.
  * Requires: admin or creator role
  */
 router.post(
-  '/',
+  '/:type',
   requireRole(['admin', 'creator']),
   upload.single('file'),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
+    const { type } = req.params
+    const allowedTypes = ['icon', 'screen', 'persona']
+
+    // Validate type parameter
+    if (!allowedTypes.includes(type)) {
+      if (req.file) {
+        const fs = await import('fs').then((mod) => mod.promises)
+        await fs.unlink(req.file.path)
+      }
+      res.status(400).json({
+        error: `Invalid image type. Must be one of: ${allowedTypes.join(', ')}`,
+      })
+      return
+    }
+
     if (!req.file) {
       res.status(400).json({ error: 'No file provided' })
       return
     }
 
-    logger.debug({ filename: req.file.filename }, 'Admin: upload image file')
+    logger.debug({ type, filename: req.file.filename }, 'Admin: upload image file')
+
+    // Validate file type by magic bytes (actual file content)
+    try {
+      const fileBuffer = readFileSync(req.file.path)
+      const isValidType = await validateFileType(fileBuffer, req.file.filename)
+
+      if (!isValidType) {
+        // Delete the file if validation fails
+        const fs = await import('fs').then((mod) => mod.promises)
+        await fs.unlink(req.file.path)
+        res.status(400).json({ error: 'File type validation failed. Please upload a valid image file.' })
+        return
+      }
+    } catch (error) {
+      logger.error(error, 'Error validating file type')
+      res.status(500).json({ error: 'Failed to validate file type' })
+      return
+    }
+
+    // Move file to type subdirectory
+    try {
+      const commonDir = path.join(__dirname, '../public/common')
+      const typeDir = path.join(commonDir, type)
+      const finalPath = path.join(typeDir, req.file.filename)
+
+      const fs = await import('fs').then((mod) => mod.promises)
+      await fs.mkdir(typeDir, { recursive: true })
+      await fs.rename(req.file.path, finalPath)
+
+      logger.debug({ type, filename: req.file.filename }, 'File moved to type subdirectory')
+    } catch (error) {
+      logger.error(error, 'Error organizing file into type subdirectory')
+      res.status(500).json({ error: 'Failed to organize file' })
+      return
+    }
 
     // Sanitize SVG files server-side
     const fileExtension = path.extname(req.file.filename).toLowerCase()
     if (fileExtension === '.svg') {
       try {
-        const filePath = req.file.path
+        const typeDir = path.join(__dirname, '../public/common', type)
+        const filePath = path.join(typeDir, req.file.filename)
         const content = readFileSync(filePath, 'utf-8')
         const sanitized = sanitizeSVG(content)
         writeFileSync(filePath, sanitized, 'utf-8')
@@ -124,9 +172,10 @@ router.post(
       }
     }
 
-    const relativePath = `/public/common/${req.file.filename}`
+    const relativePath = `/public/common/${type}/${req.file.filename}`
     res.status(201).json({
       message: 'Image file uploaded successfully',
+      type,
       path: relativePath,
       filename: req.file.filename,
     })

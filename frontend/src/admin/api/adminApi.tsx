@@ -141,8 +141,11 @@ export const createCredential = async (
 // IMAGE ENDPOINTS
 // ============================================================================
 
-export const getAvailableImages = async (auth: AuthContextProps): Promise<string[]> => {
-  const res = await fetch(`${adminBaseUrl}/images`, {
+export const getAvailableImages = async (
+  auth: AuthContextProps,
+  type: 'icon' | 'screen' | 'persona' = 'icon',
+): Promise<string[]> => {
+  const res = await fetch(`${adminBaseUrl}/images/${type}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -154,11 +157,15 @@ export const getAvailableImages = async (auth: AuthContextProps): Promise<string
   return data.files
 }
 
-export const uploadImage = async (auth: AuthContextProps, file: File): Promise<{ path: string; filename: string }> => {
+export const uploadImage = async (
+  auth: AuthContextProps,
+  file: File,
+  type: 'icon' | 'screen' | 'persona' = 'icon',
+): Promise<{ path: string; filename: string }> => {
   const formData = new FormData()
   formData.append('file', file)
 
-  const res = await fetch(`${adminBaseUrl}/images`, {
+  const res = await fetch(`${adminBaseUrl}/images/${type}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,

@@ -248,6 +248,7 @@ export function RequestedCredentialsEditor({
       <ImageUploadModal
         isOpen={isImageUploadModalOpen}
         onClose={() => setIsImageUploadModalOpen(false)}
+        type="icon"
         onSelectImage={(imagePath) => {
           if (editingCredentialRequest && showcase && auth.user?.access_token) {
             // Update the edited credential with the new icon
