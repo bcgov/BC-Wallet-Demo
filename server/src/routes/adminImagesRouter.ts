@@ -15,6 +15,29 @@ import { validateFileType } from '../utils/validateFileType'
 const router = Router()
 
 /**
+ * Allowed image types with their directory names
+ * Using a static mapping prevents path traversal and satisfies CodeQL path validation
+ */
+const ALLOWED_IMAGE_TYPES = {
+  icon: 'icon',
+  screen: 'screen',
+  persona: 'persona',
+} as const
+
+type ImageType = keyof typeof ALLOWED_IMAGE_TYPES
+
+/**
+ * Helper to validate and get allowed image type
+ * Returns the validated type or null if invalid
+ */
+function getValidatedImageType(type: string | undefined): ImageType | null {
+  if (!type || !Object.hasOwn(ALLOWED_IMAGE_TYPES, type)) {
+    return null
+  }
+  return type as ImageType
+}
+
+/**
  * Rate limiting for image listing (GET)
  * Allow 30 requests per 15 minutes per IP
  */
@@ -89,20 +112,21 @@ function isPathWithinDirectory(filePath: string, allowedDir: string): boolean {
  */
 router.get('/:type', getImagesLimiter, requireRole(['admin', 'creator', 'viewer']), (req: Request, res: Response) => {
   const { type } = req.params
-  const allowedTypes = ['icon', 'screen', 'persona']
 
-  // Validate type parameter
-  if (!allowedTypes.includes(type)) {
+  // Validate type parameter using static whitelist (satisfies CodeQL path validation)
+  const validatedType = getValidatedImageType(type)
+  if (!validatedType) {
+    const allowedTypes = Object.keys(ALLOWED_IMAGE_TYPES)
     res.status(400).json({
       error: `Invalid image type. Must be one of: ${allowedTypes.join(', ')}`,
     })
     return
   }
 
-  logger.debug({ type }, 'Admin: list available image files by type')
+  logger.debug({ type: validatedType }, 'Admin: list available image files by type')
 
   try {
-    const typeDir = path.normalize(path.join(__dirname, '../public/common', type))
+    const typeDir = path.normalize(path.join(__dirname, '../public/common', ALLOWED_IMAGE_TYPES[validatedType]))
     const files = readdirSync(typeDir)
 
     // Filter for image files
@@ -140,14 +164,15 @@ router.post(
   upload.single('file'),
   async (req: Request, res: Response) => {
     const { type } = req.params
-    const allowedTypes = ['icon', 'screen', 'persona']
 
-    // Validate type parameter
-    if (!allowedTypes.includes(type)) {
+    // Validate type parameter using static whitelist (satisfies CodeQL path validation)
+    const validatedType = getValidatedImageType(type)
+    if (!validatedType) {
       if (req.file) {
         const fs = await import('fs').then((mod) => mod.promises)
         await fs.unlink(req.file.path)
       }
+      const allowedTypes = Object.keys(ALLOWED_IMAGE_TYPES)
       res.status(400).json({
         error: `Invalid image type. Must be one of: ${allowedTypes.join(', ')}`,
       })
@@ -159,7 +184,7 @@ router.post(
       return
     }
 
-    logger.debug({ type, filename: req.file.filename }, 'Admin: upload image file')
+    logger.debug({ type: validatedType, filename: req.file.filename }, 'Admin: upload image file')
 
     // Validate file type by magic bytes (actual file content)
     try {
@@ -182,7 +207,7 @@ router.post(
     // Move file to type subdirectory
     try {
       const commonDir = path.normalize(path.join(__dirname, '../public/common'))
-      const typeDir = path.normalize(path.join(commonDir, type))
+      const typeDir = path.normalize(path.join(commonDir, ALLOWED_IMAGE_TYPES[validatedType]))
       const finalPath = path.normalize(path.join(typeDir, req.file.filename))
 
       // Prevent path traversal: ensure the final path is within the type directory
@@ -208,7 +233,7 @@ router.post(
     const fileExtension = path.extname(req.file.filename).toLowerCase()
     if (fileExtension === '.svg') {
       try {
-        const typeDir = path.join(__dirname, '../public/common', type)
+        const typeDir = path.join(__dirname, '../public/common', ALLOWED_IMAGE_TYPES[validatedType])
         const filePath = path.join(typeDir, req.file.filename)
         const content = readFileSync(filePath, 'utf-8')
         const sanitized = sanitizeSVG(content)
@@ -221,10 +246,10 @@ router.post(
       }
     }
 
-    const relativePath = `/public/common/${type}/${req.file.filename}`
+    const relativePath = `/public/common/${ALLOWED_IMAGE_TYPES[validatedType]}/${req.file.filename}`
     res.status(201).json({
       message: 'Image file uploaded successfully',
-      type,
+      type: validatedType,
       path: relativePath,
       filename: req.file.filename,
     })
