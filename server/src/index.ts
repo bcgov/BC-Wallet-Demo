@@ -9,7 +9,9 @@ import { createExpressServer } from 'routing-controllers'
 import { Server } from 'socket.io'
 
 import { connectDB, registerShutdownHandlers } from './db/connection'
+import { auditLoginMiddleware } from './middleware/auditLogin'
 import { requireAdmin } from './middleware/requireAdmin'
+import adminAuditLogRouter from './routes/adminAuditLogRouter'
 import adminCredentialsRouter from './routes/adminCredentialsRouter'
 import adminImagesRouter from './routes/adminImagesRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
@@ -111,9 +113,11 @@ const run = async () => {
 
   // All routes under /admin require a valid Keycloak-issued JWT.
   app.use(`${baseRoute}/admin`, requireAdmin)
+  app.use(`${baseRoute}/admin`, auditLoginMiddleware)
   app.use(`${baseRoute}/admin/showcases`, adminShowcasesRouter)
   app.use(`${baseRoute}/admin/credentials`, adminCredentialsRouter)
   app.use(`${baseRoute}/admin/images`, adminImagesRouter)
+  app.use(`${baseRoute}/admin/audit-log`, adminAuditLogRouter)
 
   app.get(`${baseRoute}/server/last-reset`, (_req, res) => {
     res.send(serverStartTime)

@@ -7,12 +7,14 @@ import { Container } from 'typedi'
 import { CredentialController } from '../controllers/CredentialController'
 import { AdminCredentialController } from '../controllers/admin/AdminCredentialController'
 import { requireRole } from '../middleware/requireAdmin'
+import { AuditLogService } from '../services/AuditLogService'
 import logger from '../utils/logger'
 
 const router = Router()
 
 const credentialController = Container.get(CredentialController)
 const adminCredentialController = Container.get(AdminCredentialController)
+const auditLogService = Container.get(AuditLogService)
 
 /**
  * GET /admin/credentials
@@ -60,6 +62,17 @@ router.post('/', requireRole(['admin']), async (req: Request, res: Response) => 
   try {
     const credential = await adminCredentialController.createCredential(req.body)
     res.status(201).json(credential)
+    void Promise.resolve()
+      .then(() =>
+        auditLogService.log({
+          user_id: req.auth?.sub ?? 'unknown',
+          action: 'registered',
+          resource_type: 'credential_definition',
+          resource_id: credential.id,
+          details: { name: credential.name },
+        }),
+      )
+      .catch((err: unknown) => logger.error(err, 'Audit log: failed to write credential registered event'))
   } catch (error) {
     logger.error(error, 'Error creating credential')
     res.status(500).json({ error: 'Failed to create credential' })
@@ -76,6 +89,17 @@ router.put('/:id', requireRole(['admin']), async (req: Request, res: Response) =
   try {
     const credential = await adminCredentialController.updateCredential(req.params.id, req.body)
     res.json(credential)
+    void Promise.resolve()
+      .then(() =>
+        auditLogService.log({
+          user_id: req.auth?.sub ?? 'unknown',
+          action: 'updated',
+          resource_type: 'credential_definition',
+          resource_id: req.params.id,
+          details: { name: req.body?.name },
+        }),
+      )
+      .catch((err: unknown) => logger.error(err, 'Audit log: failed to write credential updated event'))
   } catch (error) {
     logger.error(error, 'Error updating credential')
     if (error instanceof NotFoundError) {
@@ -96,6 +120,17 @@ router.delete('/:id', requireRole(['admin']), async (req: Request, res: Response
   try {
     await adminCredentialController.deleteCredential(req.params.id)
     res.status(204).send()
+    void Promise.resolve()
+      .then(() =>
+        auditLogService.log({
+          user_id: req.auth?.sub ?? 'unknown',
+          action: 'retired',
+          resource_type: 'credential_definition',
+          resource_id: req.params.id,
+          details: { id: req.params.id },
+        }),
+      )
+      .catch((err: unknown) => logger.error(err, 'Audit log: failed to write credential retired event'))
   } catch (error) {
     logger.error(error, 'Error deleting credential')
     if (error instanceof NotFoundError) {

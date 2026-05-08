@@ -20,6 +20,14 @@
       "attributes": {
         "pkce.code.challenge.method": "S256"
       }
+    },
+    {
+      "clientId": "showcase-admin-cli",
+      "name": "BC Wallet Showcase Admin CLI (local dev only)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true
     }
   ],
   "roles": {

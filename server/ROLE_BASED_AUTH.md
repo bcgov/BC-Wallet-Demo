@@ -26,7 +26,7 @@ Middleware factory that checks realm-level roles. Must be applied **after** `req
 
 **Parameters:**
 
-- `allowedRoles` — Array of role names required to access the route
+- `allowedRoles`: array of role names required to access the route
 
 **Example:**
 
@@ -52,9 +52,9 @@ router.post('/', requireAdmin, requireRole(['admin', 'creator']), (req, res) => 
 
 **Returns:**
 
-- **401 Unauthorized** — No valid JWT provided (requireAdmin failed)
-- **403 Forbidden** — User lacks required roles
-- **Next** — User has at least one of the required roles
+- **401 Unauthorized**: No valid JWT provided (requireAdmin failed)
+- **403 Forbidden**: User lacks required roles
+- **Next**: User has at least one of the required roles
 
 ## Utility Functions
 
@@ -162,8 +162,8 @@ export interface KeycloakJWT {
 
 All role-checking middleware returns standard HTTP responses:
 
-- **401 Unauthorized** — Missing or invalid JWT token
-- **403 Forbidden** — User authenticated but lacks required roles
+- **401 Unauthorized**: Missing or invalid JWT token
+- **403 Forbidden**: User authenticated but lacks required roles
 
 These are logged with details:
 

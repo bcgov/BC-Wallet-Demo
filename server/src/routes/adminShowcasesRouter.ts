@@ -7,12 +7,14 @@ import { Container } from 'typedi'
 import { ShowcaseController } from '../controllers/ShowcaseController'
 import { AdminShowcaseController } from '../controllers/admin/AdminShowcaseController'
 import { requireRole } from '../middleware/requireAdmin'
+import { AuditLogService } from '../services/AuditLogService'
 import logger from '../utils/logger'
 
 const router = Router()
 
 const showcaseController = Container.get(ShowcaseController)
 const adminShowcaseController = Container.get(AdminShowcaseController)
+const auditLogService = Container.get(AuditLogService)
 
 /**
  * GET /admin/showcases
@@ -57,6 +59,18 @@ router.post('/', requireRole(['admin', 'creator']), async (req: Request, res: Re
   try {
     const showcase = await adminShowcaseController.createShowcase(req.body)
     res.status(201).json(showcase)
+    // Best-effort audit: writes after response sent, may be lost on crash/shutdown.
+    void Promise.resolve()
+      .then(() =>
+        auditLogService.log({
+          user_id: req.auth?.sub ?? 'unknown',
+          action: 'created',
+          resource_type: 'showcase',
+          resource_id: String(showcase._id ?? ''),
+          details: { name: showcase.name },
+        }),
+      )
+      .catch((err: unknown) => logger.error(err, 'Audit log: failed to write showcase created event'))
   } catch (error) {
     logger.error(error, 'Error creating showcase')
     res.status(500).json({ error: 'Failed to create showcase' })
@@ -72,6 +86,17 @@ router.put('/:id', requireRole(['admin', 'creator']), async (req: Request, res: 
   try {
     const showcase = await adminShowcaseController.updateShowcase(req.params.id, req.body)
     res.json(showcase)
+    void Promise.resolve()
+      .then(() =>
+        auditLogService.log({
+          user_id: req.auth?.sub ?? 'unknown',
+          action: 'updated',
+          resource_type: 'showcase',
+          resource_id: req.params.id,
+          details: { name: req.body?.name },
+        }),
+      )
+      .catch((err: unknown) => logger.error(err, 'Audit log: failed to write showcase updated event'))
   } catch (error) {
     logger.error(error, 'Error updating showcase')
     if (error instanceof NotFoundError) {
@@ -91,6 +116,17 @@ router.delete('/:id', requireRole(['admin']), async (req: Request, res: Response
   try {
     await adminShowcaseController.deleteShowcase(req.params.id)
     res.status(204).send()
+    void Promise.resolve()
+      .then(() =>
+        auditLogService.log({
+          user_id: req.auth?.sub ?? 'unknown',
+          action: 'deleted',
+          resource_type: 'showcase',
+          resource_id: req.params.id,
+          details: { id: req.params.id },
+        }),
+      )
+      .catch((err: unknown) => logger.error(err, 'Audit log: failed to write showcase deleted event'))
   } catch (error) {
     logger.error(error, 'Error deleting showcase')
     if (error instanceof NotFoundError) {
