@@ -47,6 +47,16 @@ const upload = multer({
 })
 
 /**
+ * Validate that a resolved path is within an allowed directory
+ * Prevents path traversal attacks
+ */
+function isPathWithinDirectory(filePath: string, allowedDir: string): boolean {
+  const normalizedPath = path.normalize(filePath)
+  const normalizedDir = path.normalize(allowedDir)
+  return normalizedPath.startsWith(normalizedDir + path.sep) || normalizedPath === normalizedDir
+}
+
+/**
  * GET /admin/images/:type
  * List all available image files in a specific subdirectory.
  * Type must be one of: icon, screen, persona
@@ -67,7 +77,7 @@ router.get('/:type', requireRole(['admin', 'creator', 'viewer']), (req: Request,
   logger.debug({ type }, 'Admin: list available image files by type')
 
   try {
-    const typeDir = path.join(__dirname, '../public/common', type)
+    const typeDir = path.normalize(path.join(__dirname, '../public/common', type))
     const files = readdirSync(typeDir)
 
     // Filter for image files
@@ -76,6 +86,11 @@ router.get('/:type', requireRole(['admin', 'creator', 'viewer']), (req: Request,
       .filter((file) => {
         const ext = path.extname(file).toLowerCase()
         return allowedExtensions.includes(ext)
+      })
+      .filter((file) => {
+        // Ensure the file path is within the type directory (prevent path traversal)
+        const fullPath = path.normalize(path.join(typeDir, file))
+        return isPathWithinDirectory(fullPath, typeDir)
       })
       .map((file) => `/public/common/${type}/${file}`)
 
@@ -140,9 +155,17 @@ router.post(
 
     // Move file to type subdirectory
     try {
-      const commonDir = path.join(__dirname, '../public/common')
-      const typeDir = path.join(commonDir, type)
-      const finalPath = path.join(typeDir, req.file.filename)
+      const commonDir = path.normalize(path.join(__dirname, '../public/common'))
+      const typeDir = path.normalize(path.join(commonDir, type))
+      const finalPath = path.normalize(path.join(typeDir, req.file.filename))
+
+      // Prevent path traversal: ensure the final path is within the type directory
+      if (!isPathWithinDirectory(finalPath, typeDir)) {
+        const fs = await import('fs').then((mod) => mod.promises)
+        await fs.unlink(req.file.path)
+        res.status(400).json({ error: 'Invalid filename: path traversal detected' })
+        return
+      }
 
       const fs = await import('fs').then((mod) => mod.promises)
       await fs.mkdir(typeDir, { recursive: true })
