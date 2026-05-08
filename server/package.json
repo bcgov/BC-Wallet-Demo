@@ -27,6 +27,7 @@
     "dotenv": "^16",
     "express": "^4.22.1",
     "express-jwt": "^8.5.1",
+    "express-rate-limit": "^8.5.1",
     "file-type": "^22.0.1",
     "isomorphic-dompurify": "^3.12.0",
     "mongoose": "^9.4.1",

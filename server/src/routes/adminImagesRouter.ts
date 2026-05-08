@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import { readdirSync, readFileSync, writeFileSync } from 'fs'
 import multer from 'multer'
 import path from 'path'
@@ -12,6 +13,30 @@ import { sanitizeSVG } from '../utils/sanitizeSVG'
 import { validateFileType } from '../utils/validateFileType'
 
 const router = Router()
+
+/**
+ * Rate limiting for image listing (GET)
+ * Allow 30 requests per 15 minutes per IP
+ */
+const getImagesLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30,
+  message: 'Too many image listing requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+/**
+ * Rate limiting for image uploads (POST)
+ * Allow 10 requests per 15 minutes per IP (more restrictive due to file I/O)
+ */
+const uploadImageLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: 'Too many upload requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+})
 
 // Configure multer for image file uploads
 const upload = multer({
@@ -62,7 +87,7 @@ function isPathWithinDirectory(filePath: string, allowedDir: string): boolean {
  * Type must be one of: icon, screen, persona
  * Requires: admin or creator or viewer role
  */
-router.get('/:type', requireRole(['admin', 'creator', 'viewer']), (req: Request, res: Response) => {
+router.get('/:type', getImagesLimiter, requireRole(['admin', 'creator', 'viewer']), (req: Request, res: Response) => {
   const { type } = req.params
   const allowedTypes = ['icon', 'screen', 'persona']
 
@@ -110,6 +135,7 @@ router.get('/:type', requireRole(['admin', 'creator', 'viewer']), (req: Request,
  */
 router.post(
   '/:type',
+  uploadImageLimiter,
   requireRole(['admin', 'creator']),
   upload.single('file'),
   async (req: Request, res: Response) => {
