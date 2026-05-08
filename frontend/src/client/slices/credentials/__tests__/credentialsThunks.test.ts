@@ -36,7 +36,7 @@ beforeEach(() => {
 describe('issueCredential thunk', () => {
   it('sets isIssueCredentialLoading=false on fulfilled', async () => {
     vi.mocked(CredentialApi.issueCredential).mockResolvedValue({
-      data: { credential_exchange_id: 'cred-1' },
+      data: { cred_ex_id: 'cred-1' },
     } as any)
 
     const store = makeStore()
@@ -46,7 +46,7 @@ describe('issueCredential thunk', () => {
 
   it('sets isIssueCredentialLoading=true while pending', async () => {
     vi.mocked(CredentialApi.issueCredential).mockResolvedValue({
-      data: { credential_exchange_id: 'cred-1' },
+      data: { cred_ex_id: 'cred-1' },
     } as any)
 
     const store = makeStore()
@@ -74,7 +74,7 @@ describe('issueDeepCredential thunk — retry loop', () => {
     vi.mocked(CredentialApi.issueDeepCredential)
       .mockRejectedValueOnce(new Error('not ready'))
       .mockRejectedValueOnce(new Error('not ready'))
-      .mockResolvedValue({ data: { credential_exchange_id: 'deep-cred-1' } } as any)
+      .mockResolvedValue({ data: { cred_ex_id: 'deep-cred-1' } } as any)
 
     const store = makeStore()
     const promise = store.dispatch(
@@ -84,7 +84,7 @@ describe('issueDeepCredential thunk — retry loop', () => {
     await vi.runAllTimersAsync()
     const result = await promise
 
-    expect(result.payload).toEqual({ credential_exchange_id: 'deep-cred-1' })
+    expect(result.payload).toEqual({ cred_ex_id: 'deep-cred-1' })
     expect(CredentialApi.issueDeepCredential).toHaveBeenCalledTimes(3)
   })
 
@@ -121,12 +121,12 @@ describe('issueDeepCredential thunk — retry loop', () => {
 describe('fetchCredentialById thunk', () => {
   it('returns credential data on success', async () => {
     vi.mocked(CredentialApi.getCredentialById).mockResolvedValue({
-      data: { credential_exchange_id: 'cred-fetch-1', state: 'credential_issued' },
+      data: { cred_ex_id: 'cred-fetch-1', state: 'credential_issued' },
     } as any)
 
     const store = makeStore()
     const result = await store.dispatch(fetchCredentialById('cred-fetch-1') as any)
-    expect(result.payload).toMatchObject({ credential_exchange_id: 'cred-fetch-1' })
+    expect(result.payload).toMatchObject({ cred_ex_id: 'cred-fetch-1' })
   })
 })
 

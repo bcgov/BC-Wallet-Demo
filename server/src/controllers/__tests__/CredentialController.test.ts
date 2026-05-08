@@ -36,7 +36,7 @@ describe('CredentialController', () => {
     })
 
     it('returns the response data', async () => {
-      const mockData = { results: [{ credential_exchange_id: 'cred1' }] }
+      const mockData = { results: [{ cred_ex_id: 'cred1' }] }
       vi.mocked(tractionRequest.get).mockResolvedValue({ data: mockData })
 
       const result = await controller.getCredByConnId('conn1')
@@ -125,7 +125,7 @@ describe('CredentialController', () => {
   describe('offerCredential', () => {
     it('posts to the issue-credential/send endpoint with the params', async () => {
       const params = { connection_id: 'conn1', credential_preview: { attributes: [] } }
-      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { credential_exchange_id: 'cred-exch-1' } })
+      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { cred_ex_id: 'cred-exch-1' } })
 
       await controller.offerCredential(params)
 
@@ -140,7 +140,7 @@ describe('CredentialController', () => {
     })
 
     it('returns the response data', async () => {
-      const mockData = { credential_exchange_id: 'cred-exch-1', state: 'offer_sent' }
+      const mockData = { cred_ex_id: 'cred-exch-1', state: 'offer_sent' }
       vi.mocked(tractionRequest.post).mockResolvedValue({ data: mockData })
 
       const result = await controller.offerCredential({})
@@ -161,7 +161,7 @@ describe('CredentialController', () => {
           ],
         },
       }
-      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { credential_exchange_id: 'cred-exch-1' } })
+      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { cred_ex_id: 'cred-exch-1' } })
 
       await controller.offerCredential(params)
 
