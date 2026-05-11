@@ -51,6 +51,7 @@ export const createShowcase = async (
     introduction: [],
     progressBar: [],
     credentials: [],
+    status: 'pending',
   }
   const res = await fetch(`${adminBaseUrl}/showcases`, {
     method: 'POST',

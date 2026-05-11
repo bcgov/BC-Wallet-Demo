@@ -123,6 +123,16 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh }: ScenariosTa
     setDragOverIdx(null)
   }
 
+  const handleFinish = async () => {
+    try {
+      await updateShowcase(auth, showcase.name, { status: 'active' })
+      navigate(`${adminBaseRoute}/creator`)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error updating showcase status:', error)
+    }
+  }
+
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
       {/* Scenarios Tab */}
@@ -241,7 +251,7 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh }: ScenariosTa
       {isNewShowcase && (
         <div className="w-full max-w-6xl mt-8 px-6 flex justify-center">
           <button
-            onClick={() => navigate(`${adminBaseRoute}/creator`)}
+            onClick={handleFinish}
             className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors"
           >
             Finish
