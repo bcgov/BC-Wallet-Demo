@@ -214,7 +214,7 @@ describe('tractionGarbageCollection', () => {
       .mockResolvedValueOnce({ data: { results: [] } })
       .mockResolvedValueOnce({
         data: {
-          results: [{ credential_exchange_id: 'cred-exch-1', created_at: staleDate }],
+          results: [{ cred_ex_id: 'cred-exch-1', created_at: staleDate }],
         },
       })
       .mockResolvedValueOnce({ data: { results: [] } })

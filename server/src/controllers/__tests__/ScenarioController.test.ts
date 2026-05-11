@@ -11,7 +11,7 @@ vi.mock('../../db/models/Showcase', () => {
       persona: { type: 'Student', name: 'Student', image: '' },
       scenarios: [
         { id: 'clothesOnline', name: 'Clothes Online', hidden: false, screens: [] },
-        { id: 'hiddenUseCase', name: 'Hidden', hidden: true, screens: [] },
+        { id: 'hiddenScenario', name: 'Hidden', hidden: true, screens: [] },
       ],
     },
     {
@@ -40,44 +40,44 @@ describe('ScenarioController', () => {
     vi.clearAllMocks()
   })
 
-  describe('getUseCaseBySlug', () => {
-    it('returns a use case when a valid slug is provided', async () => {
-      const result = await controller.getUseCaseBySlug('clothesOnline')
+  describe('getScenarioBySlug', () => {
+    it('returns a scenario when a valid slug is provided', async () => {
+      const result = await controller.getScenarioBySlug('clothesOnline')
 
       expect(result).toBeDefined()
       expect(result.id).toBe('clothesOnline')
     })
 
-    it('throws NotFoundError when slug does not match any use case', async () => {
-      await expect(controller.getUseCaseBySlug('does-not-exist')).rejects.toThrow(NotFoundError)
+    it('throws NotFoundError when slug does not match any scenario', async () => {
+      await expect(controller.getScenarioBySlug('does-not-exist')).rejects.toThrow(NotFoundError)
     })
 
     it('NotFoundError message references the missing slug', async () => {
-      await expect(controller.getUseCaseBySlug('ghost-slug')).rejects.toThrow(/"ghost-slug"/)
+      await expect(controller.getScenarioBySlug('ghost-slug')).rejects.toThrow(/"ghost-slug"/)
     })
   })
 
-  describe('getUseCasesByCharType', () => {
-    it('returns use cases for a valid character type', async () => {
-      const result = await controller.getUseCasesByCharType('Student')
+  describe('getScenariosByCharType', () => {
+    it('returns scenarios for a valid character type', async () => {
+      const result = await controller.getScenariosByCharType('Student')
 
       expect(Array.isArray(result)).toBe(true)
       expect(result.length).toBeGreaterThan(0)
     })
 
     it('throws NotFoundError when character type does not exist', async () => {
-      await expect(controller.getUseCasesByCharType('UnknownType')).rejects.toThrow(NotFoundError)
+      await expect(controller.getScenariosByCharType('UnknownType')).rejects.toThrow(NotFoundError)
     })
 
-    it('filters out hidden use cases when showHidden is not set', async () => {
-      const result = await controller.getUseCasesByCharType('Student')
+    it('filters out hidden scenarios when showHidden is not set', async () => {
+      const result = await controller.getScenariosByCharType('Student')
 
-      expect(result.every((uc) => !uc.hidden)).toBe(true)
+      expect(result.every((s) => !s.hidden)).toBe(true)
     })
 
-    it('includes hidden use cases when showHidden is true', async () => {
-      const all = await controller.getUseCasesByCharType('Student', true)
-      const visible = await controller.getUseCasesByCharType('Student', false)
+    it('includes hidden scenarios when showHidden is true', async () => {
+      const all = await controller.getScenariosByCharType('Student', true)
+      const visible = await controller.getScenariosByCharType('Student', false)
 
       expect(all.length).toBeGreaterThanOrEqual(visible.length)
     })

@@ -146,11 +146,9 @@ export class CredentialController {
       trace: params.trace ?? false,
     }
 
-    logger.debug({ payload }, 'Credential offer payload')
-
     try {
       const response = await tractionRequest.post(`/issue-credential-2.0/send-offer`, payload)
-      logger.info({ credentialExchangeId: response.data?.credential_exchange_id }, 'Credential offer sent')
+      logger.info({ credentialExchangeId: response.data?.cred_ex_id }, 'Credential offer sent')
       return response.data
     } catch (error: any) {
       logger.error(

@@ -15,7 +15,6 @@ export const createProofRequest = (data: ProofRequestData): Promise<AxiosRespons
       },
     },
     auto_remove_on_failure: true,
-    auto_remove: true,
     auto_verify: true,
     comment: data.requestOptions?.comment,
   })
@@ -33,7 +32,6 @@ export const createDeepProofRequest = (data: ProofRequestData): Promise<AxiosRes
       },
     },
     auto_remove_on_failure: true,
-    auto_remove: true,
     auto_verify: true,
     comment: data.requestOptions?.comment ?? '',
   })
@@ -50,7 +48,6 @@ export const createOOBProofRequest = (data: ProofRequestData): Promise<AxiosResp
       },
     },
     auto_remove_on_failure: true,
-    auto_remove: true,
     auto_verify: true,
     comment: data.requestOptions?.comment,
   })

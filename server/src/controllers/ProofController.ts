@@ -48,7 +48,7 @@ export class ProofController {
   public async requestProof(@Body() params: any) {
     logger.info({ connectionId: params.connection_id }, 'Requesting proof from connection')
     const proofRecord = (await tractionRequest.post('/present-proof-2.0/send-request', params)).data
-    logger.info({ presentationExchangeId: proofRecord.presentation_exchange_id }, 'Proof request sent')
+    logger.info({ presentationExchangeId: proofRecord.pres_ex_id }, 'Proof request sent')
     return proofRecord
   }
 
