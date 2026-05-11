@@ -55,9 +55,9 @@ export function ShowcasesPanel() {
 
       {!loading && !error && showcases.length > 0 && (
         <div className="space-y-4">
-          {showcases.map((showcase, idx) => (
+          {showcases.map((showcase) => (
             <ShowcaseCard
-              key={idx}
+              key={showcase.name}
               showcase={showcase}
               onClick={() => navigate(`${adminBaseRoute}/creator/showcase/${showcase.name}`, { state: { showcase } })}
               onRefresh={fetchShowcases}
