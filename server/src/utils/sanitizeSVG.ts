@@ -3,9 +3,11 @@ import DOMPurify from 'isomorphic-dompurify'
 /**
  * Sanitize SVG content by removing potentially dangerous elements and attributes
  * Uses DOMPurify which is a well-maintained, industry-standard HTML/SVG sanitizer
+ * Configured to be restrictive: only allows essential SVG drawing elements and attributes
  */
 export function sanitizeSVG(content: string): string {
   // Configure DOMPurify for SVG content
+  // Restrictive allowlist focused on visual drawing elements only
   const config = {
     ALLOWED_TAGS: [
       'svg',
@@ -19,7 +21,6 @@ export function sanitizeSVG(content: string): string {
       'polygon',
       'text',
       'tspan',
-      'image',
       'use',
       'symbol',
       'defs',
@@ -33,9 +34,6 @@ export function sanitizeSVG(content: string): string {
       'title',
       'desc',
       'metadata',
-      'foreignObject',
-      'style',
-      'a',
     ],
     ALLOWED_ATTR: [
       'viewBox',
@@ -43,7 +41,6 @@ export function sanitizeSVG(content: string): string {
       'height',
       'xmlns',
       'xmlns:xlink',
-      'xlink:href',
       'x',
       'y',
       'cx',
@@ -65,7 +62,6 @@ export function sanitizeSVG(content: string): string {
       'transform',
       'id',
       'class',
-      'style',
       'points',
       'offset',
       'stop-color',
@@ -75,9 +71,7 @@ export function sanitizeSVG(content: string): string {
       'fx',
       'fy',
       'spreadMethod',
-      'href',
       'preserveAspectRatio',
-      'viewBox',
       'refX',
       'refY',
       'markerWidth',
@@ -99,7 +93,11 @@ export function sanitizeSVG(content: string): string {
       'stroke-dashoffset',
       'stroke-miterlimit',
     ],
-    KEEP_CONTENT: true,
+    // Only allow data: and local URLs to prevent external resource loads/tracking
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.-]*(?:[^a-z+.\-:]|$))/i,
+    // Disallow protocols that could load external resources or track users
+    FORCE_BODY: false,
+    KEEP_CONTENT: false, // Remove dangerous elements completely, don't leave text behind
   }
 
   return DOMPurify.sanitize(content, config)

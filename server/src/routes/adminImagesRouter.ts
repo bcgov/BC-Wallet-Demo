@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 
+import { randomUUID } from 'crypto'
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
 import { readdirSync, readFileSync, writeFileSync } from 'fs'
@@ -64,18 +65,44 @@ const uploadImageLimiter = rateLimit({
 // Configure multer for image file uploads
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (req, _file, cb) => {
-      // Get type from request (POST body should have it)
-      // Files are organized by type: /public/common/{type}/
-      const commonDir = path.join(__dirname, '../public/common')
-      cb(null, commonDir)
+    destination: (req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+      // Validate type parameter in multer callback to ensure proper directory handling
+      const type = req.params.type
+      const validatedType = getValidatedImageType(type)
+
+      if (!validatedType) {
+        cb(new Error('Invalid image type'), '')
+        return
+      }
+
+      // Store validated type on request for use in filename callback
+      ;(req as any).__validatedType = validatedType
+
+      // Save directly to type subdirectory to avoid race conditions
+      const typeDir = path.normalize(path.join(__dirname, '../public/common', ALLOWED_IMAGE_TYPES[validatedType]))
+      cb(null, typeDir)
     },
-    filename: (req, file, cb) => {
-      // Get the destination directory to check for collisions
-      const commonDir = path.join(__dirname, '../public/common')
-      // Sanitize filename and make it unique if needed
-      const sanitizedName = sanitizeFilename(file.originalname, commonDir)
-      cb(null, sanitizedName)
+    filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+      // Get the validated type and destination directory
+      const validatedType = (req as any).__validatedType as ImageType | undefined
+      if (!validatedType) {
+        cb(new Error('Invalid image type'), file.originalname)
+        return
+      }
+
+      const typeDir = path.normalize(path.join(__dirname, '../public/common', ALLOWED_IMAGE_TYPES[validatedType]))
+
+      // Sanitize filename and check for collisions in the actual destination directory
+      const baseFilename = sanitizeFilename(file.originalname, typeDir)
+
+      // Generate a UUID prefix to ensure uniqueness and avoid race conditions
+      // Format: {uuid}_{baseFilename}
+      const uuid = randomUUID().split('-')[0] // Use first 8 chars of UUID for brevity
+      const ext = path.extname(baseFilename)
+      const nameWithoutExt = baseFilename.slice(0, -ext.length)
+      const filename = `${uuid}_${nameWithoutExt}${ext}`
+
+      cb(null, filename)
     },
   }),
   fileFilter: (_req, file, cb) => {
@@ -204,28 +231,22 @@ router.post(
       return
     }
 
-    // Move file to type subdirectory
+    // File is already in the correct type subdirectory thanks to multer configuration
+    // Ensure directory exists (in case of concurrent operations)
     try {
-      const commonDir = path.normalize(path.join(__dirname, '../public/common'))
-      const typeDir = path.normalize(path.join(commonDir, ALLOWED_IMAGE_TYPES[validatedType]))
-      const finalPath = path.normalize(path.join(typeDir, req.file.filename))
-
-      // Prevent path traversal: ensure the final path is within the type directory
-      if (!isPathWithinDirectory(finalPath, typeDir)) {
-        const fs = await import('fs').then((mod) => mod.promises)
-        await fs.unlink(req.file.path)
-        res.status(400).json({ error: 'Invalid filename: path traversal detected' })
-        return
-      }
-
+      const typeDir = path.normalize(path.join(__dirname, '../public/common', ALLOWED_IMAGE_TYPES[validatedType]))
       const fs = await import('fs').then((mod) => mod.promises)
       await fs.mkdir(typeDir, { recursive: true })
-      await fs.rename(req.file.path, finalPath)
-
-      logger.debug({ type, filename: req.file.filename }, 'File moved to type subdirectory')
     } catch (error) {
-      logger.error(error, 'Error organizing file into type subdirectory')
-      res.status(500).json({ error: 'Failed to organize file' })
+      logger.error(error, 'Error ensuring type directory exists')
+      // Clean up the uploaded file since the operation failed
+      try {
+        const fs = await import('fs').then((mod) => mod.promises)
+        await fs.unlink(req.file.path)
+      } catch (cleanupError) {
+        logger.error(cleanupError, 'Error cleaning up uploaded file after directory creation failure')
+      }
+      res.status(500).json({ error: 'Failed to ensure upload directory exists' })
       return
     }
 
@@ -241,6 +262,13 @@ router.post(
         logger.debug({ filename: req.file.filename }, 'SVG file sanitized')
       } catch (error) {
         logger.error(error, 'Error sanitizing SVG file')
+        // Clean up the uploaded file since sanitization failed
+        try {
+          const fs = await import('fs').then((mod) => mod.promises)
+          await fs.unlink(req.file.path)
+        } catch (cleanupError) {
+          logger.error(cleanupError, 'Error cleaning up uploaded file after SVG sanitization failure')
+        }
         res.status(500).json({ error: 'Failed to sanitize SVG file' })
         return
       }
@@ -254,23 +282,27 @@ router.post(
       filename: req.file.filename,
     })
   },
-  (error: Error, _req: Request, res: Response) => {
-    // Multer error handler
-    if (error instanceof multer.MulterError) {
-      if (error.code === 'LIMIT_FILE_SIZE') {
-        res.status(400).json({ error: 'File size must be less than 5MB' })
-        return
-      }
-    }
+)
 
-    if (error.message.includes('only image files')) {
-      res.status(400).json({ error: error.message })
+/**
+ * Multer error handler for file upload errors
+ * Must be placed after all route handlers to catch multer errors
+ */
+router.use((error: Error, _req: Request, res: Response) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      res.status(400).json({ error: 'File size must be less than 5MB' })
       return
     }
+  }
 
-    logger.error(error, 'File upload error')
-    res.status(500).json({ error: 'File upload failed' })
-  },
-)
+  if (error.message.includes('only image files')) {
+    res.status(400).json({ error: error.message })
+    return
+  }
+
+  logger.error(error, 'File upload error')
+  res.status(500).json({ error: 'File upload failed' })
+})
 
 export default router
