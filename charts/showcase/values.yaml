@@ -83,6 +83,9 @@ showcase:
       tag: main
       digest: ''
       pullPolicy: IfNotPresent
+    ## Database seeding. When enabled, a Helm post-install/post-upgrade Job runs to seed the database.
+    seed:
+      enabled: true
     resources: {}
     ## When mongodb.enabled, wait for Mongo TCP before starting the server (recommended). Set false only
     ## to debug scheduling/SCC issues; the server may still fail until Mongo is reachable.
