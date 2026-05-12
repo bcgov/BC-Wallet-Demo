@@ -114,8 +114,8 @@ services:
     build:
       context: ./
       dockerfile: ./dev.dockerfile
-    entrypoint: [""]
-    command: ["yarn", "workspace", "server", "seed"]
+    entrypoint: ['']
+    command: ['yarn', 'workspace', 'server', 'seed']
     restart: on-failure
     volumes:
       - ./:/app
