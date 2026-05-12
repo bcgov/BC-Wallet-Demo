@@ -115,9 +115,7 @@ describe('adminAuditLogRouter', () => {
 
       await request(app).get('/admin/audit-log?action=created')
 
-      expect(mocks.mockAuditLogService.query).toHaveBeenCalledWith(
-        expect.objectContaining({ actions: ['created'] }),
-      )
+      expect(mocks.mockAuditLogService.query).toHaveBeenCalledWith(expect.objectContaining({ actions: ['created'] }))
     })
 
     it('passes comma-separated action filter', async () => {
@@ -135,9 +133,7 @@ describe('adminAuditLogRouter', () => {
 
       await request(app).get('/admin/audit-log?action=bogus')
 
-      expect(mocks.mockAuditLogService.query).toHaveBeenCalledWith(
-        expect.objectContaining({ actions: undefined }),
-      )
+      expect(mocks.mockAuditLogService.query).toHaveBeenCalledWith(expect.objectContaining({ actions: undefined }))
     })
 
     it('passes resource_type filter', async () => {
@@ -155,9 +151,7 @@ describe('adminAuditLogRouter', () => {
 
       await request(app).get('/admin/audit-log?user_id=user-123')
 
-      expect(mocks.mockAuditLogService.query).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'user-123' }),
-      )
+      expect(mocks.mockAuditLogService.query).toHaveBeenCalledWith(expect.objectContaining({ userId: 'user-123' }))
     })
 
     it('returns 400 for invalid startDate', async () => {
