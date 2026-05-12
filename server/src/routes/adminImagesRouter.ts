@@ -144,8 +144,9 @@ router.get('/:type', getImagesLimiter, requireRole(['admin', 'creator', 'viewer'
   const validatedType = getValidatedImageType(type)
   if (!validatedType) {
     const allowedTypes = Object.keys(ALLOWED_IMAGE_TYPES)
-    res.status(400).json({
-      error: `Invalid image type. Must be one of: ${allowedTypes.join(', ')}`,
+    res.status(415).json({
+      warning: `Invalid image type '${type}'.`,
+      supportTypes: allowedTypes,
     })
     return
   }
@@ -200,8 +201,9 @@ router.post(
         await fs.unlink(req.file.path)
       }
       const allowedTypes = Object.keys(ALLOWED_IMAGE_TYPES)
-      res.status(400).json({
-        error: `Invalid image type. Must be one of: ${allowedTypes.join(', ')}`,
+      res.status(415).json({
+        warning: `Invalid image type '${type}'.`,
+        supportTypes: allowedTypes,
       })
       return
     }
