@@ -107,6 +107,31 @@ services:
       keycloak-db:
         condition: service_healthy
 
+  seed:
+    image: bc-wallet-demo-dev
+    profiles:
+      - dev
+    build:
+      context: ./
+      dockerfile: ./dev.dockerfile
+    entrypoint: [""]
+    command: ["yarn", "workspace", "server", "seed"]
+    restart: on-failure
+    volumes:
+      - ./:/app
+      - dev-node-modules:/app/node_modules
+    env_file:
+      - path: ./server/.env
+        required: false
+    environment:
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: '27017'
+      MONGODB_DB_NAME: bc_wallet_showcase
+      MONGODB_URI: mongodb://mongodb:27017/bc_wallet_showcase
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.5
     command: start-dev --import-realm
