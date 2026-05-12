@@ -1,9 +1,9 @@
 import type { Credential, Showcase } from './types'
 
-import businessShowcase from '../../config/businessShowcase.json'
-import credentialsConfig from '../../config/credentials.json'
-import lawyerShowcase from '../../config/lawyerShowcase.json'
-import studentShowcase from '../../config/studentShowcase.json'
+import businessShowcase from '../../scripts/values/businessShowcase.json'
+import credentialsConfig from '../../scripts/values/credentials.json'
+import lawyerShowcase from '../../scripts/values/lawyerShowcase.json'
+import studentShowcase from '../../scripts/values/studentShowcase.json'
 
 const showcases: Showcase[] = [
   studentShowcase as unknown as Showcase,

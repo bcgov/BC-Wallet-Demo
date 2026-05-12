@@ -75,7 +75,7 @@ The structure is similar for the use case flow. Those screens are located at `fr
 - StepInformation.tsx: like BasicSlide.tsx displays configured text and images to provide context for the proof.
 - StepProof.tsx: issues the configured proof to the user's wallet
 
-All of these steps are configurable via the JSON showcase files in `server/config/` (`studentShowcase.json`, `lawyerShowcase.json`, `businessShowcase.json`), loaded by `server/src/content/Showcases.ts`
+All of these steps are configurable via the JSON showcase files in `server/scripts/values` (`studentShowcase.json`, `lawyerShowcase.json`, `businessShowcase.json`), loaded by `server/src/content/Showcases.ts`
 
 ### Server Structure:
 
@@ -83,7 +83,7 @@ For the most part the server acts as a sort of proxy to pass requests to the tra
 
 ### Server Config:
 
-The showcase configurations live in `server/config/` as JSON files (`studentShowcase.json`, `lawyerShowcase.json`, `businessShowcase.json`). They are loaded by `server/src/content/Showcases.ts`. We'll walk through the structure and what the fields mean:
+The showcase configurations live in `server/scripts/values/` as JSON files (`studentShowcase.json`, `lawyerShowcase.json`, `businessShowcase.json`). They are loaded by `server/src/content/Showcases.ts`. We'll walk through the structure and what the fields mean:
 
 #### Basic Character Info
 
