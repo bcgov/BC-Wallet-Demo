@@ -66,6 +66,13 @@ mongodb:
 ## Showcase API (Express server)
 showcase:
   baseRoute: /digital-trust/showcase
+  ## URL path segments after `{baseRoute}/admin/` that are Express API (Caddy reverse_proxy), not the admin SPA.
+  ## Keep in sync with `server/src/index.ts` mounts under `${BASE_ROUTE}/admin/`.
+  adminApiPathSuffixes:
+    - showcases
+    - credentials
+    - images
+    - audit-log
   ## Pod DNS suffix for in-cluster names (Service FQDNs). Override if the cluster uses a non-default domain.
   clusterDNSDomain: cluster.local
   ## Optional NetworkPolicies (deny-by-default namespaces, e.g. OpenShift Silver). See README "Networking".
