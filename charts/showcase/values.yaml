@@ -94,6 +94,13 @@ showcase:
     ## namespace SCC assigns runAsUser (restricted-v2). Pin runAsUser only if your cluster allows it.
     mongoWaitInitContainerSecurityContext: {}
     extraEnv: []
+    ## Traction (ACA-Py tenant proxy): non-secret base URL in values; tenant id + API key from a Secret (see traction.existingSecret).
+    traction:
+      ## Tenant proxy base URL (no path). Example: https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca
+      url: ''
+      ## Secret in the release namespace with keys TRACTION_TENANT_ID and TRACTION_TENANT_API_KEY (see server/.env.example).
+      ## Leave empty when those keys live only in showcase.server.existingSecret instead.
+      existingSecret: ''
     ## Name of a pre-created Secret in the release namespace. If set, the chart does not create
     ## `*-server-env`; the Deployment uses envFrom with this Secret (e.g. ExternalSecrets, SealedSecrets).
     ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, TRACTION_TENANT_ID, etc.).
