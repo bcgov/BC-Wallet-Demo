@@ -19,7 +19,8 @@
 # If SHOWCASE_DEV_OC_URL or SHOWCASE_DEV_NAMESPACE is unset, the Helm deploy job is skipped while
 # image builds still run on bcgov. If both are set but SHOWCASE_DEV_OC_TOKEN is missing, the deploy
 # job fails at preflight with a clear error (secrets cannot be used in job-level `if`). Forks skip
-# GHCR jobs entirely (stay green).
+# GHCR jobs entirely (stay green). The **OpenShift deploy summary** job always prints a notice when
+# Helm was skipped for this reason. **workflow_dispatch** runs the full pipeline without a path filter.
 
 name: Deploy showcase (dev)
 
@@ -28,6 +29,7 @@ on:
     branches: [main]
     paths:
       - 'charts/showcase/**'
+      - 'deploy/showcase/**'
       - 'frontend/**'
       - 'server/**'
       - 'package.json'
@@ -37,6 +39,8 @@ on:
       - '.github/actions/showcase-build-frontend/**'
       - '.github/actions/showcase-setup-oc-helm/**'
       - '.github/actions/showcase-helm-lint/**'
+  ## Manual full pipeline (images + OpenShift) without waiting for a matching push path.
+  workflow_dispatch:
 
 concurrency:
   group: deploy-showcase-dev-${{ github.repository }}
@@ -137,6 +141,8 @@ jobs:
         run: |
           set -euo pipefail
           release="${SHOWCASE_DEV_HELM_RELEASE:-showcase}"
+          # Mongo subchart is not committed (*.tgz gitignored); ensure charts/ exists before upgrade.
+          helm dependency update
           helm upgrade --install "${release}" . \
             -f ../../deploy/showcase/values-dev.yaml \
             --namespace "${SHOWCASE_DEV_NAMESPACE}" \
@@ -164,3 +170,31 @@ jobs:
           oc rollout status "deployment/${server_deploy}" -n "${ns}" --timeout=15m
           oc rollout restart "deployment/${frontend_deploy}" -n "${ns}"
           oc rollout status "deployment/${frontend_deploy}" -n "${ns}" --timeout=15m
+
+  ## Makes “skipped Helm” visible: green builds alone do not update OpenShift without repo Variables + token.
+  deploy-dev-summary:
+    name: OpenShift deploy summary
+    runs-on: ubuntu-latest
+    needs: [build-server, build-frontend, helm-upgrade-dev]
+    if: always() && github.repository_owner == 'bcgov'
+    steps:
+      - name: Explain skipped or failed OpenShift deploy
+        env:
+          HELM_RESULT: ${{ needs.helm-upgrade-dev.result }}
+          BUILD_SERVER: ${{ needs.build-server.result }}
+          BUILD_FRONTEND: ${{ needs.build-frontend.result }}
+        run: |
+          set -euo pipefail
+          if [[ "${HELM_RESULT}" == "skipped" ]]; then
+            if [[ "${BUILD_SERVER}" != "success" || "${BUILD_FRONTEND}" != "success" ]]; then
+              echo '::notice::Helm upgrade (OpenShift dev) was skipped because a build job did not succeed.'
+            else
+              echo '::notice::Helm upgrade (OpenShift dev) was SKIPPED. Set repository **Variables** SHOWCASE_DEV_OC_URL and SHOWCASE_DEV_NAMESPACE (non-empty), and **Secret** SHOWCASE_DEV_OC_TOKEN. Image builds still ran; OpenShift was not updated.'
+            fi
+            exit 0
+          fi
+          if [[ "${HELM_RESULT}" == "failure" ]]; then
+            echo '::error::Helm upgrade (OpenShift dev) failed — see that job log for details.'
+            exit 0
+          fi
+          echo "Helm upgrade (OpenShift dev) finished: ${HELM_RESULT}"
