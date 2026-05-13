@@ -1,4 +1,4 @@
-import type { Showcase } from '../../../types'
+import type { IntroductionStep, ProgressBarStep, Showcase } from '../../../types'
 
 import { ArrowUpTrayIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
@@ -17,10 +17,10 @@ interface PersonaTabProps {
 
 export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, onRefresh }: PersonaTabProps) {
   const auth = useAuth()
-  const [isEditingTitle, setIsEditingTitle] = useState(false)
-  const [titleValue, setTitleValue] = useState(showcase.persona?.name || '')
-  const [isEditingRole, setIsEditingRole] = useState(false)
-  const [roleValue, setRoleValue] = useState(showcase.persona?.type || '')
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [name, setName] = useState(showcase.persona?.name || '')
+  const [isEditingType, setIsEditingType] = useState(false)
+  const [personaType, setPersonaType] = useState(showcase.persona?.type || '')
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -29,11 +29,11 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
   useEffect(() => {
     if (showcase) {
       // Only update form values if they match the showcase values (i.e., no unsaved changes)
-      if (titleValue === (localShowcase.persona?.name || '')) {
-        setTitleValue(showcase.persona?.name || '')
+      if (name === (localShowcase.persona?.name || '')) {
+        setName(showcase.persona?.name || '')
       }
-      if (roleValue === (localShowcase.persona?.type || '')) {
-        setRoleValue(showcase.persona?.type || '')
+      if (personaType === (localShowcase.persona?.type || '')) {
+        setPersonaType(showcase.persona?.type || '')
       }
       setLocalShowcase(showcase)
     }
@@ -49,19 +49,94 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
       await updateShowcase(auth, showcase.name, {
         persona: {
           ...showcase.persona,
-          name: titleValue,
-          type: roleValue,
+          name: name,
+          type: personaType,
         },
       })
 
       // Clear editing states after successful save
-      setIsEditingTitle(false)
-      setIsEditingRole(false)
+      setIsEditingName(false)
+      setIsEditingType(false)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred while saving'
       setSaveError(message)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const initializeBaseIntroduction = async () => {
+    if (!isNewShowcase || !showcase || showcase.introduction?.length || !auth.user?.access_token) {
+      return
+    }
+
+    const introductionScreens: IntroductionStep[] = [
+      {
+        screenId: 'PICK_CHARACTER',
+        name: `Meet ${name}`,
+        text: `${name} is a ${personaType}. In this demo, ${name} will use digital credentials from their BC Wallet to complete various tasks.`,
+      },
+      {
+        screenId: 'SETUP_START',
+        name: "Let's get started!",
+        text: 'BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas.\nUsing your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed.',
+        image: '/public/common/screen/getStarted.svg',
+      },
+      {
+        screenId: 'CHOOSE_WALLET',
+        name: 'Install BC Wallet',
+        text: 'First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.',
+        image: '/public/common/screen/app-store-screenshots.png',
+      },
+    ]
+
+    introductionScreens.push({
+      screenId: 'SETUP_COMPLETED',
+      name: "You're all set!",
+      text: 'Congratulations! You have successfully completed the onboarding. Your credentials are now ready to be used.',
+      image: '/public/common/screen/onboarding-completed-light.svg',
+    })
+
+    // Create corresponding progress bar
+    const progressBar: ProgressBarStep[] = [
+      {
+        name: 'person',
+        introductionStep: 'PICK_CHARACTER',
+        iconLight: '/public/common/icon/icon-person-light.svg',
+        iconDark: '/public/common/icon/icon-person-dark.svg',
+      },
+      {
+        name: 'moon',
+        introductionStep: 'SETUP_START',
+        iconLight: '/public/common/icon/icon-moon-light.svg',
+        iconDark: '/public/common/icon/icon-moon-dark.svg',
+      },
+      {
+        name: 'moon',
+        introductionStep: 'SETUP_START',
+        iconLight: '/public/common/icon/icon-moon-light.svg',
+        iconDark: '/public/common/icon/icon-moon-dark.svg',
+      },
+    ]
+
+    progressBar.push({
+      name: 'balloon',
+      introductionStep: 'SETUP_COMPLETED',
+      iconLight: '/public/common/icon/icon-balloon-light.svg',
+      iconDark: '/public/common/icon/icon-balloon-dark.svg',
+    })
+
+    try {
+      const updates: any = {
+        introduction: introductionScreens,
+        progressBar: progressBar,
+      }
+
+      await updateShowcase(auth, showcase.name, updates)
+      onRefresh?.()
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to initialize introduction:', error)
     }
   }
 
@@ -75,13 +150,14 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
       await updateShowcase(auth, showcase.name, {
         persona: {
           ...showcase.persona,
-          name: titleValue,
-          type: roleValue,
+          name: name,
+          type: personaType,
         },
       })
 
-      // Switch to credentials tab
-      onTabChange?.('credentials')
+      // Switch to introduction tab
+      await initializeBaseIntroduction()
+      onTabChange?.('introduction')
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred while saving'
       setSaveError(message)
@@ -105,7 +181,7 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
             Configure the details for your persona. This will be the credential holder going through the showcase.
           </h5>
         </div>
-        {(titleValue !== showcase.persona?.name || roleValue !== showcase.persona?.type) && (
+        {(name !== showcase.persona?.name || personaType !== showcase.persona?.type) && (
           <div className="flex flex-col gap-2 items-end">
             {saveError && <p className="text-red-600 text-xs">{saveError}</p>}
             <button
@@ -121,41 +197,41 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
       <div className="w-full max-w-4xl px-6 border border-gray-300 rounded-lg bg-white p-8">
         {/* Title Section */}
         <div className="mb-8">
-          <label className="block text-sm font-bold text-bcgov-black mb-2">Title</label>
+          <label className="block text-sm font-bold text-bcgov-black mb-2">Name</label>
           <div className="relative group">
             <input
               type="text"
-              value={titleValue}
-              onChange={(e) => setTitleValue(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
-              readOnly={!isEditingTitle && !isNewShowcase}
+              readOnly={!isEditingName && !isNewShowcase}
               className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue ${
-                isEditingTitle || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
+                isEditingName || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
               }`}
             />
             <PencilIcon
-              onClick={() => setIsEditingTitle(true)}
+              onClick={() => setIsEditingName(true)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
             />
           </div>
         </div>
 
-        {/* Role Section */}
+        {/* Type Section */}
         <div className="mb-8">
-          <label className="block text-sm font-bold text-bcgov-black mb-2">Role</label>
+          <label className="block text-sm font-bold text-bcgov-black mb-2">Type</label>
           <div className="relative group">
             <input
               type="text"
-              value={roleValue}
-              onChange={(e) => setRoleValue(e.target.value)}
+              value={personaType}
+              onChange={(e) => setPersonaType(e.target.value)}
               disabled={isLoading}
-              readOnly={!isEditingRole && !isNewShowcase}
+              readOnly={!isEditingType && !isNewShowcase}
               className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue ${
-                isEditingRole || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
+                isEditingType || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
               }`}
             />
             <PencilIcon
-              onClick={() => setIsEditingRole(true)}
+              onClick={() => setIsEditingType(true)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
             />
           </div>

@@ -38,27 +38,13 @@ export function CreateScenarioModal({
           screenId: 'START',
           name: `Welcome to ${name}`,
           text: `In this scenario, you will use your digital credentials to complete a task with ${name}. This is a demonstration of how you can use your BC Wallet in real-world situations.`,
-        },
-        {
-          screenId: 'CONNECTION',
-          name: `Connect with ${name}`,
-          text: `Imagine you're interacting with ${name}. They need to verify some information. Scan the QR code to continue.`,
-          verifier: { name, icon: '/public/common/icon-wallet-light.svg' },
-        },
-        {
-          screenId: 'PROOF',
-          name: 'Confirm the information to send',
-          text: `${name} is requesting some information from your credentials. Review what is being shared and confirm to proceed.`,
-          requestOptions: {
-            name: `${name} Request`,
-            text: `${name} would like some of your personal information.`,
-            requestedCredentials: [],
-          },
+          image: '/public/common/screen/card-school.svg',
         },
         {
           screenId: 'STEP_END',
           name: "You're done!",
           text: `You've successfully completed the interaction with ${name}. Your credentials were verified securely and privately.`,
+          image: '/public/common/screen/student-accepted.svg',
         },
       ],
     }

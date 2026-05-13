@@ -101,6 +101,23 @@ export const updateShowcase = async (
   return data
 }
 
+export const deleteScreenFromShowcase = async (
+  auth: AuthContextProps,
+  showcaseName: string,
+  screenId: string,
+): Promise<Showcase> => {
+  // Get the current showcase
+  const showcase = await getShowcaseByName(auth, showcaseName)
+
+  // Remove the screen from the introduction array
+  const updatedIntroduction = showcase.introduction.filter((screen) => screen.screenId !== screenId)
+
+  // Update the showcase with the filtered introduction array
+  return updateShowcase(auth, showcaseName, {
+    introduction: updatedIntroduction,
+  })
+}
+
 // ============================================================================
 // CREDENTIAL ENDPOINTS
 // ============================================================================
