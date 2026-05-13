@@ -237,12 +237,12 @@ Fail when bundled MongoDB is on but chart cannot determine generated Mongo secre
 {{- end }}
 
 {{/*
-Space-separated path tokens for Caddy matchers: admin REST API only (Express under BASE_ROUTE/admin/...).
-Uses `showcase.adminApiPathSuffixes` (exact segment + `/*` per entry). SPA-only routes stay off this list.
+Lines for Caddy named matcher body: Express admin API under {baseRoute}/admin/<segment>/...
+Wildcard segment: any first segment except showcase.adminSpaPathPrefixes (browser-only React routes).
 */}}
-{{- define "showcase.caddyAdminApiMatchers" -}}
-{{- $b := .Values.showcase.baseRoute -}}
-{{- range $i, $seg := .Values.showcase.adminApiPathSuffixes -}}
-{{- if ne $i 0 }} {{ end -}}{{ $b }}/admin/{{ $seg }} {{ $b }}/admin/{{ $seg }}/*
+{{- define "showcase.caddyAdminApiMatcherLines" -}}
+path {{ .Values.showcase.baseRoute }}/admin/*
+{{- range .Values.showcase.adminSpaPathPrefixes }}
+not path {{ $.Values.showcase.baseRoute }}/admin/{{ . }} {{ $.Values.showcase.baseRoute }}/admin/{{ . }}/*
 {{- end -}}
 {{- end }}
