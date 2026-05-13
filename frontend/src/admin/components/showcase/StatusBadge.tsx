@@ -9,7 +9,7 @@ export const STATUS_CONFIG: Record<ShowcaseStatus, { bgColor: string; textColor:
   pending: {
     bgColor: 'bg-orange-100',
     textColor: 'text-orange-800',
-    label: 'Draft',
+    label: 'Pending',
   },
   hidden: {
     bgColor: 'bg-yellow-100',
