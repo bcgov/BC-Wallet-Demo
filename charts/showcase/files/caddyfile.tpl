@@ -13,7 +13,7 @@
     file_server
     # baseRoute from Helm (not {$VITE_BASE_ROUTE}) so Caddy matches SPA + /demo/socket before upstream.
     @encode_static {
-        not path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/* {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
+        not path {{ include "showcase.caddyAdminApiMatchers" . }} {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/* {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
     }
     encode @encode_static zstd gzip
     # No global `templates` — Engine.IO polling bodies can break the templates handler.
@@ -39,14 +39,14 @@
             header_up Host {{ include "showcase.server.fullname" . }}:{{ .Values.showcase.server.containerPort }}
         }
         @spa_router {
-            not path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
+            not path {{ include "showcase.caddyAdminApiMatchers" . }} {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
             file {
-                try_files {path} /index.html
+                try_files {path} {{ .Values.showcase.baseRoute }}/index.html
             }
         }
         rewrite @spa_router {http.matchers.file.relative}
         @pass {
-            path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
+            path {{ include "showcase.caddyAdminApiMatchers" . }} {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
         }
         reverse_proxy @pass {$SHOWCASE_API_UPSTREAM} {
             trusted_proxies {{ .Values.showcase.frontend.trustedProxies }}

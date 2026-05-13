@@ -235,3 +235,12 @@ Fail when bundled MongoDB is on but chart cannot determine generated Mongo secre
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/*
+Space-separated path tokens for Caddy matchers: admin REST API only (Express under BASE_ROUTE/admin/...).
+Browser SPA routes under the same /admin prefix (login, callback, creator) must not match these.
+*/}}
+{{- define "showcase.caddyAdminApiMatchers" -}}
+{{- $b := .Values.showcase.baseRoute -}}
+{{- printf "%s/admin/showcases %s/admin/showcases/* %s/admin/credentials %s/admin/credentials/* %s/admin/images %s/admin/images/* %s/admin/audit-log %s/admin/audit-log/*" $b $b $b $b $b $b $b $b -}}
+{{- end }}
