@@ -191,7 +191,6 @@ jobs:
             --set "showcase.frontend.image.tag=pr-${PR_NUM}"
             --wait
             --timeout 10m
-            --debug
           )
           if [[ -n "${TRACTION_DEV_TENANT_ID:-}" && -n "${TRACTION_DEV_TENANT_API_KEY:-}" ]]; then
             oc create secret generic "${traction_secret}" \
