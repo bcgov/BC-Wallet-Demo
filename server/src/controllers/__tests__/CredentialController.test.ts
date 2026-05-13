@@ -25,7 +25,13 @@ describe('CredentialController', () => {
 
   describe('getCredByConnId', () => {
     it('calls tractionRequest.get with connection_id as a query param', async () => {
-      vi.mocked(tractionRequest.get).mockResolvedValue({ data: { results: [] } })
+      vi.mocked(tractionRequest.get).mockResolvedValue({
+        data: { results: [] },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      } as any)
 
       await controller.getCredByConnId('conn1')
 
@@ -37,7 +43,13 @@ describe('CredentialController', () => {
 
     it('returns the response data', async () => {
       const mockData = { results: [{ cred_ex_id: 'cred1' }] }
-      vi.mocked(tractionRequest.get).mockResolvedValue({ data: mockData })
+      vi.mocked(tractionRequest.get).mockResolvedValue({
+        data: mockData,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      } as any)
 
       const result = await controller.getCredByConnId('conn1')
 
@@ -56,8 +68,20 @@ describe('CredentialController', () => {
 
     it('returns the existing credDef id without creating anything', async () => {
       vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({ data: { schema_ids: ['existing-schema-id'] } })
-        .mockResolvedValueOnce({ data: { credential_definition_ids: ['existing-cred-def-id'] } })
+        .mockResolvedValueOnce({
+          data: { schema_ids: ['existing-schema-id'] },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
+        .mockResolvedValueOnce({
+          data: { credential_definition_ids: ['existing-cred-def-id'] },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
 
       const result = await controller.getOrCreateCredDef(credential)
 
@@ -79,11 +103,35 @@ describe('CredentialController', () => {
       vi.useFakeTimers()
 
       vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({ data: { schema_ids: [] } })
-        .mockResolvedValueOnce({ data: { credential_definition_ids: [] } })
+        .mockResolvedValueOnce({
+          data: { schema_ids: [] },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
+        .mockResolvedValueOnce({
+          data: { credential_definition_ids: [] },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
       vi.mocked(tractionRequest.post)
-        .mockResolvedValueOnce({ data: { sent: { schema_id: 'new-schema-id' } } })
-        .mockResolvedValueOnce({ data: { sent: { credential_definition_id: 'new-cred-def-id' } } })
+        .mockResolvedValueOnce({
+          data: { schema_state: { schema_id: 'new-schema-id' } },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
+        .mockResolvedValueOnce({
+          data: { credential_definition_state: { credential_definition_id: 'new-cred-def-id' } },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
 
       const promise = controller.getOrCreateCredDef(credential)
       // advance past the 5-second ledger propagation wait
@@ -108,11 +156,27 @@ describe('CredentialController', () => {
 
     it('uses existing schema id and creates a new credential definition', async () => {
       vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({ data: { schema_ids: ['pre-existing-schema-id'] } })
-        .mockResolvedValueOnce({ data: { credential_definition_ids: [] } })
+        .mockResolvedValueOnce({
+          data: { schema_ids: ['pre-existing-schema-id'] },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
+        .mockResolvedValueOnce({
+          data: { credential_definition_ids: [] },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
       vi.mocked(tractionRequest.post).mockResolvedValueOnce({
-        data: { sent: { credential_definition_id: 'brand-new-cred-def' } },
-      })
+        data: { credential_definition_state: { credential_definition_id: 'brand-new-cred-def' } },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      } as any)
 
       const result = await controller.getOrCreateCredDef(credential)
 
@@ -125,7 +189,13 @@ describe('CredentialController', () => {
   describe('offerCredential', () => {
     it('posts to the issue-credential/send endpoint with the params', async () => {
       const params = { connection_id: 'conn1', credential_preview: { attributes: [] } }
-      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { cred_ex_id: 'cred-exch-1' } })
+      vi.mocked(tractionRequest.post).mockResolvedValue({
+        data: { cred_ex_id: 'cred-exch-1' },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      } as any)
 
       await controller.offerCredential(params)
 
@@ -141,7 +211,13 @@ describe('CredentialController', () => {
 
     it('returns the response data', async () => {
       const mockData = { cred_ex_id: 'cred-exch-1', state: 'offer_sent' }
-      vi.mocked(tractionRequest.post).mockResolvedValue({ data: mockData })
+      vi.mocked(tractionRequest.post).mockResolvedValue({
+        data: mockData,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      } as any)
 
       const result = await controller.offerCredential({})
 
@@ -161,7 +237,13 @@ describe('CredentialController', () => {
           ],
         },
       }
-      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { cred_ex_id: 'cred-exch-1' } })
+      vi.mocked(tractionRequest.post).mockResolvedValue({
+        data: { cred_ex_id: 'cred-exch-1' },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      } as any)
 
       await controller.offerCredential(params)
 
@@ -190,7 +272,13 @@ describe('CredentialController', () => {
           attributes: [{ name: 'given_names', value: 'Bob' }],
         },
       }
-      vi.mocked(tractionRequest.post).mockResolvedValue({ data: {} })
+      vi.mocked(tractionRequest.post).mockResolvedValue({
+        data: {},
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      } as any)
 
       await controller.offerCredential(params)
 

@@ -147,7 +147,7 @@ describe('credentialsSlice reducers', () => {
       setCredential({
         by_format: {
           cred_issue: {
-            indy: {
+            anoncreds: {
               cred_def_id: 'ISSUER123:3:CL:100:CredentialName',
             },
           },
@@ -165,7 +165,7 @@ describe('credentialsSlice reducers', () => {
     const payload = {
       by_format: {
         cred_issue: {
-          indy: {
+          anoncreds: {
             cred_def_id: 'ISSUER123:3:CL:100:MyCredential',
           },
         },
