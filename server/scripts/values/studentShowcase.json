@@ -76,14 +76,14 @@
       "screenId": "ACCEPT_CREDENTIAL",
       "name": "Accept your student card",
       "text": "Your wallet now has a secure and private connection with BestBC College. You should have received an offer in BC Wallet for a Student Card.\nReview what they are sending, and choose 'Accept offer'.",
-      "image": "/public/common/onboarding-credential-light.svg",
+      "image": "/public/common/screen/onboarding-credential-light.svg",
       "credentials": ["student-card"]
     },
     {
       "screenId": "SETUP_COMPLETED",
       "name": "You're all set!",
       "text": "Congratulations, you’ve just received your first digital credentials. They are safely stored in your wallet and ready to be used. So, what are you waiting for? Let’s go!",
-      "image": "/public/common/onboarding-completed-light.svg"
+      "image": "/public/common/screen/onboarding-completed-light.svg"
     }
   ],
   "scenarios": [
