@@ -96,7 +96,7 @@ showcase:
     extraEnv: []
     ## Name of a pre-created Secret in the release namespace. If set, the chart does not create
     ## `*-server-env`; the Deployment uses envFrom with this Secret (e.g. ExternalSecrets, SealedSecrets).
-    ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, API_KEY, etc.).
+    ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, TRACTION_TENANT_ID, etc.).
     existingSecret: ''
     ## Used only when the chart builds MONGODB_URI (no showcase.server.existingSecret).
     ## Defaults target root auth + database `bcwallet_demo`.

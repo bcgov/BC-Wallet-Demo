@@ -22,8 +22,8 @@ export const tractionBaseUrl = process.env.TRACTION_URL ?? ''
 
 export const tractionApiKeyUpdaterInit = async () => {
   const tractionBaseUrl = process.env.TRACTION_URL ?? ''
-  const tenantId = process.env.TENANT_ID ?? ''
-  const apiKey = process.env.API_KEY ?? ''
+  const tenantId = process.env.TRACTION_TENANT_ID ?? ''
+  const apiKey = process.env.TRACTION_TENANT_API_KEY ?? ''
   logger.info({ tractionBaseUrl, tenantId }, 'Initializing Traction API key')
   try {
     agentKey =

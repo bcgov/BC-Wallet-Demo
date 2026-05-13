@@ -77,7 +77,7 @@ The **`wait-for-mongo-tcp`** init container uses the same host as chart-built **
 
 ## Secrets
 
-Prefer a pre-created **`Secret`** and **`showcase.server.existingSecret`**: the server uses **`envFrom`**, so every key becomes an env var (**`MONGODB_URI`**, **`TRACTION_URL`**, **`API_KEY`**, … — see **`server/.env.example`**).
+Prefer a pre-created **`Secret`** and **`showcase.server.existingSecret`**: the server uses **`envFrom`**, so every key becomes an env var (**`MONGODB_URI`**, **`TRACTION_URL`**, **`TRACTION_TENANT_ID`**, **`TRACTION_TENANT_API_KEY`**, … — see **`server/.env.example`**).
 
 With **`mongodb.enabled: true`**, the chart creates/reuses **`{{ release }}-showcase-mongo-root`** and builds chart-managed **`MONGODB_URI`** from that password (Helm **`lookup`**). Keep **`mongodb.auth.existingSecret`** set to the tpl string in **`deploy/showcase/values-dev.yaml`** so the Mongo subchart and server URI use the same secret source. Use **`showcase.server.existingSecret`** when you want to supply your own full server env (including `MONGODB_URI`).
 
