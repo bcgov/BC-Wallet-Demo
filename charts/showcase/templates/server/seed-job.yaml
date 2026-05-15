@@ -7,6 +7,9 @@ metadata:
   labels: {{- include "showcase.labels" . | nindent 4 }}
     app.kubernetes.io/component: server
   annotations:
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": hook-succeeded
     "helm.sh/hook-weight": "0"
