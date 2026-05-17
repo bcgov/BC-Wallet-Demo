@@ -235,3 +235,14 @@ Fail when bundled MongoDB is on but chart cannot determine generated Mongo secre
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/*
+Lines for Caddy named matcher body: Express admin API under {baseRoute}/admin/<segment>/...
+Wildcard segment: any first segment except showcase.adminSpaPathPrefixes (browser-only React routes).
+*/}}
+{{- define "showcase.caddyAdminApiMatcherLines" -}}
+path {{ .Values.showcase.baseRoute }}/admin/*
+{{- range .Values.showcase.adminSpaPathPrefixes }}
+not path {{ $.Values.showcase.baseRoute }}/admin/{{ . }} {{ $.Values.showcase.baseRoute }}/admin/{{ . }}/*
+{{- end -}}
+{{- end }}

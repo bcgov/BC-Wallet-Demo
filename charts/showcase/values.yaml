@@ -66,6 +66,12 @@ mongodb:
 ## Showcase API (Express server)
 showcase:
   baseRoute: /digital-trust/showcase
+  ## First URL path segment under `{baseRoute}/admin/<segment>/...` served by the **admin SPA** (static + React Router).
+  ## Any other segment is reverse_proxied to Express (wildcard). Add a segment here when adding a new client-only admin route.
+  ## See `frontend/src/admin/AdminApp.tsx`.
+  adminSpaPathPrefixes:
+    - callback
+    - creator
   ## Pod DNS suffix for in-cluster names (Service FQDNs). Override if the cluster uses a non-default domain.
   clusterDNSDomain: cluster.local
   ## Optional NetworkPolicies (deny-by-default namespaces, e.g. OpenShift Silver). See README "Networking".
