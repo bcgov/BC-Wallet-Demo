@@ -12,6 +12,14 @@ vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
+vi.mock('../../db/models/Credential', () => ({
+  CredentialModel: {
+    find: vi.fn(),
+    findById: vi.fn(),
+  },
+}))
+
+import { CredentialModel } from '../../db/models/Credential'
 import { tractionRequest } from '../../utils/tractionHelper'
 import { CredentialController } from '../CredentialController'
 
@@ -21,6 +29,79 @@ describe('CredentialController', () => {
   beforeEach(() => {
     controller = new CredentialController()
     vi.clearAllMocks()
+  })
+
+  describe('getAllCredentials', () => {
+    it('includes schema_id, cred_def_ids, status when present', async () => {
+      vi.mocked(CredentialModel.find).mockReturnValue({
+        lean: vi.fn().mockResolvedValue([
+          {
+            _id: 'traction-card',
+            name: 'Traction Card',
+            icon: '/icon.svg',
+            version: '1.0',
+            attributes: [],
+            schema_id: 'ABC:2:traction_card:1.0',
+            cred_def_ids: ['ABC:3:CL:100:tag'],
+            status: 'active',
+          },
+        ]),
+      } as any)
+
+      const result = await controller.getAllCredentials()
+
+      expect(result[0]).toMatchObject({
+        id: 'traction-card',
+        schema_id: 'ABC:2:traction_card:1.0',
+        cred_def_ids: ['ABC:3:CL:100:tag'],
+        status: 'active',
+      })
+    })
+
+    it('defaults cred_def_ids to [] and status to active when missing', async () => {
+      vi.mocked(CredentialModel.find).mockReturnValue({
+        lean: vi.fn().mockResolvedValue([
+          {
+            _id: 'legacy-card',
+            name: 'Legacy Card',
+            icon: '/icon.svg',
+            version: '1.0',
+            attributes: [],
+          },
+        ]),
+      } as any)
+
+      const result = await controller.getAllCredentials()
+
+      expect(result[0].cred_def_ids).toEqual([])
+      expect(result[0].status).toBe('active')
+      expect(result[0].schema_id).toBeUndefined()
+    })
+  })
+
+  describe('getCredentialById', () => {
+    it('includes schema_id, cred_def_ids, status in response', async () => {
+      vi.mocked(CredentialModel.findById).mockReturnValue({
+        lean: vi.fn().mockResolvedValue({
+          _id: 'traction-card',
+          name: 'Traction Card',
+          icon: '/icon.svg',
+          version: '1.0',
+          attributes: [],
+          schema_id: 'ABC:2:traction_card:1.0',
+          cred_def_ids: ['ABC:3:CL:100:tag'],
+          status: 'retired',
+        }),
+      } as any)
+
+      const result = await controller.getCredentialById('traction-card')
+
+      expect(result).toMatchObject({
+        schema_id: 'ABC:2:traction_card:1.0',
+        cred_def_ids: ['ABC:3:CL:100:tag'],
+        status: 'retired',
+      })
+    })
   })
 
   describe('getCredByConnId', () => {

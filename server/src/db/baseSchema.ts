@@ -21,11 +21,12 @@ export const embeddedSchemaOptions: SchemaOptions = {
   _id: false,
 }
 
-// Shared attribute schema used by Credential to ensure name and value are always validated.
+// Shared attribute schema used by Credential to ensure name is always present.
+// value is optional to support imported Traction credentials that have no default values.
 export const AttributeSchema = new Schema<{ name: string; value: string }>(
   {
     name: { type: String, required: true },
-    value: { type: String, required: true },
+    value: { type: String, default: '' },
   },
   embeddedSchemaOptions,
 )

@@ -138,6 +138,28 @@ export const createCredential = async (
   return data
 }
 
+export const syncCredentials = async (
+  auth: AuthContextProps,
+  filters?: { schema_name?: string; did_method?: string },
+): Promise<{ imported: number; updated: number; total: number }> => {
+  const params = new URLSearchParams()
+  if (filters?.schema_name) params.set('schema_name', filters.schema_name)
+  if (filters?.did_method) params.set('did_method', filters.did_method)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  const res = await fetch(`${adminBaseUrl}/credentials/sync${query}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!res.ok) {
+    const errorData = (await res.json()) as { error?: string }
+    throw new Error(errorData.error || `Request failed: ${res.status}`)
+  }
+  return (await res.json()) as { imported: number; updated: number; total: number }
+}
+
 // ============================================================================
 // IMAGE ENDPOINTS
 // ============================================================================

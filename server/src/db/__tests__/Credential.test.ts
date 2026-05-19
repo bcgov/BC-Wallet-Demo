@@ -21,6 +21,65 @@ afterAll(async () => {
 })
 
 describe('CredentialModel', () => {
+  it('saves and reads schema_id and cred_def_ids', async () => {
+    const doc = await CredentialModel.create({
+      _id: 'traction-card',
+      name: 'Traction Card',
+      icon: '/icon.svg',
+      version: '1.0',
+      attributes: [{ name: 'field', value: '' }],
+      schema_id: 'ABC:2:traction_card:1.0',
+      cred_def_ids: ['ABC:3:CL:100:tag'],
+    })
+
+    const json = doc.toJSON()
+    expect(json.schema_id).toBe('ABC:2:traction_card:1.0')
+    expect(json.cred_def_ids).toEqual(['ABC:3:CL:100:tag'])
+  })
+
+  it('defaults status to active when not set', async () => {
+    const doc = await CredentialModel.create({
+      _id: 'status-card',
+      name: 'Status Card',
+      icon: '/icon.svg',
+      version: '1.0',
+      attributes: [],
+    })
+
+    const json = doc.toJSON()
+    expect(json.status).toBe('active')
+  })
+
+  it('saves status retired correctly', async () => {
+    const doc = await CredentialModel.create({
+      _id: 'retired-card',
+      name: 'Retired Card',
+      icon: '/icon.svg',
+      version: '1.0',
+      attributes: [],
+      status: 'retired',
+    })
+
+    const json = doc.toJSON()
+    expect(json.status).toBe('retired')
+  })
+
+  it('existing credentials without new fields still work', async () => {
+    const doc = await CredentialModel.create({
+      _id: 'legacy-card',
+      name: 'Legacy Card',
+      icon: '/icon.svg',
+      version: '1.0',
+      attributes: [{ name: 'field', value: 'val' }],
+    })
+
+    const json = doc.toJSON()
+    expect(json.id).toBe('legacy-card')
+    expect(json.schema_id).toBeUndefined()
+    expect(json.cred_def_ids).toEqual([])
+    expect(json.status).toBe('active')
+  })
+
   it('persists a credential with a string id', async () => {
     const doc = await CredentialModel.create({
       _id: 'student-card',
