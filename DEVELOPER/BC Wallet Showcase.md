@@ -251,6 +251,54 @@ Scenarios share a common structure with the introduction flow. Key fields:
 
 Screen IDs must be unique within a scenario, hence the wildcards on `CONNECTION*` and `PROOF*`.
 
+## Admin API
+
+The admin API is mounted under `${BASE_ROUTE}/admin`. All endpoints require a valid Keycloak JWT. Access is controlled by role: `admin`, `creator`, or `viewer` (unless noted otherwise).
+
+### Credentials
+
+#### `GET /admin/credentials`
+
+Returns all credentials. You can use the following query parameters to filter results:
+
+- `?status=active|retired`: filter by status. Retired credentials are soft-deleted and hidden from the admin UI by default.
+- `?schema_name=<name>`: filter by schema name (exact match).
+
+If the local cache is older than 5 minutes, a background sync from Traction is triggered automatically. Errors from Traction during sync are ignored and cached data is always returned.
+
+This endpoint is accessible to `admin`, `creator`, and `viewer` roles.
+
+#### `POST /admin/credentials`
+
+Creates a new credential. The `_id` is derived from the name and version as a URL-safe slug. For example, `student_card 1.6` becomes `student-card-16`.
+
+This endpoint is restricted to the `admin` role.
+
+#### `PUT /admin/credentials/:id`
+
+Updates an existing credential. If the credential has a `schema_id` (meaning it is registered on the ledger), only `icon`, `attributes[].value`, and `status` can be changed. Ledger-locked fields like `name`, `version`, `schema_id`, and `cred_def_ids` will be rejected with a 400 error.
+
+This endpoint is restricted to the `admin` role.
+
+#### `DELETE /admin/credentials/:id`
+
+Soft-deletes a credential by setting its status to `retired`. The document is preserved so that existing showcases continue to work. You can use `?status=retired` on the list endpoint to retrieve retired credentials.
+
+This endpoint is restricted to the `admin` role.
+
+#### `POST /admin/credentials/sync`
+
+Forces a sync of schemas and credential definitions from Traction into the local database. New schemas are imported, and existing credentials that are missing `schema_id` or `cred_def_ids` are updated.
+
+You can narrow the sync with these optional filters:
+
+- `?schema_name=<name>`: only import schemas matching this name.
+- `?did_method=<prefix>`: only import schemas whose `schema_id` starts with this prefix.
+
+Returns `{ imported, updated, total }`.
+
+This endpoint is restricted to the `admin` role.
+
 ## Deployment
 
 When pushing changes to github the dev showcase environment should automatically update. The openshift deployments for the showcase are located here: https://github.com/bcgov/BC-Wallet-Demo-Configurations
