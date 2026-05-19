@@ -72,9 +72,10 @@ describe('createDeepProof thunk — retry loop', () => {
 })
 
 describe('createProofOOB thunk', () => {
-  it('stores proofUrl and proof on fulfilled', async () => {
+  it('stores proofUrl, shortProofUrl, and proof on fulfilled', async () => {
     const oobPayload = {
       proofUrl: 'http://oob-url',
+      short_url: 'https://showcase.example/i/oob-proof-1',
       proof: { presentation_exchange_id: 'pex-oob-1', state: 'request_sent' },
     }
     vi.mocked(ProofApi.createOOBProofRequest).mockResolvedValue({
@@ -86,6 +87,7 @@ describe('createProofOOB thunk', () => {
 
     const proofState = store.getState().proof
     expect(proofState.proofUrl).toBe('http://oob-url')
+    expect(proofState.shortProofUrl).toBe('https://showcase.example/i/oob-proof-1')
     expect(proofState.proof).toMatchObject({ presentation_exchange_id: 'pex-oob-1', id: 'pex-oob-1' })
   })
 })

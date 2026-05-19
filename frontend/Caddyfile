@@ -25,7 +25,7 @@
 
     # Long-poll / streaming (Socket.IO polling, APIs): do not compress — can break or buffer Engine.IO.
     @encode_static {
-        not path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/* {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr
+        not path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/* {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr {$VITE_BASE_ROUTE}/i/*
     }
     encode @encode_static zstd gzip
 
@@ -57,7 +57,7 @@
 
          # Required for SPA router to work
         @spa_router {
-            not path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/ready {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr
+            not path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/ready {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr {$VITE_BASE_ROUTE}/i/*
             file {
                 try_files {path} /index.html
             }
@@ -66,7 +66,7 @@
 
         # pass API requests to backend
         @pass {
-            path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/ready {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr
+            path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/ready {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr {$VITE_BASE_ROUTE}/i/*
         }
 
         # Proxy requests to API service

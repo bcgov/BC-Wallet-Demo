@@ -26,7 +26,7 @@ export interface Props {
 export const StepConnection: React.FC<Props> = ({ step, connection, newConnection }) => {
   const dispatch = useAppDispatch()
   const invitationCreatedRef = useRef(false)
-  const { state, invitationUrl } = connection
+  const { state, invitationUrl, shortInvitationUrl } = connection
   const { message } = useSocket()
   const isCompleted = isConnected(state as string)
   const deepLink = `bcwallet://aries_connection_invitation?${invitationUrl?.split('?')[1]}`
@@ -58,8 +58,10 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
     }
   }
 
+  const qrUrl = shortInvitationUrl ?? invitationUrl
+
   const renderQRCode = (overlay?: boolean) => {
-    return invitationUrl ? <QRCode invitationUrl={invitationUrl} connectionState={state} overlay={overlay} /> : null
+    return qrUrl ? <QRCode invitationUrl={qrUrl} connectionState={state} overlay={overlay} /> : null
   }
 
   const renderCTA = !isCompleted ? (

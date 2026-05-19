@@ -35,6 +35,7 @@ export interface Props {
   connectionId?: string
   connectionState?: string
   invitationUrl?: string
+  shortInvitationUrl?: string
   introductionStep: string
 }
 
@@ -45,6 +46,7 @@ export const IntroductionContainer: React.FC<Props> = ({
   connectionId,
   connectionState,
   invitationUrl,
+  shortInvitationUrl,
 }) => {
   const dispatch = useAppDispatch()
   const { issuedCredentials } = useCredentials()
@@ -152,6 +154,7 @@ export const IntroductionContainer: React.FC<Props> = ({
           skipIssuance={jumpIntroductionPage}
           nextSlide={nextIntroductionPage}
           invitationUrl={invitationUrl}
+          shortInvitationUrl={shortInvitationUrl}
           issuerName={issuer_name ?? 'Unknown'}
           newConnection
           disableSkipConnection={false}

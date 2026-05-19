@@ -26,6 +26,7 @@ import { StepConnection } from './steps/StepConnection'
 import { StepEnd } from './steps/StepEnd'
 import { StepInformation } from './steps/StepInformation'
 import { StepProof } from './steps/StepProof'
+import { StepProofOOB } from './steps/StepProofOOB'
 
 export interface Props {
   section: ScenarioScreen[]
@@ -37,7 +38,14 @@ export interface Props {
   proofUrl?: string
 }
 
-export const Section: React.FC<Props> = ({ connection, section, stepCount, sectionCount, credentials, proof }) => {
+export const Section: React.FC<Props> = ({
+  connection,
+  section,
+  stepCount,
+  sectionCount,
+  credentials,
+  proof,
+}) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
@@ -210,17 +218,29 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                 {step.screenId.startsWith('CONNECTION') && (
                   <StepConnection newConnection={true} key={step.screenId} step={step} connection={connection} />
                 )}
-                {step.screenId.startsWith('PROOF') && step.requestOptions && connection.id && (
-                  <StepProof
+                {step.screenId.startsWith('PROOF_OOB') && step.requestOptions && (
+                  <StepProofOOB
                     key={step.screenId}
                     entityName={verifier.name}
-                    characterType={currentShowcase?.persona?.type?.toLowerCase()}
                     proof={proof}
                     step={step}
-                    connectionId={connection.id}
                     requestedCredentials={step.requestOptions.requestedCredentials}
                   />
                 )}
+                {step.screenId.startsWith('PROOF') &&
+                  !step.screenId.startsWith('PROOF_OOB') &&
+                  step.requestOptions &&
+                  connection.id && (
+                    <StepProof
+                      key={step.screenId}
+                      entityName={verifier.name}
+                      characterType={currentShowcase?.persona?.type?.toLowerCase()}
+                      proof={proof}
+                      step={step}
+                      connectionId={connection.id}
+                      requestedCredentials={step.requestOptions.requestedCredentials}
+                    />
+                  )}
                 {step.screenId.startsWith('STEP_END') && <StepEnd key={step.screenId} step={step} />}
               </AnimatePresence>
               <div className="flex justify-between items-center">

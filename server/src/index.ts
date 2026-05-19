@@ -10,6 +10,7 @@ import { createExpressServer } from 'routing-controllers'
 import { Server } from 'socket.io'
 
 import { connectDB, registerShutdownHandlers } from './db/connection'
+import { serveOobInvitation } from './handlers/serveOobInvitation'
 import { auditLoginMiddleware } from './middleware/auditLogin'
 import { requireAdmin } from './middleware/requireAdmin'
 import adminAuditLogRouter from './routes/adminAuditLogRouter'
@@ -137,6 +138,9 @@ const run = async () => {
     res.redirect(url)
     return res
   })
+
+  // Short OOB invitation URL for QR scans: returns the stored invitation JSON (no redirect).
+  app.get(`${baseRoute}/i/:code`, serveOobInvitation)
 
   // respond to health checks for openshift
   app.get('/', async (req, res) => {
