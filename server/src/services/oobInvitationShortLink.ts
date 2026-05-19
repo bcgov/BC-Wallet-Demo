@@ -4,6 +4,7 @@ import type { Request } from 'express'
 
 import { buildShortInvitationUrl, getOobInvitationId, isShortInvitationUrlEnabled } from '../utils/oobInvitation'
 import { resolvePublicOrigin } from '../utils/publicOrigin'
+
 import { persistOobInvitation } from './oobInvitationStore'
 
 export type TractionOobInvitePayload = {
