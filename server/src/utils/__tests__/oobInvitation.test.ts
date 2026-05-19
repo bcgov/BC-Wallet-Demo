@@ -56,9 +56,9 @@ describe('getOobInvitationId', () => {
 
 describe('buildShortInvitationUrl', () => {
   it('builds a public short URL under baseRoute', () => {
-    expect(
-      buildShortInvitationUrl('oob-123', 'https://showcase.example.com', '/digital-trust/showcase'),
-    ).toBe('https://showcase.example.com/digital-trust/showcase/i/oob-123')
+    expect(buildShortInvitationUrl('oob-123', 'https://showcase.example.com', '/digital-trust/showcase')).toBe(
+      'https://showcase.example.com/digital-trust/showcase/i/oob-123',
+    )
   })
 
   it('encodes special characters in the oob id', () => {

@@ -1,7 +1,6 @@
-import type { Request } from 'express'
-
 import type { OobInvitationKind } from '../db/models/OobInvitation'
 import type { OobInvitationMessage } from '../utils/oobInvitation'
+import type { Request } from 'express'
 
 import { buildShortInvitationUrl, getOobInvitationId, isShortInvitationUrlEnabled } from '../utils/oobInvitation'
 import { resolvePublicOrigin } from '../utils/publicOrigin'

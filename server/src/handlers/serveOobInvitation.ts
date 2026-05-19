@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express'
 
 import { findOobInvitation } from '../services/oobInvitationStore'
-import { isShortInvitationUrlEnabled } from '../utils/oobInvitation'
 import logger from '../utils/logger'
+import { isShortInvitationUrlEnabled } from '../utils/oobInvitation'
 
 export async function serveOobInvitation(req: Request, res: Response): Promise<Response> {
   if (!isShortInvitationUrlEnabled()) {

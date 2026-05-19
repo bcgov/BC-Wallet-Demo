@@ -42,10 +42,7 @@ export class ConnectionController {
     const short_url = await attachShortUrlToOobInvite(payload, req, 'connection')
     if (short_url) {
       payload.short_url = short_url
-      logger.info(
-        { invitationUrl: payload.invitation_url, shortUrl: short_url },
-        'Connection invitation created',
-      )
+      logger.info({ invitationUrl: payload.invitation_url, shortUrl: short_url }, 'Connection invitation created')
     } else {
       logger.warn('Connection invitation missing OOB @id; short_url not generated')
       logger.info({ invitationUrl: payload?.invitation_url }, 'Connection invitation created')

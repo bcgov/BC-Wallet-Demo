@@ -166,7 +166,7 @@ export const StepProofOOB: React.FC<Props> = ({ proof, step, requestedCredential
           </div>
         </motion.div>
       )}
-      <div className="flex flex-col mt-4 text-center text-sm md:text-base font-semibold">{renderCTA}</motion.div>
+      <motion.div className="flex flex-col mt-4 text-center text-sm md:text-base font-semibold">{renderCTA}</motion.div>
     </motion.div>
   )
 }

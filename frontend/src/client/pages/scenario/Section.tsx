@@ -38,14 +38,7 @@ export interface Props {
   proofUrl?: string
 }
 
-export const Section: React.FC<Props> = ({
-  connection,
-  section,
-  stepCount,
-  sectionCount,
-  credentials,
-  proof,
-}) => {
+export const Section: React.FC<Props> = ({ connection, section, stepCount, sectionCount, credentials, proof }) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 

@@ -10,8 +10,8 @@ vi.mock('../../utils/publicOrigin', () => ({
   resolvePublicOrigin: vi.fn(() => 'https://showcase.example.com'),
 }))
 
-import { persistOobInvitation } from '../oobInvitationStore'
 import { attachShortUrlToOobInvite } from '../oobInvitationShortLink'
+import { persistOobInvitation } from '../oobInvitationStore'
 
 describe('attachShortUrlToOobInvite', () => {
   const originalFlag = process.env.SHOWCASE_SHORT_INVITATION_URLS_ENABLED
