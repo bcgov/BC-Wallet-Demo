@@ -106,7 +106,7 @@ export const updateShowcase = async (
 // ============================================================================
 
 export const getAllCredentials = async (auth: AuthContextProps): Promise<Credential[]> => {
-  const res = await fetch(`${adminBaseUrl}/credentials`, {
+  const res = await fetch(`${adminBaseUrl}/credentials?status=active`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
