@@ -83,7 +83,7 @@ showcase:
       tag: main
       digest: ''
       pullPolicy: IfNotPresent
-    ## Database seeding. When enabled, a Helm post-install/post-upgrade Job runs to seed the database.
+    ## Database seeding. When enabled, runs as an init container before the server starts.
     seed:
       enabled: true
     resources: {}
