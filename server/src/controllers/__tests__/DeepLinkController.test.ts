@@ -38,7 +38,7 @@ describe('DeeplinkController', () => {
       const result = await promise
 
       expect(result).toEqual({ cred_ex_id: 'cred1' })
-      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential/send', { connection_id: 'conn1' })
+      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential-2.0/send-offer', { connection_id: 'conn1' })
     })
 
     it('accepts "response" as a connected state', async () => {

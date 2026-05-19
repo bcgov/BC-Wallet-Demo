@@ -54,10 +54,10 @@ describe('tractionRequest', () => {
     vi.mocked(axios.post).mockResolvedValue({ data: {} })
     const body = { foo: 'bar' }
 
-    await th.tractionRequest.post('/issue-credential/send', body)
+    await th.tractionRequest.post('/issue-credential-2.0/send-offer', body)
 
     expect(axios.post).toHaveBeenCalledWith(
-      'https://traction.example.com/issue-credential/send',
+      'https://traction.example.com/issue-credential-2.0/send-offer',
       body,
       expect.objectContaining({
         timeout: 80000,
