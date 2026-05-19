@@ -24,6 +24,8 @@ showcase:
     enabled: true
   server:
     existingSecret: ''
+    traction:
+      url: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
     image:
       pullPolicy: Always
     resources:

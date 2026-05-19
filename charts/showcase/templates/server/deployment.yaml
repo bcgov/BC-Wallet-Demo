@@ -105,6 +105,22 @@ spec:
             {{- end }}
             - name: BASE_ROUTE
               value: {{ .Values.showcase.baseRoute | quote }}
+            {{- if .Values.showcase.server.traction.url }}
+            - name: TRACTION_URL
+              value: {{ .Values.showcase.server.traction.url | quote }}
+            {{- end }}
+            {{- if .Values.showcase.server.traction.existingSecret }}
+            - name: TRACTION_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.showcase.server.traction.existingSecret | quote }}
+                  key: TRACTION_TENANT_ID
+            - name: TRACTION_TENANT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.showcase.server.traction.existingSecret | quote }}
+                  key: TRACTION_TENANT_API_KEY
+            {{- end }}
           {{- range .Values.showcase.server.extraEnv }}
             - name: {{ .name }}
               value: {{ .value | quote }}

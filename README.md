@@ -18,7 +18,7 @@ cp server/.env.example server/.env
 cp frontend/.env.example frontend/.env
 ```
 
-The placeholder values in `.env.example` are enough to start the app locally. To issue or verify **real** credentials you need a [Traction](https://digital.gov.bc.ca/digital-trust/technical-resources/traction/) tenant — set `TENANT_ID`, `API_KEY`, `TRACTION_URL`, `TRACTION_DID`, and `WEBHOOK_SECRET` in `server/.env`. See [DEVELOPER/BC Wallet Showcase.md](DEVELOPER/BC%20Wallet%20Showcase.md) for the full Traction and ngrok webhook setup.
+The placeholder values in `.env.example` are enough to start the app locally. To issue or verify **real** credentials you need a [Traction](https://digital.gov.bc.ca/digital-trust/technical-resources/traction/) tenant — set `TRACTION_TENANT_ID`, `TRACTION_TENANT_API_KEY`, `TRACTION_URL`, `TRACTION_DID`, and `WEBHOOK_SECRET` in `server/.env`. See [DEVELOPER/BC Wallet Showcase.md](DEVELOPER/BC%20Wallet%20Showcase.md) for the full Traction and ngrok webhook setup.
 
 ### 2. Start the stack
 

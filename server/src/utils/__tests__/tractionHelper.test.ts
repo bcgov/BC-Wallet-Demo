@@ -93,8 +93,8 @@ describe('tractionRequest', () => {
 describe('tractionApiKeyUpdaterInit', () => {
   beforeEach(() => {
     process.env.TRACTION_URL = 'https://traction.example.com'
-    process.env.TENANT_ID = 'tenant123'
-    process.env.API_KEY = 'apikey456'
+    process.env.TRACTION_TENANT_ID = 'tenant123'
+    process.env.TRACTION_TENANT_API_KEY = 'apikey456'
     vi.useFakeTimers()
     vi.clearAllMocks()
   })
@@ -102,8 +102,8 @@ describe('tractionApiKeyUpdaterInit', () => {
   afterEach(() => {
     vi.useRealTimers()
     delete process.env.TRACTION_URL
-    delete process.env.TENANT_ID
-    delete process.env.API_KEY
+    delete process.env.TRACTION_TENANT_ID
+    delete process.env.TRACTION_TENANT_API_KEY
   })
 
   it('calls axios.post with the correct token endpoint and payload', async () => {

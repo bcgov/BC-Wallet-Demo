@@ -28,8 +28,8 @@ One last thing that needs to be done is to ensure that your traction agent is se
 There are two .env files that you need to create and configure on the showcase. They go in the same folder as the .env.example file. In the server folder the .env file should look like this:
 
 ```bash
-TENANT_ID=<YOUR_TENANT_ID>
-API_KEY=<YOUR_API_KEY>
+TRACTION_TENANT_ID=<YOUR_TENANT_ID>
+TRACTION_TENANT_API_KEY=<YOUR_API_KEY>
 TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
 BASE_ROUTE=/digital-trust/showcase
 WEBHOOK_SECRET=<YOUR_WEBHOOK_SECRET>
