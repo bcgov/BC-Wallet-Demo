@@ -4,6 +4,8 @@
 #
 # Configure on bcgov/BC-Wallet-Demo (repository Actions secrets):
 #   Secrets: OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_DEV_NAMESPACE
+#   Optional (Traction dev tenant; synced to Secret `pr-<N>-showcase-traction` before Helm when both set):
+#     TRACTION_DEV_TENANT_ID, TRACTION_DEV_TENANT_API_KEY
 # Optional variable: SHOWCASE_PR_HOST_SUFFIX — hostname without scheme (overrides workflow default).
 #   Default is Silver dev ingress (see env.SHOWCASE_PR_HOST_SUFFIX). Public URL:
 #   https://pr-<N>-<suffix>/digital-trust/showcase
@@ -170,22 +172,37 @@ jobs:
           HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           OWNER_LOWER: ${{ github.repository_owner }}
           OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+          TRACTION_DEV_TENANT_ID: ${{ secrets.TRACTION_DEV_TENANT_ID }}
+          TRACTION_DEV_TENANT_API_KEY: ${{ secrets.TRACTION_DEV_TENANT_API_KEY }}
         run: |
           set -euo pipefail
           origin="https://pr-${PR_NUM}-${HOST_SUFFIX}"
           owner_lc="$(echo "${OWNER_LOWER}" | tr '[:upper:]' '[:lower:]')"
+          ns="${OPENSHIFT_DEV_NAMESPACE}"
+          traction_secret="pr-${PR_NUM}-showcase-traction"
           helm dependency update
-          if ! helm upgrade --install "pr-${PR_NUM}-showcase" . \
-            -f ../../deploy/showcase/values-pr.yaml \
-            --namespace "${OPENSHIFT_DEV_NAMESPACE}" \
-            --set-string "showcase.publicOrigin=${origin}" \
-            --set "showcase.server.image.repository=${owner_lc}/bc-wallet-showcase-server" \
-            --set "showcase.server.image.tag=pr-${PR_NUM}" \
-            --set "showcase.frontend.image.repository=${owner_lc}/bc-wallet-showcase-frontend" \
-            --set "showcase.frontend.image.tag=pr-${PR_NUM}" \
-            --wait \
-            --timeout 10m \
-            --debug; then
+          helm_args=(
+            -f ../../deploy/showcase/values-pr.yaml
+            --namespace "${ns}"
+            --set-string "showcase.publicOrigin=${origin}"
+            --set "showcase.server.image.repository=${owner_lc}/bc-wallet-showcase-server"
+            --set "showcase.server.image.tag=pr-${PR_NUM}"
+            --set "showcase.frontend.image.repository=${owner_lc}/bc-wallet-showcase-frontend"
+            --set "showcase.frontend.image.tag=pr-${PR_NUM}"
+            --wait
+            --timeout 10m
+          )
+          if [[ -n "${TRACTION_DEV_TENANT_ID:-}" && -n "${TRACTION_DEV_TENANT_API_KEY:-}" ]]; then
+            oc create secret generic "${traction_secret}" \
+              --from-literal=TRACTION_TENANT_ID="${TRACTION_DEV_TENANT_ID}" \
+              --from-literal=TRACTION_TENANT_API_KEY="${TRACTION_DEV_TENANT_API_KEY}" \
+              -n "${ns}" \
+              --dry-run=client -o yaml | oc apply -f -
+            helm_args+=(--set-string "showcase.server.traction.existingSecret=${traction_secret}")
+          else
+            echo '::notice::TRACTION_DEV_TENANT_ID / TRACTION_DEV_TENANT_API_KEY not set — PR deploy without Traction tenant Secret.'
+          fi
+          if ! helm upgrade --install "pr-${PR_NUM}-showcase" . "${helm_args[@]}"; then
             echo '::error::helm upgrade failed; status and recent events follow.'
             helm status "pr-${PR_NUM}-showcase" -n "${OPENSHIFT_DEV_NAMESPACE}" 2>/dev/null || true
             oc get events -n "${OPENSHIFT_DEV_NAMESPACE}" --sort-by='.lastTimestamp' 2>/dev/null | tail -40 || true

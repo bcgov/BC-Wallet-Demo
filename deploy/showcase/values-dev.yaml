@@ -3,6 +3,8 @@
 ## Set `showcase.publicOrigin` to your HTTPS origin (no path). Ingress host is derived unless `ingress.frontend.hostname` is set.
 ## Secrets: chart always creates/reuses `{{ release }}-showcase-mongo-root` for Mongo root password. Set
 ## `showcase.server.existingSecret` to use a pre-created server env secret instead of chart-managed `MONGODB_URI`.
+## Traction: set `showcase.server.traction.url` here (non-secret); tenant id + API key from Secret `{{ release }}-traction`
+## when GitHub Actions secrets TRACTION_DEV_TENANT_* are set (see `.github/workflows/deploy-showcase-dev.yaml`).
 ## Enable `showcase.networkPolicy` for deny-by-default namespaces. Route timeout matches bcgov demo web (Socket.IO long-poll).
 
 ingress:
@@ -21,6 +23,9 @@ showcase:
     enabled: true
   server:
     existingSecret: ''
+    ## Traction tenant proxy (non-secret). Tenant id + API key: GitHub Actions syncs secret `${release}-traction` from repo secrets TRACTION_DEV_TENANT_ID / TRACTION_DEV_TENANT_API_KEY when set.
+    traction:
+      url: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
     resources:
       requests:
         cpu: 25m

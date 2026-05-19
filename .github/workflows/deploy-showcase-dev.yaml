@@ -15,6 +15,9 @@
 #   Secret:
 #     SHOWCASE_DEV_OC_TOKEN      — Service account or user token with permission to
 #                                  helm upgrade/install resources in that namespace
+#   Optional secrets (Traction tenant; synced to OpenShift Secret `${release}-traction` before Helm):
+#     TRACTION_DEV_TENANT_ID     — Tenant UUID (maps to env TRACTION_TENANT_ID in the pod)
+#     TRACTION_DEV_TENANT_API_KEY — Tenant API key (maps to env TRACTION_TENANT_API_KEY)
 #
 # If SHOWCASE_DEV_OC_URL or SHOWCASE_DEV_NAMESPACE is unset, the Helm deploy job is skipped while
 # image builds still run on bcgov. If both are set but SHOWCASE_DEV_OC_TOKEN is missing, the deploy
@@ -28,6 +31,7 @@ on:
     branches: [main]
     paths:
       - 'charts/showcase/**'
+      - 'deploy/showcase/**'
       - 'frontend/**'
       - 'server/**'
       - 'package.json'
@@ -134,15 +138,31 @@ jobs:
         env:
           SHOWCASE_DEV_NAMESPACE: ${{ vars.SHOWCASE_DEV_NAMESPACE }}
           SHOWCASE_DEV_HELM_RELEASE: ${{ vars.SHOWCASE_DEV_HELM_RELEASE }}
+          TRACTION_DEV_TENANT_ID: ${{ secrets.TRACTION_DEV_TENANT_ID }}
+          TRACTION_DEV_TENANT_API_KEY: ${{ secrets.TRACTION_DEV_TENANT_API_KEY }}
         run: |
           set -euo pipefail
           release="${SHOWCASE_DEV_HELM_RELEASE:-showcase}"
-          helm upgrade --install "${release}" . \
-            -f ../../deploy/showcase/values-dev.yaml \
-            --namespace "${SHOWCASE_DEV_NAMESPACE}" \
-            --wait \
-            --timeout 15m \
+          ns="${SHOWCASE_DEV_NAMESPACE}"
+          traction_secret="${release}-traction"
+          helm_args=(
+            -f ../../deploy/showcase/values-dev.yaml
+            --namespace "${ns}"
+            --wait
+            --timeout 15m
             --atomic
+          )
+          if [[ -n "${TRACTION_DEV_TENANT_ID:-}" && -n "${TRACTION_DEV_TENANT_API_KEY:-}" ]]; then
+            oc create secret generic "${traction_secret}" \
+              --from-literal=TRACTION_TENANT_ID="${TRACTION_DEV_TENANT_ID}" \
+              --from-literal=TRACTION_TENANT_API_KEY="${TRACTION_DEV_TENANT_API_KEY}" \
+              -n "${ns}" \
+              --dry-run=client -o yaml | oc apply -f -
+            helm_args+=(--set-string "showcase.server.traction.existingSecret=${traction_secret}")
+          else
+            echo '::notice::TRACTION_DEV_TENANT_ID / TRACTION_DEV_TENANT_API_KEY not set — not creating traction Secret; set them in repo Actions secrets to enable Traction.'
+          fi
+          helm upgrade --install "${release}" . "${helm_args[@]}"
 
       # Same tag (`:main`) can point at a new digest; restart so workloads pull the image we just pushed.
       - name: Rollout restart (pick up new main digest)

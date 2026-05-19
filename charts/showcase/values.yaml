@@ -66,6 +66,12 @@ mongodb:
 ## Showcase API (Express server)
 showcase:
   baseRoute: /digital-trust/showcase
+  ## First URL path segment under `{baseRoute}/admin/<segment>/...` served by the **admin SPA** (static + React Router).
+  ## Any other segment is reverse_proxied to Express (wildcard). Add a segment here when adding a new client-only admin route.
+  ## See `frontend/src/admin/AdminApp.tsx`.
+  adminSpaPathPrefixes:
+    - callback
+    - creator
   ## Pod DNS suffix for in-cluster names (Service FQDNs). Override if the cluster uses a non-default domain.
   clusterDNSDomain: cluster.local
   ## Optional NetworkPolicies (deny-by-default namespaces, e.g. OpenShift Silver). See README "Networking".
@@ -94,9 +100,16 @@ showcase:
     ## namespace SCC assigns runAsUser (restricted-v2). Pin runAsUser only if your cluster allows it.
     mongoWaitInitContainerSecurityContext: {}
     extraEnv: []
+    ## Traction (ACA-Py tenant proxy): non-secret base URL in values; tenant id + API key from a Secret (see traction.existingSecret).
+    traction:
+      ## Tenant proxy base URL (no path). Example: https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca
+      url: ''
+      ## Secret in the release namespace with keys TRACTION_TENANT_ID and TRACTION_TENANT_API_KEY (see server/.env.example).
+      ## Leave empty when those keys live only in showcase.server.existingSecret instead.
+      existingSecret: ''
     ## Name of a pre-created Secret in the release namespace. If set, the chart does not create
     ## `*-server-env`; the Deployment uses envFrom with this Secret (e.g. ExternalSecrets, SealedSecrets).
-    ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, API_KEY, etc.).
+    ## Include `MONGODB_URI` and all keys from `server/.env.example` (TRACTION_URL, TRACTION_TENANT_ID, etc.).
     existingSecret: ''
     ## Used only when the chart builds MONGODB_URI (no showcase.server.existingSecret).
     ## Defaults target root auth + database `bcwallet_demo`.

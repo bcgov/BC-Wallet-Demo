@@ -12,12 +12,16 @@
     root * /srv
     file_server
     # baseRoute from Helm (not {$VITE_BASE_ROUTE}) so Caddy matches SPA + /demo/socket before upstream.
+    vars * basePath {{ .Values.showcase.baseRoute }}
+    # Wildcard: {baseRoute}/admin/<apiSegment>/... → Express except adminSpaPathPrefixes (see values + frontend AdminApp).
+    @admin_api {
+        {{- include "showcase.caddyAdminApiMatcherLines" . | nindent 8 }}
+    }
     @encode_static {
         not path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/* {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
     }
     encode @encode_static zstd gzip
     # No global `templates` — Engine.IO polling bodies can break the templates handler.
-    vars * basePath {{ .Values.showcase.baseRoute }}
     handle /health {
         respond 200
     }
@@ -39,12 +43,20 @@
             header_up Host {{ include "showcase.server.fullname" . }}:{{ .Values.showcase.server.containerPort }}
         }
         @spa_router {
+            not {
+                {{- include "showcase.caddyAdminApiMatcherLines" . | nindent 16 }}
+            }
             not path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
             file {
-                try_files {path} /index.html
+                try_files {path} {{ .Values.showcase.baseRoute }}/index.html
             }
         }
         rewrite @spa_router {http.matchers.file.relative}
+        reverse_proxy @admin_api {$SHOWCASE_API_UPSTREAM} {
+            trusted_proxies {{ .Values.showcase.frontend.trustedProxies }}
+            header_up Host {{ include "showcase.server.fullname" . }}:{{ .Values.showcase.server.containerPort }}
+            header_up X-Forwarded-Host {host}
+        }
         @pass {
             path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
         }
