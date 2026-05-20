@@ -1,4 +1,4 @@
-import { AddConnectionButton } from './buttons/AddConnectionButton'
+import { AddConnectionButton } from '../buttons/AddConnectionButton'
 
 interface IntroductionSectionHeaderProps {
   screenId: string

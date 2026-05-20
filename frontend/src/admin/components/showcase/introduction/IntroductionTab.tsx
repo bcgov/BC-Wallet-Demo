@@ -6,11 +6,12 @@ import { useAuth } from 'react-oidc-context'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import { useIntroductionScreens } from '../../../hooks/useIntroductionScreens'
 import { useLineHeightCalculator } from '../../../hooks/useLineHeightCalculator'
-import { IntroductionInitializedModal } from '../../IntroductionInitializedModal'
-import { IntroductionTimeline } from '../IntroductionTimeline'
 import { CreateConnectAndAcceptScreensModal } from '../modals/CreateConnectAndAcceptScreensModal'
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
+import { IntroductionInitializedModal } from '../modals/IntroductionInitializedModal'
+
+import { IntroductionTimeline } from './IntroductionTimeline'
 
 interface IntroductionTabProps {
   showcase: Showcase

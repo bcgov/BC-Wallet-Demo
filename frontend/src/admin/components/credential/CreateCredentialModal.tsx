@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { createCredential, publicBaseUrl } from '../../api/adminApi'
-import { ImageUploadModal } from '../ImageUploadModal'
+import { ImageUploadModal } from '../showcase/modals/ImageUploadModal'
 
 interface Attribute {
   name: string

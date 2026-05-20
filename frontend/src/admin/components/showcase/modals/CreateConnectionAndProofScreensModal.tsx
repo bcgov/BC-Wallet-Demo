@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { updateShowcase } from '../../../api/adminApi'
-import { ImageUploadModal } from '../../ImageUploadModal'
 
 import { CreateOrEditScreenModal } from './CreateOrEditScreenModal'
+import { ImageUploadModal } from './ImageUploadModal'
 import { EnteringNameStep, SelectingCredentialsStep, SelectingAttributesStep, DefiningProofRequestStep } from './steps'
 
 interface CreateConnectionAndProofScreensModalProps {

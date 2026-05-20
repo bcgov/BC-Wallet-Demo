@@ -1,6 +1,6 @@
-import type { Showcase, IntroductionStep } from '../../types'
+import type { Showcase, IntroductionStep } from '../../../types'
 
-import { buildIntroductionRows } from '../../utils/buildIntroductionRows'
+import { buildIntroductionRows } from '../../../utils/buildIntroductionRows'
 
 import { IntroductionScreenRow } from './IntroductionScreenRow'
 import { IntroductionSectionHeader } from './IntroductionSectionHeader'

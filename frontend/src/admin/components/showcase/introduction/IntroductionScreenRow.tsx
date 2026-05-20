@@ -1,14 +1,13 @@
-import type { IntroductionStep } from '../../types'
-import type { IntroductionRow } from '../../utils/buildIntroductionRows'
+import type { IntroductionStep } from '../../../types'
+import type { IntroductionRow } from '../../../utils/buildIntroductionRows'
 
 import { PlusIcon } from '@heroicons/react/24/outline'
 
-import { publicBaseUrl } from '../../api/adminApi'
-import { ScreenContentCard } from '../ScreenContentCard'
-
-import { ProgressIconWithTooltip } from './ProgressIconWithTooltip'
-import { AddConnectionButton } from './buttons/AddConnectionButton'
-import { DeleteScreenPairButton } from './buttons/DeleteScreenPairButton'
+import { publicBaseUrl } from '../../../api/adminApi'
+import { ScreenContentCard } from '../../ScreenContentCard'
+import { ProgressIconWithTooltip } from '../ProgressIconWithTooltip'
+import { AddConnectionButton } from '../buttons/AddConnectionButton'
+import { DeleteScreenPairButton } from '../buttons/DeleteScreenPairButton'
 
 interface IntroductionScreenRowProps {
   row: IntroductionRow

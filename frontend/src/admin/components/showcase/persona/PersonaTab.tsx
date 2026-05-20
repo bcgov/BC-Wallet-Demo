@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { publicBaseUrl, updateShowcase } from '../../../api/adminApi'
-import { ImageUploadModal } from '../../ImageUploadModal'
+import { ImageUploadModal } from '../modals/ImageUploadModal'
 
 interface PersonaTabProps {
   showcase: Showcase

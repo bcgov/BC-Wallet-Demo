@@ -6,7 +6,8 @@ import { useEffect, useState } from 'react'
 
 import { publicBaseUrl, deleteScreenFromShowcase } from '../../../api/adminApi'
 import { formatScreenId } from '../../../utils/formatScreenId'
-import { ImageUploadModal } from '../../ImageUploadModal'
+
+import { ImageUploadModal } from './ImageUploadModal'
 
 interface CreateOrEditScreenModalProps {
   isOpen: boolean

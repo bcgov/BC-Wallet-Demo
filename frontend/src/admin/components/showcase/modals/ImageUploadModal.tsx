@@ -1,11 +1,11 @@
-import type { Showcase } from '../types'
+import type { Showcase } from '../../../types'
 import type { AuthContextProps } from 'react-oidc-context'
 
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { publicBaseUrl, getAvailableImages, uploadImage, updateShowcase } from '../api/adminApi'
+import { publicBaseUrl, getAvailableImages, uploadImage, updateShowcase } from '../../../api/adminApi'
 
 interface ImageUploadModalProps {
   isOpen: boolean
