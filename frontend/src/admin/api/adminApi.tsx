@@ -112,9 +112,13 @@ export const deleteScreenFromShowcase = async (
   // Remove the screen from the introduction array
   const updatedIntroduction = showcase.introduction.filter((screen) => screen.screenId !== screenId)
 
-  // Update the showcase with the filtered introduction array
+  // Remove any progressBar entries that reference the deleted screen
+  const updatedProgressBar = showcase.progressBar?.filter((entry) => entry.introductionStep !== screenId) || []
+
+  // Update the showcase with the filtered introduction and progressBar arrays
   return updateShowcase(auth, showcaseName, {
     introduction: updatedIntroduction,
+    progressBar: updatedProgressBar,
   })
 }
 

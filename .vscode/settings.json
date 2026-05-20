@@ -6,6 +6,7 @@
     "didcomm",
     "ditp",
     "persistor",
+    "renderable",
     "typedi",
     "usecase",
     "usecases",

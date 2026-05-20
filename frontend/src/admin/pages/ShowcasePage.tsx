@@ -12,18 +12,33 @@ import { useShowcase } from '../hooks/useShowcase'
 
 type TabId = 'persona' | 'introduction' | 'scenarios'
 
+const VALID_TABS: TabId[] = ['persona', 'introduction', 'scenarios']
+
+function isValidTabId(value: string | null): value is TabId {
+  return value !== null && VALID_TABS.includes(value as TabId)
+}
+
 export function ShowcasePage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { showcase, isLoading, refetch } = useShowcase()
   const [isNewShowcase, setIsNewShowcase] = useState(location.state?.isNewShowcase || false)
-  const tabFromUrl = (searchParams.get('tab') || 'persona') as TabId
-  const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl)
+  const tabFromUrl = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<TabId>(isValidTabId(tabFromUrl) ? tabFromUrl : 'persona')
 
   useEffect(() => {
     setSearchParams({ tab: activeTab }, { replace: true })
   }, [activeTab, setSearchParams])
+
+  // Handle legacy tab redirects
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam && !isValidTabId(tabParam)) {
+      // Redirect invalid tab values to persona
+      setSearchParams({ tab: 'persona' }, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   useEffect(() => {
     if (location.state?.isNewShowcase !== undefined) {
