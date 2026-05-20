@@ -111,12 +111,6 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
         iconLight: '/public/common/icon/icon-moon-light.svg',
         iconDark: '/public/common/icon/icon-moon-dark.svg',
       },
-      {
-        name: 'moon',
-        introductionStep: 'SETUP_START',
-        iconLight: '/public/common/icon/icon-moon-light.svg',
-        iconDark: '/public/common/icon/icon-moon-dark.svg',
-      },
     ]
 
     progressBar.push({
