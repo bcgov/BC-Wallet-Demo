@@ -5,7 +5,7 @@ import { useAuth } from 'react-oidc-context'
 
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import { useIntroductionScreens } from '../../../hooks/useIntroductionScreens'
-import { useLineHeightCalculator } from '../../../hooks/useLineHeightCalculator'
+import { useLineHeightWithProgressIcons } from '../../../hooks/useLineHeightWithProgressIcons'
 import { CreateConnectAndAcceptScreensModal } from '../modals/CreateConnectAndAcceptScreensModal'
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
@@ -48,7 +48,7 @@ export function IntroductionTab({ showcase, isNewShowcase, onTabChange, onRefres
     closeDeleteConfirm,
   } = useIntroductionScreens({ showcase, onRefresh })
 
-  const lineHeight = useLineHeightCalculator(containerRef, [showcase.introduction, reorderedIntroduction])
+  const lineHeight = useLineHeightWithProgressIcons(containerRef, [showcase.introduction, reorderedIntroduction])
 
   return (
     <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">

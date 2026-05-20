@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export function useLineHeightCalculator(
+export function useLineHeightWithProgressIcons(
   containerRef: React.RefObject<HTMLDivElement>,
   dependencies: React.DependencyList,
 ) {
