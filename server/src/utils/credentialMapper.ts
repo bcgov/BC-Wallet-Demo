@@ -2,6 +2,9 @@ import type { Credential } from '../content/types'
 import type { LeanCredentialDoc } from '../db/models/Credential'
 
 export function toCredentialResponse(doc: LeanCredentialDoc): Credential {
+  if (!doc.schema_id) {
+    throw new Error(`Credential "${doc._id}" has not been registered with Traction (missing schema_id)`)
+  }
   return {
     id: String(doc._id),
     name: doc.name,
@@ -10,6 +13,6 @@ export function toCredentialResponse(doc: LeanCredentialDoc): Credential {
     attributes: doc.attributes || [],
     schema_id: doc.schema_id,
     cred_def_ids: doc.cred_def_ids || [],
-    status: doc.status || 'active',
+    status: doc.status ?? 'active',
   }
 }

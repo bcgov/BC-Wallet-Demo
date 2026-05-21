@@ -58,12 +58,12 @@ describe('CredentialController', () => {
       })
     })
 
-    it('defaults cred_def_ids to [] and status to active when missing', async () => {
+    it('throws when a credential is missing schema_id', async () => {
       vi.mocked(CredentialModel.find).mockReturnValue({
         lean: vi.fn().mockResolvedValue([
           {
-            _id: 'legacy-card',
-            name: 'Legacy Card',
+            _id: 'unsynced-card',
+            name: 'Unsynced Card',
             icon: '/icon.svg',
             version: '1.0',
             attributes: [],
@@ -71,11 +71,7 @@ describe('CredentialController', () => {
         ]),
       } as any)
 
-      const result = await controller.getAllCredentials()
-
-      expect(result[0].cred_def_ids).toEqual([])
-      expect(result[0].status).toBe('active')
-      expect(result[0].schema_id).toBeUndefined()
+      await expect(controller.getAllCredentials()).rejects.toThrow('has not been registered with Traction')
     })
   })
 
@@ -224,7 +220,7 @@ describe('CredentialController', () => {
       const mockData = { credential_exchange_id: 'cred-exch-1', state: 'offer_sent' }
       vi.mocked(tractionRequest.post).mockResolvedValue({ data: mockData })
 
-      const result = await controller.offerCredential({})
+      const result = await controller.offerCredential({ connection_id: 'conn-1' })
 
       expect(result).toEqual(mockData)
     })

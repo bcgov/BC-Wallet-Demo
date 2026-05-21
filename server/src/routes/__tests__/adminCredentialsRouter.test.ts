@@ -155,19 +155,19 @@ describe('adminCredentialsRouter', () => {
   describe('POST /admin/credentials/sync', () => {
     it('returns 200 with sync result', async () => {
       mocks.mockAdminCredentialController.syncCredentials.mockResolvedValue({
-        imported: 2,
         updated: 1,
+        failed: 0,
         total: 3,
       })
 
       const res = await request(app).post('/admin/credentials/sync')
 
       expect(res.status).toBe(200)
-      expect(res.body).toEqual({ imported: 2, updated: 1, total: 3 })
+      expect(res.body).toEqual({ updated: 1, failed: 0, total: 3 })
     })
 
     it('calls syncCredentials (not syncIfStale) directly', async () => {
-      mocks.mockAdminCredentialController.syncCredentials.mockResolvedValue({ imported: 0, updated: 0, total: 0 })
+      mocks.mockAdminCredentialController.syncCredentials.mockResolvedValue({ updated: 0, failed: 0, total: 0 })
 
       await request(app).post('/admin/credentials/sync')
 
@@ -175,14 +175,12 @@ describe('adminCredentialsRouter', () => {
       expect(mocks.mockAdminCredentialController.syncIfStale).not.toHaveBeenCalled()
     })
 
-    it('passes schema_name and did_method query params to syncCredentials', async () => {
-      mocks.mockAdminCredentialController.syncCredentials.mockResolvedValue({ imported: 0, updated: 0, total: 0 })
+    it('calls syncCredentials with no arguments', async () => {
+      mocks.mockAdminCredentialController.syncCredentials.mockResolvedValue({ updated: 0, failed: 0, total: 0 })
 
-      await request(app).post('/admin/credentials/sync?schema_name=student_card&did_method=indy')
+      await request(app).post('/admin/credentials/sync')
 
-      expect(mocks.mockAdminCredentialController.syncCredentials).toHaveBeenCalledWith(
-        expect.objectContaining({ schema_name: 'student_card', did_method: 'indy' }),
-      )
+      expect(mocks.mockAdminCredentialController.syncCredentials).toHaveBeenCalledWith()
     })
 
     it('returns 500 when sync fails', async () => {

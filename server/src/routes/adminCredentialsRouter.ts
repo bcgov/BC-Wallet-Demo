@@ -98,20 +98,17 @@ router.post('/', requireRole(['admin']), async (req: Request, res: Response) => 
 
 /**
  * POST /admin/credentials/sync
- * Force a sync from Traction, bypassing the TTL cache.
- * Supports ?schema_name= and ?did_method= filters.
+ * For each active credential missing a schema_id or cred_def_ids, create the schema
+ * and credential definition in Traction if they do not exist, then write the IDs back
+ * to the local document. Bypasses the TTL cache.
  * Requires: admin role
  *
  * NOTE: This route must be declared before /:id to prevent "sync" matching as an id param.
  */
 router.post('/sync', requireRole(['admin']), async (req: Request, res: Response) => {
-  logger.info('Admin: force sync credentials from Traction')
+  logger.info('Admin: sync local credentials to Traction')
   try {
-    const filters = {
-      schema_name: req.query.schema_name as string | undefined,
-      did_method: req.query.did_method as string | undefined,
-    }
-    const result = await adminCredentialController.syncCredentials(filters)
+    const result = await adminCredentialController.syncCredentials()
     res.json(result)
     void Promise.resolve()
       .then(() =>

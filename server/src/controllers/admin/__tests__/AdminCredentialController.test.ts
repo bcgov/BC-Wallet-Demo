@@ -12,14 +12,14 @@ vi.mock('../../../utils/logger', () => ({
 }))
 
 // Hoisted so the class mock is available at module load time.
-// MockCredentialModel records constructor args and provides static stubs.
-const { mockFindById, mockFindByIdAndUpdate, mockSave, constructorCalls } = vi.hoisted(() => {
+const { mockFindById, mockFindByIdAndUpdate, mockFind, mockSave, constructorCalls } = vi.hoisted(() => {
   const mockSave = vi.fn().mockResolvedValue({})
   const constructorCalls: any[] = []
   const mockFindById = vi.fn()
   const mockFindByIdAndUpdate = vi.fn()
+  const mockFind = vi.fn()
 
-  return { mockFindById, mockFindByIdAndUpdate, mockSave, constructorCalls }
+  return { mockFindById, mockFindByIdAndUpdate, mockFind, mockSave, constructorCalls }
 })
 
 vi.mock('../../../db/models/Credential', () => {
@@ -30,6 +30,7 @@ vi.mock('../../../db/models/Credential', () => {
   }
   MockCredentialModel.findById = mockFindById
   MockCredentialModel.findByIdAndUpdate = mockFindByIdAndUpdate
+  MockCredentialModel.find = mockFind
 
   return { CredentialModel: MockCredentialModel }
 })
@@ -38,38 +39,12 @@ import logger from '../../../utils/logger'
 import { tractionRequest } from '../../../utils/tractionHelper'
 import { AdminCredentialController } from '../AdminCredentialController'
 
-const TRACTION_SCHEMA_STORAGE_RESPONSE = {
-  results: [
-    {
-      schema_id: 'ABC:2:student_card:1.6',
-      schema: {
-        name: 'student_card',
-        version: '1.6',
-        attrNames: ['first_name', 'last_name', 'expiry_date'],
-      },
-    },
-    {
-      schema_id: 'ABC:2:member_card:1.54',
-      schema: {
-        name: 'member_card',
-        version: '1.54',
-        attrNames: ['Given Name', 'Surname', 'PPID'],
-      },
-    },
-  ],
-}
-
-const TRACTION_CRED_DEF_STORAGE_RESPONSE = {
-  results: [
-    {
-      cred_def_id: 'ABC:3:CL:100:student_card',
-      schema_id: 'ABC:2:student_card:1.6',
-    },
-    {
-      cred_def_id: 'ABC:3:CL:200:member_card',
-      schema_id: 'ABC:2:member_card:1.54',
-    },
-  ],
+/** Helper: run syncCredentials while advancing fake timers to resolve the 5s ledger wait. */
+async function syncWithTimerAdvance(controller: AdminCredentialController) {
+  const promise = controller.syncCredentials()
+  // Advance past the 5s ledger propagation delay (may fire multiple times)
+  await vi.advanceTimersByTimeAsync(10_000)
+  return promise
 }
 
 describe('AdminCredentialController', () => {
@@ -77,7 +52,7 @@ describe('AdminCredentialController', () => {
 
   beforeEach(() => {
     controller = new AdminCredentialController()
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     constructorCalls.length = 0
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-01-01T00:00:00Z'))
@@ -92,198 +67,191 @@ describe('AdminCredentialController', () => {
   // ============================================================================
 
   describe('syncCredentials', () => {
-    it('imports new schemas not in MongoDB', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({ data: TRACTION_SCHEMA_STORAGE_RESPONSE } as any)
-        .mockResolvedValueOnce({ data: TRACTION_CRED_DEF_STORAGE_RESPONSE } as any)
-
-      mockFindById.mockResolvedValue(null)
-      mockSave.mockResolvedValue({})
-
-      const result = await controller.syncCredentials()
-
-      expect(result.imported).toBe(2)
-      expect(result.updated).toBe(0)
-      expect(result.total).toBe(2)
-      expect(constructorCalls).toHaveLength(2)
-    })
-
-    it('generates correct slug _id from schema name and version', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({
-          data: {
-            results: [
-              {
-                schema_id: 'ABC:2:student_card:1.6',
-                schema: { name: 'student_card', version: '1.6', attrNames: ['field'] },
-              },
+    it('creates schema and cred def for credential missing both', async () => {
+      mockFind.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([
+          {
+            _id: 'student-card-16',
+            name: 'student_card',
+            version: '1.6',
+            attributes: [
+              { name: 'first_name', value: '' },
+              { name: 'last_name', value: '' },
             ],
           },
-        } as any)
-        .mockResolvedValueOnce({ data: { results: [] } } as any)
+        ]),
+      })
 
-      mockFindById.mockResolvedValue(null)
-      mockSave.mockResolvedValue({})
-
-      await controller.syncCredentials()
-
-      // student_card + 1.6 -> underscores stripped, dots stripped -> "studentcard-16"
-      expect(constructorCalls[0]).toMatchObject({ _id: 'studentcard-16' })
-    })
-
-    it('uses default icon for imported credentials', async () => {
       vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({
-          data: {
-            results: [
-              {
-                schema_id: 'ABC:2:student_card:1.6',
-                schema: { name: 'student_card', version: '1.6', attrNames: ['field'] },
-              },
-            ],
-          },
-        } as any)
-        .mockResolvedValueOnce({ data: { results: [] } } as any)
+        .mockResolvedValueOnce({ data: { schema_ids: [] } } as any)
+        .mockResolvedValueOnce({ data: { credential_definition_ids: [] } } as any)
 
-      mockFindById.mockResolvedValue(null)
-      mockSave.mockResolvedValue({})
+      vi.mocked(tractionRequest.post)
+        .mockResolvedValueOnce({ data: { sent: { schema_id: 'ABC:2:student_card:1.6' } } } as any)
+        .mockResolvedValueOnce({ data: { sent: { credential_definition_id: 'ABC:3:CL:100:student_card' } } } as any)
 
-      await controller.syncCredentials()
+      mockFindByIdAndUpdate.mockResolvedValue({})
 
-      expect(constructorCalls[0]).toMatchObject({ icon: '/public/common/icon/icon-balloon-light.svg' })
-    })
+      const result = await syncWithTimerAdvance(controller)
 
-    it('builds attributes from attrNames with empty string values', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({
-          data: {
-            results: [
-              {
-                schema_id: 'ABC:2:student_card:1.6',
-                schema: { name: 'student_card', version: '1.6', attrNames: ['first_name', 'expiry_date'] },
-              },
-            ],
-          },
-        } as any)
-        .mockResolvedValueOnce({ data: { results: [] } } as any)
+      expect(result.updated).toBe(1)
+      expect(result.total).toBe(1)
 
-      mockFindById.mockResolvedValue(null)
-      mockSave.mockResolvedValue({})
+      // Schema created with correct attributes
+      expect(tractionRequest.post).toHaveBeenCalledWith('/schemas', {
+        attributes: ['first_name', 'last_name'],
+        schema_name: 'student_card',
+        schema_version: '1.6',
+      })
 
-      await controller.syncCredentials()
+      // Cred def created
+      expect(tractionRequest.post).toHaveBeenCalledWith('/credential-definitions', {
+        revocation_registry_size: 25,
+        schema_id: 'ABC:2:student_card:1.6',
+        support_revocation: true,
+        tag: 'student_card',
+      })
 
-      expect(constructorCalls[0]).toMatchObject({
-        attributes: [
-          { name: 'first_name', value: '' },
-          { name: 'expiry_date', value: '' },
-        ],
+      // Local doc updated
+      expect(mockFindByIdAndUpdate).toHaveBeenCalledWith('student-card-16', {
+        schema_id: 'ABC:2:student_card:1.6',
+        cred_def_ids: ['ABC:3:CL:100:student_card'],
       })
     })
 
-    it('maps cred_def_ids to correct schema', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({ data: TRACTION_SCHEMA_STORAGE_RESPONSE } as any)
-        .mockResolvedValueOnce({ data: TRACTION_CRED_DEF_STORAGE_RESPONSE } as any)
-
-      mockFindById.mockResolvedValue(null)
-      mockSave.mockResolvedValue({})
-
-      await controller.syncCredentials()
-
-      const studentCard = constructorCalls.find((c) => c._id === 'studentcard-16')
-      expect(studentCard?.cred_def_ids).toEqual(['ABC:3:CL:100:student_card'])
-    })
-
-    it('skips schemas already in MongoDB (no constructor calls)', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({ data: TRACTION_SCHEMA_STORAGE_RESPONSE } as any)
-        .mockResolvedValueOnce({ data: TRACTION_CRED_DEF_STORAGE_RESPONSE } as any)
-
-      // Both already exist with metadata
-      mockFindById.mockResolvedValue({ _id: 'existing', schema_id: 'ABC:2:student_card:1.6', cred_def_ids: ['x'] })
-
-      const result = await controller.syncCredentials()
-
-      expect(constructorCalls).toHaveLength(0)
-      expect(result.imported).toBe(0)
-    })
-
-    it('updates existing docs missing schema_id or cred_def_ids', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({
-          data: {
-            results: [
-              {
-                schema_id: 'ABC:2:student_card:1.6',
-                schema: { name: 'student_card', version: '1.6', attrNames: ['field'] },
-              },
-            ],
+    it('reuses existing schema from Traction when one exists', async () => {
+      mockFind.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([
+          {
+            _id: 'student-card-16',
+            name: 'student_card',
+            version: '1.6',
+            attributes: [{ name: 'field', value: '' }],
           },
-        } as any)
-        .mockResolvedValueOnce({ data: { results: [] } } as any)
+        ]),
+      })
 
-      // Exists but missing schema_id
-      mockFindById.mockResolvedValue({ _id: 'student-card-16', schema_id: undefined, cred_def_ids: [] })
+      vi.mocked(tractionRequest.get)
+        .mockResolvedValueOnce({ data: { schema_ids: ['ABC:2:student_card:1.6'] } } as any)
+        .mockResolvedValueOnce({ data: { credential_definition_ids: ['ABC:3:CL:100:student_card'] } } as any)
+
       mockFindByIdAndUpdate.mockResolvedValue({})
 
       const result = await controller.syncCredentials()
 
-      expect(mockFindByIdAndUpdate).toHaveBeenCalledWith(
-        'studentcard-16',
-        expect.objectContaining({ schema_id: 'ABC:2:student_card:1.6' }),
-      )
       expect(result.updated).toBe(1)
+      expect(tractionRequest.post).not.toHaveBeenCalled()
+      expect(mockFindByIdAndUpdate).toHaveBeenCalledWith('student-card-16', {
+        schema_id: 'ABC:2:student_card:1.6',
+        cred_def_ids: ['ABC:3:CL:100:student_card'],
+      })
     })
 
-    it('handles empty Traction response', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({ data: { results: [] } } as any)
-        .mockResolvedValueOnce({ data: { results: [] } } as any)
+    it('only updates cred_def_ids when schema_id already set', async () => {
+      mockFind.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([
+          {
+            _id: 'student-card-16',
+            name: 'student_card',
+            version: '1.6',
+            attributes: [{ name: 'field', value: '' }],
+            schema_id: 'ABC:2:student_card:1.6',
+            cred_def_ids: [],
+          },
+        ]),
+      })
+
+      vi.mocked(tractionRequest.get).mockResolvedValueOnce({
+        data: { credential_definition_ids: ['ABC:3:CL:100:student_card'] },
+      } as any)
+
+      mockFindByIdAndUpdate.mockResolvedValue({})
 
       const result = await controller.syncCredentials()
 
-      expect(result).toEqual({ imported: 0, updated: 0, total: 0 })
+      expect(result.updated).toBe(1)
+      expect(tractionRequest.get).toHaveBeenCalledTimes(1)
+      expect(tractionRequest.get).toHaveBeenCalledWith('/credential-definitions/created', {
+        params: { schema_id: 'ABC:2:student_card:1.6' },
+      })
+      expect(mockFindByIdAndUpdate).toHaveBeenCalledWith('student-card-16', {
+        cred_def_ids: ['ABC:3:CL:100:student_card'],
+      })
     })
 
-    it('throws when Traction API errors', async () => {
+    it('skips credentials that already have schema_id and cred_def_ids', async () => {
+      mockFind.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([]),
+      })
+
+      const result = await controller.syncCredentials()
+
+      expect(result.updated).toBe(0)
+      expect(result.total).toBe(0)
+      expect(tractionRequest.get).not.toHaveBeenCalled()
+    })
+
+    it('counts failures without throwing when Traction API errors', async () => {
+      mockFind.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([
+          {
+            _id: 'student-card-16',
+            name: 'student_card',
+            version: '1.6',
+            attributes: [],
+          },
+        ]),
+      })
+
       vi.mocked(tractionRequest.get).mockRejectedValue(new Error('Traction unavailable'))
 
-      await expect(controller.syncCredentials()).rejects.toThrow('Traction unavailable')
-    })
+      const result = await controller.syncCredentials()
 
-    it('filters by schema_name when provided', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({ data: TRACTION_SCHEMA_STORAGE_RESPONSE } as any)
-        .mockResolvedValueOnce({ data: TRACTION_CRED_DEF_STORAGE_RESPONSE } as any)
-
-      mockFindById.mockResolvedValue(null)
-      mockSave.mockResolvedValue({})
-
-      const result = await controller.syncCredentials({ schema_name: 'student_card' })
-
+      expect(result.failed).toBe(1)
+      expect(result.updated).toBe(0)
       expect(result.total).toBe(1)
-      expect(result.imported).toBe(1)
     })
 
-    it('treats duplicate key error (11000) as already exists without throwing', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({
-          data: {
-            results: [
-              {
-                schema_id: 'ABC:2:student_card:1.6',
-                schema: { name: 'student_card', version: '1.6', attrNames: [] },
-              },
-            ],
+    it('handles multiple credentials needing sync', async () => {
+      mockFind.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([
+          {
+            _id: 'student-card-16',
+            name: 'student_card',
+            version: '1.6',
+            attributes: [{ name: 'field', value: '' }],
           },
-        } as any)
-        .mockResolvedValueOnce({ data: { results: [] } } as any)
+          {
+            _id: 'member-card-154',
+            name: 'member_card',
+            version: '1.54',
+            attributes: [{ name: 'name', value: '' }],
+          },
+        ]),
+      })
 
-      mockFindById.mockResolvedValue(null)
-      const dupError = Object.assign(new Error('dup key'), { code: 11000 })
-      mockSave.mockRejectedValue(dupError)
+      // Route by URL + params so responses are order-independent (credentials run in parallel)
+      vi.mocked(tractionRequest.get).mockImplementation(async (url: string, config?: any) => {
+        if (url === '/schemas/created') {
+          const name = config?.params?.schema_name
+          if (name === 'student_card') return { data: { schema_ids: ['ABC:2:student_card:1.6'] } } as any
+          if (name === 'member_card') return { data: { schema_ids: ['ABC:2:member_card:1.54'] } } as any
+        }
+        if (url === '/credential-definitions/created') {
+          const id = config?.params?.schema_id
+          if (id === 'ABC:2:student_card:1.6')
+            return { data: { credential_definition_ids: ['ABC:3:CL:100:student_card'] } } as any
+          if (id === 'ABC:2:member_card:1.54')
+            return { data: { credential_definition_ids: ['ABC:3:CL:200:member_card'] } } as any
+        }
+      })
 
-      await expect(controller.syncCredentials()).resolves.toMatchObject({ imported: 0 })
+      mockFindByIdAndUpdate.mockResolvedValue({})
+
+      const result = await controller.syncCredentials()
+
+      expect(result.updated).toBe(2)
+      expect(result.total).toBe(2)
     })
   })
 
@@ -293,38 +261,40 @@ describe('AdminCredentialController', () => {
 
   describe('syncIfStale', () => {
     it('calls syncCredentials when lastSyncTimestamp is 0 (fresh start)', async () => {
-      vi.mocked(tractionRequest.get).mockResolvedValue({ data: { results: [] } } as any)
+      mockFind.mockReturnValue({ lean: vi.fn().mockResolvedValue([]) })
 
       await controller.syncIfStale()
 
-      expect(tractionRequest.get).toHaveBeenCalledWith('/schema-storage')
+      expect(mockFind).toHaveBeenCalled()
     })
 
     it('skips sync when called again within TTL window', async () => {
-      vi.mocked(tractionRequest.get).mockResolvedValue({ data: { results: [] } } as any)
+      mockFind.mockReturnValue({ lean: vi.fn().mockResolvedValue([]) })
 
       await controller.syncIfStale() // first call triggers sync
-      vi.clearAllMocks()
+      vi.resetAllMocks()
       await controller.syncIfStale() // within TTL -- should skip
 
-      expect(tractionRequest.get).not.toHaveBeenCalled()
+      expect(mockFind).not.toHaveBeenCalled()
     })
 
     it('syncs again after TTL expires', async () => {
-      vi.mocked(tractionRequest.get).mockResolvedValue({ data: { results: [] } } as any)
+      mockFind.mockReturnValue({ lean: vi.fn().mockResolvedValue([]) })
 
       await controller.syncIfStale() // first call
       vi.advanceTimersByTime(6 * 60 * 1000) // advance past 5-minute TTL
-      vi.clearAllMocks()
-      vi.mocked(tractionRequest.get).mockResolvedValue({ data: { results: [] } } as any)
+      vi.resetAllMocks()
+      mockFind.mockReturnValue({ lean: vi.fn().mockResolvedValue([]) })
 
       await controller.syncIfStale() // should sync again
 
-      expect(tractionRequest.get).toHaveBeenCalled()
+      expect(mockFind).toHaveBeenCalled()
     })
 
     it('catches sync errors and does not throw', async () => {
-      vi.mocked(tractionRequest.get).mockRejectedValue(new Error('Traction down'))
+      mockFind.mockImplementation(() => {
+        throw new Error('DB down')
+      })
 
       await expect(controller.syncIfStale()).resolves.toBeUndefined()
       expect(logger.warn).toHaveBeenCalled()
@@ -345,6 +315,8 @@ describe('AdminCredentialController', () => {
           icon: '/i.svg',
           version: '2.0',
           attributes: [],
+          schema_id: 'ABC:2:local_card:2.0',
+          cred_def_ids: ['ABC:3:CL:1:tag'],
         }),
       })
 
@@ -372,6 +344,8 @@ describe('AdminCredentialController', () => {
           icon: '/new.svg',
           version: '1.6',
           attributes: [],
+          schema_id: 'ABC:2:student_card:1.6',
+          cred_def_ids: ['ABC:3:CL:100:student_card'],
         }),
       })
 
@@ -387,6 +361,8 @@ describe('AdminCredentialController', () => {
           icon: '/i.svg',
           version: '1.6',
           attributes: [],
+          schema_id: 'ABC:2:student_card:1.6',
+          cred_def_ids: ['ABC:3:CL:100:student_card'],
           status: 'retired',
         }),
       })
@@ -413,6 +389,8 @@ describe('AdminCredentialController', () => {
         icon: '/i.svg',
         version: '1.6',
         attributes: [],
+        schema_id: 'ABC:2:student_card:1.6',
+        cred_def_ids: ['ABC:3:CL:100:student_card'],
         status: 'retired',
       }
       mockFindByIdAndUpdate.mockReturnValue({

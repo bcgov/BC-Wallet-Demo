@@ -1,13 +1,14 @@
 import { BadRequestError, Body, Delete, JsonController, NotFoundError, Param, Post, Put } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import { Credential } from '../../content/types'
+import { Credential, CreateCredentialInput } from '../../content/types'
 import { CredentialModel, LeanCredentialDoc } from '../../db/models/Credential'
 import { toCredentialResponse } from '../../utils/credentialMapper'
 import logger from '../../utils/logger'
 import { tractionRequest } from '../../utils/tractionHelper'
 
 const SYNC_TTL_MS = 5 * 60 * 1000 // 5 minutes
+const LEDGER_PROPAGATION_MS = 5000 // wait after schema creation before creating cred def
 
 // Fields that are locked once a credential is registered on the ledger.
 // Only showcase-specific fields (icon, attributes values, status) remain editable.
@@ -27,6 +28,64 @@ function generateSlug(name: string, version: string): string {
   return `${nameSlug}-${versionSlug}`
 }
 
+async function resolveSchemaId(cred: LeanCredentialDoc): Promise<string> {
+  if (cred.schema_id) return cred.schema_id
+
+  const { data } = await tractionRequest.get('/schemas/created', {
+    params: { schema_name: cred.name, schema_version: cred.version },
+  })
+  const existing: string[] = data.schema_ids ?? []
+  if (existing.length > 1) {
+    logger.warn(
+      { credentialId: cred._id, count: existing.length, schema_ids: existing },
+      'Multiple schemas found for credential; using first',
+    )
+  }
+  if (existing.length > 0) return existing[0]
+
+  const { data: created } = await tractionRequest.post('/schemas', {
+    attributes: cred.attributes.map((a) => a.name),
+    schema_name: cred.name,
+    schema_version: cred.version,
+  })
+  await new Promise((r) => setTimeout(r, LEDGER_PROPAGATION_MS))
+  return created.sent.schema_id
+}
+
+async function resolveCredDefIds(schemaId: string, cred: LeanCredentialDoc): Promise<string[]> {
+  if (cred.cred_def_ids?.length) return cred.cred_def_ids
+
+  const { data } = await tractionRequest.get('/credential-definitions/created', {
+    params: { schema_id: schemaId },
+  })
+  const existing: string[] = data.credential_definition_ids ?? []
+  if (existing.length > 0) return existing
+
+  const { data: created } = await tractionRequest.post('/credential-definitions', {
+    revocation_registry_size: 25,
+    schema_id: schemaId,
+    support_revocation: true,
+    tag: cred.name,
+  })
+  return [created.sent.credential_definition_id]
+}
+
+async function registerWithTraction(cred: LeanCredentialDoc): Promise<boolean> {
+  const schemaId = await resolveSchemaId(cred)
+  const credDefIds = await resolveCredDefIds(schemaId, cred)
+
+  const updates = {
+    ...(cred.schema_id ? {} : { schema_id: schemaId }),
+    ...(!cred.cred_def_ids?.length ? { cred_def_ids: credDefIds } : {}),
+  }
+
+  if (!Object.keys(updates).length) return false
+
+  await CredentialModel.findByIdAndUpdate(cred._id, updates)
+  logger.debug({ credentialId: cred._id, ...updates }, 'Registered credential with Traction')
+  return true
+}
+
 @JsonController('/admin/credentials')
 @Service()
 export class AdminCredentialController {
@@ -38,7 +97,7 @@ export class AdminCredentialController {
    * Create a new credential
    */
   @Post('/')
-  public async createCredential(@Body() body: Credential) {
+  public async createCredential(@Body() body: CreateCredentialInput) {
     logger.debug({ body }, 'Creating new credential')
     try {
       const credentialId = generateSlug(body.name, body.version)
@@ -132,91 +191,42 @@ export class AdminCredentialController {
   }
 
   /**
-   * Sync schemas and credential definitions from Traction into local MongoDB.
-   * New schemas are imported; existing docs missing schema_id/cred_def_ids are updated.
-   * Updates lastSyncTimestamp on success.
+   * For each active credential missing a schema_id or cred_def_ids: create the schema
+   * and credential definition in Traction if they do not already exist, then write the
+   * resulting IDs back to the local document. Updates lastSyncTimestamp on success.
    */
-  public async syncCredentials(filters?: { schema_name?: string; did_method?: string }): Promise<{
-    imported: number
+  public async syncCredentials(): Promise<{
     updated: number
+    failed: number
     total: number
   }> {
-    logger.info({ filters }, 'Syncing credentials from Traction')
+    logger.info('Syncing local credentials to Traction')
 
-    const [schemasRes, credDefsRes] = await Promise.all([
-      tractionRequest.get('/schema-storage'),
-      tractionRequest.get('/credential-definition-storage'),
-    ])
+    const credentials = await CredentialModel.find({
+      status: { $ne: 'retired' },
+      $or: [
+        { schema_id: { $exists: false } },
+        { schema_id: '' },
+        { cred_def_ids: { $size: 0 } },
+        { cred_def_ids: { $exists: false } },
+      ],
+    }).lean<LeanCredentialDoc[]>()
 
-    let schemas: any[] = schemasRes.data.results
-    const credDefs: any[] = credDefsRes.data.results
+    const results = await Promise.allSettled(credentials.map(registerWithTraction))
 
-    // Local filtering (Traction endpoints don't support query params)
-    if (filters?.schema_name) {
-      schemas = schemas.filter((s) => s.schema.name === filters.schema_name)
-    }
-    if (filters?.did_method) {
-      schemas = schemas.filter((s) => s.schema_id.startsWith(filters.did_method!))
-    }
-
-    // Build schema_id -> cred_def_id[] lookup
-    const credDefMap = new Map<string, string[]>()
-    for (const cd of credDefs) {
-      const existing = credDefMap.get(cd.schema_id) || []
-      existing.push(cd.cred_def_id)
-      credDefMap.set(cd.schema_id, existing)
-    }
-
-    let imported = 0
     let updated = 0
-
-    for (const entry of schemas) {
-      const { schema, schema_id } = entry
-      const credentialId = generateSlug(schema.name, schema.version)
-      const matchingCredDefs = credDefMap.get(schema_id) || []
-
-      try {
-        const existing = await CredentialModel.findById(credentialId)
-
-        if (!existing) {
-          const credential = new CredentialModel({
-            _id: credentialId,
-            name: schema.name,
-            icon: '/public/common/icon/icon-balloon-light.svg',
-            version: schema.version,
-            attributes: schema.attrNames.map((n: string) => ({ name: n, value: '' })),
-            schema_id,
-            cred_def_ids: matchingCredDefs,
-            status: 'active',
-          })
-          await credential.save()
-          imported++
-          logger.debug({ credentialId, schema_id }, 'Imported credential from Traction')
-        } else {
-          const updates: Record<string, unknown> = {}
-          if (!existing.schema_id) updates.schema_id = schema_id
-          if (!existing.cred_def_ids?.length && matchingCredDefs.length) {
-            updates.cred_def_ids = matchingCredDefs
-          }
-          if (Object.keys(updates).length) {
-            await CredentialModel.findByIdAndUpdate(credentialId, updates)
-            updated++
-            logger.debug({ credentialId }, 'Updated credential with Traction metadata')
-          }
-        }
-      } catch (err: any) {
-        if (err?.code === 11000) {
-          // Duplicate key -- another concurrent sync beat us, treat as already exists
-          logger.debug({ credentialId }, 'Duplicate key on sync, skipping')
-        } else {
-          throw err
-        }
+    let failed = 0
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value) updated++
+      else if (result.status === 'rejected') {
+        failed++
+        logger.error({ err: result.reason }, 'Failed to register credential with Traction')
       }
     }
 
     this.lastSyncTimestamp = Date.now()
-    logger.info({ imported, updated, total: schemas.length }, 'Traction sync complete')
-    return { imported, updated, total: schemas.length }
+    logger.info({ updated, failed, total: credentials.length }, 'Traction sync complete')
+    return { updated, failed, total: credentials.length }
   }
 
   /**

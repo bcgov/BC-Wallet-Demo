@@ -1,12 +1,26 @@
+import { isAxiosError } from 'axios'
 import { Body, Get, JsonController, NotFoundError, Param, Post } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import { Credential } from '../content/types'
+import { CreateCredentialInput } from '../content/types'
 import { CredentialModel, LeanCredentialDoc } from '../db/models/Credential'
 import { toCredentialResponse } from '../utils/credentialMapper'
 import logger from '../utils/logger'
 import { resolveCredentialAttributes } from '../utils/resolveMarkers'
 import { tractionRequest } from '../utils/tractionHelper'
+
+const LEDGER_PROPAGATION_MS = 5000 // wait after schema creation before creating cred def
+
+interface CredentialOfferParams {
+  connection_id: string
+  auto_issue?: boolean
+  auto_remove?: boolean
+  trace?: boolean
+  filter?: Record<string, unknown>
+  credential_preview?: {
+    attributes: { name: string; value: string | number }[]
+  }
+}
 
 @JsonController('/credentials')
 @Service()
@@ -57,7 +71,7 @@ export class CredentialController {
   }
 
   @Post('/getOrCreateCredDef')
-  public async getOrCreateCredDef(@Body() credential: Credential) {
+  public async getOrCreateCredDef(@Body() credential: CreateCredentialInput) {
     logger.info({ name: credential.name, version: credential.version }, 'Resolving credential definition')
     const schemas = (
       await tractionRequest.get(`/schemas/created`, {
@@ -77,7 +91,7 @@ export class CredentialController {
       ).data
       schema_id = resp.sent.schema_id
       logger.info({ schema_id }, 'Schema created, waiting for ledger propagation')
-      await new Promise((r) => setTimeout(r, 5000))
+      await new Promise((r) => setTimeout(r, LEDGER_PROPAGATION_MS))
     } else {
       schema_id = schemas.schema_ids[0]
       logger.debug({ schema_id }, 'Existing schema found')
@@ -105,11 +119,11 @@ export class CredentialController {
   }
 
   @Post('/offerCredential')
-  public async offerCredential(@Body() params: any) {
+  public async offerCredential(@Body() params: CredentialOfferParams) {
     logger.debug({ incomingParams: params }, 'Incoming credential offer params')
     const resolvedAttributes =
       params.credential_preview?.attributes != null
-        ? resolveCredentialAttributes(params.credential_preview.attributes).map((attr: any) => ({
+        ? resolveCredentialAttributes(params.credential_preview.attributes).map((attr) => ({
             ...attr,
             value: String(attr.value), // Ensure all values are strings for credential preview
           }))
@@ -137,15 +151,17 @@ export class CredentialController {
       const response = await tractionRequest.post(`/issue-credential-2.0/send-offer`, payload)
       logger.info({ credentialExchangeId: response.data?.cred_ex_id }, 'Credential offer sent')
       return response.data
-    } catch (error: any) {
-      logger.error(
-        {
-          status: error.response?.status,
-          data: error.response?.data,
-          payload,
-        },
-        'Failed to send credential offer',
-      )
+    } catch (error) {
+      if (isAxiosError(error)) {
+        logger.error(
+          {
+            status: error.response?.status,
+            data: error.response?.data,
+            payload,
+          },
+          'Failed to send credential offer',
+        )
+      }
       throw error
     }
   }
