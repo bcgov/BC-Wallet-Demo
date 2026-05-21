@@ -1,9 +1,9 @@
-import type { Credential } from '../../../../types'
+import type { Credential, Showcase } from '../../../../types'
 
 import { publicBaseUrl } from '../../../../api/adminApi'
 
 interface SelectingCredentialsStepProps {
-  showcase: any
+  showcase: Showcase | null | undefined
   selectedCredentials: Set<string>
   onSelectCredential: (credentialId: string, checked: boolean) => void
   onBack: () => void

@@ -19,10 +19,7 @@ export const StepInformation: React.FC<Props> = ({ step }) => {
       </div>
 
       {step.image && (
-        <div
-          className="bg-contain bg-center bg-no-repeat h-full flex items-center justify-center"
-          style={{ backgroundImage: `url(${baseUrl}${step.image})` }}
-        />
+        <img src={`${baseUrl}${step.image}`} alt={step.name} className="max-h-full max-w-full object-contain" />
       )}
     </motion.div>
   )

@@ -46,6 +46,7 @@ export function CreateConnectionAndProofScreensModal({
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
   const [imageUploadModalCredentialId, setImageUploadModalCredentialId] = useState<string | null>(null)
   const [isVerifierIconUploadOpen, setIsVerifierIconUploadOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const connectionScreenTemplate: ScenarioScreen = {
     screenId: 'CONNECTION',
@@ -77,6 +78,7 @@ export function CreateConnectionAndProofScreensModal({
     setIsImageUploadModalOpen(false)
     setImageUploadModalCredentialId(null)
     setIsVerifierIconUploadOpen(false)
+    setError(null)
   }, [isOpen])
 
   if (!isOpen) return null
@@ -198,8 +200,9 @@ export function CreateConnectionAndProofScreensModal({
 
                       onComplete?.()
                       onClose()
-                    } catch {
-                      // Error handling - modals will still close
+                    } catch (err) {
+                      const errorMessage = err instanceof Error ? err.message : 'Failed to save verification screens'
+                      setError(errorMessage)
                     }
                   }
                 }}
@@ -442,14 +445,26 @@ export function CreateConnectionAndProofScreensModal({
 
                       onComplete?.()
                       onClose()
-                    } catch {
-                      // Error handling - modals will still close
+                    } catch (err) {
+                      const errorMessage = err instanceof Error ? err.message : 'Failed to save verification screens'
+                      setError(errorMessage)
                     }
                   }
                 }}
               />
             </div>
           </>
+        )}
+
+        {error && (
+          <div className="border-t border-red-200 bg-red-50 p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-red-800">{error}</div>
+              <button onClick={() => setError(null)} className="text-red-600 hover:text-red-700 font-medium text-sm">
+                Dismiss
+              </button>
+            </div>
+          </div>
         )}
       </div>
 

@@ -19,7 +19,7 @@ export class CredentialController {
     const credentials = await CredentialModel.find().lean()
     logger.debug({ count: credentials.length }, 'Credentials fetched')
     // Map to frontend Credential type with id instead of _id
-    return credentials.map((credential: typeof CredentialModel.prototype) => ({
+    return credentials.map((credential: any) => ({
       id: String(credential._id),
       name: credential.name,
       icon: credential.icon,

@@ -1,12 +1,12 @@
-import type { IntroductionStep } from '../types'
+import type { IntroductionStep, ProgressBarStep } from '../types'
 
 export interface IntroductionRow {
   type: 'single' | 'pair'
   idx: number
   screen: IntroductionStep
   nextScreen?: IntroductionStep
-  progressStep?: any
-  acceptProgressStep?: any
+  progressStep?: ProgressBarStep
+  acceptProgressStep?: ProgressBarStep
   isFirstConnectScreen: boolean
 }
 
@@ -14,7 +14,10 @@ export interface IntroductionRow {
  * Preprocesses introduction screens into renderable rows.
  * Handles CONNECT/ACCEPT pairing and computes all necessary state upfront.
  */
-export function buildIntroductionRows(introduction: IntroductionStep[], progressBar: any[] = []): IntroductionRow[] {
+export function buildIntroductionRows(
+  introduction: IntroductionStep[],
+  progressBar: ProgressBarStep[] = [],
+): IntroductionRow[] {
   const rows: IntroductionRow[] = []
   const processedIndices = new Set<number>()
 
