@@ -171,9 +171,17 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 10
+          volumeMounts:
+            - name: server-config
+              mountPath: /app/server/config/keycloak.json
+              subPath: keycloak.json
           {{- with .Values.showcase.server.resources }}
           resources: {{- toYaml . | nindent 12 }}
           {{- end }}
+      volumes:
+        - name: server-config
+          configMap:
+            name: {{ include "showcase.server.configmapName" . }}
       {{- with .Values.showcase.server.nodeSelector }}
       nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}
