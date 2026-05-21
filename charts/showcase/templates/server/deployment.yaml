@@ -23,9 +23,11 @@ spec:
         {{- range $k, $v := .Values.showcase.server.podLabels }}
         {{ $k }}: {{ $v | quote }}
         {{- end }}
-      {{- if .Values.showcase.server.podAnnotations }}
-      annotations: {{- toYaml .Values.showcase.server.podAnnotations | nindent 8 }}
-      {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/server/configmap.yaml") . | sha256sum }}
+        {{- with .Values.showcase.server.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets: {{- toYaml . | nindent 8 }}

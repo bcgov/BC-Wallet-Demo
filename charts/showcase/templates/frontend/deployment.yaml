@@ -23,9 +23,11 @@ spec:
         {{- range $k, $v := .Values.showcase.frontend.podLabels }}
         {{ $k }}: {{ $v | quote }}
         {{- end }}
-      {{- if .Values.showcase.frontend.podAnnotations }}
-      annotations: {{- toYaml .Values.showcase.frontend.podAnnotations | nindent 8 }}
-      {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/frontend/configmap.yaml") . | sha256sum }}
+        {{- with .Values.showcase.frontend.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       enableServiceLinks: true
       {{- with .Values.global.imagePullSecrets }}
