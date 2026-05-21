@@ -52,9 +52,12 @@ spec:
               value: {{ .Values.showcase.insightsProjectId | quote }}
             {{- end }}
           volumeMounts:
-            - name: caddyfile
+            - name: frontend-config
               mountPath: /etc/caddy/Caddyfile
               subPath: Caddyfile
+            - name: frontend-config
+              mountPath: /srv{{ .Values.showcase.baseRoute }}/config.json
+              subPath: config.json
           readinessProbe:
             httpGet:
               path: /health
@@ -65,7 +68,7 @@ spec:
           resources: {{- toYaml . | nindent 12 }}
           {{- end }}
       volumes:
-        - name: caddyfile
+        - name: frontend-config
           configMap:
             name: {{ include "showcase.frontend.configmapName" . }}
       {{- with .Values.showcase.frontend.nodeSelector }}
