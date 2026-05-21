@@ -12,9 +12,9 @@ import { Server } from 'socket.io'
 import { connectDB, registerShutdownHandlers } from './db/connection'
 import { auditLoginMiddleware } from './middleware/auditLogin'
 import { requireAdmin } from './middleware/requireAdmin'
+import adminAssetsRouter, { UPLOADS_DIR } from './routes/adminAssetsRouter'
 import adminAuditLogRouter from './routes/adminAuditLogRouter'
 import adminCredentialsRouter from './routes/adminCredentialsRouter'
-import adminImagesRouter from './routes/adminImagesRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
 import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
@@ -66,6 +66,10 @@ const run = async () => {
   await connectDB()
   registerShutdownHandlers()
 
+  // Ensure the uploads directory exists before serving it statically.
+  const { mkdirSync } = await import('fs')
+  mkdirSync(UPLOADS_DIR, { recursive: true })
+
   await tractionApiKeyUpdaterInit()
   await tractionGarbageCollection()
 
@@ -111,13 +115,14 @@ const run = async () => {
   )
 
   app.use(`${baseRoute}/public`, stx(__dirname + '/public'))
+  app.use(`${baseRoute}/uploads`, stx(UPLOADS_DIR))
 
   // All routes under /admin require a valid Keycloak-issued JWT.
   app.use(`${baseRoute}/admin`, requireAdmin)
   app.use(`${baseRoute}/admin`, auditLoginMiddleware)
   app.use(`${baseRoute}/admin/showcases`, adminShowcasesRouter)
   app.use(`${baseRoute}/admin/credentials`, adminCredentialsRouter)
-  app.use(`${baseRoute}/admin/images`, adminImagesRouter)
+  app.use(`${baseRoute}/admin/assets`, adminAssetsRouter)
   app.use(`${baseRoute}/admin/audit-log`, adminAuditLogRouter)
 
   app.get(`${baseRoute}/server/last-reset`, (_req, res) => {
