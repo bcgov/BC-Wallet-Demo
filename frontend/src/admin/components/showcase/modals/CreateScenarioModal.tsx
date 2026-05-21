@@ -5,6 +5,8 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
 import { updateShowcase } from '../../../api/adminApi'
+import log from '../../../utils/logger'
+import { ErrorBanner } from '../../ErrorBanner'
 
 interface CreateScenarioModalProps {
   isOpen: boolean
@@ -25,8 +27,13 @@ export function CreateScenarioModal({
 }: CreateScenarioModalProps) {
   const [scenarioName, setScenarioName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  if (!isOpen) return null
+  const handleClose = () => {
+    setError(null)
+    setScenarioName('')
+    onClose()
+  }
 
   const generateGenericScenario = (name: string): Scenario => {
     const id = name.toLowerCase().replace(/\s+/g, '_')
@@ -55,6 +62,7 @@ export function CreateScenarioModal({
 
     try {
       setIsLoading(true)
+      setError(null)
 
       const newScenario = generateGenericScenario(scenarioName)
       const updatedScenario = [...(showcase.scenarios || []), newScenario]
@@ -66,14 +74,18 @@ export function CreateScenarioModal({
       onScenarioCreated?.(newScenario.id)
       onRefresh?.()
       setScenarioName('')
+      setError(null)
       onClose()
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to create scenario:', error)
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to create scenario'
+      setError(errorMsg)
+      log.error('Failed to create scenario:', err)
     } finally {
       setIsLoading(false)
     }
   }
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -81,10 +93,16 @@ export function CreateScenarioModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-bcgov-black">Create New Scenario</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close">
+          <button
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close"
+          >
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
+
+        <ErrorBanner error={error} onDismiss={() => setError(null)} />
 
         {/* Content */}
         <div className="p-6 space-y-6">
@@ -114,7 +132,7 @@ export function CreateScenarioModal({
         {/* Footer */}
         <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isLoading}
             className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
           >

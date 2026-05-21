@@ -237,54 +237,50 @@ export function CreateConnectAndAcceptScreensModal({
         onSave={async (updatedAcceptScreen, updatedAcceptProgressBar) => {
           // Both screens are now created - add them to showcase and close everything
           if (showcase && connectScreenData) {
-            try {
-              // Find the SETUP_COMPLETED screen index to insert before it
-              const setupCompletedIdx = showcase.introduction.findIndex((s) => s.screenId === 'SETUP_COMPLETED')
-              const insertIdx = setupCompletedIdx >= 0 ? setupCompletedIdx : showcase.introduction.length
+            // Find the SETUP_COMPLETED screen index to insert before it
+            const setupCompletedIdx = showcase.introduction.findIndex((s) => s.screenId === 'SETUP_COMPLETED')
+            const insertIdx = setupCompletedIdx >= 0 ? setupCompletedIdx : showcase.introduction.length
 
-              // Create new introduction array with CONNECT and ACCEPT screens inserted
-              const updatedIntroduction = [
-                ...showcase.introduction.slice(0, insertIdx),
-                connectScreenData,
-                updatedAcceptScreen,
-                ...showcase.introduction.slice(insertIdx),
-              ]
+            // Create new introduction array with CONNECT and ACCEPT screens inserted
+            const updatedIntroduction = [
+              ...showcase.introduction.slice(0, insertIdx),
+              connectScreenData,
+              updatedAcceptScreen,
+              ...showcase.introduction.slice(insertIdx),
+            ]
 
-              // Build updated progress bar array
-              const updatedProgressBars = [...(showcase.progressBar || [])]
-              if (acceptProgressBarData) {
-                updatedProgressBars.push(acceptProgressBarData)
-              }
-              if (updatedAcceptProgressBar) {
-                updatedProgressBars.push(updatedAcceptProgressBar)
-              }
-
-              // Add selected credential to showcase if not already present
-              const updatedCredentials = [...(showcase.credentials || [])]
-              if (selectedCredential && !updatedCredentials.find((c) => c.id === selectedCredential.id)) {
-                updatedCredentials.push(selectedCredential)
-              }
-
-              // Update showcase with both screens, progress bars, and credential
-              await updateShowcase(auth, showcase.name, {
-                introduction: updatedIntroduction,
-                progressBar: updatedProgressBars,
-                credentials: updatedCredentials,
-              })
-
-              // Close all modals
-              setStep({ type: 'ENTERING_ISSUER_NAME' })
-              setIssuerName('')
-              setSelectedCredential(null)
-              setConnectScreenData(null)
-              setAcceptProgressBarData(null)
-
-              // Close parent modal and refresh parent view
-              onComplete?.()
-              onClose()
-            } catch {
-              // Error handling - modals will still close
+            // Build updated progress bar array
+            const updatedProgressBars = [...(showcase.progressBar || [])]
+            if (acceptProgressBarData) {
+              updatedProgressBars.push(acceptProgressBarData)
             }
+            if (updatedAcceptProgressBar) {
+              updatedProgressBars.push(updatedAcceptProgressBar)
+            }
+
+            // Add selected credential to showcase if not already present
+            const updatedCredentials = [...(showcase.credentials || [])]
+            if (selectedCredential && !updatedCredentials.find((c) => c.id === selectedCredential.id)) {
+              updatedCredentials.push(selectedCredential)
+            }
+
+            // Update showcase with both screens, progress bars, and credential
+            await updateShowcase(auth, showcase.name, {
+              introduction: updatedIntroduction,
+              progressBar: updatedProgressBars,
+              credentials: updatedCredentials,
+            })
+
+            // Close all modals
+            setStep({ type: 'ENTERING_ISSUER_NAME' })
+            setIssuerName('')
+            setSelectedCredential(null)
+            setConnectScreenData(null)
+            setAcceptProgressBarData(null)
+
+            // Close parent modal and refresh parent view
+            onComplete?.()
+            onClose()
           }
         }}
         disableScreenId={true}

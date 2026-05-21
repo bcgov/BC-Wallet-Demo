@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { createShowcase, updateShowcase } from '../../../api/adminApi'
+import { useErrorDisplay } from '../../../hooks/useErrorDisplay'
+import log from '../../../utils/logger'
+import { ErrorBanner } from '../../ErrorBanner'
 import { STATUS_CONFIG } from '../StatusBadge'
 
 interface CreateOrEditShowcaseModalProps {
@@ -20,7 +23,7 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
   const [description, setDescription] = useState('')
   const [status, setStatus] = useState<ShowcaseStatus>('pending')
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { error, displayError, dismissError } = useErrorDisplay()
 
   const isEditMode = !!showcase
 
@@ -30,12 +33,10 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
       setName(showcase.name)
       setDescription(showcase.description || '')
       setStatus(showcase.status || 'pending')
-      setError(null)
     } else if (isOpen) {
       setName('')
       setDescription('')
       setStatus('pending')
-      setError(null)
     }
   }, [isOpen, showcase])
 
@@ -43,13 +44,17 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      setError('Please enter a showcase title')
+      displayError('Please enter a showcase title')
+      return
+    }
+
+    if (!description.trim()) {
+      displayError('Please enter a showcase description')
       return
     }
 
     try {
       setIsLoading(true)
-      setError(null)
 
       if (isEditMode && showcase) {
         // Edit mode
@@ -70,9 +75,12 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
       setName('')
       setDescription('')
       setStatus('pending')
+      dismissError()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : `Failed to ${isEditMode ? 'update' : 'create'} showcase`)
+      const message = err instanceof Error ? err.message : `Failed to ${isEditMode ? 'update' : 'create'} showcase`
+      displayError(message)
+      log.error(`Error ${isEditMode ? 'updating' : 'creating'} showcase:`, err)
     } finally {
       setIsLoading(false)
     }
@@ -96,8 +104,8 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
             <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
+        {error && <ErrorBanner error={error} onDismiss={dismissError} />}
         <div className="p-6 space-y-4">
-          {error && <div className="text-red-600 text-sm">{error}</div>}
           <div>
             <label className="block text-sm font-semibold text-bcgov-black mb-2">Showcase Title</label>
             <input
@@ -154,7 +162,7 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isLoading}
+            disabled={isLoading || !name.trim() || !description.trim()}
             className="px-4 py-2 bg-bcgov-blue text-white font-semibold rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50"
           >
             {submitButtonText}

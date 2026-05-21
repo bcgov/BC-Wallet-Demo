@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { updateShowcase } from '../api/adminApi'
+import log from '../utils/logger'
 import { saveScreenToShowcase } from '../utils/saveScreenToShowcase'
 
 interface UseScenarioScreensProps {
@@ -78,8 +79,8 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
       closeEditModal()
       setInsertionIdx(null)
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error saving screen:', error)
+      log.error('Error saving screen:', error)
+      throw error
     }
   }
 
@@ -103,8 +104,7 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
       await onRefresh?.()
       setReorderedScreens({})
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error reordering scenario screens:', error)
+      log.error('Error reordering scenario screens:', error)
     }
   }
 
@@ -132,8 +132,7 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
       setReorderedScreens({})
       closeDeleteConfirm()
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error deleting CONNECTION/PROOF pair:', error)
+      log.error('Error deleting CONNECTION/PROOF pair:', error)
     }
   }
 
@@ -153,8 +152,7 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
       await updateShowcase(auth, showcase.name, { scenarios: updatedScenarios })
       setReorderedScreens({})
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error deleting screen:', error)
+      log.error('Error deleting screen:', error)
     }
 
     await onRefresh?.()

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { updateShowcase } from '../api/adminApi'
+import log from '../utils/logger'
 import { saveScreenToShowcase } from '../utils/saveScreenToShowcase'
 import { updateProgressBarForScreen } from '../utils/updateProgressBarForScreen'
 
@@ -95,8 +96,8 @@ export function useIntroductionScreens({ showcase, onRefresh }: UseIntroductionS
       setEditingProgressBar(null)
       setInsertionIdx(null)
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error saving screen:', error)
+      log.error('Error saving screen:', error)
+      throw error
     }
   }
 
@@ -123,8 +124,7 @@ export function useIntroductionScreens({ showcase, onRefresh }: UseIntroductionS
       setShowDeleteConfirm(false)
       setDeleteConfirmIdx(null)
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error deleting CONNECT/ACCEPT pair:', error)
+      log.error('Error deleting CONNECT/ACCEPT pair:', error)
     }
   }
 
@@ -150,8 +150,7 @@ export function useIntroductionScreens({ showcase, onRefresh }: UseIntroductionS
       await onRefresh?.()
       setReorderedIntroduction(null)
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error reordering introduction screens:', error)
+      log.error('Error reordering introduction screens:', error)
     }
 
     setDraggedIdx(null)

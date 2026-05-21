@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { publicBaseUrl, getAvailableImages, uploadImage, updateShowcase } from '../../../api/adminApi'
+import log from '../../../utils/logger'
 
 interface ImageUploadModalProps {
   isOpen: boolean
@@ -81,8 +82,7 @@ export function ImageUploadModal({
 
       onClose()
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error updating image:', error)
+      log.error('Error updating image:', error)
       setUploadError('Failed to update image')
     }
   }

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 
 import { publicBaseUrl, deleteScreenFromShowcase } from '../../../api/adminApi'
 import { formatScreenId } from '../../../utils/formatScreenId'
+import { ErrorBanner } from '../../ErrorBanner'
 
 import { ImageUploadModal } from './ImageUploadModal'
 
@@ -54,6 +55,7 @@ export function CreateOrEditScreenModal({
   const [isRemovingProgressBar, setIsRemovingProgressBar] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Update state when screen or progressBar props change
   useEffect(() => {
@@ -75,48 +77,59 @@ export function CreateOrEditScreenModal({
     setIsRemovingProgressBar(false)
     setShowDeleteConfirm(false)
     setIsDeleting(false)
+    setIsSaving(false)
   }, [screen, progressBarStep, isOpen])
 
   if (!isOpen || !screen) return null
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) {
       setError('Title is required')
       return
     }
 
-    const updatedScreen: IntroductionStep = {
-      ...screen,
-      screenId: screenId || screen?.screenId || '',
-      name: title,
-      text,
-      image: image || undefined,
-    } as IntroductionStep
+    try {
+      setIsSaving(true)
+      setError(null)
 
-    // Create or update progressBar
-    let updatedProgressBar: ProgressBarStep | undefined | null = undefined
-    if (isRemovingProgressBar && progressBarStep) {
-      // Signal deletion of existing progress bar
-      updatedProgressBar = null
-    } else if (progressBarStep) {
-      // Updating existing progress bar
-      updatedProgressBar = {
-        ...progressBarStep,
-        iconLight,
-        iconDark,
-      }
-    } else if (isAddingProgressBar && (iconLight || iconDark)) {
-      // Creating new progress bar for this screen
-      updatedProgressBar = {
-        introductionStep: screenId || screen?.screenId || '',
+      const updatedScreen: IntroductionStep = {
+        ...screen,
+        screenId: screenId || screen?.screenId || '',
         name: title,
-        iconLight,
-        iconDark,
-      }
-    }
+        text,
+        image: image || undefined,
+      } as IntroductionStep
 
-    // Call onSave callback - parent component handles closing/transitions
-    onSave(updatedScreen, updatedProgressBar)
+      // Create or update progressBar
+      let updatedProgressBar: ProgressBarStep | undefined | null = undefined
+      if (isRemovingProgressBar && progressBarStep) {
+        // Signal deletion of existing progress bar
+        updatedProgressBar = null
+      } else if (progressBarStep) {
+        // Updating existing progress bar
+        updatedProgressBar = {
+          ...progressBarStep,
+          iconLight,
+          iconDark,
+        }
+      } else if (isAddingProgressBar && (iconLight || iconDark)) {
+        // Creating new progress bar for this screen
+        updatedProgressBar = {
+          introductionStep: screenId || screen?.screenId || '',
+          name: title,
+          iconLight,
+          iconDark,
+        }
+      }
+
+      // Call onSave callback - parent component handles closing/transitions
+      await onSave(updatedScreen, updatedProgressBar)
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to save screen'
+      setError(errorMsg)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleDelete = async () => {
@@ -137,6 +150,7 @@ export function CreateOrEditScreenModal({
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete screen')
+      setShowDeleteConfirm(false)
     } finally {
       setIsDeleting(false)
     }
@@ -156,8 +170,10 @@ export function CreateOrEditScreenModal({
           </button>
         </div>
 
+        <ErrorBanner error={error} onDismiss={() => setError(null)} />
+
         <div className="p-6 space-y-6">
-          {error && <div className="text-red-600 text-sm">{error}</div>}
+          {/* Form content starts here */}
 
           <div>
             <label className="block text-sm font-semibold text-bcgov-black mb-2">Screen ID</label>
@@ -359,17 +375,17 @@ export function CreateOrEditScreenModal({
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              disabled={isDeleting}
+              disabled={isDeleting || isSaving}
               className="px-4 py-2 border border-gray-300 rounded-lg text-bcgov-black font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              disabled={isDeleting}
+              disabled={isDeleting || isSaving}
               className="px-4 py-2 bg-bcgov-blue text-white font-semibold rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50"
             >
-              {isCreate ? 'Create Screen' : 'Save Changes'}
+              {isSaving ? 'Saving...' : isCreate ? 'Create Screen' : 'Save Changes'}
             </button>
           </div>
         </div>

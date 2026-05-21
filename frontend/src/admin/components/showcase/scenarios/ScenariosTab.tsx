@@ -9,6 +9,7 @@ import { adminBaseRoute, updateShowcase } from '../../../api/adminApi'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import { useLineHeight } from '../../../hooks/useLineHeight'
 import { useScenarioScreens } from '../../../hooks/useScenarioScreens'
+import log from '../../../utils/logger'
 import { CreateConnectionAndProofScreensModal } from '../modals/CreateConnectionAndProofScreensModal'
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
 import { CreateScenarioModal } from '../modals/CreateScenarioModal'
@@ -65,8 +66,7 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh }: ScenariosTa
       await updateShowcase(auth, showcase.name, { status: 'active' })
       navigate(`${adminBaseRoute}/creator`)
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error updating showcase status:', error)
+      log.error('Error updating showcase status:', error)
     }
   }
 

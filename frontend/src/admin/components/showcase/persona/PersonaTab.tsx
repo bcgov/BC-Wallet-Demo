@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { publicBaseUrl, updateShowcase } from '../../../api/adminApi'
+import { useErrorDisplay } from '../../../hooks/useErrorDisplay'
+import log from '../../../utils/logger'
+import { ErrorBanner } from '../../ErrorBanner'
 import { ImageUploadModal } from '../modals/ImageUploadModal'
 
 interface PersonaTabProps {
@@ -23,8 +26,8 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
   const [personaType, setPersonaType] = useState(showcase.persona?.type || '')
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
   const [localShowcase, setLocalShowcase] = useState(showcase)
+  const { error: saveError, displayError, dismissError } = useErrorDisplay()
 
   useEffect(() => {
     if (showcase) {
@@ -42,7 +45,16 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
   const handleSave = async () => {
     if (!showcase || !auth.user?.access_token) return
 
-    setSaveError(null)
+    if (!name.trim()) {
+      displayError('Please enter a persona name')
+      return
+    }
+
+    if (!personaType.trim()) {
+      displayError('Please enter a persona type')
+      return
+    }
+
     setIsSaving(true)
 
     try {
@@ -57,9 +69,11 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
       // Clear editing states after successful save
       setIsEditingName(false)
       setIsEditingType(false)
+      dismissError()
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred while saving'
-      setSaveError(message)
+      displayError(message)
+      log.error('Error saving persona:', error)
     } finally {
       setIsSaving(false)
     }
@@ -129,15 +143,30 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
       await updateShowcase(auth, showcase.name, updates)
       onRefresh?.()
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to initialize introduction:', error)
+      const message = error instanceof Error ? error.message : 'Failed to initialize introduction'
+      displayError(message)
+      log.error('Failed to initialize introduction:', error)
     }
   }
 
   const handleNextStep = async () => {
     if (!showcase || !auth.user?.access_token) return
 
-    setSaveError(null)
+    if (!name.trim()) {
+      displayError('Please enter a persona name')
+      return
+    }
+
+    if (!personaType.trim()) {
+      displayError('Please enter a persona type')
+      return
+    }
+
+    if (!localShowcase.persona?.image) {
+      displayError('Please upload a persona image')
+      return
+    }
+
     setIsSaving(true)
 
     try {
@@ -151,10 +180,12 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
 
       // Switch to introduction tab
       await initializeBaseIntroduction()
+      dismissError()
       onTabChange?.('introduction')
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred while saving'
-      setSaveError(message)
+      displayError(message)
+      log.error('Error saving persona:', error)
     } finally {
       setIsSaving(false)
     }
@@ -177,10 +208,9 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
         </div>
         {(name !== showcase.persona?.name || personaType !== showcase.persona?.type) && (
           <div className="flex flex-col gap-2 items-end">
-            {saveError && <p className="text-red-600 text-xs">{saveError}</p>}
             <button
               onClick={handleSave}
-              disabled={isSaving}
+              disabled={isSaving || !name.trim() || !personaType.trim()}
               className="px-4 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving...' : 'Save'}
@@ -188,6 +218,11 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
           </div>
         )}
       </div>
+      {saveError && (
+        <div className="w-full max-w-4xl mb-6">
+          <ErrorBanner error={saveError} onDismiss={dismissError} title="Error saving persona" variant="left-border" />
+        </div>
+      )}
       <div className="w-full max-w-4xl px-6 border border-gray-300 rounded-lg bg-white p-8">
         {/* Title Section */}
         <div className="mb-8">
@@ -263,7 +298,7 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
         <div className="w-full max-w-4xl mt-8 px-6 flex justify-center">
           <button
             onClick={handleNextStep}
-            disabled={isSaving}
+            disabled={isSaving || !name.trim() || !personaType.trim() || !localShowcase.persona?.image}
             className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving...' : 'Next Step'}

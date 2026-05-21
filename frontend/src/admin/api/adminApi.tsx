@@ -7,6 +7,19 @@ export const adminBaseUrl = (import.meta.env.VITE_HOST_BACKEND || '') + adminBas
 export const publicBaseUrl = (import.meta.env.VITE_HOST_BACKEND || '') + baseRoute
 
 // ============================================================================
+// ERROR HANDLING
+// ============================================================================
+
+const handleErrorResponse = async (res: Response): Promise<never> => {
+  try {
+    const errorData = (await res.json()) as { error?: string }
+    throw new Error(errorData.error || `Request failed: ${res.status}`)
+  } catch {
+    throw new Error(`Request failed: ${res.status}`)
+  }
+}
+
+// ============================================================================
 // SHOWCASE ENDPOINTS
 // ============================================================================
 
@@ -18,7 +31,7 @@ export const getAllShowcases = async (auth: AuthContextProps): Promise<Showcase[
       'Content-Type': 'application/json',
     },
   })
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as Showcase[]
   return data
 }
@@ -31,7 +44,7 @@ export const getShowcaseByName = async (auth: AuthContextProps, name: string): P
       'Content-Type': 'application/json',
     },
   })
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as Showcase
   return data
 }
@@ -61,7 +74,7 @@ export const createShowcase = async (
     },
     body: JSON.stringify(newShowcase),
   })
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as { success: boolean; message: string; filename: string; name: string }
   return data
 }
@@ -93,10 +106,7 @@ export const updateShowcase = async (
     },
     body: JSON.stringify(dehydratedUpdates),
   })
-  if (!res.ok) {
-    const errorData = (await res.json()) as { error?: string }
-    throw new Error(errorData.error || `Request failed: ${res.status}`)
-  }
+  if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as Showcase
   return data
 }
@@ -134,7 +144,7 @@ export const getAllCredentials = async (auth: AuthContextProps): Promise<Credent
       'Content-Type': 'application/json',
     },
   })
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as Credential[]
   return data
 }
@@ -151,10 +161,7 @@ export const createCredential = async (
     },
     body: JSON.stringify(credential),
   })
-  if (!res.ok) {
-    const errorData = (await res.json()) as { error?: string }
-    throw new Error(errorData.error || `Request failed: ${res.status}`)
-  }
+  if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as Credential
   return data
 }
@@ -174,7 +181,7 @@ export const getAvailableImages = async (
       'Content-Type': 'application/json',
     },
   })
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as { files: string[] }
   return data.files
 }
@@ -194,7 +201,7 @@ export const uploadImage = async (
     },
     body: formData,
   })
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as { path: string; filename: string }
   return data
 }

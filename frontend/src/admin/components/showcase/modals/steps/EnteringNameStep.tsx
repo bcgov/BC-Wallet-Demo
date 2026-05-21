@@ -48,7 +48,9 @@ export function EnteringNameStep({
 
       {onIconUpload && (
         <div>
-          <label className="block text-sm font-medium text-bcgov-black mb-2">Icon (Optional)</label>
+          <label className="block text-sm font-medium text-bcgov-black mb-2">
+            Icon <span className="text-red-600">*</span>
+          </label>
           <div className="relative group w-fit">
             {icon ? (
               <div className="w-24 h-24 border border-gray-300 rounded-lg overflow-hidden bg-gray-100">
@@ -68,6 +70,7 @@ export function EnteringNameStep({
               </button>
             )}
           </div>
+          {!icon && <p className="text-red-600 text-sm mt-2">Icon is required</p>}
         </div>
       )}
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
@@ -79,7 +82,7 @@ export function EnteringNameStep({
         </button>
         <button
           onClick={onContinue}
-          disabled={!name.trim()}
+          disabled={!name.trim() || (onIconUpload && !icon)}
           className="px-4 py-2 text-white bg-bcgov-blue hover:bg-bcgov-blue-dark disabled:bg-gray-400 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
         >
           Continue
