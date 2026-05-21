@@ -12,3 +12,5 @@ data:
 {{- else }}
 {{ tpl (.Files.Get "files/caddyfile.tpl") . | nindent 4 }}
 {{- end }}
+  config.json: |
+    {{- .Values.showcase.frontend.config | toJson | nindent 4 }}
