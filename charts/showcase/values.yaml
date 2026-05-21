@@ -144,7 +144,7 @@ showcase:
     ## Runtime config injected as /srv{baseRoute}/config.json via ConfigMap.
     ## Specify as YAML here; the chart converts it to JSON automatically.
     config:
-      keycloakUrl: 'https://dev.loginproxy.gov.bc.ca'
+      keycloakUrl: "https://dev.loginproxy.gov.bc.ca"
       keycloakRealm: digitaltrust-citz
       keycloakClientId: showcase-admin
     ## Caddy Content-Security-Policy header. Default is permissive for Vite/React + API/WS; tighten for production.
