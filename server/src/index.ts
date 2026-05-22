@@ -11,7 +11,7 @@ import { Server } from 'socket.io'
 
 import { connectDB, registerShutdownHandlers } from './db/connection'
 import { auditLoginMiddleware } from './middleware/auditLogin'
-import { requireAdmin } from './middleware/requireAdmin'
+import { requireAdmin, ServiceUnavailableError } from './middleware/requireAdmin'
 import adminAuditLogRouter from './routes/adminAuditLogRouter'
 import adminCredentialsRouter from './routes/adminCredentialsRouter'
 import adminImagesRouter from './routes/adminImagesRouter'
@@ -158,10 +158,16 @@ const run = async () => {
     return response
   })
 
-  // Map express-jwt UnauthorizedError → 401. Without this, Express's default
-  // error handler returns 500 for any error that isn't handled by a route.
+  // Error handler: map known errors to appropriate HTTP status codes.
+  // - ServiceUnavailableError → 503 (service dependency unavailable)
+  // - UnauthorizedError → 401 (Invalid/missing/expired JWT)
+  // - All others → 500 (Internal server error)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof ServiceUnavailableError) {
+      res.status(503).json({ error: err.message })
+      return
+    }
     if (err instanceof UnauthorizedError) {
       res.status(401).json({ error: err.message })
       return

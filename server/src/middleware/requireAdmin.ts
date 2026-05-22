@@ -84,8 +84,22 @@ async function getJwks(): Promise<Jwk[]> {
   }
 }
 
+export class ServiceUnavailableError extends Error {
+  public constructor(message: string) {
+    super(message)
+    this.name = 'ServiceUnavailableError'
+  }
+}
+
 const getKey: GetVerificationKey = async (_req, token) => {
-  const keys = await getJwks()
+  let keys: Jwk[]
+  try {
+    keys = await getJwks()
+  } catch (err) {
+    logger.error({ err }, 'Failed to fetch JWKS for JWT verification')
+    const message = err instanceof Error ? err.message : String(err)
+    throw new ServiceUnavailableError(`Failed to fetch JWKS: ${message}`)
+  }
   const jwk = keys.find((k) => k.kid === token?.header.kid)
   if (!jwk) throw new Error(`No JWKS key found for kid: ${String(token?.header.kid)}`)
   return createPublicKey({ key: jwk as JsonWebKeyInput['key'], format: 'jwk' })
