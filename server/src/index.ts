@@ -159,7 +159,7 @@ const run = async () => {
   })
 
   // Error handler: map known errors to appropriate HTTP status codes.
-  // - ServiceUnavailableError → 503 (Keycloak service is unavailable)
+  // - ServiceUnavailableError → 503 (service dependency unavailable)
   // - UnauthorizedError → 401 (Invalid/missing/expired JWT)
   // - All others → 500 (Internal server error)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

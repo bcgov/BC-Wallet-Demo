@@ -96,6 +96,7 @@ const getKey: GetVerificationKey = async (_req, token) => {
   try {
     keys = await getJwks()
   } catch (err) {
+    logger.error({ err }, 'Failed to fetch JWKS for JWT verification')
     const message = err instanceof Error ? err.message : String(err)
     throw new ServiceUnavailableError(`Failed to fetch JWKS: ${message}`)
   }
