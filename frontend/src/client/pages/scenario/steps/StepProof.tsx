@@ -38,7 +38,9 @@ export interface Props {
  *   `$dateint:N`    → today's date shifted by N years, formatted as YYYYMMDD integer
  *                     (e.g. `$dateint:0` = today, `$dateint:-19` = 19 years ago)
  *
- * Plain numbers pass through unchanged. Unrecognised strings return undefined.
+ * Plain numbers pass through unchanged. Unrecognized strings throw an error.
+ *
+ * @throws Error if an unrecognized marker is encountered
  */
 const resolveMarker = (val: string | number | undefined): number | undefined => {
   if (typeof val !== 'string') return val as number | undefined
@@ -49,8 +51,7 @@ const resolveMarker = (val: string | number | undefined): number | undefined => 
     d.setFullYear(d.getFullYear() + parseInt(m[1]))
     return parseInt(d.toISOString().split('T')[0].replace(/-/g, ''))
   }
-  log.warn(`resolveMarker: unrecognized marker "${val}", proof request may be malformed`)
-  return undefined
+  throw new Error(`Unrecognized marker "${val}" in proof request. Proof configuration may be malformed.`)
 }
 
 const resolveNonRevoked = (

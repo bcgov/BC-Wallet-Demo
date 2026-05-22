@@ -40,7 +40,6 @@ export function CreateConnectAndAcceptScreensModal({
   const [isCreateCredentialModalOpen, setIsCreateCredentialModalOpen] = useState(false)
   const [selectedCredential, setSelectedCredential] = useState<Credential | null>(null)
   const [connectScreenData, setConnectScreenData] = useState<IntroductionStep | null>(null)
-  const [acceptProgressBarData, setAcceptProgressBarData] = useState<ProgressBarStep | null>(null)
 
   const connectScreenTemplate: IntroductionStep = {
     screenId: `CONNECT_${issuerName.toUpperCase().replace(/\s+/g, '_')}`,
@@ -86,7 +85,6 @@ export function CreateConnectAndAcceptScreensModal({
     setIssuerName('')
     setSelectedCredential(null)
     setConnectScreenData(null)
-    setAcceptProgressBarData(null)
     setIssuerNameError(null)
 
     fetchCredentials()
@@ -251,9 +249,6 @@ export function CreateConnectAndAcceptScreensModal({
 
             // Build updated progress bar array
             const updatedProgressBars = [...(showcase.progressBar || [])]
-            if (acceptProgressBarData) {
-              updatedProgressBars.push(acceptProgressBarData)
-            }
             if (updatedAcceptProgressBar) {
               updatedProgressBars.push(updatedAcceptProgressBar)
             }
@@ -276,7 +271,6 @@ export function CreateConnectAndAcceptScreensModal({
             setIssuerName('')
             setSelectedCredential(null)
             setConnectScreenData(null)
-            setAcceptProgressBarData(null)
 
             // Close parent modal and refresh parent view
             onComplete?.()

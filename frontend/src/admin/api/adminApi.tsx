@@ -11,12 +11,22 @@ export const publicBaseUrl = (import.meta.env.VITE_HOST_BACKEND || '') + baseRou
 // ============================================================================
 
 const handleErrorResponse = async (res: Response): Promise<never> => {
+  let message = `Request failed: ${res.status}`
+
   try {
     const errorData = (await res.json()) as { error?: string }
-    throw new Error(errorData.error || `Request failed: ${res.status}`)
-  } catch {
-    throw new Error(`Request failed: ${res.status}`)
+    if (errorData.error) {
+      message = errorData.error
+    }
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      // Response body is not valid JSON, use status-only message
+    } else {
+      throw error
+    }
   }
+
+  throw new Error(message)
 }
 
 // ============================================================================
