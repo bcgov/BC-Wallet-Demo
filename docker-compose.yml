@@ -72,8 +72,8 @@ services:
       MONGODB_URI: mongodb://mongodb:27017/bc_wallet_showcase
       KEYCLOAK_INTERNAL_URL: http://keycloak:8080
     depends_on:
-      mongodb:
-        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
   dev:
     image: bc-wallet-demo-dev
     profiles:
@@ -105,24 +105,23 @@ services:
       # the URL the browser used when logging in.
       KEYCLOAK_INTERNAL_URL: http://keycloak:8080
     depends_on:
-      mongodb:
-        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
       keycloak-db:
         condition: service_healthy
 
   seed:
-    image: bc-wallet-demo-dev
+    image: node:22-alpine
     profiles:
       - dev
-    build:
-      context: ./
-      dockerfile: ./dev.dockerfile
-    entrypoint: ['']
-    command: ['yarn', 'workspace', 'server', 'seed']
+      - prod
+    working_dir: /app
+    entrypoint: ['sh', '-c']
+    command: ['yarn install --frozen-lockfile --non-interactive && yarn workspace server seed']
     restart: on-failure
     volumes:
       - ./:/app
-      - dev-node-modules:/app/node_modules
+      - seed-node-modules:/app/node_modules
     env_file:
       - path: ./server/.env
         required: false
@@ -182,3 +181,4 @@ volumes:
   mongo-data:
   keycloak-db-data:
   dev-node-modules:
+  seed-node-modules:
