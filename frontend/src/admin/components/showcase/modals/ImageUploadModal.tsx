@@ -1,11 +1,12 @@
-import type { Showcase } from '../types'
+import type { Showcase } from '../../../types'
 import type { AuthContextProps } from 'react-oidc-context'
 
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { publicBaseUrl, getAvailableImages, uploadImage, updateShowcase } from '../api/adminApi'
+import { publicBaseUrl, getAvailableImages, uploadImage, updateShowcase } from '../../../api/adminApi'
+import log from '../../../utils/logger'
 
 interface ImageUploadModalProps {
   isOpen: boolean
@@ -81,8 +82,7 @@ export function ImageUploadModal({
 
       onClose()
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error updating image:', error)
+      log.error('Error updating image:', error)
       setUploadError('Failed to update image')
     }
   }

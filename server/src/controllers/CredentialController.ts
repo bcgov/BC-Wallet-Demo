@@ -19,12 +19,12 @@ export class CredentialController {
     const credentials = await CredentialModel.find().lean()
     logger.debug({ count: credentials.length }, 'Credentials fetched')
     // Map to frontend Credential type with id instead of _id
-    return credentials.map((cred: any) => ({
-      id: String(cred._id),
-      name: cred.name,
-      icon: cred.icon,
-      version: cred.version,
-      attributes: cred.attributes || [],
+    return credentials.map((credential: any) => ({
+      id: String(credential._id),
+      name: credential.name,
+      icon: credential.icon,
+      version: credential.version,
+      attributes: resolveCredentialAttributes(credential.attributes || []),
     }))
   }
 
@@ -61,11 +61,11 @@ export class CredentialController {
     logger.debug({ credentialId }, 'Credential found')
     // Map to frontend Credential type with id instead of _id
     return {
-      id: String((credential as any)._id),
-      name: (credential as any).name,
-      icon: (credential as any).icon,
-      version: (credential as any).version,
-      attributes: (credential as any).attributes || [],
+      id: String(credential._id),
+      name: credential.name,
+      icon: credential.icon,
+      version: credential.version,
+      attributes: resolveCredentialAttributes(credential.attributes || []),
     }
   }
 

@@ -1,19 +1,22 @@
-import type { Credential } from '../types'
-
-import { UserIcon, CreditCardIcon, QueueListIcon, FilmIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { UserIcon, QueueListIcon, FilmIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { adminBaseRoute } from '../api/adminApi'
 import { AdminNavbar } from '../components/AdminNavbar'
 import { SecondaryNavbar } from '../components/showcase/SecondaryNavbar'
-import { CredentialsTab } from '../components/showcase/tabs/CredentialsTab'
-import { IntroductionTab } from '../components/showcase/tabs/IntroductionTab'
-import { PersonaTab } from '../components/showcase/tabs/PersonaTab'
-import { ScenariosTab } from '../components/showcase/tabs/ScenariosTab'
+import { IntroductionTab } from '../components/showcase/introduction/IntroductionTab'
+import { PersonaTab } from '../components/showcase/persona/PersonaTab'
+import { ScenariosTab } from '../components/showcase/scenarios/ScenariosTab'
 import { useShowcase } from '../hooks/useShowcase'
 
-type TabId = 'persona' | 'introduction' | 'credentials' | 'scenarios'
+type TabId = 'persona' | 'introduction' | 'scenarios'
+
+const VALID_TABS: TabId[] = ['persona', 'introduction', 'scenarios']
+
+function isValidTabId(value: string | null): value is TabId {
+  return value !== null && VALID_TABS.includes(value as TabId)
+}
 
 export function ShowcasePage() {
   const navigate = useNavigate()
@@ -21,15 +24,21 @@ export function ShowcasePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { showcase, isLoading, refetch } = useShowcase()
   const [isNewShowcase, setIsNewShowcase] = useState(location.state?.isNewShowcase || false)
-  const [selectedCredential, setSelectedCredential] = useState<Credential | undefined>(
-    location.state?.selectedCredential,
-  )
-  const tabFromUrl = (searchParams.get('tab') || 'persona') as TabId
-  const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl)
+  const tabFromUrl = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<TabId>(isValidTabId(tabFromUrl) ? tabFromUrl : 'persona')
 
   useEffect(() => {
     setSearchParams({ tab: activeTab }, { replace: true })
   }, [activeTab, setSearchParams])
+
+  // Handle legacy tab redirects
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam && !isValidTabId(tabParam)) {
+      // Redirect invalid tab values to persona
+      setSearchParams({ tab: 'persona' }, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   useEffect(() => {
     if (location.state?.isNewShowcase !== undefined) {
@@ -37,15 +46,8 @@ export function ShowcasePage() {
     }
   }, [location.state?.isNewShowcase])
 
-  useEffect(() => {
-    if (location.state?.selectedCredential !== undefined) {
-      setSelectedCredential(location.state.selectedCredential)
-    }
-  }, [location.state?.selectedCredential])
-
   const tabs = [
     { id: 'persona', label: 'Persona', icon: <UserIcon className="w-5 h-5" /> },
-    { id: 'credentials', label: 'Credentials', icon: <CreditCardIcon className="w-5 h-5" /> },
     { id: 'introduction', label: 'Introduction', icon: <QueueListIcon className="w-5 h-5" /> },
     { id: 'scenarios', label: 'Scenarios', icon: <FilmIcon className="w-5 h-5" /> },
   ]
@@ -94,15 +96,6 @@ export function ShowcasePage() {
               isLoading={isLoading}
               isNewShowcase={isNewShowcase}
               onTabChange={(tab) => setActiveTab(tab as TabId)}
-              onRefresh={refetch}
-            />
-          )}
-          {activeTab === 'credentials' && (
-            <CredentialsTab
-              showcase={showcase}
-              isNewShowcase={isNewShowcase}
-              onTabChange={(tab) => setActiveTab(tab as TabId)}
-              selectedCredential={selectedCredential}
               onRefresh={refetch}
             />
           )}
