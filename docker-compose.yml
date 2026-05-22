@@ -59,6 +59,8 @@ services:
     build:
       context: ./
       dockerfile: ./server/Dockerfile
+    volumes:
+      - ./server/config:/app/server/config:ro
     ports:
       - '5000:5000'
     env_file:
@@ -68,6 +70,7 @@ services:
       MONGODB_PORT: '27017'
       MONGODB_DB_NAME: bc_wallet_showcase
       MONGODB_URI: mongodb://mongodb:27017/bc_wallet_showcase
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
     depends_on:
       mongodb:
         condition: service_healthy
@@ -137,6 +140,7 @@ services:
     command: start-dev --import-realm
     profiles:
       - dev
+      - prod
     ports:
       - '8080:8080'
     volumes:
@@ -161,6 +165,7 @@ services:
     image: postgres:15-alpine
     profiles:
       - dev
+      - prod
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
