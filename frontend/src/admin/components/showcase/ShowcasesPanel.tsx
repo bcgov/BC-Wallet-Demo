@@ -6,6 +6,7 @@ import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
 
 import { adminBaseRoute, getAllShowcases } from '../../api/adminApi'
+import { useHasRole } from '../../hooks/useUserRole'
 
 import { ShowcaseCard } from './ShowcaseCard'
 import { CreateOrEditShowcaseModal } from './modals/CreateOrEditShowcaseModal'
@@ -13,6 +14,7 @@ import { CreateOrEditShowcaseModal } from './modals/CreateOrEditShowcaseModal'
 export function ShowcasesPanel() {
   const auth = useAuth()
   const navigate = useNavigate()
+  const canEdit = useHasRole('creator')
   const [showcases, setShowcases] = useState<Showcase[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -39,13 +41,15 @@ export function ShowcasesPanel() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-bcgov-black font-semibold text-2xl">Showcases</h2>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 bg-bcgov-blue hover:bg-bcgov-blue-dark text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Create Showcase
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 bg-bcgov-blue hover:bg-bcgov-blue-dark text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+          >
+            <PlusIcon className="w-5 h-5" />
+            Create Showcase
+          </button>
+        )}
       </div>
       <p className="text-bcgov-darkgrey mb-6">Manage your digital credential showcases.</p>
 

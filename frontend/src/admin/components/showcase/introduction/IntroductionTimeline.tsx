@@ -10,8 +10,8 @@ interface IntroductionTimelineProps {
   showcase: Showcase
   draggedIdx: number | null
   dragOverIdx: number | null
-  hoverIdx: number | null
-  setHoverIdx: (idx: number | null) => void
+  hoverIdx: string | number | null
+  setHoverIdx: (idx: string | number | null) => void
   lineHeight: string
   containerRef: React.RefObject<HTMLDivElement>
   onEditClick: (idx: number, screen: IntroductionStep) => void

@@ -23,7 +23,7 @@ interface IntroductionTabProps {
 export function IntroductionTab({ showcase, isNewShowcase, onTabChange, onRefresh }: IntroductionTabProps) {
   const auth = useAuth()
   const [showIntroductionModal, setShowIntroductionModal] = useState<boolean>(isNewShowcase ?? false)
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
+  const [hoverIdx, setHoverIdx] = useState<string | number | null>(null)
   const [isSelectCredentialModalOpen, setIsSelectCredentialModalOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
