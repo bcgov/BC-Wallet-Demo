@@ -44,28 +44,5 @@ spec:
   policyTypes:
     - Egress
   egress:
-    # API pods
-    - to:
-        - podSelector:
-            matchLabels:
-              {{- include "showcase.selectorLabels" . | nindent 14 }}
-              app.kubernetes.io/component: server
-      ports:
-        - protocol: TCP
-          port: {{ .Values.showcase.server.containerPort }}
-    # DNS — no `to` selector so the rule covers the cluster DNS ClusterIP.
-    # ipBlock does not match ClusterIP traffic on OVN-Kubernetes (egress ACL
-    # is evaluated before Service DNAT), so DNS must use an open rule.
-    - ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-    # HTTPS: external services, upstream TLS via Caddy.
-    - to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
-        - protocol: TCP
-          port: 443
+    - {}
 {{- end }}

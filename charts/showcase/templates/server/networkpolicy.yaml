@@ -41,30 +41,5 @@ spec:
   policyTypes:
     - Egress
   egress:
-    {{- if .Values.mongodb.enabled }}
-    # Restrict Mongo traffic to MongoDB workload pods for this Helm release.
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: mongodb
-              app.kubernetes.io/instance: {{ .Release.Name | quote }}
-      ports:
-        - protocol: TCP
-          port: 27017
-    {{- end }}
-    # DNS — no `to` selector so the rule covers the cluster DNS ClusterIP.
-    # ipBlock does not match ClusterIP traffic on OVN-Kubernetes (egress ACL
-    # is evaluated before Service DNAT), so DNS must use an open rule.
-    - ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-    # HTTPS: external services (Traction, Keycloak / loginproxy, GHCR, etc.).
-    - to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
-        - protocol: TCP
-          port: 443
+    - {}
 {{- end }}
