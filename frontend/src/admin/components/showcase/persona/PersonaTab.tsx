@@ -6,6 +6,7 @@ import { useAuth } from 'react-oidc-context'
 
 import { publicBaseUrl, updateShowcase } from '../../../api/adminApi'
 import { useErrorDisplay } from '../../../hooks/useErrorDisplay'
+import { useHasRole } from '../../../hooks/useUserRole'
 import log from '../../../utils/logger'
 import { ErrorBanner } from '../../ErrorBanner'
 import { ImageUploadModal } from '../modals/ImageUploadModal'
@@ -20,6 +21,7 @@ interface PersonaTabProps {
 
 export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, onRefresh }: PersonaTabProps) {
   const auth = useAuth()
+  const canEdit = useHasRole('creator')
   const [isEditingName, setIsEditingName] = useState(false)
   const [name, setName] = useState(showcase.persona?.name || '')
   const [isEditingType, setIsEditingType] = useState(false)
@@ -238,10 +240,12 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
                 isEditingName || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
               }`}
             />
-            <PencilIcon
-              onClick={() => setIsEditingName(true)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            />
+            {canEdit && (
+              <PencilIcon
+                onClick={() => setIsEditingName(true)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              />
+            )}
           </div>
         </div>
 
@@ -259,10 +263,12 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
                 isEditingType || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
               }`}
             />
-            <PencilIcon
-              onClick={() => setIsEditingType(true)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            />
+            {canEdit && (
+              <PencilIcon
+                onClick={() => setIsEditingType(true)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              />
+            )}
           </div>
         </div>
 
@@ -277,10 +283,12 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
                   alt={localShowcase.persona?.name}
                   className="w-full h-full object-contain"
                 />
-                <PencilIcon
-                  onClick={() => setIsImageUploadModalOpen(true)}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-bcgov-blue text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                />
+                {canEdit && (
+                  <PencilIcon
+                    onClick={() => setIsImageUploadModalOpen(true)}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-bcgov-blue text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  />
+                )}
               </div>
             ) : (
               <button

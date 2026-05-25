@@ -9,6 +9,7 @@ import { adminBaseRoute, updateShowcase } from '../../../api/adminApi'
 import { useDragReorder } from '../../../hooks/useDragReorder'
 import { useLineHeight } from '../../../hooks/useLineHeight'
 import { useScenarioScreens } from '../../../hooks/useScenarioScreens'
+import { useHasRole } from '../../../hooks/useUserRole'
 import log from '../../../utils/logger'
 import { CreateConnectionAndProofScreensModal } from '../modals/CreateConnectionAndProofScreensModal'
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
@@ -27,10 +28,11 @@ interface ScenariosTabProps {
 export function ScenariosTab({ showcase, isNewShowcase, onRefresh }: ScenariosTabProps) {
   const navigate = useNavigate()
   const auth = useAuth()
+  const canEdit = useHasRole('creator')
   const [activeScenario, setActiveScenario] = useState<string | null>(null)
   const [isCreateScenarioModalOpen, setIsCreateScenarioModalOpen] = useState(false)
   const [isCreateConnectionProofModalOpen, setIsCreateConnectionProofModalOpen] = useState(false)
-  const [hoverIdx, setHoverIdx] = useState<string | null>(null)
+  const [hoverIdx, setHoverIdx] = useState<string | number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const { draggedIdx, dragOverIdx, handleDragStart, handleDragOver, handleDragLeave, setDraggedIdx, setDragOverIdx } =
     useDragReorder()
@@ -78,13 +80,15 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh }: ScenariosTa
           <h2 className="text-2xl font-semibold text-bcgov-black">Scenarios</h2>
           <h5 className="text-gray-500 mt-2">Create scenarios to walk users through credential usage.</h5>
         </div>
-        <button
-          onClick={() => setIsCreateScenarioModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Create Scenario
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setIsCreateScenarioModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
+          >
+            <PlusIcon className="w-5 h-5" />
+            Create Scenario
+          </button>
+        )}
       </div>
       {/* Inner Tabs for Scenarios */}
       <div className="w-4/5 px-6 mb-6">
