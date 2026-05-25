@@ -41,23 +41,5 @@ spec:
   policyTypes:
     - Egress
   egress:
-    {{- if .Values.mongodb.enabled }}
-    # Restrict Mongo traffic to MongoDB workload pods for this Helm release.
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: mongodb
-              app.kubernetes.io/instance: {{ .Release.Name | quote }}
-      ports:
-        - protocol: TCP
-          port: 27017
-    {{- end }}
-    # DNS + HTTPS: no `to` peers — cluster DNS backends vary (Service IP, hostNetwork, node-local); Caddy/server need outbound 443.
-    - ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-        - protocol: TCP
-          port: 443
+    - {}
 {{- end }}

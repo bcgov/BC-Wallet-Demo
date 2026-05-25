@@ -44,21 +44,5 @@ spec:
   policyTypes:
     - Egress
   egress:
-    # API pods
-    - to:
-        - podSelector:
-            matchLabels:
-              {{- include "showcase.selectorLabels" . | nindent 14 }}
-              app.kubernetes.io/component: server
-      ports:
-        - protocol: TCP
-          port: {{ .Values.showcase.server.containerPort }}
-    # DNS + HTTPS: no `to` peers — cluster DNS paths vary on OpenShift; Caddy needs 443 for upstream TLS.
-    - ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-        - protocol: TCP
-          port: 443
+    - {}
 {{- end }}
