@@ -31,19 +31,19 @@ describe('DeeplinkController', () => {
   describe('offerCredential', () => {
     it('posts credential when connection becomes active', async () => {
       vi.mocked(tractionRequest.get).mockResolvedValue({ data: { state: 'complete' } })
-      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { credential_exchange_id: 'cred1' } })
+      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { cred_ex_id: 'cred1' } })
 
       const promise = controller.offerCredential({ connection_id: 'conn1' })
       await vi.runAllTimersAsync()
       const result = await promise
 
-      expect(result).toEqual({ credential_exchange_id: 'cred1' })
-      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential/send', { connection_id: 'conn1' })
+      expect(result).toEqual({ cred_ex_id: 'cred1' })
+      expect(tractionRequest.post).toHaveBeenCalledWith('/issue-credential-2.0/send-offer', { connection_id: 'conn1' })
     })
 
     it('accepts "response" as a connected state', async () => {
       vi.mocked(tractionRequest.get).mockResolvedValue({ data: { state: 'response' } })
-      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { credential_exchange_id: 'cred1' } })
+      vi.mocked(tractionRequest.post).mockResolvedValue({ data: { cred_ex_id: 'cred1' } })
 
       const promise = controller.offerCredential({ connection_id: 'conn1' })
       await vi.runAllTimersAsync()

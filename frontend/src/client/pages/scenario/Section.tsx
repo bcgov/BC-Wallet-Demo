@@ -114,26 +114,20 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
       } else {
         setIsForwardDisabled(true)
       }
-    }
-
-    if (step?.screenId.startsWith('PROOF') || step?.screenId.startsWith('PROOF_OOB')) {
+    } else if (step?.screenId.startsWith('PROOF') || step?.screenId.startsWith('PROOF_OOB')) {
       if (isProofCompleted) {
         setIsForwardDisabled(false)
       } else {
         setIsForwardDisabled(true)
       }
-    }
-
-    if (step?.screenId.startsWith('CREDENTIAL')) {
+    } else if (step?.screenId.startsWith('CREDENTIAL')) {
       if (credentialsReceived) {
         setIsForwardDisabled(false)
       } else {
         setIsForwardDisabled(true)
       }
-    }
-
-    // button is never disabled on INFO step
-    if (step?.screenId.startsWith('INFO')) {
+    } else {
+      // button is never disabled on INFO screens and other custom screen types
       setIsForwardDisabled(false)
     }
 
@@ -207,7 +201,6 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
               data-cy="section"
             >
               <AnimatePresence initial={false} mode="wait" onExitComplete={() => null}>
-                {step.screenId.startsWith('INFO') && <StepInformation key={step.screenId} step={step} />}
                 {step.screenId.startsWith('CONNECTION') && (
                   <StepConnection newConnection={true} key={step.screenId} step={step} connection={connection} />
                 )}
@@ -235,6 +228,9 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                     />
                   )}
                 {step.screenId.startsWith('STEP_END') && <StepEnd key={step.screenId} step={step} />}
+                {!step.screenId.startsWith('CONNECTION') &&
+                  !step.screenId.startsWith('PROOF') &&
+                  !step.screenId.startsWith('STEP_END') && <StepInformation key={step.screenId} step={step} />}
               </AnimatePresence>
               <div className="flex justify-between items-center">
                 <BackButton

@@ -55,11 +55,29 @@
 
         reverse_proxy @websockets backend:5000
 
+        # Admin API: proxy /admin/* to backend, except SPA sub-paths (callback, creator)
+        @admin_api {
+            path {$VITE_BASE_ROUTE}/admin/*
+            not path {$VITE_BASE_ROUTE}/admin/callback {$VITE_BASE_ROUTE}/admin/callback/*
+            not path {$VITE_BASE_ROUTE}/admin/creator {$VITE_BASE_ROUTE}/admin/creator/*
+        }
+
+        reverse_proxy @admin_api backend:5000 {
+            trusted_proxies 0.0.0.0/0
+            header_up Host {upstream_hostport}
+            header_up X-Forwarded-Host {host}
+        }
+
          # Required for SPA router to work
         @spa_router {
             not path {$VITE_BASE_ROUTE}/demo/* {$VITE_BASE_ROUTE}/server/* {$VITE_BASE_ROUTE}/agent/ready {$VITE_BASE_ROUTE}/public/* {$VITE_BASE_ROUTE}/qr {$VITE_BASE_ROUTE}/i/*
+            not {
+                path {$VITE_BASE_ROUTE}/admin/*
+                not path {$VITE_BASE_ROUTE}/admin/callback {$VITE_BASE_ROUTE}/admin/callback/*
+                not path {$VITE_BASE_ROUTE}/admin/creator {$VITE_BASE_ROUTE}/admin/creator/*
+            }
             file {
-                try_files {path} /index.html
+                try_files {path} {$VITE_BASE_ROUTE}/index.html
             }
         }
         rewrite @spa_router {http.matchers.file.relative}

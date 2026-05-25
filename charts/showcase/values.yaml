@@ -89,6 +89,9 @@ showcase:
       tag: main
       digest: ''
       pullPolicy: IfNotPresent
+    ## Database seeding. When enabled, runs as an init container before the server starts.
+    seed:
+      enabled: true
     resources: {}
     ## When mongodb.enabled, wait for Mongo TCP before starting the server (recommended). Set false only
     ## to debug scheduling/SCC issues; the server may still fail until Mongo is reachable.
@@ -119,6 +122,11 @@ showcase:
     mongodbConnection:
       database: bcwallet_demo
       authSource: admin
+    ## Keycloak config injected as /app/server/config/keycloak.json via ConfigMap.
+    ## Specify as YAML here; the chart converts it to JSON automatically.
+    keycloak:
+      keycloakUrl: 'https://dev.loginproxy.gov.bc.ca/auth'
+      keycloakRealm: digitaltrust-citz
     ## Non-sensitive runtime env vars for the server Deployment.
     ## Use existingSecret for sensitive credentials and MONGODB_URI.
     ## Example:
@@ -136,6 +144,12 @@ showcase:
     replicaCount: 1
     ## HTTP listen port for Caddy (Caddyfile site block, container, and Service must match).
     containerPort: 3000
+    ## Runtime config injected as /srv{baseRoute}/config.json via ConfigMap.
+    ## Specify as YAML here; the chart converts it to JSON automatically.
+    config:
+      keycloakUrl: 'https://dev.loginproxy.gov.bc.ca/auth'
+      keycloakRealm: digitaltrust-citz
+      keycloakClientId: showcase-admin
     ## Caddy Content-Security-Policy header. Default is permissive for Vite/React + API/WS; tighten for production.
     contentSecurityPolicy: "default-src * data: blob: filesystem: 'unsafe-inline' 'unsafe-eval'"
     ## Caddy reverse_proxy trusted_proxies: use private_ranges (RFC1918 + loopback) for typical K8s ingress → pod hops.

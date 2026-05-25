@@ -184,10 +184,17 @@ Server env Secret name.
 {{- end }}
 
 {{/*
-Frontend ConfigMap name (Caddyfile).
+Server ConfigMap name (keycloak.json).
+*/}}
+{{- define "showcase.server.configmapName" -}}
+{{- printf "%s-server" (include "showcase.fullname" .) }}
+{{- end }}
+
+{{/*
+Frontend ConfigMap name (Caddyfile + config.json).
 */}}
 {{- define "showcase.frontend.configmapName" -}}
-{{- printf "%s-frontend-caddy" (include "showcase.fullname" .) }}
+{{- printf "%s-frontend" (include "showcase.fullname" .) }}
 {{- end }}
 
 {{/*

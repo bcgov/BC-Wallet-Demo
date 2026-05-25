@@ -13,7 +13,7 @@ export class DeeplinkController {
     const state = await this.waitUntilConnected(params.connection_id)
     if (this.isConnected(state)) {
       logger.info({ connectionId: params.connection_id }, 'Deep link: connection established, issuing credential')
-      const resp = await tractionRequest.post(`/issue-credential/send`, params)
+      const resp = await tractionRequest.post(`/issue-credential-2.0/send-offer`, params)
       return resp.data
     }
     logger.warn(
