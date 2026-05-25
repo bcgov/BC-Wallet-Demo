@@ -26,7 +26,7 @@ export const embeddedSchemaOptions: SchemaOptions = {
 export const AttributeSchema = new Schema<{ name: string; value: string }>(
   {
     name: { type: String, required: true },
-    value: { type: String, default: '' },
+    value: { type: String, required: true},
   },
   embeddedSchemaOptions,
 )
