@@ -21,6 +21,14 @@ once logged in, navigate to the API keys section under the wallet icon to the to
 Create a new API key and save the key and tenant ID in a password manager. You should only have to do this once when migrating to a new traction agent.
 
 The next thing you'll have to do is setup webhooks for your local environment. Start an ngrok instance on your local machine on port 5000 like so `ngrok http 5000` copy the URL you get in to command window. Go to Settings under the wallet icon, you should see a section where you can add your webhook url. Add the following url to the webhook url textbox: `https://<YOUR_NGROK_URL>/digital-trust/showcase/demo/whook` then in the webhook key generate a random key and paste it in there. Make sure you save the webhook key since we'll need it later. Hit the Save Changes button at the bottom.
+
+The same ngrok tunnel also enables **short invitation URLs** for QR codes. When scanning with BC Wallet, the phone needs a publicly reachable URL — `localhost` won't work. Set `SHOWCASE_PUBLIC_ORIGIN` in `server/.env` to your ngrok URL so the short URLs point to the public tunnel:
+
+```bash
+SHOWCASE_PUBLIC_ORIGIN=https://<YOUR_NGROK_URL>
+```
+
+If you use a free [ngrok static domain](https://ngrok.com/docs/guides/other-guides/how-to-set-up-a-custom-domain/) (e.g. `ngrok http 5000 --domain your-name.ngrok-free.app`) the origin stays stable across restarts and you won't need to update `SHOWCASE_PUBLIC_ORIGIN` each time.
 ![](Pasted%20image%2020241002095030.png)
 One last thing that needs to be done is to ensure that your traction agent is setup as an issuer. You should see this icon at the top right of your tenant's profile, this means it has the ability to create schemas and cred defs on the ledger.  
 ![](Pasted%20image%2020241002100018.png)
@@ -33,6 +41,7 @@ TRACTION_TENANT_API_KEY=<YOUR_API_KEY>
 TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
 BASE_ROUTE=/digital-trust/showcase
 WEBHOOK_SECRET=<YOUR_WEBHOOK_SECRET>
+SHOWCASE_PUBLIC_ORIGIN=https://<YOUR_NGROK_URL>
 ```
 
 populate the values with the API key and webhook secret that you made in the previous step.  
