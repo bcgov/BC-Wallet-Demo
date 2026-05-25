@@ -1,4 +1,4 @@
-import type { Showcase, Credential } from '../types'
+import type { Showcase, Credential, Schema } from '../types'
 import type { AuthContextProps } from 'react-oidc-context'
 
 const baseRoute = import.meta.env.VITE_BASE_ROUTE || '/digital-trust/showcase'
@@ -236,5 +236,38 @@ export const uploadImage = async (
   })
   if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as { path: string; filename: string }
+  return data
+}
+
+// ============================================================================
+// SCHEMA ENDPOINTS
+// ============================================================================
+export const getAvailableSchemas = async (auth: AuthContextProps): Promise<Schema[]> => {
+  const res = await fetch(`${adminBaseUrl}/traction/schemas`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!res.ok) await handleErrorResponse(res)
+  const data = await res.json()
+  return data
+}
+
+export const createSchema = async (
+  auth: AuthContextProps,
+  schemaData: { name: string; version: string; attrNames: string[] },
+): Promise<Schema> => {
+  const res = await fetch(`${adminBaseUrl}/traction/schemas`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(schemaData),
+  })
+  if (!res.ok) await handleErrorResponse(res)
+  const data = (await res.json()) as Schema
   return data
 }

@@ -17,6 +17,16 @@ export interface Credential {
 // from name + version server-side.
 export type CreateCredentialInput = Omit<Credential, 'id' | 'schema_id' | 'cred_def_ids' | 'status'>
 
+export interface Schema {
+  id: string
+  name: string
+  version: string
+  attrNames: string[]
+}
+
+// Input shape for the create schema API. id is derived from the Traction response server-side.
+export type CreateSchemaInput = Omit<Schema, 'id'>
+
 export interface IntroductionStep {
   screenId: string
   name: string

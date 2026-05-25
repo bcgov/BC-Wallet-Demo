@@ -2,6 +2,10 @@ import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 import axios from 'axios'
 
+import credentialsSeed from '../../../server/scripts/values/credentials.json'
+import { CredentialModel } from '../db/models/Credential'
+import { SchemaModel } from '../db/models/Schema'
+
 import logger from './logger'
 
 const safeAxiosError = (err: unknown) => {
@@ -120,4 +124,80 @@ export const tractionGarbageCollection = async () => {
     },
     6 * 60 * 60 * 1000,
   )
+}
+
+export const checkSeededSchemasExistOrCreate = async () => {
+  try {
+    // Iterate through seeded credentials and log their name and version
+    for (const credential of credentialsSeed) {
+      logger.info(`Schema ${credential.name} v${credential.version} Checking seeded schema existence`)
+      const schemas = (
+        await tractionRequest.get('/anoncreds/schemas', {
+          params: {
+            schema_name: credential.name,
+            schema_version: credential.version,
+          },
+        } as any)
+      ).data.schema_ids
+      if (schemas.length > 0) {
+        logger.info(`Schema ${credential.name} v${credential.version} Seeded schema already exists`)
+      } else {
+        try {
+          logger.info(`Schema ${credential.name} v${credential.version} Creating seeded schema`)
+          const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
+          const createSchemaPayload = {
+            name: credential.name,
+            version: credential.version,
+            attrNames: credential.attributes.map((attr: any) => attr.name),
+            issuerId: issuerDid,
+          }
+          logger.debug({ createSchemaPayload }, 'Creating schema with payload')
+          const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
+          // TODO: Make this more robust. Possible to have the schema created but fail on credential definition, which would leave us in a bad state since we currently rely on the schema and credential definition being created at the same time. Ideally we would check for the existence of both the schema and credential definition at the beginning, and if either is missing we would attempt to create both, and if creation fails we would clean up any partial state.
+          const credDefResponse = await tractionRequest.post('/anoncreds/credential-definition', {
+            credential_definition: {
+              issuerId: issuerDid,
+              schemaId: response.data.schema_state.schema_id,
+              tag: response.data.schema_state.schema.name,
+            },
+            options: {
+              support_revocation: true,
+              revocation_registry_size: 3000,
+            },
+          })
+          // Save schema to MongoDB
+          const schemaId = response.data.schema_state.schema_id
+          const credDefId = credDefResponse.data.credential_definition_state.credential_definition_id
+          await SchemaModel.updateOne(
+            { _id: schemaId },
+            {
+              $set: {
+                name: credential.name,
+                version: credential.version,
+                attrNames: credential.attributes.map((attr: any) => attr.name),
+              },
+            },
+            { upsert: true },
+          )
+          // Update Credential with schema_id and cred_def_id
+          await CredentialModel.updateOne(
+            { _id: credential._id },
+            {
+              $set: { schema_id: schemaId },
+              $addToSet: { cred_def_ids: credDefId },
+            },
+            { upsert: true },
+          )
+          logger.info(`Schema ${credential.name} v${credential.version} Seeded schema created successfully`)
+        } catch (err) {
+          logger.error(
+            safeAxiosError(err),
+            `Schema ${credential.name} v${credential.version} Failed to create seeded schema or credential definition`,
+          )
+        }
+      }
+    }
+  } catch (err) {
+    logger.error(safeAxiosError(err), 'Failed to process seeded schemas')
+  }
 }

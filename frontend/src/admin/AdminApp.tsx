@@ -8,8 +8,8 @@ import { AuthGuard } from './auth/AuthGuard'
 import { loadOidcConfig } from './auth/keycloakConfig'
 import { CallbackPage } from './pages/CallbackPage'
 import { CreatorPage } from './pages/CreatorPage'
-import { CredentialsPage } from './pages/CredentialsPage'
 import { LoginPage } from './pages/LoginPage'
+import { SchemasPage } from './pages/SchemasPage'
 import { ShowcasePage } from './pages/ShowcasePage'
 
 const onSigninCallback = () => {
@@ -58,10 +58,10 @@ function AdminApp() {
           }
         />
         <Route
-          path="creator/credentials"
+          path="creator/schemas"
           element={
             <AuthGuard>
-              <CredentialsPage />
+              <SchemasPage />
             </AuthGuard>
           }
         />

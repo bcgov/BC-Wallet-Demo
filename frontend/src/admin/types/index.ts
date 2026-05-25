@@ -101,3 +101,10 @@ export interface Showcase {
   revocationInfo?: RevocationInfoItem[]
   credentials: Credential[]
 }
+
+export interface Schema {
+  id: string
+  name: string
+  version: string
+  attrNames: string[]
+}

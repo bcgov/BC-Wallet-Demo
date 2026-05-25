@@ -2,7 +2,7 @@ import type { Credential, Showcase } from '../../../../types'
 
 import { publicBaseUrl } from '../../../../api/adminApi'
 
-interface SelectingCredentialsStepProps {
+interface CreateCredentialStepProps {
   showcase: Showcase | null | undefined
   selectedCredentials: Set<string>
   onSelectCredential: (credentialId: string, checked: boolean) => void
@@ -10,13 +10,13 @@ interface SelectingCredentialsStepProps {
   onContinue: () => void
 }
 
-export function SelectingCredentialsStep({
+export function CreateCredentialStep({
   showcase,
   selectedCredentials,
   onSelectCredential,
   onBack,
   onContinue,
-}: SelectingCredentialsStepProps) {
+}: CreateCredentialStepProps) {
   return (
     <div className="space-y-4">
       <div>

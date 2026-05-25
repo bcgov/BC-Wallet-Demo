@@ -1,7 +1,7 @@
 export { EnteringNameStep } from './EnteringNameStep'
-export { SelectingCredentialStep } from './SelectingCredentialStep'
-export { ViewingCredentialDetailsStep } from './ViewingCredentialDetailsStep'
+export { SelectingSchemaStep } from './SelectingSchemaStep'
+export { DefineCredentialValuesStep } from './DefineCredentialValuesStep'
 
-export { SelectingCredentialsStep } from './SelectingCredentialsStep'
+export { CreateCredentialStep as SelectingCredentialsStep } from './CreateCredentialStep'
 export { SelectingAttributesStep } from './SelectingAttributesStep'
 export { DefiningProofRequestStep } from './DefiningProofRequestStep'

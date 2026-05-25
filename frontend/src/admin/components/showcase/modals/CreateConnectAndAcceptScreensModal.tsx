@@ -1,14 +1,14 @@
-import type { Credential, IntroductionStep, Showcase, ProgressBarStep } from '../../../types'
+import type { Credential, IntroductionStep, Showcase, ProgressBarStep, Schema } from '../../../types'
 
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { getAllCredentials, updateShowcase } from '../../../api/adminApi'
-import { CreateCredentialModal } from '../../credential/CreateCredentialModal'
+import { getAvailableSchemas, updateShowcase, createCredential } from '../../../api/adminApi'
+import { CreateSchemaModal } from '../../schema/CreateSchemaModal'
 
 import { CreateOrEditScreenModal } from './CreateOrEditScreenModal'
-import { EnteringNameStep, SelectingCredentialStep, ViewingCredentialDetailsStep } from './steps'
+import { EnteringNameStep, SelectingSchemaStep, DefineCredentialValuesStep } from './steps'
 
 interface CreateConnectAndAcceptScreensModalProps {
   isOpen: boolean
@@ -19,8 +19,8 @@ interface CreateConnectAndAcceptScreensModalProps {
 
 type Step =
   | { type: 'ENTERING_ISSUER_NAME' }
-  | { type: 'SELECTING_CREDENTIAL' }
-  | { type: 'VIEWING_CREDENTIAL_DETAILS' }
+  | { type: 'SELECTING_SCHEMA' }
+  | { type: 'SET_CREDENTIAL_VALUES' }
   | { type: 'EDITING_CONNECT_SCREEN' }
   | { type: 'EDITING_ACCEPT_SCREEN' }
 
@@ -33,12 +33,13 @@ export function CreateConnectAndAcceptScreensModal({
   const auth = useAuth()
   const [step, setStep] = useState<Step>({ type: 'ENTERING_ISSUER_NAME' })
   const [issuerName, setIssuerName] = useState<string>('')
-  const [credentials, setCredentials] = useState<Credential[]>([])
+  const [schemas, setSchemas] = useState<Schema[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [issuerNameError, setIssuerNameError] = useState<string | null>(null)
-  const [isCreateCredentialModalOpen, setIsCreateCredentialModalOpen] = useState(false)
+  const [isCreateSchemaModalOpen, setIsCreateSchemaModalOpen] = useState(false)
   const [selectedCredential, setSelectedCredential] = useState<Credential | null>(null)
+  const [selectedSchema, setSelectedSchema] = useState<Schema | null>(null)
   const [connectScreenData, setConnectScreenData] = useState<IntroductionStep | null>(null)
 
   const connectScreenTemplate: IntroductionStep = {
@@ -71,10 +72,10 @@ export function CreateConnectAndAcceptScreensModal({
       setLoading(true)
       setError(null)
       try {
-        const data = await getAllCredentials(auth)
-        setCredentials(data)
+        const data = await getAvailableSchemas(auth)
+        setSchemas(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load credentials')
+        setError(err instanceof Error ? err.message : 'Failed to load schemas')
       } finally {
         setLoading(false)
       }
@@ -99,13 +100,13 @@ export function CreateConnectAndAcceptScreensModal({
           <>
             <div className="flex items-center justify-between border-b border-gray-200 p-6">
               <div className="flex items-center gap-3">
-                {(step.type === 'VIEWING_CREDENTIAL_DETAILS' || step.type === 'SELECTING_CREDENTIAL') && (
+                {(step.type === 'SET_CREDENTIAL_VALUES' || step.type === 'SELECTING_SCHEMA') && (
                   <button
                     onClick={() => {
-                      if (step.type === 'VIEWING_CREDENTIAL_DETAILS') {
+                      if (step.type === 'SET_CREDENTIAL_VALUES') {
                         setSelectedCredential(null)
-                        setStep({ type: 'SELECTING_CREDENTIAL' })
-                      } else if (step.type === 'SELECTING_CREDENTIAL') {
+                        setStep({ type: 'SELECTING_SCHEMA' })
+                      } else if (step.type === 'SELECTING_SCHEMA') {
                         setStep({ type: 'ENTERING_ISSUER_NAME' })
                       }
                     }}
@@ -117,9 +118,9 @@ export function CreateConnectAndAcceptScreensModal({
                 <h2 className="text-lg font-semibold text-bcgov-black">
                   {step.type === 'ENTERING_ISSUER_NAME'
                     ? 'Enter Issuer Name'
-                    : step.type === 'VIEWING_CREDENTIAL_DETAILS'
+                    : step.type === 'SET_CREDENTIAL_VALUES'
                       ? 'Credential Details'
-                      : 'Select Credential'}
+                      : 'Create Credential'}
                 </h2>
               </div>
               <button onClick={onClose} className="text-gray-500 hover:text-gray-700 transition-colors">
@@ -150,65 +151,84 @@ export function CreateConnectAndAcceptScreensModal({
                     }
 
                     setIssuerNameError(null)
-                    setStep({ type: 'SELECTING_CREDENTIAL' })
+                    setStep({ type: 'SELECTING_SCHEMA' })
                   }}
                   label="Issuer Name"
                   placeholder="Enter the issuer name"
                 />
               )}
 
-              {step.type === 'VIEWING_CREDENTIAL_DETAILS' && (
-                <ViewingCredentialDetailsStep
-                  selectedCredential={selectedCredential}
-                  onBack={() => {
-                    setSelectedCredential(null)
-                    setStep({ type: 'SELECTING_CREDENTIAL' })
+              {step.type === 'SELECTING_SCHEMA' && (
+                <SelectingSchemaStep
+                  schemas={schemas}
+                  loading={loading}
+                  error={error}
+                  onSelectSchema={(schema) => {
+                    setSelectedSchema(schema)
+                    setStep({ type: 'SET_CREDENTIAL_VALUES' })
                   }}
-                  onSelectCredential={() => {
-                    setStep({ type: 'EDITING_CONNECT_SCREEN' })
-                  }}
+                  onCreateNew={() => setIsCreateSchemaModalOpen(true)}
                 />
               )}
 
-              {step.type === 'SELECTING_CREDENTIAL' && (
-                <SelectingCredentialStep
-                  credentials={credentials}
-                  loading={loading}
-                  error={error}
-                  onSelectCredential={(credential) => {
-                    setSelectedCredential(credential)
-                    setStep({ type: 'VIEWING_CREDENTIAL_DETAILS' })
+              {step.type === 'SET_CREDENTIAL_VALUES' && (
+                <DefineCredentialValuesStep
+                  selectedSchema={selectedSchema}
+                  onBack={() => {
+                    setSelectedCredential(null)
+                    setStep({ type: 'SELECTING_SCHEMA' })
                   }}
-                  onCreateNew={() => setIsCreateCredentialModalOpen(true)}
+                  onSelectCredential={async (values, icon) => {
+                    // Create Credential object from schema and values
+                    if (selectedSchema) {
+                      try {
+                        const credentialToCreate = {
+                          name: issuerName,
+                          icon,
+                          version: selectedSchema.version,
+                          attributes: selectedSchema.attrNames.map((attrName) => ({
+                            name: attrName,
+                            value: values[attrName],
+                          })),
+                          schema_id: selectedSchema.id,
+                        }
+                        const createdCredential = await createCredential(auth, credentialToCreate)
+                        setSelectedCredential(createdCredential)
+                        setStep({ type: 'EDITING_CONNECT_SCREEN' })
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : 'Failed to create credential')
+                      }
+                    }
+                  }}
                 />
               )}
             </div>
           </>
         )}
       </div>
-      <CreateCredentialModal
-        isOpen={isCreateCredentialModalOpen}
-        onClose={() => setIsCreateCredentialModalOpen(false)}
-        onCredentialCreated={(newCredential) => {
-          // Show the newly created credential in detail view
-          setSelectedCredential(newCredential)
-          setIsCreateCredentialModalOpen(false)
-          // Refresh credentials list
-          const fetchCredentials = async () => {
+      <CreateSchemaModal
+        isOpen={isCreateSchemaModalOpen}
+        onClose={() => setIsCreateSchemaModalOpen(false)}
+        onSchemaCreated={(schema) => {
+          // Show the newly created schema in detail view
+          setSelectedSchema(schema)
+          setIsCreateSchemaModalOpen(false)
+          // Refresh schemas list
+          const fetchSchemas = async () => {
             try {
-              const data = await getAllCredentials(auth)
-              setCredentials(data)
+              const data = await getAvailableSchemas(auth)
+              setSchemas(data)
             } catch {
-              // Silently fail - user can see the newly created credential anyway
+              // Silently fail - user can see the newly created schema anyway
             }
           }
-          fetchCredentials()
+          fetchSchemas()
         }}
       />
       <CreateOrEditScreenModal
         isOpen={step.type === 'EDITING_CONNECT_SCREEN'}
         onClose={() => {
-          setStep({ type: 'VIEWING_CREDENTIAL_DETAILS' })
+          setStep({ type: 'SET_CREDENTIAL_VALUES' })
         }}
         screen={connectScreenTemplate}
         progressBarStep={null}

@@ -16,9 +16,15 @@ import { requireAdmin, ServiceUnavailableError } from './middleware/requireAdmin
 import adminAssetsRouter from './routes/adminAssetsRouter'
 import adminAuditLogRouter from './routes/adminAuditLogRouter'
 import adminCredentialsRouter from './routes/adminCredentialsRouter'
+import adminSchemaRouter from './routes/adminSchemasRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
 import logger from './utils/logger'
-import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
+import {
+  checkSeededSchemasExistOrCreate,
+  tractionApiKeyUpdaterInit,
+  tractionGarbageCollection,
+  tractionRequest,
+} from './utils/tractionHelper'
 import { UPLOADS_DIR } from './utils/uploadsDir'
 
 const baseRoute = process.env.BASE_ROUTE
@@ -70,6 +76,8 @@ const run = async () => {
 
   await tractionApiKeyUpdaterInit()
   await tractionGarbageCollection()
+
+  await checkSeededSchemasExistOrCreate()
 
   app.set('sockets', socketMap)
 
@@ -134,6 +142,7 @@ const run = async () => {
   app.use(`${baseRoute}/admin/credentials`, adminCredentialsRouter)
   app.use(`${baseRoute}/admin/assets`, adminAssetsRouter)
   app.use(`${baseRoute}/admin/audit-log`, adminAuditLogRouter)
+  app.use(`${baseRoute}/admin/traction`, adminSchemaRouter)
 
   app.get(`${baseRoute}/server/last-reset`, (_req, res) => {
     res.send(serverStartTime)
