@@ -23,7 +23,7 @@ beforeEach(() => {
 describe('createInvitation thunk', () => {
   it('populates state on success', async () => {
     vi.mocked(ConnectionApi.createInvitation).mockResolvedValue({
-      data: { invi_msg_id: 'msg-1', invitation_url: 'http://invite' },
+      data: { invi_msg_id: 'msg-1', invitation_url: 'http://invite', short_url: 'https://host/i/oob-1' },
     } as any)
     vi.mocked(ConnectionApi.getConnectionByInvitation).mockResolvedValue({
       data: { connection_id: 'conn-42', state: 'response' },
@@ -37,6 +37,7 @@ describe('createInvitation thunk', () => {
     expect(conn.id).toBe('conn-42')
     expect(conn.state).toBe('invited')
     expect(conn.invitationUrl).toBe('http://invite')
+    expect(conn.shortInvitationUrl).toBe('https://host/i/oob-1')
   })
 
   it('sets isLoading=true while pending, false after rejection', async () => {

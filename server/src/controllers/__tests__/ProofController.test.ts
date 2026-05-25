@@ -12,6 +12,11 @@ vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
+vi.mock('../../services/oobInvitationShortLink', () => ({
+  attachShortUrlToOobInvite: vi.fn(),
+}))
+
+import { attachShortUrlToOobInvite } from '../../services/oobInvitationShortLink'
 import { tractionRequest } from '../../utils/tractionHelper'
 import { ProofController } from '../ProofController'
 
@@ -21,6 +26,8 @@ describe('ProofController', () => {
   beforeEach(() => {
     controller = new ProofController()
     vi.clearAllMocks()
+    process.env.BASE_ROUTE = '/digital-trust/showcase'
+    process.env.SHOWCASE_PUBLIC_ORIGIN = 'https://showcase.example.com'
   })
 
   describe('getAllCredentialsByConnectionId (getProofRecord)', () => {
@@ -46,13 +53,20 @@ describe('ProofController', () => {
   describe('requestProofOOB', () => {
     it('creates a proof request then wraps it in an OOB invitation', async () => {
       const mockProof = { presentation_exchange_id: 'pex1', pres_ex_id: 'pex1' }
-      const mockInvite = { invitation_url: 'https://example.com/invite' }
+      const mockInvite = {
+        invitation_url: 'https://example.com/invite',
+        invitation: { '@id': 'oob-proof-1' },
+        invi_msg_id: 'msg-proof-1',
+      }
 
       vi.mocked(tractionRequest.post)
         .mockResolvedValueOnce({ data: mockProof })
         .mockResolvedValueOnce({ data: mockInvite })
+      vi.mocked(attachShortUrlToOobInvite).mockResolvedValue(
+        'https://showcase.example.com/digital-trust/showcase/i/oob-proof-1',
+      )
 
-      const result = await controller.requestProofOOB({ requested_attributes: {} })
+      const result = await controller.requestProofOOB({ requested_attributes: {} }, { headers: {} } as any)
 
       expect(tractionRequest.post).toHaveBeenNthCalledWith(1, '/present-proof-2.0/create-request', expect.any(Object))
       expect(tractionRequest.post).toHaveBeenNthCalledWith(2, '/out-of-band/create-invitation', {
@@ -65,7 +79,12 @@ describe('ProofController', () => {
         protocol_version: '1.1',
         use_public_did: true,
       })
-      expect(result).toEqual({ proofUrl: 'https://example.com/invite', proof: mockProof })
+      expect(attachShortUrlToOobInvite).toHaveBeenCalledWith(mockInvite, expect.anything(), 'proof')
+      expect(result).toEqual({
+        proofUrl: 'https://example.com/invite',
+        short_url: 'https://showcase.example.com/digital-trust/showcase/i/oob-proof-1',
+        proof: mockProof,
+      })
     })
   })
 

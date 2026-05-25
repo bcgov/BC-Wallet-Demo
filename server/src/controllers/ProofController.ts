@@ -1,6 +1,9 @@
-import { Body, Delete, Get, JsonController, Param, Post } from 'routing-controllers'
+import type { Request } from 'express'
+
+import { Body, Delete, Get, JsonController, Param, Post, Req } from 'routing-controllers'
 import { Service } from 'typedi'
 
+import { attachShortUrlToOobInvite } from '../services/oobInvitationShortLink'
 import logger from '../utils/logger'
 import { tractionRequest } from '../utils/tractionHelper'
 
@@ -20,7 +23,7 @@ export class ProofController {
   }
 
   @Post('/requestProofOOB')
-  public async requestProofOOB(@Body() params: any) {
+  public async requestProofOOB(@Body() params: any, @Req() req: Request) {
     logger.info('Creating out-of-band proof request')
     const proofRecord = (await tractionRequest.post('/present-proof-2.0/create-request', params)).data
 
@@ -40,8 +43,16 @@ export class ProofController {
       use_public_did: true,
     }
     const invite = (await tractionRequest.post('/out-of-band/create-invitation', template)).data
-    logger.info({ presentationExchangeId: proofRecord.pres_ex_id }, 'Out-of-band proof request created')
-    return { proofUrl: invite.invitation_url, proof: proofRecord }
+    const short_url = await attachShortUrlToOobInvite(invite, req, 'proof')
+    logger.info(
+      { presentationExchangeId: proofRecord.pres_ex_id, shortUrl: short_url },
+      'Out-of-band proof request created',
+    )
+    return {
+      proofUrl: invite.invitation_url,
+      short_url,
+      proof: proofRecord,
+    }
   }
 
   @Post('/requestProof')

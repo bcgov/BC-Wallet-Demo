@@ -12,6 +12,11 @@ vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
+vi.mock('../../services/oobInvitationShortLink', () => ({
+  attachShortUrlToOobInvite: vi.fn(),
+}))
+
+import { attachShortUrlToOobInvite } from '../../services/oobInvitationShortLink'
 import { tractionRequest } from '../../utils/tractionHelper'
 import { ConnectionController } from '../ConnectionController'
 
@@ -21,6 +26,8 @@ describe('ConnectionController', () => {
   beforeEach(() => {
     controller = new ConnectionController()
     vi.clearAllMocks()
+    process.env.BASE_ROUTE = '/digital-trust/showcase'
+    process.env.SHOWCASE_PUBLIC_ORIGIN = 'https://showcase.example.com'
   })
 
   describe('getConnectionStatus', () => {
@@ -76,7 +83,7 @@ describe('ConnectionController', () => {
         data: { invitation_url: 'https://example.com/invite' },
       })
 
-      await controller.createConnectionInvite({})
+      await controller.createConnectionInvite({}, { headers: {} } as any)
 
       expect(tractionRequest.post).toHaveBeenCalledWith(
         '/out-of-band/create-invitation?multi_use=false',
@@ -91,7 +98,7 @@ describe('ConnectionController', () => {
     it('merges caller-supplied params into the invitation body', async () => {
       vi.mocked(tractionRequest.post).mockResolvedValue({ data: {} })
 
-      await controller.createConnectionInvite({ my_label: 'Test Label' })
+      await controller.createConnectionInvite({ my_label: 'Test Label' }, { headers: {} } as any)
 
       expect(tractionRequest.post).toHaveBeenCalledWith(
         expect.any(String),
@@ -103,9 +110,36 @@ describe('ConnectionController', () => {
       const mockData = { invitation_url: 'https://example.com/invite', connection_id: 'conn1' }
       vi.mocked(tractionRequest.post).mockResolvedValue({ data: mockData })
 
-      const result = await controller.createConnectionInvite({})
+      const result = await controller.createConnectionInvite({}, { headers: {} } as any)
 
       expect(result).toEqual(mockData)
+    })
+
+    it('persists OOB invitation and adds short_url when invitation has @id', async () => {
+      const invitation = {
+        '@type': 'https://didcomm.org/out-of-band/1.1/invitation',
+        '@id': 'oob-uuid-123',
+      }
+      const mockData = {
+        invitation_url: 'https://traction.example/?c_i=abc',
+        invitation,
+        invi_msg_id: 'msg-1',
+        connection_id: 'conn1',
+      }
+      vi.mocked(tractionRequest.post).mockResolvedValue({ data: mockData })
+      vi.mocked(attachShortUrlToOobInvite).mockResolvedValue(
+        'https://showcase.example.com/digital-trust/showcase/i/oob-uuid-123',
+      )
+
+      const result = await controller.createConnectionInvite({}, { headers: {} } as any)
+
+      expect(attachShortUrlToOobInvite).toHaveBeenCalledWith(
+        expect.objectContaining({ invitation, invi_msg_id: 'msg-1' }),
+        expect.anything(),
+        'connection',
+      )
+      expect(result.short_url).toBe('https://showcase.example.com/digital-trust/showcase/i/oob-uuid-123')
+      expect(result.invitation_url).toBe('https://traction.example/?c_i=abc')
     })
   })
 })

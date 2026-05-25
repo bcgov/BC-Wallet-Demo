@@ -18,7 +18,7 @@
         {{- include "showcase.caddyAdminApiMatcherLines" . | nindent 8 }}
     }
     @encode_static {
-        not path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/* {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
+        not path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/* {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr {{ .Values.showcase.baseRoute }}/i/*
     }
     encode @encode_static zstd gzip
     # No global `templates` — Engine.IO polling bodies can break the templates handler.
@@ -46,7 +46,7 @@
             not {
                 {{- include "showcase.caddyAdminApiMatcherLines" . | nindent 16 }}
             }
-            not path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
+            not path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr {{ .Values.showcase.baseRoute }}/i/*
             file {
                 try_files {path} {{ .Values.showcase.baseRoute }}/index.html
             }
@@ -58,7 +58,7 @@
             header_up X-Forwarded-Host {host}
         }
         @pass {
-            path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr
+            path {{ .Values.showcase.baseRoute }}/demo/* {{ .Values.showcase.baseRoute }}/server/* {{ .Values.showcase.baseRoute }}/agent/ready {{ .Values.showcase.baseRoute }}/public/* {{ .Values.showcase.baseRoute }}/qr {{ .Values.showcase.baseRoute }}/i/*
         }
         reverse_proxy @pass {$SHOWCASE_API_UPSTREAM} {
             trusted_proxies {{ .Values.showcase.frontend.trustedProxies }}

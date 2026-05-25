@@ -5,7 +5,10 @@ import { createInvitation } from './connectionThunks'
 export interface ConnectionState {
   id?: string
   state?: string
+  /** Full Traction invitation URL — used for deep links only, not the QR code. */
   invitationUrl?: string
+  /** Short HTTPS URL for QR scans (`GET …/i/{oobId}` returns invitation JSON). */
+  shortInvitationUrl?: string
   isLoading: boolean
   isDeepLink: boolean
 }
@@ -14,6 +17,7 @@ const initialState: ConnectionState = {
   id: undefined,
   state: undefined,
   invitationUrl: undefined,
+  shortInvitationUrl: undefined,
   isLoading: false,
   isDeepLink: false,
 }
@@ -29,6 +33,7 @@ const connectionSlice = createSlice({
       state.id = undefined
       state.state = undefined
       state.invitationUrl = undefined
+      state.shortInvitationUrl = undefined
       state.isLoading = false
       state.isDeepLink = false
     },
@@ -47,6 +52,7 @@ const connectionSlice = createSlice({
         state.id = action.payload.connection_id
         state.state = 'invited'
         state.invitationUrl = action.payload.invitation_url
+        state.shortInvitationUrl = action.payload.short_url
       })
       .addCase(createInvitation.rejected, (state) => {
         state.isLoading = false
@@ -55,6 +61,7 @@ const connectionSlice = createSlice({
         state.id = undefined
         state.state = undefined
         state.invitationUrl = undefined
+        state.shortInvitationUrl = undefined
         state.isLoading = false
       })
   },

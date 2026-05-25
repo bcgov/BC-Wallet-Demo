@@ -22,6 +22,7 @@ export interface Props {
   skipIssuance(): void
   nextSlide(): void
   invitationUrl?: string
+  shortInvitationUrl?: string
   connectionState?: string
   newConnection?: boolean
   disableSkipConnection?: boolean
@@ -39,6 +40,7 @@ export const SetupConnection: React.FC<Props> = ({
   title,
   text,
   invitationUrl,
+  shortInvitationUrl,
   connectionState,
   newConnection,
   issuerName,
@@ -87,10 +89,10 @@ export const SetupConnection: React.FC<Props> = ({
     }
   }, [message])
 
+  const qrUrl = shortInvitationUrl ?? invitationUrl
+
   const renderQRCode = (overlay?: boolean) => {
-    return invitationUrl ? (
-      <QRCode invitationUrl={invitationUrl} connectionState={connectionState} overlay={overlay} />
-    ) : null
+    return qrUrl ? <QRCode invitationUrl={qrUrl} connectionState={connectionState} overlay={overlay} /> : null
   }
 
   const handleDeepLink = () => {

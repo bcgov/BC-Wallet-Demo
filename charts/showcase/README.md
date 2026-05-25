@@ -90,6 +90,10 @@ If you use **`showcase.server.existingSecret`** for a full env bundle, you can o
 
 On **bcgov**, GitHub Actions (**`deploy-showcase-dev.yaml`** / **`deploy-showcase-pr.yaml`**) can create **`${release}-traction`** / **`pr-<N>-showcase-traction`** from repository secrets **`TRACTION_DEV_TENANT_ID`** and **`TRACTION_DEV_TENANT_API_KEY`** before **`helm upgrade`**.
 
+### Short OOB invitation URLs (QR)
+
+- **`showcase.server.shortInvitationUrls.enabled`** (default **`true`**) sets **`SHOWCASE_SHORT_INVITATION_URLS_ENABLED`** on the server. When **`true`**, connection and OOB proof invites get **`short_url`** for QR codes; wallets resolve **`GET {baseRoute}/i/{oobId}`** to the stored invitation JSON. Set to **`false`** to encode the full Traction **`invitation_url`** in QR codes instead (legacy behaviour).
+
 ### Mongo subchart
 
 All **`mongodb:`** keys pass through to CloudPirates. Inspect the packaged chart or:
