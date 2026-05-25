@@ -53,13 +53,10 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.showcase.server.containerPort }}
-    # DNS (cluster DNS backends vary: ClusterIP, hostNetwork, node-local).
-    # Explicit ipBlock required — OVN-Kubernetes on OpenShift may not match
-    # external/node IPs when `to` is omitted.
-    - to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
+    # DNS — no `to` selector so the rule covers the cluster DNS ClusterIP.
+    # ipBlock does not match ClusterIP traffic on OVN-Kubernetes (egress ACL
+    # is evaluated before Service DNAT), so DNS must use an open rule.
+    - ports:
         - protocol: UDP
           port: 53
         - protocol: TCP
