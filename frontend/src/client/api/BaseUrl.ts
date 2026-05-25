@@ -1,4 +1,4 @@
-import axios from 'axios'
+import { create } from 'axios'
 
 import log from '../utils/logger'
 
@@ -7,7 +7,7 @@ export const baseUrl = (import.meta.env.VITE_HOST_BACKEND || '') + baseRoute
 export const baseWsUrl = import.meta.env.VITE_HOST_BACKEND || ''
 export const socketPath = `${baseRoute}/demo/socket/`
 
-export const apiCall = axios.create({ baseURL: baseUrl })
+export const apiCall = create({ baseURL: baseUrl })
 
 apiCall.interceptors.request.use((config) => {
   log.debug(`[API] ${config.method?.toUpperCase()} ${config.url}`, config.params ?? '')
