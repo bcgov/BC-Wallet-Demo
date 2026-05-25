@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "showcase.server.configmapName" . }}
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+data:
+  keycloak.json: |
+    {{- .Values.showcase.server.keycloak | toJson | nindent 4 }}

@@ -23,15 +23,20 @@ spec:
         {{- range $k, $v := .Values.showcase.server.podLabels }}
         {{ $k }}: {{ $v | quote }}
         {{- end }}
-      {{- if .Values.showcase.server.podAnnotations }}
-      annotations: {{- toYaml .Values.showcase.server.podAnnotations | nindent 8 }}
-      {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/server/configmap.yaml") . | sha256sum }}
+        {{- with .Values.showcase.server.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets: {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and .Values.mongodb.enabled (default true .Values.showcase.server.waitForMongoTcp) }}
+      {{- $hasTcpWait := and .Values.mongodb.enabled (default true .Values.showcase.server.waitForMongoTcp) }}
+      {{- $hasSeed := .Values.showcase.server.seed.enabled }}
+      {{- if or $hasTcpWait $hasSeed }}
       initContainers:
+        {{- if $hasTcpWait }}
         - name: wait-for-mongo-tcp
           image: {{ .Values.showcase.server.mongoWaitInitContainerImage | quote }}
           {{- with .Values.showcase.server.mongoWaitInitContainerSecurityContext }}
@@ -74,6 +79,43 @@ spec:
               done
               echo "timeout waiting for mongo tcp (host: ${host})"
               exit 1
+        {{- end }}
+        {{- if $hasSeed }}
+        - name: seed
+          image: {{ include "showcase.server.image" . }}
+          imagePullPolicy: {{ .Values.showcase.server.image.pullPolicy }}
+          command: ["node", "-r", "dotenv/config", "build/scripts/seed.js"]
+          {{- if .Values.showcase.server.existingSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.showcase.server.existingSecret | quote }}
+          {{- else if eq (include "showcase.server.chartServerSecretNeeded" . | trim) "1" }}
+          envFrom:
+            - secretRef:
+                name: {{ include "showcase.server.secretName" . }}
+          {{- end }}
+          env:
+            {{- if and .Values.mongodb.enabled (not .Values.showcase.server.existingSecret) }}
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl (.Values.mongodb.auth.existingSecret | toString) . | quote }}
+                  key: {{ .Values.mongodb.auth.existingSecretPasswordKey | quote }}
+            - name: MONGODB_HOST
+              value: {{ printf "$(%s_SERVICE_HOST)" (include "showcase.mongodb.serviceEnvPrefix" .) | quote }}
+            - name: MONGODB_URI
+              value: {{ printf "mongodb://%s:$(MONGODB_PASSWORD)@$(MONGODB_HOST):27017/%s?authSource=%s%s" (.Values.mongodb.auth.rootUsername | default "admin") (.Values.showcase.server.mongodbConnection.database | default "bcwallet_demo") (.Values.showcase.server.mongodbConnection.authSource | default "admin") (include "showcase.mongodb.uriDriverQuerySuffix" .) | quote }}
+            {{- end }}
+            - name: BASE_ROUTE
+              value: {{ .Values.showcase.baseRoute | quote }}
+          {{- range .Values.showcase.server.extraEnv }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+          {{- end }}
+          {{- with .Values.showcase.server.resources }}
+          resources: {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
       {{- end }}
       containers:
         - name: server
@@ -131,9 +173,17 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 10
+          volumeMounts:
+            - name: server-config
+              mountPath: /app/server/config/keycloak.json
+              subPath: keycloak.json
           {{- with .Values.showcase.server.resources }}
           resources: {{- toYaml . | nindent 12 }}
           {{- end }}
+      volumes:
+        - name: server-config
+          configMap:
+            name: {{ include "showcase.server.configmapName" . }}
       {{- with .Values.showcase.server.nodeSelector }}
       nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}

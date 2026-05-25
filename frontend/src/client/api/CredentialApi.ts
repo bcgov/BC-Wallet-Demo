@@ -16,7 +16,7 @@ export const issueCredential = async (
       attributes: cred.attributes,
     },
     filter: {
-      indy: {
+      anoncreds: {
         cred_def_id: credDefId,
       },
     },
@@ -36,7 +36,7 @@ export const issueDeepCredential = async (
       attributes: cred.attributes,
     },
     filter: {
-      indy: {
+      anoncreds: {
         cred_def_id: credDefId,
       },
     },

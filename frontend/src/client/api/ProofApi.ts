@@ -7,7 +7,7 @@ export const createProofRequest = (data: ProofRequestData): Promise<AxiosRespons
   return apiCall.post(`/demo/proofs/requestProof`, {
     connection_id: data.connectionId,
     presentation_request: {
-      indy: {
+      anoncreds: {
         requested_attributes: Object.assign({}, data.attributes),
         requested_predicates: Object.assign({}, data.predicates),
         version: '1.0.0',
@@ -24,7 +24,7 @@ export const createDeepProofRequest = (data: ProofRequestData): Promise<AxiosRes
   return apiCall.post(`/demo/deeplink/requestProof`, {
     connection_id: data.connectionId,
     presentation_request: {
-      indy: {
+      anoncreds: {
         requested_attributes: Object.assign({}, data.attributes),
         requested_predicates: Object.assign({}, data.predicates),
         version: '1.0.0',
@@ -40,7 +40,7 @@ export const createDeepProofRequest = (data: ProofRequestData): Promise<AxiosRes
 export const createOOBProofRequest = (data: ProofRequestData): Promise<AxiosResponse> => {
   return apiCall.post(`/demo/proofs/requestProofOOB`, {
     presentation_request: {
-      indy: {
+      anoncreds: {
         requested_attributes: Object.assign({}, data.attributes),
         requested_predicates: Object.assign({}, data.predicates),
         version: '1.0.0',

@@ -13,7 +13,7 @@ export const issueCredential = createAsyncThunk(
       credName: data.cred.name,
     })
     const response = await Api.issueCredential(data.connectionId, data.cred, data.credDefId)
-    log.info('[credentials] credential offered', { credentialExchangeId: response.data?.credential_exchange_id })
+    log.info('[credentials] credential offered', { credentialExchangeId: response.data?.cred_ex_id })
     return response.data
   },
 )
@@ -45,7 +45,7 @@ export const issueDeepCredential = createAsyncThunk(
         const response = await Api.issueDeepCredential(data.connectionId, data.cred, data.credDefId)
         log.info('[credentials] deep-link credential offered', {
           attempt,
-          credentialExchangeId: response.data?.credential_exchange_id,
+          credentialExchangeId: response.data?.cred_ex_id,
         })
         return response.data
       } catch {
