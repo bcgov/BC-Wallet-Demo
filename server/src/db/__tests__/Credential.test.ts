@@ -27,7 +27,7 @@ describe('CredentialModel', () => {
       name: 'Traction Card',
       icon: '/icon.svg',
       version: '1.0',
-      attributes: [{ name: 'field', value: '' }],
+      attributes: [{ name: 'field', value: 'placeholder' }],
       schema_id: 'ABC:2:traction_card:1.0',
       cred_def_ids: ['ABC:3:CL:100:tag'],
     })

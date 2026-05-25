@@ -43,6 +43,7 @@ describe('getAllCredentials', () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: false,
       status: 500,
+      json: async () => ({}),
     } as any)
 
     await expect(getAllCredentials(mockAuth)).rejects.toThrow('Request failed: 500')
