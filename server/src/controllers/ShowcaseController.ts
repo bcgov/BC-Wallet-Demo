@@ -5,7 +5,6 @@ import { CredentialModel, LeanCredentialDoc } from '../db/models/Credential'
 import { ShowcaseModel } from '../db/models/Showcase'
 import { toCredentialResponse } from '../utils/credentialMapper'
 import logger from '../utils/logger'
-
 async function hydrateCredentials(showcase: any) {
   // Credentials are stored as IDs in the database
   // Hydrate them by fetching the full credential objects
@@ -20,7 +19,6 @@ async function hydrateCredentials(showcase: any) {
   try {
     const credentials = await CredentialModel.find({ _id: { $in: allCredentialIds } }).lean<LeanCredentialDoc[]>()
     const credMap = new Map(credentials.map((c) => [String(c._id), c]))
-
     const mapCredentialIdToObject = (id: string) => {
       const cred = credMap.get(id)
       return cred ? toCredentialResponse(cred) : null
