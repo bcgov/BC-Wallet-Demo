@@ -4,6 +4,18 @@ import { Schema, model } from 'mongoose'
 
 import { AttributeSchema, baseSchemaOptions } from '../baseSchema'
 
+/** Shape returned by CredentialModel queries with .lean(). Uses _id, not the id virtual. */
+export interface LeanCredentialDoc {
+  _id: string
+  name: string
+  icon: string
+  version: string
+  attributes: { name: string; value: string }[]
+  schema_id?: string
+  cred_def_ids?: string[]
+  status?: 'active' | 'retired'
+}
+
 // Credential documents use a human-readable string _id (e.g. "student-card").
 // baseSchemaOptions exposes it as `id` in JSON output via the virtuals transform.
 const CredentialSchema = new Schema(
@@ -13,6 +25,9 @@ const CredentialSchema = new Schema(
     icon: { type: String, required: true },
     version: { type: String, required: true },
     attributes: [AttributeSchema],
+    schema_id: { type: String },
+    cred_def_ids: [{ type: String }],
+    status: { type: String, enum: ['active', 'retired'], default: 'active' },
   },
   baseSchemaOptions,
 )
