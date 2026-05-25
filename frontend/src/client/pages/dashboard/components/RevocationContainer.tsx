@@ -1,4 +1,5 @@
 import type { RevocationInfoItem, RevocationRecord } from '../../../slices/types'
+import type { AxiosResponse } from 'axios'
 
 import { motion } from 'framer-motion'
 import startCase from 'lodash/startCase'
@@ -39,7 +40,7 @@ export const RevocationContainer: React.FC<Props> = ({ revocationRecord, revocat
           loadingList.push(item.revocationRegId)
           setLoadingRevocations(loadingList)
 
-          revokeCredential(item).then((result: any) => {
+          revokeCredential(item).then((result: AxiosResponse<any, any, object>) => {
             if (result.status === 200) {
               revocations.push(item.revocationRegId)
               setCompletedRevocations(revocations)

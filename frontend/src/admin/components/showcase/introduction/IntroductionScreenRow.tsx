@@ -67,16 +67,16 @@ export function IntroductionScreenRow({
 
         {/* Screens Container */}
         <div className="flex-1">
-          <ScreenRowBase
+          <ScreenRowBase<IntroductionStep>
             screen={screen}
             nextScreen={nextScreen}
             idx={idx}
             screensLength={introduction?.length ?? 0}
             hasChild={hasAcceptChild}
             headerContent={
-              isConnectScreen && (screen as any).issuer_name ? (
+              isConnectScreen && screen.issuer_name ? (
                 <div className="mb-3 px-2">
-                  <p className="text-sm font-semibold text-bcgov-black">{(screen as any).issuer_name}</p>
+                  <p className="text-sm font-semibold text-bcgov-black">{screen.issuer_name}</p>
                 </div>
               ) : null
             }
@@ -128,6 +128,7 @@ export function IntroductionScreenRow({
             onDrop={onDrop}
             draggableId={`intro-screen-${idx}`}
             disableDragStart={
+              !canEdit ||
               screen.screenId === 'PICK_CHARACTER' ||
               screen.screenId === 'SETUP_COMPLETED' ||
               screen.screenId.startsWith('CONNECT')

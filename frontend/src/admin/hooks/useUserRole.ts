@@ -5,12 +5,25 @@ export type AdminRole = 'admin' | 'creator' | 'viewer'
 /**
  * Decode JWT payload without verification (safe here since token comes from OIDC provider).
  * Returns the decoded payload object.
+ *
+ * Handles base64url encoding (used by JWTs) by converting to standard base64:
+ * - Replaces - with + and _ with /
+ * - Adds padding with = as needed
  */
 function decodeJwt(token: string): Record<string, unknown> | null {
   try {
     const parts = token.split('.')
     if (parts.length !== 3) return null
-    const decoded = JSON.parse(atob(parts[1])) as Record<string, unknown>
+
+    // Convert base64url to base64
+    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    // Add padding if needed
+    const padding = 4 - (base64.length % 4)
+    if (padding !== 4) {
+      base64 += '='.repeat(padding)
+    }
+
+    const decoded = JSON.parse(atob(base64)) as Record<string, unknown>
     return decoded
   } catch {
     return null

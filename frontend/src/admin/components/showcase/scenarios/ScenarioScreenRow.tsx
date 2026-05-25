@@ -48,16 +48,16 @@ export function ScenarioScreenRow({
   const canEdit = useHasRole('creator')
 
   return (
-    <ScreenRowBase
+    <ScreenRowBase<ScenarioScreen>
       screen={screen}
       nextScreen={nextScreen}
       idx={idx}
       screensLength={screensLength}
       hasChild={hasProofChild}
       headerContent={
-        screen.screenId === 'CONNECTION' && (screen as any).verifier?.name ? (
+        screen.screenId === 'CONNECTION' && screen.verifier?.name ? (
           <div className="mb-3 px-2">
-            <p className="text-sm font-semibold text-bcgov-black">{(screen as any).verifier.name}</p>
+            <p className="text-sm font-semibold text-bcgov-black">{screen.verifier.name}</p>
           </div>
         ) : null
       }
@@ -138,6 +138,7 @@ export function ScenarioScreenRow({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       draggableId={`scenario-screen-${scenarioId}-${idx}`}
+      disableDragStart={!canEdit || isPredefinedScreen}
       deleteTitle="Delete connection screens"
       hoverIdPrefix={scenarioId}
       showAddButton={canEdit}

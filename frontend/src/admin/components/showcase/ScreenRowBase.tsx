@@ -7,9 +7,9 @@ import { ScreenContentCard } from '../ScreenContentCard'
 
 import { DeleteScreenPairButton } from './buttons/DeleteScreenPairButton'
 
-interface ScreenRowBaseProps {
-  screen: any
-  nextScreen?: any
+interface ScreenRowBaseProps<T extends { screenId: string; name: string; text: string; image?: string }> {
+  screen: T
+  nextScreen?: T
   idx: number
   screensLength: number
   hasChild: boolean
@@ -20,7 +20,7 @@ interface ScreenRowBaseProps {
   dragOverIdx: number | null
   hoverIdx: string | number | null
   setHoverIdx: (idx: string | number | null) => void
-  onEditClick: (idx: number, screen: any) => void
+  onEditClick: (idx: number, screen: T) => void
   onAddScreenClick: (afterIdx: number) => void
   onShowDeleteConfirm: (idx: number) => void
   onDragStart: (idx: number) => void
@@ -37,7 +37,7 @@ interface ScreenRowBaseProps {
   showAddButton?: boolean
 }
 
-export function ScreenRowBase({
+export function ScreenRowBase<T extends { screenId: string; name: string; text: string; image?: string }>({
   screen,
   nextScreen,
   idx,
@@ -64,7 +64,7 @@ export function ScreenRowBase({
   hoverIdPrefix = '',
   skipIconPlaceholder = false,
   showAddButton = true,
-}: ScreenRowBaseProps) {
+}: ScreenRowBaseProps<T>) {
   const canEdit = useHasRole('creator')
 
   const handleScreenDragStart = () => {
