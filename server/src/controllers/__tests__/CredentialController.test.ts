@@ -191,6 +191,13 @@ describe('CredentialController', () => {
           config: {},
         } as any)
         .mockResolvedValueOnce({
+          data: { result: { did: 'did:example:issuer123' } },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {},
+        } as any)
+        .mockResolvedValueOnce({
           data: { credential_definition_ids: [] },
           status: 200,
           statusText: 'OK',
@@ -290,6 +297,7 @@ describe('CredentialController', () => {
     })
 
     it('returns the response data', async () => {
+      vi.clearAllMocks()
       const mockData = { cred_ex_id: 'cred-exch-1', state: 'offer_sent' }
       vi.mocked(tractionRequest.post).mockResolvedValue({
         data: mockData,
