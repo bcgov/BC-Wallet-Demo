@@ -79,13 +79,20 @@ export class CredentialController {
       })
     ).data
     let schema_id = ''
+    let issuerDid = ''
     if (schemas.schema_ids.length <= 0) {
       logger.info({ name: credential.name, version: credential.version }, 'Schema not found, creating new schema')
       const schemaAttrs = credential.attributes.map((attr) => attr.name)
+      issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
+
+      if (!issuerDid) {
+        logger.error('Failed to retrieve issuer DID from wallet')
+        throw new Error('Issuer DID not found')
+      }
       const resp = (
         await tractionRequest.post(`/anoncreds/schema`, {
           schema: {
-            issuerId: process.env.TRACTION_DID,
+            issuerId: issuerDid,
             attrNames: schemaAttrs,
             name: credential.name,
             version: credential.version,
@@ -108,7 +115,7 @@ export class CredentialController {
         await tractionRequest.post(`/anoncreds/credential-definition`, {
           credential_definition: {
             schemaId: schema_id,
-            issuerId: process.env.TRACTION_DID,
+            issuerId: issuerDid,
             tag: credential.name,
           },
           options: {
