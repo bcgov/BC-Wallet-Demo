@@ -48,3 +48,9 @@ mongodb:
     rootUsername: admin
     existingSecret: '{{ printf "%s-showcase-mongo-root" .Release.Name }}'
     existingSecretPasswordKey: password
+  ## OpenShift restricted-v2 SCC assigns UIDs from the namespace range;
+  ## the subchart defaults (999) are rejected.
+  containerSecurityContext:
+    runAsUser: null
+  podSecurityContext:
+    fsGroup: null
