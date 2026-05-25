@@ -39,7 +39,7 @@ export const RevocationContainer: React.FC<Props> = ({ revocationRecord, revocat
           loadingList.push(item.revocationRegId)
           setLoadingRevocations(loadingList)
 
-          revokeCredential(item).then((result) => {
+          revokeCredential(item).then((result: any) => {
             if (result.status === 200) {
               revocations.push(item.revocationRegId)
               setCompletedRevocations(revocations)

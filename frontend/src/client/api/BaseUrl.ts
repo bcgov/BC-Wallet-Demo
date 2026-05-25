@@ -1,4 +1,6 @@
-import { create } from 'axios'
+import type { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios'
+
+import axios from 'axios'
 
 import log from '../utils/logger'
 
@@ -7,19 +9,20 @@ export const baseUrl = (import.meta.env.VITE_HOST_BACKEND || '') + baseRoute
 export const baseWsUrl = import.meta.env.VITE_HOST_BACKEND || ''
 export const socketPath = `${baseRoute}/demo/socket/`
 
-export const apiCall = create({ baseURL: baseUrl })
+// eslint-disable-next-line import/no-named-as-default-member
+export const apiCall = axios.create({ baseURL: baseUrl })
 
-apiCall.interceptors.request.use((config) => {
+apiCall.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   log.debug(`[API] ${config.method?.toUpperCase()} ${config.url}`, config.params ?? '')
   return config
 })
 
 apiCall.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     log.debug(`[API] ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`)
     return response
   },
-  (error) => {
+  (error: AxiosError) => {
     log.warn(
       `[API] error ${error.response?.status ?? 'unknown'} ${error.config?.method?.toUpperCase()} ${error.config?.url}`,
       error.message,
