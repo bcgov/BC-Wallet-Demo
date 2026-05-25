@@ -53,12 +53,22 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.showcase.server.containerPort }}
-    # DNS + HTTPS: no `to` peers — cluster DNS paths vary on OpenShift; Caddy needs 443 for upstream TLS.
-    - ports:
+    # DNS (cluster DNS backends vary: ClusterIP, hostNetwork, node-local).
+    # Explicit ipBlock required — OVN-Kubernetes on OpenShift may not match
+    # external/node IPs when `to` is omitted.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
         - protocol: UDP
           port: 53
         - protocol: TCP
           port: 53
+    # HTTPS: external services, upstream TLS via Caddy.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
         - protocol: TCP
           port: 443
 {{- end }}
