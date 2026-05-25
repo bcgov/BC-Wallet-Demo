@@ -25,9 +25,8 @@ const auditLogService = Container.get(AuditLogService)
 router.get('/', requireRole(['admin', 'creator', 'viewer']), async (req: Request, res: Response) => {
   logger.debug('Admin: list credentials')
   try {
-    // Trigger background sync if cache is stale. Errors are swallowed so a
-    // Traction outage never prevents listing cached credentials.
-    await adminCredentialController.syncIfStale().catch((err: unknown) => {
+    // Fire-and-forget background sync if cache is stale. Never blocks the response.
+    adminCredentialController.syncIfStale().catch((err: unknown) => {
       logger.warn(err, 'syncIfStale error during credential list; returning cached data')
     })
 

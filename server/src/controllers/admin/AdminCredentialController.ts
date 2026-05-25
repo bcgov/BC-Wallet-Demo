@@ -148,6 +148,23 @@ export class AdminCredentialController {
               `Only icon, attributes values, and status may be changed after registration.`,
           )
         }
+
+        // Reject attribute structural changes -- names and count are locked on ledger
+        if (body.attributes) {
+          const existingNames = existing.attributes.map((a) => a.name)
+          const incomingNames = body.attributes.map((a) => a.name)
+          const structureChanged =
+            incomingNames.length !== existingNames.length || incomingNames.some((name, i) => name !== existingNames[i])
+          if (structureChanged) {
+            logger.warn(
+              { credentialId },
+              'Attempt to change attribute structure of ledger-registered credential rejected',
+            )
+            throw new BadRequestError(
+              `Cannot change attribute names or count after registration. Only attribute values may be updated.`,
+            )
+          }
+        }
       }
 
       const credential = await CredentialModel.findByIdAndUpdate(credentialId, body, {

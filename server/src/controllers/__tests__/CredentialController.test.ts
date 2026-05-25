@@ -58,7 +58,7 @@ describe('CredentialController', () => {
       })
     })
 
-    it('throws when a credential is missing schema_id', async () => {
+    it('returns credential without schema_id when unsynced', async () => {
       vi.mocked(CredentialModel.find).mockReturnValue({
         lean: vi.fn().mockResolvedValue([
           {
@@ -71,7 +71,10 @@ describe('CredentialController', () => {
         ]),
       } as any)
 
-      await expect(controller.getAllCredentials()).rejects.toThrow('has not been registered with Traction')
+      const result = await controller.getAllCredentials()
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('unsynced-card')
+      expect(result[0].schema_id).toBeUndefined()
     })
   })
 

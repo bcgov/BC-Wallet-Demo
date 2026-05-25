@@ -179,7 +179,7 @@ export const createCredential = async (
 export const syncCredentials = async (
   auth: AuthContextProps,
   filters?: { schema_name?: string; did_method?: string },
-): Promise<{ imported: number; updated: number; total: number }> => {
+): Promise<{ updated: number; failed: number; total: number }> => {
   const params = new URLSearchParams()
   if (filters?.schema_name) params.set('schema_name', filters.schema_name)
   if (filters?.did_method) params.set('did_method', filters.did_method)
@@ -195,7 +195,7 @@ export const syncCredentials = async (
     const errorData = (await res.json()) as { error?: string }
     throw new Error(errorData.error || `Request failed: ${res.status}`)
   }
-  return (await res.json()) as { imported: number; updated: number; total: number }
+  return (await res.json()) as { updated: number; failed: number; total: number }
 }
 
 // ============================================================================

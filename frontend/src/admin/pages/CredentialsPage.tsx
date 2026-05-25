@@ -20,7 +20,7 @@ export function CredentialsPage() {
   const [error, setError] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
-  const [syncResult, setSyncResult] = useState<{ imported: number; updated: number; total: number } | null>(null)
+  const [syncResult, setSyncResult] = useState<{ updated: number; failed: number; total: number } | null>(null)
   const [activeTab, setActiveTab] = useState<'showcases' | 'credentials'>('credentials')
   const tabsContent = useCreatorTabs({ activeTab, onTabChange: setActiveTab })
 
@@ -94,8 +94,7 @@ export function CredentialsPage() {
             {syncResult && (
               <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-3 text-green-800 text-sm flex items-center justify-between">
                 <span>
-                  Sync complete: {syncResult.imported} imported, {syncResult.updated} updated ({syncResult.total} total
-                  schemas found)
+                  Sync complete: {syncResult.updated} updated, {syncResult.failed} failed ({syncResult.total} total)
                 </span>
                 <button
                   onClick={() => setSyncResult(null)}
