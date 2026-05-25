@@ -41,13 +41,12 @@ export function useUserRole(): AdminRole | null {
   // Extract realm roles from the token payload
   const realmRoles = (decoded.realm_access as unknown as Record<string, unknown>)?.roles as string[] | undefined
 
-  // Return the first admin-related role found (admin > creator > viewer)
+  // Find the highest priority role among admin-related roles
+  // Priority order: admin > creator > viewer
   if (realmRoles) {
-    for (const role of realmRoles) {
-      if (role === 'admin') return 'admin'
-      if (role === 'creator') return 'creator'
-      if (role === 'viewer') return 'viewer'
-    }
+    if (realmRoles.includes('admin')) return 'admin'
+    if (realmRoles.includes('creator')) return 'creator'
+    if (realmRoles.includes('viewer')) return 'viewer'
   }
 
   return null

@@ -6,10 +6,25 @@ import { describe, expect, it, vi } from 'vitest'
 import { CreatorPage } from '../CreatorPage'
 
 const mockSignoutRedirect = vi.fn()
+
+/**
+ * Helper to create a test JWT token with specified roles
+ */
+function createTestJwt(roles: string[]): string {
+  const payload = {
+    realm_access: {
+      roles,
+    },
+  }
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64')
+  return `header.${encodedPayload}.signature`
+}
+
 vi.mock('react-oidc-context', () => ({
   useAuth: () => ({
     signoutRedirect: mockSignoutRedirect,
-    user: { access_token: 'test-token', profile: { name: 'Test User' } },
+    isAuthenticated: true,
+    user: { access_token: createTestJwt(['creator']), profile: { name: 'Test User' } },
   }),
 }))
 
