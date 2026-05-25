@@ -11,7 +11,7 @@
     "@heroicons/react": "^2.2.0",
     "@reduxjs/toolkit": "^2",
     "@snowplow/browser-tracker": "^3.14.0",
-    "axios": "^1",
+    "axios": "1.16.1",
     "framer-motion": "^12",
     "heroicons": "^2.2.0",
     "insights-js": "^1.2.10",
