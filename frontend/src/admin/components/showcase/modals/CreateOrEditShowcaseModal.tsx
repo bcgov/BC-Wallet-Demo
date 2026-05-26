@@ -97,7 +97,7 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
       })
     } catch (error) {
       log.error('Failed to initialize base introduction:', error)
-      // Don't throw - this is not critical to showcase creation
+      throw error
     }
   }
 
