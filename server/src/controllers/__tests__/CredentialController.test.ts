@@ -146,16 +146,24 @@ describe('CredentialController', () => {
       attributes: [{ name: 'given_names', value: 'Alice' }],
     }
 
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
     it('returns the existing credDef id without creating anything', async () => {
       vi.mocked(tractionRequest.get)
         .mockResolvedValueOnce({
           data: {
-            schema_id: 'existing-schema-id',
-            schema: {
-              name: 'Student Card',
-              version: '1.6',
-              attrNames: ['given_names'],
-            },
+            results: [
+              {
+                schema_id: 'existing-schema-id',
+                schema: {
+                  name: 'Student Card',
+                  version: '1.6',
+                  attrNames: ['given_names'],
+                },
+              },
+            ],
           },
           status: 200,
           statusText: 'OK',
@@ -195,12 +203,16 @@ describe('CredentialController', () => {
       attributes: [{ name: 'field_one', value: 'val' }],
     }
 
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
     it('creates schema then credential definition and returns the new credDef id', async () => {
       vi.useFakeTimers()
 
       vi.mocked(tractionRequest.get)
         .mockResolvedValueOnce({
-          data: [],
+          data: { results: [] },
           status: 200,
           statusText: 'OK',
           headers: {},
@@ -257,16 +269,24 @@ describe('CredentialController', () => {
       attributes: [{ name: 'attr', value: 'val' }],
     }
 
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
     it('uses existing schema id and creates a new credential definition', async () => {
       vi.mocked(tractionRequest.get)
         .mockResolvedValueOnce({
           data: {
-            schema_id: 'pre-existing-schema-id',
-            schema: {
-              name: 'Existing Schema Card',
-              version: '2.0',
-              attrNames: ['attr'],
-            },
+            results: [
+              {
+                schema_id: 'pre-existing-schema-id',
+                schema: {
+                  name: 'Existing Schema Card',
+                  version: '2.0',
+                  attrNames: ['attr'],
+                },
+              },
+            ],
           },
           status: 200,
           statusText: 'OK',
@@ -297,10 +317,15 @@ describe('CredentialController', () => {
   })
 
   describe('offerCredential', () => {
-    it('posts to the issue-credential/send endpoint with the params', async () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
+    it('posts to the issue-credential-2.0/send-offer endpoint with the params', async () => {
       const params = { connection_id: 'conn1', credential_preview: { attributes: [] } }
+      const mockData = { cred_ex_id: 'cred-exch-1', state: 'offer_sent' }
       vi.mocked(tractionRequest.post).mockResolvedValue({
-        data: { cred_ex_id: 'cred-exch-1' },
+        data: mockData,
         status: 200,
         statusText: 'OK',
         headers: {},
@@ -320,7 +345,6 @@ describe('CredentialController', () => {
     })
 
     it('returns the response data', async () => {
-      vi.clearAllMocks()
       const mockData = { cred_ex_id: 'cred-exch-1', state: 'offer_sent' }
       vi.mocked(tractionRequest.post).mockResolvedValue({
         data: mockData,
