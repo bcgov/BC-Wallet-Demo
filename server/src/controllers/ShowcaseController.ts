@@ -4,6 +4,7 @@ import { Service } from 'typedi'
 import { CredentialModel } from '../db/models/Credential'
 import { ShowcaseModel } from '../db/models/Showcase'
 import logger from '../utils/logger'
+import { resolveCredentialAttributes } from '../utils/resolveMarkers'
 
 async function hydrateCredentials(showcase: any) {
   // Credentials are stored as IDs in the database
@@ -19,7 +20,6 @@ async function hydrateCredentials(showcase: any) {
   try {
     const credentials = await CredentialModel.find({ _id: { $in: allCredentialIds } }).lean()
     const credMap = new Map(credentials.map((c) => [String(c._id), c]))
-
     const mapCredentialIdToObject = (id: string) => {
       const cred = credMap.get(id)
       return cred
@@ -28,7 +28,7 @@ async function hydrateCredentials(showcase: any) {
             name: cred.name,
             icon: cred.icon,
             version: cred.version,
-            attributes: cred.attributes || [],
+            attributes: resolveCredentialAttributes(cred.attributes || []),
           }
         : null
     }

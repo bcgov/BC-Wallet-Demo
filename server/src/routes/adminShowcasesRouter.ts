@@ -73,7 +73,12 @@ router.post('/', requireRole(['admin', 'creator']), async (req: Request, res: Re
       .catch((err: unknown) => logger.error(err, 'Audit log: failed to write showcase created event'))
   } catch (error) {
     logger.error(error, 'Error creating showcase')
-    res.status(500).json({ error: 'Failed to create showcase' })
+    // Check for duplicate key error (MongoDB error code 11000)
+    if (error instanceof Error && 'code' in error && error.code === 11000) {
+      res.status(409).json({ error: 'A showcase with this name already exists' })
+    } else {
+      res.status(500).json({ error: 'Failed to create showcase' })
+    }
   }
 })
 

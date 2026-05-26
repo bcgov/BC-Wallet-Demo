@@ -1,9 +1,11 @@
+import type { Credential } from '../../types'
+
 import { ArrowUpTrayIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { createCredential, publicBaseUrl } from '../../api/adminApi'
-import { ImageUploadModal } from '../ImageUploadModal'
+import { ImageUploadModal } from '../showcase/modals/ImageUploadModal'
 
 interface Attribute {
   name: string
@@ -13,7 +15,7 @@ interface Attribute {
 interface CreateCredentialModalProps {
   isOpen: boolean
   onClose: () => void
-  onCredentialCreated?: () => void
+  onCredentialCreated?: (credential: Credential) => void
 }
 
 export function CreateCredentialModal({ isOpen, onClose, onCredentialCreated }: CreateCredentialModalProps) {
@@ -67,7 +69,7 @@ export function CreateCredentialModal({ isOpen, onClose, onCredentialCreated }: 
     setError('')
 
     try {
-      await createCredential(auth, {
+      const newCredential = await createCredential(auth, {
         name,
         version,
         icon: image || '',
@@ -82,7 +84,7 @@ export function CreateCredentialModal({ isOpen, onClose, onCredentialCreated }: 
       setAttributeValue('')
       setError('')
       onClose()
-      onCredentialCreated?.()
+      onCredentialCreated?.(newCredential)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create credential')
     } finally {

@@ -19,12 +19,12 @@ export class CredentialController {
     const credentials = await CredentialModel.find().lean()
     logger.debug({ count: credentials.length }, 'Credentials fetched')
     // Map to frontend Credential type with id instead of _id
-    return credentials.map((cred: any) => ({
-      id: String(cred._id),
-      name: cred.name,
-      icon: cred.icon,
-      version: cred.version,
-      attributes: cred.attributes || [],
+    return credentials.map((credential: any) => ({
+      id: String(credential._id),
+      name: credential.name,
+      icon: credential.icon,
+      version: credential.version,
+      attributes: resolveCredentialAttributes(credential.attributes || []),
     }))
   }
 
@@ -61,11 +61,11 @@ export class CredentialController {
     logger.debug({ credentialId }, 'Credential found')
     // Map to frontend Credential type with id instead of _id
     return {
-      id: String((credential as any)._id),
-      name: (credential as any).name,
-      icon: (credential as any).icon,
-      version: (credential as any).version,
-      attributes: (credential as any).attributes || [],
+      id: String(credential._id),
+      name: credential.name,
+      icon: credential.icon,
+      version: credential.version,
+      attributes: resolveCredentialAttributes(credential.attributes || []),
     }
   }
 
@@ -73,7 +73,7 @@ export class CredentialController {
   public async getOrCreateCredDef(@Body() credential: Credential) {
     logger.info({ name: credential.name, version: credential.version }, 'Resolving credential definition')
     const schemas = (
-      await tractionRequest.get(`/schemas/created`, {
+      await tractionRequest.get(`/anoncreds/schemas`, {
         params: { schema_name: credential.name, schema_version: credential.version },
       })
     ).data
@@ -82,13 +82,16 @@ export class CredentialController {
       logger.info({ name: credential.name, version: credential.version }, 'Schema not found, creating new schema')
       const schemaAttrs = credential.attributes.map((attr) => attr.name)
       const resp = (
-        await tractionRequest.post(`/schemas`, {
-          attributes: schemaAttrs,
-          schema_name: credential.name,
-          schema_version: credential.version,
+        await tractionRequest.post(`/anoncreds/schema`, {
+          schema: {
+            issuerId: process.env.TRACTION_DID,
+            attrNames: schemaAttrs,
+            name: credential.name,
+            version: credential.version,
+          },
         })
       ).data
-      schema_id = resp.sent.schema_id
+      schema_id = resp.schema_state.schema_id
       logger.info({ schema_id }, 'Schema created, waiting for ledger propagation')
       await new Promise((r) => setTimeout(r, 5000))
     } else {
@@ -96,19 +99,24 @@ export class CredentialController {
       logger.debug({ schema_id }, 'Existing schema found')
     }
 
-    const credDefs = (await tractionRequest.get(`/credential-definitions/created`, { params: { schema_id } })).data
+    const credDefs = (await tractionRequest.get(`/anoncreds/credential-definitions`, { params: { schema_id } })).data
     let cred_def_id = ''
     if (credDefs.credential_definition_ids.length <= 0) {
       logger.info({ schema_id }, 'Credential definition not found, creating new credential definition')
       const resp = (
-        await tractionRequest.post(`/credential-definitions`, {
-          revocation_registry_size: 25,
-          schema_id,
-          support_revocation: true,
-          tag: credential.name,
+        await tractionRequest.post(`/anoncreds/credential-definition`, {
+          credential_definition: {
+            schemaId: schema_id,
+            issuerId: process.env.TRACTION_DID,
+            tag: credential.name,
+          },
+          options: {
+            revocation_registry_size: 3000,
+            support_revocation: true,
+          },
         })
       ).data
-      cred_def_id = resp.sent.credential_definition_id
+      cred_def_id = resp.credential_definition_state.credential_definition_id
       logger.info({ cred_def_id }, 'Credential definition created')
     } else {
       cred_def_id = credDefs.credential_definition_ids[0]

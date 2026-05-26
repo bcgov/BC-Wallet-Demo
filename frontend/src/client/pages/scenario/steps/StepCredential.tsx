@@ -77,7 +77,7 @@
 //   const sendNewCredentials = () => {
 //     credentials.forEach((cred) => {
 //       if (!isCredIssued(cred.state)) {
-//         dispatch(deleteCredentialById(cred.credential_exchange_id))
+//         dispatch(deleteCredentialById(cred.cred_ex_id))
 //         const newCredential = issuedCredData.find((item) => {
 //           return item.credentialDefinitionId === cred.credential_offer.cred_def_id
 //         })
