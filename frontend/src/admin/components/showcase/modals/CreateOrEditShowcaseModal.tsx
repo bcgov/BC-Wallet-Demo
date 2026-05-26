@@ -42,6 +42,65 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
 
   if (!isOpen) return null
 
+  const initializeBaseIntroduction = async (showcaseName: string) => {
+    try {
+      const introductionScreens = [
+        {
+          screenId: 'PICK_CHARACTER',
+          name: 'Meet the Persona',
+          text: 'In this demo, you will use digital credentials from your BC Wallet to complete various tasks.',
+        },
+        {
+          screenId: 'SETUP_START',
+          name: "Let's get started!",
+          text: 'BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas.\nUsing your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed.',
+          image: '/public/common/screen/getStarted.svg',
+        },
+        {
+          screenId: 'CHOOSE_WALLET',
+          name: 'Install BC Wallet',
+          text: 'First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.',
+          image: '/public/common/screen/app-store-screenshots.png',
+        },
+        {
+          screenId: 'SETUP_COMPLETED',
+          name: "You're all set!",
+          text: 'Congratulations! You have successfully completed the onboarding. Your credentials are now ready to be used.',
+          image: '/public/common/screen/onboarding-completed-light.svg',
+        },
+      ]
+
+      const progressBar = [
+        {
+          name: 'person',
+          introductionStep: 'PICK_CHARACTER',
+          iconLight: '/public/common/icon/icon-person-light.svg',
+          iconDark: '/public/common/icon/icon-person-dark.svg',
+        },
+        {
+          name: 'moon',
+          introductionStep: 'SETUP_START',
+          iconLight: '/public/common/icon/icon-moon-light.svg',
+          iconDark: '/public/common/icon/icon-moon-dark.svg',
+        },
+        {
+          name: 'balloon',
+          introductionStep: 'SETUP_COMPLETED',
+          iconLight: '/public/common/icon/icon-balloon-light.svg',
+          iconDark: '/public/common/icon/icon-balloon-dark.svg',
+        },
+      ]
+
+      await updateShowcase(auth, showcaseName, {
+        introduction: introductionScreens,
+        progressBar: progressBar,
+      })
+    } catch (error) {
+      log.error('Failed to initialize base introduction:', error)
+      // Don't throw - this is not critical to showcase creation
+    }
+  }
+
   const handleSubmit = async () => {
     if (!name.trim()) {
       displayError('Please enter a showcase title')
@@ -68,6 +127,8 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
       } else {
         // Create mode
         const response = await createShowcase(auth, name, description)
+        // Initialize base introduction for new showcase
+        await initializeBaseIntroduction(response.name)
         onSuccess?.(response.name)
       }
 
