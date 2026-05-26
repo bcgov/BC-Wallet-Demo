@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { QRCodeSVG } from 'qrcode.react'
+import { CustomQRCode } from 'custom-qr-code/react'
 
 import { standardFade, dropIn } from '../../../FramerAnimations'
 import { baseUrl } from '../../../api/BaseUrl'
@@ -102,7 +102,37 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                 </div>
                 {!isMobile() && (
                   <div className="mt-10 mr-10">
-                    <QRCodeSVG value={`${baseUrl}/qr`} size={125} />
+                    <CustomQRCode
+                      data={`${baseUrl}/qr`}
+                      width={125}
+                      height={125}
+                      type="svg"
+                      dotsOptions={{
+                        type: 'dots',
+                        gradient: {
+                          type: 'linear',
+                          rotation: Math.PI / 4,
+                          colorStops: [
+                            { offset: 0, color: '#003366' },
+                            { offset: 1, color: '#FCBA19' },
+                          ],
+                        },
+                      }}
+                      cornersSquareOptions={{
+                        type: 'extra-rounded',
+                        color: '#003366',
+                      }}
+                      cornersDotOptions={{
+                        type: 'dot',
+                        color: '#003366',
+                      }}
+                      backgroundOptions={{
+                        color: 'transparent',
+                      }}
+                      qrOptions={{
+                        errorCorrectionLevel: 'M',
+                      }}
+                    />
                   </div>
                 )}
               </div>

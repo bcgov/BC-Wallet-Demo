@@ -14,6 +14,7 @@ import { FiExternalLink } from 'react-icons/fi'
 import { fade, fadeX } from '../../../FramerAnimations'
 import { QRCode } from '../../../components/QRCode'
 import { useAppDispatch } from '../../../hooks/hooks'
+import { prependApiUrl } from '../../../utils/Url'
 import { useProof } from '../../../slices/proof/proofSelectors'
 import { createProofOOB, deleteProofById, fetchProofById } from '../../../slices/proof/proofThunks'
 import { useSocket } from '../../../slices/socket/socketSelector'
@@ -124,9 +125,12 @@ export const StepProofOOB: React.FC<Props> = ({ proof, step, requestedCredential
   }, [proofReceived])
 
   const qrUrl = shortProofUrl ?? proofUrl
+  const qrImage = step.verifier?.icon ? prependApiUrl(step.verifier.icon) : undefined
 
   const renderQRCode = (overlay?: boolean) => {
-    return qrUrl ? <QRCode invitationUrl={qrUrl} connectionState={proof?.state} overlay={overlay} /> : null
+    return qrUrl ? (
+      <QRCode invitationUrl={qrUrl} connectionState={proof?.state} overlay={overlay} image={qrImage} />
+    ) : null
   }
 
   const renderCTA = !proofReceived ? (
