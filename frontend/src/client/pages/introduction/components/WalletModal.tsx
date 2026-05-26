@@ -1,5 +1,5 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { CustomQRCode } from 'custom-qr-code/react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 import { standardFade, dropIn } from '../../../FramerAnimations'
 import { baseUrl } from '../../../api/BaseUrl'
