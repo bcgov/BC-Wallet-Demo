@@ -73,14 +73,24 @@ export class CredentialController {
   @Post('/getOrCreateCredDef')
   public async getOrCreateCredDef(@Body() credential: CreateCredentialInput) {
     logger.info({ name: credential.name, version: credential.version }, 'Resolving credential definition')
-    const schemas = (
-      await tractionRequest.get(`/anoncreds/schemas`, {
-        params: { schema_name: credential.name, schema_version: credential.version },
-      })
-    ).data
+    const schemasResponse = await tractionRequest.get(`/schema-storage`, {
+      params: {
+        schema_name: credential.name,
+        schema_version: credential.version,
+      },
+    })
+
     let schema_id = ''
     let issuerDid = ''
-    if (schemas.schema_ids.length <= 0) {
+
+    // Check if schema exists in the response
+    // Response can be an array or a single object
+    const schemas = schemasResponse.data.results
+    const existingSchema = schemas.find(
+      (s: any) => s?.schema?.name === credential.name && s?.schema?.version === credential.version,
+    )
+
+    if (!existingSchema) {
       logger.info({ name: credential.name, version: credential.version }, 'Schema not found, creating new schema')
       const schemaAttrs = credential.attributes.map((attr) => attr.name)
       issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
@@ -103,13 +113,19 @@ export class CredentialController {
       logger.info({ schema_id }, 'Schema created, waiting for ledger propagation')
       await new Promise((r) => setTimeout(r, LEDGER_PROPAGATION_MS))
     } else {
-      schema_id = schemas.schema_ids[0]
+      schema_id = existingSchema.schema_id
       logger.debug({ schema_id }, 'Existing schema found')
     }
 
-    const credDefs = (await tractionRequest.get(`/anoncreds/credential-definitions`, { params: { schema_id } })).data
+    const credDefsResponse = await tractionRequest.get(`/credential-definition-storage`, {
+      params: { schema_id },
+    })
+
     let cred_def_id = ''
-    if (credDefs.credential_definition_ids.length <= 0) {
+    const credDefs = credDefsResponse.data.results
+    const existingCredDef = credDefs.find((cd: any) => cd?.schema_id === schema_id)
+
+    if (!existingCredDef) {
       logger.info({ schema_id }, 'Credential definition not found, creating new credential definition')
       const resp = (
         await tractionRequest.post(`/anoncreds/credential-definition`, {
@@ -127,7 +143,7 @@ export class CredentialController {
       cred_def_id = resp.credential_definition_state.credential_definition_id
       logger.info({ cred_def_id }, 'Credential definition created')
     } else {
-      cred_def_id = credDefs.credential_definition_ids[0]
+      cred_def_id = existingCredDef.cred_def_id
       logger.debug({ cred_def_id }, 'Existing credential definition found')
     }
     return cred_def_id

@@ -149,14 +149,30 @@ describe('CredentialController', () => {
     it('returns the existing credDef id without creating anything', async () => {
       vi.mocked(tractionRequest.get)
         .mockResolvedValueOnce({
-          data: { schema_ids: ['existing-schema-id'] },
+          data: {
+            schema_id: 'existing-schema-id',
+            schema: {
+              name: 'Student Card',
+              version: '1.6',
+              attrNames: ['given_names'],
+            },
+          },
           status: 200,
           statusText: 'OK',
           headers: {},
           config: {},
         } as any)
         .mockResolvedValueOnce({
-          data: { credential_definition_ids: ['existing-cred-def-id'] },
+          data: {
+            results: [
+              {
+                cred_def_id: 'existing-cred-def-id',
+                schema_id: 'existing-schema-id',
+                tag: 'Student Card',
+                state: 'active',
+              },
+            ],
+          },
           status: 200,
           statusText: 'OK',
           headers: {},
@@ -184,7 +200,7 @@ describe('CredentialController', () => {
 
       vi.mocked(tractionRequest.get)
         .mockResolvedValueOnce({
-          data: { schema_ids: [] },
+          data: [],
           status: 200,
           statusText: 'OK',
           headers: {},
@@ -198,7 +214,7 @@ describe('CredentialController', () => {
           config: {},
         } as any)
         .mockResolvedValueOnce({
-          data: { credential_definition_ids: [] },
+          data: { results: [] },
           status: 200,
           statusText: 'OK',
           headers: {},
@@ -244,14 +260,21 @@ describe('CredentialController', () => {
     it('uses existing schema id and creates a new credential definition', async () => {
       vi.mocked(tractionRequest.get)
         .mockResolvedValueOnce({
-          data: { schema_ids: ['pre-existing-schema-id'] },
+          data: {
+            schema_id: 'pre-existing-schema-id',
+            schema: {
+              name: 'Existing Schema Card',
+              version: '2.0',
+              attrNames: ['attr'],
+            },
+          },
           status: 200,
           statusText: 'OK',
           headers: {},
           config: {},
         } as any)
         .mockResolvedValueOnce({
-          data: { credential_definition_ids: [] },
+          data: { results: [] },
           status: 200,
           statusText: 'OK',
           headers: {},

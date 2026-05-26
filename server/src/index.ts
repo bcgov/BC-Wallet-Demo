@@ -168,6 +168,13 @@ const run = async () => {
   // - All others → 500 (Internal server error)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    // If headers were already sent, we can't send another response.
+    // Log the error and end the connection.
+    if (res.headersSent) {
+      logger.error({ err }, 'Error occurred after headers sent')
+      return res.end()
+    }
+
     if (err instanceof ServiceUnavailableError) {
       res.status(503).json({ error: err.message })
       return
