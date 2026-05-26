@@ -130,6 +130,14 @@ showcase:
     ## extraEnv:
     ##   - name: LOG_LEVEL
     ##     value: info
+    ## Persistent storage for uploaded showcase assets (images).
+    ## Without persistence, uploads are lost when the server pod restarts.
+    persistence:
+      enabled: true
+      size: 1Gi
+      storageClass: ''
+      accessMode: ReadWriteOnce
+      mountPath: /app/uploads
     podAnnotations: {}
     podLabels: {}
     nodeSelector: {}

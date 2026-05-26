@@ -10,7 +10,9 @@ import type { Types } from 'mongoose'
 
 import { Schema, model } from 'mongoose'
 import fs from 'node:fs/promises'
+import path from 'node:path'
 
+import { UPLOADS_DIR } from '../../utils/uploadsDir'
 import { baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
 
 import { AssetModel } from './Asset'
@@ -96,11 +98,15 @@ ShowcaseSchema.index({ 'persona.type': 1 }, { unique: true, sparse: true })
 async function cascadeDeleteAssets(showcaseId: Types.ObjectId) {
   const assets = await AssetModel.find({ showcase_id: showcaseId }).select('path')
   await Promise.all(
-    assets.map((a) =>
-      fs.unlink(a.path).catch((e: NodeJS.ErrnoException) => {
+    assets.map((a) => {
+      const resolved = path.resolve(UPLOADS_DIR, a.path)
+      if (!resolved.startsWith(UPLOADS_DIR + path.sep) && resolved !== UPLOADS_DIR) {
+        throw new Error(`Asset path escapes uploads directory: ${a.path}`)
+      }
+      return fs.unlink(resolved).catch((e: NodeJS.ErrnoException) => {
         if (e.code !== 'ENOENT') throw e
-      }),
-    ),
+      })
+    }),
   )
   await AssetModel.deleteMany({ showcase_id: showcaseId })
 }

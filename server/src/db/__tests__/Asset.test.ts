@@ -1,9 +1,17 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from 'mongoose'
+import { mkdirSync } from 'node:fs'
 import fs from 'node:fs/promises'
-import os from 'node:os'
 import path from 'node:path'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+
+// Set UPLOADS_DIR before Showcase model is imported (it uses UPLOADS_DIR for cascade delete).
+const { testUploadsDir } = vi.hoisted(() => {
+  const tmpdir = process.env.TMPDIR ?? process.env.TEMP ?? '/tmp'
+  const dir = `${tmpdir}/asset-model-test-${Date.now()}`
+  process.env.UPLOADS_DIR = dir
+  return { testUploadsDir: dir }
+})
 
 import { AssetModel } from '../models/Asset'
 import { ShowcaseModel } from '../models/Showcase'
@@ -16,6 +24,7 @@ const minimalShowcase = {
 }
 
 beforeAll(async () => {
+  mkdirSync(testUploadsDir, { recursive: true })
   mongod = await MongoMemoryServer.create()
   await mongoose.connect(mongod.getUri())
 })
@@ -29,6 +38,7 @@ afterEach(async () => {
 afterAll(async () => {
   await mongoose.disconnect()
   await mongod.stop()
+  await fs.rm(testUploadsDir, { recursive: true, force: true })
 })
 
 describe('AssetModel', () => {
@@ -37,7 +47,7 @@ describe('AssetModel', () => {
     const doc = await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'logo.png',
-      path: '/uploads/logo.png',
+      path: 'some-showcase/logo.png',
       mime_type: 'image/png',
       size_bytes: 4096,
     })
@@ -60,7 +70,7 @@ describe('AssetModel', () => {
     const doc = await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'icon.svg',
-      path: '/uploads/icon.svg',
+      path: 'some-showcase/icon.svg',
       mime_type: 'image/svg+xml',
       size_bytes: 512,
     })
@@ -74,7 +84,7 @@ describe('Asset cascade deletion', () => {
     await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'a.png',
-      path: '/uploads/a.png',
+      path: 'cascade/a.png',
       mime_type: 'image/png',
       size_bytes: 1024,
     })
@@ -86,21 +96,23 @@ describe('Asset cascade deletion', () => {
   })
 
   it('deletes files from disk when the owning showcase is deleted', async () => {
-    // Write a real temp file so we can verify it gets removed.
-    const tmpFile = path.join(os.tmpdir(), `asset-cascade-test-${Date.now()}.png`)
-    await fs.writeFile(tmpFile, 'fake image data')
+    // Write a real temp file inside UPLOADS_DIR so cascade resolve works.
+    const relPath = `cascade-test-${Date.now()}/tmp.png`
+    const absPath = path.join(testUploadsDir, relPath)
+    await fs.mkdir(path.dirname(absPath), { recursive: true })
+    await fs.writeFile(absPath, 'fake image data')
 
     const showcase = await ShowcaseModel.create({ ...minimalShowcase, type: 'CascadeCharDisk' })
     await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'tmp.png',
-      path: tmpFile,
+      path: relPath,
       mime_type: 'image/png',
       size_bytes: 16,
     })
 
     await ShowcaseModel.findByIdAndDelete(showcase._id)
 
-    await expect(fs.access(tmpFile)).rejects.toThrow()
+    await expect(fs.access(absPath)).rejects.toThrow()
   })
 })

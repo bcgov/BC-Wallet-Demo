@@ -12,7 +12,8 @@ import { Server } from 'socket.io'
 import { connectDB, registerShutdownHandlers } from './db/connection'
 import { auditLoginMiddleware } from './middleware/auditLogin'
 import { requireAdmin, ServiceUnavailableError } from './middleware/requireAdmin'
-import adminAssetsRouter, { UPLOADS_DIR } from './routes/adminAssetsRouter'
+import adminAssetsRouter from './routes/adminAssetsRouter'
+import { UPLOADS_DIR } from './utils/uploadsDir'
 import adminAuditLogRouter from './routes/adminAuditLogRouter'
 import adminCredentialsRouter from './routes/adminCredentialsRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
@@ -115,6 +116,9 @@ const run = async () => {
   )
 
   app.use(`${baseRoute}/public`, stx(__dirname + '/public'))
+  // Uploaded assets are served publicly (no auth) because showcases reference
+  // them in user-facing pages. Access control is enforced at upload/delete time
+  // via requireRole on the /admin/assets routes.
   app.use(`${baseRoute}/uploads`, stx(UPLOADS_DIR))
 
   // All routes under /admin require a valid Keycloak-issued JWT.

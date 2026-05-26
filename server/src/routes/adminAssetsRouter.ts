@@ -3,7 +3,7 @@ import type { NextFunction, Request, Response } from 'express'
 import { randomUUID } from 'crypto'
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import { mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { mkdirSync } from 'fs'
 import mongoose from 'mongoose'
 import multer from 'multer'
 import fs from 'node:fs/promises'
@@ -15,11 +15,10 @@ import { requireRole } from '../middleware/requireAdmin'
 import logger from '../utils/logger'
 import { sanitizeFilename } from '../utils/sanitizeFilename'
 import { sanitizeSVG } from '../utils/sanitizeSVG'
+import { UPLOADS_DIR } from '../utils/uploadsDir'
 import { validateFileType } from '../utils/validateFileType'
 
-export const UPLOADS_DIR = process.env.UPLOADS_DIR
-  ? path.resolve(process.env.UPLOADS_DIR)
-  : path.resolve(process.cwd(), 'uploads')
+const BASE_ROUTE = process.env.BASE_ROUTE ?? ''
 
 const ALLOWED_EXTENSIONS = ['.svg', '.png', '.jpg', '.jpeg', '.webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -132,7 +131,7 @@ router.post(
 
     // Validate file content by magic bytes
     try {
-      const fileBuffer = readFileSync(req.file.path)
+      const fileBuffer = await fs.readFile(req.file.path)
       const isValid = await validateFileType(fileBuffer, req.file.filename)
       if (!isValid) {
         await fs.unlink(req.file.path).catch(() => {})
@@ -150,9 +149,9 @@ router.post(
     const ext = path.extname(req.file.filename).toLowerCase()
     if (ext === '.svg') {
       try {
-        const content = readFileSync(req.file.path, 'utf-8')
+        const content = await fs.readFile(req.file.path, 'utf-8')
         const sanitized = sanitizeSVG(content)
-        writeFileSync(req.file.path, sanitized, 'utf-8')
+        await fs.writeFile(req.file.path, sanitized, 'utf-8')
       } catch (err) {
         logger.error(err, 'Error sanitizing SVG')
         await fs.unlink(req.file.path).catch(() => {})
@@ -167,7 +166,7 @@ router.post(
       const asset = await AssetModel.create({
         showcase_id: showcaseId,
         filename: req.file.filename,
-        path: req.file.path,
+        path: `${showcaseId}/${req.file.filename}`,
         mime_type: mimeType,
         size_bytes: req.file.size,
       })
@@ -178,7 +177,7 @@ router.post(
         filename: json['filename'],
         mime_type: json['mime_type'],
         size_bytes: json['size_bytes'],
-        url: `/uploads/${showcaseId}/${req.file.filename}`,
+        url: `${BASE_ROUTE}/uploads/${showcaseId}/${req.file.filename}`,
         created_at: json['createdAt'],
       })
     } catch (err) {
@@ -209,7 +208,7 @@ router.get(
         filename: asset.filename,
         mime_type: asset.mime_type,
         size_bytes: asset.size_bytes,
-        url: `/uploads/${showcaseId}/${asset.filename}`,
+        url: `${BASE_ROUTE}/uploads/${showcaseId}/${asset.filename}`,
         created_at: (asset as unknown as { createdAt: Date }).createdAt,
       }))
       res.json(result)
@@ -247,7 +246,12 @@ router.delete(
       }
 
       // Remove file from disk; ENOENT means it's already gone, which is fine.
-      await fs.unlink(asset.path).catch((err: NodeJS.ErrnoException) => {
+      const diskPath = path.resolve(UPLOADS_DIR, asset.path)
+      if (!diskPath.startsWith(UPLOADS_DIR + path.sep) && diskPath !== UPLOADS_DIR) {
+        res.status(400).json({ error: 'Invalid asset path' })
+        return
+      }
+      await fs.unlink(diskPath).catch((err: NodeJS.ErrnoException) => {
         if (err.code !== 'ENOENT') throw err
       })
 

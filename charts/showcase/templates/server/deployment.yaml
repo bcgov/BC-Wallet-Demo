@@ -147,6 +147,10 @@ spec:
             {{- end }}
             - name: BASE_ROUTE
               value: {{ .Values.showcase.baseRoute | quote }}
+            {{- if .Values.showcase.server.persistence.enabled }}
+            - name: UPLOADS_DIR
+              value: {{ .Values.showcase.server.persistence.mountPath | quote }}
+            {{- end }}
             {{- if .Values.showcase.server.traction.url }}
             - name: TRACTION_URL
               value: {{ .Values.showcase.server.traction.url | quote }}
@@ -177,6 +181,10 @@ spec:
             - name: server-config
               mountPath: /app/server/config/keycloak.json
               subPath: keycloak.json
+            {{- if .Values.showcase.server.persistence.enabled }}
+            - name: uploads
+              mountPath: {{ .Values.showcase.server.persistence.mountPath }}
+            {{- end }}
           {{- with .Values.showcase.server.resources }}
           resources: {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -184,6 +192,11 @@ spec:
         - name: server-config
           configMap:
             name: {{ include "showcase.server.configmapName" . }}
+        {{- if .Values.showcase.server.persistence.enabled }}
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: {{ include "showcase.server.fullname" . }}-uploads
+        {{- end }}
       {{- with .Values.showcase.server.nodeSelector }}
       nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}

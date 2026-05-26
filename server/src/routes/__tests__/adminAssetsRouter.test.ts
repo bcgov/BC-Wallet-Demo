@@ -224,10 +224,11 @@ describe('GET /admin/assets/:showcaseId', () => {
 
   it('returns 200 with asset metadata array including url', async () => {
     const showcase = await createShowcase()
+    const showcaseId = showcase._id.toString()
     await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'logo.png',
-      path: path.join(testUploadsDir, 'logo.png'),
+      path: `${showcaseId}/logo.png`,
       mime_type: 'image/png',
       size_bytes: 1024,
     })
@@ -252,14 +253,14 @@ describe('GET /admin/assets/:showcaseId', () => {
     await AssetModel.create({
       showcase_id: showcase1._id,
       filename: 'for-showcase1.png',
-      path: '/tmp/for-showcase1.png',
+      path: 'showcase1/for-showcase1.png',
       mime_type: 'image/png',
       size_bytes: 100,
     })
     await AssetModel.create({
       showcase_id: showcase2._id,
       filename: 'for-showcase2.png',
-      path: '/tmp/for-showcase2.png',
+      path: 'showcase2/for-showcase2.png',
       mime_type: 'image/png',
       size_bytes: 100,
     })
@@ -288,13 +289,13 @@ describe('GET /admin/assets/:showcaseId', () => {
 describe('DELETE /admin/assets/:showcaseId/:assetId', () => {
   it('returns 204 on successful deletion', async () => {
     const showcase = await createShowcase()
-    const tmpFile = path.join(testUploadsDir, `del-success-${Date.now()}.png`)
-    await fs.writeFile(tmpFile, fakePng)
+    const relPath = `del-success-${Date.now()}.png`
+    await fs.writeFile(path.join(testUploadsDir, relPath), fakePng)
 
     const asset = await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'del-success.png',
-      path: tmpFile,
+      path: relPath,
       mime_type: 'image/png',
       size_bytes: fakePng.length,
     })
@@ -305,31 +306,32 @@ describe('DELETE /admin/assets/:showcaseId/:assetId', () => {
 
   it('removes file from disk on deletion', async () => {
     const showcase = await createShowcase()
-    const tmpFile = path.join(testUploadsDir, `del-disk-${Date.now()}.png`)
-    await fs.writeFile(tmpFile, fakePng)
+    const relPath = `del-disk-${Date.now()}.png`
+    const absPath = path.join(testUploadsDir, relPath)
+    await fs.writeFile(absPath, fakePng)
 
     const asset = await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'del-disk.png',
-      path: tmpFile,
+      path: relPath,
       mime_type: 'image/png',
       size_bytes: fakePng.length,
     })
 
     await request(app).delete(`/admin/assets/${showcase._id.toString()}/${asset._id.toString()}`)
 
-    await expect(fs.access(tmpFile)).rejects.toThrow()
+    await expect(fs.access(absPath)).rejects.toThrow()
   })
 
   it('removes DB record on deletion', async () => {
     const showcase = await createShowcase()
-    const tmpFile = path.join(testUploadsDir, `del-db-${Date.now()}.png`)
-    await fs.writeFile(tmpFile, fakePng)
+    const relPath = `del-db-${Date.now()}.png`
+    await fs.writeFile(path.join(testUploadsDir, relPath), fakePng)
 
     const asset = await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'del-db.png',
-      path: tmpFile,
+      path: relPath,
       mime_type: 'image/png',
       size_bytes: fakePng.length,
     })
@@ -345,7 +347,7 @@ describe('DELETE /admin/assets/:showcaseId/:assetId', () => {
     const asset = await AssetModel.create({
       showcase_id: showcase._id,
       filename: 'gone.png',
-      path: '/tmp/this-file-does-not-exist-anywhere-at-all.png',
+      path: 'nonexistent/gone.png',
       mime_type: 'image/png',
       size_bytes: 100,
     })
@@ -399,7 +401,7 @@ describe('DELETE /admin/assets/:showcaseId/:assetId', () => {
     const asset = await AssetModel.create({
       showcase_id: showcase2._id,
       filename: 'other.png',
-      path: '/tmp/other.png',
+      path: 'other-showcase/other.png',
       mime_type: 'image/png',
       size_bytes: 100,
     })
