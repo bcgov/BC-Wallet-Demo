@@ -99,9 +99,10 @@ router.post(
     }
 
     // Path traversal guard: ensure multer wrote within UPLOADS_DIR.
-    const resolved = path.resolve(req.file.path)
-    if (!resolved.startsWith(UPLOADS_DIR + path.sep)) {
-      await fs.unlink(req.file.path).catch(() => {})
+    const uploadsRoot = path.resolve(UPLOADS_DIR)
+    const safeFilePath = path.resolve(req.file.path)
+    if (!safeFilePath.startsWith(uploadsRoot + path.sep)) {
+      await fs.unlink(safeFilePath).catch(() => {})
       res.status(400).json({ error: 'Invalid file path' })
       return
     }
@@ -112,16 +113,16 @@ router.post(
 
     // Validate file content by magic bytes.
     try {
-      const fileBuffer = await fs.readFile(req.file.path)
+      const fileBuffer = await fs.readFile(safeFilePath)
       const isValid = await validateFileType(fileBuffer, req.file.filename)
       if (!isValid) {
-        await fs.unlink(req.file.path).catch(() => {})
+        await fs.unlink(safeFilePath).catch(() => {})
         res.status(400).json({ error: 'File type validation failed. Upload a valid image file.' })
         return
       }
     } catch (err) {
       logger.error(err, 'Error validating file type')
-      await fs.unlink(req.file.path).catch(() => {})
+      await fs.unlink(safeFilePath).catch(() => {})
       res.status(500).json({ error: 'Failed to validate file type' })
       return
     }
@@ -130,12 +131,12 @@ router.post(
     const ext = path.extname(req.file.filename).toLowerCase()
     if (ext === '.svg') {
       try {
-        const content = await fs.readFile(req.file.path, 'utf-8')
+        const content = await fs.readFile(safeFilePath, 'utf-8')
         const sanitized = sanitizeSVG(content)
-        await fs.writeFile(req.file.path, sanitized, 'utf-8')
+        await fs.writeFile(safeFilePath, sanitized, 'utf-8')
       } catch (err) {
         logger.error(err, 'Error sanitizing SVG')
-        await fs.unlink(req.file.path).catch(() => {})
+        await fs.unlink(safeFilePath).catch(() => {})
         res.status(500).json({ error: 'Failed to sanitize SVG file' })
         return
       }
@@ -157,7 +158,7 @@ router.post(
       })
     } catch (err) {
       logger.error(err, 'Error creating asset record')
-      await fs.unlink(req.file.path).catch(() => {})
+      await fs.unlink(safeFilePath).catch(() => {})
       res.status(500).json({ error: 'Failed to save asset record' })
     }
   },
