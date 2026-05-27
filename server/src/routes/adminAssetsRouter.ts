@@ -10,15 +10,12 @@ import fs from 'node:fs/promises'
 import path from 'path'
 
 import { AssetModel } from '../db/models/Asset'
-import { ShowcaseModel } from '../db/models/Showcase'
 import { requireRole } from '../middleware/requireAdmin'
 import logger from '../utils/logger'
 import { sanitizeFilename } from '../utils/sanitizeFilename'
 import { sanitizeSVG } from '../utils/sanitizeSVG'
 import { UPLOADS_DIR } from '../utils/uploadsDir'
 import { validateFileType } from '../utils/validateFileType'
-
-const BASE_ROUTE = process.env.BASE_ROUTE ?? ''
 
 const ALLOWED_EXTENSIONS = ['.svg', '.png', '.jpg', '.jpeg', '.webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -57,56 +54,16 @@ const deleteLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-/**
- * Validate :showcaseId param: must be a valid ObjectId that exists in the DB.
- * Runs before multer so we never write a file for a nonexistent showcase.
- */
-async function validateShowcase(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const { showcaseId } = req.params
-  if (!mongoose.Types.ObjectId.isValid(showcaseId)) {
-    res.status(400).json({ error: 'Invalid showcase ID format' })
-    return
-  }
-  const exists = await ShowcaseModel.exists({ _id: showcaseId })
-  if (!exists) {
-    res.status(404).json({ error: 'Showcase not found' })
-    return
-  }
-  next()
-}
+// Ensure uploads dir exists at module load time.
+mkdirSync(UPLOADS_DIR, { recursive: true })
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (req: Request, _file: Express.Multer.File, cb: (err: Error | null, dest: string) => void) => {
-      const { showcaseId } = req.params
-      const uploadsRoot = path.resolve(UPLOADS_DIR)
-      const showcaseDir = path.resolve(uploadsRoot, showcaseId)
-      const relativePath = path.relative(uploadsRoot, showcaseDir)
-
-      if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-        cb(new Error('Invalid showcase directory path'), '')
-        return
-      }
-
-      try {
-        mkdirSync(showcaseDir, { recursive: true })
-        cb(null, showcaseDir)
-      } catch (err) {
-        cb(err as Error, '')
-      }
+    destination: (_req, _file, cb) => {
+      cb(null, UPLOADS_DIR)
     },
-    filename: (req: Request, file: Express.Multer.File, cb: (err: Error | null, filename: string) => void) => {
-      const { showcaseId } = req.params
-      const uploadsRoot = path.resolve(UPLOADS_DIR)
-      const showcaseDir = path.resolve(uploadsRoot, showcaseId)
-      const relativePath = path.relative(uploadsRoot, showcaseDir)
-
-      if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-        cb(new Error('Invalid showcase directory path'), '')
-        return
-      }
-
-      const baseFilename = sanitizeFilename(file.originalname, showcaseDir)
+    filename: (_req: Request, file: Express.Multer.File, cb: (err: Error | null, filename: string) => void) => {
+      const baseFilename = sanitizeFilename(file.originalname, UPLOADS_DIR)
       const uuid = randomUUID().split('-')[0]
       const ext = path.extname(baseFilename)
       const nameWithoutExt = ext ? baseFilename.slice(0, -ext.length) : baseFilename
@@ -125,60 +82,60 @@ const upload = multer({
 })
 
 /**
- * POST /admin/assets/:showcaseId
- * Upload an image asset for a showcase.
- * Stored at UPLOADS_DIR/{showcaseId}/{uuid}_{filename}.
+ * POST /admin/assets
+ * Upload an image asset. Accepts optional `type` form field for categorization
+ * (e.g. 'icon', 'screen', 'persona'). Stored flat under UPLOADS_DIR.
+ * Returns { path, filename } where path is the URL for use in showcase config.
  */
 router.post(
-  '/:showcaseId',
+  '/',
   uploadLimiter,
   requireRole(['admin', 'creator']),
-  validateShowcase,
   upload.single('file'),
   async (req: Request, res: Response): Promise<void> => {
-    const { showcaseId } = req.params
-
     if (!req.file) {
       res.status(400).json({ error: 'No file provided' })
       return
     }
 
-    logger.debug({ showcaseId, filename: req.file.filename }, 'Admin: upload asset')
-
-    const uploadsRoot = path.resolve(UPLOADS_DIR)
-    const safeFilePath = path.resolve(req.file.path)
-    const relativeToRoot = path.relative(uploadsRoot, safeFilePath)
-    if (relativeToRoot.startsWith('..') || path.isAbsolute(relativeToRoot)) {
-      res.status(400).json({ error: 'Invalid upload path' })
+    // Path traversal guard: ensure multer wrote within UPLOADS_DIR.
+    const resolved = path.resolve(req.file.path)
+    if (!resolved.startsWith(UPLOADS_DIR + path.sep)) {
+      await fs.unlink(req.file.path).catch(() => {})
+      res.status(400).json({ error: 'Invalid file path' })
       return
     }
 
-    // Validate file content by magic bytes
+    const type = typeof req.body.type === 'string' && req.body.type ? req.body.type : undefined
+
+    logger.debug({ filename: req.file.filename, type }, 'Admin: upload asset')
+
+    // Validate file content by magic bytes.
     try {
-      const fileBuffer = await fs.readFile(safeFilePath)
+      const fileBuffer = await fs.readFile(req.file.path)
       const isValid = await validateFileType(fileBuffer, req.file.filename)
       if (!isValid) {
-        await fs.unlink(safeFilePath).catch(() => {})
+        await fs.unlink(req.file.path).catch(() => {})
         res.status(400).json({ error: 'File type validation failed. Upload a valid image file.' })
         return
       }
     } catch (err) {
       logger.error(err, 'Error validating file type')
-      await fs.unlink(safeFilePath).catch(() => {})
+      await fs.unlink(req.file.path).catch(() => {})
       res.status(500).json({ error: 'Failed to validate file type' })
       return
     }
 
-    // Sanitize SVG content to strip dangerous markup
+    // Sanitize SVG content to strip dangerous markup.
     const ext = path.extname(req.file.filename).toLowerCase()
     if (ext === '.svg') {
       try {
-        const content = await fs.readFile(safeFilePath, 'utf-8')
+        const content = await fs.readFile(req.file.path, 'utf-8')
         const sanitized = sanitizeSVG(content)
-        await fs.writeFile(safeFilePath, sanitized, 'utf-8')
+        await fs.writeFile(req.file.path, sanitized, 'utf-8')
       } catch (err) {
         logger.error(err, 'Error sanitizing SVG')
-        await fs.unlink(safeFilePath).catch(() => {})
+        await fs.unlink(req.file.path).catch(() => {})
         res.status(500).json({ error: 'Failed to sanitize SVG file' })
         return
       }
@@ -187,55 +144,44 @@ router.post(
     const mimeType = EXT_TO_MIME[ext] ?? 'application/octet-stream'
 
     try {
-      const asset = await AssetModel.create({
-        showcase_id: showcaseId,
+      await AssetModel.create({
         filename: req.file.filename,
-        path: `${showcaseId}/${req.file.filename}`,
         mime_type: mimeType,
         size_bytes: req.file.size,
+        type,
       })
 
-      const json = asset.toJSON() as unknown as Record<string, unknown>
       res.status(201).json({
-        id: json['id'],
-        filename: json['filename'],
-        mime_type: json['mime_type'],
-        size_bytes: json['size_bytes'],
-        url: `${BASE_ROUTE}/uploads/${showcaseId}/${req.file.filename}`,
-        created_at: json['createdAt'],
+        path: `/uploads/${req.file.filename}`,
+        filename: req.file.filename,
       })
     } catch (err) {
       logger.error(err, 'Error creating asset record')
-      await fs.unlink(safeFilePath).catch(() => {})
+      await fs.unlink(req.file.path).catch(() => {})
       res.status(500).json({ error: 'Failed to save asset record' })
     }
   },
 )
 
 /**
- * GET /admin/assets/:showcaseId
- * List all assets for a showcase, returning metadata + URL for each.
+ * GET /admin/assets?type=icon
+ * List assets, optionally filtered by type tag.
+ * Returns { files: string[] } of URL paths for use in image pickers.
  */
 router.get(
-  '/:showcaseId',
+  '/',
   getLimiter,
   requireRole(['admin', 'creator', 'viewer']),
-  validateShowcase,
   async (req: Request, res: Response): Promise<void> => {
-    const { showcaseId } = req.params
-    logger.debug({ showcaseId }, 'Admin: list assets')
+    const type = typeof req.query.type === 'string' && req.query.type ? req.query.type : undefined
+    const filter = type ? { type } : {}
+
+    logger.debug({ type }, 'Admin: list assets')
 
     try {
-      const assets = await AssetModel.find({ showcase_id: showcaseId }).lean()
-      const result = assets.map((asset) => ({
-        id: asset._id.toString(),
-        filename: asset.filename,
-        mime_type: asset.mime_type,
-        size_bytes: asset.size_bytes,
-        url: `${BASE_ROUTE}/uploads/${showcaseId}/${asset.filename}`,
-        created_at: (asset as unknown as { createdAt: Date }).createdAt,
-      }))
-      res.json(result)
+      const assets = await AssetModel.find(filter).lean()
+      const files = assets.map((a) => `/uploads/${a.filename}`)
+      res.json({ files })
     } catch (err) {
       logger.error(err, 'Error listing assets')
       res.status(500).json({ error: 'Failed to list assets' })
@@ -244,34 +190,33 @@ router.get(
 )
 
 /**
- * DELETE /admin/assets/:showcaseId/:assetId
+ * DELETE /admin/assets/:assetId
  * Delete a single asset: remove file from disk and DB record.
  */
 router.delete(
-  '/:showcaseId/:assetId',
+  '/:assetId',
   deleteLimiter,
   requireRole(['admin']),
-  validateShowcase,
   async (req: Request, res: Response): Promise<void> => {
-    const { showcaseId, assetId } = req.params
+    const { assetId } = req.params
 
     if (!mongoose.Types.ObjectId.isValid(assetId)) {
       res.status(400).json({ error: 'Invalid asset ID format' })
       return
     }
 
-    logger.debug({ showcaseId, assetId }, 'Admin: delete asset')
+    logger.debug({ assetId }, 'Admin: delete asset')
 
     try {
-      const asset = await AssetModel.findOne({ _id: assetId, showcase_id: showcaseId })
+      const asset = await AssetModel.findById(assetId)
       if (!asset) {
         res.status(404).json({ error: 'Asset not found' })
         return
       }
 
-      // Remove file from disk; ENOENT means it's already gone, which is fine.
-      const diskPath = path.resolve(UPLOADS_DIR, asset.path)
-      if (!diskPath.startsWith(UPLOADS_DIR + path.sep) && diskPath !== UPLOADS_DIR) {
+      // Path traversal guard before unlinking.
+      const diskPath = path.resolve(UPLOADS_DIR, asset.filename)
+      if (!diskPath.startsWith(UPLOADS_DIR + path.sep)) {
         res.status(400).json({ error: 'Invalid asset path' })
         return
       }

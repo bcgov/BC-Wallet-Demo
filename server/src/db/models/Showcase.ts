@@ -6,16 +6,11 @@ import type {
   Showcase,
   ShowcaseStatus,
 } from '../../content/types'
-import type { Types } from 'mongoose'
 
 import { Schema, model } from 'mongoose'
-import fs from 'node:fs/promises'
-import path from 'node:path'
 
-import { UPLOADS_DIR } from '../../utils/uploadsDir'
 import { baseSchemaOptions, embeddedSchemaOptions } from '../baseSchema'
 
-import { AssetModel } from './Asset'
 import { ScenarioSchema } from './Scenario'
 
 // Maps to IntroductionStep interface.
@@ -89,44 +84,5 @@ ShowcaseSchema.index({ name: 1 }, { unique: true })
 // Enforce uniqueness on persona.type so each showcase slug is distinct.
 // Use sparse index so showcases without persona don't conflict.
 ShowcaseSchema.index({ 'persona.type': 1 }, { unique: true, sparse: true })
-
-// Removes all asset documents and their files from disk for the given showcase.
-// Shared across deletion hooks to avoid duplication.
-// ENOENT is ignored (file already gone); all other errors propagate.
-// Note: deleteMany on ShowcaseModel is intentionally not hooked -- bulk deletes
-// that bypass middleware must handle cascade themselves.
-async function cascadeDeleteAssets(showcaseId: Types.ObjectId) {
-  const assets = await AssetModel.find({ showcase_id: showcaseId }).select('path')
-  await Promise.all(
-    assets.map((a) => {
-      const resolved = path.resolve(UPLOADS_DIR, a.path)
-      if (!resolved.startsWith(UPLOADS_DIR + path.sep) && resolved !== UPLOADS_DIR) {
-        throw new Error(`Asset path escapes uploads directory: ${a.path}`)
-      }
-      return fs.unlink(resolved).catch((e: NodeJS.ErrnoException) => {
-        if (e.code !== 'ENOENT') throw e
-      })
-    }),
-  )
-  await AssetModel.deleteMany({ showcase_id: showcaseId })
-}
-
-// Document-level: doc.deleteOne()
-ShowcaseSchema.post('deleteOne', { document: true, query: false }, async function () {
-  await cascadeDeleteAssets(this._id as Types.ObjectId)
-})
-
-// Query-level: ShowcaseModel.deleteOne({ ... })
-// Must be pre so the document can be found before it is deleted.
-ShowcaseSchema.pre('deleteOne', { document: false, query: true }, async function () {
-  const doc = await this.model.findOne(this.getFilter()).select('_id')
-  if (doc) await cascadeDeleteAssets(doc._id as Types.ObjectId)
-})
-
-// findByIdAndDelete / findOneAndDelete
-ShowcaseSchema.post('findOneAndDelete', async (doc) => {
-  if (!doc) return
-  await cascadeDeleteAssets(doc._id as Types.ObjectId)
-})
 
 export const ShowcaseModel = model<Showcase>('Showcase', ShowcaseSchema)

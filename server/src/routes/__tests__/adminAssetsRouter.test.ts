@@ -10,7 +10,6 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 // Set UPLOADS_DIR before the router module is imported.
 // vi.hoisted runs before all vi.mock calls and imports.
 const { testUploadsDir } = vi.hoisted(() => {
-  // vi.hoisted runs before imports so ES modules are unavailable; use process globals directly.
   const tmpdir = process.env.TMPDIR ?? process.env.TEMP ?? '/tmp'
   const dir = `${tmpdir}/asset-router-test-${Date.now()}`
   process.env.UPLOADS_DIR = dir
@@ -38,7 +37,6 @@ vi.mock('../../utils/sanitizeSVG', () => ({
 }))
 
 import { AssetModel } from '../../db/models/Asset'
-import { ShowcaseModel } from '../../db/models/Showcase'
 import { sanitizeSVG } from '../../utils/sanitizeSVG'
 import { validateFileType } from '../../utils/validateFileType'
 import adminAssetsRouter from '../adminAssetsRouter'
@@ -52,11 +50,6 @@ app.use('/admin/assets', adminAssetsRouter)
 // Minimal PNG magic bytes -- validateFileType is mocked so content doesn't matter,
 // but multer still writes the buffer to disk so use something non-empty.
 const fakePng = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00])
-
-const baseShowcase = {
-  name: 'Assets Router Test Showcase',
-  persona: { name: 'Alice', type: 'AssetsRouterTest', image: '/public/student/student.svg' },
-}
 
 beforeAll(async () => {
   mkdirSync(testUploadsDir, { recursive: true })
@@ -72,7 +65,9 @@ beforeEach(() => {
 afterEach(async () => {
   vi.clearAllMocks()
   await AssetModel.deleteMany({})
-  await ShowcaseModel.deleteMany({})
+  // Remove uploaded files between tests.
+  const entries = await fs.readdir(testUploadsDir).catch(() => [])
+  await Promise.all(entries.map((e: string) => fs.unlink(path.join(testUploadsDir, e)).catch(() => {})))
 })
 
 afterAll(async () => {
@@ -81,333 +76,200 @@ afterAll(async () => {
   await fs.rm(testUploadsDir, { recursive: true, force: true })
 })
 
-// Helper: create a showcase with a unique name to avoid index conflicts
-let showcaseCounter = 0
-async function createShowcase(overrides?: Partial<typeof baseShowcase>) {
-  showcaseCounter++
-  return ShowcaseModel.create({
-    ...baseShowcase,
-    name: `${baseShowcase.name} ${showcaseCounter}`,
-    persona: { ...baseShowcase.persona, type: `AssetsRouterTest${showcaseCounter}` },
-    ...overrides,
-  })
-}
-
-describe('POST /admin/assets/:showcaseId', () => {
-  it('returns 201 with asset metadata on valid upload', async () => {
-    const showcase = await createShowcase()
-    const showcaseId = showcase._id.toString()
-
+describe('POST /admin/assets', () => {
+  it('returns 201 with path and filename on valid upload', async () => {
     const res = await request(app)
-      .post(`/admin/assets/${showcaseId}`)
+      .post('/admin/assets')
+      .field('type', 'icon')
       .attach('file', fakePng, { filename: 'test.png', contentType: 'image/png' })
 
     expect(res.status).toBe(201)
     expect(res.body).toMatchObject({
       filename: expect.stringContaining('.png'),
-      mime_type: 'image/png',
-      size_bytes: fakePng.length,
-      url: expect.stringContaining(showcaseId),
+      path: expect.stringMatching(/^\/uploads\//),
     })
-    expect(res.body.id).toBeDefined()
   })
 
-  it('creates an Asset DB record on successful upload', async () => {
-    const showcase = await createShowcase()
-    const showcaseId = showcase._id.toString()
-
+  it('creates an Asset DB record with type tag on successful upload', async () => {
     await request(app)
-      .post(`/admin/assets/${showcaseId}`)
-      .attach('file', fakePng, { filename: 'record-test.png', contentType: 'image/png' })
+      .post('/admin/assets')
+      .field('type', 'persona')
+      .attach('file', fakePng, { filename: 'avatar.png', contentType: 'image/png' })
 
-    const assets = await AssetModel.find({ showcase_id: showcase._id })
+    const assets = await AssetModel.find({ type: 'persona' })
     expect(assets).toHaveLength(1)
     expect(assets[0].filename).toMatch(/\.png$/)
     expect(assets[0].mime_type).toBe('image/png')
-    expect(assets[0].size_bytes).toBe(fakePng.length)
+    expect(assets[0].type).toBe('persona')
+  })
+
+  it('accepts upload without type field', async () => {
+    const res = await request(app)
+      .post('/admin/assets')
+      .attach('file', fakePng, { filename: 'no-type.png', contentType: 'image/png' })
+
+    expect(res.status).toBe(201)
+    const asset = await AssetModel.findOne()
+    expect(asset?.type).toBeUndefined()
   })
 
   it('returns 400 when no file is provided', async () => {
-    const showcase = await createShowcase()
-
-    const res = await request(app).post(`/admin/assets/${showcase._id.toString()}`)
+    const res = await request(app).post('/admin/assets')
     expect(res.status).toBe(400)
-    expect(res.body).toHaveProperty('error')
-  })
-
-  it('returns 400 when showcaseId is not a valid ObjectId', async () => {
-    const res = await request(app)
-      .post('/admin/assets/not-a-valid-id')
-      .attach('file', fakePng, { filename: 'test.png', contentType: 'image/png' })
-
-    expect(res.status).toBe(400)
-    expect(res.body).toHaveProperty('error')
-  })
-
-  it('returns 404 when showcase does not exist', async () => {
-    const nonexistentId = new mongoose.Types.ObjectId().toString()
-
-    const res = await request(app)
-      .post(`/admin/assets/${nonexistentId}`)
-      .attach('file', fakePng, { filename: 'test.png', contentType: 'image/png' })
-
-    expect(res.status).toBe(404)
     expect(res.body).toHaveProperty('error')
   })
 
   it('returns 400 when file type validation fails', async () => {
     vi.mocked(validateFileType).mockResolvedValue(false)
-    const showcase = await createShowcase()
-    const showcaseId = showcase._id.toString()
 
     const res = await request(app)
-      .post(`/admin/assets/${showcaseId}`)
+      .post('/admin/assets')
       .attach('file', fakePng, { filename: 'bad.png', contentType: 'image/png' })
 
     expect(res.status).toBe(400)
     expect(res.body).toHaveProperty('error')
-    // No DB record should have been created
-    const assets = await AssetModel.find({ showcase_id: showcase._id })
-    expect(assets).toHaveLength(0)
+    expect(await AssetModel.countDocuments()).toBe(0)
   })
 
   it('rejects files with disallowed extensions', async () => {
-    const showcase = await createShowcase()
-    const showcaseId = showcase._id.toString()
-
     const res = await request(app)
-      .post(`/admin/assets/${showcaseId}`)
+      .post('/admin/assets')
       .attach('file', Buffer.from('not an image'), { filename: 'malware.exe', contentType: 'application/octet-stream' })
 
     expect(res.status).toBe(400)
   })
 
   it('sanitizes SVG files on upload', async () => {
-    const showcase = await createShowcase()
-    const showcaseId = showcase._id.toString()
-
     const svgContent = '<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>'
 
     const res = await request(app)
-      .post(`/admin/assets/${showcaseId}`)
+      .post('/admin/assets')
+      .field('type', 'icon')
       .attach('file', Buffer.from(svgContent), { filename: 'icon.svg', contentType: 'image/svg+xml' })
 
     expect(res.status).toBe(201)
     expect(vi.mocked(sanitizeSVG)).toHaveBeenCalledWith(svgContent)
   })
 
-  it('stores file in uploads/{showcaseId}/ directory', async () => {
-    const showcase = await createShowcase()
-    const showcaseId = showcase._id.toString()
-
+  it('stores file flat in UPLOADS_DIR (no subdirectory)', async () => {
     const res = await request(app)
-      .post(`/admin/assets/${showcaseId}`)
-      .attach('file', fakePng, { filename: 'location-test.png', contentType: 'image/png' })
+      .post('/admin/assets')
+      .field('type', 'screen')
+      .attach('file', fakePng, { filename: 'flat-test.png', contentType: 'image/png' })
 
     expect(res.status).toBe(201)
-    // Asset path in DB should be under the showcase-specific dir
-    const asset = await AssetModel.findOne({ showcase_id: showcase._id })
-    expect(asset?.path).toContain(showcaseId)
+    const asset = await AssetModel.findOne()
+    // filename should be just a flat name with no path separator
+    expect(asset?.filename).not.toContain('/')
+    expect(asset?.filename).toMatch(/\.png$/)
   })
 })
 
-describe('GET /admin/assets/:showcaseId', () => {
-  it('returns 200 with empty array when no assets exist', async () => {
-    const showcase = await createShowcase()
-
-    const res = await request(app).get(`/admin/assets/${showcase._id.toString()}`)
+describe('GET /admin/assets', () => {
+  it('returns { files: [] } when no assets exist', async () => {
+    const res = await request(app).get('/admin/assets')
 
     expect(res.status).toBe(200)
-    expect(Array.isArray(res.body)).toBe(true)
-    expect(res.body).toHaveLength(0)
+    expect(res.body).toEqual({ files: [] })
   })
 
-  it('returns 200 with asset metadata array including url', async () => {
-    const showcase = await createShowcase()
-    const showcaseId = showcase._id.toString()
-    await AssetModel.create({
-      showcase_id: showcase._id,
-      filename: 'logo.png',
-      path: `${showcaseId}/logo.png`,
-      mime_type: 'image/png',
-      size_bytes: 1024,
-    })
+  it('returns all assets when no type filter applied', async () => {
+    await AssetModel.create({ filename: 'a.png', mime_type: 'image/png', size_bytes: 100, type: 'icon' })
+    await AssetModel.create({ filename: 'b.png', mime_type: 'image/png', size_bytes: 100, type: 'persona' })
 
-    const res = await request(app).get(`/admin/assets/${showcase._id.toString()}`)
+    const res = await request(app).get('/admin/assets')
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveLength(1)
-    expect(res.body[0]).toMatchObject({
-      filename: 'logo.png',
-      mime_type: 'image/png',
-      size_bytes: 1024,
-    })
-    expect(res.body[0].url).toBeDefined()
-    expect(res.body[0].id).toBeDefined()
+    expect(res.body.files).toHaveLength(2)
   })
 
-  it('returns only assets belonging to the requested showcase', async () => {
-    const showcase1 = await createShowcase()
-    const showcase2 = await createShowcase()
+  it('filters by type query param', async () => {
+    await AssetModel.create({ filename: 'icon.png', mime_type: 'image/png', size_bytes: 100, type: 'icon' })
+    await AssetModel.create({ filename: 'persona.png', mime_type: 'image/png', size_bytes: 100, type: 'persona' })
 
-    await AssetModel.create({
-      showcase_id: showcase1._id,
-      filename: 'for-showcase1.png',
-      path: 'showcase1/for-showcase1.png',
-      mime_type: 'image/png',
-      size_bytes: 100,
-    })
-    await AssetModel.create({
-      showcase_id: showcase2._id,
-      filename: 'for-showcase2.png',
-      path: 'showcase2/for-showcase2.png',
-      mime_type: 'image/png',
-      size_bytes: 100,
-    })
-
-    const res = await request(app).get(`/admin/assets/${showcase1._id.toString()}`)
+    const res = await request(app).get('/admin/assets?type=icon')
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveLength(1)
-    expect(res.body[0].filename).toBe('for-showcase1.png')
+    expect(res.body.files).toHaveLength(1)
+    expect(res.body.files[0]).toContain('icon.png')
   })
 
-  it('returns 400 when showcaseId is not a valid ObjectId', async () => {
-    const res = await request(app).get('/admin/assets/not-valid')
-    expect(res.status).toBe(400)
-    expect(res.body).toHaveProperty('error')
-  })
+  it('returns URL paths in files array', async () => {
+    await AssetModel.create({ filename: 'logo.png', mime_type: 'image/png', size_bytes: 512 })
 
-  it('returns 404 when showcase does not exist', async () => {
-    const nonexistentId = new mongoose.Types.ObjectId().toString()
-    const res = await request(app).get(`/admin/assets/${nonexistentId}`)
-    expect(res.status).toBe(404)
-    expect(res.body).toHaveProperty('error')
+    const res = await request(app).get('/admin/assets')
+
+    expect(res.status).toBe(200)
+    expect(res.body.files[0]).toBe('/uploads/logo.png')
   })
 })
 
-describe('DELETE /admin/assets/:showcaseId/:assetId', () => {
+describe('DELETE /admin/assets/:assetId', () => {
   it('returns 204 on successful deletion', async () => {
-    const showcase = await createShowcase()
-    const relPath = `del-success-${Date.now()}.png`
-    await fs.writeFile(path.join(testUploadsDir, relPath), fakePng)
+    const filename = `del-success-${Date.now()}.png`
+    await fs.writeFile(path.join(testUploadsDir, filename), fakePng)
+    const asset = await AssetModel.create({ filename, mime_type: 'image/png', size_bytes: fakePng.length })
 
-    const asset = await AssetModel.create({
-      showcase_id: showcase._id,
-      filename: 'del-success.png',
-      path: relPath,
-      mime_type: 'image/png',
-      size_bytes: fakePng.length,
-    })
-
-    const res = await request(app).delete(`/admin/assets/${showcase._id.toString()}/${asset._id.toString()}`)
+    const res = await request(app).delete(`/admin/assets/${asset._id.toString()}`)
     expect(res.status).toBe(204)
   })
 
   it('removes file from disk on deletion', async () => {
-    const showcase = await createShowcase()
-    const relPath = `del-disk-${Date.now()}.png`
-    const absPath = path.join(testUploadsDir, relPath)
+    const filename = `del-disk-${Date.now()}.png`
+    const absPath = path.join(testUploadsDir, filename)
     await fs.writeFile(absPath, fakePng)
+    const asset = await AssetModel.create({ filename, mime_type: 'image/png', size_bytes: fakePng.length })
 
-    const asset = await AssetModel.create({
-      showcase_id: showcase._id,
-      filename: 'del-disk.png',
-      path: relPath,
-      mime_type: 'image/png',
-      size_bytes: fakePng.length,
-    })
-
-    await request(app).delete(`/admin/assets/${showcase._id.toString()}/${asset._id.toString()}`)
+    await request(app).delete(`/admin/assets/${asset._id.toString()}`)
 
     await expect(fs.access(absPath)).rejects.toThrow()
   })
 
   it('removes DB record on deletion', async () => {
-    const showcase = await createShowcase()
-    const relPath = `del-db-${Date.now()}.png`
-    await fs.writeFile(path.join(testUploadsDir, relPath), fakePng)
+    const filename = `del-db-${Date.now()}.png`
+    await fs.writeFile(path.join(testUploadsDir, filename), fakePng)
+    const asset = await AssetModel.create({ filename, mime_type: 'image/png', size_bytes: fakePng.length })
 
-    const asset = await AssetModel.create({
-      showcase_id: showcase._id,
-      filename: 'del-db.png',
-      path: relPath,
-      mime_type: 'image/png',
-      size_bytes: fakePng.length,
-    })
+    await request(app).delete(`/admin/assets/${asset._id.toString()}`)
 
-    await request(app).delete(`/admin/assets/${showcase._id.toString()}/${asset._id.toString()}`)
-
-    const remaining = await AssetModel.findById(asset._id)
-    expect(remaining).toBeNull()
+    expect(await AssetModel.findById(asset._id)).toBeNull()
   })
 
   it('handles missing file on disk gracefully (ENOENT)', async () => {
-    const showcase = await createShowcase()
-    const asset = await AssetModel.create({
-      showcase_id: showcase._id,
-      filename: 'gone.png',
-      path: 'nonexistent/gone.png',
-      mime_type: 'image/png',
-      size_bytes: 100,
-    })
+    const asset = await AssetModel.create({ filename: 'gone.png', mime_type: 'image/png', size_bytes: 100 })
 
-    const res = await request(app).delete(`/admin/assets/${showcase._id.toString()}/${asset._id.toString()}`)
+    const res = await request(app).delete(`/admin/assets/${asset._id.toString()}`)
 
-    // Should succeed even though file is missing on disk
     expect(res.status).toBe(204)
-    // DB record should be removed
-    const remaining = await AssetModel.findById(asset._id)
-    expect(remaining).toBeNull()
+    expect(await AssetModel.findById(asset._id)).toBeNull()
   })
 
   it('returns 400 when assetId is not a valid ObjectId', async () => {
-    const showcase = await createShowcase()
-
-    const res = await request(app).delete(`/admin/assets/${showcase._id.toString()}/not-valid-id`)
+    const res = await request(app).delete('/admin/assets/not-valid-id')
     expect(res.status).toBe(400)
     expect(res.body).toHaveProperty('error')
   })
 
-  it('returns 400 when showcaseId is not a valid ObjectId', async () => {
-    const fakeAssetId = new mongoose.Types.ObjectId().toString()
-    const res = await request(app).delete(`/admin/assets/not-valid/${fakeAssetId}`)
-    expect(res.status).toBe(400)
-    expect(res.body).toHaveProperty('error')
-  })
-
-  it('returns 404 when showcase does not exist', async () => {
-    const nonexistentId = new mongoose.Types.ObjectId().toString()
-    const fakeAssetId = new mongoose.Types.ObjectId().toString()
-
-    const res = await request(app).delete(`/admin/assets/${nonexistentId}/${fakeAssetId}`)
+  it('returns 404 when asset does not exist', async () => {
+    const fakeId = new mongoose.Types.ObjectId().toString()
+    const res = await request(app).delete(`/admin/assets/${fakeId}`)
     expect(res.status).toBe(404)
     expect(res.body).toHaveProperty('error')
   })
 
-  it('returns 404 when asset does not exist for the given showcase', async () => {
-    const showcase = await createShowcase()
-    const fakeAssetId = new mongoose.Types.ObjectId().toString()
-
-    const res = await request(app).delete(`/admin/assets/${showcase._id.toString()}/${fakeAssetId}`)
-    expect(res.status).toBe(404)
-    expect(res.body).toHaveProperty('error')
-  })
-
-  it('cannot delete an asset belonging to a different showcase', async () => {
-    const showcase1 = await createShowcase()
-    const showcase2 = await createShowcase()
-
+  it('returns 400 and does not delete when asset path escapes UPLOADS_DIR', async () => {
+    // Simulate a corrupted DB record with a traversal path.
     const asset = await AssetModel.create({
-      showcase_id: showcase2._id,
-      filename: 'other.png',
-      path: 'other-showcase/other.png',
+      filename: '../../etc/passwd',
       mime_type: 'image/png',
       size_bytes: 100,
     })
 
-    // Try to delete asset of showcase2 via showcase1's ID
-    const res = await request(app).delete(`/admin/assets/${showcase1._id.toString()}/${asset._id.toString()}`)
-    expect(res.status).toBe(404)
+    const res = await request(app).delete(`/admin/assets/${asset._id.toString()}`)
+
+    expect(res.status).toBe(400)
+    expect(res.body).toHaveProperty('error')
+    // DB record must remain (we rejected before touching disk or DB).
+    expect(await AssetModel.findById(asset._id)).not.toBeNull()
   })
 })

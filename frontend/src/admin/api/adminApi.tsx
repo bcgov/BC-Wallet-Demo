@@ -206,7 +206,7 @@ export const getAvailableImages = async (
   auth: AuthContextProps,
   type: 'icon' | 'screen' | 'persona' = 'icon',
 ): Promise<string[]> => {
-  const res = await fetch(`${adminBaseUrl}/images/${type}`, {
+  const res = await fetch(`${adminBaseUrl}/assets?type=${encodeURIComponent(type)}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -225,8 +225,9 @@ export const uploadImage = async (
 ): Promise<{ path: string; filename: string }> => {
   const formData = new FormData()
   formData.append('file', file)
+  formData.append('type', type)
 
-  const res = await fetch(`${adminBaseUrl}/images/${type}`, {
+  const res = await fetch(`${adminBaseUrl}/assets`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,

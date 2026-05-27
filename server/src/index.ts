@@ -68,10 +68,6 @@ const run = async () => {
   await connectDB()
   registerShutdownHandlers()
 
-  // Ensure the uploads directory exists before serving it statically.
-  const { mkdirSync } = await import('fs')
-  mkdirSync(UPLOADS_DIR, { recursive: true })
-
   await tractionApiKeyUpdaterInit()
   await tractionGarbageCollection()
 
@@ -120,7 +116,16 @@ const run = async () => {
   // Uploaded assets are served publicly (no auth) because showcases reference
   // them in user-facing pages. Access control is enforced at upload/delete time
   // via requireRole on the /admin/assets routes.
-  app.use(`${baseRoute}/uploads`, stx(UPLOADS_DIR))
+  // CSP headers prevent inline script execution in SVGs viewed directly in-browser.
+  app.use(
+    `${baseRoute}/uploads`,
+    (_req, res, next) => {
+      res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:")
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      next()
+    },
+    stx(UPLOADS_DIR),
+  )
 
   // All routes under /admin require a valid Keycloak-issued JWT.
   app.use(`${baseRoute}/admin`, requireAdmin)
