@@ -79,7 +79,15 @@ const upload = multer({
   storage: multer.diskStorage({
     destination: (req: Request, _file: Express.Multer.File, cb: (err: Error | null, dest: string) => void) => {
       const { showcaseId } = req.params
-      const showcaseDir = path.join(UPLOADS_DIR, showcaseId)
+      const uploadsRoot = path.resolve(UPLOADS_DIR)
+      const showcaseDir = path.resolve(uploadsRoot, showcaseId)
+      const relativePath = path.relative(uploadsRoot, showcaseDir)
+
+      if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        cb(new Error('Invalid showcase directory path'), '')
+        return
+      }
+
       try {
         mkdirSync(showcaseDir, { recursive: true })
         cb(null, showcaseDir)
@@ -89,7 +97,15 @@ const upload = multer({
     },
     filename: (req: Request, file: Express.Multer.File, cb: (err: Error | null, filename: string) => void) => {
       const { showcaseId } = req.params
-      const showcaseDir = path.join(UPLOADS_DIR, showcaseId)
+      const uploadsRoot = path.resolve(UPLOADS_DIR)
+      const showcaseDir = path.resolve(uploadsRoot, showcaseId)
+      const relativePath = path.relative(uploadsRoot, showcaseDir)
+
+      if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        cb(new Error('Invalid showcase directory path'), '')
+        return
+      }
+
       const baseFilename = sanitizeFilename(file.originalname, showcaseDir)
       const uuid = randomUUID().split('-')[0]
       const ext = path.extname(baseFilename)
