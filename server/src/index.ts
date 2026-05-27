@@ -14,12 +14,12 @@ import { serveOobInvitation } from './handlers/serveOobInvitation'
 import { auditLoginMiddleware } from './middleware/auditLogin'
 import { requireAdmin, ServiceUnavailableError } from './middleware/requireAdmin'
 import adminAssetsRouter from './routes/adminAssetsRouter'
-import { UPLOADS_DIR } from './utils/uploadsDir'
 import adminAuditLogRouter from './routes/adminAuditLogRouter'
 import adminCredentialsRouter from './routes/adminCredentialsRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
 import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
+import { UPLOADS_DIR } from './utils/uploadsDir'
 
 const baseRoute = process.env.BASE_ROUTE
 
