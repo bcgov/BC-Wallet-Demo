@@ -79,7 +79,15 @@ const upload = multer({
   storage: multer.diskStorage({
     destination: (req: Request, _file: Express.Multer.File, cb: (err: Error | null, dest: string) => void) => {
       const { showcaseId } = req.params
-      const showcaseDir = path.join(UPLOADS_DIR, showcaseId)
+      const uploadsRoot = path.resolve(UPLOADS_DIR)
+      const showcaseDir = path.resolve(uploadsRoot, showcaseId)
+      const relativePath = path.relative(uploadsRoot, showcaseDir)
+
+      if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        cb(new Error('Invalid showcase directory path'), '')
+        return
+      }
+
       try {
         mkdirSync(showcaseDir, { recursive: true })
         cb(null, showcaseDir)
@@ -89,7 +97,15 @@ const upload = multer({
     },
     filename: (req: Request, file: Express.Multer.File, cb: (err: Error | null, filename: string) => void) => {
       const { showcaseId } = req.params
-      const showcaseDir = path.join(UPLOADS_DIR, showcaseId)
+      const uploadsRoot = path.resolve(UPLOADS_DIR)
+      const showcaseDir = path.resolve(uploadsRoot, showcaseId)
+      const relativePath = path.relative(uploadsRoot, showcaseDir)
+
+      if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        cb(new Error('Invalid showcase directory path'), '')
+        return
+      }
+
       const baseFilename = sanitizeFilename(file.originalname, showcaseDir)
       const uuid = randomUUID().split('-')[0]
       const ext = path.extname(baseFilename)
@@ -129,18 +145,26 @@ router.post(
 
     logger.debug({ showcaseId, filename: req.file.filename }, 'Admin: upload asset')
 
+    const uploadsRoot = path.resolve(UPLOADS_DIR)
+    const safeFilePath = path.resolve(req.file.path)
+    const relativeToRoot = path.relative(uploadsRoot, safeFilePath)
+    if (relativeToRoot.startsWith('..') || path.isAbsolute(relativeToRoot)) {
+      res.status(400).json({ error: 'Invalid upload path' })
+      return
+    }
+
     // Validate file content by magic bytes
     try {
-      const fileBuffer = await fs.readFile(req.file.path)
+      const fileBuffer = await fs.readFile(safeFilePath)
       const isValid = await validateFileType(fileBuffer, req.file.filename)
       if (!isValid) {
-        await fs.unlink(req.file.path).catch(() => {})
+        await fs.unlink(safeFilePath).catch(() => {})
         res.status(400).json({ error: 'File type validation failed. Upload a valid image file.' })
         return
       }
     } catch (err) {
       logger.error(err, 'Error validating file type')
-      await fs.unlink(req.file.path).catch(() => {})
+      await fs.unlink(safeFilePath).catch(() => {})
       res.status(500).json({ error: 'Failed to validate file type' })
       return
     }
@@ -149,12 +173,12 @@ router.post(
     const ext = path.extname(req.file.filename).toLowerCase()
     if (ext === '.svg') {
       try {
-        const content = await fs.readFile(req.file.path, 'utf-8')
+        const content = await fs.readFile(safeFilePath, 'utf-8')
         const sanitized = sanitizeSVG(content)
-        await fs.writeFile(req.file.path, sanitized, 'utf-8')
+        await fs.writeFile(safeFilePath, sanitized, 'utf-8')
       } catch (err) {
         logger.error(err, 'Error sanitizing SVG')
-        await fs.unlink(req.file.path).catch(() => {})
+        await fs.unlink(safeFilePath).catch(() => {})
         res.status(500).json({ error: 'Failed to sanitize SVG file' })
         return
       }
@@ -182,7 +206,7 @@ router.post(
       })
     } catch (err) {
       logger.error(err, 'Error creating asset record')
-      await fs.unlink(req.file.path).catch(() => {})
+      await fs.unlink(safeFilePath).catch(() => {})
       res.status(500).json({ error: 'Failed to save asset record' })
     }
   },
