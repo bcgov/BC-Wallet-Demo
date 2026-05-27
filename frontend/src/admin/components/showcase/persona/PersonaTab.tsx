@@ -1,4 +1,4 @@
-import type { IntroductionStep, ProgressBarStep, Showcase } from '../../../types'
+import type { Showcase } from '../../../types'
 
 import { ArrowUpTrayIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
@@ -81,73 +81,31 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
     }
   }
 
-  const initializeBaseIntroduction = async () => {
-    if (!isNewShowcase || !showcase || showcase.introduction?.length || !auth.user?.access_token) {
+  const updateIntroductionWithPersona = async () => {
+    if (!showcase || !auth.user?.access_token || !showcase.introduction?.length) {
       return
     }
 
-    const introductionScreens: IntroductionStep[] = [
-      {
-        screenId: 'PICK_CHARACTER',
-        name: `Meet ${name}`,
-        text: `${name} is a ${personaType}. In this demo, ${name} will use digital credentials from their BC Wallet to complete various tasks.`,
-      },
-      {
-        screenId: 'SETUP_START',
-        name: "Let's get started!",
-        text: 'BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas.\nUsing your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed.',
-        image: '/public/common/screen/getStarted.svg',
-      },
-      {
-        screenId: 'CHOOSE_WALLET',
-        name: 'Install BC Wallet',
-        text: 'First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.',
-        image: '/public/common/screen/app-store-screenshots.png',
-      },
-    ]
-
-    introductionScreens.push({
-      screenId: 'SETUP_COMPLETED',
-      name: "You're all set!",
-      text: 'Congratulations! You have successfully completed the onboarding. Your credentials are now ready to be used.',
-      image: '/public/common/screen/onboarding-completed-light.svg',
-    })
-
-    // Create corresponding progress bar
-    const progressBar: ProgressBarStep[] = [
-      {
-        name: 'person',
-        introductionStep: 'PICK_CHARACTER',
-        iconLight: '/public/common/icon/icon-person-light.svg',
-        iconDark: '/public/common/icon/icon-person-dark.svg',
-      },
-      {
-        name: 'moon',
-        introductionStep: 'SETUP_START',
-        iconLight: '/public/common/icon/icon-moon-light.svg',
-        iconDark: '/public/common/icon/icon-moon-dark.svg',
-      },
-    ]
-
-    progressBar.push({
-      name: 'balloon',
-      introductionStep: 'SETUP_COMPLETED',
-      iconLight: '/public/common/icon/icon-balloon-light.svg',
-      iconDark: '/public/common/icon/icon-balloon-dark.svg',
-    })
-
     try {
-      const updates: any = {
-        introduction: introductionScreens,
-        progressBar: progressBar,
-      }
+      // Update the first introduction screen with the persona info
+      const updatedIntroduction = showcase.introduction.map((screen) => {
+        if (screen.screenId === 'PICK_CHARACTER') {
+          return {
+            ...screen,
+            name: `Meet ${name}`,
+            text: `${name} is a ${personaType}. In this demo, ${name} will use digital credentials from their BC Wallet to complete various tasks.`,
+          }
+        }
+        return screen
+      })
 
-      await updateShowcase(auth, showcase.name, updates)
-      onRefresh?.()
+      await updateShowcase(auth, showcase.name, {
+        introduction: updatedIntroduction,
+      })
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to initialize introduction'
+      const message = error instanceof Error ? error.message : 'Failed to update introduction'
       displayError(message)
-      log.error('Failed to initialize introduction:', error)
+      log.error('Failed to update introduction with persona:', error)
     }
   }
 
@@ -180,8 +138,8 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
         },
       })
 
-      // Switch to introduction tab
-      await initializeBaseIntroduction()
+      // Update introduction screens with persona details
+      await updateIntroductionWithPersona()
       dismissError()
       onTabChange?.('introduction')
     } catch (error) {
