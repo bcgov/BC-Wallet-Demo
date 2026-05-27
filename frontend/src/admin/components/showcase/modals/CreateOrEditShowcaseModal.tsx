@@ -84,6 +84,12 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
           iconDark: '/public/common/icon/icon-moon-dark.svg',
         },
         {
+          name: 'wallet',
+          introductionStep: 'CHOOSE_WALLET',
+          iconLight: '/public/common/icon/icon-wallet-light.svg',
+          iconDark: '/public/common/icon/icon-wallet-dark.svg',
+        },
+        {
           name: 'balloon',
           introductionStep: 'SETUP_COMPLETED',
           iconLight: '/public/common/icon/icon-balloon-light.svg',
