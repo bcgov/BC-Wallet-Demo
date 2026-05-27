@@ -42,9 +42,16 @@ TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
 BASE_ROUTE=/digital-trust/showcase
 WEBHOOK_SECRET=<YOUR_WEBHOOK_SECRET>
 SHOWCASE_PUBLIC_ORIGIN=https://<YOUR_NGROK_URL>
+# Optional: directory for uploaded assets (defaults to ./uploads)
+UPLOADS_DIR=./uploads
+# Optional: disable short invitation URLs (default: enabled)
+# SHOWCASE_SHORT_INVITATION_URLS_ENABLED=false
+# Optional: TTL for short invitation links in seconds (default: 86400 = 24h)
+# INVITATION_SHORT_LINK_TTL_SECONDS=86400
 ```
 
-populate the values with the API key and webhook secret that you made in the previous step.  
+populate the values with the API key and webhook secret that you made in the previous step. `SHOWCASE_PUBLIC_ORIGIN` is required for short invitation URLs to work; set it to your ngrok URL. `UPLOADS_DIR` controls where uploaded images are stored on disk and defaults to `./uploads` relative to the server working directory.
+
 In the frontend folder the .env file should look like this:
 
 ```bash
@@ -307,6 +314,66 @@ You can narrow the sync with these optional filters:
 Returns `{ imported, updated, total }`.
 
 This endpoint is restricted to the `admin` role.
+
+### Assets
+
+You can upload and manage images used throughout the showcases via the admin API. Images are stored on the server filesystem with MongoDB tracking, and can be reused across different showcases. When uploading, you can optionally tag images with a type like `icon`, `screen`, or `persona` to make them easier to find later.
+
+#### `GET /admin/assets?type=icon`
+
+Lists all uploaded assets, with an optional `type` filter. Returns `{ files: string[] }` containing URL paths you can use directly in your showcase configurations.
+
+Available to `admin`, `creator`, and `viewer` roles. Limited to 30 requests per 15 minutes.
+
+#### `POST /admin/assets`
+
+Upload a new image asset. Send a `multipart/form-data` request with:
+
+- `file` (required): Image file in png, jpg, svg, or webp format (max 5 MB)
+- `type` (optional): Tag for filtering (like `icon`, `screen`, `persona`)
+
+On success, you'll get back `{ path, filename }` where `path` is the public URL you can use in your showcase configs.
+
+Restricted to `admin` and `creator` roles. Limited to 10 uploads per 15 minutes.
+
+#### `DELETE /admin/assets/:assetId`
+
+Delete an asset by its MongoDB `_id` (you can find this in the database or by listing assets). This removes both the file from disk and the database record.
+
+Only available to `admin` users. Limited to 10 deletions per 15 minutes.
+
+#### `GET /uploads/:filename`
+
+Public endpoint that serves uploaded files with no authentication needed. This is the actual URL path returned by the upload and list endpoints - you can use it directly in showcase JSON or credential icons.
+
+Security headers are added to prevent malicious code execution, especially important for SVG files.
+
+#### How Assets Are Stored
+
+Files get saved flat (no folders) under `UPLOADS_DIR` with names like `{uuid}_{filename}` (example: `abc12345_logo.svg`).
+
+The `UPLOADS_DIR` environment variable controls where files are stored and defaults to `./uploads` in the server directory. This directory gets created automatically when the server starts.
+
+**With Helm deployments:**
+
+- The chart sets up a persistent volume by default (1 GB, `ReadWriteOnce`)
+- `UPLOADS_DIR` is automatically configured as `/app/uploads` in the container
+- The uploads folder is mounted from the persistent volume so files survive pod restarts
+
+**Caddy configuration:**
+
+- Requests to `/uploads/*` are proxied to the Express server (not served as static files)
+- These paths are excluded from compression and SPA routing to ensure they work properly
+
+#### Security Features
+
+The assets system includes several protections:
+
+- Role-based access: Different endpoints require `admin`, `creator`, or `viewer` roles
+- File validation: Checks both file extensions and actual content (magic byte detection)
+- SVG cleaning: Strips potentially dangerous elements like scripts and event handlers
+- Path safety: Filenames are sanitized to prevent directory traversal attacks
+- Size limits: Files are capped at 5 MB via server configuration
 
 ## Deployment
 

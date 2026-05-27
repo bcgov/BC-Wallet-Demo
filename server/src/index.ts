@@ -13,12 +13,13 @@ import { connectDB, registerShutdownHandlers } from './db/connection'
 import { serveOobInvitation } from './handlers/serveOobInvitation'
 import { auditLoginMiddleware } from './middleware/auditLogin'
 import { requireAdmin, ServiceUnavailableError } from './middleware/requireAdmin'
+import adminAssetsRouter from './routes/adminAssetsRouter'
 import adminAuditLogRouter from './routes/adminAuditLogRouter'
 import adminCredentialsRouter from './routes/adminCredentialsRouter'
-import adminImagesRouter from './routes/adminImagesRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
 import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
+import { UPLOADS_DIR } from './utils/uploadsDir'
 
 const baseRoute = process.env.BASE_ROUTE
 
@@ -112,13 +113,26 @@ const run = async () => {
   )
 
   app.use(`${baseRoute}/public`, stx(__dirname + '/public'))
+  // Uploaded assets are served publicly (no auth) because showcases reference
+  // them in user-facing pages. Access control is enforced at upload/delete time
+  // via requireRole on the /admin/assets routes.
+  // CSP headers prevent inline script execution in SVGs viewed directly in-browser.
+  app.use(
+    `${baseRoute}/uploads`,
+    (_req, res, next) => {
+      res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:")
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      next()
+    },
+    stx(UPLOADS_DIR),
+  )
 
   // All routes under /admin require a valid Keycloak-issued JWT.
   app.use(`${baseRoute}/admin`, requireAdmin)
   app.use(`${baseRoute}/admin`, auditLoginMiddleware)
   app.use(`${baseRoute}/admin/showcases`, adminShowcasesRouter)
   app.use(`${baseRoute}/admin/credentials`, adminCredentialsRouter)
-  app.use(`${baseRoute}/admin/images`, adminImagesRouter)
+  app.use(`${baseRoute}/admin/assets`, adminAssetsRouter)
   app.use(`${baseRoute}/admin/audit-log`, adminAuditLogRouter)
 
   app.get(`${baseRoute}/server/last-reset`, (_req, res) => {

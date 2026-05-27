@@ -1,0 +1,21 @@
+{{- if .Values.showcase.server.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "showcase.server.fullname" . }}-uploads
+  namespace: {{ include "showcase.namespace" . | quote }}
+  labels: {{- include "showcase.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.showcase.server.persistence.accessMode | default "ReadWriteOnce" }}
+  resources:
+    requests:
+      storage: {{ .Values.showcase.server.persistence.size | default "1Gi" }}
+  {{- if .Values.showcase.server.persistence.storageClass }}
+  storageClassName: {{ .Values.showcase.server.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}
