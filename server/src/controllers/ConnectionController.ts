@@ -1,6 +1,9 @@
-import { Body, Get, JsonController, Param, Post } from 'routing-controllers'
+import type { Request } from 'express'
+
+import { Body, Get, JsonController, Param, Post, Req } from 'routing-controllers'
 import { Service } from 'typedi'
 
+import { attachShortUrlToOobInvite } from '../services/oobInvitationShortLink'
 import logger from '../utils/logger'
 import { tractionRequest } from '../utils/tractionHelper'
 
@@ -23,7 +26,7 @@ export class ConnectionController {
   }
 
   @Post('/createInvite')
-  public async createConnectionInvite(@Body() params: any) {
+  public async createConnectionInvite(@Body() params: any, @Req() req: Request) {
     logger.info('Creating connection invitation')
     const data = {
       ...params,
@@ -35,8 +38,16 @@ export class ConnectionController {
       use_public_did: false,
     }
     const response = await tractionRequest.post(`/out-of-band/create-invitation?multi_use=false`, data)
-    logger.info({ invitationUrl: response.data?.invitation_url }, 'Connection invitation created')
-    return response.data
+    const payload = response.data
+    const short_url = await attachShortUrlToOobInvite(payload, req, 'connection')
+    if (short_url) {
+      payload.short_url = short_url
+      logger.info({ invitationUrl: payload.invitation_url, shortUrl: short_url }, 'Connection invitation created')
+    } else {
+      logger.warn('Connection invitation missing OOB @id; short_url not generated')
+      logger.info({ invitationUrl: payload?.invitation_url }, 'Connection invitation created')
+    }
+    return payload
   }
 }
 

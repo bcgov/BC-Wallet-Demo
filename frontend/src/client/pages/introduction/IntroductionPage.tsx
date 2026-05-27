@@ -30,7 +30,7 @@ export const IntroductionPage: React.FC = () => {
   const { showcases, currentShowcase, uploadedShowcase } = useShowcases()
 
   const { introductionStep, isCompleted } = useIntroduction()
-  const { state, invitationUrl, id } = useConnection()
+  const { state, invitationUrl, shortInvitationUrl, id } = useConnection()
   const { showcaseUploadEnabled, showHiddenScenarios } = usePreferences()
 
   const [mounted, setMounted] = useState(false)
@@ -82,6 +82,7 @@ export const IntroductionPage: React.FC = () => {
               connectionId={id}
               connectionState={state}
               invitationUrl={invitationUrl}
+              shortInvitationUrl={shortInvitationUrl}
             />
           )}
         </AnimatePresence>

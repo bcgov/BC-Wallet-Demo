@@ -1,11 +1,11 @@
 import type { Credential } from '../types'
 
-import { CreditCardIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { ArrowDownTrayIcon, CreditCardIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { adminBaseRoute, getAllCredentials } from '../api/adminApi'
+import { adminBaseRoute, getAllCredentials, syncCredentials } from '../api/adminApi'
 import { AdminNavbar } from '../components/AdminNavbar'
 import { CreateCredentialModal } from '../components/credential/CreateCredentialModal'
 import { CredentialCard } from '../components/credential/CredentialCard'
@@ -19,6 +19,8 @@ export function CredentialsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncResult, setSyncResult] = useState<{ updated: number; failed: number; total: number } | null>(null)
   const [activeTab, setActiveTab] = useState<'showcases' | 'credentials'>('credentials')
   const tabsContent = useCreatorTabs({ activeTab, onTabChange: setActiveTab })
 
@@ -32,6 +34,20 @@ export function CredentialsPage() {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleSync = async () => {
+    try {
+      setIsSyncing(true)
+      setSyncResult(null)
+      const result = await syncCredentials(auth)
+      setSyncResult(result)
+      await fetchCredentials()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sync from Traction')
+    } finally {
+      setIsSyncing(false)
     }
   }
 
@@ -49,21 +65,46 @@ export function CredentialsPage() {
         <div className="w-full p-8 flex flex-col items-center">
           <div className="w-11/12">
             {/* Header with Create Button */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-2xl font-semibold text-bcgov-black">Credentials</h2>
                 {location.state?.fromShowcase && (
                   <h5 className="text-gray-500 mt-2">Select or Create a credential for the showcase</h5>
                 )}
               </div>
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
-              >
-                <PlusIcon className="w-5 h-5" />
-                Create Credential
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSync}
+                  disabled={isSyncing}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-bcgov-blue text-bcgov-blue hover:bg-blue-50 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  <ArrowDownTrayIcon className="w-5 h-5" />
+                  {isSyncing ? 'Importing...' : 'Import from Traction'}
+                </button>
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
+                >
+                  <PlusIcon className="w-5 h-5" />
+                  Create Credential
+                </button>
+              </div>
             </div>
+
+            {syncResult && (
+              <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-3 text-green-800 text-sm flex items-center justify-between">
+                <span>
+                  Sync complete: {syncResult.updated} updated, {syncResult.failed} failed ({syncResult.total} total)
+                </span>
+                <button
+                  onClick={() => setSyncResult(null)}
+                  className="ml-4 text-green-600 hover:text-green-800"
+                  aria-label="Dismiss"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
 
             {isLoading ? (
               <div className="text-center py-12">

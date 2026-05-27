@@ -14,8 +14,8 @@ interface ScenarioTimelineProps {
   containerRef: React.RefObject<HTMLDivElement>
   draggedIdx: number | null
   dragOverIdx: number | null
-  hoverIdx: string | null
-  setHoverIdx: (idx: string | null) => void
+  hoverIdx: string | number | null
+  setHoverIdx: (idx: string | number | null) => void
   onEditClick: (idx: number, screen: ScenarioScreen) => void
   onAddScreenClick: (afterIdx: number) => void
   onShowDeleteConfirm: (idx: number) => void

@@ -14,6 +14,10 @@ export const createInvitation = createAsyncThunk(
       connectionId: connection.data.connection_id,
       state: connection.data.state,
     })
-    return { ...connection.data, invitation_url: invitation.data.invitation_url }
+    return {
+      ...connection.data,
+      invitation_url: invitation.data.invitation_url,
+      short_url: invitation.data.short_url,
+    }
   },
 )

@@ -21,6 +21,14 @@ once logged in, navigate to the API keys section under the wallet icon to the to
 Create a new API key and save the key and tenant ID in a password manager. You should only have to do this once when migrating to a new traction agent.
 
 The next thing you'll have to do is setup webhooks for your local environment. Start an ngrok instance on your local machine on port 5000 like so `ngrok http 5000` copy the URL you get in to command window. Go to Settings under the wallet icon, you should see a section where you can add your webhook url. Add the following url to the webhook url textbox: `https://<YOUR_NGROK_URL>/digital-trust/showcase/demo/whook` then in the webhook key generate a random key and paste it in there. Make sure you save the webhook key since we'll need it later. Hit the Save Changes button at the bottom.
+
+The same ngrok tunnel also enables **short invitation URLs** for QR codes. When scanning with BC Wallet, the phone needs a publicly reachable URL — `localhost` won't work. Set `SHOWCASE_PUBLIC_ORIGIN` in `server/.env` to your ngrok URL so the short URLs point to the public tunnel:
+
+```bash
+SHOWCASE_PUBLIC_ORIGIN=https://<YOUR_NGROK_URL>
+```
+
+If you use a free [ngrok static domain](https://ngrok.com/docs/guides/other-guides/how-to-set-up-a-custom-domain/) (e.g. `ngrok http 5000 --domain your-name.ngrok-free.app`) the origin stays stable across restarts and you won't need to update `SHOWCASE_PUBLIC_ORIGIN` each time.
 ![](Pasted%20image%2020241002095030.png)
 One last thing that needs to be done is to ensure that your traction agent is setup as an issuer. You should see this icon at the top right of your tenant's profile, this means it has the ability to create schemas and cred defs on the ledger.  
 ![](Pasted%20image%2020241002100018.png)
@@ -33,6 +41,7 @@ TRACTION_TENANT_API_KEY=<YOUR_API_KEY>
 TRACTION_URL=https://traction-tenant-proxy-test.apps.silver.devops.gov.bc.ca
 BASE_ROUTE=/digital-trust/showcase
 WEBHOOK_SECRET=<YOUR_WEBHOOK_SECRET>
+SHOWCASE_PUBLIC_ORIGIN=https://<YOUR_NGROK_URL>
 ```
 
 populate the values with the API key and webhook secret that you made in the previous step.  
@@ -250,6 +259,54 @@ Scenarios share a common structure with the introduction flow. Key fields:
 - `image`: the main image
 
 Screen IDs must be unique within a scenario, hence the wildcards on `CONNECTION*` and `PROOF*`.
+
+## Admin API
+
+The admin API is mounted under `${BASE_ROUTE}/admin`. All endpoints require a valid Keycloak JWT. Access is controlled by role: `admin`, `creator`, or `viewer` (unless noted otherwise).
+
+### Credentials
+
+#### `GET /admin/credentials`
+
+Returns all credentials. You can use the following query parameters to filter results:
+
+- `?status=active|retired`: filter by status. Retired credentials are soft-deleted and hidden from the admin UI by default.
+- `?schema_name=<name>`: filter by schema name (exact match).
+
+If the local cache is older than 5 minutes, a background sync from Traction is triggered automatically. Errors from Traction during sync are ignored and cached data is always returned.
+
+This endpoint is accessible to `admin`, `creator`, and `viewer` roles.
+
+#### `POST /admin/credentials`
+
+Creates a new credential. The `_id` is derived from the name and version as a URL-safe slug. For example, `student_card 1.6` becomes `student-card-16`.
+
+This endpoint is restricted to the `admin` role.
+
+#### `PUT /admin/credentials/:id`
+
+Updates an existing credential. If the credential has a `schema_id` (meaning it is registered on the ledger), only `icon`, `attributes[].value`, and `status` can be changed. Ledger-locked fields like `name`, `version`, `schema_id`, and `cred_def_ids` will be rejected with a 400 error.
+
+This endpoint is restricted to the `admin` role.
+
+#### `DELETE /admin/credentials/:id`
+
+Soft-deletes a credential by setting its status to `retired`. The document is preserved so that existing showcases continue to work. You can use `?status=retired` on the list endpoint to retrieve retired credentials.
+
+This endpoint is restricted to the `admin` role.
+
+#### `POST /admin/credentials/sync`
+
+Forces a sync of schemas and credential definitions from Traction into the local database. New schemas are imported, and existing credentials that are missing `schema_id` or `cred_def_ids` are updated.
+
+You can narrow the sync with these optional filters:
+
+- `?schema_name=<name>`: only import schemas matching this name.
+- `?did_method=<prefix>`: only import schemas whose `schema_id` starts with this prefix.
+
+Returns `{ imported, updated, total }`.
+
+This endpoint is restricted to the `admin` role.
 
 ## Deployment
 

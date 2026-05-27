@@ -151,6 +151,10 @@ spec:
             - name: UPLOADS_DIR
               value: {{ .Values.showcase.server.persistence.mountPath | quote }}
             {{- end }}
+            - name: SHOWCASE_PUBLIC_ORIGIN
+              value: {{ .Values.showcase.publicOrigin | quote }}
+            - name: SHOWCASE_SHORT_INVITATION_URLS_ENABLED
+              value: {{ .Values.showcase.server.shortInvitationUrls.enabled | quote }}
             {{- if .Values.showcase.server.traction.url }}
             - name: TRACTION_URL
               value: {{ .Values.showcase.server.traction.url | quote }}

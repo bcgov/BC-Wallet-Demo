@@ -4,13 +4,17 @@ import { createProof, createDeepProof, createProofOOB, fetchProofById } from './
 
 interface ProofState {
   proof?: any
+  /** Full Traction OOB invitation URL — deep link only, not the QR code. */
   proofUrl?: string
+  /** Short HTTPS URL for OOB proof QR scans. */
+  shortProofUrl?: string
   isLoading: boolean
 }
 
 const initialState: ProofState = {
   proof: undefined,
   proofUrl: undefined,
+  shortProofUrl: undefined,
   isLoading: false,
 }
 
@@ -20,6 +24,8 @@ const proofSlice = createSlice({
   reducers: {
     clearProof: (state) => {
       state.proof = undefined
+      state.proofUrl = undefined
+      state.shortProofUrl = undefined
       state.isLoading = false
     },
   },
@@ -34,6 +40,7 @@ const proofSlice = createSlice({
       .addCase(createProofOOB.fulfilled, (state, action) => {
         state.isLoading = false
         state.proofUrl = action.payload.proofUrl
+        state.shortProofUrl = action.payload.short_url
         const proofId = action.payload.proof?.pres_ex_id || action.payload.proof?.presentation_exchange_id
         state.proof = { ...action.payload.proof, id: proofId || '' }
       })
@@ -49,6 +56,8 @@ const proofSlice = createSlice({
       })
       .addCase('clearScenario', (state) => {
         state.proof = undefined
+        state.proofUrl = undefined
+        state.shortProofUrl = undefined
         state.isLoading = false
       })
       .addMatcher(isAnyOf(createProof.pending, createDeepProof.pending), (state) => {

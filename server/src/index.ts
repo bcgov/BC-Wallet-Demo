@@ -10,6 +10,7 @@ import { createExpressServer } from 'routing-controllers'
 import { Server } from 'socket.io'
 
 import { connectDB, registerShutdownHandlers } from './db/connection'
+import { serveOobInvitation } from './handlers/serveOobInvitation'
 import { auditLoginMiddleware } from './middleware/auditLogin'
 import { requireAdmin, ServiceUnavailableError } from './middleware/requireAdmin'
 import adminAssetsRouter from './routes/adminAssetsRouter'
@@ -147,6 +148,9 @@ const run = async () => {
     return res
   })
 
+  // Short OOB invitation URL for QR scans: returns the stored invitation JSON (no redirect).
+  app.get(`${baseRoute}/i/:code`, serveOobInvitation)
+
   // respond to health checks for openshift
   app.get('/', async (req, res) => {
     res.send('ok')
@@ -173,6 +177,13 @@ const run = async () => {
   // - All others → 500 (Internal server error)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    // If headers were already sent, we can't send another response.
+    // Log the error and end the connection.
+    if (res.headersSent) {
+      logger.error({ err }, 'Error occurred after headers sent')
+      return res.end()
+    }
+
     if (err instanceof ServiceUnavailableError) {
       res.status(503).json({ error: err.message })
       return

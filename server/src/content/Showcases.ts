@@ -1,4 +1,4 @@
-import type { Credential, Showcase } from './types'
+import type { CreateCredentialInput, Showcase } from './types'
 
 import businessShowcase from '../../scripts/values/businessShowcase.json'
 import credentialsConfig from '../../scripts/values/credentials.json'
@@ -11,6 +11,6 @@ const showcases: Showcase[] = [
   businessShowcase as unknown as Showcase,
 ]
 
-export const allCredentials = credentialsConfig as unknown as (Credential & { _id: string })[]
+export const allCredentials = credentialsConfig as unknown as (CreateCredentialInput & { _id: string })[]
 
 export default showcases

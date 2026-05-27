@@ -7,6 +7,9 @@ export interface Credential {
     name: string
     value: string
   }[]
+  schema_id?: string
+  cred_def_ids?: string[]
+  status?: 'active' | 'retired'
 }
 
 export interface IntroductionStep {

@@ -17,6 +17,7 @@ describe('connectionSlice reducers', () => {
       id: undefined,
       state: undefined,
       invitationUrl: undefined,
+      shortInvitationUrl: undefined,
       isLoading: false,
       isDeepLink: false,
     })
@@ -80,6 +81,7 @@ describe('connectionSlice extraReducers', () => {
       payload: {
         connection_id: 'conn-999',
         invitation_url: 'http://invite-url',
+        short_url: 'https://showcase.example/i/oob-1',
       },
     })
     const conn = store.getState().connection
@@ -87,5 +89,6 @@ describe('connectionSlice extraReducers', () => {
     expect(conn.id).toBe('conn-999')
     expect(conn.state).toBe('invited')
     expect(conn.invitationUrl).toBe('http://invite-url')
+    expect(conn.shortInvitationUrl).toBe('https://showcase.example/i/oob-1')
   })
 })
