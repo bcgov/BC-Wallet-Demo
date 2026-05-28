@@ -39,7 +39,7 @@ vi.mock('../../utils/sanitizeSVG', () => ({
 import { AssetModel } from '../../db/models/Asset'
 import { sanitizeSVG } from '../../utils/sanitizeSVG'
 import { validateFileType } from '../../utils/validateFileType'
-import adminAssetsRouter from '../adminAssetsRouter'
+import adminAssetsRouter, { staticAssetCache } from '../adminAssetsRouter'
 
 let mongod: MongoMemoryServer
 
@@ -166,6 +166,10 @@ describe('POST /admin/assets', () => {
 })
 
 describe('GET /admin/assets', () => {
+  afterEach(() => {
+    staticAssetCache.clear()
+  })
+
   it('returns { files: [] } when no assets exist', async () => {
     const res = await request(app).get('/admin/assets')
 
@@ -201,6 +205,56 @@ describe('GET /admin/assets', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.files[0]).toBe('/uploads/logo.png')
+  })
+
+  it('includes static bundled images for the requested type', async () => {
+    staticAssetCache.set('icon', ['/public/common/icon/icon-person-light.svg', '/public/common/icon/icon-wallet.png'])
+
+    const res = await request(app).get('/admin/assets?type=icon')
+
+    expect(res.status).toBe(200)
+    expect(res.body.files).toContain('/public/common/icon/icon-person-light.svg')
+    expect(res.body.files).toContain('/public/common/icon/icon-wallet.png')
+  })
+
+  it('static images appear before uploaded images', async () => {
+    staticAssetCache.set('persona', ['/public/common/persona/student.svg'])
+    await AssetModel.create({ filename: 'uploaded.png', mime_type: 'image/png', size_bytes: 100, type: 'persona' })
+
+    const res = await request(app).get('/admin/assets?type=persona')
+
+    expect(res.status).toBe(200)
+    expect(res.body.files[0]).toBe('/public/common/persona/student.svg')
+    expect(res.body.files[1]).toBe('/uploads/uploaded.png')
+  })
+
+  it('does not include static images for other types', async () => {
+    staticAssetCache.set('icon', ['/public/common/icon/icon-person-light.svg'])
+    staticAssetCache.set('persona', ['/public/common/persona/student.svg'])
+
+    const res = await request(app).get('/admin/assets?type=icon')
+
+    expect(res.status).toBe(200)
+    expect(res.body.files).not.toContain('/public/common/persona/student.svg')
+  })
+
+  it('returns no static images when type is not provided', async () => {
+    staticAssetCache.set('icon', ['/public/common/icon/icon-person-light.svg'])
+    await AssetModel.create({ filename: 'uploaded.png', mime_type: 'image/png', size_bytes: 100 })
+
+    const res = await request(app).get('/admin/assets')
+
+    expect(res.status).toBe(200)
+    // No static files when no type filter -- only DB records
+    expect(res.body.files).not.toContain('/public/common/icon/icon-person-light.svg')
+    expect(res.body.files).toContain('/uploads/uploaded.png')
+  })
+
+  it('returns empty files for unknown type with no DB records', async () => {
+    const res = await request(app).get('/admin/assets?type=unknowntype')
+
+    expect(res.status).toBe(200)
+    expect(res.body.files).toHaveLength(0)
   })
 })
 
