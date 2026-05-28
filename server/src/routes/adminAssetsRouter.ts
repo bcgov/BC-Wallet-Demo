@@ -3,7 +3,7 @@ import type { NextFunction, Request, Response } from 'express'
 import { randomUUID } from 'crypto'
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import { mkdirSync } from 'fs'
+import { mkdirSync, readdirSync } from 'fs'
 import mongoose from 'mongoose'
 import multer from 'multer'
 import fs from 'node:fs/promises'
@@ -19,6 +19,29 @@ import { validateFileType } from '../utils/validateFileType'
 
 const ALLOWED_EXTENSIONS = ['.svg', '.png', '.jpg', '.jpeg', '.webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const STATIC_ASSET_TYPES = ['icon', 'screen', 'persona'] as const
+
+// Cache static (bundled) image paths per type at startup so we don't readdir on every request.
+// Exported for testing.
+export const staticAssetCache = new Map<string, string[]>()
+function loadStaticAssets() {
+  for (const type of STATIC_ASSET_TYPES) {
+    const dir = path.join(__dirname, '..', 'public', 'common', type)
+    try {
+      const entries = readdirSync(dir)
+      staticAssetCache.set(
+        type,
+        entries
+          .filter((e: string) => ALLOWED_EXTENSIONS.includes(path.extname(e).toLowerCase()))
+          .map((e: string) => `/public/common/${type}/${e}`),
+      )
+    } catch (err) {
+      logger.warn({ type, dir, err }, 'Failed to read static asset directory')
+      staticAssetCache.set(type, [])
+    }
+  }
+}
+loadStaticAssets()
 
 const EXT_TO_MIME: Record<string, string> = {
   '.svg': 'image/svg+xml',
@@ -181,8 +204,12 @@ router.get(
 
     try {
       const assets = await AssetModel.find(filter).lean()
-      const files = assets.map((a) => `/uploads/${a.filename}`)
-      res.json({ files })
+      const uploadedFiles = assets.map((a) => `/uploads/${a.filename}`)
+
+      // Merge in static (bundled) images cached at startup.
+      const staticFiles = type ? (staticAssetCache.get(type) ?? []) : []
+
+      res.json({ files: [...staticFiles, ...uploadedFiles] })
     } catch (err) {
       logger.error(err, 'Error listing assets')
       res.status(500).json({ error: 'Failed to list assets' })
