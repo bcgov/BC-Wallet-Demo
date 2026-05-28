@@ -41,7 +41,7 @@ mongodb:
     enabled: true
     size: 2Gi
     storageClass: ''
-    accessMode: ReadWriteMany
+    accessMode: ReadWriteOnce
   ## WiredTiger defaults to a large fraction of visible RAM; with a low cgroup memory limit the
   ## process can be OOMKilled (mongod log ends with "Killed"). orgbook-publisher leaves resources
   ## unset; we cap cache explicitly and give the pod enough headroom for connections + mongosh probes.
