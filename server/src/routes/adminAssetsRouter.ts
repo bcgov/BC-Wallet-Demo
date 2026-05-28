@@ -35,7 +35,8 @@ function loadStaticAssets() {
           .filter((e: string) => ALLOWED_EXTENSIONS.includes(path.extname(e).toLowerCase()))
           .map((e: string) => `/public/common/${type}/${e}`),
       )
-    } catch {
+    } catch (err) {
+      logger.warn({ type, dir, err }, 'Failed to read static asset directory')
       staticAssetCache.set(type, [])
     }
   }
