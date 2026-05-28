@@ -170,6 +170,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.showcase.server.traction.existingSecret | quote }}
                   key: TRACTION_TENANT_API_KEY
+            - name: WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.showcase.server.traction.existingSecret | quote }}
+                  key: WEBHOOK_SECRET
             {{- end }}
           {{- range .Values.showcase.server.extraEnv }}
             - name: {{ .name }}
