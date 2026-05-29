@@ -11,14 +11,6 @@ metadata:
   {{- end }}
 spec:
   replicas: {{ .Values.showcase.server.replicaCount }}
-  {{- $strategyType := .Values.showcase.server.strategy.type | default "" }}
-  {{- if $strategyType }}
-  {{- if not (has $strategyType (list "RollingUpdate" "Recreate")) }}
-  {{- fail (printf "showcase.server.strategy.type must be RollingUpdate or Recreate, got %q" $strategyType) }}
-  {{- end }}
-  strategy:
-    type: {{ $strategyType | quote }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "showcase.selectorLabels" . | nindent 6 }}

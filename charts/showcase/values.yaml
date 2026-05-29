@@ -82,10 +82,6 @@ showcase:
     openshiftIngressNamespace: openshift-ingress
   server:
     replicaCount: 1
-    ## Deployment rollout strategy. With RWX uploads, RollingUpdate (default surge) is safe.
-    ## Use Recreate if you prefer brief downtime instead of overlapping pods.
-    strategy:
-      type: RollingUpdate
     ## HTTP listen port for the server container and Service.
     containerPort: 5000
     image:
