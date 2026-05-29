@@ -24,6 +24,8 @@ showcase:
     enabled: true
   server:
     existingSecret: ''
+    persistence:
+      accessMode: ReadWriteMany
     traction:
       url: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
     image:
@@ -47,6 +49,8 @@ showcase:
 
 mongodb:
   enabled: true
+  persistence:
+    accessMode: ReadWriteMany
   auth:
     rootUsername: admin
     rootPassword: ''
