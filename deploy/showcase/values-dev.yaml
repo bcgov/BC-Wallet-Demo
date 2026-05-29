@@ -23,8 +23,6 @@ showcase:
     enabled: true
   server:
     existingSecret: ''
-    persistence:
-      accessMode: ReadWriteMany
     ## Traction tenant proxy (non-secret). Tenant id + API key: GitHub Actions syncs secret `${release}-traction` from repo secrets TRACTION_DEV_TENANT_ID / TRACTION_DEV_TENANT_API_KEY when set.
     traction:
       url: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
@@ -46,8 +44,6 @@ showcase:
 ## Mongo root password Secret name (tpl). If you replace the Secret but keep the PVC, expect SCRAM errors until PVC/auth align — see README.
 mongodb:
   enabled: true
-  persistence:
-    accessMode: ReadWriteMany
   auth:
     rootUsername: admin
     existingSecret: '{{ printf "%s-showcase-mongo-root" .Release.Name }}'

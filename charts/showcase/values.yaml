@@ -41,8 +41,6 @@ mongodb:
     enabled: true
     size: 2Gi
     storageClass: ''
-    ## ReadWriteMany (netapp-file-standard on Silver). volumeClaimTemplate accessModes cannot
-    ## change on an existing StatefulSet — new installs only, or delete STS/PVC and migrate.
     accessMode: ReadWriteMany
   ## WiredTiger defaults to a large fraction of visible RAM; with a low cgroup memory limit the
   ## process can be OOMKilled (mongod log ends with "Killed"). orgbook-publisher leaves resources
@@ -141,9 +139,6 @@ showcase:
       enabled: true
       size: 1Gi
       storageClass: ''
-      ## ReadWriteMany: multiple server pods (or surge during rollout) can share /app/uploads.
-      ## Requires a storage class that supports RWX (e.g. netapp-file-standard on Silver).
-      ## Changing accessMode on an existing PVC requires a new claim (data migration).
       accessMode: ReadWriteMany
       mountPath: /app/uploads
     podAnnotations: {}
