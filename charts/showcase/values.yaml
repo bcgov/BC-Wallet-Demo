@@ -139,7 +139,7 @@ showcase:
       enabled: true
       size: 1Gi
       storageClass: ''
-      accessMode: ReadWriteOnce
+      accessMode: ReadWriteMany
       mountPath: /app/uploads
     podAnnotations: {}
     podLabels: {}
