@@ -21,8 +21,6 @@ const { mocks } = vi.hoisted(() => {
         createCredential: vi.fn(),
         updateCredential: vi.fn(),
         deleteCredential: vi.fn(),
-        syncCredentials: vi.fn(),
-        syncIfStale: vi.fn(),
       },
       mockAuditLogService: {
         log: vi.fn().mockResolvedValue(undefined),
@@ -63,7 +61,6 @@ const mockCredential = {
 describe('adminCredentialsRouter', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mocks.mockAdminCredentialController.syncIfStale.mockResolvedValue(undefined)
   })
 
   // ============================================================================
@@ -71,14 +68,6 @@ describe('adminCredentialsRouter', () => {
   // ============================================================================
 
   describe('GET /admin/credentials', () => {
-    it('calls syncIfStale before returning credentials', async () => {
-      mocks.mockCredentialController.getAllCredentials.mockResolvedValue([mockCredential])
-
-      await request(app).get('/admin/credentials')
-
-      expect(mocks.mockAdminCredentialController.syncIfStale).toHaveBeenCalled()
-    })
-
     it('returns 200 with credentials array', async () => {
       mocks.mockCredentialController.getAllCredentials.mockResolvedValue([mockCredential])
 
@@ -132,61 +121,6 @@ describe('adminCredentialsRouter', () => {
       mocks.mockCredentialController.getAllCredentials.mockRejectedValue(new Error('DB error'))
 
       const res = await request(app).get('/admin/credentials')
-
-      expect(res.status).toBe(500)
-      expect(res.body).toHaveProperty('error')
-    })
-
-    it('still returns credentials when syncIfStale fails', async () => {
-      mocks.mockAdminCredentialController.syncIfStale.mockRejectedValue(new Error('Traction down'))
-      mocks.mockCredentialController.getAllCredentials.mockResolvedValue([mockCredential])
-
-      const res = await request(app).get('/admin/credentials')
-
-      expect(res.status).toBe(200)
-      expect(res.body).toHaveLength(1)
-    })
-  })
-
-  // ============================================================================
-  // POST /admin/credentials/sync
-  // ============================================================================
-
-  describe('POST /admin/credentials/sync', () => {
-    it('returns 200 with sync result', async () => {
-      mocks.mockAdminCredentialController.syncCredentials.mockResolvedValue({
-        updated: 1,
-        failed: 0,
-        total: 3,
-      })
-
-      const res = await request(app).post('/admin/credentials/sync')
-
-      expect(res.status).toBe(200)
-      expect(res.body).toEqual({ updated: 1, failed: 0, total: 3 })
-    })
-
-    it('calls syncCredentials (not syncIfStale) directly', async () => {
-      mocks.mockAdminCredentialController.syncCredentials.mockResolvedValue({ updated: 0, failed: 0, total: 0 })
-
-      await request(app).post('/admin/credentials/sync')
-
-      expect(mocks.mockAdminCredentialController.syncCredentials).toHaveBeenCalled()
-      expect(mocks.mockAdminCredentialController.syncIfStale).not.toHaveBeenCalled()
-    })
-
-    it('calls syncCredentials with no arguments', async () => {
-      mocks.mockAdminCredentialController.syncCredentials.mockResolvedValue({ updated: 0, failed: 0, total: 0 })
-
-      await request(app).post('/admin/credentials/sync')
-
-      expect(mocks.mockAdminCredentialController.syncCredentials).toHaveBeenCalledWith()
-    })
-
-    it('returns 500 when sync fails', async () => {
-      mocks.mockAdminCredentialController.syncCredentials.mockRejectedValue(new Error('Traction down'))
-
-      const res = await request(app).post('/admin/credentials/sync')
 
       expect(res.status).toBe(500)
       expect(res.body).toHaveProperty('error')

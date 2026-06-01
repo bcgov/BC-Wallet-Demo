@@ -116,7 +116,6 @@
               {
                 "icon": "/public/common/icon/icon-university-card.png",
                 "name": "Digital Business Card",
-                "schema_id": "K9igebFysBL6jcBwR8bKuN:2:Digital Business Card:1.0.0",
                 "properties": ["business_name", "business_type", "company_status", "family_name", "given_names"]
               }
             ]

@@ -103,6 +103,26 @@ export const tractionRequest = {
   },
 }
 
+const createCredentialDefinition = async (issuerDid: string, schemaId: string, tag: string): Promise<string> => {
+  const credDefResponse = await retryWithExponentialBackoff(
+    () =>
+      tractionRequest.post('/anoncreds/credential-definition', {
+        credential_definition: {
+          issuerId: issuerDid,
+          schemaId: schemaId,
+          tag: tag,
+        },
+        options: {
+          support_revocation: true,
+          revocation_registry_size: 3000,
+        },
+      }),
+    3,
+    1000,
+  )
+  return credDefResponse.data.credential_definition_state.credential_definition_id
+}
+
 export const tractionGarbageCollection = async () => {
   // delete all connections that are older than one day
   const cleanupConnections = async () => {
@@ -159,6 +179,19 @@ export const checkSeededSchemasExistOrCreate = async () => {
     // Iterate through seeded credentials and log their name and version
     for (const credential of credentialsSeed) {
       logger.info(`Schema ${credential.name} v${credential.version} Checking seeded schema existence`)
+
+      // First check if schema already exists in MongoDB
+      const existingSchema = await SchemaModel.findOne({
+        name: credential.name,
+        version: credential.version,
+      })
+
+      if (existingSchema) {
+        logger.info(`Schema ${credential.name} v${credential.version} Already exists in database`)
+        continue
+      }
+
+      // Schema doesn't exist in MongoDB, make sure cred def is available in traction and create in MongoDB
       const schemas = (
         await tractionRequest.get('/anoncreds/schemas', {
           params: {
@@ -167,9 +200,61 @@ export const checkSeededSchemasExistOrCreate = async () => {
           },
         } as any)
       ).data.schema_ids
+
       if (schemas.length > 0) {
         logger.info(`Schema ${credential.name} v${credential.version} Seeded schema already exists`)
+        try {
+          const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
+          const schemaId = schemas[0]
+
+          // Try to find existing credential definition or create one
+          const credDefs = (
+            await tractionRequest.get('/anoncreds/credential-definitions', {
+              params: {
+                schema_id: schemaId,
+              },
+            } as any)
+          ).data.credential_definition_ids
+
+          let credDefId = credDefs?.[0]
+          if (!credDefId) {
+            logger.info(
+              `Schema ${credential.name} v${credential.version} Creating credential definition for existing schema`,
+            )
+            credDefId = await createCredentialDefinition(issuerDid, schemaId, credential.name)
+          }
+
+          // Save schema to MongoDB
+          await SchemaModel.updateOne(
+            { _id: schemaId },
+            {
+              $set: {
+                name: credential.name,
+                version: credential.version,
+                attrNames: credential.attributes.map((attr: any) => attr.name),
+                credDefId,
+              },
+            },
+            { upsert: true },
+          )
+
+          // Update Credential with schema_id and credDefId
+          await CredentialModel.updateOne(
+            { _id: credential._id },
+            {
+              $set: { schema_id: schemaId, cred_def_id: credDefId },
+            },
+            { upsert: true },
+          )
+          logger.info(`Schema ${credential.name} v${credential.version} Seeded schema synced to database`)
+        } catch (err) {
+          logger.error(
+            safeAxiosError(err),
+            `Schema ${credential.name} v${credential.version} Failed to sync existing schema to database`,
+          )
+        }
       } else {
+        // Schema doesn't exist in Traction, create both schema and credential definition and add to MongoDB, also update Credential with schema_id and cred_def_id
         try {
           logger.info(`Schema ${credential.name} v${credential.version} Creating seeded schema`)
           const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
@@ -183,25 +268,13 @@ export const checkSeededSchemasExistOrCreate = async () => {
           const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
           await new Promise((r) => setTimeout(r, 2000))
           // TODO: Make this more robust. Possible to have the schema created but fail on credential definition, which would leave us in a bad state since we currently rely on the schema and credential definition being created at the same time. Ideally we would check for the existence of both the schema and credential definition at the beginning, and if either is missing we would attempt to create both, and if creation fails we would clean up any partial state.
-          const credDefResponse = await retryWithExponentialBackoff(
-            () =>
-              tractionRequest.post('/anoncreds/credential-definition', {
-                credential_definition: {
-                  issuerId: issuerDid,
-                  schemaId: response.data.schema_state.schema_id,
-                  tag: response.data.schema_state.schema.name,
-                },
-                options: {
-                  support_revocation: true,
-                  revocation_registry_size: 3000,
-                },
-              }),
-            3,
-            1000,
+          const schemaId = response.data.schema_state.schema_id
+          const credDefId = await createCredentialDefinition(
+            issuerDid,
+            schemaId,
+            response.data.schema_state.schema.name,
           )
           // Save schema to MongoDB
-          const schemaId = response.data.schema_state.schema_id
-          const credDefId = credDefResponse.data.credential_definition_state.credential_definition_id
           await SchemaModel.updateOne(
             { _id: schemaId },
             {
@@ -209,7 +282,7 @@ export const checkSeededSchemasExistOrCreate = async () => {
                 name: credential.name,
                 version: credential.version,
                 attrNames: credential.attributes.map((attr: any) => attr.name),
-                credDefId,
+                cred_def_id: credDefId,
               },
             },
             { upsert: true },
@@ -218,7 +291,7 @@ export const checkSeededSchemasExistOrCreate = async () => {
           await CredentialModel.updateOne(
             { _id: credential._id },
             {
-              $set: { schema_id: schemaId, credDefId: credDefId },
+              $set: { schema_id: schemaId, cred_def_id: credDefId },
             },
             { upsert: true },
           )

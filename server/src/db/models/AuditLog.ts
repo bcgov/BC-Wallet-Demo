@@ -3,10 +3,10 @@ import { Schema, model } from 'mongoose'
 import { baseSchemaOptions } from '../baseSchema'
 
 export type AuditAction = 'created' | 'updated' | 'deleted' | 'registered' | 'retired' | 'login'
-export type AuditResourceType = 'showcase' | 'credential_definition' | 'user'
+export type AuditResourceType = 'showcase' | 'credential' | 'user' | 'schema'
 
 export const AUDIT_ACTIONS: AuditAction[] = ['created', 'updated', 'deleted', 'registered', 'retired', 'login']
-export const AUDIT_RESOURCE_TYPES: AuditResourceType[] = ['showcase', 'credential_definition', 'user']
+export const AUDIT_RESOURCE_TYPES: AuditResourceType[] = ['showcase', 'credential', 'user', 'schema']
 
 export interface AuditLog {
   createdAt: Date

@@ -2,13 +2,17 @@ import type { Request, Response } from 'express'
 
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
+import { Container } from 'typedi'
 
 import { SchemaModel } from '../db/models/Schema'
 import { requireRole } from '../middleware/requireAdmin'
+import { AuditLogService } from '../services/AuditLogService'
 import logger from '../utils/logger'
 import { tractionRequest, retryWithExponentialBackoff } from '../utils/tractionHelper'
 
 const router = Router()
+
+const auditLogService = Container.get(AuditLogService)
 
 const getLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -89,6 +93,18 @@ router.post('/schemas', createLimiter, requireRole(['admin', 'creator']), async 
       { upsert: true },
     )
     res.status(201).json(response.data)
+    // Best-effort audit: writes after response sent, may be lost on crash/shutdown.
+    void Promise.resolve()
+      .then(() =>
+        auditLogService.log({
+          user_id: req.auth?.sub ?? 'unknown',
+          action: 'created',
+          resource_type: 'schema',
+          resource_id: schemaId,
+          details: { name: req.body.name, version: req.body.version },
+        }),
+      )
+      .catch((err: unknown) => logger.error(err, 'Audit log: failed to write schema created event'))
   } catch (error) {
     logger.error(error, 'Error creating schema and cred def in Traction')
     res.status(500).json({ error: `Failed to create schema and cred def in Traction: ${error}` })

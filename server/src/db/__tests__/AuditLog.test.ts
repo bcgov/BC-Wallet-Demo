@@ -80,7 +80,7 @@ describe('AuditLogModel', () => {
     const doc = await AuditLogModel.create({
       user_id: 'user-123',
       action: 'updated',
-      resource_type: 'credential_definition',
+      resource_type: 'schema',
       details,
     })
     expect(doc.toJSON().details).toEqual(details)

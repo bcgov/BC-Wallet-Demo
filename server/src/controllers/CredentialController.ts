@@ -2,7 +2,6 @@ import { isAxiosError } from 'axios'
 import { Body, Get, JsonController, NotFoundError, Param, Post } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import { Credential } from '../content/types'
 import { CredentialModel, LeanCredentialDoc } from '../db/models/Credential'
 import logger from '../utils/logger'
 import { resolveCredentialAttributes } from '../utils/resolveMarkers'
@@ -89,31 +88,6 @@ export class CredentialController {
     if (credential.cred_def_id) response.cred_def_id = credential.cred_def_id
     if (credential.status) response.status = credential.status
     return response
-  }
-
-  @Post('/getOrCreateCredDef')
-  public async getOrCreateCredDef(@Body() credential: Credential) {
-    logger.info({ name: credential.name, version: credential.version }, 'Resolving credential definition')
-    try {
-      const response = (
-        await tractionRequest.get('/anoncreds/credential-definitions', {
-          params: {
-            schema_id: credential.schema_id,
-          },
-        })
-      ).data
-      const credDefIds = response.credential_definition_ids || []
-      if (credDefIds.length > 0) {
-        logger.info({ credDefId: credDefIds[0] }, 'Found existing credential definition')
-        return credDefIds[0]
-      } else {
-        logger.info('No existing credential definition found')
-        throw new Error('No existing credential definition found')
-      }
-    } catch (error) {
-      logger.error({ error }, 'Failed to get or create credential definition')
-      throw error
-    }
   }
 
   @Post('/offerCredential')

@@ -5,10 +5,6 @@ import { Credential, CreateCredentialInput } from '../../content/types'
 import { CredentialModel, LeanCredentialDoc } from '../../db/models/Credential'
 import { toCredentialResponse } from '../../utils/credentialMapper'
 import logger from '../../utils/logger'
-import { tractionRequest } from '../../utils/tractionHelper'
-
-const SYNC_TTL_MS = 5 * 60 * 1000 // 5 minutes
-const LEDGER_PROPAGATION_MS = 5000 // wait after schema creation before creating cred def
 
 // Fields that are locked once a credential is registered on the ledger.
 // Only showcase-specific fields (icon, attributes values, status) remain editable.
@@ -27,65 +23,6 @@ function generateSlug(name: string, version: string): string {
     .replace(/[^a-z0-9-]/g, '')
   return `${nameSlug}-${versionSlug}`
 }
-
-async function resolveSchemaId(cred: LeanCredentialDoc): Promise<string> {
-  if (cred.schema_id) return cred.schema_id
-
-  const { data } = await tractionRequest.get('/schemas/created', {
-    params: { schema_name: cred.name, schema_version: cred.version },
-  })
-  const existing: string[] = data.schema_ids ?? []
-  if (existing.length > 1) {
-    logger.warn(
-      { credentialId: cred._id, count: existing.length, schema_ids: existing },
-      'Multiple schemas found for credential; using first',
-    )
-  }
-  if (existing.length > 0) return existing[0]
-
-  const { data: created } = await tractionRequest.post('/schemas', {
-    attributes: cred.attributes.map((a) => a.name),
-    schema_name: cred.name,
-    schema_version: cred.version,
-  })
-  await new Promise((r) => setTimeout(r, LEDGER_PROPAGATION_MS))
-  return created.sent.schema_id
-}
-
-async function resolveCredDefId(schemaId: string, cred: LeanCredentialDoc): Promise<string> {
-  if (cred.cred_def_id) return cred.cred_def_id
-
-  const { data } = await tractionRequest.get('/credential-definitions/created', {
-    params: { schema_id: schemaId },
-  })
-  const existing: string[] = data.credential_definition_ids ?? []
-  if (existing.length > 0) return existing[0]
-
-  const { data: created } = await tractionRequest.post('/credential-definitions', {
-    revocation_registry_size: 25,
-    schema_id: schemaId,
-    support_revocation: true,
-    tag: cred.name,
-  })
-  return created.sent.credential_definition_id
-}
-
-async function registerWithTraction(cred: LeanCredentialDoc): Promise<boolean> {
-  const schemaId = await resolveSchemaId(cred)
-  const credDefId = await resolveCredDefId(schemaId, cred)
-
-  const updates = {
-    ...(cred.schema_id ? {} : { schema_id: schemaId }),
-    ...(!cred.cred_def_id ? { cred_def_id: credDefId } : {}),
-  }
-
-  if (!Object.keys(updates).length) return false
-
-  await CredentialModel.findByIdAndUpdate(cred._id, updates)
-  logger.debug({ credentialId: cred._id, ...updates }, 'Registered credential with Traction')
-  return true
-}
-
 @JsonController('/admin/credentials')
 @Service()
 export class AdminCredentialController {
@@ -204,53 +141,6 @@ export class AdminCredentialController {
     } catch (error) {
       logger.error(error, 'Error retiring credential')
       throw error
-    }
-  }
-
-  /**
-   * For each active credential missing a schema_id or cred_def_id: create the schema
-   * and credential definition in Traction if they do not already exist, then write the
-   * resulting IDs back to the local document. Updates lastSyncTimestamp on success.
-   */
-  public async syncCredentials(): Promise<{
-    updated: number
-    failed: number
-    total: number
-  }> {
-    logger.info('Syncing local credentials to Traction')
-
-    const credentials = await CredentialModel.find({
-      status: { $ne: 'retired' },
-      $or: [{ schema_id: { $exists: false } }, { schema_id: '' }, { cred_def_id: { $exists: false } }],
-    }).lean<LeanCredentialDoc[]>()
-
-    const results = await Promise.allSettled(credentials.map(registerWithTraction))
-
-    let updated = 0
-    let failed = 0
-    for (const result of results) {
-      if (result.status === 'fulfilled' && result.value) updated++
-      else if (result.status === 'rejected') {
-        failed++
-        logger.error({ err: result.reason }, 'Failed to register credential with Traction')
-      }
-    }
-
-    this.lastSyncTimestamp = Date.now()
-    logger.info({ updated, failed, total: credentials.length }, 'Traction sync complete')
-    return { updated, failed, total: credentials.length }
-  }
-
-  /**
-   * Sync from Traction only if the TTL has expired.
-   * Errors are caught and logged -- callers always get stale cached data rather than an error.
-   */
-  public async syncIfStale(): Promise<void> {
-    if (Date.now() - this.lastSyncTimestamp < SYNC_TTL_MS) return
-    try {
-      await this.syncCredentials()
-    } catch (err) {
-      logger.warn(err, 'Background Traction sync failed; serving cached credentials')
     }
   }
 }

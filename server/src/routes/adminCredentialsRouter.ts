@@ -25,11 +25,6 @@ const auditLogService = Container.get(AuditLogService)
 router.get('/', requireRole(['admin', 'creator', 'viewer']), async (req: Request, res: Response) => {
   logger.debug('Admin: list credentials')
   try {
-    // Fire-and-forget background sync if cache is stale. Never blocks the response.
-    adminCredentialController.syncIfStale().catch((err: unknown) => {
-      logger.warn(err, 'syncIfStale error during credential list; returning cached data')
-    })
-
     let credentials = await credentialController.getAllCredentials()
 
     // Local filtering
@@ -83,7 +78,7 @@ router.post('/', requireRole(['admin']), async (req: Request, res: Response) => 
         auditLogService.log({
           user_id: req.auth?.sub ?? 'unknown',
           action: 'registered',
-          resource_type: 'credential_definition',
+          resource_type: 'credential',
           resource_id: credential.id,
           details: { name: credential.name },
         }),
@@ -92,36 +87,6 @@ router.post('/', requireRole(['admin']), async (req: Request, res: Response) => 
   } catch (error) {
     logger.error(error, 'Error creating credential')
     res.status(500).json({ error: 'Failed to create credential' })
-  }
-})
-
-/**
- * POST /admin/credentials/sync
- * For each active credential missing a schema_id or cred_def_id, create the schema
- * and credential definition in Traction if they do not exist, then write the IDs back
- * to the local document. Bypasses the TTL cache.
- * Requires: admin role
- *
- * NOTE: This route must be declared before /:id to prevent "sync" matching as an id param.
- */
-router.post('/sync', requireRole(['admin']), async (req: Request, res: Response) => {
-  logger.info('Admin: sync local credentials to Traction')
-  try {
-    const result = await adminCredentialController.syncCredentials()
-    res.json(result)
-    void Promise.resolve()
-      .then(() =>
-        auditLogService.log({
-          user_id: req.auth?.sub ?? 'unknown',
-          action: 'registered',
-          resource_type: 'credential_definition',
-          details: { source: 'traction_sync', ...result },
-        }),
-      )
-      .catch((err: unknown) => logger.error(err, 'Audit log: failed to write credential sync event'))
-  } catch (error) {
-    logger.error(error, 'Error syncing credentials from Traction')
-    res.status(500).json({ error: 'Failed to sync credentials from Traction' })
   }
 })
 
@@ -140,7 +105,7 @@ router.put('/:id', requireRole(['admin']), async (req: Request, res: Response) =
         auditLogService.log({
           user_id: req.auth?.sub ?? 'unknown',
           action: 'updated',
-          resource_type: 'credential_definition',
+          resource_type: 'credential',
           resource_id: req.params.id,
           details: { name: req.body?.name },
         }),
@@ -173,7 +138,7 @@ router.delete('/:id', requireRole(['admin']), async (req: Request, res: Response
         auditLogService.log({
           user_id: req.auth?.sub ?? 'unknown',
           action: 'retired',
-          resource_type: 'credential_definition',
+          resource_type: 'credential',
           resource_id: req.params.id,
           details: { id: req.params.id },
         }),
