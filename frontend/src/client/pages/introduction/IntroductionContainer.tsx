@@ -92,8 +92,10 @@ export const IntroductionContainer: React.FC<Props> = ({
         },
       },
     })
-    // Clear connection when moving to a new CONNECT screen to ensure fresh connection creation
-    if (introductionStep.startsWith('ACCEPT')) {
+    // Clear connection only when transitioning to a new CONNECT screen (between ACCEPT/CONNECT pairs)
+    const currentStepIndex = currentShowcase?.introduction.findIndex((step) => step.screenId === introductionStep) ?? -1
+    const nextStep = currentShowcase?.introduction[currentStepIndex + 1]
+    if (nextStep?.screenId.startsWith('CONNECT')) {
       dispatch(clearConnection())
     }
     addIntroductionProgress(dispatch, introductionStep, currentShowcase)
