@@ -280,8 +280,6 @@ Returns all credentials. You can use the following query parameters to filter re
 - `?status=active|retired`: filter by status. Retired credentials are soft-deleted and hidden from the admin UI by default.
 - `?schema_name=<name>`: filter by schema name (exact match).
 
-If the local cache is older than 5 minutes, a background sync from Traction is triggered automatically. Errors from Traction during sync are ignored and cached data is always returned.
-
 This endpoint is accessible to `admin`, `creator`, and `viewer` roles.
 
 #### `POST /admin/credentials`
@@ -299,19 +297,6 @@ This endpoint is restricted to the `admin` role.
 #### `DELETE /admin/credentials/:id`
 
 Soft-deletes a credential by setting its status to `retired`. The document is preserved so that existing showcases continue to work. You can use `?status=retired` on the list endpoint to retrieve retired credentials.
-
-This endpoint is restricted to the `admin` role.
-
-#### `POST /admin/credentials/sync`
-
-Forces a sync of schemas and credential definitions from Traction into the local database. New schemas are imported, and existing credentials that are missing `schema_id` or `credDefId` are updated.
-
-You can narrow the sync with these optional filters:
-
-- `?schema_name=<name>`: only import schemas matching this name.
-- `?did_method=<prefix>`: only import schemas whose `schema_id` starts with this prefix.
-
-Returns `{ imported, updated, total }`.
 
 This endpoint is restricted to the `admin` role.
 
