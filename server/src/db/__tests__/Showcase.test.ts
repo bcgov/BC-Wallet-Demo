@@ -120,6 +120,49 @@ describe('RevocationInfoItem embedded schema', () => {
   })
 })
 
+describe('soft-delete: deleted_at field', () => {
+  it('defaults deleted_at to null', async () => {
+    const doc = await ShowcaseModel.create(minimal)
+    expect(doc.deleted_at).toBeNull()
+  })
+
+  it('stores a date when soft-deleted', async () => {
+    const before = new Date()
+    const doc = await ShowcaseModel.create(minimal)
+    await ShowcaseModel.updateOne({ _id: doc._id }, { deleted_at: new Date() })
+    const updated = await ShowcaseModel.findById(doc._id).lean()
+    expect(updated?.deleted_at).toBeDefined()
+    expect(updated?.deleted_at?.getTime()).toBeGreaterThanOrEqual(before.getTime())
+  })
+
+  it('excludes soft-deleted showcases from deleted_at: null queries', async () => {
+    await ShowcaseModel.create(minimal)
+    await ShowcaseModel.create({ ...minimal, name: 'Trashed Showcase', persona: undefined })
+    await ShowcaseModel.updateOne({ name: 'Trashed Showcase' }, { deleted_at: new Date() })
+
+    const active = await ShowcaseModel.find({ deleted_at: null }).lean()
+    expect(active.map((s) => s.name)).toContain('Student Showcase')
+    expect(active.map((s) => s.name)).not.toContain('Trashed Showcase')
+  })
+
+  it('returns soft-deleted showcases when querying deleted_at: { $ne: null }', async () => {
+    await ShowcaseModel.create(minimal)
+    await ShowcaseModel.create({ ...minimal, name: 'Trashed Showcase', persona: undefined })
+    await ShowcaseModel.updateOne({ name: 'Trashed Showcase' }, { deleted_at: new Date() })
+
+    const deleted = await ShowcaseModel.find({ deleted_at: { $ne: null } }).lean()
+    expect(deleted.map((s) => s.name)).toEqual(['Trashed Showcase'])
+  })
+
+  it('can clear deleted_at to restore a showcase', async () => {
+    const doc = await ShowcaseModel.create(minimal)
+    await ShowcaseModel.updateOne({ _id: doc._id }, { deleted_at: new Date() })
+    await ShowcaseModel.updateOne({ _id: doc._id }, { deleted_at: null })
+    const restored = await ShowcaseModel.findById(doc._id).lean()
+    expect(restored?.deleted_at).toBeNull()
+  })
+})
+
 describe('Scenario embedded in Showcase', () => {
   it('persists scenarios with screens', async () => {
     const doc = await ShowcaseModel.create({

@@ -32,6 +32,8 @@ vi.mock('../../api/adminApi', () => ({
   adminBaseRoute: '/digital-trust/showcase/admin',
   adminBaseUrl: 'http://localhost:5000/digital-trust/showcase/admin',
   publicBaseUrl: 'http://localhost:5000/digital-trust/showcase/public',
+  getAllShowcases: vi.fn().mockResolvedValue([]),
+  getDeletedShowcases: vi.fn().mockResolvedValue({ items: [], total: 0 }),
 }))
 
 const renderCreatorPage = () =>

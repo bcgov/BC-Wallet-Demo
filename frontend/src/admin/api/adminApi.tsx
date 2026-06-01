@@ -142,6 +142,44 @@ export const deleteScreenFromShowcase = async (
   })
 }
 
+export const deleteShowcase = async (auth: AuthContextProps, showcaseName: string): Promise<void> => {
+  const res = await fetch(`${adminBaseUrl}/showcases/${encodeURIComponent(showcaseName)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${auth.user?.access_token ?? ''}` },
+  })
+  if (!res.ok) await handleErrorResponse(res)
+}
+
+export const getDeletedShowcases = async (
+  auth: AuthContextProps,
+  limit = 20,
+  skip = 0,
+): Promise<{ items: Showcase[]; total: number }> => {
+  const url = `${adminBaseUrl}/showcases?deleted=true&limit=${limit}&skip=${skip}`
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${auth.user?.access_token ?? ''}`, 'Content-Type': 'application/json' },
+  })
+  if (!res.ok) await handleErrorResponse(res)
+  return res.json() as Promise<{ items: Showcase[]; total: number }>
+}
+
+export const restoreShowcase = async (auth: AuthContextProps, showcaseName: string): Promise<void> => {
+  const res = await fetch(`${adminBaseUrl}/showcases/${encodeURIComponent(showcaseName)}/restore`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${auth.user?.access_token ?? ''}` },
+  })
+  if (!res.ok) await handleErrorResponse(res)
+}
+
+export const permanentDeleteShowcase = async (auth: AuthContextProps, showcaseName: string): Promise<void> => {
+  const res = await fetch(`${adminBaseUrl}/showcases/${encodeURIComponent(showcaseName)}?permanent=true`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${auth.user?.access_token ?? ''}` },
+  })
+  if (!res.ok) await handleErrorResponse(res)
+}
+
 // ============================================================================
 // CREDENTIAL ENDPOINTS
 // ============================================================================
