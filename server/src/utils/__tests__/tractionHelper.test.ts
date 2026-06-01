@@ -26,7 +26,7 @@ vi.mock('../../db/models/Credential', () => ({
   },
 }))
 
-vi.mock('../../../server/scripts/values/credentials.json', () => ({
+vi.mock('../../../scripts/values/credentials.json', () => ({
   default: [
     {
       _id: 'student-card',

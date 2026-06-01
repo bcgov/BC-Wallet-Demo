@@ -2,7 +2,7 @@ import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 import axios from 'axios'
 
-import credentialsSeed from '../../../server/scripts/values/credentials.json'
+import credentialsSeed from '../../scripts/values/credentials.json'
 import { CredentialModel } from '../db/models/Credential'
 import { SchemaModel } from '../db/models/Schema'
 
