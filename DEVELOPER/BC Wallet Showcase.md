@@ -480,7 +480,7 @@ Restricted to `admin` role only (not available to creators). Limited to 10 delet
 
 All showcase mutations (create, update, delete) are logged asynchronously using a best-effort pattern:
 
-- Audit logs are written *after* the HTTP response is sent to the client
+- Audit logs are written _after_ the HTTP response is sent to the client
 - If the server crashes or shuts down during audit logging, the log entry may be lost
 - Audit entries include: user ID from the Keycloak JWT (`req.auth?.sub`), action (`created`/`updated`/`deleted`), resource type (`showcase`), showcase ID, and details (name, etc.)
 - Failed audit logs are logged to the error stream but do not affect the API response
