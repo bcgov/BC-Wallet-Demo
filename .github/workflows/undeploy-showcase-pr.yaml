@@ -107,7 +107,7 @@ jobs:
       - name: Delete GHCR images tagged pr-${{ github.event.pull_request.number }}
         if: always()
         continue-on-error: true
-        uses: snok/container-retention-policy@v3.0.1
+        uses: snok/container-retention-policy@v3.1.0
         with:
           account: ${{ github.repository_owner }}
           token: ${{ secrets.GITHUB_TOKEN }}
