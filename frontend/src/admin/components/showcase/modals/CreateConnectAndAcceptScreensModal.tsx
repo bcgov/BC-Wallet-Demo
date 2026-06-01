@@ -192,7 +192,7 @@ export function CreateConnectAndAcceptScreensModal({
                     if (selectedSchema) {
                       try {
                         const credentialToCreate = {
-                          name: issuerName,
+                          name: selectedSchema.name,
                           icon,
                           version: selectedSchema.version,
                           attributes: selectedSchema.attrNames.map((attrName) => ({
