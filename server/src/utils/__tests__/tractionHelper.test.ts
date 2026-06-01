@@ -274,6 +274,9 @@ describe('checkSeededSchemasExistOrCreate', () => {
       name: 'student_card',
       version: '2.0',
     } as any)
+    vi.mocked(axios.get).mockResolvedValueOnce({
+      data: { result: { did: 'W1ZJ' } },
+    })
 
     await th.checkSeededSchemasExistOrCreate()
 
@@ -281,17 +284,19 @@ describe('checkSeededSchemasExistOrCreate', () => {
       name: 'student_card',
       version: '2.0',
     })
-    expect(axios.get).not.toHaveBeenCalled()
+    // Should only call wallet/did/public, not any schema lookups
+    expect(axios.get).toHaveBeenCalledTimes(1)
+    expect(axios.get).toHaveBeenCalledWith('https://traction.example.com/wallet/did/public', expect.anything())
   })
 
   it('creates credential definition for existing schema in Traction', async () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
     vi.mocked(axios.get)
       .mockResolvedValueOnce({
-        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
+        data: { result: { did: 'W1ZJ' } },
       })
       .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
+        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
       })
       .mockResolvedValueOnce({
         data: { credential_definition_ids: [] },
@@ -339,10 +344,10 @@ describe('checkSeededSchemasExistOrCreate', () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
     vi.mocked(axios.get)
       .mockResolvedValueOnce({
-        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
+        data: { result: { did: 'W1ZJ' } },
       })
       .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
+        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
       })
       .mockResolvedValueOnce({
         data: { credential_definition_ids: ['W1ZJ:3:CL:1:student_card'] },
@@ -380,10 +385,10 @@ describe('checkSeededSchemasExistOrCreate', () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
     vi.mocked(axios.get)
       .mockResolvedValueOnce({
-        data: { schema_ids: [] },
+        data: { result: { did: 'W1ZJ' } },
       })
       .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
+        data: { schema_ids: [] },
       })
     vi.mocked(axios.post)
       .mockResolvedValueOnce({
@@ -443,10 +448,10 @@ describe('checkSeededSchemasExistOrCreate', () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
     vi.mocked(axios.get)
       .mockResolvedValueOnce({
-        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
+        data: { result: { did: 'W1ZJ' } },
       })
       .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
+        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
       })
       .mockResolvedValueOnce({
         data: { credential_definition_ids: [] },
@@ -491,10 +496,10 @@ describe('checkSeededSchemasExistOrCreate', () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
     vi.mocked(axios.get)
       .mockResolvedValueOnce({
-        data: { schema_ids: [] },
+        data: { result: { did: 'W1ZJ' } },
       })
       .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
+        data: { schema_ids: [] },
       })
     vi.mocked(axios.post)
       .mockResolvedValueOnce({
@@ -544,10 +549,10 @@ describe('checkSeededSchemasExistOrCreate', () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
     vi.mocked(axios.get)
       .mockResolvedValueOnce({
-        data: { schema_ids: ['W1ZJ:2:Student Card:1.0'] },
+        data: { result: { did: 'W1ZJ' } },
       })
       .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
+        data: { schema_ids: ['W1ZJ:2:Student Card:1.0'] },
       })
       .mockRejectedValueOnce(new Error('Failed to fetch credential definitions'))
 
@@ -574,11 +579,7 @@ describe('checkSeededSchemasExistOrCreate', () => {
 
   it('handles error when fetching issuer DID fails', async () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { schema_ids: [] },
-      })
-      .mockRejectedValue(new Error('Wallet unavailable'))
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('Wallet unavailable'))
 
     await th.checkSeededSchemasExistOrCreate()
 
@@ -586,15 +587,12 @@ describe('checkSeededSchemasExistOrCreate', () => {
   })
 
   it('continues processing after error in one credential', async () => {
-    vi.mocked(SchemaModel.findOne)
-      .mockResolvedValueOnce(null) // first credential not found
-      .mockResolvedValueOnce({ _id: 'student-card', found: true } as any) // second credential found
-
-    vi.mocked(axios.get).mockRejectedValueOnce(new Error('Error on first credential'))
-
-    // Call with a mocked credential seed that has 2 items
-    // Since we mocked credentialsSeed at the top to only have 1 item,
-    // we expect it to process that one and skip on error
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockRejectedValueOnce(new Error('Error on schema lookup'))
 
     await th.checkSeededSchemasExistOrCreate()
 
@@ -611,10 +609,10 @@ describe('checkSeededSchemasExistOrCreate', () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
     vi.mocked(axios.get)
       .mockResolvedValueOnce({
-        data: { schema_ids: [] },
+        data: { result: { did: 'W1ZJ' } },
       })
       .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
+        data: { schema_ids: [] },
       })
     vi.mocked(axios.post)
       .mockResolvedValueOnce({

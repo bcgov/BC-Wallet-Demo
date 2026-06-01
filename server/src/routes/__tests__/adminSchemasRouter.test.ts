@@ -20,6 +20,7 @@ const { mocks } = vi.hoisted(() => {
       mockSchemaModel: {
         find: vi.fn(),
         updateOne: vi.fn(),
+        findById: vi.fn().mockResolvedValue(null),
       },
       mockTractionRequest: {
         get: vi.fn(),
@@ -160,17 +161,25 @@ describe('adminSchemasRouter', () => {
     }
 
     it('returns 201 with created schema and cred def', async () => {
+      const savedSchema = {
+        _id: 'W1ZJ:2:Driver License:2.0',
+        name: 'Driver License',
+        version: '2.0',
+        attrNames: ['name', 'address', 'license_number'],
+        credDefId: 'W1ZJ:3:CL:123:Driver License',
+      }
       mocks.mockTractionRequest.get.mockResolvedValue({
         data: { result: { did: mockIssuerDid } },
       })
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockResolvedValue(savedSchema)
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
       expect(res.status).toBe(201)
-      expect(res.body).toHaveProperty('id', 'W1ZJ:2:Driver License:2.0')
+      expect(res.body).toHaveProperty('_id', 'W1ZJ:2:Driver License:2.0')
       expect(res.body).toHaveProperty('name', 'Driver License')
       expect(res.body).toHaveProperty('version', '2.0')
       expect(res.body).toHaveProperty('attrNames')
@@ -184,6 +193,7 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockResolvedValue({})
 
       await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -197,6 +207,7 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockResolvedValue({})
 
       await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -220,6 +231,7 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockResolvedValue({})
 
       await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -237,6 +249,9 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({}),
+      })
 
       await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -261,6 +276,9 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({}),
+      })
 
       await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -285,6 +303,9 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({}),
+      })
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -314,6 +335,9 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({}),
+      })
 
       await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -333,6 +357,9 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({}),
+      })
 
       await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -400,6 +427,9 @@ describe('adminSchemasRouter', () => {
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({}),
+      })
       mocks.mockAuditLogService.log.mockRejectedValue(new Error('Audit log error'))
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)

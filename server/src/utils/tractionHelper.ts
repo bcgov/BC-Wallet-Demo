@@ -177,6 +177,8 @@ export const tractionGarbageCollection = async () => {
 export const checkSeededSchemasExistOrCreate = async () => {
   try {
     // Iterate through seeded credentials and log their name and version
+    const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
+
     for (const credential of credentialsSeed) {
       logger.info(`Schema ${credential.name} v${credential.version} Checking seeded schema existence`)
 
@@ -204,9 +206,7 @@ export const checkSeededSchemasExistOrCreate = async () => {
       if (schemas.length > 0) {
         logger.info(`Schema ${credential.name} v${credential.version} Seeded schema already exists`)
         try {
-          const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
           const schemaId = schemas[0]
-
           // Try to find existing credential definition or create one
           const credDefs = (
             await tractionRequest.get('/anoncreds/credential-definitions', {
@@ -257,7 +257,6 @@ export const checkSeededSchemasExistOrCreate = async () => {
         // Schema doesn't exist in Traction, create both schema and credential definition and add to MongoDB, also update Credential with schema_id and cred_def_id
         try {
           logger.info(`Schema ${credential.name} v${credential.version} Creating seeded schema`)
-          const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
           const createSchemaPayload = {
             name: credential.name,
             version: credential.version,
@@ -266,8 +265,10 @@ export const checkSeededSchemasExistOrCreate = async () => {
           }
           logger.debug({ createSchemaPayload }, 'Creating schema with payload')
           const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
+
+          // Wait briefly to allow schema to be fully available in Traction before creating credential definition
           await new Promise((r) => setTimeout(r, 2000))
-          // TODO: Make this more robust. Possible to have the schema created but fail on credential definition, which would leave us in a bad state since we currently rely on the schema and credential definition being created at the same time. Ideally we would check for the existence of both the schema and credential definition at the beginning, and if either is missing we would attempt to create both, and if creation fails we would clean up any partial state.
+
           const schemaId = response.data.schema_state.schema_id
           const credDefId = await createCredentialDefinition(
             issuerDid,

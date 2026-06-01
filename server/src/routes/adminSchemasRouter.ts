@@ -92,9 +92,9 @@ router.post('/schemas', createLimiter, requireRole(['admin', 'creator']), async 
       },
       { upsert: true },
     )
-    res
-      .status(201)
-      .json({ id: schemaId, name: req.body.name, version: req.body.version, attrNames: req.body.attrNames, credDefId })
+    // Return the saved schema document from MongoDB for consistency with GET endpoint
+    const savedSchema = await SchemaModel.findById(schemaId)
+    res.status(201).json(savedSchema)
     // Best-effort audit: writes after response sent, may be lost on crash/shutdown.
     void Promise.resolve()
       .then(() =>
