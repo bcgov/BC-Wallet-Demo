@@ -244,7 +244,7 @@ export const checkSeededSchemasExistOrCreate = async () => {
             {
               $set: { schema_id: schemaId, cred_def_id: credDefId },
             },
-            { upsert: true },
+            { upsert: false },
           )
           logger.info(`Schema ${credential.name} v${credential.version} Seeded schema synced to database`)
         } catch (err) {
@@ -282,7 +282,7 @@ export const checkSeededSchemasExistOrCreate = async () => {
                 name: credential.name,
                 version: credential.version,
                 attrNames: credential.attributes.map((attr: any) => attr.name),
-                cred_def_id: credDefId,
+                credDefId,
               },
             },
             { upsert: true },
@@ -293,7 +293,7 @@ export const checkSeededSchemasExistOrCreate = async () => {
             {
               $set: { schema_id: schemaId, cred_def_id: credDefId },
             },
-            { upsert: true },
+            { upsert: false },
           )
           logger.info(`Schema ${credential.name} v${credential.version} Seeded schema created successfully`)
         } catch (err) {

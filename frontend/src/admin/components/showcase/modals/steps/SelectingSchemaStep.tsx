@@ -61,7 +61,7 @@ export function SelectingSchemaStep({
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-gray-500 text-sm">No credentials available. Create one to get started.</p>
+          <p className="text-gray-500 text-sm">No schemas available. Create one to get started.</p>
           <CreateNewSchemaButton onClick={onCreateNew} />
         </div>
       )}

@@ -37,7 +37,7 @@ const createLimiter = rateLimit({
 router.get('/schemas', getLimiter, requireRole(['admin', 'creator']), async (_req: Request, res: Response) => {
   logger.debug('Admin: fetching anoncreds schemas from MongoDB')
   try {
-    const schemas = await SchemaModel.find().lean()
+    const schemas = await SchemaModel.find()
     res.json(schemas)
   } catch (error) {
     logger.error(error, 'Error fetching schemas from MongoDB')
@@ -107,7 +107,7 @@ router.post('/schemas', createLimiter, requireRole(['admin', 'creator']), async 
       .catch((err: unknown) => logger.error(err, 'Audit log: failed to write schema created event'))
   } catch (error) {
     logger.error(error, 'Error creating schema and cred def in Traction')
-    res.status(500).json({ error: `Failed to create schema and cred def in Traction: ${error}` })
+    res.status(500).json({ error: `Failed to create schema and cred def in Traction` })
   }
 })
 

@@ -10,7 +10,7 @@ import logger from '../utils/logger'
 export class WebhookController {
   @Post('/*')
   public async handlePostWhook(@Body() params: any, @Req() req: any) {
-    logger.info({ params }, 'Full webhook payload received')
+    logger.debug({ path: req.path }, 'Webhook payload received')
     const socketMap: Map<string, Socket> = req.app.get('sockets')
     const api_key = req.headers['x-api-key']
     if (api_key !== process.env.WEBHOOK_SECRET) {
