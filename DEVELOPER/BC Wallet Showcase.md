@@ -292,7 +292,7 @@ This endpoint is restricted to the `admin` role.
 
 #### `PUT /admin/credentials/:id`
 
-Updates an existing credential. If the credential has a `schema_id` (meaning it is registered on the ledger), only `icon`, `attributes[].value`, and `status` can be changed. Ledger-locked fields like `name`, `version`, `schema_id`, and `cred_def_ids` will be rejected with a 400 error.
+Updates an existing credential. If the credential has a `schema_id` (meaning it is registered on the ledger), only `icon`, `attributes[].value`, and `status` can be changed. Ledger-locked fields like `name`, `version`, `schema_id`, and `cred_def_id` will be rejected with a 400 error.
 
 This endpoint is restricted to the `admin` role.
 
@@ -304,7 +304,7 @@ This endpoint is restricted to the `admin` role.
 
 #### `POST /admin/credentials/sync`
 
-Forces a sync of schemas and credential definitions from Traction into the local database. New schemas are imported, and existing credentials that are missing `schema_id` or `cred_def_ids` are updated.
+Forces a sync of schemas and credential definitions from Traction into the local database. New schemas are imported, and existing credentials that are missing `schema_id` or `credDefId` are updated.
 
 You can narrow the sync with these optional filters:
 

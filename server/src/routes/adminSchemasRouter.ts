@@ -1,19 +1,36 @@
 import type { Request, Response } from 'express'
 
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 
 import { SchemaModel } from '../db/models/Schema'
 import { requireRole } from '../middleware/requireAdmin'
 import logger from '../utils/logger'
-import { tractionRequest } from '../utils/tractionHelper'
+import { tractionRequest, retryWithExponentialBackoff } from '../utils/tractionHelper'
 
 const router = Router()
 
+const getLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: 'Too many requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+const createLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many schema creation requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
 /**
- * GET /admin/traction/schemas
+ * GET /admin/schemas
  * Get all anoncreds schemas from MongoDB.
  */
-router.get('/schemas', requireRole(['admin', 'creator']), async (_req: Request, res: Response) => {
+router.get('/schemas', getLimiter, requireRole(['admin', 'creator']), async (_req: Request, res: Response) => {
   logger.debug('Admin: fetching anoncreds schemas from MongoDB')
   try {
     const schemas = await SchemaModel.find().lean()
@@ -25,10 +42,10 @@ router.get('/schemas', requireRole(['admin', 'creator']), async (_req: Request, 
 })
 
 /**
- * POST /admin/traction/schemas
+ * POST /admin/schemas
  * Create a new anoncreds schema in Traction and save to MongoDB.
  */
-router.post('/schemas', requireRole(['admin', 'creator']), async (req: Request, res: Response) => {
+router.post('/schemas', createLimiter, requireRole(['admin', 'creator']), async (req: Request, res: Response) => {
   logger.debug('Admin: creating anoncreds schema and cred def in Traction')
   try {
     const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
@@ -40,19 +57,25 @@ router.post('/schemas', requireRole(['admin', 'creator']), async (req: Request, 
     }
     logger.debug({ createSchemaPayload }, 'Creating schema with payload')
     const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
-    await tractionRequest.post('/anoncreds/credential-definition', {
-      credential_definition: {
-        issuerId: issuerDid,
-        schemaId: response.data.schema_state.schema_id,
-        tag: response.data.schema_state.schema.name,
-      },
-      options: {
-        support_revocation: true,
-        revocation_registry_size: 3000,
-      },
-    })
+    const credDefResponse = await retryWithExponentialBackoff(
+      () =>
+        tractionRequest.post('/anoncreds/credential-definition', {
+          credential_definition: {
+            issuerId: issuerDid,
+            schemaId: response.data.schema_state.schema_id,
+            tag: response.data.schema_state.schema.name,
+          },
+          options: {
+            support_revocation: true,
+            revocation_registry_size: 3000,
+          },
+        }),
+      3,
+      1000,
+    )
     // Save schema to MongoDB
     const schemaId = response.data.schema_state.schema_id
+    const credDefId = credDefResponse.data.credential_definition_state.credential_definition_id
     await SchemaModel.updateOne(
       { _id: schemaId },
       {
@@ -60,6 +83,7 @@ router.post('/schemas', requireRole(['admin', 'creator']), async (req: Request, 
           name: req.body.name,
           version: req.body.version,
           attrNames: req.body.attrNames,
+          credDefId,
         },
       },
       { upsert: true },

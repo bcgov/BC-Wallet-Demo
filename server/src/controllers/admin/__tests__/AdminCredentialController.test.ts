@@ -115,7 +115,7 @@ describe('AdminCredentialController', () => {
       // Local doc updated
       expect(mockFindByIdAndUpdate).toHaveBeenCalledWith('student-card-16', {
         schema_id: 'ABC:2:student_card:1.6',
-        cred_def_ids: ['ABC:3:CL:100:student_card'],
+        cred_def_id: 'ABC:3:CL:100:student_card',
       })
     })
 
@@ -143,7 +143,7 @@ describe('AdminCredentialController', () => {
       expect(tractionRequest.post).not.toHaveBeenCalled()
       expect(mockFindByIdAndUpdate).toHaveBeenCalledWith('student-card-16', {
         schema_id: 'ABC:2:student_card:1.6',
-        cred_def_ids: ['ABC:3:CL:100:student_card'],
+        cred_def_id: 'ABC:3:CL:100:student_card',
       })
     })
 
@@ -175,7 +175,7 @@ describe('AdminCredentialController', () => {
         params: { schema_id: 'ABC:2:student_card:1.6' },
       })
       expect(mockFindByIdAndUpdate).toHaveBeenCalledWith('student-card-16', {
-        cred_def_ids: ['ABC:3:CL:100:student_card'],
+        cred_def_id: 'ABC:3:CL:100:student_card',
       })
     })
 

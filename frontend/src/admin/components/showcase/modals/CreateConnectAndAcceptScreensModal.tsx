@@ -41,6 +41,7 @@ export function CreateConnectAndAcceptScreensModal({
   const [selectedCredential, setSelectedCredential] = useState<Credential | null>(null)
   const [selectedSchema, setSelectedSchema] = useState<Schema | null>(null)
   const [connectScreenData, setConnectScreenData] = useState<IntroductionStep | null>(null)
+  const [shouldProceedToCredentialValues, setShouldProceedToCredentialValues] = useState(false)
 
   const connectScreenTemplate: IntroductionStep = {
     screenId: `CONNECT_${issuerName.toUpperCase().replace(/\s+/g, '_')}`,
@@ -90,6 +91,14 @@ export function CreateConnectAndAcceptScreensModal({
 
     fetchCredentials()
   }, [isOpen])
+
+  // Auto-progress to credential values step after schema is created
+  useEffect(() => {
+    if (shouldProceedToCredentialValues && selectedSchema) {
+      setStep({ type: 'SET_CREDENTIAL_VALUES' })
+      setShouldProceedToCredentialValues(false)
+    }
+  }, [shouldProceedToCredentialValues, selectedSchema])
 
   if (!isOpen) return null
 
@@ -191,6 +200,7 @@ export function CreateConnectAndAcceptScreensModal({
                             value: values[attrName],
                           })),
                           schema_id: selectedSchema.id,
+                          cred_def_id: selectedSchema.credDefId,
                         }
                         const createdCredential = await createCredential(auth, credentialToCreate)
                         setSelectedCredential(createdCredential)
@@ -210,9 +220,10 @@ export function CreateConnectAndAcceptScreensModal({
         isOpen={isCreateSchemaModalOpen}
         onClose={() => setIsCreateSchemaModalOpen(false)}
         onSchemaCreated={(schema) => {
-          // Show the newly created schema in detail view
+          // Set the newly created schema and flag to proceed to credential values
           setSelectedSchema(schema)
           setIsCreateSchemaModalOpen(false)
+          setShouldProceedToCredentialValues(true)
           // Refresh schemas list
           const fetchSchemas = async () => {
             try {

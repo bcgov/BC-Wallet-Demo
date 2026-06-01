@@ -12,7 +12,7 @@ const LEDGER_PROPAGATION_MS = 5000 // wait after schema creation before creating
 
 // Fields that are locked once a credential is registered on the ledger.
 // Only showcase-specific fields (icon, attributes values, status) remain editable.
-const LEDGER_LOCKED_FIELDS = ['name', 'version', 'schema_id', 'cred_def_ids'] as const
+const LEDGER_LOCKED_FIELDS = ['name', 'version', 'schema_id', 'cred_def_id'] as const
 
 function generateSlug(name: string, version: string): string {
   const nameSlug = name
@@ -52,14 +52,14 @@ async function resolveSchemaId(cred: LeanCredentialDoc): Promise<string> {
   return created.sent.schema_id
 }
 
-async function resolveCredDefIds(schemaId: string, cred: LeanCredentialDoc): Promise<string[]> {
-  if (cred.cred_def_ids?.length) return cred.cred_def_ids
+async function resolveCredDefId(schemaId: string, cred: LeanCredentialDoc): Promise<string> {
+  if (cred.cred_def_id) return cred.cred_def_id
 
   const { data } = await tractionRequest.get('/credential-definitions/created', {
     params: { schema_id: schemaId },
   })
   const existing: string[] = data.credential_definition_ids ?? []
-  if (existing.length > 0) return existing
+  if (existing.length > 0) return existing[0]
 
   const { data: created } = await tractionRequest.post('/credential-definitions', {
     revocation_registry_size: 25,
@@ -67,16 +67,16 @@ async function resolveCredDefIds(schemaId: string, cred: LeanCredentialDoc): Pro
     support_revocation: true,
     tag: cred.name,
   })
-  return [created.sent.credential_definition_id]
+  return created.sent.credential_definition_id
 }
 
 async function registerWithTraction(cred: LeanCredentialDoc): Promise<boolean> {
   const schemaId = await resolveSchemaId(cred)
-  const credDefIds = await resolveCredDefIds(schemaId, cred)
+  const credDefId = await resolveCredDefId(schemaId, cred)
 
   const updates = {
     ...(cred.schema_id ? {} : { schema_id: schemaId }),
-    ...(!cred.cred_def_ids?.length ? { cred_def_ids: credDefIds } : {}),
+    ...(!cred.cred_def_id ? { cred_def_id: credDefId } : {}),
   }
 
   if (!Object.keys(updates).length) return false
@@ -208,7 +208,7 @@ export class AdminCredentialController {
   }
 
   /**
-   * For each active credential missing a schema_id or cred_def_ids: create the schema
+   * For each active credential missing a schema_id or cred_def_id: create the schema
    * and credential definition in Traction if they do not already exist, then write the
    * resulting IDs back to the local document. Updates lastSyncTimestamp on success.
    */
@@ -221,12 +221,7 @@ export class AdminCredentialController {
 
     const credentials = await CredentialModel.find({
       status: { $ne: 'retired' },
-      $or: [
-        { schema_id: { $exists: false } },
-        { schema_id: '' },
-        { cred_def_ids: { $size: 0 } },
-        { cred_def_ids: { $exists: false } },
-      ],
+      $or: [{ schema_id: { $exists: false } }, { schema_id: '' }, { cred_def_id: { $exists: false } }],
     }).lean<LeanCredentialDoc[]>()
 
     const results = await Promise.allSettled(credentials.map(registerWithTraction))

@@ -75,9 +75,6 @@ const run = async () => {
   registerShutdownHandlers()
 
   await tractionApiKeyUpdaterInit()
-  await tractionGarbageCollection()
-
-  await checkSeededSchemasExistOrCreate()
 
   app.set('sockets', socketMap)
 
@@ -142,7 +139,7 @@ const run = async () => {
   app.use(`${baseRoute}/admin/credentials`, adminCredentialsRouter)
   app.use(`${baseRoute}/admin/assets`, adminAssetsRouter)
   app.use(`${baseRoute}/admin/audit-log`, adminAuditLogRouter)
-  app.use(`${baseRoute}/admin/traction`, adminSchemaRouter)
+  app.use(`${baseRoute}/admin`, adminSchemaRouter)
 
   app.get(`${baseRoute}/server/last-reset`, (_req, res) => {
     res.send(serverStartTime)
@@ -218,6 +215,10 @@ const run = async () => {
     })
   })
   logger.info('Server listening on port 5000')
+
+  await tractionGarbageCollection()
+
+  await checkSeededSchemasExistOrCreate()
 }
 
 run().catch((error: unknown) => {

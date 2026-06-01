@@ -8,7 +8,7 @@ export interface Credential {
     value: string
   }[]
   schema_id?: string
-  cred_def_ids?: string[]
+  cred_def_id?: string
   status?: 'active' | 'retired'
 }
 
@@ -107,4 +107,5 @@ export interface Schema {
   name: string
   version: string
   attrNames: string[]
+  credDefId?: string
 }

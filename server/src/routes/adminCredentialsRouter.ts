@@ -97,7 +97,7 @@ router.post('/', requireRole(['admin']), async (req: Request, res: Response) => 
 
 /**
  * POST /admin/credentials/sync
- * For each active credential missing a schema_id or cred_def_ids, create the schema
+ * For each active credential missing a schema_id or cred_def_id, create the schema
  * and credential definition in Traction if they do not exist, then write the IDs back
  * to the local document. Bypasses the TTL cache.
  * Requires: admin role

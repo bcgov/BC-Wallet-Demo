@@ -10,6 +10,7 @@ export interface LeanSchemaDoc {
   name: string
   version: string
   attrNames: string[]
+  credDefId?: string
 }
 
 // Schema documents use a human-readable string _id (e.g. "schema-id-from-traction").
@@ -20,6 +21,7 @@ const SchemaSchema = new Schema(
     name: { type: String, required: true },
     version: { type: String, required: true },
     attrNames: [{ type: String, required: true }],
+    credDefId: { type: String },
   },
   baseSchemaOptions,
 )

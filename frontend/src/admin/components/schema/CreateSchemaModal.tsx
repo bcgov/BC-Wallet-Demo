@@ -1,10 +1,11 @@
 import type { Schema } from '../../types'
 
 import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { createSchema } from '../../api/adminApi'
+import { createSchema, getAvailableSchemas } from '../../api/adminApi'
+import log from '../../utils/logger'
 
 interface Attribute {
   name: string
@@ -24,6 +25,45 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
   const [attributeKey, setAttributeKey] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [availableSchemas, setAvailableSchemas] = useState<Schema[]>([])
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [progress, setProgress] = useState(0)
+
+  // Fetch available schemas when modal opens
+  useEffect(() => {
+    if (!isOpen || !auth.user?.access_token) return
+
+    const fetchSchemas = async () => {
+      try {
+        const schemas = await getAvailableSchemas(auth)
+        setAvailableSchemas(schemas)
+      } catch (err) {
+        // Don't show error to user, just log it
+        log.error('Failed to fetch schemas:', err)
+      }
+    }
+
+    fetchSchemas()
+  }, [isOpen, auth])
+
+  // Progress bar effect during schema creation
+  useEffect(() => {
+    if (!isLoading) {
+      setProgress(0)
+      return
+    }
+
+    const startTime = Date.now()
+    const duration = 5000 // 5 seconds
+
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      const newProgress = Math.min((elapsed / duration) * 100, 95) // Cap at 95% until request completes
+      setProgress(newProgress)
+    }, 50)
+
+    return () => clearInterval(progressInterval)
+  }, [isLoading])
 
   const handleAddAttribute = () => {
     if (attributeKey.trim()) {
@@ -46,7 +86,7 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
     onClose()
   }
 
-  const handleCreate = async () => {
+  const handleCreate = () => {
     if (!name.trim() || !version.trim()) {
       setError('Name and version are required')
       return
@@ -57,6 +97,21 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
       return
     }
 
+    // Validate that schema name + version combination doesn't already exist
+    const schemaExists = availableSchemas.some(
+      (schema) => schema.name === name.trim() && schema.version === version.trim(),
+    )
+    if (schemaExists) {
+      setError(`A schema with name "${name}" and version "${version}" already exists. Please bump the version.`)
+      return
+    }
+
+    // Show confirmation dialog
+    setError('')
+    setShowConfirmation(true)
+  }
+
+  const handleConfirmCreate = async () => {
     setIsLoading(true)
     setError('')
 
@@ -72,16 +127,102 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
       setAttrNames([])
       setAttributeKey('')
       setError('')
+      setShowConfirmation(false)
+      setProgress(100) // Complete the progress bar
       onClose()
       onSchemaCreated?.(newSchema)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create schema')
+      setShowConfirmation(false)
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleCancelConfirmation = () => {
+    setShowConfirmation(false)
+  }
+
   if (!isOpen) return null
+
+  // Show confirmation modal if needed
+  if (showConfirmation) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full mx-4">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold text-bcgov-black">Confirm Schema Creation</h2>
+            <button onClick={handleCancelConfirmation} className="text-gray-400 hover:text-gray-600">
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-gray-700 mb-4">
+              This will create a new schema on the data registry. Please review the information before proceeding.
+            </p>
+
+            {/* Schema Details */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Schema Name</p>
+                <p className="text-base font-semibold text-bcgov-black">{name}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Version</p>
+                <p className="text-base font-semibold text-bcgov-black">{version}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Attributes ({attrNames.length})</p>
+                {attrNames.length > 0 ? (
+                  <div className="mt-2 space-y-1">
+                    {attrNames.map((attr, index) => (
+                      <p key={index} className="text-sm text-gray-700">
+                        • {attr.name}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No attributes</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          {isLoading && (
+            <div className="mb-6">
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-bcgov-blue h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-sm text-gray-600 mt-2 text-center">Creating schema...</p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex justify-end gap-4">
+            <button
+              onClick={handleCancelConfirmation}
+              disabled={isLoading}
+              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmCreate}
+              disabled={isLoading}
+              className="px-4 py-2 text-white bg-bcgov-blue hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Creating...' : 'Confirm & Create'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

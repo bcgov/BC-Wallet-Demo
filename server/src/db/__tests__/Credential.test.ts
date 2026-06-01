@@ -29,12 +29,12 @@ describe('CredentialModel', () => {
       version: '1.0',
       attributes: [{ name: 'field', value: 'placeholder' }],
       schema_id: 'ABC:2:traction_card:1.0',
-      cred_def_ids: ['ABC:3:CL:100:tag'],
+      cred_def_id: 'ABC:3:CL:100:tag',
     })
 
     const json = doc.toJSON()
     expect(json.schema_id).toBe('ABC:2:traction_card:1.0')
-    expect(json.cred_def_ids).toEqual(['ABC:3:CL:100:tag'])
+    expect(json.cred_def_id).toBe('ABC:3:CL:100:tag')
   })
 
   it('defaults status to active when not set', async () => {
@@ -76,7 +76,7 @@ describe('CredentialModel', () => {
     const json = doc.toJSON()
     expect(json.id).toBe('legacy-card')
     expect(json.schema_id).toBeUndefined()
-    expect(json.cred_def_ids).toEqual([])
+    expect(json.cred_def_id).toBeUndefined()
     expect(json.status).toBe('active')
   })
 

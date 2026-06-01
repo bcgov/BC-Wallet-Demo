@@ -243,7 +243,7 @@ export const uploadImage = async (
 // SCHEMA ENDPOINTS
 // ============================================================================
 export const getAvailableSchemas = async (auth: AuthContextProps): Promise<Schema[]> => {
-  const res = await fetch(`${adminBaseUrl}/traction/schemas`, {
+  const res = await fetch(`${adminBaseUrl}/schemas`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -259,7 +259,7 @@ export const createSchema = async (
   auth: AuthContextProps,
   schemaData: { name: string; version: string; attrNames: string[] },
 ): Promise<Schema> => {
-  const res = await fetch(`${adminBaseUrl}/traction/schemas`, {
+  const res = await fetch(`${adminBaseUrl}/schemas`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
@@ -269,5 +269,9 @@ export const createSchema = async (
   })
   if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as Schema
-  return data
+  // Ensure attrNames is populated from the request if not in response
+  return {
+    ...data,
+    attrNames: data.attrNames || schemaData.attrNames,
+  }
 }

@@ -20,6 +20,34 @@ const safeAxiosError = (err: unknown) => {
 const olderThanHours = (dateStr: string, hours: number) =>
   (Date.now() - new Date(dateStr).getTime()) / 3_600_000 >= hours
 
+const retryWithExponentialBackoff = async <T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelayMs: number = 1000,
+): Promise<T> => {
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err))
+      if (attempt < maxRetries - 1) {
+        const delayMs = initialDelayMs * Math.pow(2, attempt)
+        logger.warn(
+          { attempt: attempt + 1, maxRetries, delayMs, error: lastError.message },
+          'Operation failed, retrying with exponential backoff',
+        )
+        await new Promise((resolve) => setTimeout(resolve, delayMs))
+      }
+    }
+  }
+
+  throw lastError || new Error('Operation failed after retries')
+}
+
+export { retryWithExponentialBackoff }
+
 export let agentKey = ''
 
 export const tractionBaseUrl = process.env.TRACTION_URL ?? ''
@@ -153,18 +181,24 @@ export const checkSeededSchemasExistOrCreate = async () => {
           }
           logger.debug({ createSchemaPayload }, 'Creating schema with payload')
           const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
+          await new Promise((r) => setTimeout(r, 2000))
           // TODO: Make this more robust. Possible to have the schema created but fail on credential definition, which would leave us in a bad state since we currently rely on the schema and credential definition being created at the same time. Ideally we would check for the existence of both the schema and credential definition at the beginning, and if either is missing we would attempt to create both, and if creation fails we would clean up any partial state.
-          const credDefResponse = await tractionRequest.post('/anoncreds/credential-definition', {
-            credential_definition: {
-              issuerId: issuerDid,
-              schemaId: response.data.schema_state.schema_id,
-              tag: response.data.schema_state.schema.name,
-            },
-            options: {
-              support_revocation: true,
-              revocation_registry_size: 3000,
-            },
-          })
+          const credDefResponse = await retryWithExponentialBackoff(
+            () =>
+              tractionRequest.post('/anoncreds/credential-definition', {
+                credential_definition: {
+                  issuerId: issuerDid,
+                  schemaId: response.data.schema_state.schema_id,
+                  tag: response.data.schema_state.schema.name,
+                },
+                options: {
+                  support_revocation: true,
+                  revocation_registry_size: 3000,
+                },
+              }),
+            3,
+            1000,
+          )
           // Save schema to MongoDB
           const schemaId = response.data.schema_state.schema_id
           const credDefId = credDefResponse.data.credential_definition_state.credential_definition_id
@@ -175,16 +209,16 @@ export const checkSeededSchemasExistOrCreate = async () => {
                 name: credential.name,
                 version: credential.version,
                 attrNames: credential.attributes.map((attr: any) => attr.name),
+                credDefId,
               },
             },
             { upsert: true },
           )
-          // Update Credential with schema_id and cred_def_id
+          // Update Credential with schema_id and credDefId
           await CredentialModel.updateOne(
             { _id: credential._id },
             {
-              $set: { schema_id: schemaId },
-              $addToSet: { cred_def_ids: credDefId },
+              $set: { schema_id: schemaId, credDefId: credDefId },
             },
             { upsert: true },
           )

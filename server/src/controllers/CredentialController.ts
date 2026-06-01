@@ -31,13 +31,19 @@ export class CredentialController {
     const credentials = await CredentialModel.find().lean<LeanCredentialDoc[]>()
     logger.debug({ count: credentials.length }, 'Credentials fetched')
     // Map to frontend Credential type with id instead of _id
-    return credentials.map((credential: typeof CredentialModel.prototype) => ({
-      id: String(credential._id),
-      name: credential.name,
-      icon: credential.icon,
-      version: credential.version,
-      attributes: resolveCredentialAttributes(credential.attributes || []),
-    }))
+    return credentials.map((credential: LeanCredentialDoc) => {
+      const response: any = {
+        id: String(credential._id),
+        name: credential.name,
+        icon: credential.icon,
+        version: credential.version,
+        attributes: resolveCredentialAttributes(credential.attributes || []),
+      }
+      if (credential.schema_id) response.schema_id = credential.schema_id
+      if (credential.cred_def_id) response.cred_def_id = credential.cred_def_id
+      if (credential.status) response.status = credential.status
+      return response
+    })
   }
 
   /**
@@ -72,13 +78,17 @@ export class CredentialController {
 
     logger.debug({ credentialId }, 'Credential found')
     // Map to frontend Credential type with id instead of _id
-    return {
+    const response: any = {
       id: String(credential._id),
       name: credential.name,
       icon: credential.icon,
       version: credential.version,
       attributes: resolveCredentialAttributes(credential.attributes || []),
     }
+    if (credential.schema_id) response.schema_id = credential.schema_id
+    if (credential.cred_def_id) response.cred_def_id = credential.cred_def_id
+    if (credential.status) response.status = credential.status
+    return response
   }
 
   @Post('/getOrCreateCredDef')
@@ -92,9 +102,10 @@ export class CredentialController {
           },
         })
       ).data
-      if (response.credential_definition_ids.length > 0) {
-        logger.info({ credDefId: response.credential_definition_ids[0] }, 'Found existing credential definition')
-        return response.credential_definition_ids[0]
+      const credDefIds = response.credential_definition_ids || []
+      if (credDefIds.length > 0) {
+        logger.info({ credDefId: credDefIds[0] }, 'Found existing credential definition')
+        return credDefIds[0]
       } else {
         logger.info('No existing credential definition found')
         throw new Error('No existing credential definition found')
