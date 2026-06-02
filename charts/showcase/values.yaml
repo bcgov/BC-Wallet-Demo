@@ -65,6 +65,9 @@ mongodb:
 
 ## Showcase API (Express server)
 showcase:
+  ## When true, adds a random annotation to pod templates so every `helm upgrade` triggers a rollout
+  ## (useful with pullPolicy: Always + mutable tags like `main`). Enable in dev overlays only.
+  rollme: false
   baseRoute: /digital-trust/showcase
   ## First URL path segment under `{baseRoute}/admin/<segment>/...` served by the **admin SPA** (static + React Router).
   ## Any other segment is reverse_proxied to Express (wildcard). Add a segment here when adding a new client-only admin route.

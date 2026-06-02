@@ -21,8 +21,12 @@ showcase:
   publicOrigin: 'https://bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca'
   networkPolicy:
     enabled: true
+  ## Force pod rollout on every helm upgrade so that Always-pull picks up rebuilt images behind the same tag.
+  rollme: true
   server:
     existingSecret: ''
+    image:
+      pullPolicy: Always
     ## Traction tenant proxy (non-secret). Tenant id + API key: GitHub Actions syncs secret `${release}-traction` from repo secrets TRACTION_DEV_TENANT_ID / TRACTION_DEV_TENANT_API_KEY when set.
     traction:
       url: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
@@ -33,6 +37,8 @@ showcase:
       limits:
         memory: 512Mi
   frontend:
+    image:
+      pullPolicy: Always
     trustedProxies: '0.0.0.0/0'
     resources:
       requests:
