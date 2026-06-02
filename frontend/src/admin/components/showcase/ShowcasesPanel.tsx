@@ -247,6 +247,7 @@ export function ShowcasesPanel() {
                   showcase={showcase}
                   onRestore={() => void handleRestore(showcase.name)}
                   onPermanentDelete={() => setConfirmPermanentDelete(showcase.name)}
+                  canManage={canManageTrash}
                 />
               ))}
             </div>
