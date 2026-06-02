@@ -88,7 +88,7 @@ With **`mongodb.enabled: true`**, the chart creates/reuses **`{{ release }}-show
 
 If you use **`showcase.server.existingSecret`** for a full env bundle, you can omit **`traction.existingSecret`** and include those keys (and **`TRACTION_URL`**) in that secret instead.
 
-On **bcgov**, GitHub Actions (**`deploy-showcase-dev.yaml`** / **`deploy-showcase-pr.yaml`**) can create **`${release}-traction`** / **`pr-<N>-showcase-traction`** from repository secrets **`TRACTION_DEV_TENANT_ID`**, **`TRACTION_DEV_TENANT_API_KEY`**, and optionally **`WEBHOOK_SECRET_DEV`** before **`helm upgrade`**.
+On **bcgov** dev and PR deploys, pre-create **`showcase-traction`** in the target namespace (keys **`TRACTION_TENANT_ID`**, **`TRACTION_TENANT_API_KEY`**, **`WEBHOOK_SECRET`**). **`deploy/showcase/values-dev.yaml`** and **`values-pr.yaml`** set **`showcase.server.traction.existingSecret: showcase-traction`**; CI does not create or update that Secret. PR uninstall only deletes chart-labeled resources and does not remove **`showcase-traction`**.
 
 ### Short OOB invitation URLs (QR)
 
