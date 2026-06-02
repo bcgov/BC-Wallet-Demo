@@ -25,6 +25,11 @@ router.get('/', requireRole(['admin', 'creator', 'viewer']), async (req: Request
   logger.debug({ deleted: req.query.deleted }, 'Admin: list showcases')
   try {
     if (req.query.deleted === 'true') {
+      const roles = (req.auth as any)?.realm_access?.roles ?? []
+      if (!roles.includes('admin')) {
+        res.status(403).json({ error: 'Forbidden: insufficient role' })
+        return
+      }
       // List soft-deleted showcases
       const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100)
       const skip = Math.max(Number(req.query.skip) || 0, 0)
