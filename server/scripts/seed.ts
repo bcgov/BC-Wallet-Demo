@@ -7,6 +7,7 @@ import { connectDB } from '../src/db/connection'
 import { CredentialModel } from '../src/db/models/Credential'
 import { ShowcaseModel } from '../src/db/models/Showcase'
 import logger from '../src/utils/logger'
+import { checkSeededSchemasExistOrCreate, tractionApiKeyUpdaterInit } from '../src/utils/tractionHelper'
 
 export async function runSeed(): Promise<void> {
   const credResults = await Promise.all(
@@ -52,12 +53,18 @@ export async function runSeed(): Promise<void> {
     },
     'Seeded showcases',
   )
+
+  // Create the schemas and credential definitions in Traction if they don't already exist.
+  // Create the schemas in MongoDB and update credential documents with schema_id and cred_def_id if they don't already exist.
+  await tractionApiKeyUpdaterInit()
+  await checkSeededSchemasExistOrCreate()
 }
 
 if (require.main === module) {
   connectDB()
     .then(runSeed)
     .then(() => mongoose.disconnect())
+    .then(() => process.exit(0))
     .catch((err) => {
       logger.error({ err }, 'Seed failed')
       process.exit(1)

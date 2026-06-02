@@ -19,12 +19,7 @@ import adminCredentialsRouter from './routes/adminCredentialsRouter'
 import adminSchemaRouter from './routes/adminSchemasRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
 import logger from './utils/logger'
-import {
-  checkSeededSchemasExistOrCreate,
-  tractionApiKeyUpdaterInit,
-  tractionGarbageCollection,
-  tractionRequest,
-} from './utils/tractionHelper'
+import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
 import { UPLOADS_DIR } from './utils/uploadsDir'
 
 const baseRoute = process.env.BASE_ROUTE
@@ -217,8 +212,6 @@ const run = async () => {
   logger.info('Server listening on port 5000')
 
   await tractionGarbageCollection()
-
-  await checkSeededSchemasExistOrCreate()
 }
 
 run().catch((error: unknown) => {
