@@ -6,9 +6,15 @@ interface TrashShowcaseCardProps {
   showcase: Showcase
   onRestore: () => void
   onPermanentDelete: () => void
+  canManage?: boolean
 }
 
-export function TrashShowcaseCard({ showcase, onRestore, onPermanentDelete }: TrashShowcaseCardProps) {
+export function TrashShowcaseCard({
+  showcase,
+  onRestore,
+  onPermanentDelete,
+  canManage = false,
+}: TrashShowcaseCardProps) {
   const deletedDate = showcase.deleted_at ? new Date(showcase.deleted_at).toLocaleDateString() : 'Unknown date'
 
   return (
