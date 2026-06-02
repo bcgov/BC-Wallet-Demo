@@ -25,7 +25,7 @@ export function ShowcasesPanel() {
   const auth = useAuth()
   const navigate = useNavigate()
   const canEdit = useHasRole('creator')
-
+  const canManageTrash = useHasRole('admin')
   // Active showcases
   const [showcases, setShowcases] = useState<Showcase[]>([])
   const [loading, setLoading] = useState(true)
