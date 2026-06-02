@@ -40,7 +40,8 @@ export class AdminShowcaseController {
   public async updateShowcase(@Param('showcaseName') showcaseName: string, @Body() body: Partial<Showcase>) {
     logger.debug({ showcaseName, body }, 'Updating showcase')
     try {
-      const showcase = await ShowcaseModel.findOneAndUpdate({ name: showcaseName, deleted_at: null }, body, {
+      const { deleted_at: _deletedAt, ...safeBody } = body
+      const showcase = await ShowcaseModel.findOneAndUpdate({ name: showcaseName, deleted_at: null }, safeBody, {
         new: true,
         runValidators: true,
       }).lean()
