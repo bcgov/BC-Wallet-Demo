@@ -493,9 +493,9 @@ Showcase CRUD is handled under `/admin/showcases`. Deleting a showcase is a two-
 
 Returns all active (non-deleted) showcases.
 
-Pass `?deleted=true` to list soft-deleted showcases instead. Supports `?limit=<n>` and `?skip=<n>` for pagination (default limit: 20).
+Pass `?deleted=true` to list soft-deleted showcases instead (admin-only). Supports `?limit=<n>` and `?skip=<n>` for pagination (default limit: 20).
 
-Available to `admin`, `creator`, and `viewer` roles.
+Available to `admin`, `creator`, and `viewer` roles for the active (non-deleted) list; when `?deleted=true`, restricted to the `admin` role.
 
 #### `GET /admin/showcases/:id`
 
