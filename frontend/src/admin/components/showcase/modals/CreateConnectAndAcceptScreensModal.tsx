@@ -183,9 +183,11 @@ export function CreateConnectAndAcceptScreensModal({
               {step.type === 'SET_CREDENTIAL_VALUES' && (
                 <DefineCredentialValuesStep
                   selectedSchema={selectedSchema}
+                  error={error}
                   onBack={() => {
                     setSelectedCredential(null)
                     setStep({ type: 'SELECTING_SCHEMA' })
+                    setError(null)
                   }}
                   onSelectCredential={async (values, icon) => {
                     // Create Credential object from schema and values
@@ -204,6 +206,7 @@ export function CreateConnectAndAcceptScreensModal({
                         }
                         const createdCredential = await createCredential(auth, credentialToCreate)
                         setSelectedCredential(createdCredential)
+                        setError(null)
                         setStep({ type: 'EDITING_CONNECT_SCREEN' })
                       } catch (err) {
                         setError(err instanceof Error ? err.message : 'Failed to create credential')
