@@ -56,8 +56,8 @@ export function ShowcasesPanel() {
   const fetchShowcases = async () => {
     try {
       setLoading(true)
-      const data = await getAllShowcases(auth)
-      setShowcases(data)
+      const showcases = await getAllShowcases(auth)
+      setShowcases(showcases)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch showcases')
