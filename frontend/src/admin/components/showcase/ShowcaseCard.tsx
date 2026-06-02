@@ -1,6 +1,6 @@
 import type { Showcase } from '../../types'
 
-import { Cog6ToothIcon } from '@heroicons/react/24/outline'
+import { Cog6ToothIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
 import { useHasRole } from '../../hooks/useUserRole'
@@ -12,15 +12,30 @@ interface ShowcaseCardProps {
   showcase: Showcase
   onClick: () => void
   onRefresh?: () => void | Promise<void>
+  onDelete?: () => void
 }
 
-export function ShowcaseCard({ showcase, onClick, onRefresh }: ShowcaseCardProps) {
+export function ShowcaseCard({ showcase, onClick, onRefresh, onDelete }: ShowcaseCardProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const canEdit = useHasRole('creator')
+  const canDelete = useHasRole('admin')
 
   return (
     <>
       <div className="relative">
+        {canDelete && onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
+            className="absolute top-3 right-12 z-10 p-2 text-gray-500 hover:text-red-600 transition-colors cursor-pointer rounded hover:bg-gray-200"
+            title="Delete showcase"
+            aria-label="Delete showcase"
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        )}
         {canEdit && (
           <button
             onClick={() => setIsEditModalOpen(true)}

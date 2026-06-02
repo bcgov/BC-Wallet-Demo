@@ -485,6 +485,72 @@ All showcase mutations (create, update, delete) are logged asynchronously using 
 - Audit entries include: user ID from the Keycloak JWT (`req.auth?.sub`), action (`created`/`updated`/`deleted`), resource type (`showcase`), showcase ID, and details (name, etc.)
 - Failed audit logs are logged to the error stream but do not affect the API response
 
+### Showcases
+
+Showcase CRUD is handled under `/admin/showcases`. Deleting a showcase is a two-step process: soft-delete first, then permanently delete. This gives admins a chance to recover a showcase before it is gone for good.
+
+#### `GET /admin/showcases`
+
+Returns all active (non-deleted) showcases.
+
+Pass `?deleted=true` to list soft-deleted showcases instead (admin-only). Supports `?limit=<n>` and `?skip=<n>` for pagination (default limit: 20).
+
+Available to `admin`, `creator`, and `viewer` roles for the active (non-deleted) list; when `?deleted=true`, restricted to the `admin` role.
+
+#### `GET /admin/showcases/:id`
+
+Returns a single active showcase by name. Returns 404 if the showcase does not exist or has been soft-deleted.
+
+Available to `admin`, `creator`, and `viewer` roles.
+
+#### `POST /admin/showcases`
+
+Creates a new showcase. The `name` field must be unique -- a duplicate name returns 409.
+
+Restricted to `admin` and `creator` roles.
+
+#### `PUT /admin/showcases/:id`
+
+Replaces an existing showcase by name. Returns 404 if the showcase does not exist or has been soft-deleted (soft-deleted showcases cannot be updated).
+
+Restricted to `admin` and `creator` roles.
+
+#### `DELETE /admin/showcases/:id`
+
+Soft-deletes a showcase by setting `deleted_at` to the current timestamp. The document and all embedded scenarios are kept in the database. The showcase immediately disappears from the public-facing and admin active lists.
+
+If the showcase is already soft-deleted, returns 404.
+
+Restricted to the `admin` role.
+
+#### `POST /admin/showcases/:id/restore`
+
+Restores a soft-deleted showcase. Sets `deleted_at` back to null and resets `status` to `pending` so the showcase does not go live automatically after restore.
+
+Returns 404 if the showcase does not exist at all. Returns 409 if the showcase exists but is not currently soft-deleted.
+
+Restricted to the `admin` role.
+
+#### `DELETE /admin/showcases/:id?permanent=true`
+
+Permanently deletes a showcase. The showcase must already be soft-deleted -- calling this on an active showcase returns 409.
+
+This operation:
+
+1. Hard-deletes the Showcase document (all embedded scenarios go with it).
+2. Removes asset files from disk for any images that are not referenced by other active showcases.
+3. Removes the corresponding Asset database records.
+
+Asset deletion is best-effort: missing files are ignored. Assets shared with other active showcases are left in place.
+
+**This cannot be undone.**
+
+Restricted to the `admin` role.
+
+#### Undo window
+
+The admin UI provides a 5-second undo toast after a soft-delete. Clicking Undo calls `POST /admin/showcases/:id/restore` before the timer expires. After the timer expires the showcase stays soft-deleted and can be recovered from the Trash tab.
+
 ## Deployment
 
 When pushing changes to github the dev showcase environment should automatically update. The openshift deployments for the showcase are located here: https://github.com/bcgov/BC-Wallet-Demo-Configurations

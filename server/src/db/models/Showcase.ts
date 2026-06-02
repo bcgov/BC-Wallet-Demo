@@ -74,6 +74,7 @@ const ShowcaseSchema = new Schema<Showcase>(
     introduction: { type: [IntroductionStepSchema], required: true, default: [] },
     scenarios: [ScenarioSchema],
     revocationInfo: [RevocationInfoItemSchema],
+    deleted_at: { type: Date, default: null },
   },
   baseSchemaOptions,
 )
@@ -84,5 +85,8 @@ ShowcaseSchema.index({ name: 1 }, { unique: true })
 // Enforce uniqueness on persona.type so each showcase slug is distinct.
 // Use sparse index so showcases without persona don't conflict.
 ShowcaseSchema.index({ 'persona.type': 1 }, { unique: true, sparse: true })
+
+// Efficient filtering for active (non-deleted) showcase queries.
+ShowcaseSchema.index({ deleted_at: 1, status: 1 })
 
 export const ShowcaseModel = model<Showcase>('Showcase', ShowcaseSchema)

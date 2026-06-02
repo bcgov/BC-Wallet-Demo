@@ -52,7 +52,7 @@ export class ShowcaseController {
   @Get('/:showcaseId')
   public async getShowcaseById(@Param('showcaseId') showcaseId: string) {
     logger.debug({ showcaseId }, 'Fetching showcase by id')
-    const showcase = await ShowcaseModel.findOne({ name: showcaseId }).lean()
+    const showcase = await ShowcaseModel.findOne({ name: showcaseId, deleted_at: null }).lean()
 
     if (!showcase) {
       logger.warn({ showcaseId }, 'Showcase not found')
@@ -68,7 +68,7 @@ export class ShowcaseController {
    */
   @Get('/')
   public async getShowcases() {
-    const showcases = await ShowcaseModel.find().lean()
+    const showcases = await ShowcaseModel.find({ deleted_at: null }).lean()
     logger.debug({ count: showcases.length }, 'Fetching all showcases')
     return Promise.all(showcases.map(hydrateCredentials))
   }

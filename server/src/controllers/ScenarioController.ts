@@ -13,7 +13,7 @@ export class ScenarioController {
   @Get('/:useCaseSlug')
   public async getScenarioBySlug(@Param('useCaseSlug') scenarioSlug: string) {
     logger.debug({ scenarioSlug }, 'Fetching scenario by slug')
-    const showcases = await ShowcaseModel.find().lean()
+    const showcases = await ShowcaseModel.find({ deleted_at: null }).lean()
     const scenario = showcases.flatMap((s) => s.scenarios).find((x) => x.id === scenarioSlug)
 
     if (!scenario) {
@@ -29,7 +29,7 @@ export class ScenarioController {
   @Get('/character/:type')
   public async getScenariosByCharType(@Param('type') type: string, @QueryParam('showHidden') showHidden?: boolean) {
     logger.debug({ type, showHidden }, 'Fetching scenarios by character type')
-    const character = await ShowcaseModel.findOne({ 'persona.type': type }).lean()
+    const character = await ShowcaseModel.findOne({ 'persona.type': type, deleted_at: null }).lean()
 
     if (!character) {
       logger.warn({ type }, 'Character type not found for scenario lookup')
