@@ -10,12 +10,14 @@ interface DefineCredentialValuesStepProps {
   selectedSchema: Schema | null
   onBack: () => void
   onSelectCredential: (values: Record<string, string>, icon: string) => void
+  error?: string | null
 }
 
 export function DefineCredentialValuesStep({
   selectedSchema,
   onBack,
   onSelectCredential,
+  error,
 }: DefineCredentialValuesStepProps) {
   const [values, setValues] = useState<Record<string, string>>(
     selectedSchema
@@ -147,14 +149,20 @@ export function DefineCredentialValuesStep({
         </button>
       </div>
 
-      {!isFormValid() && (
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm font-semibold text-red-800">{error}</p>
+        </div>
+      )}
+
+      {!error && !isFormValid() && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-sm font-semibold text-red-800 mb-2">Please complete the following:</p>
           <ul className="text-sm text-red-700 space-y-1">
-            {getValidationErrors().map((error, index) => (
+            {getValidationErrors().map((validationError, index) => (
               <li key={index} className="flex items-center gap-2">
                 <span className="w-1 h-1 bg-red-700 rounded-full" />
-                {error}
+                {validationError}
               </li>
             ))}
           </ul>

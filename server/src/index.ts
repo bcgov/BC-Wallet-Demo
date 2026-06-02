@@ -94,7 +94,7 @@ const run = async () => {
     next()
   })
 
-  app.use(json())
+  app.use(json({ limit: '10mb' }))
   app.use(
     pinoHttp({
       logger,
@@ -180,7 +180,9 @@ const run = async () => {
   // Error handler: map known errors to appropriate HTTP status codes.
   // - ServiceUnavailableError → 503 (service dependency unavailable)
   // - UnauthorizedError → 401 (Invalid/missing/expired JWT)
+  // - SyntaxError → 400 (JSON parsing or similar)
   // - All others → 500 (Internal server error)
+  // Returns error type and message for debugging while protecting sensitive details.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     // If headers were already sent, we can't send another response.
@@ -191,15 +193,24 @@ const run = async () => {
     }
 
     if (err instanceof ServiceUnavailableError) {
-      res.status(503).json({ error: err.message })
+      res.status(503).json({ error: err.message, errorType: 'ServiceUnavailable' })
       return
     }
     if (err instanceof UnauthorizedError) {
-      res.status(401).json({ error: err.message })
+      res.status(401).json({ error: err.message, errorType: 'Unauthorized' })
       return
     }
-    logger.error({ err }, 'Unhandled server error')
-    res.status(500).json({ error: 'Internal server error' })
+    if (err instanceof SyntaxError) {
+      res.status(400).json({ error: 'Invalid request format', errorType: 'SyntaxError' })
+      return
+    }
+
+    // Provide error type and safe error message
+    const errorType = err?.constructor?.name || 'UnknownError'
+    const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
+
+    logger.error({ err, errorType }, 'Unhandled server error')
+    res.status(500).json({ error: errorMessage, errorType })
   })
 
   await new Promise<void>((resolve, reject) => {

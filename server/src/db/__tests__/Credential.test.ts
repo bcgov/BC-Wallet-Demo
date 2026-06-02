@@ -80,9 +80,8 @@ describe('CredentialModel', () => {
     expect(json.status).toBe('active')
   })
 
-  it('persists a credential with a string id', async () => {
+  it('persists a credential with auto-generated UUID', async () => {
     const doc = await CredentialModel.create({
-      _id: 'student-card',
       name: 'Student Card',
       icon: '/icon.svg',
       version: '1.0.0',
@@ -90,7 +89,8 @@ describe('CredentialModel', () => {
     })
 
     const json = doc.toJSON()
-    expect(json.id).toBe('student-card')
+    expect(json.id).toBeDefined()
+    expect(typeof json.id).toBe('string')
     expect(json.attributes[0].name).toBe('student_id')
     expect(json.attributes[0].value).toBe('12345')
   })

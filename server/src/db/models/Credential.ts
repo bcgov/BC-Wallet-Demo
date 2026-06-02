@@ -1,10 +1,11 @@
 import type { Credential } from '../../content/types'
 
 import { Schema, model } from 'mongoose'
+import { v4 as uuidv4 } from 'uuid'
 
 import { AttributeSchema, baseSchemaOptions } from '../baseSchema'
 
-/** Shape returned by CredentialModel queries with .lean(). Uses _id, not the id virtual. */
+/** Shape returned by CredentialModel queries with .lean(). Uses auto-generated UUID _id. */
 export interface LeanCredentialDoc {
   _id: string
   name: string
@@ -16,11 +17,11 @@ export interface LeanCredentialDoc {
   status?: 'active' | 'retired'
 }
 
-// Credential documents use a human-readable string _id (e.g. "student-card").
+// Credential documents use auto-generated UUID _id.
 // baseSchemaOptions exposes it as `id` in JSON output via the virtuals transform.
 const CredentialSchema = new Schema(
   {
-    _id: { type: String },
+    _id: { type: String, default: uuidv4 },
     name: { type: String, required: true },
     icon: { type: String, required: true },
     version: { type: String, required: true },

@@ -10,19 +10,6 @@ import logger from '../../utils/logger'
 // Only showcase-specific fields (icon, attributes values, status) remain editable.
 const LEDGER_LOCKED_FIELDS = ['name', 'version', 'schema_id', 'cred_def_id'] as const
 
-function generateSlug(name: string, version: string): string {
-  const nameSlug = name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-  const versionSlug = version
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-  return `${nameSlug}-${versionSlug}`
-}
 @JsonController('/admin/credentials')
 @Service()
 export class AdminCredentialController {
@@ -37,19 +24,7 @@ export class AdminCredentialController {
   public async createCredential(@Body() body: CreateCredentialInput) {
     logger.debug({ body }, 'Creating new credential')
     try {
-      const credentialId = generateSlug(body.name, body.version)
-
-      // Check if credential with this ID already exists
-      const existing = await CredentialModel.findById(credentialId)
-      if (existing) {
-        logger.warn({ credentialId }, 'Credential with this ID already exists')
-        throw new Error(`Credential "${body.name}" version "${body.version}" already exists`)
-      }
-
-      const credential = new CredentialModel({
-        _id: credentialId,
-        ...body,
-      })
+      const credential = new CredentialModel(body)
       const saved = await credential.save()
       logger.debug({ credentialId: saved._id }, 'Credential created successfully')
       return toCredentialResponse(saved.toObject() as unknown as LeanCredentialDoc)
