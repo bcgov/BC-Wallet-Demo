@@ -103,9 +103,9 @@ describe('AdminShowcaseController', () => {
     it('throws 409 error when showcase exists but is not deleted', async () => {
       mockFns.findOneAndUpdate.mockReturnValue({ lean: vi.fn().mockResolvedValue(null) })
       mockFns.findOne.mockReturnValue({ lean: vi.fn().mockResolvedValue(mockShowcase) })
+      const { ShowcaseNotDeletedError } = await import('../../errors')
       const err = await controller.restoreShowcase('student').catch((e) => e)
-      expect(err).toBeInstanceOf(Error)
-      expect((err as NodeJS.ErrnoException).code).toBe('SHOWCASE_NOT_DELETED')
+      expect(err).toBeInstanceOf(ShowcaseNotDeletedError)
     })
   })
 
@@ -142,11 +142,11 @@ describe('AdminShowcaseController', () => {
     })
 
     it('throws 409 error when showcase is not soft-deleted', async () => {
+      const { ShowcaseNotDeletedError } = await import('../../errors')
       mockFns.findOneAndDelete.mockReturnValue({ lean: vi.fn().mockResolvedValue(null) })
       mockFns.findOne.mockReturnValue({ lean: vi.fn().mockResolvedValue(mockShowcase) })
       const err = await controller.permanentDeleteShowcase('student').catch((e) => e)
-      expect(err).toBeInstanceOf(Error)
-      expect((err as NodeJS.ErrnoException).code).toBe('SHOWCASE_NOT_DELETED')
+      expect(err).toBeInstanceOf(ShowcaseNotDeletedError)
     })
 
     it('skips AssetModel.deleteMany when no images found', async () => {

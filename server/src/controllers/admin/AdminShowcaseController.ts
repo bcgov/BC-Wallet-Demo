@@ -6,6 +6,7 @@ import { Service } from 'typedi'
 import { Showcase } from '../../content/types'
 import { AssetModel } from '../../db/models/Asset'
 import { ShowcaseModel } from '../../db/models/Showcase'
+import { ShowcaseNotDeletedError } from '../../errors'
 import logger from '../../utils/logger'
 import { UPLOADS_DIR } from '../../utils/uploadsDir'
 
@@ -102,9 +103,7 @@ export class AdminShowcaseController {
         const existing = await ShowcaseModel.findOne({ name: showcaseName }).lean()
         if (existing) {
           logger.warn({ showcaseName }, 'Showcase not deleted, cannot restore')
-          const err = new Error(`Showcase with name "${showcaseName}" is not deleted.`)
-          ;(err as NodeJS.ErrnoException).code = 'SHOWCASE_NOT_DELETED'
-          throw err
+          throw new ShowcaseNotDeletedError(showcaseName)
         }
         // Showcase doesn't exist at all
         logger.warn({ showcaseName }, 'Showcase not found for restore')
@@ -169,9 +168,7 @@ export class AdminShowcaseController {
         const exists = await ShowcaseModel.findOne({ name: showcaseName }).lean()
         if (exists) {
           logger.warn({ showcaseName }, 'Showcase not soft-deleted, cannot permanently delete')
-          const err = new Error(`Showcase "${showcaseName}" must be soft-deleted before permanent deletion.`)
-          ;(err as NodeJS.ErrnoException).code = 'SHOWCASE_NOT_DELETED'
-          throw err
+          throw new ShowcaseNotDeletedError(showcaseName)
         }
         logger.warn({ showcaseName }, 'Showcase not found for permanent deletion')
         throw new NotFoundError(`Showcase with name "${showcaseName}" not found.`)

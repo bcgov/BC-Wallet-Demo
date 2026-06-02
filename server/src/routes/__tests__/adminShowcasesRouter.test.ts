@@ -169,9 +169,8 @@ describe('adminShowcasesRouter', () => {
     })
 
     it('returns 409 when showcase is not deleted', async () => {
-      const err = new Error('not deleted') as NodeJS.ErrnoException
-      err.code = 'SHOWCASE_NOT_DELETED'
-      mocks.mockAdminShowcaseController.restoreShowcase.mockRejectedValue(err)
+      const { ShowcaseNotDeletedError } = await import('../../errors')
+      mocks.mockAdminShowcaseController.restoreShowcase.mockRejectedValue(new ShowcaseNotDeletedError('student'))
       const res = await request(app).post('/admin/showcases/student/restore')
       expect(res.status).toBe(409)
     })
@@ -199,9 +198,10 @@ describe('adminShowcasesRouter', () => {
     })
 
     it('returns 409 when showcase is not soft-deleted', async () => {
-      const err = new Error('not deleted') as NodeJS.ErrnoException
-      err.code = 'SHOWCASE_NOT_DELETED'
-      mocks.mockAdminShowcaseController.permanentDeleteShowcase.mockRejectedValue(err)
+      const { ShowcaseNotDeletedError } = await import('../../errors')
+      mocks.mockAdminShowcaseController.permanentDeleteShowcase.mockRejectedValue(
+        new ShowcaseNotDeletedError('student'),
+      )
       const res = await request(app).delete('/admin/showcases/student?permanent=true')
       expect(res.status).toBe(409)
     })

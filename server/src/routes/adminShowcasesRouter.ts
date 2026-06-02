@@ -6,6 +6,7 @@ import { Container } from 'typedi'
 
 import { ShowcaseController } from '../controllers/ShowcaseController'
 import { AdminShowcaseController } from '../controllers/admin/AdminShowcaseController'
+import { ShowcaseNotDeletedError } from '../errors'
 import { requireRole } from '../middleware/requireAdmin'
 import { AuditLogService } from '../services/AuditLogService'
 import logger from '../utils/logger'
@@ -145,7 +146,7 @@ router.post('/:id/restore', requireRole(['admin']), async (req: Request, res: Re
     logger.error(error, 'Error restoring showcase')
     if (error instanceof NotFoundError) {
       res.status(404).json({ error: 'Showcase not found' })
-    } else if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'SHOWCASE_NOT_DELETED') {
+    } else if (error instanceof ShowcaseNotDeletedError) {
       res.status(409).json({ error: error.message })
     } else {
       res.status(500).json({ error: 'Failed to restore showcase' })
@@ -182,7 +183,7 @@ router.delete('/:id', requireRole(['admin']), async (req: Request, res: Response
     logger.error(error, 'Error deleting showcase')
     if (error instanceof NotFoundError) {
       res.status(404).json({ error: 'Showcase not found' })
-    } else if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'SHOWCASE_NOT_DELETED') {
+    } else if (error instanceof ShowcaseNotDeletedError) {
       res.status(409).json({ error: error.message })
     } else {
       res.status(500).json({ error: 'Failed to delete showcase' })
