@@ -209,7 +209,9 @@ export class AdminShowcaseController {
           // Prevent path traversal: resolved path must stay inside UPLOADS_DIR
           if (!diskPath.startsWith(uploadsBase + path.sep)) return
           await fs.unlink(diskPath).catch((err: NodeJS.ErrnoException) => {
-            if (err.code !== 'ENOENT') throw err
+            if (err.code !== 'ENOENT') {
+              logger.warn({ err, diskPath, showcaseName }, 'Permanent delete: failed to delete asset file')
+            }
           })
         }),
       )
