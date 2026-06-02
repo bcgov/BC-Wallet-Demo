@@ -126,6 +126,7 @@ export class AdminShowcaseController {
     logger.debug({ limit, skip }, 'Fetching deleted showcases')
     try {
       const items = await ShowcaseModel.find({ deleted_at: { $ne: null } })
+        .sort({ deleted_at: -1, _id: 1 })
         .skip(skip)
         .limit(limit)
         .lean()
