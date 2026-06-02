@@ -57,7 +57,7 @@ describe('AuditLogService', () => {
     const entries = [
       { user_id: 'user-1', action: 'created' as const, resource_type: 'showcase' as const },
       { user_id: 'user-2', action: 'updated' as const, resource_type: 'showcase' as const },
-      { user_id: 'user-3', action: 'deleted' as const, resource_type: 'credential_definition' as const },
+      { user_id: 'user-3', action: 'deleted' as const, resource_type: 'schema' as const },
     ]
 
     it('returns paginated results', async () => {
@@ -152,9 +152,9 @@ describe('AuditLogService', () => {
     it('filters by resource_type', async () => {
       for (const e of entries) await service.log(e)
 
-      const result = await service.query({ page: 1, limit: 10, resourceTypes: ['credential_definition'] })
+      const result = await service.query({ page: 1, limit: 10, resourceTypes: ['schema'] })
       expect(result.total).toBe(1)
-      expect(result.data[0].resource_type).toBe('credential_definition')
+      expect(result.data[0].resource_type).toBe('schema')
     })
 
     it('filters by user_id', async () => {

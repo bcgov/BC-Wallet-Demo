@@ -43,10 +43,6 @@ export const issueDeepCredential = async (
   })
 }
 
-export const getOrCreateCredDefId = async (credential: Credential) => {
-  return apiCall.post(`/demo/credentials/getOrCreateCredDef`, credential)
-}
-
 export const getDemoCredentialsByConnectionId = async (connectionId: string) => {
   return apiCall.get(`/demo/credentials/connId/${connectionId}`)
 }

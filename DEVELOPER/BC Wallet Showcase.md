@@ -280,8 +280,6 @@ Returns all credentials. You can use the following query parameters to filter re
 - `?status=active|retired`: filter by status. Retired credentials are soft-deleted and hidden from the admin UI by default.
 - `?schema_name=<name>`: filter by schema name (exact match).
 
-If the local cache is older than 5 minutes, a background sync from Traction is triggered automatically. Errors from Traction during sync are ignored and cached data is always returned.
-
 This endpoint is accessible to `admin`, `creator`, and `viewer` roles.
 
 #### `POST /admin/credentials`
@@ -292,26 +290,13 @@ This endpoint is restricted to the `admin` role.
 
 #### `PUT /admin/credentials/:id`
 
-Updates an existing credential. If the credential has a `schema_id` (meaning it is registered on the ledger), only `icon`, `attributes[].value`, and `status` can be changed. Ledger-locked fields like `name`, `version`, `schema_id`, and `cred_def_ids` will be rejected with a 400 error.
+Updates an existing credential. If the credential has a `schema_id` (meaning it is registered on the ledger), only `icon`, `attributes[].value`, and `status` can be changed. Ledger-locked fields like `name`, `version`, `schema_id`, and `cred_def_id` will be rejected with a 400 error.
 
 This endpoint is restricted to the `admin` role.
 
 #### `DELETE /admin/credentials/:id`
 
 Soft-deletes a credential by setting its status to `retired`. The document is preserved so that existing showcases continue to work. You can use `?status=retired` on the list endpoint to retrieve retired credentials.
-
-This endpoint is restricted to the `admin` role.
-
-#### `POST /admin/credentials/sync`
-
-Forces a sync of schemas and credential definitions from Traction into the local database. New schemas are imported, and existing credentials that are missing `schema_id` or `cred_def_ids` are updated.
-
-You can narrow the sync with these optional filters:
-
-- `?schema_name=<name>`: only import schemas matching this name.
-- `?did_method=<prefix>`: only import schemas whose `schema_id` starts with this prefix.
-
-Returns `{ imported, updated, total }`.
 
 This endpoint is restricted to the `admin` role.
 
@@ -374,6 +359,131 @@ The assets system includes several protections:
 - SVG cleaning: Strips potentially dangerous elements like scripts and event handlers
 - Path safety: Filenames are sanitized to prevent directory traversal attacks
 - Size limits: Files are capped at 5 MB via server configuration
+
+### Schemas
+
+The schemas API allows managing anoncreds schemas registered on the ledger via Traction. Schemas are the credential templates that define what attributes a credential can hold. All schema operations are coordinated with Traction and persisted in MongoDB.
+
+#### `GET /admin/schemas`
+
+Lists all schemas that have been registered in MongoDB. Returns an array of schema documents including their ID, name, version, attribute names, and associated credential definition ID.
+
+Available to `admin`, `creator`, and `viewer` roles. Limited to 30 requests per 15 minutes.
+
+#### `POST /admin/schemas`
+
+Creates a new schema by:
+
+1. Fetching the issuer DID from Traction (`/wallet/did/public`)
+2. Creating the schema in Traction with the provided name, version, and attribute names
+3. Creating a credential definition in Traction with exponential backoff retry (3 attempts, 1s initial delay)
+4. Saving the schema to MongoDB with the credential definition ID
+5. Recording an audit log entry
+
+The request body should contain:
+
+```json
+{
+  "name": "student_card",
+  "version": "1.0",
+  "attrNames": ["student_first_name", "student_last_name", "expiry_date"]
+}
+```
+
+On successful creation, returns a 201 status code with the saved schema document from MongoDB (including the MongoDB `_id`, name, version, attrNames, and credDefId).
+
+Restricted to `admin` and `creator` roles. Limited to 5 creations per 15 minutes.
+
+**Error handling:**
+
+- Returns 500 if the schema creation in Traction fails
+- Returns 500 if credential definition creation fails after retries
+- Returns 500 if MongoDB persistence fails
+
+**Credential Definition Creation:**
+
+The credential definition is created with exponential backoff retry to handle transient failures:
+
+- 3 maximum attempts
+- 1 second initial delay
+- Delay doubles on each retry (1s, 2s, 4s)
+- If all attempts fail, the error is logged and returned to the client
+
+**Audit Logging:**
+
+Schema creation automatically records an audit log entry with:
+
+- User ID from the Keycloak JWT (`req.auth?.sub`)
+- Action: `created`
+- Resource type: `schema`
+- Schema ID from Traction
+- Details: schema name and version
+
+The audit log is written asynchronously using a best-effort pattern (after the HTTP response is sent).
+
+### Showcases
+
+The showcases API allows listing, creating, updating, and deleting showcase configurations. All showcase endpoints support audit logging to track administrative changes.
+
+#### `GET /admin/showcases`
+
+Lists all showcases. Returns an array of showcase documents from MongoDB.
+
+Available to `admin`, `creator`, and `viewer` roles. Limited to 30 requests per 15 minutes.
+
+#### `GET /admin/showcases/:id`
+
+Retrieves a single showcase by its MongoDB `_id`. If the showcase is not found, returns a 404 error.
+
+Available to `admin`, `creator`, and `viewer` roles. Limited to 30 requests per 15 minutes.
+
+#### `POST /admin/showcases`
+
+Creates a new showcase. The request body should contain the showcase configuration (persona, introduction flow, scenarios, etc.).
+
+On successful creation, returns a 201 status code with the created showcase document. An audit log entry is automatically recorded with the user ID and showcase details.
+
+Restricted to `admin` and `creator` roles. Limited to 5 creations per 15 minutes.
+
+**Error handling:**
+
+- Returns 409 if a showcase with the same name already exists (duplicate key error)
+- Returns 500 for other server errors
+
+#### `PUT /admin/showcases/:id`
+
+Updates an existing showcase by its MongoDB `_id`. Provide only the fields you want to update in the request body.
+
+On success, returns the updated showcase document. An audit log entry is recorded with the user ID and the fields that were changed (specifically the name if provided).
+
+Restricted to `admin` and `creator` roles. Limited to 30 updates per 15 minutes.
+
+**Error handling:**
+
+- Returns 404 if the showcase is not found
+- Returns 500 for other server errors
+
+#### `DELETE /admin/showcases/:id`
+
+Deletes a showcase by its MongoDB `_id`. Returns a 204 status code with no content on success.
+
+An audit log entry is recorded with the user ID and the deleted showcase ID.
+
+Restricted to `admin` role only (not available to creators). Limited to 10 deletions per 15 minutes.
+
+**Error handling:**
+
+- Returns 404 if the showcase is not found
+- Returns 500 for other server errors
+
+#### Audit Logging
+
+All showcase mutations (create, update, delete) are logged asynchronously using a best-effort pattern:
+
+- Audit logs are written _after_ the HTTP response is sent to the client
+- If the server crashes or shuts down during audit logging, the log entry may be lost
+- Audit entries include: user ID from the Keycloak JWT (`req.auth?.sub`), action (`created`/`updated`/`deleted`), resource type (`showcase`), showcase ID, and details (name, etc.)
+- Failed audit logs are logged to the error stream but do not affect the API response
 
 ## Deployment
 

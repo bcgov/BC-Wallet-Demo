@@ -8,7 +8,7 @@ export interface Credential {
     value: string
   }[]
   schema_id?: string
-  cred_def_ids?: string[]
+  cred_def_id?: string
   status?: 'active' | 'retired'
 }
 
@@ -100,4 +100,12 @@ export interface Showcase {
   scenarios: Scenario[]
   revocationInfo?: RevocationInfoItem[]
   credentials: Credential[]
+}
+
+export interface Schema {
+  id: string
+  name: string
+  version: string
+  attrNames: string[]
+  credDefId?: string
 }

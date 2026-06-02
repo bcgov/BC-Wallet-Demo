@@ -29,6 +29,8 @@ export function DefiningProofRequestStep({
 }: DefiningProofRequestStepProps) {
   if (!currentCredential || !currentRequest) return null
 
+  const isIconSelected = !!currentRequest.icon
+
   return (
     <div className="space-y-6">
       <div className="bg-gray-50 rounded-lg p-6">
@@ -176,13 +178,30 @@ export function DefiningProofRequestStep({
           {currentIndex === totalCredentials - 1 && (
             <button
               onClick={onFinish}
-              className="px-4 py-2 text-white bg-bcgov-blue hover:bg-bcgov-blue-dark rounded-lg font-medium transition-colors"
+              disabled={!isIconSelected}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                isIconSelected
+                  ? 'text-white bg-bcgov-blue hover:bg-bcgov-blue-dark cursor-pointer'
+                  : 'text-white bg-gray-400 cursor-not-allowed'
+              }`}
             >
               Finish
             </button>
           )}
         </div>
       </div>
+
+      {!isIconSelected && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm font-semibold text-red-800 mb-2">Please complete the following:</p>
+          <ul className="text-sm text-red-700 space-y-1">
+            <li className="flex items-center gap-2">
+              <span className="w-1 h-1 bg-red-700 rounded-full" />
+              Presentation request icon is required
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

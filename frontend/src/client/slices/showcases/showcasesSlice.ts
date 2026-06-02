@@ -3,7 +3,6 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 
 import { createSlice } from '@reduxjs/toolkit'
 
-import { getOrCreateCredDefId } from '../../api/CredentialApi'
 import log from '../../utils/logger'
 
 import { fetchAllShowcases, fetchShowcaseById } from './showcasesThunks'
@@ -30,7 +29,6 @@ const showcaseSlice = createSlice({
   reducers: {
     uploadShowcase: (state, action: PayloadAction<{ showcase: Showcase; callback?: () => void }>) => {
       state.uploadedShowcase = action.payload.showcase
-      const promises: Promise<any>[] = []
       state.isUploading = true
       action.payload.showcase.credentials.forEach((cred) => {
         if (typeof cred === 'string') {
@@ -39,13 +37,10 @@ const showcaseSlice = createSlice({
           )
           return
         }
-        promises.push(getOrCreateCredDefId(cred))
       })
-      Promise.all(promises).then(() => {
-        if (action.payload.callback) {
-          action.payload.callback()
-        }
-      })
+      if (action.payload.callback) {
+        action.payload.callback()
+      }
     },
     setUploadingStatus: (state, action: PayloadAction<boolean>) => {
       state.isUploading = action.payload

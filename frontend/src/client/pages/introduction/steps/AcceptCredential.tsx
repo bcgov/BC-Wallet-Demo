@@ -8,7 +8,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { fade, fadeX } from '../../../FramerAnimations'
-import { getOrCreateCredDefId } from '../../../api/CredentialApi'
 import { ActionCTA } from '../../../components/ActionCTA'
 import { Loader } from '../../../components/Loader'
 import { Modal } from '../../../components/Modal'
@@ -66,13 +65,16 @@ export const AcceptCredential: React.FC<Props> = ({
   useEffect(() => {
     if (!credentialsIssuedRef.current && credentials.length > 0) {
       credentialsIssuedRef.current = true
-      credentials.forEach(async (item) => {
-        const credDefId = (await getOrCreateCredDefId(item)).data
-        if (item !== undefined) {
+      credentials.forEach(async (credential) => {
+        if (credential !== undefined && credential.cred_def_id !== undefined) {
           if (isDeepLink) {
-            dispatch(issueDeepCredential({ connectionId: connectionId, cred: item, credDefId }))
+            dispatch(
+              issueDeepCredential({ connectionId: connectionId, cred: credential, credDefId: credential.cred_def_id }),
+            )
           } else {
-            dispatch(issueCredential({ connectionId: connectionId, cred: item, credDefId }))
+            dispatch(
+              issueCredential({ connectionId: connectionId, cred: credential, credDefId: credential.cred_def_id }),
+            )
           }
           track({
             id: 'credential_issued',

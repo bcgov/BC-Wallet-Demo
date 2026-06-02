@@ -2,6 +2,10 @@ import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 import axios from 'axios'
 
+import credentialsSeed from '../../scripts/values/credentials.json'
+import { CredentialModel } from '../db/models/Credential'
+import { SchemaModel } from '../db/models/Schema'
+
 import logger from './logger'
 
 const safeAxiosError = (err: unknown) => {
@@ -15,6 +19,34 @@ const safeAxiosError = (err: unknown) => {
 
 const olderThanHours = (dateStr: string, hours: number) =>
   (Date.now() - new Date(dateStr).getTime()) / 3_600_000 >= hours
+
+const retryWithExponentialBackoff = async <T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelayMs: number = 1000,
+): Promise<T> => {
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err))
+      if (attempt < maxRetries - 1) {
+        const delayMs = initialDelayMs * Math.pow(2, attempt)
+        logger.warn(
+          { attempt: attempt + 1, maxRetries, delayMs, error: lastError.message },
+          'Operation failed, retrying with exponential backoff',
+        )
+        await new Promise((resolve) => setTimeout(resolve, delayMs))
+      }
+    }
+  }
+
+  throw lastError || new Error('Operation failed after retries')
+}
+
+export { retryWithExponentialBackoff }
 
 export let agentKey = ''
 
@@ -71,6 +103,26 @@ export const tractionRequest = {
   },
 }
 
+const createCredentialDefinition = async (issuerDid: string, schemaId: string, tag: string): Promise<string> => {
+  const credDefResponse = await retryWithExponentialBackoff(
+    () =>
+      tractionRequest.post('/anoncreds/credential-definition', {
+        credential_definition: {
+          issuerId: issuerDid,
+          schemaId: schemaId,
+          tag: tag,
+        },
+        options: {
+          support_revocation: true,
+          revocation_registry_size: 3000,
+        },
+      }),
+    3,
+    1000,
+  )
+  return credDefResponse.data.credential_definition_state.credential_definition_id
+}
+
 export const tractionGarbageCollection = async () => {
   // delete all connections that are older than one day
   const cleanupConnections = async () => {
@@ -120,4 +172,140 @@ export const tractionGarbageCollection = async () => {
     },
     6 * 60 * 60 * 1000,
   )
+}
+
+export const checkSeededSchemasExistOrCreate = async () => {
+  try {
+    // Iterate through seeded credentials and log their name and version
+    const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
+
+    for (const credential of credentialsSeed) {
+      logger.info(`Schema ${credential.name} v${credential.version} Checking seeded schema existence`)
+
+      // First check if schema already exists in MongoDB
+      const existingSchema = await SchemaModel.findOne({
+        name: credential.name,
+        version: credential.version,
+      })
+
+      if (existingSchema) {
+        logger.info(`Schema ${credential.name} v${credential.version} Already exists in database`)
+        continue
+      }
+
+      // Schema doesn't exist in MongoDB, make sure cred def is available in traction and create in MongoDB
+      const schemas = (
+        await tractionRequest.get('/anoncreds/schemas', {
+          params: {
+            schema_name: credential.name,
+            schema_version: credential.version,
+          },
+        } as any)
+      ).data.schema_ids
+
+      if (schemas.length > 0) {
+        logger.info(`Schema ${credential.name} v${credential.version} Seeded schema already exists`)
+        try {
+          const schemaId = schemas[0]
+          // Try to find existing credential definition or create one
+          const credDefs = (
+            await tractionRequest.get('/anoncreds/credential-definitions', {
+              params: {
+                schema_id: schemaId,
+              },
+            } as any)
+          ).data.credential_definition_ids
+
+          let credDefId = credDefs?.[0]
+          if (!credDefId) {
+            logger.info(
+              `Schema ${credential.name} v${credential.version} Creating credential definition for existing schema`,
+            )
+            credDefId = await createCredentialDefinition(issuerDid, schemaId, credential.name)
+          }
+
+          // Save schema to MongoDB
+          await SchemaModel.updateOne(
+            { _id: schemaId },
+            {
+              $set: {
+                name: credential.name,
+                version: credential.version,
+                attrNames: credential.attributes.map((attr: any) => attr.name),
+                credDefId,
+              },
+            },
+            { upsert: true },
+          )
+
+          // Update Credential with schema_id and credDefId
+          await CredentialModel.updateOne(
+            { _id: credential._id },
+            {
+              $set: { schema_id: schemaId, cred_def_id: credDefId },
+            },
+            { upsert: false },
+          )
+          logger.info(`Schema ${credential.name} v${credential.version} Seeded schema synced to database`)
+        } catch (err) {
+          logger.error(
+            safeAxiosError(err),
+            `Schema ${credential.name} v${credential.version} Failed to sync existing schema to database`,
+          )
+        }
+      } else {
+        // Schema doesn't exist in Traction, create both schema and credential definition and add to MongoDB, also update Credential with schema_id and cred_def_id
+        try {
+          logger.info(`Schema ${credential.name} v${credential.version} Creating seeded schema`)
+          const createSchemaPayload = {
+            name: credential.name,
+            version: credential.version,
+            attrNames: credential.attributes.map((attr: any) => attr.name),
+            issuerId: issuerDid,
+          }
+          logger.debug({ createSchemaPayload }, 'Creating schema with payload')
+          const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
+
+          // Wait briefly to allow schema to be fully available in Traction before creating credential definition
+          await new Promise((r) => setTimeout(r, 2000))
+
+          const schemaId = response.data.schema_state.schema_id
+          const credDefId = await createCredentialDefinition(
+            issuerDid,
+            schemaId,
+            response.data.schema_state.schema.name,
+          )
+          // Save schema to MongoDB
+          await SchemaModel.updateOne(
+            { _id: schemaId },
+            {
+              $set: {
+                name: credential.name,
+                version: credential.version,
+                attrNames: credential.attributes.map((attr: any) => attr.name),
+                credDefId,
+              },
+            },
+            { upsert: true },
+          )
+          // Update Credential with schema_id and credDefId
+          await CredentialModel.updateOne(
+            { _id: credential._id },
+            {
+              $set: { schema_id: schemaId, cred_def_id: credDefId },
+            },
+            { upsert: false },
+          )
+          logger.info(`Schema ${credential.name} v${credential.version} Seeded schema created successfully`)
+        } catch (err) {
+          logger.error(
+            safeAxiosError(err),
+            `Schema ${credential.name} v${credential.version} Failed to create seeded schema or credential definition`,
+          )
+        }
+      }
+    }
+  } catch (err) {
+    logger.error(safeAxiosError(err), 'Failed to process seeded schemas')
+  }
 }

@@ -8,14 +8,25 @@ export interface Credential {
     value: string
   }[]
   schema_id?: string
-  cred_def_ids?: string[]
+  cred_def_id?: string
   status: 'active' | 'retired'
 }
 
-// Input shape for the create credential API. schema_id and cred_def_ids are
+// Input shape for the create credential API. schema_id and cred_def_id are
 // populated by sync with Traction; status defaults to 'active'. id is derived
 // from name + version server-side.
-export type CreateCredentialInput = Omit<Credential, 'id' | 'schema_id' | 'cred_def_ids' | 'status'>
+export type CreateCredentialInput = Omit<Credential, 'id' | 'schema_id' | 'cred_def_id' | 'status'>
+
+export interface Schema {
+  id: string
+  name: string
+  version: string
+  attrNames: string[]
+  credDefId?: string
+}
+
+// Input shape for the create schema API. id is derived from the Traction response server-side.
+export type CreateSchemaInput = Omit<Schema, 'id'>
 
 export interface IntroductionStep {
   screenId: string

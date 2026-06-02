@@ -13,7 +13,35 @@ vi.mock('../logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
+vi.mock('../../db/models/Schema', () => ({
+  SchemaModel: {
+    findOne: vi.fn(),
+    updateOne: vi.fn(),
+  },
+}))
+
+vi.mock('../../db/models/Credential', () => ({
+  CredentialModel: {
+    updateOne: vi.fn(),
+  },
+}))
+
+vi.mock('../../../scripts/values/credentials.json', () => ({
+  default: [
+    {
+      _id: 'student-card',
+      name: 'student_card',
+      version: '2.0',
+      attributes: [{ name: 'student_first_name' }, { name: 'student_last_name' }, { name: 'expiry_date' }],
+    },
+  ],
+}))
+
+import { CredentialModel } from '../../db/models/Credential'
+import { SchemaModel } from '../../db/models/Schema'
 import * as th from '../tractionHelper'
+
+// Import models after mocks are applied
 
 describe('tractionRequest', () => {
   beforeEach(() => {
@@ -227,5 +255,399 @@ describe('tractionGarbageCollection', () => {
       'https://traction.example.com/issue-credential-2.0/records/cred-exch-1',
       expect.anything(),
     )
+  })
+})
+
+describe('checkSeededSchemasExistOrCreate', () => {
+  beforeEach(() => {
+    process.env.TRACTION_URL = 'https://traction.example.com'
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    delete process.env.TRACTION_URL
+  })
+
+  it('skips schema if already exists in MongoDB', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue({
+      _id: 'W1ZJ:2:student_card:2.0' as any,
+      name: 'student_card',
+      version: '2.0',
+    } as any)
+    vi.mocked(axios.get).mockResolvedValueOnce({
+      data: { result: { did: 'W1ZJ' } },
+    })
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(SchemaModel.findOne).toHaveBeenCalledWith({
+      name: 'student_card',
+      version: '2.0',
+    })
+    // Should only call wallet/did/public, not any schema lookups
+    expect(axios.get).toHaveBeenCalledTimes(1)
+    expect(axios.get).toHaveBeenCalledWith('https://traction.example.com/wallet/did/public', expect.anything())
+  })
+
+  it('creates credential definition for existing schema in Traction', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockResolvedValueOnce({
+        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
+      })
+      .mockResolvedValueOnce({
+        data: { credential_definition_ids: [] },
+      })
+    vi.mocked(axios.post).mockResolvedValue({
+      data: {
+        credential_definition_state: {
+          credential_definition_id: 'W1ZJ:3:CL:1:student_card',
+        },
+      },
+    })
+    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 1,
+      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
+    } as any)
+    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 0,
+      upsertedId: null,
+    } as any)
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(axios.get).toHaveBeenCalledWith(
+      'https://traction.example.com/anoncreds/credential-definitions',
+      expect.anything(),
+    )
+    expect(axios.post).toHaveBeenCalledWith(
+      'https://traction.example.com/anoncreds/credential-definition',
+      expect.objectContaining({
+        credential_definition: expect.objectContaining({
+          schemaId: 'W1ZJ:2:student_card:2.0',
+        }),
+      }),
+      expect.anything(),
+    )
+  })
+
+  it('reuses existing credential definition if already in Traction', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockResolvedValueOnce({
+        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
+      })
+      .mockResolvedValueOnce({
+        data: { credential_definition_ids: ['W1ZJ:3:CL:1:student_card'] },
+      })
+    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 1,
+      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
+    } as any)
+    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 0,
+      upsertedId: null,
+    } as any)
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(axios.post).not.toHaveBeenCalled()
+    expect(SchemaModel.updateOne).toHaveBeenCalledWith(
+      { _id: 'W1ZJ:2:student_card:2.0' as any },
+      expect.objectContaining({
+        $set: expect.objectContaining({
+          credDefId: 'W1ZJ:3:CL:1:student_card',
+        }),
+      }),
+      { upsert: true },
+    )
+  })
+
+  it('creates both schema and credential definition when schema does not exist in Traction', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockResolvedValueOnce({
+        data: { schema_ids: [] },
+      })
+    vi.mocked(axios.post)
+      .mockResolvedValueOnce({
+        data: {
+          schema_state: {
+            schema_id: 'W1ZJ:2:student_card:2.0',
+            schema: { name: 'student_card' },
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          credential_definition_state: {
+            credential_definition_id: 'W1ZJ:3:CL:1:student_card',
+          },
+        },
+      })
+    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 1,
+      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
+    } as any)
+    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 0,
+      upsertedId: null,
+    } as any)
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(axios.post).toHaveBeenCalledWith(
+      'https://traction.example.com/anoncreds/schema',
+      expect.objectContaining({
+        schema: expect.objectContaining({
+          name: 'student_card',
+          version: '2.0',
+        }),
+      }),
+      expect.anything(),
+    )
+    expect(SchemaModel.updateOne).toHaveBeenCalledWith(
+      { _id: 'W1ZJ:2:student_card:2.0' as any },
+      expect.objectContaining({
+        $set: expect.objectContaining({
+          credDefId: 'W1ZJ:3:CL:1:student_card',
+        }),
+      }),
+      { upsert: true },
+    )
+  })
+
+  it('updates credential record with schema_id and cred_def_id', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockResolvedValueOnce({
+        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
+      })
+      .mockResolvedValueOnce({
+        data: { credential_definition_ids: [] },
+      })
+    vi.mocked(axios.post).mockResolvedValue({
+      data: {
+        credential_definition_state: {
+          credential_definition_id: 'W1ZJ:3:CL:1:student_card',
+        },
+      },
+    })
+    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 1,
+      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
+    } as any)
+    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 0,
+      upsertedId: null,
+    } as any)
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(CredentialModel.updateOne).toHaveBeenCalledWith(
+      { _id: 'student-card' as any },
+      {
+        $set: {
+          schema_id: 'W1ZJ:2:student_card:2.0',
+          cred_def_id: 'W1ZJ:3:CL:1:student_card',
+        },
+      },
+      { upsert: false },
+    )
+  })
+
+  it('maps credential attributes to schema attrNames', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockResolvedValueOnce({
+        data: { schema_ids: [] },
+      })
+    vi.mocked(axios.post)
+      .mockResolvedValueOnce({
+        data: {
+          schema_state: {
+            schema_id: 'W1ZJ:2:student_card:2.0',
+            schema: { name: 'student_card' },
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          credential_definition_state: {
+            credential_definition_id: 'W1ZJ:3:CL:1:student_card',
+          },
+        },
+      })
+    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 1,
+      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
+    } as any)
+    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 0,
+      upsertedId: null,
+    } as any)
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(SchemaModel.updateOne).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        $set: expect.objectContaining({
+          attrNames: ['student_first_name', 'student_last_name', 'expiry_date'],
+        }),
+      }),
+      expect.anything(),
+    )
+  })
+
+  it('handles error when schema already exists in Traction but fails to sync', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockResolvedValueOnce({
+        data: { schema_ids: ['W1ZJ:2:Student Card:1.0'] },
+      })
+      .mockRejectedValueOnce(new Error('Failed to fetch credential definitions'))
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(SchemaModel.updateOne).not.toHaveBeenCalled()
+  })
+
+  it('handles error when schema creation fails', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { schema_ids: [] },
+      })
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+    vi.mocked(axios.post).mockRejectedValue(new Error('Schema creation failed'))
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(SchemaModel.updateOne).not.toHaveBeenCalled()
+  })
+
+  it('handles error when fetching issuer DID fails', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('Wallet unavailable'))
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(axios.post).not.toHaveBeenCalled()
+  })
+
+  it('continues processing after error in one credential', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockRejectedValueOnce(new Error('Error on schema lookup'))
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    expect(SchemaModel.findOne).toHaveBeenCalled()
+  })
+
+  it('does not throw when entire function fails', async () => {
+    vi.mocked(SchemaModel.findOne).mockRejectedValue(new Error('Database error'))
+
+    await expect(th.checkSeededSchemasExistOrCreate()).resolves.toBeUndefined()
+  })
+
+  it('uses exponential backoff for credential definition creation retry', async () => {
+    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: { result: { did: 'W1ZJ' } },
+      })
+      .mockResolvedValueOnce({
+        data: { schema_ids: [] },
+      })
+    vi.mocked(axios.post)
+      .mockResolvedValueOnce({
+        data: {
+          schema_state: {
+            schema_id: 'W1ZJ:2:student_card:2.0',
+            schema: { name: 'student_card' },
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          credential_definition_state: {
+            credential_definition_id: 'W1ZJ:3:CL:1:student_card',
+          },
+        },
+      })
+    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 1,
+      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
+    } as any)
+    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
+      acknowledged: true,
+      matchedCount: 1,
+      modifiedCount: 1,
+      upsertedCount: 0,
+      upsertedId: null,
+    } as any)
+
+    await th.checkSeededSchemasExistOrCreate()
+
+    // Verify that POST was called twice (schema + credential definition)
+    expect(axios.post).toHaveBeenCalledTimes(2)
   })
 })

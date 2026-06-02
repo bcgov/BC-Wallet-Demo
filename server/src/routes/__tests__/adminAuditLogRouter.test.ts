@@ -139,10 +139,10 @@ describe('adminAuditLogRouter', () => {
     it('passes resource_type filter', async () => {
       mocks.mockAuditLogService.query.mockResolvedValue(mockQueryResult)
 
-      await request(app).get('/admin/audit-log?resource_type=showcase,credential_definition')
+      await request(app).get('/admin/audit-log?resource_type=showcase,schema')
 
       expect(mocks.mockAuditLogService.query).toHaveBeenCalledWith(
-        expect.objectContaining({ resourceTypes: ['showcase', 'credential_definition'] }),
+        expect.objectContaining({ resourceTypes: ['showcase', 'schema'] }),
       )
     })
 

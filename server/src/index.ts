@@ -16,6 +16,7 @@ import { requireAdmin, ServiceUnavailableError } from './middleware/requireAdmin
 import adminAssetsRouter from './routes/adminAssetsRouter'
 import adminAuditLogRouter from './routes/adminAuditLogRouter'
 import adminCredentialsRouter from './routes/adminCredentialsRouter'
+import adminSchemaRouter from './routes/adminSchemasRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
 import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
@@ -69,7 +70,6 @@ const run = async () => {
   registerShutdownHandlers()
 
   await tractionApiKeyUpdaterInit()
-  await tractionGarbageCollection()
 
   app.set('sockets', socketMap)
 
@@ -134,6 +134,7 @@ const run = async () => {
   app.use(`${baseRoute}/admin/credentials`, adminCredentialsRouter)
   app.use(`${baseRoute}/admin/assets`, adminAssetsRouter)
   app.use(`${baseRoute}/admin/audit-log`, adminAuditLogRouter)
+  app.use(`${baseRoute}/admin`, adminSchemaRouter)
 
   app.get(`${baseRoute}/server/last-reset`, (_req, res) => {
     res.send(serverStartTime)
@@ -209,6 +210,8 @@ const run = async () => {
     })
   })
   logger.info('Server listening on port 5000')
+
+  await tractionGarbageCollection()
 }
 
 run().catch((error: unknown) => {

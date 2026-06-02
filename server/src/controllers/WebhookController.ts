@@ -10,6 +10,7 @@ import logger from '../utils/logger'
 export class WebhookController {
   @Post('/*')
   public async handlePostWhook(@Body() params: any, @Req() req: any) {
+    logger.debug({ path: req.path }, 'Webhook payload received')
     const socketMap: Map<string, Socket> = req.app.get('sockets')
     const api_key = req.headers['x-api-key']
     if (api_key !== process.env.WEBHOOK_SECRET) {
@@ -21,6 +22,12 @@ export class WebhookController {
     const endpointSplit = path.split('/')
     const endpoint = endpointSplit[endpointSplit.length - 1]
     params.endpoint = endpoint
+
+    // Only forward webhooks that have a connection_id
+    if (!connectionId) {
+      logger.debug({ endpoint }, 'Webhook received without connection_id, skipping socket forwarding')
+      return { message: 'Webhook received' }
+    }
 
     logger.info({ endpoint, connectionId }, 'Webhook received')
 

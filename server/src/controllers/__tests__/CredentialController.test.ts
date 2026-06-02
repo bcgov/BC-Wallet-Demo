@@ -42,7 +42,7 @@ describe('CredentialController', () => {
             version: '1.0',
             attributes: [],
             schema_id: 'ABC:2:traction_card:1.0',
-            cred_def_ids: ['ABC:3:CL:100:tag'],
+            cred_def_id: 'ABC:3:CL:100:tag',
             status: 'active',
           },
         ]),
@@ -53,7 +53,7 @@ describe('CredentialController', () => {
       expect(result[0]).toMatchObject({
         id: 'traction-card',
         schema_id: 'ABC:2:traction_card:1.0',
-        cred_def_ids: ['ABC:3:CL:100:tag'],
+        cred_def_id: 'ABC:3:CL:100:tag',
         status: 'active',
       })
     })
@@ -88,7 +88,7 @@ describe('CredentialController', () => {
           version: '1.0',
           attributes: [],
           schema_id: 'ABC:2:traction_card:1.0',
-          cred_def_ids: ['ABC:3:CL:100:tag'],
+          cred_def_id: 'ABC:3:CL:100:tag',
           status: 'retired',
         }),
       } as any)
@@ -97,7 +97,7 @@ describe('CredentialController', () => {
 
       expect(result).toMatchObject({
         schema_id: 'ABC:2:traction_card:1.0',
-        cred_def_ids: ['ABC:3:CL:100:tag'],
+        cred_def_id: 'ABC:3:CL:100:tag',
         status: 'retired',
       })
     })
@@ -134,185 +134,6 @@ describe('CredentialController', () => {
       const result = await controller.getCredByConnId('conn1')
 
       expect(result).toEqual(mockData)
-    })
-  })
-
-  describe('getOrCreateCredDef — existing schema and credential definition', () => {
-    const credential = {
-      id: 'student-card',
-      name: 'Student Card',
-      version: '1.6',
-      icon: '/public/student/icon.svg',
-      attributes: [{ name: 'given_names', value: 'Alice' }],
-    }
-
-    beforeEach(() => {
-      vi.clearAllMocks()
-    })
-
-    it('returns the existing credDef id without creating anything', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({
-          data: {
-            results: [
-              {
-                schema_id: 'existing-schema-id',
-                schema: {
-                  name: 'Student Card',
-                  version: '1.6',
-                  attrNames: ['given_names'],
-                },
-              },
-            ],
-          },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-        .mockResolvedValueOnce({
-          data: {
-            results: [
-              {
-                cred_def_id: 'existing-cred-def-id',
-                schema_id: 'existing-schema-id',
-                tag: 'Student Card',
-                state: 'active',
-              },
-            ],
-          },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-
-      const result = await controller.getOrCreateCredDef(credential)
-
-      expect(result).toBe('existing-cred-def-id')
-      expect(tractionRequest.post).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('getOrCreateCredDef — new schema and credential definition', () => {
-    const credential = {
-      id: 'new-card',
-      name: 'New Card',
-      version: '1.0',
-      icon: '/public/icon.svg',
-      attributes: [{ name: 'field_one', value: 'val' }],
-    }
-
-    beforeEach(() => {
-      vi.clearAllMocks()
-    })
-
-    it('creates schema then credential definition and returns the new credDef id', async () => {
-      vi.useFakeTimers()
-
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({
-          data: { results: [] },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-        .mockResolvedValueOnce({
-          data: { result: { did: 'did:example:issuer123' } },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-        .mockResolvedValueOnce({
-          data: { results: [] },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-      vi.mocked(tractionRequest.post)
-        .mockResolvedValueOnce({
-          data: { schema_state: { schema_id: 'new-schema-id' } },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-        .mockResolvedValueOnce({
-          data: { credential_definition_state: { credential_definition_id: 'new-cred-def-id' } },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-
-      const promise = controller.getOrCreateCredDef(credential)
-      // advance past the 5-second ledger propagation wait
-      await vi.advanceTimersByTimeAsync(5000)
-      const result = await promise
-
-      expect(result).toBe('new-cred-def-id')
-      expect(tractionRequest.post).toHaveBeenCalledTimes(2)
-
-      vi.useRealTimers()
-    })
-  })
-
-  describe('getOrCreateCredDef — existing schema, new credential definition', () => {
-    const credential = {
-      id: 'existing-schema-card',
-      name: 'Existing Schema Card',
-      version: '2.0',
-      icon: '/icon.svg',
-      attributes: [{ name: 'attr', value: 'val' }],
-    }
-
-    beforeEach(() => {
-      vi.clearAllMocks()
-    })
-
-    it('uses existing schema id and creates a new credential definition', async () => {
-      vi.mocked(tractionRequest.get)
-        .mockResolvedValueOnce({
-          data: {
-            results: [
-              {
-                schema_id: 'pre-existing-schema-id',
-                schema: {
-                  name: 'Existing Schema Card',
-                  version: '2.0',
-                  attrNames: ['attr'],
-                },
-              },
-            ],
-          },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-        .mockResolvedValueOnce({
-          data: { results: [] },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: {},
-        } as any)
-      vi.mocked(tractionRequest.post).mockResolvedValueOnce({
-        data: { credential_definition_state: { credential_definition_id: 'brand-new-cred-def' } },
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config: {},
-      } as any)
-
-      const result = await controller.getOrCreateCredDef(credential)
-
-      expect(result).toBe('brand-new-cred-def')
-      // schema POST should NOT have been called
-      expect(tractionRequest.post).toHaveBeenCalledTimes(1)
     })
   })
 

@@ -1,4 +1,4 @@
-import type { Showcase, Credential } from '../types'
+import type { Showcase, Credential, Schema } from '../types'
 import type { AuthContextProps } from 'react-oidc-context'
 
 const baseRoute = import.meta.env.VITE_BASE_ROUTE || '/digital-trust/showcase'
@@ -176,28 +176,6 @@ export const createCredential = async (
   return data
 }
 
-export const syncCredentials = async (
-  auth: AuthContextProps,
-  filters?: { schema_name?: string; did_method?: string },
-): Promise<{ updated: number; failed: number; total: number }> => {
-  const params = new URLSearchParams()
-  if (filters?.schema_name) params.set('schema_name', filters.schema_name)
-  if (filters?.did_method) params.set('did_method', filters.did_method)
-  const query = params.toString() ? `?${params.toString()}` : ''
-  const res = await fetch(`${adminBaseUrl}/credentials/sync${query}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
-      'Content-Type': 'application/json',
-    },
-  })
-  if (!res.ok) {
-    const errorData = (await res.json()) as { error?: string }
-    throw new Error(errorData.error || `Request failed: ${res.status}`)
-  }
-  return (await res.json()) as { updated: number; failed: number; total: number }
-}
-
 // ============================================================================
 // IMAGE ENDPOINTS
 // ============================================================================
@@ -236,5 +214,39 @@ export const uploadImage = async (
   })
   if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as { path: string; filename: string }
+  return data
+}
+
+// ============================================================================
+// SCHEMA ENDPOINTS
+// ============================================================================
+export const getAvailableSchemas = async (auth: AuthContextProps): Promise<Schema[]> => {
+  const res = await fetch(`${adminBaseUrl}/schemas`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!res.ok) await handleErrorResponse(res)
+  const data = await res.json()
+  return data
+}
+
+export const createSchema = async (
+  auth: AuthContextProps,
+  schemaData: { name: string; version: string; attrNames: string[] },
+): Promise<Schema> => {
+  const res = await fetch(`${adminBaseUrl}/schemas`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(schemaData),
+  })
+  if (!res.ok) await handleErrorResponse(res)
+  const data = (await res.json()) as Schema
+  // Ensure attrNames is populated from the request if not in response
   return data
 }

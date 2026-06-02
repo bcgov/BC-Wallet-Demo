@@ -2,14 +2,10 @@ import { isAxiosError } from 'axios'
 import { Body, Get, JsonController, NotFoundError, Param, Post } from 'routing-controllers'
 import { Service } from 'typedi'
 
-import { CreateCredentialInput } from '../content/types'
 import { CredentialModel, LeanCredentialDoc } from '../db/models/Credential'
-import { toCredentialResponse } from '../utils/credentialMapper'
 import logger from '../utils/logger'
 import { resolveCredentialAttributes } from '../utils/resolveMarkers'
 import { tractionRequest } from '../utils/tractionHelper'
-
-const LEDGER_PROPAGATION_MS = 5000 // wait after schema creation before creating cred def
 
 interface CredentialOfferParams {
   connection_id: string
@@ -33,7 +29,20 @@ export class CredentialController {
     logger.debug('Fetching all credentials')
     const credentials = await CredentialModel.find().lean<LeanCredentialDoc[]>()
     logger.debug({ count: credentials.length }, 'Credentials fetched')
-    return credentials.map(toCredentialResponse)
+    // Map to frontend Credential type with id instead of _id
+    return credentials.map((credential: LeanCredentialDoc) => {
+      const response: any = {
+        id: String(credential._id),
+        name: credential.name,
+        icon: credential.icon,
+        version: credential.version,
+        attributes: resolveCredentialAttributes(credential.attributes || []),
+      }
+      if (credential.schema_id) response.schema_id = credential.schema_id
+      if (credential.cred_def_id) response.cred_def_id = credential.cred_def_id
+      if (credential.status) response.status = credential.status
+      return response
+    })
   }
 
   /**
@@ -67,86 +76,18 @@ export class CredentialController {
     }
 
     logger.debug({ credentialId }, 'Credential found')
-    return toCredentialResponse(credential)
-  }
-
-  @Post('/getOrCreateCredDef')
-  public async getOrCreateCredDef(@Body() credential: CreateCredentialInput) {
-    logger.info({ name: credential.name, version: credential.version }, 'Resolving credential definition')
-    const schemasResponse = await tractionRequest.get(`/schema-storage`, {
-      params: {
-        schema_name: credential.name,
-        schema_version: credential.version,
-      },
-    })
-
-    let schema_id = ''
-    let issuerDid = ''
-
-    // Check if schema exists in the response
-    // Response can be an array or a single object
-    const schemas = schemasResponse.data.results
-    const existingSchema = schemas.find(
-      (s: any) => s?.schema?.name === credential.name && s?.schema?.version === credential.version,
-    )
-
-    if (!existingSchema) {
-      logger.info({ name: credential.name, version: credential.version }, 'Schema not found, creating new schema')
-      const schemaAttrs = credential.attributes.map((attr) => attr.name)
-      issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
-
-      if (!issuerDid) {
-        logger.error('Failed to retrieve issuer DID from wallet')
-        throw new Error('Issuer DID not found')
-      }
-      const resp = (
-        await tractionRequest.post(`/anoncreds/schema`, {
-          schema: {
-            issuerId: issuerDid,
-            attrNames: schemaAttrs,
-            name: credential.name,
-            version: credential.version,
-          },
-        })
-      ).data
-      schema_id = resp.schema_state.schema_id
-      logger.info({ schema_id }, 'Schema created, waiting for ledger propagation')
-      await new Promise((r) => setTimeout(r, LEDGER_PROPAGATION_MS))
-    } else {
-      schema_id = existingSchema.schema_id
-      logger.debug({ schema_id }, 'Existing schema found')
+    // Map to frontend Credential type with id instead of _id
+    const response: any = {
+      id: String(credential._id),
+      name: credential.name,
+      icon: credential.icon,
+      version: credential.version,
+      attributes: resolveCredentialAttributes(credential.attributes || []),
     }
-
-    const credDefsResponse = await tractionRequest.get(`/credential-definition-storage`, {
-      params: { schema_id },
-    })
-
-    let cred_def_id = ''
-    const credDefs = credDefsResponse.data.results
-    const existingCredDef = credDefs.find((cd: any) => cd?.schema_id === schema_id)
-
-    if (!existingCredDef) {
-      logger.info({ schema_id }, 'Credential definition not found, creating new credential definition')
-      const resp = (
-        await tractionRequest.post(`/anoncreds/credential-definition`, {
-          credential_definition: {
-            schemaId: schema_id,
-            issuerId: issuerDid,
-            tag: credential.name,
-          },
-          options: {
-            revocation_registry_size: 3000,
-            support_revocation: true,
-          },
-        })
-      ).data
-      cred_def_id = resp.credential_definition_state.credential_definition_id
-      logger.info({ cred_def_id }, 'Credential definition created')
-    } else {
-      cred_def_id = existingCredDef.cred_def_id
-      logger.debug({ cred_def_id }, 'Existing credential definition found')
-    }
-    return cred_def_id
+    if (credential.schema_id) response.schema_id = credential.schema_id
+    if (credential.cred_def_id) response.cred_def_id = credential.cred_def_id
+    if (credential.status) response.status = credential.status
+    return response
   }
 
   @Post('/offerCredential')

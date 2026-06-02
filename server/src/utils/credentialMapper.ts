@@ -9,7 +9,7 @@ export function toCredentialResponse(doc: LeanCredentialDoc): Credential {
     version: doc.version,
     attributes: doc.attributes || [],
     schema_id: doc.schema_id,
-    cred_def_ids: doc.cred_def_ids || [],
+    cred_def_id: doc.cred_def_id,
     status: doc.status ?? 'active',
   }
 }

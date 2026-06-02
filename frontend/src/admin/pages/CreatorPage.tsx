@@ -5,7 +5,7 @@ import { ShowcasesPanel } from '../components/showcase/ShowcasesPanel'
 import { useCreatorTabs } from '../hooks/useCreatorTabs'
 
 export function CreatorPage() {
-  const [activeTab, setActiveTab] = useState<'showcases' | 'credentials'>('showcases')
+  const [activeTab, setActiveTab] = useState<'showcases' | 'schemas'>('showcases')
   const tabsContent = useCreatorTabs({ activeTab, onTabChange: setActiveTab })
 
   return (
