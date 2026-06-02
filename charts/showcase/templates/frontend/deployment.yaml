@@ -25,6 +25,9 @@ spec:
         {{- end }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/frontend/configmap.yaml") . | sha256sum }}
+        {{- if .Values.showcase.rollme }}
+        rollme: {{ randAlphaNum 5 | quote }}
+        {{- end }}
         {{- with .Values.showcase.frontend.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
