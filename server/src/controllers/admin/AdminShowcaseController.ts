@@ -176,22 +176,24 @@ export class AdminShowcaseController {
         throw new NotFoundError(`Showcase with name "${showcaseName}" not found.`)
       }
 
-      // 2. Extract filenames from deleted showcase
-      const filenames = this.extractAssetFilenames(showcase)
+      // 2. Extract filenames from deleted showcase (dedupe to avoid repeated checks/unlinks)
+      const filenames = [...new Set(this.extractAssetFilenames(showcase))]
 
       // 3. Check which filenames are safe to delete (not used by other active showcases)
       // TODO: batch this into a single aggregation query if showcase count grows -- currently N regex scans per filename
       const safeFilenames = (
         await Promise.all(
           filenames.map(async (filename) => {
+            const escaped = filename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            const pattern = new RegExp(`${escaped}$`)
             const count = await ShowcaseModel.countDocuments({
               deleted_at: null,
               $or: [
-                { 'persona.image': { $regex: filename } },
-                { 'introduction.image': { $regex: filename } },
-                { 'progressBar.iconLight': { $regex: filename } },
-                { 'progressBar.iconDark': { $regex: filename } },
-                { 'revocationInfo.credentialIcon': { $regex: filename } },
+                { 'persona.image': { $regex: pattern } },
+                { 'introduction.image': { $regex: pattern } },
+                { 'progressBar.iconLight': { $regex: pattern } },
+                { 'progressBar.iconDark': { $regex: pattern } },
+                { 'revocationInfo.credentialIcon': { $regex: pattern } },
               ],
             })
             return count === 0 ? filename : null
