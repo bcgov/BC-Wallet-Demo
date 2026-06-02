@@ -45,6 +45,10 @@ import adminShowcasesRouter from '../adminShowcasesRouter'
 
 const app = express()
 app.use(json())
+app.use((req, _res, next) => {
+  ;(req as any).auth = { realm_access: { roles: ['admin'] }, preferred_username: 'testuser', sub: 'test-sub' }
+  next()
+})
 app.use('/admin/showcases', adminShowcasesRouter)
 
 const mockShowcase = {

@@ -163,8 +163,10 @@ describe('AdminShowcaseController', () => {
     it('returns items and total for soft-deleted showcases', async () => {
       const deleted = [{ ...mockShowcase, deleted_at: new Date() }]
       mockFns.find.mockReturnValue({
-        skip: vi.fn().mockReturnValue({
-          limit: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue(deleted) }),
+        sort: vi.fn().mockReturnValue({
+          skip: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue(deleted) }),
+          }),
         }),
       })
       mockFns.countDocuments.mockResolvedValue(1)
@@ -176,8 +178,10 @@ describe('AdminShowcaseController', () => {
 
     it('uses default limit and skip', async () => {
       mockFns.find.mockReturnValue({
-        skip: vi.fn().mockReturnValue({
-          limit: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue([]) }),
+        sort: vi.fn().mockReturnValue({
+          skip: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnValue({ lean: vi.fn().mockResolvedValue([]) }),
+          }),
         }),
       })
       mockFns.countDocuments.mockResolvedValue(0)
