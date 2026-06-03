@@ -110,15 +110,25 @@ export function useIntroductionScreens({ showcase, onRefresh }: UseIntroductionS
       const acceptScreen = currentIntro[connectIdx + 1]
       const deletedScreenIds = [connectScreen?.screenId, acceptScreen?.screenId].filter(Boolean)
 
+      // Collect credential IDs from deleted screens
+      const credentialIdsToDelete = new Set<string>()
+      if (acceptScreen?.credentials) {
+        acceptScreen.credentials.forEach((cred) => credentialIdsToDelete.add(cred.id))
+      }
+
       const updatedIntro = currentIntro.filter((_, i) => i !== connectIdx && i !== connectIdx + 1)
 
       const updatedProgressBar = (showcase.progressBar || []).filter(
         (entry) => !deletedScreenIds.includes(entry.introductionStep),
       )
 
+      // Filter out deleted credentials from root showcase
+      const updatedCredentials = (showcase.credentials || []).filter((cred) => !credentialIdsToDelete.has(cred.id))
+
       await updateShowcase(auth, showcase.name, {
         introduction: updatedIntro,
         progressBar: updatedProgressBar,
+        credentials: updatedCredentials,
       })
       await onRefresh?.()
       setShowDeleteConfirm(false)

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { getAvailableSchemas, updateShowcase, createCredential } from '../../../api/adminApi'
+import { updateProgressBarForScreen } from '../../../utils/updateProgressBarForScreen'
 import { CreateSchemaModal } from '../../schema/CreateSchemaModal'
 
 import { CreateOrEditScreenModal } from './CreateOrEditScreenModal'
@@ -281,11 +282,13 @@ export function CreateConnectAndAcceptScreensModal({
               ...showcase.introduction.slice(insertIdx),
             ]
 
-            // Build updated progress bar array
-            const updatedProgressBars = [...(showcase.progressBar || [])]
-            if (updatedAcceptProgressBar) {
-              updatedProgressBars.push(updatedAcceptProgressBar)
-            }
+            // Build updated progress bar array using the utility - handles ordering
+            const updatedProgressBars = updateProgressBarForScreen(
+              showcase.progressBar || [],
+              updatedAcceptProgressBar || undefined,
+              updatedAcceptScreen,
+              updatedIntroduction,
+            )
 
             // Add selected credential to showcase if not already present
             const updatedCredentials = [...(showcase.credentials || [])]
