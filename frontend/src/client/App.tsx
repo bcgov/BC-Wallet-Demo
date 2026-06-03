@@ -75,7 +75,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
+          <Routes location={location}>
             {basePath !== '/' && <Route path="/" element={<Navigate to={basePath} />}></Route>}
             <Route path={`${basePath}/`} element={<LandingPage />} />
             <Route path={`${basePath}/:slug`} element={<LandingPage />} />
