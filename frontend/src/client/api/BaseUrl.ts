@@ -9,7 +9,7 @@ export const baseUrl = (import.meta.env.VITE_HOST_BACKEND || '') + baseRoute
 export const baseWsUrl = import.meta.env.VITE_HOST_BACKEND || ''
 export const socketPath = `${baseRoute}/demo/socket/`
 
-// This warning is a false flag. THis is the way we want to import this.
+// This warning is a false flag. This is the way we want to import this.
 // eslint-disable-next-line import/no-named-as-default-member
 export const apiCall = axios.create({ baseURL: baseUrl })
 
