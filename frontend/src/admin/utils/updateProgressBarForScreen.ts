@@ -38,30 +38,17 @@ export const updateProgressBarForScreen = (
         iconDark: progressBarWithCorrectId.iconDark,
       }
     } else {
-      // Add new progress bar at the correct position based on screen order
-      const screenIndex = updatedItems.findIndex(
-        (screen) => screen.screenId === progressBarWithCorrectId.introductionStep,
-      )
-
-      if (screenIndex !== -1) {
-        // Find the position to insert by checking other progress bars
-        let insertPos = updatedProgressBars.length
-        for (let i = 0; i < updatedProgressBars.length; i++) {
-          const existingPbScreenIndex = updatedItems.findIndex(
-            (screen) => screen.screenId === updatedProgressBars[i].introductionStep,
-          )
-          if (existingPbScreenIndex > screenIndex) {
-            insertPos = i
-            break
-          }
-        }
-        updatedProgressBars.splice(insertPos, 0, progressBarWithCorrectId)
-      } else {
-        // Fallback: just push if screen not found
-        updatedProgressBars.push(progressBarWithCorrectId)
-      }
+      // Add new progress bar
+      updatedProgressBars.push(progressBarWithCorrectId)
     }
   }
+
+  // Reorder progress bars to match introduction screen order
+  updatedProgressBars.sort((a, b) => {
+    const aScreenIndex = updatedItems.findIndex((screen) => screen.screenId === a.introductionStep)
+    const bScreenIndex = updatedItems.findIndex((screen) => screen.screenId === b.introductionStep)
+    return aScreenIndex - bScreenIndex
+  })
 
   return updatedProgressBars
 }
