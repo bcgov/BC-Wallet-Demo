@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { getAvailableSchemas, updateShowcase, createCredential } from '../../../api/adminApi'
-import { CreateSchemaModal } from '../../schema/CreateSchemaModal'
 import { updateProgressBarForScreen } from '../../../utils/updateProgressBarForScreen'
+import { CreateSchemaModal } from '../../schema/CreateSchemaModal'
 
 import { CreateOrEditScreenModal } from './CreateOrEditScreenModal'
 import { EnteringNameStep, SelectingSchemaStep, DefineCredentialValuesStep } from './steps'
