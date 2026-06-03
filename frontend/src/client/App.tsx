@@ -2,7 +2,7 @@ import type { Socket } from 'socket.io-client'
 
 import { AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
 
 import { baseWsUrl, socketPath } from './api/BaseUrl'
@@ -27,7 +27,6 @@ function App() {
   useAnalytics()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const location = useLocation()
   const { connectionDate, lastServerReset } = usePreferences()
   const { id } = useConnection()
   const [socket, setSocket] = useState<Socket>()
@@ -75,7 +74,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <AnimatePresence mode="wait">
-          <Routes location={location}>
+          <Routes>
             {basePath !== '/' && <Route path="/" element={<Navigate to={basePath} />}></Route>}
             <Route path={`${basePath}/`} element={<LandingPage />} />
             <Route path={`${basePath}/:slug`} element={<LandingPage />} />
