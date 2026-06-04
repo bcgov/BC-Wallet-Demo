@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { fadeDelay, fadeExit } from '../../../FramerAnimations'
 import { BackButton } from '../../../components/BackButton'
 import { Button } from '../../../components/Button'
+import { Modal } from '../../../components/Modal'
 
 export interface Props {
   introductionStep: string
@@ -12,6 +13,8 @@ export interface Props {
   forwardDisabled: boolean
   backDisabled: boolean
   introductionCompleted(): void
+  onExit(): void
+  showExitButton: boolean
 }
 
 export const IntroductionBottomNav: React.FC<Props> = ({
@@ -21,8 +24,11 @@ export const IntroductionBottomNav: React.FC<Props> = ({
   forwardDisabled,
   backDisabled,
   introductionCompleted,
+  onExit,
+  showExitButton,
 }) => {
   const [label, setLabel] = useState('NEXT')
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
   const isCompleted = introductionStep === 'SETUP_COMPLETED'
 
   useEffect(() => {
@@ -44,7 +50,11 @@ export const IntroductionBottomNav: React.FC<Props> = ({
       className="flex w-full justify-between mb-4 h-8 self-end select-none"
     >
       <div className="flex self-center">
-        <BackButton onClick={removeIntroductionStep} disabled={backDisabled} data-cy="prev-introduction-step" />
+        {showExitButton ? (
+          <BackButton onClick={() => setShowExitConfirm(true)} label="EXIT" />
+        ) : (
+          <BackButton onClick={removeIntroductionStep} disabled={backDisabled} data-cy="prev-introduction-step" />
+        )}
       </div>
       <AnimatePresence mode="wait">
         <motion.div variants={fadeExit} initial="hidden" animate="show" exit="exit" data-cy="next-introduction-step">
@@ -55,6 +65,14 @@ export const IntroductionBottomNav: React.FC<Props> = ({
           />
         </motion.div>
       </AnimatePresence>
+      {showExitConfirm && (
+        <Modal
+          title="Exit Credential Flow?"
+          description="You will be returned to the landing page. Your progress will be lost."
+          onOk={onExit}
+          onCancel={() => setShowExitConfirm(false)}
+        />
+      )}
     </motion.div>
   )
 }

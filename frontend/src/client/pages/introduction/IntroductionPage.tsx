@@ -52,6 +52,7 @@ export const IntroductionPage: React.FC = () => {
       dispatch(clearConnection())
       navigate(`${basePath}/dashboard`)
     } else {
+      dispatch({ type: 'demo/RESET' })
       dispatch(fetchWallets())
       dispatch(fetchAllShowcases())
       setMounted(true)
