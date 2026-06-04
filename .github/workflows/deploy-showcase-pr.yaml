@@ -4,8 +4,7 @@
 #
 # Configure on bcgov/BC-Wallet-Demo (repository Actions secrets):
 #   Secrets: OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_DEV_NAMESPACE
-#   Optional (Traction dev tenant and webhook; synced to Secret `pr-<N>-showcase-traction` before Helm when both set):
-#     TRACTION_DEV_TENANT_ID, TRACTION_DEV_TENANT_API_KEY, WEBHOOK_SECRET_DEV
+#   Pre-create OpenShift Secret `showcase-traction` in OPENSHIFT_DEV_NAMESPACE (shared with dev deploy).
 # Optional variable: SHOWCASE_PR_HOST_SUFFIX — hostname without scheme (overrides workflow default).
 #   Default is Silver dev ingress (see env.SHOWCASE_PR_HOST_SUFFIX). Public URL:
 #   https://pr-<N>-<suffix>/digital-trust/showcase
@@ -172,15 +171,14 @@ jobs:
           HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
           OWNER_LOWER: ${{ github.repository_owner }}
           OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
-          TRACTION_DEV_TENANT_ID: ${{ secrets.TRACTION_DEV_TENANT_ID }}
-          TRACTION_DEV_TENANT_API_KEY: ${{ secrets.TRACTION_DEV_TENANT_API_KEY }}
-          WEBHOOK_SECRET_DEV: ${{ secrets.WEBHOOK_SECRET_DEV }}
         run: |
           set -euo pipefail
           origin="https://pr-${PR_NUM}-${HOST_SUFFIX}"
           owner_lc="$(echo "${OWNER_LOWER}" | tr '[:upper:]' '[:lower:]')"
           ns="${OPENSHIFT_DEV_NAMESPACE}"
-          traction_secret="pr-${PR_NUM}-showcase-traction"
+          if ! oc get secret showcase-traction -n "${ns}" >/dev/null 2>&1; then
+            echo '::warning::Secret showcase-traction not found in '"${ns}"' — create it before deploy (see deploy/showcase/values-pr.yaml).'
+          fi
           helm dependency update
           helm_args=(
             -f ../../deploy/showcase/values-pr.yaml
@@ -193,17 +191,6 @@ jobs:
             --wait
             --timeout 10m
           )
-          if [[ -n "${TRACTION_DEV_TENANT_ID:-}" && -n "${TRACTION_DEV_TENANT_API_KEY:-}" && -n "${WEBHOOK_SECRET_DEV:-}" ]]; then
-            oc create secret generic "${traction_secret}" \
-              --from-literal=TRACTION_TENANT_ID="${TRACTION_DEV_TENANT_ID}" \
-              --from-literal=TRACTION_TENANT_API_KEY="${TRACTION_DEV_TENANT_API_KEY}" \
-              --from-literal=WEBHOOK_SECRET="${WEBHOOK_SECRET_DEV}" \
-              -n "${ns}" \
-              --dry-run=client -o yaml | oc apply -f -
-            helm_args+=(--set-string "showcase.server.traction.existingSecret=${traction_secret}")
-          else
-            echo '::notice::TRACTION_DEV_TENANT_ID / TRACTION_DEV_TENANT_API_KEY / WEBHOOK_SECRET_DEV not set — PR deploy without Traction tenant Secret.'
-          fi
           if ! helm upgrade --install "pr-${PR_NUM}-showcase" . "${helm_args[@]}"; then
             echo '::error::helm upgrade failed; status and recent events follow.'
             helm status "pr-${PR_NUM}-showcase" -n "${OPENSHIFT_DEV_NAMESPACE}" 2>/dev/null || true
