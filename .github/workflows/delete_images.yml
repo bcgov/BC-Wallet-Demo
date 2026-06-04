@@ -1,0 +1,21 @@
+name: Delete old container images
+
+on:
+  # schedule:
+  #   - cron: "0 2 * * 2" # This job runs every Tuesday
+  workflow_dispatch:
+
+jobs:
+  clean-ghcr:
+    name: Delete old unused container images
+    runs-on: ubuntu-22.04
+    if: github.repository_owner == 'bcgov'
+    steps:
+      - name: Delete container images older than a Month
+        uses: snok/container-retention-policy@v3.1.0
+        with:
+          account: bcgov
+          image-names: bc-wallet-showcase-frontend, bc-wallet-showcase-server
+          cut-off: 1month
+          tag-selection: untagged
+          token: ${{ secrets.GITHUB_TOKEN }}
