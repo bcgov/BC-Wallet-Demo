@@ -1,4 +1,4 @@
-# Build showcase images (tag pr-<number>), Helm install/upgrade per PR, optional URL comment.
+# Build showcase images (tag pr-<number>), Helm install/upgrade per PR, register PR webhook with Traction, optional URL comment.
 #
 # Shared Docker steps live under `.github/actions/showcase-build-*` (also used by deploy-showcase-dev).
 #
@@ -33,6 +33,7 @@ on:
       - '.github/actions/showcase-build-frontend/**'
       - '.github/actions/showcase-setup-oc-helm/**'
       - '.github/actions/showcase-helm-lint/**'
+      - '.github/scripts/showcase-traction-webhook.sh'
     types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
@@ -54,6 +55,8 @@ env:
   # PR Route host fragment (no scheme): https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>/…
   # Override per-repo with Actions variable SHOWCASE_PR_HOST_SUFFIX if your cluster DNS differs.
   SHOWCASE_PR_HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX != '' && vars.SHOWCASE_PR_HOST_SUFFIX || 'bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+  # Traction tenant proxy for PR webhook registration (matches deploy/showcase/values-pr.yaml).
+  TRACTION_URL: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
 
 jobs:
   ready:
@@ -224,6 +227,15 @@ jobs:
           oc rollout status "deployment/pr-${PR_NUM}-showcase-server" -n "${ns}" --timeout=10m
           oc rollout restart "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}"
           oc rollout status "deployment/pr-${PR_NUM}-showcase-frontend" -n "${ns}" --timeout=10m
+
+      # Append this PR's webhook to the shared Traction tenant; other registered URLs are preserved.
+      - name: Register PR webhook with Traction
+        env:
+          PR_NUM: ${{ github.event.pull_request.number }}
+          SHOWCASE_PR_HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
+          TRACTION_URL: ${{ env.TRACTION_URL }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+        run: .github/scripts/showcase-traction-webhook.sh add
 
   pr_urls_comment:
     name: PR deployment comment
