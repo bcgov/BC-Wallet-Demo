@@ -8,6 +8,6 @@ runs:
       with:
         oc: '4.15.63'
 
-    - uses: azure/setup-helm@v4
+    - uses: azure/setup-helm@v5
       with:
         version: v3.16.3

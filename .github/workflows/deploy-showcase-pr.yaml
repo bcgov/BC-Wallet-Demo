@@ -77,7 +77,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/showcase-build-server
         with:
           image: ${{ env.SHOWCASE_SERVER_IMAGE }}
@@ -95,7 +95,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/showcase-build-frontend
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
@@ -112,7 +112,7 @@ jobs:
     # Job-level `if` cannot use `secrets` (GitHub restriction). Verify OpenShift secrets in-step.
     if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.build_server.result == 'success' && needs.build_frontend.result == 'success' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Verify OpenShift secrets for deploy
         env:
@@ -231,7 +231,7 @@ jobs:
     needs: [ready, deploy]
     if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.deploy.result == 'success' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: peter-evans/find-comment@v3
         id: fc

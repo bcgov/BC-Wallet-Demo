@@ -31,7 +31,7 @@ jobs:
     # Job-level `if` cannot use `secrets`. Skip uninstall steps when secrets are unset (notice only).
     if: github.repository_owner == 'bcgov'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - id: openshift
         name: Preflight OpenShift secrets

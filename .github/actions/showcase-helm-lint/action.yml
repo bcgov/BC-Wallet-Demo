@@ -22,10 +22,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       if: ${{ inputs.skip_checkout != 'true' }}
 
-    - uses: azure/setup-helm@v4
+    - uses: azure/setup-helm@v5
       if: ${{ inputs.skip_helm_install != 'true' }}
       with:
         version: ${{ inputs.helm_version }}

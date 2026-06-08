@@ -39,7 +39,7 @@ jobs:
       DOCKER_BUILDKIT: '1'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build server image
         run: docker build -f server/Dockerfile .
