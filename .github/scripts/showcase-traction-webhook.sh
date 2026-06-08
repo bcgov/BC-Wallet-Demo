@@ -33,8 +33,11 @@ TRACTION_SECRET_NAME="${TRACTION_SECRET_NAME:-showcase-traction}"
 
 read_secret_key() {
   local key="$1"
-  oc get secret "${TRACTION_SECRET_NAME}" -n "${OPENSHIFT_DEV_NAMESPACE}" \
-    -o "jsonpath={.data.${key}}" 2>/dev/null | base64 -d
+  (
+    oc get secret "${TRACTION_SECRET_NAME}" -n "${OPENSHIFT_DEV_NAMESPACE}" \
+      -o "jsonpath={.data.${key}}" 2>/dev/null \
+      | base64 -d 2>/dev/null
+  ) || true
 }
 
 TRACTION_TENANT_ID="$(read_secret_key TRACTION_TENANT_ID)"
