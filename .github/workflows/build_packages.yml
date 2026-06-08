@@ -30,7 +30,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
@@ -86,21 +86,24 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.SHOWCASE_SERVER_IMAGE }}
 
@@ -110,10 +113,14 @@ jobs:
           context: .
           file: ./server/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
           provenance: mode=min
           sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-and-push-image-frontend:
     runs-on: ubuntu-latest
@@ -127,21 +134,24 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
 
@@ -151,10 +161,14 @@ jobs:
           context: .
           file: ./frontend/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
           provenance: mode=min
           sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             REACT_APP_INSIGHTS_PROJECT_ID=${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
             REACT_APP_HOST_BACKEND=${{ vars.REACT_APP_HOST_BACKEND || secrets.REACT_APP_HOST_BACKEND }}
