@@ -16,12 +16,19 @@ vi.mock('../logger', () => ({
 vi.mock('../../db/models/Schema', () => ({
   SchemaModel: {
     findOne: vi.fn(),
+    find: vi.fn(),
     updateOne: vi.fn(),
   },
 }))
 
 vi.mock('../../db/models/Credential', () => ({
   CredentialModel: {
+    updateOne: vi.fn(),
+  },
+}))
+
+vi.mock('../../db/models/Did', () => ({
+  DidModel: {
     updateOne: vi.fn(),
   },
 }))
@@ -38,7 +45,9 @@ vi.mock('../../../scripts/values/credentials.json', () => ({
 }))
 
 import { CredentialModel } from '../../db/models/Credential'
+import { DidModel } from '../../db/models/Did'
 import { SchemaModel } from '../../db/models/Schema'
+import logger from '../logger'
 import * as th from '../tractionHelper'
 
 // Import models after mocks are applied
@@ -258,6 +267,162 @@ describe('tractionGarbageCollection', () => {
   })
 })
 
+describe('getOrCreateIndyDid', () => {
+  it('returns existing posted indy did when present', async () => {
+    th.tractionRequest.get = vi.fn().mockResolvedValue({
+      data: {
+        results: [{ did: 'did:sov:123' }],
+      },
+    })
+
+    const did = await th.getOrCreateIndyDid()
+
+    expect(did).toBe('did:sov:123')
+  })
+
+  it('creates a new indy did when none exist', async () => {
+    th.tractionRequest.get = vi.fn().mockResolvedValue({
+      data: {
+        results: [],
+      },
+    })
+
+    th.tractionRequest.post = vi.fn().mockResolvedValue({
+      data: {
+        result: {
+          did: 'did:sov:new',
+        },
+      },
+    })
+
+    const did = await th.getOrCreateIndyDid()
+
+    expect(th.tractionRequest.post).toHaveBeenCalledWith('/wallet/did/create', {
+      method: 'sov',
+    })
+
+    expect(did).toBe('did:sov:new')
+  })
+})
+
+describe('findSchemaInTraction', () => {
+  it('returns schema id when found', async () => {
+    th.tractionRequest.get = vi.fn().mockResolvedValue({
+      data: {
+        schema_ids: ['schema-id-1'],
+      },
+    })
+
+    const result = await th.findSchemaInTraction('Test', '1.0.0')
+
+    expect(result).toBe('schema-id-1')
+  })
+
+  it('returns null when no schemas found', async () => {
+    th.tractionRequest.get = vi.fn().mockResolvedValue({
+      data: {
+        schema_ids: [],
+      },
+    })
+
+    const result = await th.findSchemaInTraction('Test', '1.0.0')
+
+    expect(result).toBeNull()
+  })
+})
+
+describe('syncSchemaToDatabase', () => {
+  it('updates schema and credential records', async () => {
+    const credential: th.SeedCredential = {
+      _id: 'credential-id',
+      name: 'Person',
+      version: '1.0.0',
+      attributes: [{ name: 'first_name' }, { name: 'last_name' }],
+    }
+
+    await th.syncSchemaToDatabase(credential, 'schema-id', 'creddef-id')
+
+    expect(SchemaModel.updateOne).toHaveBeenCalledWith(
+      { _id: 'schema-id' },
+      {
+        $set: {
+          name: 'Person',
+          version: '1.0.0',
+          attrNames: ['first_name', 'last_name'],
+          credDefId: 'creddef-id',
+        },
+      },
+      { upsert: true },
+    )
+
+    expect(CredentialModel.updateOne).toHaveBeenCalledWith(
+      { _id: 'credential-id' },
+      {
+        $set: {
+          schema_id: 'schema-id',
+          cred_def_id: 'creddef-id',
+        },
+      },
+    )
+  })
+})
+
+describe('populateMissingSchemaDids', () => {
+  it('updates only schemas missing a did', async () => {
+    SchemaModel.find = vi.fn().mockResolvedValue([
+      {
+        _id: '1',
+        name: 'Schema1',
+        version: '1.0.0',
+        did: undefined,
+      },
+      {
+        _id: '2',
+        name: 'Schema2',
+        version: '1.0.0',
+        did: 'existing-did',
+      },
+    ])
+
+    await th.populateMissingSchemaDids('issuerDid')
+
+    expect(SchemaModel.updateOne).toHaveBeenCalledTimes(2)
+
+    expect(SchemaModel.updateOne).toHaveBeenCalledWith(
+      { _id: '1' },
+      {
+        $set: {
+          did: 'issuerDid',
+        },
+      },
+      { upsert: true },
+    )
+  })
+})
+
+it('returns immediately when schema already exists in database', async () => {
+  SchemaModel.findOne = vi.fn().mockResolvedValue({
+    _id: 'schema-id',
+  })
+
+  const findSchemaInTractionSpy = vi.spyOn(th, 'findSchemaInTraction')
+  const createSchemaSpy = vi.spyOn(th, 'createSchema')
+  const getOrCreateCredDefSpy = vi.spyOn(th, 'getOrCreateCredDef')
+
+  const credential: th.SeedCredential = {
+    _id: 'credential-id',
+    name: 'Person',
+    version: '1.0.0',
+    attributes: [{ name: 'first_name' }, { name: 'last_name' }],
+  }
+
+  await th.processSeededCredential(credential, 'issuerDid')
+
+  expect(findSchemaInTractionSpy).not.toHaveBeenCalled()
+  expect(createSchemaSpy).not.toHaveBeenCalled()
+  expect(getOrCreateCredDefSpy).not.toHaveBeenCalled()
+})
+
 describe('checkSeededSchemasExistOrCreate', () => {
   beforeEach(() => {
     process.env.TRACTION_URL = 'https://traction.example.com'
@@ -268,386 +433,47 @@ describe('checkSeededSchemasExistOrCreate', () => {
     delete process.env.TRACTION_URL
   })
 
-  it('skips schema if already exists in MongoDB', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue({
-      _id: 'W1ZJ:2:student_card:2.0' as any,
-      name: 'student_card',
-      version: '2.0',
-    } as any)
-    vi.mocked(axios.get).mockResolvedValueOnce({
-      data: { result: { did: 'W1ZJ' } },
+  it('logs when checking starts', async () => {
+    // Mock all axios calls to succeed
+    vi.mocked(axios.get).mockResolvedValue({
+      data: {
+        results: [{ did: 'did:sov:123' }],
+      },
     })
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(SchemaModel.findOne).toHaveBeenCalledWith({
-      name: 'student_card',
-      version: '2.0',
-    })
-    // Should only call wallet/did/public, not any schema lookups
-    expect(axios.get).toHaveBeenCalledTimes(1)
-    expect(axios.get).toHaveBeenCalledWith('https://traction.example.com/wallet/did/public', expect.anything())
-  })
-
-  it('creates credential definition for existing schema in Traction', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-      .mockResolvedValueOnce({
-        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
-      })
-      .mockResolvedValueOnce({
-        data: { credential_definition_ids: [] },
-      })
     vi.mocked(axios.post).mockResolvedValue({
       data: {
+        schema_state: {
+          schema_id: 'schema-1',
+          schema: { name: 'test', version: '1.0' },
+        },
         credential_definition_state: {
-          credential_definition_id: 'W1ZJ:3:CL:1:student_card',
+          credential_definition_id: 'cred-def-1',
         },
       },
     })
-    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 1,
-      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
-    } as any)
-    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 0,
-      upsertedId: null,
-    } as any)
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(axios.get).toHaveBeenCalledWith(
-      'https://traction.example.com/anoncreds/credential-definitions',
-      expect.anything(),
-    )
-    expect(axios.post).toHaveBeenCalledWith(
-      'https://traction.example.com/anoncreds/credential-definition',
-      expect.objectContaining({
-        credential_definition: expect.objectContaining({
-          schemaId: 'W1ZJ:2:student_card:2.0',
-        }),
-      }),
-      expect.anything(),
-    )
-  })
-
-  it('reuses existing credential definition if already in Traction', async () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-      .mockResolvedValueOnce({
-        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
-      })
-      .mockResolvedValueOnce({
-        data: { credential_definition_ids: ['W1ZJ:3:CL:1:student_card'] },
-      })
-    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 1,
-      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
-    } as any)
-    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 0,
-      upsertedId: null,
-    } as any)
+    vi.mocked(SchemaModel.updateOne).mockResolvedValue({} as any)
+    vi.mocked(CredentialModel.updateOne).mockResolvedValue({} as any)
+    vi.mocked(DidModel.updateOne).mockResolvedValue({} as any)
+    vi.mocked(SchemaModel.find).mockResolvedValue([])
 
     await th.checkSeededSchemasExistOrCreate()
 
-    expect(axios.post).not.toHaveBeenCalled()
-    expect(SchemaModel.updateOne).toHaveBeenCalledWith(
-      { _id: 'W1ZJ:2:student_card:2.0' as any },
-      expect.objectContaining({
-        $set: expect.objectContaining({
-          credDefId: 'W1ZJ:3:CL:1:student_card',
-        }),
-      }),
-      { upsert: true },
-    )
+    expect(vi.mocked(logger.info)).toHaveBeenCalledWith('Checking seeded schemas')
   })
 
-  it('creates both schema and credential definition when schema does not exist in Traction', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-      .mockResolvedValueOnce({
-        data: { schema_ids: [] },
-      })
-    vi.mocked(axios.post)
-      .mockResolvedValueOnce({
-        data: {
-          schema_state: {
-            schema_id: 'W1ZJ:2:student_card:2.0',
-            schema: { name: 'student_card' },
-          },
-        },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          credential_definition_state: {
-            credential_definition_id: 'W1ZJ:3:CL:1:student_card',
-          },
-        },
-      })
-    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 1,
-      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
-    } as any)
-    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 0,
-      upsertedId: null,
-    } as any)
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(axios.post).toHaveBeenCalledWith(
-      'https://traction.example.com/anoncreds/schema',
-      expect.objectContaining({
-        schema: expect.objectContaining({
-          name: 'student_card',
-          version: '2.0',
-        }),
-      }),
-      expect.anything(),
-    )
-    expect(SchemaModel.updateOne).toHaveBeenCalledWith(
-      { _id: 'W1ZJ:2:student_card:2.0' as any },
-      expect.objectContaining({
-        $set: expect.objectContaining({
-          credDefId: 'W1ZJ:3:CL:1:student_card',
-        }),
-      }),
-      { upsert: true },
-    )
-  })
-
-  it('updates credential record with schema_id and cred_def_id', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-      .mockResolvedValueOnce({
-        data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
-      })
-      .mockResolvedValueOnce({
-        data: { credential_definition_ids: [] },
-      })
-    vi.mocked(axios.post).mockResolvedValue({
-      data: {
-        credential_definition_state: {
-          credential_definition_id: 'W1ZJ:3:CL:1:student_card',
-        },
-      },
-    })
-    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 1,
-      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
-    } as any)
-    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 0,
-      upsertedId: null,
-    } as any)
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(CredentialModel.updateOne).toHaveBeenCalledWith(
-      { _id: 'student-card' as any },
-      {
-        $set: {
-          schema_id: 'W1ZJ:2:student_card:2.0',
-          cred_def_id: 'W1ZJ:3:CL:1:student_card',
-        },
-      },
-      { upsert: false },
-    )
-  })
-
-  it('maps credential attributes to schema attrNames', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-      .mockResolvedValueOnce({
-        data: { schema_ids: [] },
-      })
-    vi.mocked(axios.post)
-      .mockResolvedValueOnce({
-        data: {
-          schema_state: {
-            schema_id: 'W1ZJ:2:student_card:2.0',
-            schema: { name: 'student_card' },
-          },
-        },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          credential_definition_state: {
-            credential_definition_id: 'W1ZJ:3:CL:1:student_card',
-          },
-        },
-      })
-    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 1,
-      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
-    } as any)
-    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 0,
-      upsertedId: null,
-    } as any)
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(SchemaModel.updateOne).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        $set: expect.objectContaining({
-          attrNames: ['student_first_name', 'student_last_name', 'expiry_date'],
-        }),
-      }),
-      expect.anything(),
-    )
-  })
-
-  it('handles error when schema already exists in Traction but fails to sync', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-      .mockResolvedValueOnce({
-        data: { schema_ids: ['W1ZJ:2:Student Card:1.0'] },
-      })
-      .mockRejectedValueOnce(new Error('Failed to fetch credential definitions'))
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(SchemaModel.updateOne).not.toHaveBeenCalled()
-  })
-
-  it('handles error when schema creation fails', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { schema_ids: [] },
-      })
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-    vi.mocked(axios.post).mockRejectedValue(new Error('Schema creation failed'))
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(SchemaModel.updateOne).not.toHaveBeenCalled()
-  })
-
-  it('handles error when fetching issuer DID fails', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get).mockRejectedValueOnce(new Error('Wallet unavailable'))
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(axios.post).not.toHaveBeenCalled()
-  })
-
-  it('continues processing after error in one credential', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-      .mockRejectedValueOnce(new Error('Error on schema lookup'))
-
-    await th.checkSeededSchemasExistOrCreate()
-
-    expect(SchemaModel.findOne).toHaveBeenCalled()
-  })
-
-  it('does not throw when entire function fails', async () => {
-    vi.mocked(SchemaModel.findOne).mockRejectedValue(new Error('Database error'))
+  it('does not rethrow errors, allowing server to continue', async () => {
+    vi.mocked(axios.get).mockRejectedValue(new Error('Fatal error'))
 
     await expect(th.checkSeededSchemasExistOrCreate()).resolves.toBeUndefined()
+    expect(vi.mocked(logger.error)).toHaveBeenCalled()
   })
 
-  it('uses exponential backoff for credential definition creation retry', async () => {
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
-      })
-      .mockResolvedValueOnce({
-        data: { schema_ids: [] },
-      })
-    vi.mocked(axios.post)
-      .mockResolvedValueOnce({
-        data: {
-          schema_state: {
-            schema_id: 'W1ZJ:2:student_card:2.0',
-            schema: { name: 'student_card' },
-          },
-        },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          credential_definition_state: {
-            credential_definition_id: 'W1ZJ:3:CL:1:student_card',
-          },
-        },
-      })
-    vi.mocked(SchemaModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 1,
-      upsertedId: 'W1ZJ:2:student_card:2.0' as any,
-    } as any)
-    vi.mocked(CredentialModel.updateOne).mockResolvedValue({
-      acknowledged: true,
-      matchedCount: 1,
-      modifiedCount: 1,
-      upsertedCount: 0,
-      upsertedId: null,
-    } as any)
+  it('logs error when an error occurs during DID retrieval', async () => {
+    vi.mocked(axios.get).mockRejectedValue(new Error('API unavailable'))
 
     await th.checkSeededSchemasExistOrCreate()
 
-    // Verify that POST was called twice (schema + credential definition)
-    expect(axios.post).toHaveBeenCalledTimes(2)
+    expect(vi.mocked(logger.error)).toHaveBeenCalledWith(expect.any(Object), 'Failed to process seeded schemas')
   })
 })

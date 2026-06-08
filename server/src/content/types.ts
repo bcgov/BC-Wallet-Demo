@@ -23,10 +23,21 @@ export interface Schema {
   version: string
   attrNames: string[]
   credDefId?: string
+  did?: string
+  method?: string
 }
 
 // Input shape for the create schema API. id is derived from the Traction response server-side.
 export type CreateSchemaInput = Omit<Schema, 'id'>
+
+export interface Did {
+  id: string
+  did: string
+  method: string
+}
+
+// Input shape for the create DID API. id is auto-generated server-side.
+export type CreateDidInput = Omit<Did, 'id'>
 
 export interface IntroductionStep {
   screenId: string

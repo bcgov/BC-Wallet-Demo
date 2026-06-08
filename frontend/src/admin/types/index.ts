@@ -102,6 +102,11 @@ export interface Showcase {
   revocationInfo?: RevocationInfoItem[]
   credentials: Credential[]
 }
+export interface Did {
+  id: string
+  did: string
+  method: string
+}
 
 export interface Schema {
   id: string
@@ -109,4 +114,5 @@ export interface Schema {
   version: string
   attrNames: string[]
   credDefId?: string
+  did: Did
 }

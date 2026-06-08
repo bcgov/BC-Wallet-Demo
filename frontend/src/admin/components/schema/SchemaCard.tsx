@@ -1,6 +1,6 @@
 import type { Schema } from '../../types'
 
-import { IdentificationIcon } from '@heroicons/react/24/outline'
+import { IdentificationIcon, CircleStackIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 
 interface SchemaCardProps {
   schema: Schema
@@ -18,6 +18,11 @@ export function SchemaCard({ schema: schema }: SchemaCardProps) {
         <div className="flex-1">
           <p className="text-base font-semibold text-bcgov-black">{schema.name}</p>
           <p className="text-xs text-gray-500 font-medium">v{schema.version}</p>
+        </div>
+        <div className="flex-shrink-0 inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-full px-3 py-1">
+          {schema.did.method === 'indy' && <CircleStackIcon className="h-4 w-4 text-bcgov-blue" />}
+          {schema.did.method === 'webvh' && <GlobeAltIcon className="h-4 w-4 text-bcgov-blue" />}
+          <span className="text-xs font-medium text-bcgov-blue">{schema.did.method}</span>
         </div>
       </div>
 

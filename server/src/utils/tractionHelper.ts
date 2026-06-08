@@ -1,9 +1,11 @@
 import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 import axios from 'axios'
+import { v4 as uuidv4 } from 'uuid'
 
 import credentialsSeed from '../../scripts/values/credentials.json'
 import { CredentialModel } from '../db/models/Credential'
+import { DidModel } from '../db/models/Did'
 import { SchemaModel } from '../db/models/Schema'
 
 import logger from './logger'
@@ -174,137 +176,218 @@ export const tractionGarbageCollection = async () => {
   )
 }
 
-export const checkSeededSchemasExistOrCreate = async () => {
-  try {
-    // Iterate through seeded credentials and log their name and version
-    const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
+export interface SeedCredential {
+  _id: string
+  name: string
+  version: string
+  attributes: SeedCredentialAttribute[]
 
-    for (const credential of credentialsSeed) {
-      logger.info(`Schema ${credential.name} v${credential.version} Checking seeded schema existence`)
+  // populated later
+  schema_id?: string
+  cred_def_id?: string
+}
 
-      // First check if schema already exists in MongoDB
-      const existingSchema = await SchemaModel.findOne({
+export interface SeedCredentialAttribute {
+  name: string
+}
+
+export async function getOrCreateIndyDid(): Promise<string> {
+  const results = (
+    await tractionRequest.get('/wallet/did', {
+      params: {
+        method: 'sov',
+        posture: 'posted',
+      },
+    })
+  ).data.results
+
+  if (results?.length) {
+    return results[0].did
+  }
+
+  logger.info('No posted Indy DID found, creating one')
+
+  return (
+    await tractionRequest.post('/wallet/did/create', {
+      method: 'sov',
+    })
+  ).data.result.did
+}
+
+export async function getOrCreateWebvhDid(): Promise<string> {
+  const results = (
+    await tractionRequest.get('/wallet/did', {
+      params: {
+        method: 'webvh',
+        posture: 'posted',
+      },
+    })
+  ).data.results
+
+  if (results?.length) {
+    return results[0].did
+  }
+
+  return (
+    await tractionRequest.post('/did/webvh/create', {
+      options: {
+        server_url: 'https://sandbox.bcvh.vonx.io',
+        namespace: 'showcase',
+        identifier: uuidv4(),
+      },
+    })
+  ).data.state.id
+}
+
+export async function ensureDidInDatabase(did: string, method: 'indy' | 'webvh'): Promise<void> {
+  await DidModel.updateOne(
+    { _id: did },
+    {
+      $setOnInsert: {
+        did,
+        method,
+      },
+    },
+    { upsert: true },
+  )
+}
+
+export async function findSchemaInTraction(name: string, version: string): Promise<string | null> {
+  const schemaIds = (
+    await tractionRequest.get('/anoncreds/schemas', {
+      params: {
+        schema_name: name,
+        schema_version: version,
+      },
+    })
+  ).data.schema_ids
+
+  return schemaIds[0] ?? null
+}
+
+export async function getOrCreateCredDef(issuerDid: string, schemaId: string, schemaName: string): Promise<string> {
+  const credDefs = (
+    await tractionRequest.get('/anoncreds/credential-definitions', {
+      params: {
+        schema_id: schemaId,
+      },
+    })
+  ).data.credential_definition_ids
+
+  if (credDefs?.length) {
+    return credDefs[0]
+  }
+
+  return createCredentialDefinition(issuerDid, schemaId, schemaName)
+}
+
+export async function syncSchemaToDatabase(credential: SeedCredential, schemaId: string, credDefId: string) {
+  await SchemaModel.updateOne(
+    { _id: schemaId },
+    {
+      $set: {
         name: credential.name,
         version: credential.version,
-      })
+        attrNames: credential.attributes.map((a) => a.name),
+        credDefId,
+      },
+    },
+    { upsert: true },
+  )
 
-      if (existingSchema) {
-        logger.info(`Schema ${credential.name} v${credential.version} Already exists in database`)
-        continue
-      }
+  await CredentialModel.updateOne(
+    { _id: credential._id },
+    {
+      $set: {
+        schema_id: schemaId,
+        cred_def_id: credDefId,
+      },
+    },
+  )
+}
 
-      // Schema doesn't exist in MongoDB, make sure cred def is available in traction and create in MongoDB
-      const schemas = (
-        await tractionRequest.get('/anoncreds/schemas', {
-          params: {
-            schema_name: credential.name,
-            schema_version: credential.version,
+export async function createSchema(credential: SeedCredential, issuerDid: string): Promise<string> {
+  const response = await tractionRequest.post('/anoncreds/schema', {
+    schema: {
+      name: credential.name,
+      version: credential.version,
+      attrNames: credential.attributes.map((a) => a.name),
+      issuerId: issuerDid,
+    },
+  })
+
+  await new Promise((resolve) => setTimeout(resolve, 2000))
+
+  return response.data.schema_state.schema_id
+}
+
+export async function processSeededCredential(credential: SeedCredential, issuerDid: string) {
+  const existingSchema = await SchemaModel.findOne({
+    name: credential.name,
+    version: credential.version,
+  })
+
+  if (existingSchema) {
+    logger.info(`Schema ${credential.name} v${credential.version} already exists`)
+    return
+  }
+
+  let schemaId = await findSchemaInTraction(credential.name, credential.version)
+
+  if (!schemaId) {
+    logger.info(`Schema ${credential.name} v${credential.version} creating`)
+
+    schemaId = await createSchema(credential, issuerDid)
+  }
+
+  const credDefId = await getOrCreateCredDef(issuerDid, schemaId, credential.name)
+
+  await syncSchemaToDatabase(credential, schemaId, credDefId)
+}
+
+export async function populateMissingSchemaDids(issuerDid: string) {
+  // Add the indy issuer DID to any schemas in the database that are missing a DID,
+  // to ensure all schemas have an associated issuer DID for credential issuance
+  const allSchemas = await SchemaModel.find()
+  for (const schema of allSchemas) {
+    if (!schema.did) {
+      logger.info(`Schema ${schema.name} v${schema.version} has no DID, adding issuer DID`)
+      await SchemaModel.updateOne(
+        { _id: schema._id },
+        {
+          $set: {
+            did: issuerDid,
           },
-        } as any)
-      ).data.schema_ids
+        },
+        { upsert: true },
+      )
+    }
+  }
+}
 
-      if (schemas.length > 0) {
-        logger.info(`Schema ${credential.name} v${credential.version} Seeded schema already exists`)
-        try {
-          const schemaId = schemas[0]
-          // Try to find existing credential definition or create one
-          const credDefs = (
-            await tractionRequest.get('/anoncreds/credential-definitions', {
-              params: {
-                schema_id: schemaId,
-              },
-            } as any)
-          ).data.credential_definition_ids
+// This requires that the endorsement connections have been set up for the traction tenant beforehand,
+// and that the tenant has permissions to create schemas and credential definitions.
+// It will check for the existence of the seeded schemas in Traction and MongoDB,
+// and create any that are missing from either place, ensuring that the seeded schemas are available for issuance and listed in the admin UI.
+export const checkSeededSchemasExistOrCreate = async () => {
+  try {
+    logger.info('Checking seeded schemas')
 
-          let credDefId = credDefs?.[0]
-          if (!credDefId) {
-            logger.info(
-              `Schema ${credential.name} v${credential.version} Creating credential definition for existing schema`,
-            )
-            credDefId = await createCredentialDefinition(issuerDid, schemaId, credential.name)
-          }
+    const indyDid = await getOrCreateIndyDid()
+    const webvhDid = await getOrCreateWebvhDid()
 
-          // Save schema to MongoDB
-          await SchemaModel.updateOne(
-            { _id: schemaId },
-            {
-              $set: {
-                name: credential.name,
-                version: credential.version,
-                attrNames: credential.attributes.map((attr: any) => attr.name),
-                credDefId,
-              },
-            },
-            { upsert: true },
-          )
+    await ensureDidInDatabase(indyDid, 'indy')
+    await ensureDidInDatabase(webvhDid, 'webvh')
 
-          // Update Credential with schema_id and credDefId
-          await CredentialModel.updateOne(
-            { _id: credential._id },
-            {
-              $set: { schema_id: schemaId, cred_def_id: credDefId },
-            },
-            { upsert: false },
-          )
-          logger.info(`Schema ${credential.name} v${credential.version} Seeded schema synced to database`)
-        } catch (err) {
-          logger.error(
-            safeAxiosError(err),
-            `Schema ${credential.name} v${credential.version} Failed to sync existing schema to database`,
-          )
-        }
-      } else {
-        // Schema doesn't exist in Traction, create both schema and credential definition and add to MongoDB, also update Credential with schema_id and cred_def_id
-        try {
-          logger.info(`Schema ${credential.name} v${credential.version} Creating seeded schema`)
-          const createSchemaPayload = {
-            name: credential.name,
-            version: credential.version,
-            attrNames: credential.attributes.map((attr: any) => attr.name),
-            issuerId: issuerDid,
-          }
-          logger.debug({ createSchemaPayload }, 'Creating schema with payload')
-          const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
-
-          // Wait briefly to allow schema to be fully available in Traction before creating credential definition
-          await new Promise((r) => setTimeout(r, 2000))
-
-          const schemaId = response.data.schema_state.schema_id
-          const credDefId = await createCredentialDefinition(
-            issuerDid,
-            schemaId,
-            response.data.schema_state.schema.name,
-          )
-          // Save schema to MongoDB
-          await SchemaModel.updateOne(
-            { _id: schemaId },
-            {
-              $set: {
-                name: credential.name,
-                version: credential.version,
-                attrNames: credential.attributes.map((attr: any) => attr.name),
-                credDefId,
-              },
-            },
-            { upsert: true },
-          )
-          // Update Credential with schema_id and credDefId
-          await CredentialModel.updateOne(
-            { _id: credential._id },
-            {
-              $set: { schema_id: schemaId, cred_def_id: credDefId },
-            },
-            { upsert: false },
-          )
-          logger.info(`Schema ${credential.name} v${credential.version} Seeded schema created successfully`)
-        } catch (err) {
-          logger.error(
-            safeAxiosError(err),
-            `Schema ${credential.name} v${credential.version} Failed to create seeded schema or credential definition`,
-          )
-        }
+    for (const credential of credentialsSeed) {
+      try {
+        await processSeededCredential(credential, indyDid)
+      } catch (err) {
+        logger.error(safeAxiosError(err), `Failed processing ${credential.name}`)
       }
     }
+
+    await populateMissingSchemaDids(indyDid)
   } catch (err) {
     logger.error(safeAxiosError(err), 'Failed to process seeded schemas')
   }

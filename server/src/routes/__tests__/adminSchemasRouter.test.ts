@@ -18,9 +18,16 @@ const { mocks } = vi.hoisted(() => {
   return {
     mocks: {
       mockSchemaModel: {
-        find: vi.fn(),
+        find: vi.fn().mockReturnValue({
+          lean: vi.fn().mockResolvedValue([]),
+        }),
         updateOne: vi.fn(),
         findById: vi.fn().mockResolvedValue(null),
+      },
+      mockDidModel: {
+        findById: vi.fn().mockReturnValue({
+          lean: vi.fn().mockResolvedValue(null),
+        }),
       },
       mockTractionRequest: {
         get: vi.fn(),
@@ -36,6 +43,10 @@ const { mocks } = vi.hoisted(() => {
 
 vi.mock('../../db/models/Schema', () => ({
   SchemaModel: mocks.mockSchemaModel,
+}))
+
+vi.mock('../../db/models/Did', () => ({
+  DidModel: mocks.mockDidModel,
 }))
 
 vi.mock('../../utils/tractionHelper', () => ({
@@ -80,7 +91,9 @@ describe('adminSchemasRouter', () => {
 
   describe('GET /admin/schemas', () => {
     it('returns 200 with schemas array', async () => {
-      mocks.mockSchemaModel.find.mockResolvedValue([mockSchema])
+      mocks.mockSchemaModel.find.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([mockSchema]),
+      })
 
       const res = await request(app).get('/admin/schemas')
 
@@ -91,7 +104,9 @@ describe('adminSchemasRouter', () => {
     })
 
     it('returns 200 with empty array when no schemas exist', async () => {
-      mocks.mockSchemaModel.find.mockResolvedValue([])
+      mocks.mockSchemaModel.find.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([]),
+      })
 
       const res = await request(app).get('/admin/schemas')
 
@@ -102,7 +117,9 @@ describe('adminSchemasRouter', () => {
 
     it('returns 200 with multiple schemas', async () => {
       const schema2 = { ...mockSchema, _id: 'W1ZJ:2:Employee Card:1.0', name: 'Employee Card' }
-      mocks.mockSchemaModel.find.mockResolvedValue([mockSchema, schema2])
+      mocks.mockSchemaModel.find.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([mockSchema, schema2]),
+      })
 
       const res = await request(app).get('/admin/schemas')
 
@@ -111,7 +128,9 @@ describe('adminSchemasRouter', () => {
     })
 
     it('returns 500 when database query fails', async () => {
-      mocks.mockSchemaModel.find.mockRejectedValue(new Error('Database connection error'))
+      mocks.mockSchemaModel.find.mockReturnValue({
+        lean: vi.fn().mockRejectedValue(new Error('Database connection error')),
+      })
 
       const res = await request(app).get('/admin/schemas')
 
@@ -120,7 +139,9 @@ describe('adminSchemasRouter', () => {
     })
 
     it('calls SchemaModel.find()', async () => {
-      mocks.mockSchemaModel.find.mockResolvedValue([])
+      mocks.mockSchemaModel.find.mockReturnValue({
+        lean: vi.fn().mockResolvedValue([]),
+      })
 
       await request(app).get('/admin/schemas')
 
@@ -134,6 +155,7 @@ describe('adminSchemasRouter', () => {
 
   describe('POST /admin/schemas', () => {
     const schemaPayload = {
+      did: mockIssuerDid,
       name: 'Driver License',
       version: '2.0',
       attrNames: ['name', 'address', 'license_number'],
@@ -184,20 +206,6 @@ describe('adminSchemasRouter', () => {
       expect(res.body).toHaveProperty('version', '2.0')
       expect(res.body).toHaveProperty('attrNames')
       expect(res.body).toHaveProperty('credDefId', 'W1ZJ:3:CL:123:Driver License')
-    })
-
-    it('fetches issuer DID from Traction wallet', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockResolvedValue({})
-
-      await request(app).post('/admin/schemas').send(schemaPayload)
-
-      expect(mocks.mockTractionRequest.get).toHaveBeenCalledWith('/wallet/did/public')
     })
 
     it('creates schema in Traction with correct payload', async () => {
@@ -270,9 +278,6 @@ describe('adminSchemasRouter', () => {
     })
 
     it('saves schema to MongoDB with upsert', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
@@ -290,6 +295,7 @@ describe('adminSchemasRouter', () => {
             version: '2.0',
             attrNames: ['name', 'address', 'license_number'],
             credDefId: 'W1ZJ:3:CL:123:Driver License',
+            did: mockIssuerDid,
           },
         },
         { upsert: true },
@@ -373,43 +379,50 @@ describe('adminSchemasRouter', () => {
     })
 
     it('returns 500 when fetching issuer DID fails', async () => {
-      mocks.mockTractionRequest.get.mockRejectedValue(new Error('Traction API error'))
+      // The router now uses req.body.did directly, so verify that a missing did causes an error
+      const payloadWithoutDid = {
+        name: 'Driver License',
+        version: '2.0',
+        attrNames: ['name', 'address', 'license_number'],
+      }
 
-      const res = await request(app).post('/admin/schemas').send(schemaPayload)
+      // Mock the post to reject when issuerId is undefined
+      mocks.mockTractionRequest.post.mockImplementation((url: string, data: any) => {
+        if (url === '/anoncreds/schema' && data.schema.issuerId === undefined) {
+          return Promise.reject(new Error('issuerId is required'))
+        }
+        return Promise.resolve(tractionSchemaResponse)
+      })
+
+      const res = await request(app).post('/admin/schemas').send(payloadWithoutDid)
 
       expect(res.status).toBe(500)
-      expect(res.body).toHaveProperty('error', 'Failed to create schema and cred def in Traction')
     })
 
     it('returns 500 when creating schema in Traction fails', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
       mocks.mockTractionRequest.post.mockRejectedValue(new Error('Schema creation failed'))
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
       expect(res.status).toBe(500)
-      expect(res.body).toHaveProperty('error', 'Failed to create schema and cred def in Traction')
+      expect(res.body).toHaveProperty('error')
+      expect(res.body.error).toContain('Failed to create schema and cred def in Traction')
+      expect(res.body.error).toContain('Schema creation failed')
     })
 
     it('returns 500 when creating credential definition fails', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockRejectedValue(new Error('Credential def creation failed'))
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
       expect(res.status).toBe(500)
-      expect(res.body).toHaveProperty('error', 'Failed to create schema and cred def in Traction')
+      expect(res.body).toHaveProperty('error')
+      expect(res.body.error).toContain('Failed to create schema and cred def in Traction')
+      expect(res.body.error).toContain('Credential def creation failed')
     })
 
     it('returns 500 when saving to MongoDB fails', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
       mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
       mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockRejectedValue(new Error('MongoDB error'))
@@ -417,7 +430,9 @@ describe('adminSchemasRouter', () => {
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
       expect(res.status).toBe(500)
-      expect(res.body).toHaveProperty('error', 'Failed to create schema and cred def in Traction')
+      expect(res.body).toHaveProperty('error')
+      expect(res.body.error).toContain('Failed to create schema and cred def in Traction')
+      expect(res.body.error).toContain('MongoDB error')
     })
 
     it('continues on audit log error', async () => {
