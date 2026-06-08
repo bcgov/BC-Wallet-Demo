@@ -149,6 +149,7 @@ describe('credentialsSlice reducers', () => {
           cred_issue: {
             anoncreds: {
               cred_def_id: 'ISSUER123:3:CL:100:CredentialName',
+              schema_id: 'schema-1',
             },
           },
         },
@@ -157,7 +158,7 @@ describe('credentialsSlice reducers', () => {
         revocation_id: 'rev-1',
       }),
     )
-    expect(store.getState().credentials.issuedCredentials).toContain('CredentialName')
+    expect(store.getState().credentials.issuedCredentials).toContain('schema-1')
   })
 
   it('setCredential does not add a duplicate credName', () => {
@@ -167,6 +168,7 @@ describe('credentialsSlice reducers', () => {
         cred_issue: {
           anoncreds: {
             cred_def_id: 'ISSUER123:3:CL:100:MyCredential',
+            schema_id: 'schema-1',
           },
         },
       },
@@ -176,7 +178,7 @@ describe('credentialsSlice reducers', () => {
     }
     store.dispatch(setCredential(payload))
     store.dispatch(setCredential(payload))
-    const names = store.getState().credentials.issuedCredentials.filter((n) => n === 'MyCredential')
+    const names = store.getState().credentials.issuedCredentials.filter((n) => n === 'schema-1')
     expect(names).toHaveLength(1)
   })
 
