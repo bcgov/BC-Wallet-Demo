@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Local composite actions require the repo on disk before `uses: ./.github/actions/...` resolves.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - uses: ./.github/actions/showcase-helm-lint
         with:

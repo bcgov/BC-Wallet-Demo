@@ -77,7 +77,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: ./.github/actions/showcase-build-server
         with:
           image: ${{ env.SHOWCASE_SERVER_IMAGE }}
@@ -95,7 +95,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: ./.github/actions/showcase-build-frontend
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
@@ -112,7 +112,7 @@ jobs:
     # Job-level `if` cannot use `secrets` (GitHub restriction). Verify OpenShift secrets in-step.
     if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.build_server.result == 'success' && needs.build_frontend.result == 'success' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Verify OpenShift secrets for deploy
         env:
@@ -127,7 +127,7 @@ jobs:
 
       - uses: ./.github/actions/showcase-setup-oc-helm
 
-      - uses: redhat-actions/oc-login@v1
+      - uses: redhat-actions/oc-login@5eb45e848b168b6bf6b8fe7f1561003c12e3c99d # v1.3
         with:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
@@ -231,9 +231,9 @@ jobs:
     needs: [ready, deploy]
     if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.deploy.result == 'success' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      - uses: peter-evans/find-comment@v3
+      - uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -242,7 +242,7 @@ jobs:
 
       - name: Create PR deployment comment
         if: steps.fc.outputs.comment-id == ''
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
@@ -255,7 +255,7 @@ jobs:
 
       - name: Update PR deployment comment
         if: steps.fc.outputs.comment-id != ''
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-id: ${{ steps.fc.outputs.comment-id }}
