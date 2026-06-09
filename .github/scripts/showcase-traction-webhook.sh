@@ -95,7 +95,7 @@ case "${action}" in
   remove)
     # Drop only this PR's exact callback URL; other PRs and dev webhooks stay registered.
     removed_count="$(
-      jq --arg url "${pr_webhook_url}" --argjson current "${current_urls}" \
+      jq -n --arg url "${pr_webhook_url}" --argjson current "${current_urls}" \
         '[ $current[] | select(. == $url) ] | length'
     )"
     if [[ "${removed_count}" -eq 0 ]]; then
