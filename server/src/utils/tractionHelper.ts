@@ -231,8 +231,8 @@ export async function getOrCreateWebvhDid(): Promise<string> {
   return (
     await tractionRequest.post('/did/webvh/create', {
       options: {
-        server_url: 'https://sandbox.bcvh.vonx.io',
-        namespace: 'showcase',
+        server_url: process.env.WEBVH_SERVER_URL,
+        namespace: process.env.WEBVH_NAMESPACE,
         identifier: uuidv4(),
       },
     })
