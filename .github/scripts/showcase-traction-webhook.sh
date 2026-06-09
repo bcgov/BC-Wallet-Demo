@@ -82,7 +82,7 @@ fi
 
 case "${action}" in
   add)
-    if jq -e --arg url "${pr_webhook_url}" --argjson current "${current_urls}" \
+    if jq -en --arg url "${pr_webhook_url}" --argjson current "${current_urls}" \
       '($current | index($url)) != null' >/dev/null; then
       echo "PR webhook already registered: ${public_origin}${SHOWCASE_BASE_ROUTE}/demo/whook#***"
       exit 0
