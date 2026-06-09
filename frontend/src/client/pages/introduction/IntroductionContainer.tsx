@@ -60,11 +60,14 @@ export const IntroductionContainer: React.FC<Props> = ({
   const credentials = introStep?.credentials
   const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.name))
 
-  const isBackDisabled = ['PICK_CHARACTER', 'ACCEPT_CREDENTIAL'].includes(introductionStep)
+  const isBackDisabled =
+    introductionStep === 'PICK_CHARACTER' ||
+    introductionStep.startsWith('CONNECT') ||
+    introductionStep.startsWith('ACCEPT')
   const isForwardDisabled =
     (introductionStep.startsWith('CONNECT') && !connectionCompleted) ||
-    (introductionStep === 'ACCEPT_CREDENTIAL' && !credentialsAccepted) ||
-    (introductionStep === 'ACCEPT_CREDENTIAL' && credentials?.length === 0) ||
+    (introductionStep.startsWith('ACCEPT_') && !credentialsAccepted) ||
+    (introductionStep.startsWith('ACCEPT_') && credentials?.length === 0) ||
     (introductionStep === 'PICK_CHARACTER' && !currentShowcase)
 
   const jumpIntroductionPage = () => {
@@ -272,6 +275,8 @@ export const IntroductionContainer: React.FC<Props> = ({
           forwardDisabled={isForwardDisabled}
           backDisabled={isBackDisabled}
           introductionCompleted={introductionCompleted}
+          onExit={leave}
+          showExitButton={introductionStep.startsWith('CONNECT') || introductionStep.startsWith('ACCEPT_')}
         />
       </div>
       {!isMobile && (

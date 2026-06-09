@@ -7,9 +7,10 @@ import { FiArrowLeft } from 'react-icons/fi'
 export interface Props {
   disabled?: boolean
   onClick: MouseEventHandler<HTMLButtonElement>
+  label?: string
 }
 
-export const BackButton: React.FC<Props> = ({ onClick, disabled }) => {
+export const BackButton: React.FC<Props> = ({ onClick, disabled, label }) => {
   return (
     <motion.button
       whileHover={{ opacity: 0.8 }}
@@ -20,7 +21,7 @@ export const BackButton: React.FC<Props> = ({ onClick, disabled }) => {
       <p className="inline text-sm">
         <u></u>
         <FiArrowLeft className="inline h-4 w-6 mb-1" />
-        BACK
+        {label || 'BACK'}
       </p>
     </motion.button>
   )

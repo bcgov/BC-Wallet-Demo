@@ -4,10 +4,10 @@ runs:
   using: composite
   steps:
     # Pin patch version so the installer does not ambiguously pick among many 4.15.* tarballs (and cache keys stay stable).
-    - uses: redhat-actions/openshift-tools-installer@v1
+    - uses: redhat-actions/openshift-tools-installer@144527c7d98999f2652264c048c7a9bd103f8a82 # v1.13.1
       with:
         oc: '4.15.63'
 
-    - uses: azure/setup-helm@v4
+    - uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
       with:
         version: v3.16.3

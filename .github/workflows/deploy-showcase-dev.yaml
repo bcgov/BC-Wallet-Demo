@@ -15,10 +15,9 @@
 #   Secret:
 #     SHOWCASE_DEV_OC_TOKEN      — Service account or user token with permission to
 #                                  helm upgrade/install resources in that namespace
-#   Optional secrets (Traction tenant and webhook; synced to OpenShift Secret `${release}-traction` before Helm):
-#     TRACTION_DEV_TENANT_ID     — Tenant UUID (maps to env TRACTION_TENANT_ID in the pod)
-#     TRACTION_DEV_TENANT_API_KEY — Tenant API key (maps to env TRACTION_TENANT_API_KEY)
-#     WEBHOOK_SECRET_DEV         — Secret for webhook signature verification (maps to env WEBHOOK_SECRET)
+#   Pre-create OpenShift Secret `showcase-traction` in the target namespace (keys TRACTION_TENANT_ID,
+#   TRACTION_TENANT_API_KEY, WEBHOOK_SECRET). Dev and PR deploys reference it via deploy/showcase values.
+#   CI does not create or update that Secret.
 #
 # If SHOWCASE_DEV_OC_URL or SHOWCASE_DEV_NAMESPACE is unset, the Helm deploy job is skipped while
 # image builds still run on bcgov. If both are set but SHOWCASE_DEV_OC_TOKEN is missing, the deploy
@@ -67,7 +66,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: ./.github/actions/showcase-build-server
         with:
           image: ${{ env.SHOWCASE_SERVER_IMAGE }}
@@ -84,7 +83,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: ./.github/actions/showcase-build-frontend
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
@@ -110,7 +109,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Verify OpenShift token is configured
         env:
@@ -139,33 +138,19 @@ jobs:
         env:
           SHOWCASE_DEV_NAMESPACE: ${{ vars.SHOWCASE_DEV_NAMESPACE }}
           SHOWCASE_DEV_HELM_RELEASE: ${{ vars.SHOWCASE_DEV_HELM_RELEASE }}
-          TRACTION_DEV_TENANT_ID: ${{ secrets.TRACTION_DEV_TENANT_ID }}
-          TRACTION_DEV_TENANT_API_KEY: ${{ secrets.TRACTION_DEV_TENANT_API_KEY }}
-          WEBHOOK_SECRET_DEV: ${{ secrets.WEBHOOK_SECRET_DEV }}
         run: |
           set -euo pipefail
           release="${SHOWCASE_DEV_HELM_RELEASE:-showcase}"
           ns="${SHOWCASE_DEV_NAMESPACE}"
-          traction_secret="${release}-traction"
-          helm_args=(
-            -f ../../deploy/showcase/values-dev.yaml
-            --namespace "${ns}"
-            --wait
-            --timeout 15m
-            --atomic
-          )
-          if [[ -n "${TRACTION_DEV_TENANT_ID:-}" && -n "${TRACTION_DEV_TENANT_API_KEY:-}" && -n "${WEBHOOK_SECRET_DEV:-}" ]]; then
-            oc create secret generic "${traction_secret}" \
-              --from-literal=TRACTION_TENANT_ID="${TRACTION_DEV_TENANT_ID}" \
-              --from-literal=TRACTION_TENANT_API_KEY="${TRACTION_DEV_TENANT_API_KEY}" \
-              --from-literal=WEBHOOK_SECRET="${WEBHOOK_SECRET_DEV}" \
-              -n "${ns}" \
-              --dry-run=client -o yaml | oc apply -f -
-            helm_args+=(--set-string "showcase.server.traction.existingSecret=${traction_secret}")
-          else
-            echo '::notice::TRACTION_DEV_TENANT_ID / TRACTION_DEV_TENANT_API_KEY / WEBHOOK_SECRET_DEV not set — not creating traction Secret; set them in repo Actions secrets to enable Traction.'
+          if ! oc get secret showcase-traction -n "${ns}" >/dev/null 2>&1; then
+            echo '::warning::Secret showcase-traction not found in '"${ns}"' — create it before deploy (see deploy/showcase/values-dev.yaml).'
           fi
-          helm upgrade --install "${release}" . "${helm_args[@]}"
+          helm upgrade --install "${release}" . \
+            -f ../../deploy/showcase/values-dev.yaml \
+            --namespace "${ns}" \
+            --wait \
+            --timeout 15m \
+            --atomic
 
       # Same tag (`:main`) can point at a new digest; restart so workloads pull the image we just pushed.
       - name: Rollout restart (pick up new main digest)

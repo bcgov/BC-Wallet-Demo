@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
@@ -59,7 +59,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
@@ -81,7 +81,7 @@ jobs:
       # Cypress: only the Vite dev server is started. cypress.config.ts sets apiUrl to :5000 for
       # specs that hit the API—if CI runs those, also start the server (e.g. concurrently) or align with build_packages.yml (yarn dev).
       - name: Cypress run
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@f790eee7a50d9505912f50c2095510be7de06aa7 # v6.10.9
         with:
           install: false
           start: yarn workspace frontend start
