@@ -2,6 +2,7 @@ export interface RevocationRecord {
   connectionId: string
   revocationRegId: string
   credRevocationId: string
+  issuedCredentialId?: string
 }
 
 export interface Connection {
@@ -55,6 +56,7 @@ export interface Credential {
   }[]
   schema_id?: string
   cred_def_id?: string
+  revocable?: boolean
 }
 
 export interface IntroductionStep {

@@ -1,13 +1,16 @@
 import type { Socket } from 'socket.io'
 
 import { Body, JsonController, Post, Req, UnauthorizedError } from 'routing-controllers'
-import { Service } from 'typedi'
+import { Inject, Service } from 'typedi'
 
+import { RevocationService } from '../services/RevocationService'
 import logger from '../utils/logger'
 
 @JsonController('/whook/topic')
 @Service()
 export class WebhookController {
+  public constructor(@Inject() private revocationService: RevocationService) {}
+
   @Post('/*')
   public async handlePostWhook(@Body() params: any, @Req() req: any) {
     logger.debug({ path: req.path }, 'Webhook payload received')
@@ -29,11 +32,27 @@ export class WebhookController {
       return { message: 'Webhook received' }
     }
 
-    logger.info({ endpoint, connectionId }, 'Webhook received')
+    logger.info({ endpoint, connectionId, state: params.state }, 'Webhook received')
+    if (endpoint === 'issuer_cred_rev') {
+      logger.info({ params }, 'issuer_cred_rev payload')
+    }
+
+    // Persist issued credential and enrich payload with internal ID.
+    // DB write is best-effort: failure logs but does not break webhook flow.
+    // Must happen before socket.emit so issuedCredentialId is in the payload.
+    let payload = params
+    if (endpoint === 'issue_credential_v2_0' && params.state === 'credential-issued') {
+      try {
+        const doc = await this.revocationService.handleCredentialIssued(params)
+        if (doc) payload = { ...params, issuedCredentialId: doc._id }
+      } catch (err) {
+        logger.error(err, 'Failed to persist issued credential from webhook')
+      }
+    }
 
     const socket = socketMap.get(connectionId)
     if (socket) {
-      socket.emit('message', params)
+      socket.emit('message', payload)
       logger.debug({ endpoint, connectionId }, 'Webhook forwarded to socket')
     } else {
       logger.warn({ endpoint, connectionId }, 'No active socket found for connection, webhook not forwarded')

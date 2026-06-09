@@ -6,8 +6,9 @@ import { UnauthorizedError } from 'express-jwt'
 import * as http from 'http'
 import mongoose from 'mongoose'
 import { pinoHttp } from 'pino-http'
-import { createExpressServer } from 'routing-controllers'
+import { createExpressServer, useContainer } from 'routing-controllers'
 import { Server } from 'socket.io'
+import { Container } from 'typedi'
 
 import { connectDB, registerShutdownHandlers } from './db/connection'
 import { serveOobInvitation } from './handlers/serveOobInvitation'
@@ -23,6 +24,8 @@ import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest }
 import { UPLOADS_DIR } from './utils/uploadsDir'
 
 const baseRoute = process.env.BASE_ROUTE
+
+useContainer(Container)
 
 const controllerPattern = __filename.endsWith('.js') ? '/controllers/*.js' : '/controllers/*.ts'
 

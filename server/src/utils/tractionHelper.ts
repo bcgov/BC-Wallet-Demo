@@ -1,3 +1,4 @@
+import type { Credential } from '../content/types'
 import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 import axios from 'axios'
@@ -103,7 +104,12 @@ export const tractionRequest = {
   },
 }
 
-const createCredentialDefinition = async (issuerDid: string, schemaId: string, tag: string): Promise<string> => {
+const createCredentialDefinition = async (
+  issuerDid: string,
+  schemaId: string,
+  tag: string,
+  revocable: boolean = true,
+): Promise<string> => {
   const credDefResponse = await retryWithExponentialBackoff(
     () =>
       tractionRequest.post('/anoncreds/credential-definition', {
@@ -112,10 +118,14 @@ const createCredentialDefinition = async (issuerDid: string, schemaId: string, t
           schemaId: schemaId,
           tag: tag,
         },
-        options: {
-          support_revocation: true,
-          revocation_registry_size: 3000,
-        },
+        options: revocable
+          ? {
+              support_revocation: true,
+              revocation_registry_size: 3000,
+            }
+          : {
+              support_revocation: false,
+            },
       }),
     3,
     1000,
@@ -179,7 +189,7 @@ export const checkSeededSchemasExistOrCreate = async () => {
     // Iterate through seeded credentials and log their name and version
     const issuerDid = (await tractionRequest.get('/wallet/did/public')).data.result.did
 
-    for (const credential of credentialsSeed) {
+    for (const credential of credentialsSeed as (Omit<Credential, 'id'> & { _id: string })[]) {
       logger.info(`Schema ${credential.name} v${credential.version} Checking seeded schema existence`)
 
       // First check if schema already exists in MongoDB
@@ -221,7 +231,12 @@ export const checkSeededSchemasExistOrCreate = async () => {
             logger.info(
               `Schema ${credential.name} v${credential.version} Creating credential definition for existing schema`,
             )
-            credDefId = await createCredentialDefinition(issuerDid, schemaId, credential.name)
+            credDefId = await createCredentialDefinition(
+              issuerDid,
+              schemaId,
+              credential.name,
+              credential?.revocable ?? true,
+            )
           }
 
           // Save schema to MongoDB

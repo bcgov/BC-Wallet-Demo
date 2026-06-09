@@ -15,6 +15,8 @@ export interface LeanCredentialDoc {
   schema_id?: string
   cred_def_id?: string
   status?: 'active' | 'retired'
+  revocable?: boolean
+  cred_def_ids: string[]
 }
 
 // Credential documents use auto-generated UUID _id.
@@ -29,6 +31,7 @@ const CredentialSchema = new Schema(
     schema_id: { type: String },
     cred_def_id: { type: String },
     status: { type: String, enum: ['active', 'retired'], default: 'active' },
+    revocable: { type: Boolean, default: true },
   },
   baseSchemaOptions,
 )

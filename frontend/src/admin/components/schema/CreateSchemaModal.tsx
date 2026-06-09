@@ -23,6 +23,7 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
   const [version, setVersion] = useState('')
   const [attrNames, setAttrNames] = useState<Attribute[]>([])
   const [attributeKey, setAttributeKey] = useState('')
+  const [revocable, setRevocable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [availableSchemas, setAvailableSchemas] = useState<Schema[]>([])
@@ -82,6 +83,7 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
     setVersion('')
     setAttrNames([])
     setAttributeKey('')
+    setRevocable(true)
     setError('')
     onClose()
   }
@@ -89,6 +91,17 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
   const handleCreate = () => {
     if (!name.trim() || !version.trim()) {
       setError('Name and version are required')
+      return
+    }
+
+    const versionPattern = /^\d+\.\d+(\.\d+)?$/
+    if (!versionPattern.test(version.trim())) {
+      setError('Version must be in format 1.0 or 1.0.0')
+      return
+    }
+
+    if (attrNames.length === 0) {
+      setError('At least one attribute is required')
       return
     }
 
@@ -120,12 +133,14 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
         name,
         version,
         attrNames: attrNames.map((attr) => attr.name),
+        revocable,
       })
       // Reset form and notify parent to refresh
       setName('')
       setVersion('')
       setAttrNames([])
       setAttributeKey('')
+      setRevocable(true)
       setError('')
       setShowConfirmation(false)
       setProgress(100) // Complete the progress bar
@@ -185,6 +200,10 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
                 ) : (
                   <p className="text-sm text-gray-500 italic">No attributes</p>
                 )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Revocable</p>
+                <p className="text-base font-semibold text-bcgov-black">{revocable ? 'Yes' : 'No'}</p>
               </div>
             </div>
           </div>
@@ -314,6 +333,23 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
               )}
             </div>
           </div>
+
+          {/* Revocable Toggle */}
+          <div>
+            <label className="block text-sm font-medium text-bcgov-black mb-3">Revocation Settings</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="revocable"
+                checked={revocable}
+                onChange={(e) => setRevocable(e.target.checked)}
+                className="w-4 h-4 text-bcgov-blue bg-white border border-gray-300 rounded focus:ring-2 focus:ring-bcgov-blue cursor-pointer"
+              />
+              <label htmlFor="revocable" className="text-sm text-gray-700 cursor-pointer">
+                Allow credentials issued with this schema to be revoked
+              </label>
+            </div>
+          </div>
         </div>
 
         {/* Actions */}
@@ -327,7 +363,7 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
           </button>
           <button
             onClick={handleCreate}
-            disabled={isLoading || !name.trim() || !version.trim()}
+            disabled={isLoading || !name.trim() || !version.trim() || attrNames.length === 0}
             className="px-4 py-2 text-white bg-bcgov-blue hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Creating...' : 'Create'}

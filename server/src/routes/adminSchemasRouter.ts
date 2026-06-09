@@ -61,6 +61,7 @@ router.post('/schemas', createLimiter, requireRole(['admin', 'creator']), async 
     }
     logger.debug({ createSchemaPayload }, 'Creating schema with payload')
     const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
+    const revocable = req.body.revocable !== false
     const credDefResponse = await retryWithExponentialBackoff(
       () =>
         tractionRequest.post('/anoncreds/credential-definition', {
@@ -69,10 +70,14 @@ router.post('/schemas', createLimiter, requireRole(['admin', 'creator']), async 
             schemaId: response.data.schema_state.schema_id,
             tag: response.data.schema_state.schema.name,
           },
-          options: {
-            support_revocation: true,
-            revocation_registry_size: 3000,
-          },
+          options: revocable
+            ? {
+                support_revocation: true,
+                revocation_registry_size: 3000,
+              }
+            : {
+                support_revocation: false,
+              },
         }),
       3,
       1000,
