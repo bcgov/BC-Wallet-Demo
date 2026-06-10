@@ -290,7 +290,6 @@ export const createSchema = async (
   })
   if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as Schema
-  // Ensure attrNames is populated from the request if not in response
   return data
 }
 
