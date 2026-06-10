@@ -25,16 +25,12 @@ const credentialSlice = createSlice({
   name: 'credentials',
   initialState,
   reducers: {
-    clearCredentials: () => {
-      // state.credentials.map((x) => isCredIssued(x.state) && state.issuedCredentials.push(x))
-      // state.credentials = []
-    },
+    clearCredentials: () => {},
     setCredential: (state, action) => {
       const credentialData = action.payload
-      const credDefParts = credentialData.by_format.cred_issue.anoncreds.cred_def_id.split(':')
-      const credName = credDefParts[credDefParts.length - 1]
-      if (!state.issuedCredentials.includes(credName)) {
-        state.issuedCredentials.push(credName)
+      const schemaId = action.payload.by_format?.cred_issue?.anoncreds?.schema_id
+      if (!state.issuedCredentials.includes(schemaId)) {
+        state.issuedCredentials.push(schemaId)
       }
       if (!state.revokableCredentials.map((rev) => rev.revocationRegId).includes(credentialData.revoc_reg_id)) {
         state.revokableCredentials.push({
@@ -62,14 +58,6 @@ const credentialSlice = createSlice({
       })
       .addCase(fetchCredentialById.fulfilled, (state) => {
         state.isLoading = false
-        // const index = state.credentials.findIndex((cred) => cred.id == action.payload.id)
-
-        // if (index == -1) {
-        //   state.credentials.push(action.payload)
-        //   return state
-        // }
-
-        // state.credentials[index] = action.payload
         return state
       })
       .addCase(deleteCredentialById.pending, (state) => {
@@ -77,12 +65,9 @@ const credentialSlice = createSlice({
       })
       .addCase(deleteCredentialById.fulfilled, (state) => {
         state.isLoading = false
-        // state.credentials.filter((cred) => cred.id !== action.payload)
         return state
       })
       .addCase('clearScenario', (state) => {
-        // state.credentials.map((x) => isCredIssued(x.state) && state.issuedCredentials.push(x))
-        // state.credentials = []
         state.isLoading = false
       })
       .addMatcher(isAnyOf(issueCredential.pending, issueDeepCredential.pending), (state) => {

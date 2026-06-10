@@ -96,6 +96,11 @@ On **bcgov** dev and PR deploys, pre-create **`showcase-traction`** in the targe
 
 - **`showcase.server.shortInvitationUrls.enabled`** (default **`true`**) sets **`SHOWCASE_SHORT_INVITATION_URLS_ENABLED`** on the server. When **`true`**, connection and OOB proof invites get **`short_url`** for QR codes; wallets resolve **`GET {baseRoute}/i/{oobId}`** to the stored invitation JSON. Set to **`false`** to encode the full Traction **`invitation_url`** in QR codes instead (legacy behaviour).
 
+### WEBVH (optional)
+
+- **`showcase.server.webvhServerUrl`** sets **`WEBVH_SERVER_URL`** on the server (non-secret; base URL of the Webhook Verifier service, no path).
+- **`showcase.server.webvhNamespace`** sets **`WEBVH_NAMESPACE`** on the server (non-secret; namespace where Webhook Verifier is deployed, used for webhook registration with the Traction proxy).
+
 ### Mongo subchart
 
 All **`mongodb:`** keys pass through to CloudPirates. Inspect the packaged chart or:

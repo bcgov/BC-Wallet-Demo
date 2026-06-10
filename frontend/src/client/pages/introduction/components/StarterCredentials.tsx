@@ -28,7 +28,9 @@ export const StarterCredentials: React.FC<Props> = ({ credentials }) => {
         <hr className="text-bcgov-lightgrey" />
       </div>
       {credentials.map((item) => {
-        const completed = issuedCredentials.includes(item.name) || issuedCredentialsStartCase.includes(item.name)
+        const completed =
+          issuedCredentials.includes(item.schema_id || 'not-found') ||
+          issuedCredentialsStartCase.includes(startCase(item.schema_id || 'not-found'))
 
         return (
           <div key={item.name} className="flex-1 flex flex-row items-center justify-between my-2">

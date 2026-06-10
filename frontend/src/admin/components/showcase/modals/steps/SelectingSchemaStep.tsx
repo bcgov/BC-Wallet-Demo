@@ -1,5 +1,7 @@
 import type { Schema } from '../../../../types'
 
+import { CircleStackIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
+
 interface SelectingSchemaStepProps {
   schemas: Schema[]
   loading: boolean
@@ -41,7 +43,7 @@ export function SelectingSchemaStep({
               <button
                 key={schema.id}
                 onClick={() => onSelectSchema(schema)}
-                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-bcgov-blue transition-colors flex items-center gap-3"
+                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-bcgov-blue transition-colors flex items-start gap-3"
               >
                 <div className="flex-1">
                   <p className="font-medium text-sm text-bcgov-black">{schema.name}</p>
@@ -53,6 +55,11 @@ export function SelectingSchemaStep({
                       </span>
                     ))}
                   </div>
+                </div>
+                <div className="flex-shrink-0 inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-full px-3 py-1">
+                  {schema.did.method === 'indy' && <CircleStackIcon className="h-4 w-4 text-bcgov-blue" />}
+                  {schema.did.method === 'webvh' && <GlobeAltIcon className="h-4 w-4 text-bcgov-blue" />}
+                  <span className="text-xs font-medium text-bcgov-blue">{schema.did.method}</span>
                 </div>
               </button>
             ))}

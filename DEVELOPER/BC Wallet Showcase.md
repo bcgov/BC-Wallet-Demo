@@ -48,6 +48,8 @@ UPLOADS_DIR=./uploads
 # SHOWCASE_SHORT_INVITATION_URLS_ENABLED=false
 # Optional: TTL for short invitation links in seconds (default: 86400 = 24h)
 # INVITATION_SHORT_LINK_TTL_SECONDS=86400
+WEBVH_SERVER_URL=https://sandbox.bcvh.vonx.io
+WEBVH_NAMESPACE=showcase
 ```
 
 populate the values with the API key and webhook secret that you made in the previous step. `SHOWCASE_PUBLIC_ORIGIN` is required for short invitation URLs to work; set it to your ngrok URL. `UPLOADS_DIR` controls where uploaded images are stored on disk and defaults to `./uploads` relative to the server working directory.
@@ -374,11 +376,10 @@ Available to `admin`, `creator`, and `viewer` roles. Limited to 30 requests per 
 
 Creates a new schema by:
 
-1. Fetching the issuer DID from Traction (`/wallet/did/public`)
-2. Creating the schema in Traction with the provided name, version, and attribute names
-3. Creating a credential definition in Traction with exponential backoff retry (3 attempts, 1s initial delay)
-4. Saving the schema to MongoDB with the credential definition ID
-5. Recording an audit log entry
+1. Creating the schema in Traction with the provided name, version, and attribute names, and did
+2. Creating a credential definition in Traction with exponential backoff retry (3 attempts, 1s initial delay)
+3. Saving the schema to MongoDB with the credential definition ID
+4. Recording an audit log entry
 
 The request body should contain:
 
@@ -387,6 +388,7 @@ The request body should contain:
   "name": "student_card",
   "version": "1.0",
   "attrNames": ["student_first_name", "student_last_name", "expiry_date"]
+  "did": "did:example:123456789abcdefghi"
 }
 ```
 

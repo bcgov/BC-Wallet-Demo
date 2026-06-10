@@ -59,7 +59,9 @@ export const AcceptCredential: React.FC<Props> = ({
 
   const issuedCredentialsStartCase = issuedCredentials.map((name) => startCase(name))
   const credentialsAccepted = credentials.every(
-    (cred) => issuedCredentials.includes(cred.name) || issuedCredentialsStartCase.includes(cred.name),
+    (cred) =>
+      issuedCredentials.includes(cred.schema_id || 'not-found') ||
+      issuedCredentialsStartCase.includes(startCase(cred.schema_id || 'not-found')),
   )
 
   useEffect(() => {

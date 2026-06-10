@@ -9,6 +9,7 @@ import { AdminCredentialController } from '../controllers/admin/AdminCredentialC
 import { requireRole } from '../middleware/requireAdmin'
 import { AuditLogService } from '../services/AuditLogService'
 import logger from '../utils/logger'
+import { defaultRateLimiter, createRateLimiter } from '../utils/rateLimiter'
 
 const router = Router()
 
@@ -22,53 +23,63 @@ const auditLogService = Container.get(AuditLogService)
  * Supports ?status=active|retired and ?schema_name= filters.
  * Requires: admin or creator or viewer role
  */
-router.get('/', requireRole(['admin', 'creator', 'viewer']), async (req: Request, res: Response) => {
-  logger.debug('Admin: list credentials')
-  try {
-    let credentials = await credentialController.getAllCredentials()
+router.get(
+  '/',
+  defaultRateLimiter,
+  requireRole(['admin', 'creator', 'viewer']),
+  async (req: Request, res: Response) => {
+    logger.debug('Admin: list credentials')
+    try {
+      let credentials = await credentialController.getAllCredentials()
 
-    // Local filtering
-    const { status, schema_name } = req.query
-    if (status && typeof status === 'string') {
-      credentials = credentials.filter((c: any) => c.status === status)
-    }
-    if (schema_name && typeof schema_name === 'string') {
-      credentials = credentials.filter((c: any) => c.name === schema_name)
-    }
+      // Local filtering
+      const { status, schema_name } = req.query
+      if (status && typeof status === 'string') {
+        credentials = credentials.filter((c: any) => c.status === status)
+      }
+      if (schema_name && typeof schema_name === 'string') {
+        credentials = credentials.filter((c: any) => c.name === schema_name)
+      }
 
-    res.json(credentials)
-  } catch (error) {
-    logger.error(error, 'Error fetching credentials')
-    res.status(500).json({ error: 'Failed to fetch credentials' })
-  }
-})
+      res.json(credentials)
+    } catch (error) {
+      logger.error(error, 'Error fetching credentials')
+      res.status(500).json({ error: 'Failed to fetch credentials' })
+    }
+  },
+)
 
 /**
  * GET /admin/credentials/:id
  * Get a single credential by id.
  * Requires: admin or creator or viewer role
  */
-router.get('/:id', requireRole(['admin', 'creator', 'viewer']), async (req: Request, res: Response) => {
-  logger.debug({ id: req.params.id }, 'Admin: get credential')
-  try {
-    const credential = await credentialController.getCredentialById(req.params.id)
-    res.json(credential)
-  } catch (error) {
-    logger.error(error, 'Error fetching credential')
-    if (error instanceof NotFoundError) {
-      res.status(404).json({ error: 'Credential not found' })
-    } else {
-      res.status(500).json({ error: 'Failed to fetch credential' })
+router.get(
+  '/:id',
+  defaultRateLimiter,
+  requireRole(['admin', 'creator', 'viewer']),
+  async (req: Request, res: Response) => {
+    logger.debug({ id: req.params.id }, 'Admin: get credential')
+    try {
+      const credential = await credentialController.getCredentialById(req.params.id)
+      res.json(credential)
+    } catch (error) {
+      logger.error(error, 'Error fetching credential')
+      if (error instanceof NotFoundError) {
+        res.status(404).json({ error: 'Credential not found' })
+      } else {
+        res.status(500).json({ error: 'Failed to fetch credential' })
+      }
     }
-  }
-})
+  },
+)
 
 /**
  * POST /admin/credentials
  * Create a new credential.
  * Requires: admin role
  */
-router.post('/', requireRole(['admin']), async (req: Request, res: Response) => {
+router.post('/', createRateLimiter, requireRole(['admin']), async (req: Request, res: Response) => {
   logger.debug({ body: req.body }, 'Admin: create credential')
   try {
     const credential = await adminCredentialController.createCredential(req.body)
@@ -95,7 +106,7 @@ router.post('/', requireRole(['admin']), async (req: Request, res: Response) => 
  * Update a credential. Ledger-registered credentials may only update showcase fields.
  * Requires: admin role
  */
-router.put('/:id', requireRole(['admin']), async (req: Request, res: Response) => {
+router.put('/:id', defaultRateLimiter, requireRole(['admin']), async (req: Request, res: Response) => {
   logger.debug({ id: req.params.id, body: req.body }, 'Admin: update credential')
   try {
     const credential = await adminCredentialController.updateCredential(req.params.id, req.body)
@@ -128,7 +139,7 @@ router.put('/:id', requireRole(['admin']), async (req: Request, res: Response) =
  * Soft-delete: marks credential as retired. Document is preserved.
  * Requires: admin role
  */
-router.delete('/:id', requireRole(['admin']), async (req: Request, res: Response) => {
+router.delete('/:id', defaultRateLimiter, requireRole(['admin']), async (req: Request, res: Response) => {
   logger.debug({ id: req.params.id }, 'Admin: retire credential')
   try {
     const credential = await adminCredentialController.deleteCredential(req.params.id)

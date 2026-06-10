@@ -1,4 +1,4 @@
-import type { Showcase, Credential, Schema } from '../types'
+import type { Showcase, Credential, Schema, Did } from '../types'
 import type { AuthContextProps } from 'react-oidc-context'
 
 const baseRoute = import.meta.env.VITE_BASE_ROUTE || '/digital-trust/showcase'
@@ -273,7 +273,7 @@ export const getAvailableSchemas = async (auth: AuthContextProps): Promise<Schem
 
 export const createSchema = async (
   auth: AuthContextProps,
-  schemaData: { name: string; version: string; attrNames: string[] },
+  schemaData: { name: string; version: string; attrNames: string[]; did: string },
 ): Promise<Schema> => {
   const res = await fetch(`${adminBaseUrl}/schemas`, {
     method: 'POST',
@@ -286,5 +286,22 @@ export const createSchema = async (
   if (!res.ok) await handleErrorResponse(res)
   const data = (await res.json()) as Schema
   // Ensure attrNames is populated from the request if not in response
+  return data
+}
+
+// ============================================================================
+// DID ENDPOINTS
+// ============================================================================
+
+export const getAvailableDids = async (auth: AuthContextProps): Promise<Did[]> => {
+  const res = await fetch(`${adminBaseUrl}/dids`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!res.ok) await handleErrorResponse(res)
+  const data = await res.json()
   return data
 }
