@@ -269,6 +269,64 @@ describe('adminSchemasRouter', () => {
       )
     })
 
+    it('creates credential definition without revocation when revocable is false', async () => {
+      mocks.mockTractionRequest.get.mockResolvedValue({
+        data: { result: { did: mockIssuerDid } },
+      })
+      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
+      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
+      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({}),
+      })
+
+      await request(app).post('/admin/schemas').send({ ...schemaPayload, revocable: false })
+
+      const credDefCall = mocks.mockRetryWithExponentialBackoff.mock.calls[0][0]
+      await credDefCall()
+
+      expect(mocks.mockTractionRequest.post).toHaveBeenCalledWith(
+        '/anoncreds/credential-definition',
+        expect.objectContaining({
+          options: { support_revocation: false },
+        }),
+      )
+      expect(mocks.mockTractionRequest.post).toHaveBeenCalledWith(
+        '/anoncreds/credential-definition',
+        expect.not.objectContaining({
+          options: expect.objectContaining({ revocation_registry_size: expect.anything() }),
+        }),
+      )
+    })
+
+    it('defaults to revocation enabled when revocable is omitted', async () => {
+      mocks.mockTractionRequest.get.mockResolvedValue({
+        data: { result: { did: mockIssuerDid } },
+      })
+      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
+      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
+      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({}),
+      })
+
+      // send payload with no revocable field
+      await request(app).post('/admin/schemas').send(schemaPayload)
+
+      const credDefCall = mocks.mockRetryWithExponentialBackoff.mock.calls[0][0]
+      await credDefCall()
+
+      expect(mocks.mockTractionRequest.post).toHaveBeenCalledWith(
+        '/anoncreds/credential-definition',
+        expect.objectContaining({
+          options: {
+            support_revocation: true,
+            revocation_registry_size: 3000,
+          },
+        }),
+      )
+    })
+
     it('saves schema to MongoDB with upsert', async () => {
       mocks.mockTractionRequest.get.mockResolvedValue({
         data: { result: { did: mockIssuerDid } },

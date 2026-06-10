@@ -1,6 +1,7 @@
 import { UnauthorizedError } from 'routing-controllers'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
+vi.mock('../../services/RevocationService')
 vi.mock('../../utils/logger', () => ({
   default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
@@ -16,9 +17,11 @@ const makeReq = (overrides: Record<string, any> = {}) => ({
 
 describe('WebhookController', () => {
   let controller: WebhookController
+  let mockRevocationService: any
 
   beforeEach(() => {
-    controller = new WebhookController()
+    mockRevocationService = { handleCredentialIssued: vi.fn() }
+    controller = new WebhookController(mockRevocationService)
     process.env.WEBHOOK_SECRET = 'correct-secret'
   })
 
@@ -87,6 +90,52 @@ describe('WebhookController', () => {
       await controller.handlePostWhook({ connection_id: 'conn1' }, req)
 
       expect(mockEmit).toHaveBeenCalledWith('message', expect.objectContaining({ endpoint: 'basicmessages' }))
+    })
+
+    it('enriches socket payload with issuedCredentialId on credential-issued', async () => {
+      const mockEmit = vi.fn()
+      const socketMap = new Map([['conn1', { emit: mockEmit }]])
+      const req = makeReq({
+        path: '/whook/topic/issue_credential_v2_0',
+        app: { get: vi.fn().mockReturnValue(socketMap) },
+      })
+      const params = { connection_id: 'conn1', state: 'credential-issued' }
+      mockRevocationService.handleCredentialIssued.mockResolvedValue({ _id: 'issued-abc' })
+
+      await controller.handlePostWhook(params, req)
+
+      expect(mockRevocationService.handleCredentialIssued).toHaveBeenCalledWith(params)
+      expect(mockEmit).toHaveBeenCalledWith('message', expect.objectContaining({ issuedCredentialId: 'issued-abc' }))
+    })
+
+    it('still emits and returns success when RevocationService throws on credential-issued', async () => {
+      const mockEmit = vi.fn()
+      const socketMap = new Map([['conn1', { emit: mockEmit }]])
+      const req = makeReq({
+        path: '/whook/topic/issue_credential_v2_0',
+        app: { get: vi.fn().mockReturnValue(socketMap) },
+      })
+      const params = { connection_id: 'conn1', state: 'credential-issued' }
+      mockRevocationService.handleCredentialIssued.mockRejectedValue(new Error('DB error'))
+
+      const result = await controller.handlePostWhook(params, req)
+
+      expect(result).toEqual({ message: 'Webhook received' })
+      expect(mockEmit).toHaveBeenCalledWith(
+        'message',
+        expect.not.objectContaining({ issuedCredentialId: expect.anything() }),
+      )
+    })
+
+    it('does not call RevocationService for non-credential-issued state', async () => {
+      const req = makeReq({
+        path: '/whook/topic/issue_credential_v2_0',
+        app: { get: vi.fn().mockReturnValue(new Map()) },
+      })
+
+      await controller.handlePostWhook({ connection_id: 'conn1', state: 'offer-sent' }, req)
+
+      expect(mockRevocationService.handleCredentialIssued).not.toHaveBeenCalled()
     })
   })
 })
