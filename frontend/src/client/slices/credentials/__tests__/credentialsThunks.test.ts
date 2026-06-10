@@ -200,7 +200,7 @@ describe('credentialsSlice reducers', () => {
     expect(store.getState().credentials.revokableCredentials).toHaveLength(0)
   })
 
-  it('setCredential stores issuedCredentialId in revokableCredentials', () => {
+  it('setCredential stores cred_ex_id in revokableCredentials', () => {
     const store = makeStore()
     store.dispatch(
       setCredential({
@@ -214,10 +214,10 @@ describe('credentialsSlice reducers', () => {
         revoc_reg_id: 'reg-1',
         connection_id: 'conn-1',
         revocation_id: 'rev-1',
-        issuedCredentialId: 'issued-abc',
+        cred_ex_id: 'ex-abc',
       }),
     )
     const record = store.getState().credentials.revokableCredentials[0]
-    expect(record.issuedCredentialId).toBe('issued-abc')
+    expect(record.credExId).toBe('ex-abc')
   })
 })

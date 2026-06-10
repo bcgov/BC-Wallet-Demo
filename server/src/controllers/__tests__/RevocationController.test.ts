@@ -31,7 +31,7 @@ describe('RevocationController', () => {
       }
 
       const result = {
-        _id: 'issued-1',
+        _id: 'ex-123',
         credential_id: 'cred-1',
         connection_id: 'conn-123',
         format: 'anoncreds',
@@ -44,11 +44,11 @@ describe('RevocationController', () => {
 
       mockService.revokeCredential.mockResolvedValue(result)
 
-      const res = await controller.revokeCredential({ credentialId: 'issued-1' }, mockReq)
+      const res = await controller.revokeCredential({ cred_ex_id: 'ex-123' }, mockReq)
 
-      expect(mockService.revokeCredential).toHaveBeenCalledWith('issued-1')
+      expect(mockService.revokeCredential).toHaveBeenCalledWith('ex-123')
       expect(mockSocket.emit).toHaveBeenCalledWith('revocation', {
-        credentialId: 'issued-1',
+        cred_ex_id: 'ex-123',
         status: 'revoked',
       })
       expect(res).toEqual(result)
@@ -63,7 +63,7 @@ describe('RevocationController', () => {
       }
 
       const result = {
-        _id: 'issued-1',
+        _id: 'ex-123',
         credential_id: 'cred-1',
         connection_id: 'conn-123',
         format: 'anoncreds',
@@ -76,9 +76,9 @@ describe('RevocationController', () => {
 
       mockService.revokeCredential.mockResolvedValue(result)
 
-      await controller.revokeCredential({ credentialId: 'issued-1' }, mockReq)
+      await controller.revokeCredential({ cred_ex_id: 'ex-123' }, mockReq)
 
-      expect(mockService.revokeCredential).toHaveBeenCalledWith('issued-1')
+      expect(mockService.revokeCredential).toHaveBeenCalledWith('ex-123')
     })
   })
 

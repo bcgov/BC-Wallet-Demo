@@ -32,7 +32,7 @@ export class WebhookController {
       return { message: 'Webhook received' }
     }
 
-    logger.info({ endpoint, connectionId, state: params.state }, 'Webhook received')
+    logger.info({ endpoint, connectionId, state: params.state, other: params }, 'Webhook received')
     if (endpoint === 'issuer_cred_rev') {
       logger.debug(
         { rev_reg_id: params.rev_reg_id, cred_rev_id: params.cred_rev_id, state: params.state },
@@ -40,22 +40,18 @@ export class WebhookController {
       )
     }
 
-    // Persist issued credential and enrich payload with internal ID.
-    // DB write is best-effort: failure logs but does not break webhook flow.
-    // Must happen before socket.emit so issuedCredentialId is in the payload.
-    let payload = params
+    // Persist issued credential for revocation tracking.
+    // Best-effort: failure logs but does not break webhook flow.
+    // Frontend uses cred_ex_id (already in payload) to identify the credential.
     if (endpoint === 'issue_credential_v2_0' && params.state === 'credential-issued') {
-      try {
-        const doc = await this.revocationService.handleCredentialIssued(params)
-        if (doc) payload = { ...params, issuedCredentialId: doc._id }
-      } catch (err) {
+      this.revocationService.handleCredentialIssued(params).catch((err) => {
         logger.error(err, 'Failed to persist issued credential from webhook')
-      }
+      })
     }
 
     const socket = socketMap?.get(connectionId)
     if (socket) {
-      socket.emit('message', payload)
+      socket.emit('message', params)
       logger.debug({ endpoint, connectionId }, 'Webhook forwarded to socket')
     } else {
       logger.warn({ endpoint, connectionId }, 'No active socket found for connection, webhook not forwarded')

@@ -280,7 +280,9 @@ describe('adminSchemasRouter', () => {
         lean: vi.fn().mockResolvedValue({}),
       })
 
-      await request(app).post('/admin/schemas').send({ ...schemaPayload, revocable: false })
+      await request(app)
+        .post('/admin/schemas')
+        .send({ ...schemaPayload, revocable: false })
 
       const credDefCall = mocks.mockRetryWithExponentialBackoff.mock.calls[0][0]
       await credDefCall()

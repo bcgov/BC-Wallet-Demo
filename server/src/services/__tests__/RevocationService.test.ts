@@ -34,6 +34,7 @@ describe('RevocationService - Pure Functions', () => {
   describe('extractIssuanceData', () => {
     it('extracts revocation metadata from webhook payload', () => {
       const payload = {
+        cred_ex_id: 'ex-123',
         connection_id: 'conn-123',
         revoc_reg_id: 'rev-reg-123',
         revocation_id: 'rev-id-456',
@@ -48,6 +49,7 @@ describe('RevocationService - Pure Functions', () => {
 
       const result = extractIssuanceData(payload)
       expect(result).not.toBeNull()
+      expect(result?._id).toBe('ex-123')
       expect(result?.connection_id).toBe('conn-123')
       expect(result?.format).toBe('anoncreds')
       expect(result?.format_metadata).toEqual({
@@ -58,13 +60,24 @@ describe('RevocationService - Pure Functions', () => {
     })
 
     it('returns null when revocation metadata is missing', () => {
-      const payload = { connection_id: 'conn-123' }
+      const payload = { cred_ex_id: 'ex-123', connection_id: 'conn-123' }
       const result = extractIssuanceData(payload)
       expect(result).toBeNull()
     })
 
     it('returns null when connection_id is missing', () => {
       const payload = {
+        cred_ex_id: 'ex-123',
+        revoc_reg_id: 'rev-reg-123',
+        revocation_id: 'rev-id-456',
+      }
+      const result = extractIssuanceData(payload)
+      expect(result).toBeNull()
+    })
+
+    it('returns null when cred_ex_id is missing', () => {
+      const payload = {
+        connection_id: 'conn-123',
         revoc_reg_id: 'rev-reg-123',
         revocation_id: 'rev-id-456',
       }
@@ -126,7 +139,7 @@ describe('RevocationService - Pure Functions', () => {
 
 describe('RevocationService - Imperative Shell', () => {
   describe('handleCredentialIssued', () => {
-    it('persists issued credential doc', async () => {
+    it('persists issued credential doc with cred_ex_id as _id', async () => {
       const credential = await CredentialModel.create({
         name: 'test',
         icon: 'icon',
@@ -136,6 +149,7 @@ describe('RevocationService - Imperative Shell', () => {
       })
 
       const payload = {
+        cred_ex_id: 'ex-abc-123',
         connection_id: 'conn-123',
         revoc_reg_id: 'rev-reg-123',
         revocation_id: 'rev-id-456',
@@ -150,13 +164,14 @@ describe('RevocationService - Imperative Shell', () => {
 
       const doc = await service.handleCredentialIssued(payload)
       expect(doc).not.toBeNull()
+      expect(doc?._id).toBe('ex-abc-123')
       expect(doc?.connection_id).toBe('conn-123')
       expect(doc?.credential_id).toBe(String(credential._id))
       expect(doc?.status).toBe('issued')
     })
 
     it('returns null when payload has no revocation metadata', async () => {
-      const payload = { connection_id: 'conn-123' }
+      const payload = { cred_ex_id: 'ex-123', connection_id: 'conn-123' }
       const doc = await service.handleCredentialIssued(payload)
       expect(doc).toBeNull()
     })
@@ -172,7 +187,8 @@ describe('RevocationService - Imperative Shell', () => {
         revocable: true,
       })
 
-      const issued = await IssuedCredentialModel.create({
+      await IssuedCredentialModel.create({
+        _id: 'ex-revoke-1',
         credential_id: String(credential._id),
         connection_id: 'conn-123',
         format: 'anoncreds',
@@ -186,7 +202,7 @@ describe('RevocationService - Imperative Shell', () => {
       const mockHandler = vi.fn().mockResolvedValue(undefined)
       vi.mocked(revocationHandlers.revocationHandlers).anoncreds = mockHandler
 
-      const updated = await service.revokeCredential(String(issued._id))
+      const updated = await service.revokeCredential('ex-revoke-1')
 
       expect(updated.status).toBe('revoked')
       expect(updated.revoked_at).not.toBeNull()
@@ -208,7 +224,8 @@ describe('RevocationService - Imperative Shell', () => {
         revocable: false,
       })
 
-      const issued = await IssuedCredentialModel.create({
+      await IssuedCredentialModel.create({
+        _id: 'ex-not-revocable-1',
         credential_id: String(credential._id),
         connection_id: 'conn-123',
         format: 'anoncreds',
@@ -216,7 +233,7 @@ describe('RevocationService - Imperative Shell', () => {
         format_metadata: {},
       })
 
-      await expect(service.revokeCredential(String(issued._id))).rejects.toThrow('credential is not revocable')
+      await expect(service.revokeCredential('ex-not-revocable-1')).rejects.toThrow('credential is not revocable')
     })
   })
 
@@ -224,6 +241,7 @@ describe('RevocationService - Imperative Shell', () => {
     it('returns credentials for a connection', async () => {
       await IssuedCredentialModel.create([
         {
+          _id: 'ex-conn-1',
           credential_id: 'cred-1',
           connection_id: 'conn-123',
           format: 'anoncreds',
@@ -231,6 +249,7 @@ describe('RevocationService - Imperative Shell', () => {
           format_metadata: {},
         },
         {
+          _id: 'ex-conn-2',
           credential_id: 'cred-2',
           connection_id: 'conn-456',
           format: 'anoncreds',

@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose'
-import { v4 as uuidv4 } from 'uuid'
 
 import { baseSchemaOptions } from '../baseSchema'
 
@@ -18,7 +17,8 @@ export interface LeanIssuedCredentialDoc {
 
 const IssuedCredentialSchema = new Schema(
   {
-    _id: { type: String, default: uuidv4 },
+    // Uses cred_ex_id from Traction webhook as the document ID.
+    _id: { type: String, required: true },
     // References the internal Credential document _id (credential definition).
     // Optional: may not resolve if cred_def_id missing from webhook payload.
     credential_id: { type: String },

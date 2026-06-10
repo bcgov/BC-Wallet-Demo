@@ -2,7 +2,7 @@ export interface RevocationRecord {
   connectionId: string
   revocationRegId: string
   credRevocationId: string
-  issuedCredentialId?: string
+  credExId: string
 }
 
 export interface Connection {

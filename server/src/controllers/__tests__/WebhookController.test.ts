@@ -92,39 +92,36 @@ describe('WebhookController', () => {
       expect(mockEmit).toHaveBeenCalledWith('message', expect.objectContaining({ endpoint: 'basicmessages' }))
     })
 
-    it('enriches socket payload with issuedCredentialId on credential-issued', async () => {
+    it('persists issued credential on credential-issued webhook', async () => {
       const mockEmit = vi.fn()
       const socketMap = new Map([['conn1', { emit: mockEmit }]])
       const req = makeReq({
         path: '/whook/topic/issue_credential_v2_0',
         app: { get: vi.fn().mockReturnValue(socketMap) },
       })
-      const params = { connection_id: 'conn1', state: 'credential-issued' }
-      mockRevocationService.handleCredentialIssued.mockResolvedValue({ _id: 'issued-abc' })
+      const params = { connection_id: 'conn1', state: 'credential-issued', cred_ex_id: 'ex-123' }
+      mockRevocationService.handleCredentialIssued.mockResolvedValue({ _id: 'ex-123' })
 
       await controller.handlePostWhook(params, req)
 
       expect(mockRevocationService.handleCredentialIssued).toHaveBeenCalledWith(params)
-      expect(mockEmit).toHaveBeenCalledWith('message', expect.objectContaining({ issuedCredentialId: 'issued-abc' }))
+      expect(mockEmit).toHaveBeenCalledWith('message', expect.objectContaining({ cred_ex_id: 'ex-123' }))
     })
 
-    it('still emits and returns success when RevocationService throws on credential-issued', async () => {
+    it('still emits original payload when RevocationService throws on credential-issued', async () => {
       const mockEmit = vi.fn()
       const socketMap = new Map([['conn1', { emit: mockEmit }]])
       const req = makeReq({
         path: '/whook/topic/issue_credential_v2_0',
         app: { get: vi.fn().mockReturnValue(socketMap) },
       })
-      const params = { connection_id: 'conn1', state: 'credential-issued' }
+      const params = { connection_id: 'conn1', state: 'credential-issued', cred_ex_id: 'ex-123' }
       mockRevocationService.handleCredentialIssued.mockRejectedValue(new Error('DB error'))
 
       const result = await controller.handlePostWhook(params, req)
 
       expect(result).toEqual({ message: 'Webhook received' })
-      expect(mockEmit).toHaveBeenCalledWith(
-        'message',
-        expect.not.objectContaining({ issuedCredentialId: expect.anything() }),
-      )
+      expect(mockEmit).toHaveBeenCalledWith('message', expect.objectContaining({ cred_ex_id: 'ex-123' }))
     })
 
     it('does not call RevocationService for non-credential-issued state', async () => {

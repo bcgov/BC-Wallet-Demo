@@ -3,8 +3,9 @@ import type { SerializedError } from '@reduxjs/toolkit'
 
 import { createSlice, isAnyOf } from '@reduxjs/toolkit'
 
-import { fetchCredentialById, issueCredential, issueDeepCredential, deleteCredentialById } from './credentialsThunks'
 import log from '../../utils/logger'
+
+import { fetchCredentialById, issueCredential, issueDeepCredential, deleteCredentialById } from './credentialsThunks'
 
 interface CredentialState {
   issuedCredentials: string[]
@@ -47,7 +48,7 @@ const credentialSlice = createSlice({
           revocationRegId: credentialData.revoc_reg_id,
           connectionId: credentialData.connection_id,
           credRevocationId: credentialData.revocation_id,
-          issuedCredentialId: credentialData.issuedCredentialId,
+          credExId: credentialData.cred_ex_id,
         })
       }
     },

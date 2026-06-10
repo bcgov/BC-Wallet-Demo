@@ -11,6 +11,7 @@ import { revocationHandlers } from './revocationHandlers'
 // -- Functional core --
 
 export interface IssuedCredentialInput {
+  _id: string
   credential_id?: string
   connection_id: string
   format: 'anoncreds'
@@ -19,6 +20,7 @@ export interface IssuedCredentialInput {
 
 // Webhook payload shape (partial -- only fields we use)
 export interface WebhookPayload {
+  cred_ex_id?: string
   connection_id?: string
   revoc_reg_id?: string
   revocation_id?: string
@@ -42,8 +44,9 @@ export const extractIssuanceData = (params: WebhookPayload): IssuedCredentialInp
   const rev_reg_id = params.revoc_reg_id
   const cred_rev_id = params.revocation_id
   const cred_def_id = params.by_format?.cred_issue?.anoncreds?.cred_def_id
-  if (!rev_reg_id || !cred_rev_id || !params.connection_id) return null
+  if (!params.cred_ex_id || !rev_reg_id || !cred_rev_id || !params.connection_id) return null
   return {
+    _id: params.cred_ex_id,
     credential_id: cred_def_id,
     connection_id: params.connection_id,
     format: 'anoncreds',
@@ -76,7 +79,8 @@ export class RevocationService {
     if (!input) return null
 
     // Resolve the internal credential_id via cred_def_id stored on the Credential doc
-    const cred_def_id = typeof input.format_metadata.cred_def_id === 'string' ? input.format_metadata.cred_def_id : undefined
+    const cred_def_id =
+      typeof input.format_metadata.cred_def_id === 'string' ? input.format_metadata.cred_def_id : undefined
     if (cred_def_id) {
       const credDoc = await CredentialModel.findOne({ cred_def_id }).lean()
       if (credDoc) {
@@ -88,17 +92,17 @@ export class RevocationService {
 
     const doc = await IssuedCredentialModel.create(input)
     const lean = doc.toObject() as unknown as LeanIssuedCredentialDoc
-    logger.info({ issuedCredentialId: lean._id, connection_id: lean.connection_id }, 'IssuedCredential persisted')
+    logger.info({ cred_ex_id: lean._id, connection_id: lean.connection_id }, 'IssuedCredential persisted')
     return lean
   }
 
   /**
-   * Revoke a previously issued credential by its internal ID.
+   * Revoke a previously issued credential by its cred_ex_id.
    * Dispatches to the appropriate format handler, then updates status.
    */
-  public async revokeCredential(issuedCredentialId: string): Promise<LeanIssuedCredentialDoc> {
-    const doc = await IssuedCredentialModel.findById(issuedCredentialId).lean<LeanIssuedCredentialDoc>()
-    if (!doc) throw new Error(`IssuedCredential not found: ${issuedCredentialId}`)
+  public async revokeCredential(credExId: string): Promise<LeanIssuedCredentialDoc> {
+    const doc = await IssuedCredentialModel.findById(credExId).lean<LeanIssuedCredentialDoc>()
+    if (!doc) throw new Error(`IssuedCredential not found: ${credExId}`)
 
     const validationError = validateRevocation(doc)
     if (validationError) throw new Error(validationError)
@@ -114,12 +118,12 @@ export class RevocationService {
     await revocationHandlers[doc.format](doc.format_metadata, doc.connection_id)
 
     const updated = await IssuedCredentialModel.findByIdAndUpdate(
-      issuedCredentialId,
+      credExId,
       { status: 'revoked', revoked_at: new Date() },
       { new: true },
     ).lean<LeanIssuedCredentialDoc>()
 
-    if (!updated) throw new Error(`IssuedCredential disappeared during revocation: ${issuedCredentialId}`)
+    if (!updated) throw new Error(`IssuedCredential disappeared during revocation: ${credExId}`)
     return updated
   }
 
