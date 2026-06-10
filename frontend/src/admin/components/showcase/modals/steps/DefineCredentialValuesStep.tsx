@@ -185,7 +185,12 @@ export function DefineCredentialValuesStep({
                     />
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setDateOptions((prev) => ({ ...prev, [attr.name]: 'custom' }))}
+                        type="button"
+                        onClick={() => {
+                          setDateOptions((prev) => ({ ...prev, [attr.name]: 'custom' }))
+                          setYearOffsets((prev) => ({ ...prev, [attr.name]: 0 }))
+                          setValues((prev) => ({ ...prev, [attr.name]: '' }))
+                        }}
                         className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
                           dateOptions[attr.name] !== 'issuance'
                             ? 'bg-bcgov-blue text-white border border-bcgov-blue'
@@ -195,7 +200,13 @@ export function DefineCredentialValuesStep({
                         Custom Time
                       </button>
                       <button
-                        onClick={() => setDateOptions((prev) => ({ ...prev, [attr.name]: 'issuance' }))}
+                        type="button"
+                        onClick={() => {
+                          const currentOffset = yearOffsets[attr.name] ?? 0
+                          setDateOptions((prev) => ({ ...prev, [attr.name]: 'issuance' }))
+                          setYearOffsets((prev) => ({ ...prev, [attr.name]: currentOffset }))
+                          setValues((prev) => ({ ...prev, [attr.name]: String(currentOffset) }))
+                        }}
                         className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
                           dateOptions[attr.name] === 'issuance'
                             ? 'bg-bcgov-blue text-white border border-bcgov-blue'
@@ -204,7 +215,6 @@ export function DefineCredentialValuesStep({
                       >
                         Time of Issuance
                       </button>
-                    </div>
                   </div>
                 )}
               </div>
