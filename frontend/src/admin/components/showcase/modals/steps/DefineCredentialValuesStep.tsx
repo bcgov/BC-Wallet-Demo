@@ -31,6 +31,8 @@ export function DefineCredentialValuesStep({
       : {},
   )
   const [icon, setIcon] = useState<string>('')
+  const [dateOptions, setDateOptions] = useState<Record<string, 'custom' | 'issuance'>>({})
+  const [yearOffsets, setYearOffsets] = useState<Record<string, number>>({})
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
 
   if (!selectedSchema) return null
@@ -51,7 +53,7 @@ export function DefineCredentialValuesStep({
     if (!icon) return false
 
     // Check if all attribute values are filled
-    return selectedSchema.attrNames.every((attr) => values[attr] && values[attr].trim().length > 0)
+    return selectedSchema.attributes.every((attr) => values[attr.name] && values[attr.name].trim().length > 0)
   }
 
   const getValidationErrors = () => {
@@ -59,9 +61,9 @@ export function DefineCredentialValuesStep({
     if (!icon) {
       errors.push('Credential icon is required')
     }
-    selectedSchema.attrNames.forEach((attr) => {
-      if (!values[attr] || values[attr].trim().length === 0) {
-        errors.push(`${attr.replace(/_/g, ' ')} is required`)
+    selectedSchema.attributes.forEach((attr) => {
+      if (!values[attr.name] || values[attr.name].trim().length === 0) {
+        errors.push(`${attr.name.replace(/_/g, ' ')} is required`)
       }
     })
     return errors
@@ -69,7 +71,15 @@ export function DefineCredentialValuesStep({
 
   const handleSubmit = () => {
     if (isFormValid()) {
-      onSelectCredential(values, icon)
+      // Construct final values with $dateint: prefix for issuance dates
+      const finalValues = { ...values }
+      selectedSchema.attributes.forEach((attr) => {
+        if (attr.type === 'date' && dateOptions[attr.name] === 'issuance') {
+          const yearOffset = yearOffsets[attr.name] || 0
+          finalValues[attr.name] = `$dateint:${yearOffset}`
+        }
+      })
+      onSelectCredential(finalValues, icon)
     }
   }
 
@@ -107,24 +117,87 @@ export function DefineCredentialValuesStep({
         </div>
       </div>
 
-      {selectedSchema.attrNames && selectedSchema.attrNames.length > 0 && (
+      {selectedSchema.attributes && selectedSchema.attributes.length > 0 && (
         <div>
           <h4 className="text-sm font-semibold text-bcgov-black mb-4 uppercase tracking-wide">
             Enter Attribute Values
           </h4>
           <div className="space-y-4">
-            {selectedSchema.attrNames.map((attrName: string) => (
-              <div key={attrName} className="flex flex-col">
+            {selectedSchema.attributes.map((attr) => (
+              <div key={attr.name} className="flex flex-col">
                 <label className="text-sm font-semibold text-bcgov-black mb-2 capitalize">
-                  {attrName.replace(/_/g, ' ')}
+                  {attr.name.replace(/_/g, ' ')}
+                  <span className="ml-2 text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
+                    {attr.type}
+                  </span>
                 </label>
                 <input
-                  type="text"
-                  value={values[attrName]}
-                  onChange={(e) => handleInputChange(attrName, e.target.value)}
-                  placeholder={`Enter ${attrName.replace(/_/g, ' ')}`}
+                  type={attr.type === 'number' ? 'number' : 'text'}
+                  value={values[attr.name]}
+                  onChange={(e) => handleInputChange(attr.name, e.target.value)}
+                  placeholder={`Enter ${attr.name.replace(/_/g, ' ')}`}
                   className="px-4 py-3 border-2 border-gray-200 rounded-lg bg-white text-bcgov-black placeholder-gray-400 transition-all focus:outline-none focus:border-bcgov-blue focus:ring-1 focus:ring-bcgov-blue hover:border-gray-300"
+                  hidden={attr.type === 'date'}
                 />
+                {attr.type === 'date' && (
+                  <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                    <p className="text-s font-semibold text-gray-700 uppercase tracking-wide">Time Option</p>
+                    <p
+                      className="text-xs font-semibold text-gray-700 uppercase tracking-wide"
+                      hidden={dateOptions[attr.name] === 'issuance'}
+                    >
+                      Select an explicit date
+                    </p>
+                    <p
+                      className="text-xs font-semibold text-gray-700 uppercase tracking-wide"
+                      hidden={dateOptions[attr.name] === 'custom' || dateOptions[attr.name] === undefined}
+                    >
+                      Years in the future or past of issuance
+                    </p>
+                    <input
+                      type={'date'}
+                      value={values[attr.name]}
+                      onChange={(e) => handleInputChange(attr.name, e.target.value)}
+                      placeholder={`Enter ${attr.name.replace(/_/g, ' ')}`}
+                      className="px-4 py-3 border-2 border-gray-200 rounded-lg bg-white text-bcgov-black placeholder-gray-400 transition-all focus:outline-none focus:border-bcgov-blue focus:ring-1 focus:ring-bcgov-blue hover:border-gray-300"
+                      hidden={dateOptions[attr.name] === 'issuance'}
+                    />
+                    <input
+                      type={'number'}
+                      value={yearOffsets[attr.name] ?? values[attr.name] ?? ''}
+                      onChange={(e) => {
+                        const numVal = e.target.value ? parseInt(e.target.value) : 0
+                        setYearOffsets((prev) => ({ ...prev, [attr.name]: numVal }))
+                        setValues((prev) => ({ ...prev, [attr.name]: e.target.value }))
+                      }}
+                      placeholder={`Enter ${attr.name.replace(/_/g, ' ')}`}
+                      className="px-4 py-3 border-2 border-gray-200 rounded-lg bg-white text-bcgov-black placeholder-gray-400 transition-all focus:outline-none focus:border-bcgov-blue focus:ring-1 focus:ring-bcgov-blue hover:border-gray-300"
+                      hidden={dateOptions[attr.name] === 'custom' || dateOptions[attr.name] === undefined}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setDateOptions((prev) => ({ ...prev, [attr.name]: 'custom' }))}
+                        className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                          dateOptions[attr.name] !== 'issuance'
+                            ? 'bg-bcgov-blue text-white border border-bcgov-blue'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:border-bcgov-blue'
+                        }`}
+                      >
+                        Custom Time
+                      </button>
+                      <button
+                        onClick={() => setDateOptions((prev) => ({ ...prev, [attr.name]: 'issuance' }))}
+                        className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                          dateOptions[attr.name] === 'issuance'
+                            ? 'bg-bcgov-blue text-white border border-bcgov-blue'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:border-bcgov-blue'
+                        }`}
+                      >
+                        Time of Issuance
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

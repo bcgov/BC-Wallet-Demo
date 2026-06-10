@@ -1,0 +1,138 @@
+[
+  {
+    "name": "student_card",
+    "version": "2.0",
+    "attributes": [
+      {
+        "name": "student_first_name",
+        "type": "string"
+      },
+      {
+        "name": "student_last_name",
+        "type": "string"
+      },
+      {
+        "name": "expiry_date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "name": "member_card",
+    "version": "2.0",
+    "attributes": [
+      {
+        "name": "Member Status",
+        "type": "string"
+      },
+      {
+        "name": "Given Name",
+        "type": "string"
+      },
+      {
+        "name": "PPID",
+        "type": "string"
+      },
+      {
+        "name": "Member Status Code",
+        "type": "number"
+      },
+      {
+        "name": "Surname",
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "Person",
+    "version": "2.0",
+    "attributes": [
+      {
+        "name": "postal_code",
+        "type": "string"
+      },
+      {
+        "name": "picture",
+        "type": "string"
+      },
+      {
+        "name": "given_names",
+        "type": "string"
+      },
+      {
+        "name": "family_name",
+        "type": "string"
+      },
+      {
+        "name": "locality",
+        "type": "string"
+      },
+      {
+        "name": "region",
+        "type": "string"
+      },
+      {
+        "name": "street_address",
+        "type": "string"
+      },
+      {
+        "name": "country",
+        "type": "string"
+      },
+      {
+        "name": "expiry_date_dateint",
+        "type": "date"
+      },
+      {
+        "name": "birthdate_dateint",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "name": "Digital Business Card",
+    "version": "2.0.0",
+    "attributes": [
+      {
+        "name": "business_name",
+        "type": "string"
+      },
+      {
+        "name": "business_type",
+        "type": "string"
+      },
+      {
+        "name": "company_status",
+        "type": "string"
+      },
+      {
+        "name": "cra_business_number",
+        "type": "number"
+      },
+      {
+        "name": "credential_id",
+        "type": "string"
+      },
+      {
+        "name": "family_name",
+        "type": "string"
+      },
+      {
+        "name": "given_names",
+        "type": "string"
+      },
+      {
+        "name": "identifier",
+        "type": "string"
+      },
+      {
+        "name": "registered_on_dateint",
+        "type": "date"
+      },
+      {
+        "name": "role",
+        "type": "string"
+      }
+    ]
+  }
+]

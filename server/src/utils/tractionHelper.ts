@@ -3,7 +3,7 @@ import type { AxiosRequestConfig, AxiosError } from 'axios'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 
-import credentialsSeed from '../../scripts/values/credentials.json'
+import credentialsSeed from '../../migrations/values/credentials.json'
 import { CredentialModel } from '../db/models/Credential'
 import { DidModel } from '../db/models/Did'
 import { SchemaModel } from '../db/models/Schema'

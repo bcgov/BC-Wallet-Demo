@@ -26,19 +26,22 @@ export function SchemaCard({ schema: schema }: SchemaCardProps) {
         </div>
       </div>
 
-      {schema.attrNames && schema.attrNames.length > 0 && (
+      {schema.attributes && schema.attributes.length > 0 && (
         <div className="flex-1">
           <p className="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-            {schema.attrNames.length} Attribute{schema.attrNames.length !== 1 ? 's' : ''}
+            {schema.attributes.length} Attribute{schema.attributes.length !== 1 ? 's' : ''}
           </p>
           <div className="space-y-2">
-            {schema.attrNames.map((attr, attrIdx) => {
+            {schema.attributes.map((attr, attrIdx) => {
               return (
                 <div
                   key={attrIdx}
-                  className="text-xs bg-white border border-gray-100 p-3 rounded-md hover:bg-blue-50 hover:border-bcgov-blue transition-colors duration-150 cursor-default"
+                  className="flex items-center justify-between gap-3 text-xs bg-white border border-gray-100 p-3 rounded-md hover:bg-blue-50 hover:border-bcgov-blue transition-colors duration-150 cursor-default"
                 >
-                  <span className="font-medium text-bcgov-black">{attr}</span>
+                  <span className="font-medium text-bcgov-black">{attr.name}</span>
+                  <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200">
+                    {attr.type}
+                  </span>
                 </div>
               )
             })}

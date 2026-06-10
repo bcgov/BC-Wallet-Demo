@@ -158,7 +158,20 @@ describe('adminSchemasRouter', () => {
       did: mockIssuerDid,
       name: 'Driver License',
       version: '2.0',
-      attrNames: ['name', 'address', 'license_number'],
+      attributes: [
+        {
+          name: 'name',
+          type: 'string',
+        },
+        {
+          name: 'address',
+          type: 'string',
+        },
+        {
+          name: 'license_number',
+          type: 'string',
+        },
+      ],
     }
 
     const tractionSchemaResponse = {
@@ -168,7 +181,7 @@ describe('adminSchemasRouter', () => {
           schema: {
             name: 'Driver License',
             version: '2.0',
-            attrNames: ['name', 'address', 'license_number'],
+            attrName: ['name', 'address', 'license_number'],
           },
         },
       },
@@ -225,7 +238,20 @@ describe('adminSchemasRouter', () => {
           schema: expect.objectContaining({
             name: 'Driver License',
             version: '2.0',
-            attrNames: ['name', 'address', 'license_number'],
+            attributes: [
+              {
+                name: 'name',
+                type: 'string',
+              },
+              {
+                name: 'address',
+                type: 'string',
+              },
+              {
+                name: 'license_number',
+                type: 'string',
+              },
+            ],
             issuerId: mockIssuerDid,
           }),
         }),
@@ -293,7 +319,20 @@ describe('adminSchemasRouter', () => {
           $set: {
             name: 'Driver License',
             version: '2.0',
-            attrNames: ['name', 'address', 'license_number'],
+            attributes: [
+              {
+                name: 'name',
+                type: 'string',
+              },
+              {
+                name: 'address',
+                type: 'string',
+              },
+              {
+                name: 'license_number',
+                type: 'string',
+              },
+            ],
             credDefId: 'W1ZJ:3:CL:123:Driver License',
             did: mockIssuerDid,
           },
