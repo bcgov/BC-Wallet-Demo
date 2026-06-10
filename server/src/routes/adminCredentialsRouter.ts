@@ -9,6 +9,7 @@ import { AdminCredentialController } from '../controllers/admin/AdminCredentialC
 import { requireRole } from '../middleware/requireAdmin'
 import { AuditLogService } from '../services/AuditLogService'
 import logger from '../utils/logger'
+import { rateLimiter } from '../utils/rateLimiter'
 
 const router = Router()
 
@@ -22,7 +23,7 @@ const auditLogService = Container.get(AuditLogService)
  * Supports ?status=active|retired and ?schema_name= filters.
  * Requires: admin or creator or viewer role
  */
-router.get('/', requireRole(['admin', 'creator', 'viewer']), async (req: Request, res: Response) => {
+router.get('/', rateLimiter, requireRole(['admin', 'creator', 'viewer']), async (req: Request, res: Response) => {
   logger.debug('Admin: list credentials')
   try {
     let credentials = await credentialController.getAllCredentials()
@@ -48,7 +49,7 @@ router.get('/', requireRole(['admin', 'creator', 'viewer']), async (req: Request
  * Get a single credential by id.
  * Requires: admin or creator or viewer role
  */
-router.get('/:id', requireRole(['admin', 'creator', 'viewer']), async (req: Request, res: Response) => {
+router.get('/:id', rateLimiter, requireRole(['admin', 'creator', 'viewer']), async (req: Request, res: Response) => {
   logger.debug({ id: req.params.id }, 'Admin: get credential')
   try {
     const credential = await credentialController.getCredentialById(req.params.id)
@@ -68,7 +69,7 @@ router.get('/:id', requireRole(['admin', 'creator', 'viewer']), async (req: Requ
  * Create a new credential.
  * Requires: admin role
  */
-router.post('/', requireRole(['admin']), async (req: Request, res: Response) => {
+router.post('/', rateLimiter({ max: 10 }), requireRole(['admin']), async (req: Request, res: Response) => {
   logger.debug({ body: req.body }, 'Admin: create credential')
   try {
     const credential = await adminCredentialController.createCredential(req.body)
@@ -95,7 +96,7 @@ router.post('/', requireRole(['admin']), async (req: Request, res: Response) => 
  * Update a credential. Ledger-registered credentials may only update showcase fields.
  * Requires: admin role
  */
-router.put('/:id', requireRole(['admin']), async (req: Request, res: Response) => {
+router.put('/:id', rateLimiter({ max: 10 }), requireRole(['admin']), async (req: Request, res: Response) => {
   logger.debug({ id: req.params.id, body: req.body }, 'Admin: update credential')
   try {
     const credential = await adminCredentialController.updateCredential(req.params.id, req.body)
@@ -128,7 +129,7 @@ router.put('/:id', requireRole(['admin']), async (req: Request, res: Response) =
  * Soft-delete: marks credential as retired. Document is preserved.
  * Requires: admin role
  */
-router.delete('/:id', requireRole(['admin']), async (req: Request, res: Response) => {
+router.delete('/:id', rateLimiter({ max: 10 }), requireRole(['admin']), async (req: Request, res: Response) => {
   logger.debug({ id: req.params.id }, 'Admin: retire credential')
   try {
     const credential = await adminCredentialController.deleteCredential(req.params.id)

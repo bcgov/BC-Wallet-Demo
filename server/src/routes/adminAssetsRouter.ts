@@ -2,7 +2,6 @@ import type { NextFunction, Request, Response } from 'express'
 
 import { randomUUID } from 'crypto'
 import { Router } from 'express'
-import rateLimit from 'express-rate-limit'
 import { mkdirSync, readdirSync } from 'fs'
 import mongoose from 'mongoose'
 import multer from 'multer'
@@ -12,6 +11,7 @@ import path from 'path'
 import { AssetModel } from '../db/models/Asset'
 import { requireRole } from '../middleware/requireAdmin'
 import logger from '../utils/logger'
+import { rateLimiter } from '../utils/rateLimiter'
 import { sanitizeFilename } from '../utils/sanitizeFilename'
 import { sanitizeSVG } from '../utils/sanitizeSVG'
 import { UPLOADS_DIR } from '../utils/uploadsDir'
@@ -53,30 +53,6 @@ const EXT_TO_MIME: Record<string, string> = {
 
 const router = Router()
 
-const getLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  message: 'Too many requests, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-})
-
-const uploadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: 'Too many upload requests, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-})
-
-const deleteLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: 'Too many delete requests, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-})
-
 // Ensure uploads dir exists at module load time.
 mkdirSync(UPLOADS_DIR, { recursive: true })
 
@@ -112,7 +88,7 @@ const upload = multer({
  */
 router.post(
   '/',
-  uploadLimiter,
+  rateLimiter({ message: 'Too many upload requests, please try again later.' }),
   requireRole(['admin', 'creator']),
   upload.single('file'),
   async (req: Request, res: Response): Promise<void> => {
@@ -194,7 +170,7 @@ router.post(
  */
 router.get(
   '/',
-  getLimiter,
+  rateLimiter({ max: 10 }),
   requireRole(['admin', 'creator', 'viewer']),
   async (req: Request, res: Response): Promise<void> => {
     const type = typeof req.query.type === 'string' && req.query.type ? req.query.type : undefined
@@ -223,7 +199,7 @@ router.get(
  */
 router.delete(
   '/:assetId',
-  deleteLimiter,
+  rateLimiter({ max: 10 }),
   requireRole(['admin']),
   async (req: Request, res: Response): Promise<void> => {
     const { assetId } = req.params
