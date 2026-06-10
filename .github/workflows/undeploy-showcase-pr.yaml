@@ -1,4 +1,4 @@
-# Remove Helm release and chart-scoped secrets/PVC when a PR is closed (traction-style cleanup).
+# Remove PR webhook from Traction, then Helm release and chart-scoped secrets/PVC when a PR is closed (traction-style cleanup).
 #
 # Requires bcgov repo + OPENSHIFT_SERVER, OPENSHIFT_TOKEN, OPENSHIFT_DEV_NAMESPACE (same as deploy-showcase-pr).
 
@@ -16,12 +16,17 @@ on:
       - 'yarn.lock'
       - '.github/workflows/deploy-showcase-pr.yaml'
       - '.github/workflows/undeploy-showcase-pr.yaml'
+      - '.github/scripts/showcase-traction-webhook.sh'
     types: [closed]
 
 permissions:
   contents: read
   # Delete GHCR package versions tagged pr-<N> after uninstall (same token scope as PR image push).
   packages: write
+
+env:
+  SHOWCASE_PR_HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX != '' && vars.SHOWCASE_PR_HOST_SUFFIX || 'bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+  TRACTION_URL: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
 
 jobs:
   uninstall:
@@ -56,6 +61,17 @@ jobs:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           namespace: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+
+      # Remove only this PR's webhook URL from the shared Traction tenant; dev and other PR URLs stay.
+      - name: Remove PR webhook from Traction
+        if: steps.openshift.outputs.continue == 'true'
+        continue-on-error: true
+        env:
+          PR_NUM: ${{ github.event.pull_request.number }}
+          SHOWCASE_PR_HOST_SUFFIX: ${{ env.SHOWCASE_PR_HOST_SUFFIX }}
+          TRACTION_URL: ${{ env.TRACTION_URL }}
+          OPENSHIFT_DEV_NAMESPACE: ${{ secrets.OPENSHIFT_DEV_NAMESPACE }}
+        run: .github/scripts/showcase-traction-webhook.sh remove
 
       - name: Helm release storage RBAC (uninstall)
         if: steps.openshift.outputs.continue == 'true'

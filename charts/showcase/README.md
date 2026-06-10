@@ -90,9 +90,16 @@ If you use **`showcase.server.existingSecret`** for a full env bundle, you can o
 
 On **bcgov** dev and PR deploys, pre-create **`showcase-traction`** in the target namespace (keys **`TRACTION_TENANT_ID`**, **`TRACTION_TENANT_API_KEY`**, **`WEBHOOK_SECRET`**). **`deploy/showcase/values-dev.yaml`** and **`values-pr.yaml`** set **`showcase.server.traction.existingSecret: showcase-traction`**; CI does not create or update that Secret. PR uninstall only deletes chart-labeled resources and does not remove **`showcase-traction`**.
 
+**PR webhooks (CI):** **`deploy-showcase-pr`** appends this PR’s callback URL to the shared tenant via **`PUT /tenant/wallet`** (script **`.github/scripts/showcase-traction-webhook.sh add`**). **`undeploy-showcase-pr`** removes **only that PR’s exact URL** (matched by `https://pr-<N>-<host>/…`) and leaves dev and other open PR webhooks on the tenant.
+
 ### Short OOB invitation URLs (QR)
 
 - **`showcase.server.shortInvitationUrls.enabled`** (default **`true`**) sets **`SHOWCASE_SHORT_INVITATION_URLS_ENABLED`** on the server. When **`true`**, connection and OOB proof invites get **`short_url`** for QR codes; wallets resolve **`GET {baseRoute}/i/{oobId}`** to the stored invitation JSON. Set to **`false`** to encode the full Traction **`invitation_url`** in QR codes instead (legacy behaviour).
+
+### WEBVH (optional)
+
+- **`showcase.server.webvhServerUrl`** sets **`WEBVH_SERVER_URL`** on the server (non-secret; base URL of the Webhook Verifier service, no path).
+- **`showcase.server.webvhNamespace`** sets **`WEBVH_NAMESPACE`** on the server (non-secret; namespace where Webhook Verifier is deployed, used for webhook registration with the Traction proxy).
 
 ### Mongo subchart
 

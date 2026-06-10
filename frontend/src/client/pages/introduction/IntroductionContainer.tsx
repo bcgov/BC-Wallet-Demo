@@ -58,7 +58,7 @@ export const IntroductionContainer: React.FC<Props> = ({
   const connectionCompleted = isConnected(connectionState as string)
   const introStep = currentShowcase?.introduction.find((step) => step.screenId === introductionStep)
   const credentials = introStep?.credentials
-  const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.name))
+  const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.schema_id || 'not-found'))
 
   const isBackDisabled =
     introductionStep === 'PICK_CHARACTER' ||

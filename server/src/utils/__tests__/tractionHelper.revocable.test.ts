@@ -16,12 +16,19 @@ vi.mock('../logger', () => ({
 vi.mock('../../db/models/Schema', () => ({
   SchemaModel: {
     findOne: vi.fn(),
+    find: vi.fn(),
     updateOne: vi.fn(),
   },
 }))
 
 vi.mock('../../db/models/Credential', () => ({
   CredentialModel: {
+    updateOne: vi.fn(),
+  },
+}))
+
+vi.mock('../../db/models/Did', () => ({
+  DidModel: {
     updateOne: vi.fn(),
   },
 }))
@@ -41,6 +48,7 @@ vi.mock('../../../scripts/values/credentials.json', () => ({
 }))
 
 import { CredentialModel } from '../../db/models/Credential'
+import { DidModel } from '../../db/models/Did'
 import { SchemaModel } from '../../db/models/Schema'
 import * as th from '../tractionHelper'
 
@@ -56,13 +64,22 @@ describe('checkSeededSchemasExistOrCreate -- revocable: false', () => {
 
   it('creates credential definition without revocation support when seed has revocable: false', async () => {
     vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
+    vi.mocked(SchemaModel.find).mockResolvedValue([])
+    vi.mocked(DidModel.updateOne).mockResolvedValue({} as any)
     vi.mocked(axios.get)
+      // getOrCreateIndyDid: GET /wallet/did (method: sov)
       .mockResolvedValueOnce({
-        data: { result: { did: 'W1ZJ' } },
+        data: { results: [{ did: 'W1ZJ' }] },
       })
+      // getOrCreateWebvhDid: GET /wallet/did (method: webvh)
+      .mockResolvedValueOnce({
+        data: { results: [{ did: 'webvh:did:example' }] },
+      })
+      // findSchemaInTraction: GET /anoncreds/schemas
       .mockResolvedValueOnce({
         data: { schema_ids: ['W1ZJ:2:student_card:2.0'] },
       })
+      // getOrCreateCredDef: GET /anoncreds/credential-definitions
       .mockResolvedValueOnce({
         data: { credential_definition_ids: [] },
       })
