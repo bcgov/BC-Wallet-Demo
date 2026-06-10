@@ -181,7 +181,7 @@ describe('adminSchemasRouter', () => {
           schema: {
             name: 'Driver License',
             version: '2.0',
-            attrName: ['name', 'address', 'license_number'],
+            attrNames: ['name', 'address', 'license_number'],
           },
         },
       },
@@ -238,20 +238,7 @@ describe('adminSchemasRouter', () => {
           schema: expect.objectContaining({
             name: 'Driver License',
             version: '2.0',
-            attributes: [
-              {
-                name: 'name',
-                type: 'string',
-              },
-              {
-                name: 'address',
-                type: 'string',
-              },
-              {
-                name: 'license_number',
-                type: 'string',
-              },
-            ],
+            attrNames: ['name', 'address', 'license_number'],
             issuerId: mockIssuerDid,
           }),
         }),

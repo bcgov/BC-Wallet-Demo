@@ -1,9 +1,8 @@
+import { Schema, model } from 'mongoose'
 interface Migration {
   _id: string
   appliedAt: Date
 }
-
-import { Schema, model } from 'mongoose'
 
 const MigrationSchema = new Schema<Migration>(
   {

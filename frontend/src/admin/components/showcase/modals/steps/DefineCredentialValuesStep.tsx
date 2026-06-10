@@ -21,9 +21,9 @@ export function DefineCredentialValuesStep({
 }: DefineCredentialValuesStepProps) {
   const [values, setValues] = useState<Record<string, string>>(
     selectedSchema
-      ? selectedSchema.attrNames.reduce(
+      ? selectedSchema.attributes.reduce(
           (acc, attr) => {
-            acc[attr] = ''
+            acc[attr.name] = ''
             return acc
           },
           {} as Record<string, string>,
@@ -215,6 +215,7 @@ export function DefineCredentialValuesStep({
                       >
                         Time of Issuance
                       </button>
+                    </div>
                   </div>
                 )}
               </div>
