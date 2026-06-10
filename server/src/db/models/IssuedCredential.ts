@@ -6,7 +6,7 @@ import { baseSchemaOptions } from '../baseSchema'
 /** Shape returned by IssuedCredentialModel queries with .lean(). */
 export interface LeanIssuedCredentialDoc {
   _id: string
-  credential_id: string
+  credential_id?: string
   connection_id: string
   format: 'anoncreds'
   status: 'issued' | 'revoked'
@@ -19,8 +19,9 @@ export interface LeanIssuedCredentialDoc {
 const IssuedCredentialSchema = new Schema(
   {
     _id: { type: String, default: uuidv4 },
-    // References the internal Credential document _id (credential definition)
-    credential_id: { type: String, required: true },
+    // References the internal Credential document _id (credential definition).
+    // Optional: may not resolve if cred_def_id missing from webhook payload.
+    credential_id: { type: String },
     connection_id: { type: String, required: true, index: true },
     format: { type: String, enum: ['anoncreds'], required: true },
     status: { type: String, enum: ['issued', 'revoked'], default: 'issued', index: true },

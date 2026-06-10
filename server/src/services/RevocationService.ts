@@ -11,7 +11,7 @@ import { revocationHandlers } from './revocationHandlers'
 // -- Functional core --
 
 export interface IssuedCredentialInput {
-  credential_id: string
+  credential_id?: string
   connection_id: string
   format: 'anoncreds'
   format_metadata: Record<string, unknown>
@@ -44,7 +44,7 @@ export const extractIssuanceData = (params: WebhookPayload): IssuedCredentialInp
   const cred_def_id = params.by_format?.cred_issue?.anoncreds?.cred_def_id
   if (!rev_reg_id || !cred_rev_id || !params.connection_id) return null
   return {
-    credential_id: cred_def_id ?? '',
+    credential_id: cred_def_id,
     connection_id: params.connection_id,
     format: 'anoncreds',
     format_metadata: { rev_reg_id, cred_rev_id, cred_def_id },
@@ -76,7 +76,7 @@ export class RevocationService {
     if (!input) return null
 
     // Resolve the internal credential_id via cred_def_id stored on the Credential doc
-    const cred_def_id = (input.format_metadata as { cred_def_id?: string }).cred_def_id
+    const cred_def_id = typeof input.format_metadata.cred_def_id === 'string' ? input.format_metadata.cred_def_id : undefined
     if (cred_def_id) {
       const credDoc = await CredentialModel.findOne({ cred_def_id }).lean()
       if (credDoc) {
@@ -119,7 +119,8 @@ export class RevocationService {
       { new: true },
     ).lean<LeanIssuedCredentialDoc>()
 
-    return updated!
+    if (!updated) throw new Error(`IssuedCredential disappeared during revocation: ${issuedCredentialId}`)
+    return updated
   }
 
   /** Return all issued credentials for a given connection. */

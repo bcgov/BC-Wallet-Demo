@@ -14,7 +14,7 @@ export class WebhookController {
   @Post('/*')
   public async handlePostWhook(@Body() params: any, @Req() req: any) {
     logger.debug({ path: req.path }, 'Webhook payload received')
-    const socketMap: Map<string, Socket> = req.app.get('sockets')
+    const socketMap: Map<string, Socket> | undefined = req.app.get('sockets')
     const api_key = req.headers['x-api-key']
     if (api_key !== process.env.WEBHOOK_SECRET) {
       logger.warn({ path: req.path }, 'Webhook received with invalid API key')
@@ -34,7 +34,10 @@ export class WebhookController {
 
     logger.info({ endpoint, connectionId, state: params.state }, 'Webhook received')
     if (endpoint === 'issuer_cred_rev') {
-      logger.info({ params }, 'issuer_cred_rev payload')
+      logger.debug(
+        { rev_reg_id: params.rev_reg_id, cred_rev_id: params.cred_rev_id, state: params.state },
+        'issuer_cred_rev payload',
+      )
     }
 
     // Persist issued credential and enrich payload with internal ID.
@@ -50,7 +53,7 @@ export class WebhookController {
       }
     }
 
-    const socket = socketMap.get(connectionId)
+    const socket = socketMap?.get(connectionId)
     if (socket) {
       socket.emit('message', payload)
       logger.debug({ endpoint, connectionId }, 'Webhook forwarded to socket')
