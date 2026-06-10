@@ -4,6 +4,7 @@ import type { SerializedError } from '@reduxjs/toolkit'
 import { createSlice, isAnyOf } from '@reduxjs/toolkit'
 
 import { fetchCredentialById, issueCredential, issueDeepCredential, deleteCredentialById } from './credentialsThunks'
+import log from '../../utils/logger'
 
 interface CredentialState {
   issuedCredentials: string[]
@@ -31,7 +32,12 @@ const credentialSlice = createSlice({
     },
     setCredential: (state, action) => {
       const credentialData = action.payload
-      const credDefParts = credentialData.by_format.cred_issue.anoncreds.cred_def_id.split(':')
+      const credDefId = credentialData.by_format?.cred_issue?.anoncreds?.cred_def_id
+      if (!credDefId) {
+        log.warn('[credentials] setCredential: no cred_def_id in payload, skipping', credentialData)
+        return
+      }
+      const credDefParts = credDefId.split(':')
       const credName = credDefParts[credDefParts.length - 1]
       if (!state.issuedCredentials.includes(credName)) {
         state.issuedCredentials.push(credName)
