@@ -11,7 +11,7 @@ import path from 'path'
 import { AssetModel } from '../db/models/Asset'
 import { requireRole } from '../middleware/requireAdmin'
 import logger from '../utils/logger'
-import { rateLimiter } from '../utils/rateLimiter'
+import { uploadRateLimiter, defaultRateLimiter } from '../utils/rateLimiter'
 import { sanitizeFilename } from '../utils/sanitizeFilename'
 import { sanitizeSVG } from '../utils/sanitizeSVG'
 import { UPLOADS_DIR } from '../utils/uploadsDir'
@@ -88,7 +88,7 @@ const upload = multer({
  */
 router.post(
   '/',
-  rateLimiter({ message: 'Too many upload requests, please try again later.' }),
+  uploadRateLimiter,
   requireRole(['admin', 'creator']),
   upload.single('file'),
   async (req: Request, res: Response): Promise<void> => {
@@ -170,7 +170,7 @@ router.post(
  */
 router.get(
   '/',
-  rateLimiter({ max: 10 }),
+  defaultRateLimiter,
   requireRole(['admin', 'creator', 'viewer']),
   async (req: Request, res: Response): Promise<void> => {
     const type = typeof req.query.type === 'string' && req.query.type ? req.query.type : undefined
@@ -199,7 +199,7 @@ router.get(
  */
 router.delete(
   '/:assetId',
-  rateLimiter({ max: 10 }),
+  defaultRateLimiter,
   requireRole(['admin']),
   async (req: Request, res: Response): Promise<void> => {
     const { assetId } = req.params

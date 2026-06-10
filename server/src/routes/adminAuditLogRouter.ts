@@ -8,7 +8,7 @@ import { AUDIT_ACTIONS, AUDIT_RESOURCE_TYPES } from '../db/models/AuditLog'
 import { requireRole } from '../middleware/requireAdmin'
 import { AuditLogService } from '../services/AuditLogService'
 import logger from '../utils/logger'
-import { rateLimiter } from '../utils/rateLimiter'
+import { defaultRateLimiter } from '../utils/rateLimiter'
 
 const router = Router()
 
@@ -35,7 +35,7 @@ function parseCommaSeparated<T extends string>(raw: unknown, allowed: readonly T
  *   page, limit, startDate, endDate,
  *   action (comma-separated), resource_type (comma-separated), user_id
  */
-router.get('/', rateLimiter, requireRole(['admin']), async (req: Request, res: Response) => {
+router.get('/', defaultRateLimiter, requireRole(['admin']), async (req: Request, res: Response) => {
   logger.debug({ query: req.query }, 'Admin: list audit log')
 
   try {
