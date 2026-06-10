@@ -74,9 +74,17 @@ export function DefineCredentialValuesStep({
       // Construct final values with $dateint: prefix for issuance dates
       const finalValues = { ...values }
       selectedSchema.attributes.forEach((attr) => {
-        if (attr.type === 'date' && dateOptions[attr.name] === 'issuance') {
-          const yearOffset = yearOffsets[attr.name] || 0
-          finalValues[attr.name] = `$dateint:${yearOffset}`
+        if (attr.type === 'date') {
+          if (dateOptions[attr.name] === 'custom' || dateOptions[attr.name] === undefined) {
+            // Expecting a date string in YYYY-MM-DD format, convert to timestamp
+            const dateValue = new Date(values[attr.name])
+            if (!isNaN(dateValue.getTime())) {
+              finalValues[attr.name] = Math.floor(dateValue.getTime() / 1000).toString()
+            }
+          } else if (dateOptions[attr.name] === 'issuance') {
+            const yearOffset = yearOffsets[attr.name] || 0
+            finalValues[attr.name] = `$dateint:${yearOffset}`
+          }
         }
       })
       onSelectCredential(finalValues, icon)
