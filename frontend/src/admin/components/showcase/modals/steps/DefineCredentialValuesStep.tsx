@@ -171,12 +171,13 @@ export function DefineCredentialValuesStep({
                       hidden={dateOptions[attr.name] === 'issuance'}
                     />
                     <input
-                      type={'number'}
-                      value={yearOffsets[attr.name] ?? values[attr.name] ?? ''}
+                      type="number"
+                      value={yearOffsets[attr.name] ?? 0}
                       onChange={(e) => {
-                        const numVal = e.target.value ? parseInt(e.target.value) : 0
+                        const parsed = e.target.value === '' ? 0 : parseInt(e.target.value, 10)
+                        const numVal = Number.isNaN(parsed) ? 0 : parsed
                         setYearOffsets((prev) => ({ ...prev, [attr.name]: numVal }))
-                        setValues((prev) => ({ ...prev, [attr.name]: e.target.value }))
+                        setValues((prev) => ({ ...prev, [attr.name]: String(numVal) }))
                       }}
                       placeholder={`Enter ${attr.name.replace(/_/g, ' ')}`}
                       className="px-4 py-3 border-2 border-gray-200 rounded-lg bg-white text-bcgov-black placeholder-gray-400 transition-all focus:outline-none focus:border-bcgov-blue focus:ring-1 focus:ring-bcgov-blue hover:border-gray-300"
