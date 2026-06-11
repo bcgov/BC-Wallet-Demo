@@ -273,7 +273,7 @@ export const getAvailableSchemas = async (auth: AuthContextProps): Promise<Schem
 
 export const createSchema = async (
   auth: AuthContextProps,
-  schemaData: { name: string; version: string; attrNames: string[]; did: string; revocable?: boolean},
+  schemaData: { name: string; version: string; attrNames: string[]; did: string; revocable?: boolean },
 ): Promise<Schema> => {
   const res = await fetch(`${adminBaseUrl}/schemas`, {
     method: 'POST',

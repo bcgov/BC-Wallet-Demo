@@ -66,7 +66,6 @@ describe('AdminCredentialController', () => {
           version: '2.0',
           attributes: [],
           schema_id: 'ABC:2:local_card:2.0',
-          cred_def_ids: ['ABC:3:CL:1:tag'],
         }),
       })
 
@@ -95,7 +94,6 @@ describe('AdminCredentialController', () => {
           version: '1.6',
           attributes: [],
           schema_id: 'ABC:2:student_card:1.6',
-          cred_def_ids: ['ABC:3:CL:100:student_card'],
         }),
       })
 
@@ -112,7 +110,6 @@ describe('AdminCredentialController', () => {
           version: '1.6',
           attributes: [],
           schema_id: 'ABC:2:student_card:1.6',
-          cred_def_ids: ['ABC:3:CL:100:student_card'],
           status: 'retired',
         }),
       })
@@ -140,7 +137,6 @@ describe('AdminCredentialController', () => {
         version: '1.6',
         attributes: [],
         schema_id: 'ABC:2:student_card:1.6',
-        cred_def_ids: ['ABC:3:CL:100:student_card'],
         status: 'retired',
       }
       mockFindByIdAndUpdate.mockReturnValue({

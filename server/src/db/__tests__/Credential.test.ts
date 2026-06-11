@@ -21,7 +21,7 @@ afterAll(async () => {
 })
 
 describe('CredentialModel', () => {
-  it('saves and reads schema_id and cred_def_ids', async () => {
+  it('saves and reads schema_id and cred_def_id', async () => {
     const doc = await CredentialModel.create({
       _id: 'traction-card',
       name: 'Traction Card',
