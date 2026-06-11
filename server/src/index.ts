@@ -10,6 +10,8 @@ import { createExpressServer, useContainer } from 'routing-controllers'
 import { Server } from 'socket.io'
 import { Container } from 'typedi'
 
+import { runMigrations } from '../migrations/runner'
+
 import { connectDB, registerShutdownHandlers } from './db/connection'
 import { serveOobInvitation } from './handlers/serveOobInvitation'
 import { auditLoginMiddleware } from './middleware/auditLogin'
@@ -71,6 +73,9 @@ const serverStartTime = new Date().toISOString()
 
 const run = async () => {
   await connectDB()
+
+  await runMigrations()
+
   registerShutdownHandlers()
 
   await tractionApiKeyUpdaterInit()
