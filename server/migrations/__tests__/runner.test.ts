@@ -13,9 +13,10 @@ vi.mock('../../src/utils/logger', () => ({
   },
 }))
 
-// Mock dynamic import of migration
-vi.mock('../001-add-schema-attributes', () => ({
-  up: vi.fn().mockResolvedValue(undefined),
+// Mock dynamic import of migration - default success
+const migrationUpMock = vi.fn().mockResolvedValue(undefined)
+vi.mock('../001-add-schema-attributes', async () => ({
+  up: migrationUpMock,
 }))
 
 let mongod: MongoMemoryServer
@@ -28,6 +29,8 @@ beforeAll(async () => {
 afterEach(async () => {
   await MigrationModel.deleteMany({})
   vi.clearAllMocks()
+  // Reset migration mock to default success
+  migrationUpMock.mockResolvedValue(undefined)
 })
 
 afterAll(async () => {
@@ -131,9 +134,7 @@ describe('runMigrations', () => {
     process.env.POD_NAME = 'test-instance-1'
 
     const testError = new Error('Migration execution failed')
-    vi.doMock('../001-add-schema-attributes', () => ({
-      up: vi.fn().mockRejectedValue(testError),
-    }))
+    migrationUpMock.mockRejectedValueOnce(testError)
 
     try {
       await runMigrations()
@@ -175,9 +176,7 @@ describe('runMigrations', () => {
     const { runMigrations } = await import('../runner')
     process.env.POD_NAME = 'test-instance-1'
 
-    vi.doMock('../001-add-schema-attributes', () => ({
-      up: vi.fn().mockRejectedValue('String error'),
-    }))
+    migrationUpMock.mockRejectedValueOnce('String error')
 
     try {
       await runMigrations()
