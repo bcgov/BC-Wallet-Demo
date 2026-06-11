@@ -32,17 +32,36 @@ export async function runMigrations() {
     try {
       // Atomically attempt to claim the migration lock
       // This will only succeed if no other instance has claimed it
-      const claimed = await MigrationModel.findOneAndUpdate(
-        { _id: migration.id, claimedBy: { $exists: false } },
-        {
-          $set: {
-            status: 'applying',
-            claimedBy: instanceId,
-            claimedAt: new Date(),
+      let claimed
+      try {
+        claimed = await MigrationModel.findOneAndUpdate(
+          { _id: migration.id, claimedBy: { $exists: false } },
+          {
+            $set: {
+              status: 'applying',
+              claimedBy: instanceId,
+              claimedAt: new Date(),
+            },
           },
-        },
-        { upsert: false, new: true },
-      )
+          { upsert: true, new: true },
+        )
+      } catch (error: any) {
+        // E11000 duplicate key error means document exists (another instance may have claimed it)
+        // Fetch it to check its actual status instead of assuming
+        if (error.code === 11000) {
+          const existing = await MigrationModel.findById(migration.id)
+          if (existing?.status === 'applied') {
+            logger.info({ migrationId: migration.id }, 'Migration already applied')
+          } else {
+            logger.info(
+              { migrationId: migration.id, claimedBy: existing?.claimedBy },
+              'Migration being applied by another instance',
+            )
+          }
+          continue
+        }
+        throw error
+      }
 
       if (!claimed) {
         // Another instance already claimed it or it was already processed
