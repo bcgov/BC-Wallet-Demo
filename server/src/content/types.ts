@@ -10,7 +10,6 @@ export interface Credential {
   schema_id?: string
   cred_def_id?: string
   status: 'active' | 'retired'
-  revocable?: boolean
 }
 
 // Input shape for the create credential API. schema_id and cred_def_id are

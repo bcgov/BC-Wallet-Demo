@@ -106,12 +106,7 @@ export const tractionRequest = {
   },
 }
 
-const createCredentialDefinition = async (
-  issuerDid: string,
-  schemaId: string,
-  tag: string,
-  revocable: boolean = true,
-): Promise<string> => {
+const createCredentialDefinition = async (issuerDid: string, schemaId: string, tag: string): Promise<string> => {
   const credDefResponse = await retryWithExponentialBackoff(
     () =>
       tractionRequest.post('/anoncreds/credential-definition', {
@@ -120,14 +115,10 @@ const createCredentialDefinition = async (
           schemaId: schemaId,
           tag: tag,
         },
-        options: revocable
-          ? {
-              support_revocation: true,
-              revocation_registry_size: 3000,
-            }
-          : {
-              support_revocation: false,
-            },
+        options: {
+          support_revocation: true,
+          revocation_registry_size: 3000,
+        },
       }),
     3,
     1000,
@@ -190,7 +181,6 @@ export interface SeedCredential {
   _id: string
   name: string
   version: string
-  revocable?: boolean
   attributes: SeedCredentialAttribute[]
   // populated later
   schema_id?: string
@@ -275,12 +265,7 @@ export async function findSchemaInTraction(name: string, version: string): Promi
   return schemaIds[0] ?? null
 }
 
-export async function getOrCreateCredDef(
-  issuerDid: string,
-  schemaId: string,
-  schemaName: string,
-  revocable: boolean = true,
-): Promise<string> {
+export async function getOrCreateCredDef(issuerDid: string, schemaId: string, schemaName: string): Promise<string> {
   const credDefs = (
     await tractionRequest.get('/anoncreds/credential-definitions', {
       params: {
@@ -293,7 +278,7 @@ export async function getOrCreateCredDef(
     return credDefs[0]
   }
 
-  return createCredentialDefinition(issuerDid, schemaId, schemaName, revocable)
+  return createCredentialDefinition(issuerDid, schemaId, schemaName)
 }
 
 export async function syncSchemaToDatabase(credential: SeedCredential, schemaId: string, credDefId: string) {
@@ -355,7 +340,7 @@ export async function processSeededCredential(credential: SeedCredential, issuer
     schemaId = await createSchema(credential, issuerDid)
   }
 
-  const credDefId = await getOrCreateCredDef(issuerDid, schemaId, credential.name, credential.revocable ?? true)
+  const credDefId = await getOrCreateCredDef(issuerDid, schemaId, credential.name)
 
   await syncSchemaToDatabase(credential, schemaId, credDefId)
 }

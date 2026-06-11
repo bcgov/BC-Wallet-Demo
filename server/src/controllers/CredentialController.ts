@@ -41,7 +41,6 @@ export class CredentialController {
       if (credential.schema_id) response.schema_id = credential.schema_id
       if (credential.cred_def_id) response.cred_def_id = credential.cred_def_id
       if (credential.status) response.status = credential.status
-      if (credential.revocable !== undefined) response.revocable = credential.revocable
       return response
     })
   }
@@ -88,7 +87,6 @@ export class CredentialController {
     if (credential.schema_id) response.schema_id = credential.schema_id
     if (credential.cred_def_id) response.cred_def_id = credential.cred_def_id
     if (credential.status) response.status = credential.status
-    if (credential.revocable !== undefined) response.revocable = credential.revocable
     return response
   }
 

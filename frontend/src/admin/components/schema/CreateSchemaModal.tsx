@@ -24,7 +24,6 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
   const [selectedDid, setSelectedDid] = useState<Did | null>(null)
   const [attrNames, setAttrNames] = useState<Attribute[]>([])
   const [attributeKey, setAttributeKey] = useState('')
-  const [revocable, setRevocable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [availableSchemas, setAvailableSchemas] = useState<Schema[]>([])
@@ -87,7 +86,6 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
     setSelectedDid(null)
     setAttrNames([])
     setAttributeKey('')
-    setRevocable(true)
     setError('')
     onClose()
   }
@@ -138,7 +136,6 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
         version,
         attrNames: attrNames.map((attr) => attr.name),
         did: selectedDid?.did || '',
-        revocable,
       })
       // Reset form and notify parent to refresh
       setName('')
@@ -146,7 +143,6 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
       setSelectedDid(null)
       setAttrNames([])
       setAttributeKey('')
-      setRevocable(true)
       setError('')
       setShowConfirmation(false)
       setProgress(100) // Complete the progress bar
@@ -224,10 +220,6 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
                 ) : (
                   <p className="text-sm text-gray-500 italic">No attributes</p>
                 )}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Revocable</p>
-                <p className="text-base font-semibold text-bcgov-black">{revocable ? 'Yes' : 'No'}</p>
               </div>
             </div>
           </div>
@@ -384,23 +376,6 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
                   ))}
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Revocable Toggle */}
-          <div>
-            <label className="block text-sm font-medium text-bcgov-black mb-3">Revocation Settings</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="revocable"
-                checked={revocable}
-                onChange={(e) => setRevocable(e.target.checked)}
-                className="w-4 h-4 text-bcgov-blue bg-white border border-gray-300 rounded focus:ring-2 focus:ring-bcgov-blue cursor-pointer"
-              />
-              <label htmlFor="revocable" className="text-sm text-gray-700 cursor-pointer">
-                Allow credentials issued with this schema to be revoked
-              </label>
             </div>
           </div>
         </div>

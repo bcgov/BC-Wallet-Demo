@@ -56,7 +56,6 @@ export interface Credential {
   }[]
   schema_id?: string
   cred_def_id?: string
-  revocable?: boolean
 }
 
 export interface IntroductionStep {

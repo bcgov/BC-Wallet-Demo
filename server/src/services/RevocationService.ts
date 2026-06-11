@@ -107,14 +107,6 @@ export class RevocationService {
     const validationError = validateRevocation(doc)
     if (validationError) throw new Error(validationError)
 
-    // Check parent Credential revocable flag (set to true by default -- see Ticket 2)
-    if (doc.credential_id) {
-      const credDoc = await CredentialModel.findById(doc.credential_id).lean<{ revocable?: boolean }>()
-      if (credDoc && credDoc.revocable === false) {
-        throw new Error('credential is not revocable')
-      }
-    }
-
     await revocationHandlers[doc.format](doc.format_metadata, doc.connection_id)
 
     const updated = await IssuedCredentialModel.findByIdAndUpdate(

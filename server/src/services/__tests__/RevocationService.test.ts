@@ -184,7 +184,6 @@ describe('RevocationService - Imperative Shell', () => {
         icon: 'icon',
         version: '1.0',
         attributes: [],
-        revocable: true,
       })
 
       await IssuedCredentialModel.create({
@@ -213,27 +212,6 @@ describe('RevocationService - Imperative Shell', () => {
         },
         'conn-123',
       )
-    })
-
-    it('throws error if credential not revocable', async () => {
-      const credential = await CredentialModel.create({
-        name: 'test',
-        icon: 'icon',
-        version: '1.0',
-        attributes: [],
-        revocable: false,
-      })
-
-      await IssuedCredentialModel.create({
-        _id: 'ex-not-revocable-1',
-        credential_id: String(credential._id),
-        connection_id: 'conn-123',
-        format: 'anoncreds',
-        status: 'issued',
-        format_metadata: {},
-      })
-
-      await expect(service.revokeCredential('ex-not-revocable-1')).rejects.toThrow('credential is not revocable')
     })
   })
 
