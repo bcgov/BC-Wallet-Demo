@@ -32,7 +32,7 @@ describe('CredentialController', () => {
   })
 
   describe('getAllCredentials', () => {
-    it('includes schema_id, cred_def_ids, status when present', async () => {
+    it('includes schema_id, cred_def_id, status when present', async () => {
       vi.mocked(CredentialModel.find).mockReturnValue({
         lean: vi.fn().mockResolvedValue([
           {
@@ -79,7 +79,7 @@ describe('CredentialController', () => {
   })
 
   describe('getCredentialById', () => {
-    it('includes schema_id, cred_def_ids, status in response', async () => {
+    it('includes schema_id, cred_def_id, status in response', async () => {
       vi.mocked(CredentialModel.findById).mockReturnValue({
         lean: vi.fn().mockResolvedValue({
           _id: 'traction-card',

@@ -14,7 +14,6 @@ export interface LeanCredentialDoc {
   attributes: { name: string; value: string }[]
   schema_id?: string
   cred_def_id?: string
-  cred_def_ids?: string[]
   status?: 'active' | 'retired'
 }
 
@@ -29,7 +28,6 @@ const CredentialSchema = new Schema(
     attributes: [AttributeSchema],
     schema_id: { type: String },
     cred_def_id: { type: String },
-    cred_def_ids: [String],
     status: { type: String, enum: ['active', 'retired'], default: 'active' },
   },
   baseSchemaOptions,
