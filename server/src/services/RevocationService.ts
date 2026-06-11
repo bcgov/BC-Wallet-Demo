@@ -47,7 +47,7 @@ export const extractIssuanceData = (params: WebhookPayload): IssuedCredentialInp
   if (!params.cred_ex_id || !rev_reg_id || !cred_rev_id || !params.connection_id) return null
   return {
     _id: params.cred_ex_id,
-    credential_id: cred_def_id,
+    credential_id: undefined,
     connection_id: params.connection_id,
     format: 'anoncreds',
     format_metadata: { rev_reg_id, cred_rev_id, cred_def_id },
@@ -90,8 +90,12 @@ export class RevocationService {
       }
     }
 
-    const doc = await IssuedCredentialModel.create(input)
-    const lean = doc.toObject() as unknown as LeanIssuedCredentialDoc
+    const lean = await IssuedCredentialModel.findOneAndUpdate(
+      { _id: input._id },
+      { $setOnInsert: input },
+      { upsert: true, returnDocument: 'after' },
+    ).lean<LeanIssuedCredentialDoc>()
+    if (!lean) throw new Error(`IssuedCredential upsert returned null for _id: ${input._id}`)
     logger.info({ cred_ex_id: lean._id, connection_id: lean.connection_id }, 'IssuedCredential persisted')
     return lean
   }
@@ -107,15 +111,19 @@ export class RevocationService {
     const validationError = validateRevocation(doc)
     if (validationError) throw new Error(validationError)
 
-    await revocationHandlers[doc.format](doc.format_metadata, doc.connection_id)
-
+    // Update DB before calling Traction: if the Traction call fails, the DB
+    // correctly reflects the intent and a retry will see 'already revoked' (400)
+    // rather than re-attempting the Traction call with an unknown outcome.
     const updated = await IssuedCredentialModel.findByIdAndUpdate(
       credExId,
       { status: 'revoked', revoked_at: new Date() },
-      { new: true },
+      { returnDocument: 'after' },
     ).lean<LeanIssuedCredentialDoc>()
 
     if (!updated) throw new Error(`IssuedCredential disappeared during revocation: ${credExId}`)
+
+    await revocationHandlers[doc.format](doc.format_metadata, doc.connection_id)
+
     return updated
   }
 

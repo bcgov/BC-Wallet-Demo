@@ -32,7 +32,8 @@ export class WebhookController {
       return { message: 'Webhook received' }
     }
 
-    logger.info({ endpoint, connectionId, state: params.state, other: params }, 'Webhook received')
+    logger.info({ endpoint, connectionId, state: params.state }, 'Webhook received')
+    logger.debug({ endpoint, connectionId, params }, 'Webhook full payload')
     if (endpoint === 'issuer_cred_rev') {
       logger.debug(
         { rev_reg_id: params.rev_reg_id, cred_rev_id: params.cred_rev_id, state: params.state },

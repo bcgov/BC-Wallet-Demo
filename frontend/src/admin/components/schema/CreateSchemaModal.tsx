@@ -106,7 +106,7 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
       return
     }
 
-    if (attrNames.length === 0) {
+    if (attributes.length === 0) {
       setError('At least one attribute is required')
       return
     }
@@ -411,7 +411,7 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
           </button>
           <button
             onClick={handleCreate}
-            disabled={isLoading || !name.trim() || !version.trim() || !selectedDid || attrNames.length === 0}
+            disabled={isLoading || !name.trim() || !version.trim() || !selectedDid || attributes.length === 0}
             className="px-6 py-3 text-white bg-bcgov-blue hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Creating...' : 'Create'}

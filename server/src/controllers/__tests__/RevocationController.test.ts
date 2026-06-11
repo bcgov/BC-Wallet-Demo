@@ -1,3 +1,4 @@
+import { BadRequestError, NotFoundError } from 'routing-controllers'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../../services/RevocationService')
@@ -52,6 +53,18 @@ describe('RevocationController', () => {
         status: 'revoked',
       })
       expect(res).toEqual(result)
+    })
+
+    it('throws NotFoundError when service reports credential not found', async () => {
+      const mockReq = { app: { get: vi.fn().mockReturnValue(new Map()) } }
+      mockService.revokeCredential.mockRejectedValue(new Error('IssuedCredential not found: ex-999'))
+      await expect(controller.revokeCredential({ cred_ex_id: 'ex-999' }, mockReq)).rejects.toThrow(NotFoundError)
+    })
+
+    it('throws BadRequestError when service reports credential already revoked', async () => {
+      const mockReq = { app: { get: vi.fn().mockReturnValue(new Map()) } }
+      mockService.revokeCredential.mockRejectedValue(new Error('credential already revoked'))
+      await expect(controller.revokeCredential({ cred_ex_id: 'ex-123' }, mockReq)).rejects.toThrow(BadRequestError)
     })
 
     it('does not emit socket event if no socket for connection', async () => {

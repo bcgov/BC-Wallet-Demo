@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { CredentialModel } from '../../db/models/Credential'
-import { IssuedCredentialModel } from '../../db/models/IssuedCredential'
+import { IssuedCredentialModel, type LeanIssuedCredentialDoc } from '../../db/models/IssuedCredential'
 import { RevocationService, extractIssuanceData, validateRevocation } from '../RevocationService'
 import * as revocationHandlers from '../revocationHandlers'
 
@@ -83,6 +83,18 @@ describe('RevocationService - Pure Functions', () => {
       }
       const result = extractIssuanceData(payload)
       expect(result).toBeNull()
+    })
+
+    it('leaves credential_id undefined even when cred_def_id is present', () => {
+      const payload = {
+        cred_ex_id: 'ex-123',
+        connection_id: 'conn-123',
+        revoc_reg_id: 'rev-reg-123',
+        revocation_id: 'rev-id-456',
+        by_format: { cred_issue: { anoncreds: { cred_def_id: 'cred-def-789' } } },
+      }
+      const result = extractIssuanceData(payload)
+      expect(result?.credential_id).toBeUndefined()
     })
   })
 
@@ -175,6 +187,31 @@ describe('RevocationService - Imperative Shell', () => {
       const doc = await service.handleCredentialIssued(payload)
       expect(doc).toBeNull()
     })
+
+    it('is idempotent on duplicate webhook delivery', async () => {
+      await CredentialModel.create({
+        name: 'test',
+        icon: 'icon',
+        version: '1.0',
+        attributes: [],
+        cred_def_id: 'cred-def-idem',
+      })
+      const payload = {
+        cred_ex_id: 'ex-idem-1',
+        connection_id: 'conn-123',
+        revoc_reg_id: 'rev-reg-123',
+        revocation_id: 'rev-id-456',
+        by_format: { cred_issue: { anoncreds: { cred_def_id: 'cred-def-idem' } } },
+      }
+
+      const first = await service.handleCredentialIssued(payload)
+      const second = await service.handleCredentialIssued(payload)
+
+      expect(first?._id).toBe('ex-idem-1')
+      expect(second?._id).toBe('ex-idem-1')
+      const count = await IssuedCredentialModel.countDocuments({ _id: 'ex-idem-1' })
+      expect(count).toBe(1)
+    })
   })
 
   describe('revokeCredential', () => {
@@ -212,6 +249,32 @@ describe('RevocationService - Imperative Shell', () => {
         },
         'conn-123',
       )
+    })
+
+    it('updates DB status before calling Traction handler', async () => {
+      const credential = await CredentialModel.create({
+        name: 'test',
+        icon: 'icon',
+        version: '1.0',
+        attributes: [],
+      })
+
+      await IssuedCredentialModel.create({
+        _id: 'ex-order-1',
+        credential_id: String(credential._id),
+        connection_id: 'conn-123',
+        format: 'anoncreds',
+        status: 'issued',
+        format_metadata: { rev_reg_id: 'r1', cred_rev_id: 'c1' },
+      })
+
+      const mockHandler = vi.fn().mockRejectedValue(new Error('Traction down'))
+      vi.mocked(revocationHandlers.revocationHandlers).anoncreds = mockHandler
+
+      await expect(service.revokeCredential('ex-order-1')).rejects.toThrow('Traction down')
+
+      const dbDoc = await IssuedCredentialModel.findById('ex-order-1').lean<LeanIssuedCredentialDoc>()
+      expect(dbDoc?.status).toBe('revoked')
     })
   })
 
