@@ -50,7 +50,7 @@ router.post('/schemas', createRateLimiter, requireRole(['admin', 'creator']), as
     const createSchemaPayload = {
       name: req.body.name,
       version: req.body.version,
-      attrNames: req.body.attrNames,
+      attrNames: req.body.attributes.map((a: any) => a.name),
       issuerId: req.body.did,
     }
     logger.debug({ createSchemaPayload }, 'Creating schema with payload')
@@ -80,7 +80,7 @@ router.post('/schemas', createRateLimiter, requireRole(['admin', 'creator']), as
         $set: {
           name: req.body.name,
           version: req.body.version,
-          attrNames: req.body.attrNames,
+          attributes: req.body.attributes,
           credDefId,
           did: req.body.did,
         },

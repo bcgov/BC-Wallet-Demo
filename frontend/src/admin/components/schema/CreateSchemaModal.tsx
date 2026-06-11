@@ -9,6 +9,7 @@ import log from '../../utils/logger'
 
 interface Attribute {
   name: string
+  type: 'string' | 'date' | 'number'
 }
 
 interface CreateSchemaModalProps {
@@ -22,8 +23,9 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
   const [name, setName] = useState('')
   const [version, setVersion] = useState('')
   const [selectedDid, setSelectedDid] = useState<Did | null>(null)
-  const [attrNames, setAttrNames] = useState<Attribute[]>([])
+  const [attributes, setAttributes] = useState<Attribute[]>([])
   const [attributeKey, setAttributeKey] = useState('')
+  const [attributeType, setAttributeType] = useState<'string' | 'date' | 'number'>('string')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [availableSchemas, setAvailableSchemas] = useState<Schema[]>([])
@@ -70,13 +72,14 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
 
   const handleAddAttribute = () => {
     if (attributeKey.trim()) {
-      setAttrNames([...attrNames, { name: attributeKey }])
+      setAttributes([...attributes, { name: attributeKey, type: attributeType }])
       setAttributeKey('')
+      setAttributeType('string')
     }
   }
 
   const handleRemoveAttribute = (index: number) => {
-    setAttrNames(attrNames.filter((_, i) => i !== index))
+    setAttributes(attributes.filter((_, i) => i !== index))
   }
 
   const handleClose = () => {
@@ -84,8 +87,9 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
     setName('')
     setVersion('')
     setSelectedDid(null)
-    setAttrNames([])
+    setAttributes([])
     setAttributeKey('')
+    setAttributeType('string')
     setError('')
     onClose()
   }
@@ -123,15 +127,16 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
       const newSchema = await createSchema(auth, {
         name,
         version,
-        attrNames: attrNames.map((attr) => attr.name),
+        attributes: attributes.map((attr) => ({ name: attr.name, type: attr.type })),
         did: selectedDid?.did || '',
       })
       // Reset form and notify parent to refresh
       setName('')
       setVersion('')
       setSelectedDid(null)
-      setAttrNames([])
+      setAttributes([])
       setAttributeKey('')
+      setAttributeType('string')
       setError('')
       setShowConfirmation(false)
       setProgress(100) // Complete the progress bar
@@ -191,18 +196,21 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
                   <span className="font-medium text-bcgov-blue text-sm">{selectedDid?.method}</span>
                 </div>
               </div>
-              {attrNames.length > 0 && (
-                <div className="pt-4 border-t border-blue-200">
-                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">
-                    Attributes ({attrNames.length})
+              {attributes.length > 0 && (
+                <div className="pt-6 border-t border-blue-200">
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4">
+                    Attributes ({attributes.length})
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {attrNames.map((attr, index) => (
+                  <div className="flex flex-wrap gap-3">
+                    {attributes.map((attr, index) => (
                       <span
                         key={index}
-                        className="inline-block bg-white border border-blue-200 px-3 py-1 rounded-full text-xs font-medium text-gray-700"
+                        className="inline-flex items-center gap-2 bg-white border border-blue-200 px-4 py-2 rounded-full text-xs font-medium text-gray-700"
                       >
                         {attr.name}
+                        <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
+                          {attr.type}
+                        </span>
                       </span>
                     ))}
                   </div>
@@ -335,6 +343,15 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
                   placeholder="Key (e.g., business_name)"
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-bcgov-blue focus:ring-2 focus:ring-bcgov-blue focus:ring-opacity-20 transition-colors text-sm"
                 />
+                <select
+                  value={attributeType}
+                  onChange={(e) => setAttributeType(e.target.value as 'string' | 'date' | 'number')}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-bcgov-blue focus:ring-2 focus:ring-bcgov-blue focus:ring-opacity-20 transition-colors text-sm bg-white"
+                >
+                  <option value="string">String</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                </select>
                 <button
                   onClick={handleAddAttribute}
                   disabled={!attributeKey.trim()}
@@ -345,20 +362,25 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
               </div>
 
               {/* Attributes List */}
-              {attrNames.length > 0 && (
+              {attributes.length > 0 && (
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 border border-gray-200">
-                  {attrNames.map((attr, index) => (
+                  {attributes.map((attr, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
+                      className="flex items-center justify-between gap-3 bg-white p-3 rounded-md border border-gray-200 hover:border-gray-300 transition-colors"
                     >
                       <span className="font-medium text-bcgov-black text-sm">{attr.name}</span>
-                      <button
-                        onClick={() => handleRemoveAttribute(index)}
-                        className="text-gray-400 hover:text-red-600 transition-colors"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200">
+                          {attr.type}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveAttribute(index)}
+                          className="text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

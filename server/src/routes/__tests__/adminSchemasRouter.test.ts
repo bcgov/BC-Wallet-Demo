@@ -158,7 +158,20 @@ describe('adminSchemasRouter', () => {
       did: mockIssuerDid,
       name: 'Driver License',
       version: '2.0',
-      attrNames: ['name', 'address', 'license_number'],
+      attributes: [
+        {
+          name: 'name',
+          type: 'string',
+        },
+        {
+          name: 'address',
+          type: 'string',
+        },
+        {
+          name: 'license_number',
+          type: 'string',
+        },
+      ],
     }
 
     const tractionSchemaResponse = {
@@ -293,7 +306,20 @@ describe('adminSchemasRouter', () => {
           $set: {
             name: 'Driver License',
             version: '2.0',
-            attrNames: ['name', 'address', 'license_number'],
+            attributes: [
+              {
+                name: 'name',
+                type: 'string',
+              },
+              {
+                name: 'address',
+                type: 'string',
+              },
+              {
+                name: 'license_number',
+                type: 'string',
+              },
+            ],
             credDefId: 'W1ZJ:3:CL:123:Driver License',
             did: mockIssuerDid,
           },

@@ -87,7 +87,7 @@ spec:
         - name: seed
           image: {{ include "showcase.server.image" . }}
           imagePullPolicy: {{ .Values.showcase.server.image.pullPolicy }}
-          command: ["node", "-r", "dotenv/config", "build/scripts/seed.js"]
+          command: ["node", "-r", "dotenv/config", "build/migrations/seed.js"]
           {{- if .Values.showcase.server.existingSecret }}
           envFrom:
             - secretRef:
