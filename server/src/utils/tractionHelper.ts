@@ -1,3 +1,4 @@
+import type { Credential } from '../content/types'
 import type { AxiosRequestConfig, AxiosError } from 'axios'
 
 import axios from 'axios'
@@ -181,7 +182,6 @@ export interface SeedCredential {
   name: string
   version: string
   attributes: SeedCredentialAttribute[]
-
   // populated later
   schema_id?: string
   cred_def_id?: string
@@ -379,7 +379,7 @@ export const checkSeededSchemasExistOrCreate = async () => {
     await ensureDidInDatabase(indyDid, 'indy')
     await ensureDidInDatabase(webvhDid, 'webvh')
 
-    for (const credential of credentialsSeed) {
+    for (const credential of credentialsSeed as (Omit<Credential, 'id'> & { _id: string })[]) {
       try {
         await processSeededCredential(credential, indyDid)
       } catch (err) {

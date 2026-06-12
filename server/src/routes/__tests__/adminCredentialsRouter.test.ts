@@ -54,7 +54,6 @@ const mockCredential = {
   version: '1.0',
   attributes: [],
   schema_id: 'ABC:2:student_card:1.0',
-  cred_def_ids: ['ABC:3:CL:100:tag'],
   status: 'active',
 }
 

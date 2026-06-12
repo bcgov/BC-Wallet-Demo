@@ -100,6 +100,17 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
       return
     }
 
+    const versionPattern = /^\d+\.\d+(\.\d+)?$/
+    if (!versionPattern.test(version.trim())) {
+      setError('Version must be in format 1.0 or 1.0.0')
+      return
+    }
+
+    if (attributes.length === 0) {
+      setError('At least one attribute is required')
+      return
+    }
+
     if (!auth.user?.access_token) {
       setError('Not authenticated')
       return
@@ -400,7 +411,7 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
           </button>
           <button
             onClick={handleCreate}
-            disabled={isLoading || !name.trim() || !version.trim() || !selectedDid}
+            disabled={isLoading || !name.trim() || !version.trim() || !selectedDid || attributes.length === 0}
             className="px-6 py-3 text-white bg-bcgov-blue hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Creating...' : 'Create'}
