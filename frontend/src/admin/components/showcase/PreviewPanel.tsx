@@ -2,6 +2,8 @@ import { ArrowsPointingInIcon, ArrowsPointingOutIcon } from '@heroicons/react/24
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
+import { publicBaseUrl } from '../../api/adminApi'
+
 interface PreviewPanelProps {
   isExpanded: boolean
   iframeRefreshKey: number
@@ -13,7 +15,7 @@ interface PreviewPanelProps {
 export function PreviewPanel({ isExpanded, iframeRefreshKey, showcaseName, urlPath, type }: PreviewPanelProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const typeParam = type || urlPath
-  const src = `http://localhost:3000/digital-trust/showcase/preview/${urlPath}?refresh=${iframeRefreshKey}&type=${typeParam}&showcase=${showcaseName}`
+  const src = `${publicBaseUrl}/preview/${urlPath}?refresh=${iframeRefreshKey}&type=${typeParam}&showcase=${showcaseName}`
 
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
