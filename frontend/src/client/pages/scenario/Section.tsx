@@ -36,9 +36,18 @@ export interface Props {
   credentials: any[]
   proof?: any
   proofUrl?: string
+  explicitAllowForward?: boolean
 }
 
-export const Section: React.FC<Props> = ({ connection, section, stepCount, sectionCount, credentials, proof }) => {
+export const Section: React.FC<Props> = ({
+  connection,
+  section,
+  stepCount,
+  sectionCount,
+  credentials,
+  proof,
+  explicitAllowForward,
+}) => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
@@ -267,7 +276,7 @@ export const Section: React.FC<Props> = ({ connection, section, stepCount, secti
                         },
                       })
                     }}
-                    disabled={isForwardDisabled}
+                    disabled={explicitAllowForward ? false : isForwardDisabled}
                     data-cy="use-case-next"
                   />
                 )}

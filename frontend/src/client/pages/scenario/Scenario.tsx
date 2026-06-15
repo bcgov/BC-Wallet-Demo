@@ -28,9 +28,10 @@ import { Section } from './Section'
 interface ScenarioPageProps {
   propCurrentShowcase?: Showcase
   propSlug?: string
+  explicitAllowForward?: boolean
 }
 
-export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase, propSlug }) => {
+export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase, propSlug, explicitAllowForward }) => {
   const dispatch = useAppDispatch()
   let { slug } = useParams()
   const { stepCount, sectionCount, isLoading } = useScenarioState()
@@ -117,6 +118,7 @@ export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase,
                 credentials={issuedCredentials}
                 proof={proof}
                 proofUrl={proofUrl}
+                explicitAllowForward={explicitAllowForward}
               />
             </motion.div>
           ) : (

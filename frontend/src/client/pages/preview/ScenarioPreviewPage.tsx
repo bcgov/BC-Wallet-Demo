@@ -94,7 +94,9 @@ export const ScenarioPreviewPage: React.FC = () => {
         </motion.div>
       )}
 
-      {activeScenario && <ScenarioPage propCurrentShowcase={previewShowcase} propSlug={activeScenario} />}
+      {activeScenario && (
+        <ScenarioPage propCurrentShowcase={previewShowcase} propSlug={activeScenario} explicitAllowForward={true} />
+      )}
     </>
   )
 }
