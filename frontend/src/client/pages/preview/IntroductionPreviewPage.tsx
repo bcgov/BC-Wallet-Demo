@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useBeforeUnload, useSearchParams } from 'react-router-dom'
 
 import { page } from '../../FramerAnimations'
-import { CustomUpload } from '../../components/CustomUpload'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useTitle } from '../../hooks/useTitle'
 import { useConnection } from '../../slices/connection/connectionSelectors'
@@ -33,7 +32,7 @@ export const IntroductionPreviewPage: React.FC<PreviewPageProps> = ({ contentTyp
 
   const { introductionStep } = useIntroduction()
   const { state, invitationUrl, shortInvitationUrl, id } = useConnection()
-  const { showcaseUploadEnabled, showHiddenScenarios } = usePreferences()
+  const { showHiddenScenarios } = usePreferences()
 
   const [mounted, setMounted] = useState(false)
 
@@ -73,7 +72,6 @@ export const IntroductionPreviewPage: React.FC<PreviewPageProps> = ({ contentTyp
 
   return (
     <>
-      {showcaseUploadEnabled && <CustomUpload />}
       <motion.div
         variants={page}
         initial="hidden"
@@ -81,7 +79,7 @@ export const IntroductionPreviewPage: React.FC<PreviewPageProps> = ({ contentTyp
         exit="exit"
         className="container flex flex-col items-center p-4"
       >
-        <Stepper currentShowcase={currentShowcase} introductionStep={introductionStep} />
+        <Stepper currentShowcase={previewShowcase} introductionStep={introductionStep} />
         <AnimatePresence mode="wait">
           {mounted && (
             <IntroductionContainer
