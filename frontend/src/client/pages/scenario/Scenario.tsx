@@ -1,4 +1,4 @@
-import type { Scenario } from '../../slices/types'
+import type { Scenario, Showcase } from '../../slices/types'
 
 import { trackPageView } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -25,23 +25,32 @@ import { basePath } from '../../utils/BasePath'
 
 import { Section } from './Section'
 
-export const ScenarioPage: React.FC = () => {
+interface ScenarioPageProps {
+  propCurrentShowcase?: Showcase
+  propSlug?: string
+}
+
+export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase, propSlug }) => {
   const dispatch = useAppDispatch()
-  const { slug } = useParams()
+  let { slug } = useParams()
   const { stepCount, sectionCount, isLoading } = useScenarioState()
-  const currentShowcase = useCurrentShowcase()
+  let currentShowcase = useCurrentShowcase()
   const { section } = useSection()
   const connection = useConnection()
   const { issuedCredentials } = useCredentials()
   const { proof, proofUrl } = useProof()
   const [currentScenario, setCurrentScenario] = useState<Scenario>()
+  if (propCurrentShowcase) {
+    currentShowcase = propCurrentShowcase
+    slug = propSlug
+  }
 
   const navigate = useNavigate()
   useTitle(`${currentScenario?.name ?? 'Use case'} | BC Wallet Self-Sovereign Identity Demo`)
 
   useEffect(() => {
     if (currentShowcase && slug) {
-      setCurrentScenario(currentShowcase.scenarios.find((item) => item.id === slug))
+      setCurrentScenario(currentShowcase.scenarios.find((item: { id: string }) => item.id === slug))
     }
   }, [])
 

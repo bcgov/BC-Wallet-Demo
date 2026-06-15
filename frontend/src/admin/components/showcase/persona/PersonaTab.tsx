@@ -9,6 +9,8 @@ import { useErrorDisplay } from '../../../hooks/useErrorDisplay'
 import { useHasRole } from '../../../hooks/useUserRole'
 import log from '../../../utils/logger'
 import { ErrorBanner } from '../../ErrorBanner'
+import { PreviewPanel } from '../PreviewPanel'
+import { PreviewToggleButton } from '../buttons/PreviewToggleButton'
 import { ImageUploadModal } from '../modals/ImageUploadModal'
 
 interface PersonaTabProps {
@@ -17,9 +19,19 @@ interface PersonaTabProps {
   isNewShowcase?: boolean
   onTabChange?: (tab: string) => void
   onRefresh?: () => void | Promise<void>
+  isExpanded: boolean
+  setIsExpanded: (expanded: boolean) => void
 }
 
-export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, onRefresh }: PersonaTabProps) {
+export function PersonaTab({
+  showcase,
+  isLoading,
+  isNewShowcase,
+  onTabChange,
+  onRefresh,
+  isExpanded,
+  setIsExpanded,
+}: PersonaTabProps) {
   const auth = useAuth()
   const canEdit = useHasRole('creator')
   const [isEditingName, setIsEditingName] = useState(false)
@@ -29,6 +41,7 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [localShowcase, setLocalShowcase] = useState(showcase)
+  const [iframeRefreshKey, setIframeRefreshKey] = useState(0)
   const { error: saveError, displayError, dismissError } = useErrorDisplay()
 
   useEffect(() => {
@@ -72,6 +85,7 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
       setIsEditingName(false)
       setIsEditingType(false)
       dismissError()
+      setIframeRefreshKey((prev) => prev + 1)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred while saving'
       displayError(message)
@@ -154,133 +168,152 @@ export function PersonaTab({ showcase, isLoading, isNewShowcase, onTabChange, on
   const handleImageUpdated = () => {
     // Refresh the showcase to get the latest data
     onRefresh?.()
+    setIframeRefreshKey((prev) => prev + 1)
   }
 
   return (
-    <div className="flex-1 overflow-auto flex flex-col items-center justify-start py-8">
-      {/* Persona Tab */}
-      <div className="w-full max-w-4xl mb-8 flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-semibold text-bcgov-black">Setup Persona</h2>
-          <h5 className="text-gray-500 mt-2">
-            Configure the details for your persona. This will be the credential holder going through the showcase.
-          </h5>
-        </div>
-        {(name !== showcase.persona?.name || personaType !== showcase.persona?.type) && (
+    <div className="flex-1 overflow-auto flex gap-8 py-8 px-8">
+      {/* Left Column - Form */}
+      <div className="flex-1 flex flex-col items-center justify-start min-w-0">
+        {/* Persona Tab */}
+        <div className="w-full mb-8 flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-semibold text-bcgov-black">Setup Persona</h2>
+            <h5 className="text-gray-500 mt-2">
+              Configure the details for your persona. This will be the credential holder going through the showcase.
+            </h5>
+          </div>
           <div className="flex flex-col gap-2 items-end">
-            <button
-              onClick={handleSave}
-              disabled={isSaving || !name.trim() || !personaType.trim()}
-              className="px-4 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? 'Saving...' : 'Save'}
-            </button>
-          </div>
-        )}
-      </div>
-      {saveError && (
-        <div className="w-full max-w-4xl mb-6">
-          <ErrorBanner error={saveError} onDismiss={dismissError} title="Error saving persona" variant="left-border" />
-        </div>
-      )}
-      <div className="w-full max-w-4xl px-6 border border-gray-300 rounded-lg bg-white p-8">
-        {/* Title Section */}
-        <div className="mb-8">
-          <label className="block text-sm font-bold text-bcgov-black mb-2">Name</label>
-          <div className="relative group">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
-              readOnly={!isEditingName && !isNewShowcase}
-              className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue ${
-                isEditingName || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
-              }`}
-            />
-            {canEdit && (
-              <PencilIcon
-                onClick={() => setIsEditingName(true)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Type Section */}
-        <div className="mb-8">
-          <label className="block text-sm font-bold text-bcgov-black mb-2">Type</label>
-          <div className="relative group">
-            <input
-              type="text"
-              value={personaType}
-              onChange={(e) => setPersonaType(e.target.value)}
-              disabled={isLoading}
-              readOnly={!isEditingType && !isNewShowcase}
-              className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue ${
-                isEditingType || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
-              }`}
-            />
-            {canEdit && (
-              <PencilIcon
-                onClick={() => setIsEditingType(true)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Image Section */}
-        <div className="mb-8">
-          <label className="block text-sm font-bold text-bcgov-black mb-2">Image</label>
-          <div className="relative group w-fit">
-            {localShowcase.persona?.image ? (
-              <div className="w-24 h-24 border border-gray-300 rounded-lg overflow-hidden bg-gray-100">
-                <img
-                  src={`${publicBaseUrl}${localShowcase.persona?.image}`}
-                  alt={localShowcase.persona?.name}
-                  className="w-full h-full object-contain"
-                />
-                {canEdit && (
-                  <PencilIcon
-                    onClick={() => setIsImageUploadModalOpen(true)}
-                    className="absolute -top-2 -right-2 w-5 h-5 bg-bcgov-blue text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                  />
-                )}
-              </div>
-            ) : (
+            <PreviewToggleButton isExpanded={isExpanded} onToggle={() => setIsExpanded(!isExpanded)} />
+            {(name !== showcase.persona?.name || personaType !== showcase.persona?.type) && (
               <button
-                onClick={() => setIsImageUploadModalOpen(true)}
-                className="px-3 py-2 bg-white text-bcgov-black font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm flex items-center gap-2"
+                onClick={handleSave}
+                disabled={isSaving || !name.trim() || !personaType.trim()}
+                className="px-4 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ArrowUpTrayIcon className="w-4 h-4" />
-                Add Image
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             )}
           </div>
         </div>
-      </div>
-      {isNewShowcase && (
-        <div className="w-full max-w-4xl mt-8 px-6 flex justify-center">
-          <button
-            onClick={handleNextStep}
-            disabled={isSaving || !name.trim() || !personaType.trim() || !localShowcase.persona?.image}
-            className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? 'Saving...' : 'Next Step'}
-          </button>
+        {saveError && (
+          <div className="w-full mb-6">
+            <ErrorBanner
+              error={saveError}
+              onDismiss={dismissError}
+              title="Error saving persona"
+              variant="left-border"
+            />
+          </div>
+        )}
+        <div className="w-full max-w-6xl border border-gray-300 rounded-lg bg-white p-8">
+          {/* Title Section */}
+          <div className="mb-8">
+            <label className="block text-sm font-bold text-bcgov-black mb-2">Name</label>
+            <div className="relative group">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={isLoading}
+                readOnly={!isEditingName && !isNewShowcase}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue ${
+                  isEditingName || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
+                }`}
+              />
+              {canEdit && (
+                <PencilIcon
+                  onClick={() => setIsEditingName(true)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Type Section */}
+          <div className="mb-8">
+            <label className="block text-sm font-bold text-bcgov-black mb-2">Type</label>
+            <div className="relative group">
+              <input
+                type="text"
+                value={personaType}
+                onChange={(e) => setPersonaType(e.target.value)}
+                disabled={isLoading}
+                readOnly={!isEditingType && !isNewShowcase}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue ${
+                  isEditingType || isNewShowcase ? 'bg-white text-bcgov-black' : 'bg-gray-100 text-gray-500'
+                }`}
+              />
+              {canEdit && (
+                <PencilIcon
+                  onClick={() => setIsEditingType(true)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Image Section */}
+          <div className="mb-8">
+            <label className="block text-sm font-bold text-bcgov-black mb-2">Image</label>
+            <div className="relative group w-fit">
+              {localShowcase.persona?.image ? (
+                <div className="w-24 h-24 border border-gray-300 rounded-lg overflow-hidden bg-gray-100">
+                  <img
+                    src={`${publicBaseUrl}${localShowcase.persona?.image}`}
+                    alt={localShowcase.persona?.name}
+                    className="w-full h-full object-contain"
+                  />
+                  {canEdit && (
+                    <PencilIcon
+                      onClick={() => setIsImageUploadModalOpen(true)}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-bcgov-blue text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    />
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsImageUploadModalOpen(true)}
+                  className="px-3 py-2 bg-white text-bcgov-black font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm flex items-center gap-2"
+                >
+                  <ArrowUpTrayIcon className="w-4 h-4" />
+                  Add Image
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      )}
-      <ImageUploadModal
-        isOpen={isImageUploadModalOpen}
-        onClose={() => setIsImageUploadModalOpen(false)}
+        {isNewShowcase && (
+          <div className="w-full mt-8 flex justify-center">
+            <button
+              onClick={handleNextStep}
+              disabled={isSaving || !name.trim() || !personaType.trim() || !localShowcase.persona?.image}
+              className="px-6 py-2 bg-bcgov-blue text-white font-medium rounded-lg hover:bg-bcgov-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSaving ? 'Saving...' : 'Next Step'}
+            </button>
+          </div>
+        )}
+        <ImageUploadModal
+          isOpen={isImageUploadModalOpen}
+          onClose={() => setIsImageUploadModalOpen(false)}
+          type="persona"
+          onSelectImage={() => {}}
+          showcase={localShowcase}
+          propertyPath="persona.image"
+          onImageUpdated={() => {
+            handleImageUpdated()
+          }}
+        />
+      </div>
+
+      {/* Right Column - Preview */}
+      <PreviewPanel
+        isExpanded={isExpanded}
+        iframeRefreshKey={iframeRefreshKey}
+        showcaseName={showcase.name}
+        urlPath="introduction"
         type="persona"
-        onSelectImage={() => {}}
-        showcase={localShowcase}
-        propertyPath="persona.image"
-        onImageUpdated={() => {
-          handleImageUpdated()
-        }}
       />
     </div>
   )
