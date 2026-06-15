@@ -37,6 +37,7 @@ export interface Props {
   invitationUrl?: string
   shortInvitationUrl?: string
   introductionStep: string
+  stopStep?: string
 }
 
 export const IntroductionContainer: React.FC<Props> = ({
@@ -47,6 +48,7 @@ export const IntroductionContainer: React.FC<Props> = ({
   connectionState,
   invitationUrl,
   shortInvitationUrl,
+  stopStep = '',
 }) => {
   const dispatch = useAppDispatch()
   const { issuedCredentials } = useCredentials()
@@ -59,6 +61,7 @@ export const IntroductionContainer: React.FC<Props> = ({
   const introStep = currentShowcase?.introduction.find((step) => step.screenId === introductionStep)
   const credentials = introStep?.credentials
   const credentialsAccepted = credentials?.every((cred) => issuedCredentials.includes(cred.schema_id || 'not-found'))
+  const isAtStopStep = !!(stopStep && introductionStep === stopStep)
 
   const isBackDisabled =
     introductionStep === 'PICK_CHARACTER' ||
@@ -68,7 +71,8 @@ export const IntroductionContainer: React.FC<Props> = ({
     (introductionStep.startsWith('CONNECT') && !connectionCompleted) ||
     (introductionStep.startsWith('ACCEPT_') && !credentialsAccepted) ||
     (introductionStep.startsWith('ACCEPT_') && credentials?.length === 0) ||
-    (introductionStep === 'PICK_CHARACTER' && !currentShowcase)
+    (introductionStep === 'PICK_CHARACTER' && !currentShowcase) ||
+    isAtStopStep
 
   const jumpIntroductionPage = () => {
     trackSelfDescribingEvent({
