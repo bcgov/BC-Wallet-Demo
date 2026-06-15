@@ -2,8 +2,6 @@ import { ArrowsPointingInIcon, ArrowsPointingOutIcon } from '@heroicons/react/24
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
-import { publicBaseUrl } from '../../api/adminApi'
-
 interface PreviewPanelProps {
   isExpanded: boolean
   iframeRefreshKey: number
@@ -15,25 +13,44 @@ interface PreviewPanelProps {
 export function PreviewPanel({ isExpanded, iframeRefreshKey, showcaseName, urlPath, type }: PreviewPanelProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const typeParam = type || urlPath
-  const src = `${publicBaseUrl}/preview/${urlPath}?refresh=${iframeRefreshKey}&type=${typeParam}&showcase=${showcaseName}`
 
+  // Build URL with proper query parameter encoding using client app origin
+  const params = new URLSearchParams({
+    refresh: String(iframeRefreshKey),
+    type: typeParam,
+    showcase: showcaseName,
+  })
+  const src = `${window.location.origin}/digital-trust/showcase/preview/${urlPath}?${params.toString()}`
+
+  // Handle fullscreen mode and keyboard escape
   useEffect(() => {
+    if (!isFullscreen) return
+
+    // Store the previous overflow value to restore it later
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isFullscreen) {
+      if (event.key === 'Escape') {
         setIsFullscreen(false)
       }
     }
 
-    if (isFullscreen) {
-      document.addEventListener('keydown', handleEscapeKey)
-      document.body.style.overflow = 'hidden'
-    }
+    document.addEventListener('keydown', handleEscapeKey)
 
     return () => {
       document.removeEventListener('keydown', handleEscapeKey)
-      document.body.style.overflow = 'unset'
+      // Restore the previous overflow value instead of always resetting to 'unset'
+      document.body.style.overflow = previousOverflow
     }
   }, [isFullscreen])
+
+  // Exit fullscreen when panel is collapsed
+  useEffect(() => {
+    if (!isExpanded && isFullscreen) {
+      setIsFullscreen(false)
+    }
+  }, [isExpanded])
 
   const previewContent = (
     <div
