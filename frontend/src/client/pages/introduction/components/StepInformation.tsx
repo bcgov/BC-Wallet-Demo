@@ -17,14 +17,16 @@ export const StepInformation: React.FC<Props> = ({ title, text, textWithImage })
   const newTitle = title.substring(0, lastIndex)
 
   return (
-    <div className="flex flex-col leading-loose">
-      <div className="flex-1 my-4">
-        <h2 className="text-3xl md:text-4xl font-semibold dark:text-white">
+    <div className="leading-loose">
+      {/* Title and Description */}
+      <div className="flex-1">
+        <h2 className="mb-8 text-3xl md:text-4xl font-semibold dark:text-white">
           {newTitle}&nbsp;
           {lastWord}
         </h2>
       </div>
-      <div className="pt-4 flex-1 mb-6 dark:text-white">
+      {/* Content */}
+      <div className="mb-8 flex-1 dark:text-white">
         {textWithImage ? (
           textWithImage.map((item) => (
             <>
@@ -44,7 +46,7 @@ export const StepInformation: React.FC<Props> = ({ title, text, textWithImage })
             </>
           ))
         ) : (
-          <p>{text}</p>
+          <p className="text-pretty">{text}</p>
         )}
       </div>
     </div>

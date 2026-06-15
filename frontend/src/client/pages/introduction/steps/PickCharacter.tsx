@@ -45,36 +45,39 @@ export const PickCharacter: React.FC<Props> = ({ currentShowcase, showcases, tit
       <motion.button
         key={showcase.persona?.type || 'unknown'}
         onClick={() => CharacterClickHandler(showcase)}
-        whileHover={{ scale: 1.01 }}
-        className="flex md:flex-row lg:flex-col"
+        className="flex flex-col items-center min-w-0"
         data-cy="select-char"
       >
         <motion.img
           whileHover={{ scale: 1.05 }}
-          className={`m-auto h-16 w-16 p-2 sm:h-20 sm:w-20 md:h-24 md:w-24 md:p-4 lg:h-36 lg:w-36 lg:p-8 rounded-full bg-bcgov-white dark:bg-bcgov-black my-6 shadow ${
+          className={`m-auto h-36 w-36 sm:h-36 sm:w-36 md:h-36 md:w-36 md:p-4 lg:h-36 lg:w-36 p-8 rounded-full bg-bcgov-white dark:bg-bcgov-black my-6 shadow ${
             currentShowcase?.persona?.type === showcase.persona?.type ? cardStyleSelected : cardStyleUnselected
           }`}
           src={prependApiUrl(showcase.persona?.image || '')}
           alt={showcase.persona?.name}
         />
-        <div className="m-auto p-4 flex flex-1 flex-col text-left lg:text-center dark:text-white">
-          <h2 className="font-bold">{showcase.persona?.name}</h2>
-          <p>{showcase.persona?.type}</p>
+        <div className="w-full flex flex-col text-center dark:text-white min-w-0">
+          <h2 className="font-bold truncate">{showcase.persona?.name}</h2>
+          <p className="truncate">{showcase.persona?.type}</p>
         </div>
       </motion.button>
     )
   })
 
   return (
-    <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit">
+    <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col overflow-hidden">
       <StepInformation
         title={titleText === '' ? defaultTitle : titleText}
         text={mainText === '' ? defaultText : mainText}
         textWithImage={textWithImage}
       />
 
-      <div className="flex flex-col lg:flex-row items-left lg:items-start justify-between px-8 h-full max-h-72 sm:max-h-96 overflow-y-scroll lg:overflow-y-hidden">
-        {renderCharacters}
+      <div className="p-4 overflow-y-auto">
+        <div
+          className={`grid gap-4 ${showcases.length === 1 ? 'grid-cols-1' : showcases.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'}`}
+        >
+          {renderCharacters}
+        </div>
       </div>
     </motion.div>
   )

@@ -15,18 +15,24 @@ export const SetupCompleted: React.FC<Props> = ({ title, text }) => {
   const newTitle = title.substring(0, lastIndex)
 
   return (
-    <motion.div className="h-full" variants={fadeX} initial="hidden" animate="show" exit="exit">
-      <div className="flex flex-col leading-loose">
-        <div className="flex-1 my-4">
+    <motion.div
+      className="flex flex-col justify-center h-full"
+      variants={fadeX}
+      initial="hidden"
+      animate="show"
+      exit="exit"
+    >
+      <div className="leading-loose">
+        <div className="mb-8">
           <h2 className="text-3xl md:text-4xl font-semibold dark:text-white">
             {newTitle}&nbsp;
             {lastWord}
           </h2>
         </div>
-        <div className="pt-4 flex-1 mb-6">
+        <div className="mb-8">
           <div className="dark:text-white">
             <p>{text}</p>
-            <div className="bg-bcgov-white dark:bg-bcgov-black py-4 px-8">
+            <div className="bg-bcgov-white dark:bg-bcgov-black my-8 py-4 px-8">
               <ul className="list-disc">
                 <li>You control when you use your credentials</li>
                 <li>You can share all or parts of your credentials</li>
