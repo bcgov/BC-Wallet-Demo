@@ -48,7 +48,7 @@ export const IntroductionPreviewPage: React.FC<PreviewPageProps> = ({ contentTyp
     }
 
     return all
-  }, [showcases, uploadedShowcase, showHiddenScenarios])
+  }, [showcases, uploadedShowcase, showHiddenScenarios, previewShowcaseName])
 
   useEffect(() => {
     dispatch({ type: 'demo/RESET' })

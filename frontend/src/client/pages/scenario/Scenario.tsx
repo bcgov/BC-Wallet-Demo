@@ -33,27 +33,27 @@ interface ScenarioPageProps {
 
 export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase, propSlug, explicitAllowForward }) => {
   const dispatch = useAppDispatch()
-  let { slug } = useParams()
+  const { slug: routeSlug } = useParams()
   const { stepCount, sectionCount, isLoading } = useScenarioState()
-  let currentShowcase = useCurrentShowcase()
+  const hookShowcase = useCurrentShowcase()
   const { section } = useSection()
   const connection = useConnection()
   const { issuedCredentials } = useCredentials()
   const { proof, proofUrl } = useProof()
   const [currentScenario, setCurrentScenario] = useState<Scenario>()
-  if (propCurrentShowcase) {
-    currentShowcase = propCurrentShowcase
-    slug = propSlug
-  }
+
+  // Derive the effective showcase and slug from props or hooks, without mutating
+  const effectiveShowcase = propCurrentShowcase || hookShowcase
+  const effectiveSlug = propSlug || routeSlug
 
   const navigate = useNavigate()
   useTitle(`${currentScenario?.name ?? 'Use case'} | BC Wallet Self-Sovereign Identity Demo`)
 
   useEffect(() => {
-    if (currentShowcase && slug) {
-      setCurrentScenario(currentShowcase.scenarios.find((item: { id: string }) => item.id === slug))
+    if (effectiveShowcase && effectiveSlug) {
+      setCurrentScenario(effectiveShowcase.scenarios.find((item: { id: string }) => item.id === effectiveSlug))
     }
-  }, [])
+  }, [effectiveShowcase, effectiveSlug])
 
   useEffect(() => {
     if (currentScenario) {
@@ -100,7 +100,7 @@ export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase,
         </div>
       ) : (
         <AnimatePresence mode="wait">
-          {currentShowcase && section && currentScenario ? (
+          {effectiveShowcase && section && currentScenario ? (
             <motion.div
               key={'sectionDiv' + section.screenId}
               initial={{ opacity: 0 }}
