@@ -23,6 +23,7 @@ export function ShowcasePage() {
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { showcase, isLoading, refetch } = useShowcase()
+  const [isExpanded, setIsExpanded] = useState(false)
   const [isNewShowcase, setIsNewShowcase] = useState(location.state?.isNewShowcase || false)
   const tabFromUrl = searchParams.get('tab')
   const [activeTab, setActiveTab] = useState<TabId>(isValidTabId(tabFromUrl) ? tabFromUrl : 'persona')
@@ -97,6 +98,8 @@ export function ShowcasePage() {
               isNewShowcase={isNewShowcase}
               onTabChange={(tab) => setActiveTab(tab as TabId)}
               onRefresh={refetch}
+              isExpanded={isExpanded}
+              setIsExpanded={setIsExpanded}
             />
           )}
           {activeTab === 'introduction' && (
@@ -105,6 +108,8 @@ export function ShowcasePage() {
               isNewShowcase={isNewShowcase}
               onTabChange={(tab) => setActiveTab(tab as TabId)}
               onRefresh={refetch}
+              isExpanded={isExpanded}
+              setIsExpanded={setIsExpanded}
             />
           )}
           {activeTab === 'scenarios' && (
@@ -113,6 +118,8 @@ export function ShowcasePage() {
               isNewShowcase={isNewShowcase}
               onTabChange={(tab) => setActiveTab(tab as TabId)}
               onRefresh={refetch}
+              isExpanded={isExpanded}
+              setIsExpanded={setIsExpanded}
             />
           )}
         </>

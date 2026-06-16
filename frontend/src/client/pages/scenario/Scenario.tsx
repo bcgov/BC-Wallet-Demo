@@ -1,4 +1,4 @@
-import type { Scenario } from '../../slices/types'
+import type { Scenario, Showcase } from '../../slices/types'
 
 import { trackPageView } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -25,25 +25,35 @@ import { basePath } from '../../utils/BasePath'
 
 import { Section } from './Section'
 
-export const ScenarioPage: React.FC = () => {
+interface ScenarioPageProps {
+  propCurrentShowcase?: Showcase
+  propSlug?: string
+  explicitAllowForward?: boolean
+}
+
+export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase, propSlug, explicitAllowForward }) => {
   const dispatch = useAppDispatch()
-  const { slug } = useParams()
+  const { slug: routeSlug } = useParams()
   const { stepCount, sectionCount, isLoading } = useScenarioState()
-  const currentShowcase = useCurrentShowcase()
+  const hookShowcase = useCurrentShowcase()
   const { section } = useSection()
   const connection = useConnection()
   const { issuedCredentials } = useCredentials()
   const { proof, proofUrl } = useProof()
   const [currentScenario, setCurrentScenario] = useState<Scenario>()
 
+  // Derive the effective showcase and slug from props or hooks, without mutating
+  const effectiveShowcase = propCurrentShowcase || hookShowcase
+  const effectiveSlug = propSlug || routeSlug
+
   const navigate = useNavigate()
   useTitle(`${currentScenario?.name ?? 'Use case'} | BC Wallet Self-Sovereign Identity Demo`)
 
   useEffect(() => {
-    if (currentShowcase && slug) {
-      setCurrentScenario(currentShowcase.scenarios.find((item) => item.id === slug))
+    if (effectiveShowcase && effectiveSlug) {
+      setCurrentScenario(effectiveShowcase.scenarios.find((item: { id: string }) => item.id === effectiveSlug))
     }
-  }, [])
+  }, [effectiveShowcase, effectiveSlug])
 
   useEffect(() => {
     if (currentScenario) {
@@ -90,7 +100,7 @@ export const ScenarioPage: React.FC = () => {
         </div>
       ) : (
         <AnimatePresence mode="wait">
-          {currentShowcase && section && currentScenario ? (
+          {effectiveShowcase && section && currentScenario ? (
             <motion.div
               key={'sectionDiv' + section.screenId}
               initial={{ opacity: 0 }}
@@ -108,6 +118,7 @@ export const ScenarioPage: React.FC = () => {
                 credentials={issuedCredentials}
                 proof={proof}
                 proofUrl={proofUrl}
+                explicitAllowForward={explicitAllowForward}
               />
             </motion.div>
           ) : (

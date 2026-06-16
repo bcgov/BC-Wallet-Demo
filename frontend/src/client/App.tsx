@@ -12,6 +12,8 @@ import { PageNotFound } from './pages/PageNotFound'
 import { DashboardPage } from './pages/dashboard/DashboardPage'
 import { IntroductionPage } from './pages/introduction/IntroductionPage'
 import { LandingPage } from './pages/landing/LandingPage'
+import { IntroductionPreviewPage } from './pages/preview/IntroductionPreviewPage'
+import { ScenarioPreviewPage } from './pages/preview/ScenarioPreviewPage'
 import { ScenarioPage } from './pages/scenario/Scenario'
 import { useConnection } from './slices/connection/connectionSelectors'
 import { usePreferences } from './slices/preferences/preferencesSelectors'
@@ -96,6 +98,8 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route path={`${basePath}/preview/introduction`} element={<IntroductionPreviewPage />} />
+            <Route path={`${basePath}/preview/scenarios`} element={<ScenarioPreviewPage />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </AnimatePresence>
