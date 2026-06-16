@@ -37,18 +37,16 @@ export const IntroductionPreviewPage: React.FC<PreviewPageProps> = ({ contentTyp
   const [mounted, setMounted] = useState(false)
 
   const allShowcases = useMemo(() => {
-    const all = [...showcases]
-      .filter((showcase) => showcase.status === 'active' || showHiddenScenarios)
-      .filter((showcase) => {
-        return !previewShowcaseName || showcase.name === previewShowcaseName
-      })
+    const all = [...showcases].filter((showcase) => {
+      return !previewShowcaseName || showcase.name === previewShowcaseName
+    })
 
     if (uploadedShowcase) {
       all.push(uploadedShowcase)
     }
 
     return all
-  }, [showcases, uploadedShowcase, showHiddenScenarios, previewShowcaseName])
+  }, [showcases, uploadedShowcase, previewShowcaseName])
 
   useEffect(() => {
     dispatch({ type: 'demo/RESET' })
