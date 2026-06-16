@@ -1,5 +1,3 @@
-import type { AxiosError } from 'axios'
-
 import { isAxiosError } from 'axios'
 import { BadRequestError } from 'routing-controllers'
 import { Service } from 'typedi'
@@ -54,7 +52,7 @@ export const extractCredDefId = (res: TractionCredDefResponse): string =>
 
 export const toRegistrationError = (err: unknown, context: string): Error => {
   if (isAxiosError(err) && err.response && err.response.status < 500) {
-    const detail = (err as AxiosError<{ detail?: string }>).response?.data?.detail ?? err.message
+    const detail = err.response?.data?.detail ?? err.message
     return new BadRequestError(`${context}: ${detail}`)
   }
   return err instanceof Error ? err : new Error(String(err))
