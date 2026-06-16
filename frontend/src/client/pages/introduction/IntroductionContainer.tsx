@@ -261,13 +261,16 @@ export const IntroductionContainer: React.FC<Props> = ({
       className="flex flex-row h-full justify-between bg-white dark:bg-bcgov-darkgrey rounded-lg p-2 w-full sxl:w-5/6 shadow"
       style={style}
     >
-      <div className={`flex flex-col grid justify-items-end ${isMobile ? 'w-full' : 'w-2/3'} px-8`}>
-        <div className="w-full">
+      <div className={`flex flex-col gap-8 justify-between overflow-hidden ${isMobile ? 'w-full' : 'w-2/3'} px-8`}>
+        {/* Top Navigation */}
+        <div>
           <motion.button onClick={showLeaveModal} variants={fadeDelay}>
             <FiLogOut className="inline h-12 cursor-pointer dark:text-white" />
           </motion.button>
         </div>
+        {/* Main Content */}
         <AnimatePresence mode="wait">{getComponentToRender(introductionStep)}</AnimatePresence>
+        {/* Bottom Navigation */}
         <IntroductionBottomNav
           introductionStep={introductionStep}
           addIntroductionStep={nextIntroductionPage}

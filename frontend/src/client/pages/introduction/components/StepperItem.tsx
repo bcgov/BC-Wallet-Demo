@@ -41,7 +41,7 @@ export const StepperItem: React.FC<Props> = ({ item, currentStep, currentShowcas
       </div>
       {item.introductionStep !== 'SETUP_COMPLETED' && (
         <div
-          className={`flex-auto  transition duration-300 ease-in-out  ${
+          className={`flex-auto transition duration-300 ease-in-out  ${
             currentStepIsHigher && currentStepIsNotEqual
               ? ' border-t-4 border-bcgov-blue dark:border-bcgov-gold bg-bcgov-blue dark:bg-bcgov-gold'
               : ' border-t-2 border-grey bg-grey'
