@@ -55,7 +55,7 @@ export let agentKey = ''
 
 export const tractionBaseUrl = process.env.TRACTION_URL ?? ''
 
-export const tractionApiKeyUpdaterInit = async () => {
+export const tractionApiKeyUpdaterInit = async (failOnError: boolean = false) => {
   const tractionBaseUrl = process.env.TRACTION_URL ?? ''
   const tenantId = process.env.TRACTION_TENANT_ID ?? ''
   const apiKey = process.env.TRACTION_TENANT_API_KEY ?? ''
@@ -66,6 +66,9 @@ export const tractionApiKeyUpdaterInit = async () => {
       agentKey
     logger.info('Traction API key initialized successfully')
   } catch (err) {
+    if (failOnError) {
+      throw err
+    }
     logger.warn(safeAxiosError(err), 'Failed to initialize Traction API key; server will start without a valid token')
   }
   // refresh agent key every hour
@@ -374,7 +377,7 @@ export async function populateMissingSchemaDids(issuerDid: string) {
 // and that the tenant has permissions to create schemas and credential definitions.
 // It will check for the existence of the seeded schemas in Traction and MongoDB,
 // and create any that are missing from either place, ensuring that the seeded schemas are available for issuance and listed in the admin UI.
-export const checkSeededSchemasExistOrCreate = async () => {
+export const checkSeededSchemasExistOrCreate = async (failOnError: boolean = false) => {
   try {
     logger.info('Checking seeded schemas')
 
@@ -389,11 +392,17 @@ export const checkSeededSchemasExistOrCreate = async () => {
         await processSeededCredential(credential, indyDid)
       } catch (err) {
         logger.error(safeAxiosError(err), `Failed processing ${credential.name}`)
+        if (failOnError) {
+          throw err
+        }
       }
     }
 
     await populateMissingSchemaDids(indyDid)
   } catch (err) {
     logger.error(safeAxiosError(err), 'Failed to process seeded schemas')
+    if (failOnError) {
+      throw err
+    }
   }
 }

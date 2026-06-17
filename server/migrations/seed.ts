@@ -56,8 +56,8 @@ export async function runSeed(): Promise<void> {
 
   // Create the schemas and credential definitions in Traction if they don't already exist.
   // Create the schemas in MongoDB and update credential documents with schema_id and cred_def_id if they don't already exist.
-  await tractionApiKeyUpdaterInit()
-  await checkSeededSchemasExistOrCreate()
+  await tractionApiKeyUpdaterInit(true)
+  await checkSeededSchemasExistOrCreate(true)
 }
 
 if (require.main === module) {
