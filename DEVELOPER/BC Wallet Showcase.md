@@ -48,8 +48,6 @@ UPLOADS_DIR=./uploads
 # SHOWCASE_SHORT_INVITATION_URLS_ENABLED=false
 # Optional: TTL for short invitation links in seconds (default: 86400 = 24h)
 # INVITATION_SHORT_LINK_TTL_SECONDS=86400
-WEBVH_SERVER_URL=https://sandbox.bcvh.vonx.io
-WEBVH_NAMESPACE=showcase
 ```
 
 populate the values with the API key and webhook secret that you made in the previous step. `SHOWCASE_PUBLIC_ORIGIN` is required for short invitation URLs to work; set it to your ngrok URL. `UPLOADS_DIR` controls where uploaded images are stored on disk and defaults to `./uploads` relative to the server working directory.

@@ -227,12 +227,17 @@ export async function getOrCreateWebvhDid(): Promise<string> {
   if (results?.length) {
     return results[0].did
   }
+  const configResponse = await tractionRequest.get('/did/webvh/config')
+
+  if (!configResponse.data?.server_url) {
+    throw new Error('Webhook server URL not found in Traction webvh config')
+  }
 
   return (
     await tractionRequest.post('/did/webvh/create', {
       options: {
-        server_url: process.env.WEBVH_SERVER_URL,
-        namespace: process.env.WEBVH_NAMESPACE,
+        server_url: configResponse.data.server_url,
+        namespace: 'showcase',
         identifier: uuidv4(),
       },
     })
