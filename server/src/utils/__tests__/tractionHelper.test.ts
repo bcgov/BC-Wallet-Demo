@@ -400,29 +400,40 @@ describe('populateMissingSchemaDids', () => {
   })
 })
 
-it('returns immediately when schema already exists in database', async () => {
-  SchemaModel.findOne = vi.fn().mockResolvedValue({
-    _id: 'schema-id',
-    credDefId: 'cred-def-id',
-    did: 'issuerDid',
+describe('processSeededCredential', () => {
+  beforeEach(() => {
+    process.env.TRACTION_URL = 'https://traction.example.com'
+    vi.clearAllMocks()
   })
 
-  const findSchemaInTractionSpy = vi.spyOn(th, 'findSchemaInTraction')
-  const createSchemaSpy = vi.spyOn(th, 'createSchema')
-  const getOrCreateCredDefSpy = vi.spyOn(th, 'getOrCreateCredDef')
+  afterEach(() => {
+    delete process.env.TRACTION_URL
+  })
 
-  const credential: th.SeedCredential = {
-    _id: 'credential-id',
-    name: 'Person',
-    version: '1.0.0',
-    attributes: [{ name: 'first_name' }, { name: 'last_name' }],
-  }
+  it('returns immediately when schema already exists in database', async () => {
+    SchemaModel.findOne = vi.fn().mockResolvedValue({
+      _id: 'schema-id',
+      credDefId: 'cred-def-id',
+      did: 'issuerDid',
+    })
 
-  await th.processSeededCredential(credential, 'issuerDid')
+    const findSchemaInTractionSpy = vi.spyOn(th, 'findSchemaInTraction')
+    const createSchemaSpy = vi.spyOn(th, 'createSchema')
+    const getOrCreateCredDefSpy = vi.spyOn(th, 'getOrCreateCredDef')
 
-  expect(findSchemaInTractionSpy).not.toHaveBeenCalled()
-  expect(createSchemaSpy).not.toHaveBeenCalled()
-  expect(getOrCreateCredDefSpy).not.toHaveBeenCalled()
+    const credential: th.SeedCredential = {
+      _id: 'credential-id',
+      name: 'Person',
+      version: '1.0.0',
+      attributes: [{ name: 'first_name' }, { name: 'last_name' }],
+    }
+
+    await th.processSeededCredential(credential, 'issuerDid')
+
+    expect(findSchemaInTractionSpy).not.toHaveBeenCalled()
+    expect(createSchemaSpy).not.toHaveBeenCalled()
+    expect(getOrCreateCredDefSpy).not.toHaveBeenCalled()
+  })
 })
 
 describe('checkSeededSchemasExistOrCreate', () => {
