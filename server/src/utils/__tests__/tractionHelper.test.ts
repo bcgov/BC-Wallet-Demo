@@ -403,6 +403,8 @@ describe('populateMissingSchemaDids', () => {
 it('returns immediately when schema already exists in database', async () => {
   SchemaModel.findOne = vi.fn().mockResolvedValue({
     _id: 'schema-id',
+    credDefId: 'cred-def-id',
+    did: 'issuerDid',
   })
 
   const findSchemaInTractionSpy = vi.spyOn(th, 'findSchemaInTraction')
