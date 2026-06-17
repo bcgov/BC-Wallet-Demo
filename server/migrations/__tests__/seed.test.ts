@@ -1,6 +1,10 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from 'mongoose'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('../../src/utils/logger', () => ({
+  default: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}))
 
 import showcases, { allCredentials } from '../../src/content/Showcases'
 import { CredentialModel } from '../../src/db/models/Credential'
@@ -13,9 +17,18 @@ beforeAll(async () => {
   await mongoose.connect(mongod.getUri())
 })
 
+beforeEach(() => {
+  process.env.TRACTION_URL = 'https://traction.example.com'
+  process.env.TRACTION_TENANT_ID = 'tenant123'
+  process.env.TRACTION_TENANT_API_KEY = 'apikey456'
+})
+
 afterEach(async () => {
   await CredentialModel.deleteMany({})
   await ShowcaseModel.deleteMany({})
+  delete process.env.TRACTION_URL
+  delete process.env.TRACTION_TENANT_ID
+  delete process.env.TRACTION_TENANT_API_KEY
 })
 
 afterAll(async () => {
@@ -24,6 +37,17 @@ afterAll(async () => {
 })
 
 describe('runSeed', () => {
+  beforeEach(async () => {
+    // Mock tractionHelper functions to avoid API calls and retries
+    const tractionHelper = await import('../../src/utils/tractionHelper')
+    vi.spyOn(tractionHelper, 'tractionApiKeyUpdaterInit').mockResolvedValue(undefined)
+    vi.spyOn(tractionHelper, 'getOrCreateIndyDid').mockResolvedValue('did:sov:test')
+    vi.spyOn(tractionHelper, 'getOrCreateWebvhDid').mockResolvedValue('did:webvh:test')
+    vi.spyOn(tractionHelper, 'ensureDidInDatabase').mockResolvedValue(undefined)
+    vi.spyOn(tractionHelper, 'processSeededCredential').mockResolvedValue(undefined)
+    vi.spyOn(tractionHelper, 'populateMissingSchemaDids').mockResolvedValue(undefined)
+  })
+
   it('inserts all showcases on first run', async () => {
     const { runSeed } = await import('../seed')
     await runSeed()
