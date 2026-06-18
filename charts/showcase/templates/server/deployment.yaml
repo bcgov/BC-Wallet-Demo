@@ -115,10 +115,6 @@ spec:
             - name: TRACTION_URL
               value: {{ .Values.showcase.server.traction.url | quote }}
             {{- end }}
-            - name: WEBVH_SERVER_URL
-              value: {{ .Values.showcase.server.webvhServerUrl | quote }}
-            - name: WEBVH_NAMESPACE
-              value: {{ .Values.showcase.server.webvhNamespace | quote }}
             {{- if .Values.showcase.server.traction.existingSecret }}
             - name: TRACTION_TENANT_ID
               valueFrom:
