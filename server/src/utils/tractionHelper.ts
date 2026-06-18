@@ -55,7 +55,7 @@ export let agentKey = ''
 
 export const tractionBaseUrl = process.env.TRACTION_URL ?? ''
 
-export const tractionApiKeyUpdaterInit = async () => {
+export const tractionApiKeyUpdaterInit = async (failOnError: boolean = false) => {
   const tractionBaseUrl = process.env.TRACTION_URL ?? ''
   const tenantId = process.env.TRACTION_TENANT_ID ?? ''
   const apiKey = process.env.TRACTION_TENANT_API_KEY ?? ''
@@ -66,6 +66,9 @@ export const tractionApiKeyUpdaterInit = async () => {
       agentKey
     logger.info('Traction API key initialized successfully')
   } catch (err) {
+    if (failOnError) {
+      throw err
+    }
     logger.warn(safeAxiosError(err), 'Failed to initialize Traction API key; server will start without a valid token')
   }
   // refresh agent key every hour
@@ -176,6 +179,8 @@ export const tractionGarbageCollection = async () => {
     6 * 60 * 60 * 1000,
   )
 }
+
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 export interface SeedCredential {
   _id: string
@@ -326,26 +331,77 @@ export async function createSchema(credential: SeedCredential, issuerDid: string
   return response.data.schema_state.schema_id
 }
 
+async function ensureSchema(credential: SeedCredential, issuerDid: string, maxAttempts = 10): Promise<string> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    logger.info({ attempt }, `Ensuring schema ${credential.name} v${credential.version}`)
+
+    // 1. Check Traction first (source of truth)
+    let schemaId = await findSchemaInTraction(credential.name, credential.version)
+
+    // 2. If missing, create it
+    if (!schemaId) {
+      logger.info('Schema missing in Traction, creating')
+      schemaId = await createSchema(credential, issuerDid)
+    }
+
+    // 3. Verify it is actually usable (important part)
+    const verified = await findSchemaInTraction(credential.name, credential.version)
+
+    if (verified) {
+      return verified
+    }
+
+    logger.warn(`Schema not ready yet (attempt ${attempt}/${maxAttempts}), retrying...`)
+
+    await delay(1000 * attempt) // linear or exponential backoff
+  }
+
+  throw new Error(`Failed to ensure schema ${credential.name} v${credential.version}`)
+}
+
+async function ensureCredentialDefinition(
+  issuerDid: string,
+  schemaId: string,
+  schemaName: string,
+  maxAttempts = 10,
+): Promise<string> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const credDefs = await tractionRequest.get('/anoncreds/credential-definitions', { params: { schema_id: schemaId } })
+
+    if (credDefs.data?.credential_definition_ids?.length) {
+      return credDefs.data.credential_definition_ids[0]
+    }
+
+    logger.info({ attempt }, `Cred def missing, creating (attempt ${attempt})`)
+
+    await createCredentialDefinition(issuerDid, schemaId, schemaName)
+
+    // verify it exists before continuing
+    const verify = await tractionRequest.get('/anoncreds/credential-definitions', { params: { schema_id: schemaId } })
+
+    if (verify.data?.credential_definition_ids?.length) {
+      return verify.data.credential_definition_ids[0]
+    }
+
+    await delay(1000 * attempt)
+  }
+
+  throw new Error(`Failed to ensure credential definition`)
+}
+
 export async function processSeededCredential(credential: SeedCredential, issuerDid: string) {
-  const existingSchema = await SchemaModel.findOne({
+  const existing = await SchemaModel.findOne({
     name: credential.name,
     version: credential.version,
   })
 
-  if (existingSchema) {
-    logger.info(`Schema ${credential.name} v${credential.version} already exists`)
+  if (existing?.credDefId && existing?.did) {
+    logger.info(`Already seeded: ${credential.name}`)
     return
   }
 
-  let schemaId = await findSchemaInTraction(credential.name, credential.version)
-
-  if (!schemaId) {
-    logger.info(`Schema ${credential.name} v${credential.version} creating`)
-
-    schemaId = await createSchema(credential, issuerDid)
-  }
-
-  const credDefId = await getOrCreateCredDef(issuerDid, schemaId, credential.name)
+  const schemaId = await ensureSchema(credential, issuerDid)
+  const credDefId = await ensureCredentialDefinition(issuerDid, schemaId, credential.name)
 
   await syncSchemaToDatabase(credential, schemaId, credDefId)
 }
@@ -374,7 +430,7 @@ export async function populateMissingSchemaDids(issuerDid: string) {
 // and that the tenant has permissions to create schemas and credential definitions.
 // It will check for the existence of the seeded schemas in Traction and MongoDB,
 // and create any that are missing from either place, ensuring that the seeded schemas are available for issuance and listed in the admin UI.
-export const checkSeededSchemasExistOrCreate = async () => {
+export const checkSeededSchemasExistOrCreate = async (failOnError: boolean = false) => {
   try {
     logger.info('Checking seeded schemas')
 
@@ -389,11 +445,17 @@ export const checkSeededSchemasExistOrCreate = async () => {
         await processSeededCredential(credential, indyDid)
       } catch (err) {
         logger.error(safeAxiosError(err), `Failed processing ${credential.name}`)
+        if (failOnError) {
+          throw err
+        }
       }
     }
 
     await populateMissingSchemaDids(indyDid)
   } catch (err) {
     logger.error(safeAxiosError(err), 'Failed to process seeded schemas')
+    if (failOnError) {
+      throw err
+    }
   }
 }

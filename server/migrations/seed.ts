@@ -1,63 +1,57 @@
 import 'dotenv/config'
 
+import type { SeedCredential } from '../src/utils/tractionHelper'
+
 import mongoose from 'mongoose'
 
+import credentialsSeed from '../migrations/values/credentials.json'
 import showcases, { allCredentials } from '../src/content/Showcases'
 import { connectDB } from '../src/db/connection'
 import { CredentialModel } from '../src/db/models/Credential'
 import { ShowcaseModel } from '../src/db/models/Showcase'
 import logger from '../src/utils/logger'
-import { checkSeededSchemasExistOrCreate, tractionApiKeyUpdaterInit } from '../src/utils/tractionHelper'
+import {
+  ensureDidInDatabase,
+  getOrCreateIndyDid,
+  getOrCreateWebvhDid,
+  populateMissingSchemaDids,
+  processSeededCredential,
+  tractionApiKeyUpdaterInit,
+} from '../src/utils/tractionHelper'
 
 export async function runSeed(): Promise<void> {
+  await tractionApiKeyUpdaterInit(true)
   const credResults = await Promise.all(
     allCredentials.map((cred) =>
-      CredentialModel.findOneAndUpdate(
-        { _id: cred._id },
-        { $set: cred },
-        {
-          upsert: true,
-          returnDocument: 'after',
-          setDefaultsOnInsert: true,
-        },
-      ),
+      CredentialModel.findOneAndUpdate({ _id: cred._id }, { $set: cred }, { upsert: true, returnDocument: 'after' }),
     ),
   )
 
-  logger.info(
-    {
-      credentialIds: credResults.map((r) => r?._id).filter(Boolean),
-      count: credResults.length,
-    },
-    'Seeded credentials',
-  )
+  logger.info({ count: credResults.length }, 'Seeded credentials')
 
-  const results = await Promise.all(
-    showcases.map((showcase) =>
+  const showcaseResults = await Promise.all(
+    showcases.map((s) =>
       ShowcaseModel.findOneAndUpdate(
-        { 'persona.type': showcase.persona?.type },
-        { $set: showcase },
-        {
-          upsert: true,
-          returnDocument: 'after',
-          setDefaultsOnInsert: true,
-        },
+        { 'persona.type': s.persona?.type },
+        { $set: s },
+        { upsert: true, returnDocument: 'after' },
       ),
     ),
   )
 
-  logger.info(
-    {
-      showcaseTypes: results.map((r) => r?.persona?.type).filter(Boolean),
-      count: results.length,
-    },
-    'Seeded showcases',
-  )
+  logger.info({ count: showcaseResults.length }, 'Seeded showcases')
 
-  // Create the schemas and credential definitions in Traction if they don't already exist.
-  // Create the schemas in MongoDB and update credential documents with schema_id and cred_def_id if they don't already exist.
-  await tractionApiKeyUpdaterInit()
-  await checkSeededSchemasExistOrCreate()
+  const indyDid = await getOrCreateIndyDid()
+  const webvhDid = await getOrCreateWebvhDid()
+
+  await ensureDidInDatabase(indyDid, 'indy')
+  await ensureDidInDatabase(webvhDid, 'webvh')
+
+  for (const credential of credentialsSeed as SeedCredential[]) {
+    await processSeededCredential(credential, indyDid)
+  }
+
+  await populateMissingSchemaDids(indyDid)
 }
 
 if (require.main === module) {
