@@ -108,6 +108,7 @@ export function PersonaTab({
             ...screen,
             name: `Meet ${name}`,
             text: `${name} is a ${personaType}. In this demo, ${name} will use digital credentials from their BC Wallet to complete various tasks.`,
+            image: localShowcase.persona?.image || screen.image,
           }
         }
         return screen
@@ -116,6 +117,10 @@ export function PersonaTab({
       await updateShowcase(auth, showcase.name, {
         introduction: updatedIntroduction,
       })
+
+      // Reload the showcase from the server and refresh preview
+      onRefresh?.()
+      setIframeRefreshKey((prev) => prev + 1)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update introduction'
       displayError(message)

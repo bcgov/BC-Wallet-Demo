@@ -8,6 +8,10 @@ const migrations = [
     id: '001-add-schema-attributes',
     up: () => import('./001-add-schema-attributes').then((m) => m.up()),
   },
+  {
+    id: '002-persona-to-pick-character-image',
+    up: () => import('./002-persona-to-pick-character-image').then((m) => m.up()),
+  },
 ]
 
 /**

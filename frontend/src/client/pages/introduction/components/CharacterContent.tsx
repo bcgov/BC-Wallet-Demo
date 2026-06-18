@@ -28,7 +28,11 @@ export const CharacterContent: React.FC<Props> = ({ showcase }) => {
             </div>
             <img
               className="h-72"
-              src={prependApiUrl(showcase.persona?.image || '')}
+              src={prependApiUrl(
+                showcase.introduction?.find((s) => s.screenId === 'PICK_CHARACTER')?.image ||
+                  showcase.persona?.image ||
+                  '',
+              )}
               alt={showcase.persona?.name || ''}
             />
           </motion.div>
