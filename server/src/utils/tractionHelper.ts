@@ -230,7 +230,7 @@ export async function getOrCreateWebvhDid(): Promise<string> {
   const configResponse = await tractionRequest.get('/did/webvh/config')
 
   if (!configResponse.data?.server_url) {
-    throw new Error('Webhook server URL not found in Traction webvh config')
+    throw new Error('Webvh server URL not found in Traction webvh config')
   }
 
   return (
