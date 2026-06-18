@@ -26,7 +26,7 @@ export class RevocationController {
     logger.info({ cred_ex_id: body.cred_ex_id }, 'Credential revoked')
 
     const socketMap: Map<string, Socket> | undefined = req.app.get('sockets')
-    const socket = socketMap?.get(result.connection_id)
+    const socket = result.connection_id ? socketMap?.get(result.connection_id) : undefined
     if (socket) socket.emit('revocation', { cred_ex_id: body.cred_ex_id, status: 'revoked' })
 
     return result

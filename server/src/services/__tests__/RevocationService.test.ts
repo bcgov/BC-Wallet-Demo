@@ -4,7 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 
 import { CredentialModel } from '../../db/models/Credential'
 import { IssuedCredentialModel, type LeanIssuedCredentialDoc } from '../../db/models/IssuedCredential'
-import { RevocationService, extractIssuanceData, validateRevocation } from '../RevocationService'
+import { RevocationService, validateRevocation } from '../RevocationService'
 import * as revocationHandlers from '../revocationHandlers'
 
 vi.mock('../revocationHandlers')
@@ -31,73 +31,6 @@ afterAll(async () => {
 })
 
 describe('RevocationService - Pure Functions', () => {
-  describe('extractIssuanceData', () => {
-    it('extracts revocation metadata from webhook payload', () => {
-      const payload = {
-        cred_ex_id: 'ex-123',
-        connection_id: 'conn-123',
-        revoc_reg_id: 'rev-reg-123',
-        revocation_id: 'rev-id-456',
-        by_format: {
-          cred_issue: {
-            anoncreds: {
-              cred_def_id: 'cred-def-789',
-            },
-          },
-        },
-      }
-
-      const result = extractIssuanceData(payload)
-      expect(result).not.toBeNull()
-      expect(result?._id).toBe('ex-123')
-      expect(result?.connection_id).toBe('conn-123')
-      expect(result?.format).toBe('anoncreds')
-      expect(result?.format_metadata).toEqual({
-        rev_reg_id: 'rev-reg-123',
-        cred_rev_id: 'rev-id-456',
-        cred_def_id: 'cred-def-789',
-      })
-    })
-
-    it('returns null when revocation metadata is missing', () => {
-      const payload = { cred_ex_id: 'ex-123', connection_id: 'conn-123' }
-      const result = extractIssuanceData(payload)
-      expect(result).toBeNull()
-    })
-
-    it('returns null when connection_id is missing', () => {
-      const payload = {
-        cred_ex_id: 'ex-123',
-        revoc_reg_id: 'rev-reg-123',
-        revocation_id: 'rev-id-456',
-      }
-      const result = extractIssuanceData(payload)
-      expect(result).toBeNull()
-    })
-
-    it('returns null when cred_ex_id is missing', () => {
-      const payload = {
-        connection_id: 'conn-123',
-        revoc_reg_id: 'rev-reg-123',
-        revocation_id: 'rev-id-456',
-      }
-      const result = extractIssuanceData(payload)
-      expect(result).toBeNull()
-    })
-
-    it('leaves credential_id undefined even when cred_def_id is present', () => {
-      const payload = {
-        cred_ex_id: 'ex-123',
-        connection_id: 'conn-123',
-        revoc_reg_id: 'rev-reg-123',
-        revocation_id: 'rev-id-456',
-        by_format: { cred_issue: { anoncreds: { cred_def_id: 'cred-def-789' } } },
-      }
-      const result = extractIssuanceData(payload)
-      expect(result?.credential_id).toBeUndefined()
-    })
-  })
-
   describe('validateRevocation', () => {
     it('returns error if credential already revoked', () => {
       const doc = {
@@ -150,8 +83,38 @@ describe('RevocationService - Pure Functions', () => {
 })
 
 describe('RevocationService - Imperative Shell', () => {
+  describe('handleIssuerCredRev', () => {
+    it('creates IssuedCredential doc with revocation metadata', async () => {
+      await service.handleIssuerCredRev({
+        cred_ex_id: 'ex-icr-1',
+        rev_reg_id: 'rev-reg-123',
+        cred_rev_id: '5',
+        state: 'issued',
+      })
+      const doc = await IssuedCredentialModel.findById('ex-icr-1').lean<LeanIssuedCredentialDoc>()
+      expect(doc).not.toBeNull()
+      expect(doc?.format).toBe('anoncreds')
+      expect(doc?.format_metadata).toMatchObject({ rev_reg_id: 'rev-reg-123', cred_rev_id: '5' })
+      expect(doc?.connection_id).toBeUndefined()
+    })
+
+    it('skips when required fields missing', async () => {
+      await service.handleIssuerCredRev({ cred_ex_id: 'ex-icr-2' })
+      const count = await IssuedCredentialModel.countDocuments({ _id: 'ex-icr-2' })
+      expect(count).toBe(0)
+    })
+
+    it('is idempotent on duplicate delivery', async () => {
+      const payload = { cred_ex_id: 'ex-icr-idem', rev_reg_id: 'rr', cred_rev_id: '1', state: 'issued' }
+      await service.handleIssuerCredRev(payload)
+      await service.handleIssuerCredRev(payload)
+      const count = await IssuedCredentialModel.countDocuments({ _id: 'ex-icr-idem' })
+      expect(count).toBe(1)
+    })
+  })
+
   describe('handleCredentialIssued', () => {
-    it('persists issued credential doc with cred_ex_id as _id', async () => {
+    it('updates connection_id and credential_id on existing doc', async () => {
       const credential = await CredentialModel.create({
         name: 'test',
         icon: 'icon',
@@ -159,58 +122,28 @@ describe('RevocationService - Imperative Shell', () => {
         attributes: [],
         cred_def_id: 'cred-def-789',
       })
+      await service.handleIssuerCredRev({ cred_ex_id: 'ex-ci-1', rev_reg_id: 'rr', cred_rev_id: '7', state: 'issued' })
 
-      const payload = {
-        cred_ex_id: 'ex-abc-123',
+      const doc = await service.handleCredentialIssued({
+        cred_ex_id: 'ex-ci-1',
         connection_id: 'conn-123',
-        revoc_reg_id: 'rev-reg-123',
-        revocation_id: 'rev-id-456',
-        by_format: {
-          cred_issue: {
-            anoncreds: {
-              cred_def_id: 'cred-def-789',
-            },
-          },
-        },
-      }
-
-      const doc = await service.handleCredentialIssued(payload)
+        by_format: { cred_issue: { anoncreds: { cred_def_id: 'cred-def-789' } } },
+      })
       expect(doc).not.toBeNull()
-      expect(doc?._id).toBe('ex-abc-123')
+      expect(doc?._id).toBe('ex-ci-1')
       expect(doc?.connection_id).toBe('conn-123')
       expect(doc?.credential_id).toBe(String(credential._id))
       expect(doc?.status).toBe('issued')
     })
 
-    it('returns null when payload has no revocation metadata', async () => {
-      const payload = { cred_ex_id: 'ex-123', connection_id: 'conn-123' }
-      const doc = await service.handleCredentialIssued(payload)
+    it('returns null when no IssuedCredential doc exists (non-revocable credential)', async () => {
+      const doc = await service.handleCredentialIssued({ cred_ex_id: 'ex-none', connection_id: 'conn-123' })
       expect(doc).toBeNull()
     })
 
-    it('is idempotent on duplicate webhook delivery', async () => {
-      await CredentialModel.create({
-        name: 'test',
-        icon: 'icon',
-        version: '1.0',
-        attributes: [],
-        cred_def_id: 'cred-def-idem',
-      })
-      const payload = {
-        cred_ex_id: 'ex-idem-1',
-        connection_id: 'conn-123',
-        revoc_reg_id: 'rev-reg-123',
-        revocation_id: 'rev-id-456',
-        by_format: { cred_issue: { anoncreds: { cred_def_id: 'cred-def-idem' } } },
-      }
-
-      const first = await service.handleCredentialIssued(payload)
-      const second = await service.handleCredentialIssued(payload)
-
-      expect(first?._id).toBe('ex-idem-1')
-      expect(second?._id).toBe('ex-idem-1')
-      const count = await IssuedCredentialModel.countDocuments({ _id: 'ex-idem-1' })
-      expect(count).toBe(1)
+    it('returns null when cred_ex_id or connection_id missing', async () => {
+      expect(await service.handleCredentialIssued({ connection_id: 'conn-123' })).toBeNull()
+      expect(await service.handleCredentialIssued({ cred_ex_id: 'ex-123' })).toBeNull()
     })
   })
 

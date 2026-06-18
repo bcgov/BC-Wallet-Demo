@@ -192,34 +192,11 @@ describe('credentialsSlice reducers', () => {
     const store = makeStore()
     store.dispatch(setCredential({ connection_id: 'conn-1' }))
     expect(store.getState().credentials.issuedCredentials).toHaveLength(0)
-    expect(store.getState().credentials.revokableCredentials).toHaveLength(0)
   })
 
   it('setCredential returns early without mutation when cred_def_id is undefined', () => {
     const store = makeStore()
     store.dispatch(setCredential({ by_format: { cred_issue: { anoncreds: {} } }, connection_id: 'conn-1' }))
     expect(store.getState().credentials.issuedCredentials).toHaveLength(0)
-    expect(store.getState().credentials.revokableCredentials).toHaveLength(0)
-  })
-
-  it('setCredential stores cred_ex_id in revokableCredentials', () => {
-    const store = makeStore()
-    store.dispatch(
-      setCredential({
-        by_format: {
-          cred_issue: {
-            anoncreds: {
-              cred_def_id: 'ISSUER123:3:CL:100:TestCred',
-            },
-          },
-        },
-        revoc_reg_id: 'reg-1',
-        connection_id: 'conn-1',
-        revocation_id: 'rev-1',
-        cred_ex_id: 'ex-abc',
-      }),
-    )
-    const record = store.getState().credentials.revokableCredentials[0]
-    expect(record.credExId).toBe('ex-abc')
   })
 })

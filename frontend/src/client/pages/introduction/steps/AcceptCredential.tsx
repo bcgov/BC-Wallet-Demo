@@ -13,6 +13,7 @@ import { Loader } from '../../../components/Loader'
 import { Modal } from '../../../components/Modal'
 import { useAppDispatch } from '../../../hooks/hooks'
 import { useConnection } from '../../../slices/connection/connectionSelectors'
+import { setConnection } from '../../../slices/connection/connectionSlice'
 import { useCredentials } from '../../../slices/credentials/credentialsSelectors'
 import { setCredential } from '../../../slices/credentials/credentialsSlice'
 import { issueCredential, issueDeepCredential } from '../../../slices/credentials/credentialsThunks'
@@ -126,6 +127,9 @@ export const AcceptCredential: React.FC<Props> = ({
     const { endpoint, state } = message
     if (endpoint === 'issue_credential_v2_0' && state === 'credential-issued') {
       dispatch(setCredential(message))
+      if (message.connection_id) {
+        dispatch(setConnection({ connection_id: message.connection_id }))
+      }
     }
   }, [message])
 

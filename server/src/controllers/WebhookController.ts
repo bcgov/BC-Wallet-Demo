@@ -26,6 +26,12 @@ export class WebhookController {
     const endpoint = endpointSplit[endpointSplit.length - 1]
     params.endpoint = endpoint
 
+    if (endpoint === 'issuer_cred_rev' && params.state === 'issued') {
+      this.revocationService.handleIssuerCredRev(params).catch((err) => {
+        logger.error(err, 'Failed to store issuer_cred_rev metadata')
+      })
+    }
+
     // Only forward webhooks that have a connection_id
     if (!connectionId) {
       logger.debug({ endpoint }, 'Webhook received without connection_id, skipping socket forwarding')
@@ -34,19 +40,13 @@ export class WebhookController {
 
     logger.info({ endpoint, connectionId, state: params.state }, 'Webhook received')
     logger.debug({ endpoint, connectionId, params }, 'Webhook full payload')
-    if (endpoint === 'issuer_cred_rev') {
-      logger.debug(
-        { rev_reg_id: params.rev_reg_id, cred_rev_id: params.cred_rev_id, state: params.state },
-        'issuer_cred_rev payload',
-      )
-    }
 
-    // Persist issued credential for revocation tracking.
-    // Best-effort: failure logs but does not break webhook flow.
-    // Frontend uses cred_ex_id (already in payload) to identify the credential.
-    if (endpoint === 'issue_credential_v2_0' && params.state === 'credential-issued') {
+    if (
+      (endpoint === 'issue_credential_v2_0' || endpoint === 'issue_credential_v2_0_anoncreds') &&
+      params.state === 'credential-issued'
+    ) {
       this.revocationService.handleCredentialIssued(params).catch((err) => {
-        logger.error(err, 'Failed to persist issued credential from webhook')
+        logger.error(err, 'Failed to update credential connection_id from webhook')
       })
     }
 

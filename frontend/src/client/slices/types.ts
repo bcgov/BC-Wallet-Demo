@@ -1,10 +1,3 @@
-export interface RevocationRecord {
-  connectionId: string
-  revocationRegId: string
-  credRevocationId: string
-  credExId: string
-}
-
 export interface Connection {
   id: string
   state: string
@@ -14,6 +7,7 @@ export interface Connection {
 export interface ProofRestriction {
   schema_name?: string
   schema_id?: string
+  schema_version?: string
   cred_def_id?: string
 }
 
@@ -79,6 +73,7 @@ export interface CredentialRequest {
   name: string
   icon?: string
   schema_id?: string
+  schema_version?: string
   cred_def_id?: string
   predicates?: Predicate[]
   properties?: string[]

@@ -1,20 +1,24 @@
+import type { IssuedCredential } from '../../api/RevocationApi'
 import type { Showcase } from '../../slices/types'
 
 import { trackPageView } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
 import { track } from 'insights-js'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { page } from '../../FramerAnimations'
+import { getRevocations } from '../../api/RevocationApi'
 import { Modal } from '../../components/Modal'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useTitle } from '../../hooks/useTitle'
+import { useConnectionId } from '../../slices/connection/connectionSelectors'
 import { useCredentials } from '../../slices/credentials/credentialsSelectors'
 import { usePreferences } from '../../slices/preferences/preferencesSelectors'
 import { setDemoCompleted } from '../../slices/preferences/preferencesSlice'
 import { useCurrentShowcase } from '../../slices/showcases/showcasesSelectors'
 import { basePath } from '../../utils/BasePath'
+import log from '../../utils/logger'
 import { Footer } from '../landing/components/Footer'
 import { NavBar } from '../landing/components/Navbar'
 
@@ -28,7 +32,7 @@ export const DashboardPage: React.FC = () => {
 
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { issuedCredentials, revokableCredentials } = useCredentials()
+  const { issuedCredentials } = useCredentials()
   const { completedScenarioSlugs, demoCompleted, completeCanceled, revocationEnabled, showHiddenScenarios } =
     usePreferences()
   const currentShowcase = {
@@ -36,6 +40,21 @@ export const DashboardPage: React.FC = () => {
     scenarios: useCurrentShowcase()?.scenarios.filter((item) => !item.hidden || showHiddenScenarios) ?? [],
   } as Showcase
   const scenarios = currentShowcase?.scenarios
+  const connectionId = useConnectionId()
+
+  const [issuedCreds, setIssuedCreds] = useState<IssuedCredential[]>([])
+
+  useEffect(() => {
+    if (connectionId) {
+      getRevocations(connectionId)
+        .then((creds) => {
+          setIssuedCreds(creds)
+        })
+        .catch((err) => {
+          log.warn('[revocation] fetch failed', err)
+        })
+    }
+  }, [connectionId])
 
   useEffect(() => {
     if (
@@ -76,6 +95,9 @@ export const DashboardPage: React.FC = () => {
     dispatch(setDemoCompleted(false))
   }
 
+  const revocable = issuedCreds.filter((c) => c.status === 'issued')
+  const hasRevocableCredentials = revocable.length > 0
+
   return (
     <motion.div
       className="container flex flex-col h-screen justify-between"
@@ -96,10 +118,10 @@ export const DashboardPage: React.FC = () => {
                 completedScenarioSlugs={completedScenarioSlugs}
                 currentShowcase={currentShowcase}
               />
-              {revokableCredentials.length > 0 && revocationEnabled && currentShowcase.revocationInfo && (
+              {hasRevocableCredentials && revocationEnabled && (
                 <RevocationContainer
-                  revocationInfo={currentShowcase.revocationInfo}
-                  revocationRecord={revokableCredentials}
+                  issuedCredentials={issuedCreds}
+                  showcaseCredentials={currentShowcase.credentials}
                 />
               )}
             </div>

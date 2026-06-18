@@ -1,4 +1,3 @@
-import type { RevocationRecord } from '../types'
 import type { SerializedError } from '@reduxjs/toolkit'
 
 import { createSlice, isAnyOf } from '@reduxjs/toolkit'
@@ -7,7 +6,6 @@ import { fetchCredentialById, issueCredential, issueDeepCredential, deleteCreden
 
 interface CredentialState {
   issuedCredentials: string[]
-  revokableCredentials: RevocationRecord[]
   isLoading: boolean
   isIssueCredentialLoading: boolean
   error: SerializedError | undefined
@@ -15,7 +13,6 @@ interface CredentialState {
 
 const initialState: CredentialState = {
   issuedCredentials: [],
-  revokableCredentials: [],
   isLoading: true,
   isIssueCredentialLoading: true,
   error: undefined,
@@ -33,14 +30,6 @@ const credentialSlice = createSlice({
       const schemaId = credentialData.by_format?.cred_issue?.anoncreds?.schema_id
       if (!state.issuedCredentials.includes(schemaId)) {
         state.issuedCredentials.push(schemaId)
-      }
-      if (!state.revokableCredentials.map((rev) => rev.revocationRegId).includes(credentialData.revoc_reg_id)) {
-        state.revokableCredentials.push({
-          revocationRegId: credentialData.revoc_reg_id,
-          connectionId: credentialData.connection_id,
-          credRevocationId: credentialData.revocation_id,
-          credExId: credentialData.cred_ex_id,
-        })
       }
     },
   },
