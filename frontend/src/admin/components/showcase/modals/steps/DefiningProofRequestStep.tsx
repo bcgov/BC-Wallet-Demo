@@ -9,7 +9,6 @@ interface DefiningProofRequestStepProps {
   currentRequest: PresentationRequest | null
   currentIndex: number
   totalCredentials: number
-  onUpdateRequest: (updates: Partial<PresentationRequest>) => void
   onUploadIcon: () => void
   onPrevious: () => void
   onNext: () => void
@@ -21,7 +20,6 @@ export function DefiningProofRequestStep({
   currentRequest,
   currentIndex,
   totalCredentials,
-  onUpdateRequest,
   onUploadIcon,
   onPrevious,
   onNext,
@@ -76,20 +74,6 @@ export function DefiningProofRequestStep({
               </button>
             )}
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-bcgov-black mb-2">Schema ID</label>
-          <p className="text-xs text-gray-500 mb-1">
-            Optional - Restrict the presentation request to a specific schema
-          </p>
-          <input
-            type="text"
-            value={currentRequest.schema_id || ''}
-            onChange={(e) => onUpdateRequest({ schema_id: e.target.value || undefined })}
-            placeholder="e.g., QEquAHkM35w4XVT3Ku5yat:2:student_card:1.0"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bcgov-blue focus:border-transparent"
-          />
         </div>
 
         <div>
