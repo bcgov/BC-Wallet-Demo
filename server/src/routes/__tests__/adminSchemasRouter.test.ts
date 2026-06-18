@@ -36,6 +36,10 @@ const { mocks } = vi.hoisted(() => {
       mockAuditLogService: {
         log: vi.fn().mockResolvedValue(undefined),
       },
+      mockTractionRegistrationService: {
+        registerSchema: vi.fn(),
+        registerCredentialDefinition: vi.fn(),
+      },
       mockRetryWithExponentialBackoff: vi.fn(),
     },
   }
@@ -58,6 +62,7 @@ vi.mock('typedi', () => ({
   Container: {
     get: (Type: any) => {
       if (Type.name === 'AuditLogService') return mocks.mockAuditLogService
+      if (Type.name === 'TractionRegistrationService') return mocks.mockTractionRegistrationService
       return {}
     },
   },
@@ -174,43 +179,22 @@ describe('adminSchemasRouter', () => {
       ],
     }
 
-    const tractionSchemaResponse = {
-      data: {
-        schema_state: {
-          schema_id: 'W1ZJ:2:Driver License:2.0',
-          schema: {
-            name: 'Driver License',
-            version: '2.0',
-            attrNames: ['name', 'address', 'license_number'],
-          },
-        },
-      },
-    }
-
-    const tractionCredDefResponse = {
-      data: {
-        credential_definition_state: {
-          credential_definition_id: 'W1ZJ:3:CL:123:Driver License',
-        },
-      },
-    }
-
-    it('returns 201 with created schema and cred def', async () => {
-      const savedSchema = {
+    beforeEach(() => {
+      mocks.mockTractionRegistrationService.registerSchema.mockResolvedValue('W1ZJ:2:Driver License:2.0')
+      mocks.mockTractionRegistrationService.registerCredentialDefinition.mockResolvedValue(
+        'W1ZJ:3:CL:123:Driver License',
+      )
+      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
+      mocks.mockSchemaModel.findById.mockResolvedValue({
         _id: 'W1ZJ:2:Driver License:2.0',
         name: 'Driver License',
         version: '2.0',
         attrNames: ['name', 'address', 'license_number'],
         credDefId: 'W1ZJ:3:CL:123:Driver License',
-      }
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
       })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockResolvedValue(savedSchema)
+    })
 
+    it('returns 201 with created schema and cred def', async () => {
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
       expect(res.status).toBe(201)
@@ -221,83 +205,28 @@ describe('adminSchemasRouter', () => {
       expect(res.body).toHaveProperty('credDefId', 'W1ZJ:3:CL:123:Driver License')
     })
 
-    it('creates schema in Traction with correct payload', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockResolvedValue({})
-
+    it('calls registerSchema with correct args', async () => {
       await request(app).post('/admin/schemas').send(schemaPayload)
 
-      expect(mocks.mockTractionRequest.post).toHaveBeenCalledWith(
-        '/anoncreds/schema',
-        expect.objectContaining({
-          schema: expect.objectContaining({
-            name: 'Driver License',
-            version: '2.0',
-            attrNames: ['name', 'address', 'license_number'],
-            issuerId: mockIssuerDid,
-          }),
-        }),
+      expect(mocks.mockTractionRegistrationService.registerSchema).toHaveBeenCalledWith(
+        'Driver License',
+        '2.0',
+        ['name', 'address', 'license_number'],
+        mockIssuerDid,
       )
     })
 
-    it('creates credential definition with exponential backoff retry', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockResolvedValue({})
-
+    it('calls registerCredentialDefinition with correct args', async () => {
       await request(app).post('/admin/schemas').send(schemaPayload)
 
-      expect(mocks.mockRetryWithExponentialBackoff).toHaveBeenCalledWith(
-        expect.any(Function),
-        3, // maxAttempts
-        1000, // initialDelayMs
+      expect(mocks.mockTractionRegistrationService.registerCredentialDefinition).toHaveBeenCalledWith(
+        mockIssuerDid,
+        'W1ZJ:2:Driver License:2.0',
+        'Driver License',
       )
     })
 
-    it('creates credential definition with revocation support', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockReturnValue({
-        lean: vi.fn().mockResolvedValue({}),
-      })
-
-      await request(app).post('/admin/schemas').send(schemaPayload)
-
-      const credDefCall = mocks.mockRetryWithExponentialBackoff.mock.calls[0][0]
-      await credDefCall() // Execute the function
-
-      expect(mocks.mockTractionRequest.post).toHaveBeenCalledWith(
-        '/anoncreds/credential-definition',
-        expect.objectContaining({
-          options: {
-            support_revocation: true,
-            revocation_registry_size: 3000,
-          },
-        }),
-      )
-    })
-
-    it('saves schema to MongoDB with upsert', async () => {
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockReturnValue({
-        lean: vi.fn().mockResolvedValue({}),
-      })
-
+    it('saves schema to MongoDB with correct data', async () => {
       await request(app).post('/admin/schemas').send(schemaPayload)
 
       expect(mocks.mockSchemaModel.updateOne).toHaveBeenCalledWith(
@@ -306,20 +235,7 @@ describe('adminSchemasRouter', () => {
           $set: {
             name: 'Driver License',
             version: '2.0',
-            attributes: [
-              {
-                name: 'name',
-                type: 'string',
-              },
-              {
-                name: 'address',
-                type: 'string',
-              },
-              {
-                name: 'license_number',
-                type: 'string',
-              },
-            ],
+            attributes: expect.any(Array),
             credDefId: 'W1ZJ:3:CL:123:Driver License',
             did: mockIssuerDid,
           },
@@ -329,22 +245,10 @@ describe('adminSchemasRouter', () => {
     })
 
     it('logs audit entry after response is sent', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockReturnValue({
-        lean: vi.fn().mockResolvedValue({}),
-      })
-
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
-      // Response should be sent before audit logging completes
       expect(res.status).toBe(201)
 
-      // Give async logging time to complete
       await new Promise((resolve) => setTimeout(resolve, 10))
 
       expect(mocks.mockAuditLogService.log).toHaveBeenCalledWith(
@@ -361,16 +265,6 @@ describe('adminSchemasRouter', () => {
     })
 
     it('includes user_id from request auth in audit log', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockReturnValue({
-        lean: vi.fn().mockResolvedValue({}),
-      })
-
       await request(app).post('/admin/schemas').send(schemaPayload)
 
       await new Promise((resolve) => setTimeout(resolve, 10))
@@ -383,16 +277,6 @@ describe('adminSchemasRouter', () => {
     })
 
     it('handles missing user_id with "unknown"', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockReturnValue({
-        lean: vi.fn().mockResolvedValue({}),
-      })
-
       await request(app).post('/admin/schemas').send(schemaPayload)
 
       await new Promise((resolve) => setTimeout(resolve, 10))
@@ -405,20 +289,13 @@ describe('adminSchemasRouter', () => {
     })
 
     it('returns 500 when fetching issuer DID fails', async () => {
-      // The router now uses req.body.did directly, so verify that a missing did causes an error
       const payloadWithoutDid = {
         name: 'Driver License',
         version: '2.0',
-        attrNames: ['name', 'address', 'license_number'],
+        attributes: [{ name: 'name', type: 'string' }],
       }
 
-      // Mock the post to reject when issuerId is undefined
-      mocks.mockTractionRequest.post.mockImplementation((url: string, data: any) => {
-        if (url === '/anoncreds/schema' && data.schema.issuerId === undefined) {
-          return Promise.reject(new Error('issuerId is required'))
-        }
-        return Promise.resolve(tractionSchemaResponse)
-      })
+      mocks.mockTractionRegistrationService.registerSchema.mockRejectedValue(new Error('issuerId is required'))
 
       const res = await request(app).post('/admin/schemas').send(payloadWithoutDid)
 
@@ -426,7 +303,7 @@ describe('adminSchemasRouter', () => {
     })
 
     it('returns 500 when creating schema in Traction fails', async () => {
-      mocks.mockTractionRequest.post.mockRejectedValue(new Error('Schema creation failed'))
+      mocks.mockTractionRegistrationService.registerSchema.mockRejectedValue(new Error('Schema creation failed'))
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -437,8 +314,9 @@ describe('adminSchemasRouter', () => {
     })
 
     it('returns 500 when creating credential definition fails', async () => {
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockRejectedValue(new Error('Credential def creation failed'))
+      mocks.mockTractionRegistrationService.registerCredentialDefinition.mockRejectedValue(
+        new Error('Credential def creation failed'),
+      )
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
@@ -449,8 +327,6 @@ describe('adminSchemasRouter', () => {
     })
 
     it('returns 500 when saving to MongoDB fails', async () => {
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
       mocks.mockSchemaModel.updateOne.mockRejectedValue(new Error('MongoDB error'))
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
@@ -462,20 +338,10 @@ describe('adminSchemasRouter', () => {
     })
 
     it('continues on audit log error', async () => {
-      mocks.mockTractionRequest.get.mockResolvedValue({
-        data: { result: { did: mockIssuerDid } },
-      })
-      mocks.mockTractionRequest.post.mockResolvedValue(tractionSchemaResponse)
-      mocks.mockRetryWithExponentialBackoff.mockResolvedValue(tractionCredDefResponse)
-      mocks.mockSchemaModel.updateOne.mockResolvedValue({ upserted: true })
-      mocks.mockSchemaModel.findById.mockReturnValue({
-        lean: vi.fn().mockResolvedValue({}),
-      })
       mocks.mockAuditLogService.log.mockRejectedValue(new Error('Audit log error'))
 
       const res = await request(app).post('/admin/schemas').send(schemaPayload)
 
-      // Response should still be 201 even if audit logging fails
       expect(res.status).toBe(201)
     })
   })

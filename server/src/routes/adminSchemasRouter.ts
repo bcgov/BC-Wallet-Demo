@@ -7,11 +7,12 @@ import { DidModel } from '../db/models/Did'
 import { SchemaModel } from '../db/models/Schema'
 import { requireRole } from '../middleware/requireAdmin'
 import { AuditLogService } from '../services/AuditLogService'
+import { TractionRegistrationService } from '../services/TractionRegistrationService'
 import logger from '../utils/logger'
 import { defaultRateLimiter, createRateLimiter } from '../utils/rateLimiter'
-import { tractionRequest, retryWithExponentialBackoff } from '../utils/tractionHelper'
 
 const auditLogService = Container.get(AuditLogService)
+const tractionRegistrationService = Container.get(TractionRegistrationService)
 
 const router = Router()
 
@@ -47,33 +48,18 @@ router.get('/schemas', defaultRateLimiter, requireRole(['admin', 'creator']), as
 router.post('/schemas', createRateLimiter, requireRole(['admin', 'creator']), async (req: Request, res: Response) => {
   logger.debug('Admin: creating anoncreds schema and cred def in Traction')
   try {
-    const createSchemaPayload = {
-      name: req.body.name,
-      version: req.body.version,
-      attrNames: req.body.attributes.map((a: any) => a.name),
-      issuerId: req.body.did,
-    }
-    logger.debug({ createSchemaPayload }, 'Creating schema with payload')
-    const response = await tractionRequest.post('/anoncreds/schema', { schema: createSchemaPayload })
-    const credDefResponse = await retryWithExponentialBackoff(
-      () =>
-        tractionRequest.post('/anoncreds/credential-definition', {
-          credential_definition: {
-            issuerId: req.body.did,
-            schemaId: response.data.schema_state.schema_id,
-            tag: response.data.schema_state.schema.name,
-          },
-          options: {
-            support_revocation: true,
-            revocation_registry_size: 3000,
-          },
-        }),
-      3,
-      1000,
+    const attrNames = req.body.attributes.map((a: any) => a.name)
+    const schemaId = await tractionRegistrationService.registerSchema(
+      req.body.name,
+      req.body.version,
+      attrNames,
+      req.body.did,
     )
-    // Save schema to MongoDB
-    const schemaId = response.data.schema_state.schema_id
-    const credDefId = credDefResponse.data.credential_definition_state.credential_definition_id
+    const credDefId = await tractionRegistrationService.registerCredentialDefinition(
+      req.body.did,
+      schemaId,
+      req.body.name,
+    )
     await SchemaModel.updateOne(
       { _id: schemaId },
       {
@@ -104,7 +90,8 @@ router.post('/schemas', createRateLimiter, requireRole(['admin', 'creator']), as
       .catch((err: unknown) => logger.error(err, 'Audit log: failed to write schema created event'))
   } catch (error) {
     logger.error(error, 'Error creating schema and cred def in Traction')
-    res.status(500).json({ error: `Failed to create schema and cred def in Traction: ${error}` })
+    const msg = error instanceof Error ? error.message : String(error)
+    res.status(500).json({ error: `Failed to create schema and cred def in Traction: ${msg}` })
   }
 })
 
