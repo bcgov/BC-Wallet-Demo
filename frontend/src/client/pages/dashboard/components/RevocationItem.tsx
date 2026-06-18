@@ -1,5 +1,3 @@
-import type { RevocationRecord } from '../../../slices/types'
-
 import { motion } from 'framer-motion'
 import React from 'react'
 
@@ -13,7 +11,7 @@ export interface Props {
   description?: string
   credentialName?: string
   credentialIcon?: string
-  revocationRecord: RevocationRecord
+  credExId: string
   callback: () => void
   isCompleted: boolean
   isLoading?: boolean
@@ -24,19 +22,17 @@ export const RevocationItem: React.FC<Props> = ({
   credentialName,
   credentialIcon,
   description,
-  revocationRecord,
+  credExId,
   callback,
   isCompleted,
   isLoading,
 }) => {
   return (
-    <motion.div variants={rowFadeX} key={revocationRecord.revocationRegId}>
+    <motion.div variants={rowFadeX} key={credExId}>
       <div
         className={`flex flex-col bg-bcgov-white dark:bg-bcgov-black rounded-lg my-2 p-4 lg:p-4 lg:px-8 mt-2 h-auto shadow-sm`}
       >
-        <h1 className="flex-none font-bold text-lg mb-2 h-6">
-          {title ?? revocationRecord.revocationRegId.split(':')[6]}
-        </h1>
+        <h1 className="flex-none font-bold text-lg mb-2 h-6">{title ?? credExId}</h1>
         <div className="flex h-32 mt-2">
           <motion.div style={{ overflowY: 'scroll' }} className="lg:max-w-[50%]">
             {description &&

@@ -235,7 +235,11 @@ describe('adminSchemasRouter', () => {
           $set: {
             name: 'Driver License',
             version: '2.0',
-            attributes: expect.any(Array),
+            attributes: [
+              { name: 'name', type: 'string' },
+              { name: 'address', type: 'string' },
+              { name: 'license_number', type: 'string' },
+            ],
             credDefId: 'W1ZJ:3:CL:123:Driver License',
             did: mockIssuerDid,
           },

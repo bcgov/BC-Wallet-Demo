@@ -1,55 +1,59 @@
-import type { RevocationInfoItem, RevocationRecord } from '../../../slices/types'
+import type { IssuedCredential } from '../../../api/RevocationApi'
+import type { Credential } from '../../../slices/types'
 import type { AxiosResponse } from 'axios'
 
 import { motion } from 'framer-motion'
-import startCase from 'lodash/startCase'
 import React, { useState } from 'react'
 
 import { dashboardTitle, rowContainer } from '../../../FramerAnimations'
 import { revokeCredential } from '../../../api/RevocationApi'
+import log from '../../../utils/logger'
 
 import { RevocationItem } from './RevocationItem'
 
 export interface Props {
-  revocationRecord: RevocationRecord[]
-  revocationInfo: RevocationInfoItem[]
+  issuedCredentials: IssuedCredential[]
+  showcaseCredentials: Credential[]
 }
 
-export const RevocationContainer: React.FC<Props> = ({ revocationRecord, revocationInfo }) => {
+export const RevocationContainer: React.FC<Props> = ({ issuedCredentials, showcaseCredentials }) => {
   const [completedRevocations, setCompletedRevocations] = useState<string[]>([])
   const [loadingRevocations, setLoadingRevocations] = useState<string[]>([])
   const [menuExpanded, setMenuExpanded] = useState<boolean>(false)
-  const renderScenarios = revocationRecord.map((item) => {
-    const revocationKey = item.revocationRegId.split(':')[6]
-    const revocationDescription = revocationInfo.find(
-      (infoItem) => startCase(infoItem.credentialName) === startCase(revocationKey),
-    )
+
+  const revocableItems = issuedCredentials.filter((item) => item.status === 'issued')
+
+  const renderScenarios = revocableItems.map((item) => {
+    const showcaseCred = showcaseCredentials.find((c) => c.id === item.credentialId)
     return (
       <RevocationItem
-        title={revocationDescription?.name}
-        description={revocationDescription?.description}
-        credentialName={revocationDescription?.credentialName}
-        credentialIcon={revocationDescription?.credentialIcon}
-        key={item.revocationRegId}
-        revocationRecord={item}
+        title={showcaseCred?.name}
+        credentialName={showcaseCred?.name}
+        credentialIcon={showcaseCred?.icon}
+        key={item.credExId}
+        credExId={item.credExId}
         callback={() => {
-          const revocations = completedRevocations.filter((rev) => rev !== item.revocationRegId)
+          const revocations = completedRevocations.filter((id) => id !== item.credExId)
           setCompletedRevocations(revocations)
 
-          const loadingList = loadingRevocations
-          loadingList.push(item.revocationRegId)
+          const loadingList = [...loadingRevocations, item.credExId]
           setLoadingRevocations(loadingList)
 
-          revokeCredential(item).then((result: AxiosResponse<any, any, object>) => {
-            if (result.status === 200) {
-              revocations.push(item.revocationRegId)
-              setCompletedRevocations(revocations)
-            }
-            setLoadingRevocations(loadingRevocations.filter((rev) => rev !== item.revocationRegId))
-          })
+          revokeCredential(item.credExId)
+            .then((result: AxiosResponse<any, any, object>) => {
+              if (result.status === 200) {
+                revocations.push(item.credExId)
+                setCompletedRevocations([...revocations])
+              }
+              setLoadingRevocations((prev) => prev.filter((id) => id !== item.credExId))
+            })
+            .catch((err) => {
+              log.warn('[revocation] revoke failed', item.credExId, err)
+              setLoadingRevocations((prev) => prev.filter((id) => id !== item.credExId))
+            })
         }}
-        isCompleted={completedRevocations.includes(item.revocationRegId)}
-        isLoading={loadingRevocations.includes(item.revocationRegId)}
+        isCompleted={completedRevocations.includes(item.credExId)}
+        isLoading={loadingRevocations.includes(item.credExId)}
       />
     )
   })

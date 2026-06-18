@@ -228,7 +228,6 @@ export const IntroductionContainer: React.FC<Props> = ({
     if (connectionId && currentShowcase) {
       navigate(`${basePath}/dashboard`)
       dispatch(clearCredentials())
-      dispatch(clearConnection())
       dispatch(completeIntroduction())
     } else {
       // something went wrong so reset

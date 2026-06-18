@@ -8,22 +8,12 @@ import logger from '../utils/logger'
 
 import { revocationHandlers } from './revocationHandlers'
 
-// -- Functional core --
-
-export interface IssuedCredentialInput {
-  _id: string
-  credential_id?: string
-  connection_id: string
-  format: 'anoncreds'
-  format_metadata: Record<string, unknown>
-}
-
 // Webhook payload shape (partial -- only fields we use)
 export interface WebhookPayload {
   cred_ex_id?: string
   connection_id?: string
-  revoc_reg_id?: string
-  revocation_id?: string
+  rev_reg_id?: string
+  cred_rev_id?: string
   by_format?: {
     cred_issue?: {
       anoncreds?: {
@@ -32,26 +22,6 @@ export interface WebhookPayload {
     }
   }
   [key: string]: unknown
-}
-
-/**
- * Pure: extract issuance data from a webhook payload.
- * Returns null when the payload lacks revocation metadata (non-revocable cred).
- * Currently AnonCreds-specific -- when mdoc lands, add format detection and a
- * parallel extraction function keyed by format (same pattern as handlers).
- */
-export const extractIssuanceData = (params: WebhookPayload): IssuedCredentialInput | null => {
-  const rev_reg_id = params.revoc_reg_id
-  const cred_rev_id = params.revocation_id
-  const cred_def_id = params.by_format?.cred_issue?.anoncreds?.cred_def_id
-  if (!params.cred_ex_id || !rev_reg_id || !cred_rev_id || !params.connection_id) return null
-  return {
-    _id: params.cred_ex_id,
-    credential_id: undefined,
-    connection_id: params.connection_id,
-    format: 'anoncreds',
-    format_metadata: { rev_reg_id, cred_rev_id, cred_def_id },
-  }
 }
 
 /**
@@ -70,33 +40,61 @@ export const validateRevocation = (doc: LeanIssuedCredentialDoc): string | null 
 @Service()
 export class RevocationService {
   /**
+   * Called from WebhookController when an issuer_cred_rev event arrives (state=issued).
+   * Creates the IssuedCredential doc with revocation metadata. The connection_id is
+   * filled in later by handleCredentialIssued when the credential-issued event arrives.
+   */
+  public async handleIssuerCredRev(params: WebhookPayload): Promise<void> {
+    const cred_ex_id = params.cred_ex_id
+    const rev_reg_id = params.rev_reg_id as string | undefined
+    const cred_rev_id = params.cred_rev_id as string | undefined
+    if (!cred_ex_id || !rev_reg_id || !cred_rev_id) {
+      logger.warn({ cred_ex_id, rev_reg_id, cred_rev_id }, 'issuer_cred_rev missing required fields, skipping')
+      return
+    }
+    const insertDoc = {
+      _id: cred_ex_id,
+      format: 'anoncreds' as const,
+      format_metadata: { rev_reg_id, cred_rev_id },
+    }
+    await IssuedCredentialModel.findOneAndUpdate({ _id: cred_ex_id }, { $setOnInsert: insertDoc }, { upsert: true })
+    logger.info({ cred_ex_id, rev_reg_id, cred_rev_id }, 'IssuedCredential revocation metadata stored')
+  }
+
+  /**
    * Called from WebhookController when a credential-issued event arrives.
-   * Looks up the internal Credential by cred_def_id, writes an IssuedCredential
-   * doc, and returns it. Returns null if the payload has no revocation metadata.
+   * Adds connection_id and credential_id to the IssuedCredential doc created by
+   * handleIssuerCredRev. Returns null if no revocable credential doc exists.
    */
   public async handleCredentialIssued(params: WebhookPayload): Promise<LeanIssuedCredentialDoc | null> {
-    const input = extractIssuanceData(params)
-    if (!input) return null
+    const cred_ex_id = params.cred_ex_id
+    const connection_id = params.connection_id
+    if (!cred_ex_id || !connection_id) return null
 
-    // Resolve the internal credential_id via cred_def_id stored on the Credential doc
-    const cred_def_id =
-      typeof input.format_metadata.cred_def_id === 'string' ? input.format_metadata.cred_def_id : undefined
+    const cred_def_id = params.by_format?.cred_issue?.anoncreds?.cred_def_id
+    let credential_id: string | undefined
     if (cred_def_id) {
       const credDoc = await CredentialModel.findOne({ cred_def_id }).lean()
       if (credDoc) {
-        input.credential_id = String(credDoc._id)
+        credential_id = String(credDoc._id)
       } else {
-        logger.warn({ cred_def_id }, 'No Credential doc found for cred_def_id; storing with empty credential_id')
+        logger.warn({ cred_def_id }, 'No Credential doc found for cred_def_id')
       }
     }
 
     const lean = await IssuedCredentialModel.findOneAndUpdate(
-      { _id: input._id },
-      { $setOnInsert: input },
-      { upsert: true, returnDocument: 'after' },
+      { _id: cred_ex_id },
+      { $set: { connection_id, ...(credential_id ? { credential_id } : {}) } },
+      { returnDocument: 'after' },
     ).lean<LeanIssuedCredentialDoc>()
-    if (!lean) throw new Error(`IssuedCredential upsert returned null for _id: ${input._id}`)
-    logger.info({ cred_ex_id: lean._id, connection_id: lean.connection_id }, 'IssuedCredential persisted')
+    if (!lean) {
+      logger.debug(
+        { cred_ex_id },
+        'No IssuedCredential doc found for credential-issued event (non-revocable credential)',
+      )
+      return null
+    }
+    logger.info({ cred_ex_id, connection_id }, 'IssuedCredential connection_id updated')
     return lean
   }
 
@@ -121,6 +119,7 @@ export class RevocationService {
     ).lean<LeanIssuedCredentialDoc>()
 
     if (!updated) throw new Error(`IssuedCredential disappeared during revocation: ${credExId}`)
+    if (!doc.connection_id) throw new Error(`IssuedCredential missing connection_id: ${credExId}`)
 
     await revocationHandlers[doc.format](doc.format_metadata, doc.connection_id)
 

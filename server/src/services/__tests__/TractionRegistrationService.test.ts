@@ -171,6 +171,13 @@ describe('TractionRegistrationService - Imperative Shell', () => {
       vi.mocked(tractionRequest.post).mockRejectedValue(networkErr)
       await expect(service.registerSchema('Card', '1.0', ['name'], 'did:indy:abc')).rejects.toBe(networkErr)
     })
+
+    it('works with did:webvh issuerId', async () => {
+      await service.registerSchema('Card', '1.0', ['name'], 'did:webvh:example.com:abc123')
+      expect(tractionRequest.post).toHaveBeenCalledWith('/anoncreds/schema', {
+        schema: { name: 'Card', version: '1.0', attrNames: ['name'], issuerId: 'did:webvh:example.com:abc123' },
+      })
+    })
   })
 
   describe('registerCredentialDefinition', () => {
@@ -221,6 +228,14 @@ describe('TractionRegistrationService - Imperative Shell', () => {
       await expect(service.registerCredentialDefinition('did:indy:abc', 'schema-id', 'Card')).rejects.toBeInstanceOf(
         BadRequestError,
       )
+    })
+
+    it('works with did:webvh issuerId', async () => {
+      await service.registerCredentialDefinition('did:webvh:example.com:abc123', 'schema-id', 'Card')
+      expect(tractionRequest.post).toHaveBeenCalledWith('/anoncreds/credential-definition', {
+        credential_definition: { issuerId: 'did:webvh:example.com:abc123', schemaId: 'schema-id', tag: 'Card' },
+        options: { support_revocation: true, revocation_registry_size: 3000 },
+      })
     })
   })
 })
