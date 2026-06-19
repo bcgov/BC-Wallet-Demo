@@ -1,11 +1,18 @@
-import type { IntroductionStep } from '../../../types'
+import type { IntroductionStep, Schema } from '../../../types'
 import type { IntroductionRow } from '../../../utils/buildIntroductionRows'
 
-import { publicBaseUrl } from '../../../api/adminApi'
+import { Cog6ToothIcon } from '@heroicons/react/24/outline'
+import { useEffect, useState } from 'react'
+import { useAuth } from 'react-oidc-context'
+
+import { getSchemaById, publicBaseUrl, updateCredential } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
+import { formatPredicateValue, truncateLongString } from '../../../utils/formatters'
+import logger from '../../../utils/logger'
 import { ProgressIconWithTooltip } from '../ProgressIconWithTooltip'
 import { ScreenRowBase } from '../ScreenRowBase'
 import { AddConnectionButton } from '../buttons/AddConnectionButton'
+import { DefineCredentialValuesStep } from '../modals/steps/DefineCredentialValuesStep'
 
 interface IntroductionScreenRowProps {
   row: IntroductionRow
@@ -22,6 +29,7 @@ interface IntroductionScreenRowProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void
   onDragLeave: () => void
   onSelectCredential: () => void
+  onRefresh?: () => void | Promise<void>
 }
 
 export function IntroductionScreenRow({
@@ -39,11 +47,30 @@ export function IntroductionScreenRow({
   onDragOver,
   onDragLeave,
   onSelectCredential,
+  onRefresh,
 }: IntroductionScreenRowProps) {
+  const auth = useAuth()
+  const [editingCredentialIdx, setEditingCredentialIdx] = useState<number | null>(null)
+  const [selectedSchema, setSelectedSchema] = useState<Schema | null>(null)
   const { screen, nextScreen, progressStep, acceptProgressStep, idx } = row
   const isConnectScreen = screen.screenId.startsWith('CONNECT')
   const hasAcceptChild = !!(nextScreen && nextScreen.screenId.startsWith('ACCEPT'))
   const canEdit = useHasRole('creator')
+
+  useEffect(() => {
+    const fetchSchema = async () => {
+      if (editingCredentialIdx !== null && nextScreen?.credentials?.[editingCredentialIdx] && auth.isAuthenticated) {
+        const credential = nextScreen.credentials[editingCredentialIdx]
+        if (!credential.schema_id) {
+          setSelectedSchema(null)
+          return
+        }
+        const schema = await getSchemaById(auth, credential.schema_id)
+        setSelectedSchema(schema)
+      }
+    }
+    fetchSchema()
+  }, [editingCredentialIdx, auth.isAuthenticated, nextScreen])
 
   return (
     <div>
@@ -102,7 +129,28 @@ export function IntroductionScreenRow({
                           )}
                           <div className="flex-1">
                             <p className="text-sm font-semibold text-bcgov-black">{cred.name}</p>
+                            {cred.attributes && cred.attributes.length > 0 && (
+                              <div className="mt-2 text-xs text-gray-600 space-y-1">
+                                {cred.attributes.map((attr: any, attrIdx: number) => (
+                                  <div key={attrIdx} className="grid grid-cols-[auto_1fr] gap-3">
+                                    <span className="font-medium text-gray-700">{attr.name}:</span>
+                                    <span className="text-gray-600">
+                                      {truncateLongString(formatPredicateValue(attr.value), 200)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
+                          {canEdit && (
+                            <button
+                              onClick={() => setEditingCredentialIdx(credIdx)}
+                              className="flex-shrink-0 p-2 text-gray-600 hover:text-bcgov-blue hover:bg-blue-50 rounded transition-colors"
+                              title="Edit credential values"
+                            >
+                              <Cog6ToothIcon className="w-5 h-5" />
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -144,6 +192,59 @@ export function IntroductionScreenRow({
       {/* Show "Add Connection and Issuance Screens" after CONNECT/ACCEPT pair */}
       {canEdit && isConnectScreen && hasAcceptChild && (
         <AddConnectionButton onClick={onSelectCredential} containerClassName="mt-2" />
+      )}
+
+      {/* Edit Credential Modal */}
+      {editingCredentialIdx !== null && nextScreen?.credentials?.[editingCredentialIdx] && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {(() => {
+                const credential = nextScreen.credentials[editingCredentialIdx]
+                return (
+                  <DefineCredentialValuesStep
+                    selectedSchema={selectedSchema || null}
+                    initialValues={credential.attributes?.reduce((acc: Record<string, string>, attr: any) => {
+                      acc[attr.name] = attr.value || ''
+                      return acc
+                    }, {})}
+                    initialIcon={credential.icon}
+                    onBack={() => {
+                      setEditingCredentialIdx(null)
+                      setSelectedSchema(null)
+                    }}
+                    onSelectCredential={async (values, icon) => {
+                      if (nextScreen?.credentials) {
+                        const updatedCredential = {
+                          ...nextScreen.credentials[editingCredentialIdx],
+                          attributes: credential.attributes?.map((attr: any) => ({
+                            ...attr,
+                            value: values[attr.name] || attr.value,
+                          })),
+                          icon,
+                        }
+                        nextScreen.credentials[editingCredentialIdx] = updatedCredential
+                        try {
+                          if (updatedCredential.id) {
+                            await updateCredential(auth, updatedCredential.id, {
+                              attributes: updatedCredential.attributes,
+                              icon: updatedCredential.icon,
+                            })
+                          }
+                          await onRefresh?.()
+                        } catch (error) {
+                          logger.error('Error saving credential update:', error)
+                        }
+                      }
+                      setEditingCredentialIdx(null)
+                      setSelectedSchema(null)
+                    }}
+                  />
+                )
+              })()}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

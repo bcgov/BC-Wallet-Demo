@@ -112,6 +112,7 @@ export function IntroductionTab({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onSelectCredential={() => setIsSelectCredentialModalOpen(true)}
+            onRefresh={onRefresh}
           />
         </div>
 

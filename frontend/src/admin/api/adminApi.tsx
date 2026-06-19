@@ -214,6 +214,24 @@ export const createCredential = async (
   return data
 }
 
+export const updateCredential = async (
+  auth: AuthContextProps,
+  credentialId: string,
+  updates: Partial<Credential>,
+): Promise<Credential> => {
+  const res = await fetch(`${adminBaseUrl}/credentials/${encodeURIComponent(credentialId)}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updates),
+  })
+  if (!res.ok) await handleErrorResponse(res)
+  const data = (await res.json()) as Credential
+  return data
+}
+
 // ============================================================================
 // IMAGE ENDPOINTS
 // ============================================================================
@@ -268,6 +286,19 @@ export const getAvailableSchemas = async (auth: AuthContextProps): Promise<Schem
   })
   if (!res.ok) await handleErrorResponse(res)
   const data = await res.json()
+  return data
+}
+
+export const getSchemaById = async (auth: AuthContextProps, id: string): Promise<Schema> => {
+  const res = await fetch(`${adminBaseUrl}/schemas/${encodeURIComponent(id)}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${auth.user?.access_token ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!res.ok) await handleErrorResponse(res)
+  const data = (await res.json()) as Schema
   return data
 }
 

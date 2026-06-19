@@ -2,6 +2,7 @@ import type { ScenarioScreen } from '../../../types'
 
 import { publicBaseUrl } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
+import { formatPredicateValue } from '../../../utils/formatters'
 import { ScreenRowBase } from '../ScreenRowBase'
 
 interface ScenarioScreenRowProps {
@@ -102,18 +103,7 @@ export function ScenarioScreenRow({
                           <div className="text-xs space-y-1 ml-2 mt-2">
                             <p className="font-semibold text-gray-700">Predicates:</p>
                             {cred.predicates.map((pred, predIdx) => {
-                              let displayValue = pred.value
-                              if (typeof pred.value === 'string' && pred.value.startsWith('$dateint:')) {
-                                const years = parseInt(pred.value.replace('$dateint:', ''), 10)
-                                if (!isNaN(years)) {
-                                  if (years === 0) {
-                                    displayValue = 'Time of issuance'
-                                  } else {
-                                    const operator = years > 0 ? '+' : '-'
-                                    displayValue = `Time of issuance ${operator} ${Math.abs(years)} years`
-                                  }
-                                }
-                              }
+                              const displayValue = formatPredicateValue(pred.value)
                               return (
                                 <div key={predIdx} className="text-gray-600 flex items-center gap-2">
                                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>

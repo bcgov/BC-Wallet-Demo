@@ -1,7 +1,7 @@
 import type { Schema } from '../../../../types'
 
 import { ArrowUpTrayIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { publicBaseUrl } from '../../../../api/adminApi'
 import { ImageUploadModal } from '../ImageUploadModal'
@@ -11,6 +11,8 @@ interface DefineCredentialValuesStepProps {
   onBack: () => void
   onSelectCredential: (values: Record<string, string>, icon: string) => void
   error?: string | null
+  initialValues?: Record<string, string>
+  initialIcon?: string
 }
 
 export function DefineCredentialValuesStep({
@@ -18,22 +20,72 @@ export function DefineCredentialValuesStep({
   onBack,
   onSelectCredential,
   error,
+  initialValues,
+  initialIcon,
 }: DefineCredentialValuesStepProps) {
   const [values, setValues] = useState<Record<string, string>>(
     selectedSchema
       ? selectedSchema.attributes.reduce(
           (acc, attr) => {
-            acc[attr.name] = ''
+            acc[attr.name] = initialValues?.[attr.name] ?? ''
             return acc
           },
           {} as Record<string, string>,
         )
       : {},
   )
-  const [icon, setIcon] = useState<string>('')
+  const [icon, setIcon] = useState<string>(initialIcon ?? '')
   const [dateOptions, setDateOptions] = useState<Record<string, 'custom' | 'issuance'>>({})
   const [yearOffsets, setYearOffsets] = useState<Record<string, number>>({})
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
+
+  // Initialize values when selectedSchema or initialValues change
+  useEffect(() => {
+    if (selectedSchema && initialValues) {
+      const newValues = selectedSchema.attributes.reduce(
+        (acc, attr) => {
+          acc[attr.name] = initialValues[attr.name] ?? ''
+          return acc
+        },
+        {} as Record<string, string>,
+      )
+      setValues(newValues)
+    }
+  }, [selectedSchema, initialValues])
+
+  // Initialize date options based on initial values
+  useEffect(() => {
+    if (selectedSchema && initialValues) {
+      const newDateOptions: Record<string, 'custom' | 'issuance'> = {}
+      const newYearOffsets: Record<string, number> = {}
+
+      selectedSchema.attributes.forEach((attr) => {
+        if (attr.type === 'date') {
+          const value = initialValues[attr.name]
+          if (value) {
+            if (value.startsWith('$dateint:')) {
+              // Extract year offset from $dateint: format
+              const yearOffset = parseInt(value.replace('$dateint:', ''), 10)
+              newDateOptions[attr.name] = 'issuance'
+              newYearOffsets[attr.name] = yearOffset
+            } else if (!isNaN(Number(value))) {
+              // It's a timestamp, convert to YYYY-MM-DD
+              const date = new Date(Number(value) * 1000)
+              const dateString = date.toISOString().split('T')[0]
+              setValues((prev) => ({ ...prev, [attr.name]: dateString }))
+              newDateOptions[attr.name] = 'custom'
+            } else {
+              // Assume it's already YYYY-MM-DD format
+              newDateOptions[attr.name] = 'custom'
+            }
+          }
+        }
+      })
+
+      setDateOptions(newDateOptions)
+      setYearOffsets(newYearOffsets)
+    }
+  }, [selectedSchema, initialValues])
 
   if (!selectedSchema) return null
 
@@ -229,7 +281,7 @@ export function DefineCredentialValuesStep({
           onClick={onBack}
           className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
         >
-          Back
+          {initialValues ? 'Cancel' : 'Back'}
         </button>
         <button
           onClick={handleSubmit}
@@ -238,7 +290,7 @@ export function DefineCredentialValuesStep({
             isFormValid() ? 'bg-bcgov-blue hover:bg-bcgov-blue-dark cursor-pointer' : 'bg-gray-400 cursor-not-allowed'
           }`}
         >
-          Create Credential
+          {initialValues ? 'Update Credential' : 'Create Credential'}
         </button>
       </div>
 

@@ -349,4 +349,104 @@ describe('adminSchemasRouter', () => {
       expect(res.status).toBe(201)
     })
   })
+
+  // ============================================================================
+  // GET /admin/schemas/:id
+  // ============================================================================
+
+  describe('GET /admin/schemas/:id', () => {
+    it('returns 200 with single schema by ID', async () => {
+      const mockDid = { _id: mockIssuerDid, did: mockIssuerDid }
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(mockSchema),
+      })
+      mocks.mockDidModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(mockDid),
+      })
+
+      const res = await request(app).get(`/admin/schemas/${mockSchema._id}`)
+
+      expect(res.status).toBe(200)
+      expect(res.body).toHaveProperty('_id', mockSchema._id)
+      expect(res.body).toHaveProperty('name', 'Student Card')
+    })
+
+    it('transforms MongoDB _id to id property', async () => {
+      const mockDid = { _id: mockIssuerDid, did: mockIssuerDid }
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(mockSchema),
+      })
+      mocks.mockDidModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(mockDid),
+      })
+
+      const res = await request(app).get(`/admin/schemas/${mockSchema._id}`)
+
+      expect(res.body).toHaveProperty('id', mockSchema._id)
+    })
+
+    it('includes DID information in response', async () => {
+      const mockDid = { _id: mockIssuerDid, did: mockIssuerDid, verkey: 'test-verkey' }
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(mockSchema),
+      })
+      mocks.mockDidModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(mockDid),
+      })
+
+      const res = await request(app).get(`/admin/schemas/${mockSchema._id}`)
+
+      expect(res.body).toHaveProperty('did')
+      expect(res.body.did).toEqual(mockDid)
+    })
+
+    it('returns 404 when schema does not exist', async () => {
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(null),
+      })
+
+      const res = await request(app).get('/admin/schemas/nonexistent-id')
+
+      expect(res.status).toBe(404)
+      expect(res.body).toHaveProperty('error', 'Schema not found')
+    })
+
+    it('returns 500 when database query fails', async () => {
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockRejectedValue(new Error('Database connection error')),
+      })
+
+      const res = await request(app).get(`/admin/schemas/${mockSchema._id}`)
+
+      expect(res.status).toBe(500)
+      expect(res.body).toHaveProperty('error', 'Failed to fetch schema from MongoDB')
+    })
+
+    it('calls SchemaModel.findById with correct ID', async () => {
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(mockSchema),
+      })
+      mocks.mockDidModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(null),
+      })
+
+      await request(app).get(`/admin/schemas/${mockSchema._id}`)
+
+      expect(mocks.mockSchemaModel.findById).toHaveBeenCalledWith(mockSchema._id)
+    })
+
+    it('handles missing DID gracefully', async () => {
+      mocks.mockSchemaModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(mockSchema),
+      })
+      mocks.mockDidModel.findById.mockReturnValue({
+        lean: vi.fn().mockResolvedValue(null),
+      })
+
+      const res = await request(app).get(`/admin/schemas/${mockSchema._id}`)
+
+      expect(res.status).toBe(200)
+      expect(res.body).toHaveProperty('did', null)
+    })
+  })
 })

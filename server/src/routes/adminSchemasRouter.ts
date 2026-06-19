@@ -42,6 +42,31 @@ router.get('/schemas', defaultRateLimiter, requireRole(['admin', 'creator']), as
 })
 
 /**
+ * GET /admin/schemas/:id
+ * Get a single anoncreds schema from MongoDB by ID.
+ */
+router.get(
+  '/schemas/:id',
+  defaultRateLimiter,
+  requireRole(['admin', 'creator']),
+  async (req: Request, res: Response) => {
+    logger.debug({ id: req.params.id }, 'Admin: fetching schema by ID from MongoDB')
+    try {
+      const schema = await SchemaModel.findById(req.params.id).lean()
+      if (!schema) {
+        res.status(404).json({ error: 'Schema not found' })
+        return
+      }
+      const response = await transformSchemaResponse(schema)
+      res.json(response)
+    } catch (error) {
+      logger.error(error, 'Error fetching schema from MongoDB')
+      res.status(500).json({ error: 'Failed to fetch schema from MongoDB' })
+    }
+  },
+)
+
+/**
  * POST /admin/schemas
  * Create a new anoncreds schema in Traction and save to MongoDB.
  */
