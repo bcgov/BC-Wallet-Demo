@@ -56,10 +56,9 @@ export const StepProofOOB: React.FC<Props> = ({ proof, step, requestedCredential
   const { shortProofUrl, proofUrl } = useProof()
   const { message } = useSocket()
 
-  const proofReceived =
-    (proof?.state as string) === 'presentation-received' ||
-    (proof?.state as string) === 'verified' ||
-    proof?.state === 'done'
+  const proofDone = (proof?.state as string) === 'verified' || proof?.state === 'done'
+  const proofReceived = proofDone && proof?.verified !== 'false'
+  const proofFailed = proofDone && proof?.verified === 'false'
 
   const deepLink = proofUrl ? `bcwallet://aries_connection_invitation?${proofUrl.split('?')[1]}` : ''
 
@@ -124,13 +123,27 @@ export const StepProofOOB: React.FC<Props> = ({ proof, step, requestedCredential
     }
   }, [proofReceived])
 
+  useEffect(() => {
+    if (proofFailed && proof?.id) {
+      dispatch(deleteProofById(proof.id))
+    }
+  }, [proofFailed])
+
   const qrUrl = shortProofUrl ?? proofUrl
 
   const renderQRCode = (overlay?: boolean) => {
     return qrUrl ? <QRCode invitationUrl={qrUrl} connectionState={proof?.state} overlay={overlay} /> : null
   }
 
-  const renderCTA = !proofReceived ? (
+  const renderCTA = proofFailed ? (
+    <motion.div variants={fade} key="proofFailed">
+      <p className="text-red-600">Verification failed. The credential may have been revoked.</p>
+    </motion.div>
+  ) : proofReceived ? (
+    <motion.div variants={fade} key="proofCompleted">
+      <p>Success! You can continue.</p>
+    </motion.div>
+  ) : (
     <motion.div variants={fade} key="scanProofQr">
       <p>
         Scan the QR code with your digital wallet {isMobile && proofUrl && 'or '}
@@ -142,10 +155,6 @@ export const StepProofOOB: React.FC<Props> = ({ proof, step, requestedCredential
         )}{' '}
         to present the requested credentials.
       </p>
-    </motion.div>
-  ) : (
-    <motion.div variants={fade} key="proofCompleted">
-      <p>Success! You can continue.</p>
     </motion.div>
   )
 
