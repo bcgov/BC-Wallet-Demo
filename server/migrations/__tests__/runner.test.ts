@@ -9,14 +9,19 @@ import logger from '../../src/utils/logger'
 vi.mock('../../src/utils/logger', () => ({
   default: {
     info: vi.fn(),
+    warn: vi.fn(),
     error: vi.fn(),
   },
 }))
 
-// Mock dynamic import of migration - default success
+// Mock dynamic import of migrations - default success
 const migrationUpMock = vi.fn().mockResolvedValue(undefined)
+const migration002UpMock = vi.fn().mockResolvedValue(undefined)
 vi.mock('../001-add-schema-attributes', async () => ({
   up: migrationUpMock,
+}))
+vi.mock('../002-persona-to-pick-character-image', async () => ({
+  up: migration002UpMock,
 }))
 
 let mongod: MongoMemoryServer
@@ -29,8 +34,9 @@ beforeAll(async () => {
 afterEach(async () => {
   await MigrationModel.deleteMany({})
   vi.clearAllMocks()
-  // Reset migration mock to default success
+  // Reset migration mocks to default success
   migrationUpMock.mockResolvedValue(undefined)
+  migration002UpMock.mockResolvedValue(undefined)
 })
 
 afterAll(async () => {
@@ -50,6 +56,7 @@ describe('runMigrations', () => {
     expect(migration?.status).toBe('applied')
     expect(migration?.claimedBy).toBe('test-instance-1')
     expect(migration?.appliedAt).toBeDefined()
+    expect(logger.info).toHaveBeenCalledWith({ migrationId: '001-add-schema-attributes' }, 'Checking migration')
     expect(logger.info).toHaveBeenCalledWith({ migrationId: '001-add-schema-attributes' }, 'Applying migration')
     expect(logger.info).toHaveBeenCalledWith(
       { migrationId: '001-add-schema-attributes' },
@@ -71,6 +78,8 @@ describe('runMigrations', () => {
     await runMigrations()
 
     expect(logger.info).toHaveBeenCalledWith({ migrationId: '001-add-schema-attributes' }, 'Migration already applied')
+    // Verify migration.up() was not called
+    expect(migrationUpMock).not.toHaveBeenCalled()
   })
 
   it('skips a migration being applied by another instance', async () => {
@@ -88,45 +97,42 @@ describe('runMigrations', () => {
 
     expect(logger.info).toHaveBeenCalledWith(
       expect.objectContaining({ migrationId: '001-add-schema-attributes' }),
-      'Migration being applied by another instance',
+      'Migration already being applied by another instance',
     )
+    // Verify migration.up() was not called
+    expect(migrationUpMock).not.toHaveBeenCalled()
   })
 
-  it('handles E11000 duplicate key error when document already applied', async () => {
+  it('skips a migration that previously failed', async () => {
     const { runMigrations } = await import('../runner')
-    process.env.POD_NAME = 'test-instance-1'
 
-    // Pre-populate with an applied migration to trigger E11000 on upsert attempt
+    // Pre-populate with a failed migration
     await MigrationModel.create({
       _id: '001-add-schema-attributes',
+      status: 'failed',
+      claimedBy: 'test-instance-1',
+      error: 'Previous error',
+      failedAt: new Date(),
+    })
+    // Pre-populate migration 002 as applied to avoid it running
+    await MigrationModel.create({
+      _id: '002-persona-to-pick-character-image',
       status: 'applied',
-      claimedBy: 'other-instance',
+      claimedBy: 'test-instance-1',
       appliedAt: new Date(),
     })
 
     await runMigrations()
 
-    expect(logger.info).toHaveBeenCalledWith({ migrationId: '001-add-schema-attributes' }, 'Migration already applied')
-  })
-
-  it('handles E11000 duplicate key error when document being applied by another instance', async () => {
-    const { runMigrations } = await import('../runner')
-    process.env.POD_NAME = 'test-instance-1'
-
-    // Pre-populate with a migration in progress to trigger E11000 on upsert attempt
-    await MigrationModel.create({
-      _id: '001-add-schema-attributes',
-      status: 'applying',
-      claimedBy: 'other-instance',
-      claimedAt: new Date(),
-    })
-
-    await runMigrations()
-
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.objectContaining({ migrationId: '001-add-schema-attributes' }),
-      'Migration being applied by another instance',
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        migrationId: '001-add-schema-attributes',
+        error: 'Previous error',
+      }),
+      'Migration previously failed - skipping to avoid repeated failures',
     )
+    // Verify migration.up() was not called
+    expect(migrationUpMock).not.toHaveBeenCalled()
   })
 
   it('marks migration as failed when execution throws an error', async () => {
@@ -187,6 +193,18 @@ describe('runMigrations', () => {
     const migration = await MigrationModel.findById('001-add-schema-attributes')
     expect(migration?.status).toBe('failed')
     expect(migration?.error).toBe('String error')
+  })
+
+  it('verifies claim was successful by checking instanceId match', async () => {
+    const { runMigrations } = await import('../runner')
+    process.env.POD_NAME = 'test-instance-1'
+
+    await runMigrations()
+
+    const migration = await MigrationModel.findById('001-add-schema-attributes')
+    expect(migration?.claimedBy).toBe('test-instance-1')
+    expect(migration?.status).toBe('applied')
+    expect(migrationUpMock).toHaveBeenCalled()
   })
 
   it('continues to next migration after skipping already-applied one', async () => {
