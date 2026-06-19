@@ -19,7 +19,7 @@ interface IntroductionTabProps {
   showcase: Showcase
   isNewShowcase?: boolean
   onTabChange?: (tab: string) => void
-  onRefresh?: () => Promise<void>
+  onRefresh?: () => void | Promise<void>
   isExpanded: boolean
   setIsExpanded: (expanded: boolean) => void
 }

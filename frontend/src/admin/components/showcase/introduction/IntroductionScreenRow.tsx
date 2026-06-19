@@ -29,7 +29,7 @@ interface IntroductionScreenRowProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void
   onDragLeave: () => void
   onSelectCredential: () => void
-  onRefresh?: () => Promise<void>
+  onRefresh?: () => void | Promise<void>
 }
 
 export function IntroductionScreenRow({
