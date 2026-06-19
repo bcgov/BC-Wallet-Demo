@@ -19,7 +19,7 @@ interface IntroductionTabProps {
   showcase: Showcase
   isNewShowcase?: boolean
   onTabChange?: (tab: string) => void
-  onRefresh?: () => void | Promise<void>
+  onRefresh?: () => Promise<void>
   isExpanded: boolean
   setIsExpanded: (expanded: boolean) => void
 }
@@ -112,6 +112,7 @@ export function IntroductionTab({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onSelectCredential={() => setIsSelectCredentialModalOpen(true)}
+            onRefresh={onRefresh}
           />
         </div>
 

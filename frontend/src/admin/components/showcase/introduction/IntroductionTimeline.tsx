@@ -22,6 +22,7 @@ interface IntroductionTimelineProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void
   onDragLeave: () => void
   onSelectCredential: () => void
+  onRefresh?: () => Promise<void>
 }
 
 export function IntroductionTimeline({
@@ -41,6 +42,7 @@ export function IntroductionTimeline({
   onDragOver,
   onDragLeave,
   onSelectCredential,
+  onRefresh,
 }: IntroductionTimelineProps) {
   const rows = buildIntroductionRows(introduction, showcase.progressBar)
 
@@ -71,6 +73,7 @@ export function IntroductionTimeline({
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onSelectCredential={onSelectCredential}
+            onRefresh={onRefresh}
           />
         </div>
       ))}
