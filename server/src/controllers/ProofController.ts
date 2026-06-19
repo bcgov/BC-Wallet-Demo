@@ -66,8 +66,15 @@ export class ProofController {
   @Delete('/:proofId')
   public async deleteProofById(@Param('proofId') proofId: string) {
     logger.info({ proofId }, 'Deleting proof record')
-    const proofRecord = (await tractionRequest.delete(`/present-proof-2.0/records/${proofId}`)).data
-    return proofRecord
+    try {
+      return (await tractionRequest.delete(`/present-proof-2.0/records/${proofId}`)).data
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        logger.debug({ proofId }, 'Proof record already deleted')
+        return {}
+      }
+      throw err
+    }
   }
 
   @Post('/proofs/:proofId/accept-presentation')

@@ -78,10 +78,9 @@ export const StepProof: React.FC<Props> = ({
 }) => {
   const dispatch = useAppDispatch()
   const proofRequestCreatedRef = useRef(false)
-  const proofReceived =
-    (proof?.state as string) === 'presentation-received' ||
-    (proof?.state as string) === 'verified' ||
-    proof?.state === 'done'
+  const proofDone = (proof?.state as string) === 'verified' || proof?.state === 'done'
+  const proofReceived = proofDone && proof?.verified !== 'false'
+  const proofFailed = proofDone && proof?.verified === 'false'
 
   const [isFailedRequestModalOpen, setIsFailedRequestModalOpen] = useState(false)
   const showFailedRequestModal = () => setIsFailedRequestModalOpen(true)
@@ -172,6 +171,13 @@ export const StepProof: React.FC<Props> = ({
       dispatch(deleteProofById(proof?.id))
     }
   }, [proofReceived])
+
+  useEffect(() => {
+    if (proofFailed && proof?.id) {
+      dispatch(deleteProofById(proof.id))
+      showFailedRequestModal()
+    }
+  }, [proofFailed])
 
   const sendNewRequest = () => {
     if (!proofReceived && proof) {
