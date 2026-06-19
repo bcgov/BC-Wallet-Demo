@@ -360,19 +360,6 @@ export function CreateConnectionAndProofScreensModal({
                 currentRequest={credentialRequests.get(Array.from(selectedCredentials)[currentCredentialIdx]) || null}
                 currentIndex={currentCredentialIdx}
                 totalCredentials={selectedCredentials.size}
-                onUpdateRequest={(updates) => {
-                  const credentialIds = Array.from(selectedCredentials)
-                  const currentCredentialId = credentialIds[currentCredentialIdx]
-                  const currentRequest = credentialRequests.get(currentCredentialId)
-                  if (currentRequest) {
-                    const newRequests = new Map(credentialRequests)
-                    newRequests.set(currentCredentialId, {
-                      ...currentRequest,
-                      ...updates,
-                    })
-                    setCredentialRequests(newRequests)
-                  }
-                }}
                 onUploadIcon={() => {
                   setImageUploadModalCredentialId(Array.from(selectedCredentials)[currentCredentialIdx])
                   setIsImageUploadModalOpen(true)
@@ -392,7 +379,8 @@ export function CreateConnectionAndProofScreensModal({
                         const credential = showcase?.credentials?.find((c) => c.id === credentialId)
                         return {
                           name: credential?.name || req.name,
-                          schema_id: req.schema_id,
+                          schema_id: credential?.schema_id,
+                          cred_def_id: credential?.cred_def_id,
                           icon: req.icon,
                           properties: req.properties,
                           ...(req.predicates && req.predicates.length > 0 && { predicates: req.predicates }),

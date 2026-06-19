@@ -12,6 +12,10 @@ const migrations = [
     id: '002-persona-to-pick-character-image',
     up: () => import('./002-persona-to-pick-character-image').then((m) => m.up()),
   },
+  {
+    id: '003-add-restrictions-to-presentations',
+    up: () => import('./003-add-restrictions-to-presentations').then((m) => m.up()),
+  },
 ]
 
 /**
