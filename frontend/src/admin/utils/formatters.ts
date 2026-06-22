@@ -2,9 +2,9 @@
  * Converts a $dateint marker to a human-readable display string.
  *
  * Supported markers:
- *   `$dateint:0`   → 'Time of issuance'
- *   `$dateint:1`   → 'Time of issuance + 1 years'
- *   `$dateint:-19` → 'Time of issuance - 19 years'
+ *   `$dateint:0`   → 'Time of Presentation'
+ *   `$dateint:1`   → 'Time of Presentation + 1 years'
+ *   `$dateint:-19` → 'Time of Presentation - 19 years'
  *
  * @param value - The predicate value to format
  * @returns Formatted display string, or the original value if not a $dateint marker

@@ -50,7 +50,7 @@ export function SelectingAttributesStep({
           const newDateOptions: Record<string, 'custom' | 'relative'> = {}
           const newYearOffsets: Record<string, number> = {}
 
-          schemaData.attributes.forEach((attr: any) => {
+          schemaData.attributes.forEach((attr: { name: string; type: string }) => {
             if (attr.type === 'date') {
               // Check all selected attributes for this credential
               selectedAttributes.forEach((request, attrName) => {
@@ -77,7 +77,7 @@ export function SelectingAttributesStep({
       }
     }
     fetchSchema()
-  }, [currentCredential, auth.user?.access_token, selectedAttributes])
+  }, [currentCredential?.schema_id, auth.user?.access_token])
 
   if (!currentCredential) return null
   const isAttributeSelected = (attrName: string) => {
@@ -106,7 +106,7 @@ export function SelectingAttributesStep({
 
       {currentCredential.attributes && currentCredential.attributes.length > 0 ? (
         <div className="space-y-4">
-          {currentCredential.attributes.map((attr: any) => {
+          {currentCredential.attributes.map((attr: { name: string; value: any }) => {
             const request = selectedAttributes.get(attr.name) || {}
             const selected = isAttributeSelected(attr.name)
 

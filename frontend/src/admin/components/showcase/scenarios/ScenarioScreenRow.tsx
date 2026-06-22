@@ -192,6 +192,7 @@ export function ScenarioScreenRow({
                               onClick={() => setEditingCredIdx(credIdx)}
                               className="flex-shrink-0 p-2 text-gray-600 hover:text-bcgov-blue hover:bg-blue-50 rounded transition-colors"
                               title="Edit proof request"
+                              aria-label={`Edit proof request for ${cred.name}`}
                             >
                               <Cog6ToothIcon className="w-5 h-5" />
                             </button>
