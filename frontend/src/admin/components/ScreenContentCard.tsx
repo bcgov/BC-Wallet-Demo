@@ -25,6 +25,19 @@ interface ScreenContentCardProps {
   onDrop?: (e: React.DragEvent<HTMLDivElement>) => void
 }
 
+function getSafeImagePath(image?: string): string | null {
+  if (!image) return null
+
+  const trimmed = image.trim()
+  if (!trimmed.startsWith('/')) return null
+  if (trimmed.startsWith('//')) return null
+  if (trimmed.includes('://')) return null
+  if (trimmed.includes('..')) return null
+  if (/[<>"'`\\\u0000-\u001F\u007F]/.test(trimmed)) return null
+
+  return trimmed
+}
+
 export function ScreenContentCard({
   screenId,
   title,
@@ -43,6 +56,7 @@ export function ScreenContentCard({
   onDrop,
 }: ScreenContentCardProps) {
   const canEdit = useHasRole('creator')
+  const safeImagePath = getSafeImagePath(image)
   return (
     <div
       draggable={!!draggableId && !disableDrag}
@@ -67,9 +81,9 @@ export function ScreenContentCard({
         <p className="text-xs font-semibold text-bcgov-black mb-1">{title}</p>
         <p className={`text-xs text-gray-600 ${textMarginClass}`}>{text}</p>
       </div>
-      {image && (
+      {safeImagePath && (
         <div className="flex-shrink-0 mr-8">
-          <img src={`${publicBaseUrl}${image}`} alt={title} className="h-40 w-auto object-contain" />
+          <img src={`${publicBaseUrl}${safeImagePath}`} alt={title} className="h-40 w-auto object-contain" />
         </div>
       )}
     </div>
