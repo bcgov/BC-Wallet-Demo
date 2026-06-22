@@ -5,7 +5,7 @@ import { PencilIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
 import { publicBaseUrl, deleteScreenFromShowcase } from '../../../api/adminApi'
-import { formatScreenId } from '../../../utils/formatScreenId'
+import { formatScreenId } from '../../../utils/formatters'
 import { ErrorBanner } from '../../ErrorBanner'
 
 import { ImageUploadModal } from './ImageUploadModal'

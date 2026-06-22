@@ -4,7 +4,7 @@ import { Cog6ToothIcon } from '@heroicons/react/24/outline'
 
 import { publicBaseUrl } from '../api/adminApi'
 import { useHasRole } from '../hooks/useUserRole'
-import { formatScreenId } from '../utils/formatScreenId'
+import { formatScreenId } from '../utils/formatters'
 
 interface ScreenContentCardProps {
   screenId: string

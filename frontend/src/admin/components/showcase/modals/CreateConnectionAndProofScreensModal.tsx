@@ -270,6 +270,10 @@ export function CreateConnectionAndProofScreensModal({
                 }}
                 onPrevious={() => setCurrentCredentialIdx(currentCredentialIdx - 1)}
                 onNext={() => setCurrentCredentialIdx(currentCredentialIdx + 1)}
+                onClose={() => {
+                  setCurrentCredentialIdx(0)
+                  setSelectedAttributes(new Map())
+                }}
                 onContinue={() => {
                   // Initialize credential requests for each selected credential
                   const newRequests = new Map<string, CredentialRequest>()

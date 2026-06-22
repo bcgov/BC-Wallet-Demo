@@ -3,7 +3,7 @@ import type { AuthContextProps } from 'react-oidc-context'
 
 import { updateShowcase } from '../api/adminApi'
 
-import { toSnakeCase } from './formatScreenId'
+import { toSnakeCase } from './formatters'
 
 type Screen = IntroductionStep | ScenarioScreen
 

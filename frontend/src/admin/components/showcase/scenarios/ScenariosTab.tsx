@@ -152,6 +152,7 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
                 key={scenario.id}
                 screens={currentScreens}
                 scenarioId={scenario.id}
+                showcaseName={showcase.name}
                 lineHeight={lineHeight}
                 containerRef={containerRef}
                 draggedIdx={draggedIdx}
@@ -172,6 +173,7 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
                   setDragOverIdx(null)
                 }}
                 onAddConnectionClick={() => setIsCreateConnectionProofModalOpen(true)}
+                onRefreshShowcase={onRefresh}
               />
             ) : null
           })}
