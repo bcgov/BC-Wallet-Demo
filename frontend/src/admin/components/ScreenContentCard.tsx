@@ -38,6 +38,22 @@ function getSafeImagePath(image?: string): string | null {
   return trimmed
 }
 
+function buildSafeImageUrl(image?: string): string | null {
+  const safePath = getSafeImagePath(image)
+  if (!safePath) return null
+
+  const encodedPath = safePath
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/')
+
+  try {
+    return new URL(encodedPath, publicBaseUrl).toString()
+  } catch {
+    return null
+  }
+}
+
 export function ScreenContentCard({
   screenId,
   title,
@@ -56,7 +72,7 @@ export function ScreenContentCard({
   onDrop,
 }: ScreenContentCardProps) {
   const canEdit = useHasRole('creator')
-  const safeImagePath = getSafeImagePath(image)
+  const safeImageUrl = buildSafeImageUrl(image)
   return (
     <div
       draggable={!!draggableId && !disableDrag}
@@ -81,9 +97,9 @@ export function ScreenContentCard({
         <p className="text-xs font-semibold text-bcgov-black mb-1">{title}</p>
         <p className={`text-xs text-gray-600 ${textMarginClass}`}>{text}</p>
       </div>
-      {safeImagePath && (
+      {safeImageUrl && (
         <div className="flex-shrink-0 mr-8">
-          <img src={`${publicBaseUrl}${safeImagePath}`} alt={title} className="h-40 w-auto object-contain" />
+          <img src={safeImageUrl} alt={title} className="h-40 w-auto object-contain" />
         </div>
       )}
     </div>
