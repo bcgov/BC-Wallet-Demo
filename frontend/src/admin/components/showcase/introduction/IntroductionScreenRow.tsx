@@ -116,7 +116,7 @@ export function IntroductionScreenRow({
                       {nextScreen.credentials.map((cred: any, credIdx: number) => (
                         <div
                           key={credIdx}
-                          className="bg-white rounded p-4 border-l-4 border-bcgov-blue flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow"
+                          className="bg-white rounded p-4 border-l-4 border-bcgov-blue flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow"
                         >
                           {cred.icon && (
                             <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded flex items-center justify-center">

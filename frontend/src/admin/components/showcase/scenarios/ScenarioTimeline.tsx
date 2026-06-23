@@ -10,6 +10,7 @@ import { ScenarioSectionHeader } from './ScenarioSectionHeader'
 interface ScenarioTimelineProps {
   screens: ScenarioScreen[]
   scenarioId: string
+  showcaseName: string
   lineHeight: string
   containerRef: React.RefObject<HTMLDivElement>
   draggedIdx: number | null
@@ -24,11 +25,13 @@ interface ScenarioTimelineProps {
   onDragLeave: () => void
   onDrop: (idx: number) => void
   onAddConnectionClick: () => void
+  onRefreshShowcase?: () => void | Promise<void>
 }
 
 export function ScenarioTimeline({
   screens,
   scenarioId,
+  showcaseName,
   lineHeight,
   containerRef,
   draggedIdx,
@@ -43,6 +46,7 @@ export function ScenarioTimeline({
   onDragLeave,
   onDrop,
   onAddConnectionClick,
+  onRefreshShowcase,
 }: ScenarioTimelineProps) {
   const rows = useMemo(() => buildScenarioRows(screens), [screens])
 
@@ -64,6 +68,7 @@ export function ScenarioTimeline({
             nextScreen={nextScreen}
             idx={idx}
             scenarioId={scenarioId}
+            showcaseName={showcaseName}
             screensLength={screens.length}
             hasProofChild={hasProofChild}
             isPredefinedScreen={isPredefinedScreen}
@@ -78,6 +83,7 @@ export function ScenarioTimeline({
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
+            onRefreshShowcase={onRefreshShowcase}
           />
         </div>
       ))}
