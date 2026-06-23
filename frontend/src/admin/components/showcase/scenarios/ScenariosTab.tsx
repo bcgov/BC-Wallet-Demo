@@ -1,6 +1,6 @@
 import type { ScenarioScreen, Showcase } from '../../../types'
 
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { EyeIcon, EyeSlashIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
@@ -58,6 +58,8 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
     handleShowDeleteConfirm,
     handleDeleteConnectionProofPair,
     handleDeleteScreen,
+    handleToggleHidden,
+    togglingHiddenId,
   } = useScenarioScreens({ showcase, activeScenario, onRefresh })
 
   useEffect(() => {
@@ -129,17 +131,29 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
         <div className="w-4/5 px-6 mb-6 w-full">
           <div className="flex gap-4 border-b border-gray-200">
             {showcase.scenarios?.map((scenario) => (
-              <button
-                key={scenario.id}
-                onClick={() => setActiveScenario(scenario.id)}
-                className={`py-2 px-3 font-medium transition-colors border-b-2 ${
-                  activeScenario === scenario.id
-                    ? 'border-bcgov-blue-light text-bcgov-blue-light'
-                    : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
-                }`}
-              >
-                {scenario.name}
-              </button>
+              <div key={scenario.id} className="flex items-center">
+                <button
+                  onClick={() => setActiveScenario(scenario.id)}
+                  className={`py-2 px-3 font-medium transition-colors border-b-2 ${
+                    activeScenario === scenario.id
+                      ? 'border-bcgov-blue-light text-bcgov-blue-light'
+                      : 'border-transparent text-bcgov-darkgrey hover:text-bcgov-black'
+                  } ${scenario.hidden ? 'italic text-gray-400' : ''}`}
+                >
+                  {scenario.name}
+                </button>
+                {canEdit && (
+                  <button
+                    onClick={() => handleToggleHidden(scenario.id)}
+                    disabled={togglingHiddenId !== null}
+                    title={scenario.hidden ? 'Show scenario' : 'Hide scenario'}
+                    aria-label={scenario.hidden ? 'Show scenario' : 'Hide scenario'}
+                    className="px-1 text-bcgov-darkgrey hover:text-bcgov-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {scenario.hidden ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </div>
