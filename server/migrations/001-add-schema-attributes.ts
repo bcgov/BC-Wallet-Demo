@@ -1,9 +1,14 @@
+import mongoose from 'mongoose'
+
 import { SchemaModel } from '../src/db/models/Schema'
 import logger from '../src/utils/logger'
 
 import schemaTypeSeedValues from './values/attributeTypes.json'
 
 export async function up() {
+  // Create a new session to ensure consistent reads/writes
+  const session = await mongoose.startSession()
+
   try {
     logger.info('Migration 001: Starting schema attribute transformation')
 
@@ -25,7 +30,7 @@ export async function up() {
           },
         },
       ],
-      { updatePipeline: true },
+      { updatePipeline: true, session },
     )
     logger.info({ modifiedCount: updateResult.modifiedCount }, 'Migration 001: Generic schema attributes updated')
 
@@ -39,6 +44,7 @@ export async function up() {
               attributes: schema.attributes,
             },
           },
+          { session },
         ),
       ),
     )
@@ -47,5 +53,7 @@ export async function up() {
   } catch (error) {
     logger.error({ error }, 'Error in migration 001')
     throw error
+  } finally {
+    await session.endSession()
   }
 }

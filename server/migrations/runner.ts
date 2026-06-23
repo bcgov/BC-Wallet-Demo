@@ -90,6 +90,10 @@ export async function runMigrations() {
         logger.info({ migrationId: migration.id }, 'Applying migration')
         await migration.up()
 
+        // Ensure the previous migration is fully written before continuing
+        // This helps with distributed database scenarios (e.g., read replicas with lag)
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+
         // Mark migration as successfully applied
         await MigrationModel.updateOne(
           { _id: migration.id },
