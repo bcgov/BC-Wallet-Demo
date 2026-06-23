@@ -86,40 +86,46 @@ export async function runMigrations() {
       }
 
       // We successfully claimed the migration - proceed with application
+      let migrationError: unknown = null
       try {
         logger.info({ migrationId: migration.id }, 'Applying migration')
         await migration.up()
-
-        // Ensure the previous migration is fully written before continuing
-        // This helps with distributed database scenarios (e.g., read replicas with lag)
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
-        // Mark migration as successfully applied
-        await MigrationModel.updateOne(
-          { _id: migration.id },
-          {
-            $set: {
-              status: 'applied',
-              appliedAt: new Date(),
-            },
-          },
-        )
-        logger.info({ migrationId: migration.id }, 'Migration applied successfully')
+        logger.info({ migrationId: migration.id }, 'Migration execution completed, waiting for write acknowledgment')
       } catch (error) {
-        // Mark migration as failed so it can be investigated and retried
+        migrationError = error
         logger.error({ migrationId: migration.id, error }, 'Migration execution failed')
+      }
+
+      // Always wait before marking status, to ensure all writes are flushed
+      // Disconnect/reconnect cache to ensure fresh data on next migration
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      if (migrationError) {
+        // Mark migration as failed
         await MigrationModel.updateOne(
           { _id: migration.id },
           {
             $set: {
               status: 'failed',
-              error: error instanceof Error ? error.message : String(error),
+              error: migrationError instanceof Error ? migrationError.message : String(migrationError),
               failedAt: new Date(),
             },
           },
         )
-        throw error
+        throw migrationError
       }
+
+      // Mark migration as successfully applied
+      await MigrationModel.updateOne(
+        { _id: migration.id },
+        {
+          $set: {
+            status: 'applied',
+            appliedAt: new Date(),
+          },
+        },
+      )
+      logger.info({ migrationId: migration.id }, 'Migration applied successfully')
     } catch (error) {
       logger.error({ migrationId: migration.id, error }, 'Unexpected error during migration processing')
       throw error
