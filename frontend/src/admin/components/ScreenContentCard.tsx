@@ -59,7 +59,8 @@ function buildSafeImageUrl(image?: string): string | null {
     .join('/')
 
   try {
-    return new URL(encodedPath, publicBaseUrl).toString()
+    const baseUrl = publicBaseUrl.endsWith('/') ? publicBaseUrl : `${publicBaseUrl}/`
+    return new URL(encodedPath.startsWith('/') ? encodedPath.slice(1) : encodedPath, baseUrl).toString()
   } catch {
     return null
   }
