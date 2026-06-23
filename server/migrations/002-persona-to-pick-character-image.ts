@@ -1,16 +1,10 @@
-import mongoose from 'mongoose'
-
 import { ShowcaseModel } from '../src/db/models/Showcase'
 import logger from '../src/utils/logger'
 
 export async function up() {
-  // Create a new session to ensure fresh reads from MongoDB
-  // This is important in distributed setups where previous migrations may have just completed
-  const session = await mongoose.startSession()
-
   try {
     logger.info('Migration 002: Starting persona image to PICK_CHARACTER screen transfer')
-    const showcases = await ShowcaseModel.find().session(session)
+    const showcases = await ShowcaseModel.find()
     let updatedCount = 0
 
     for (const showcase of showcases) {
@@ -32,7 +26,5 @@ export async function up() {
   } catch (error) {
     logger.error({ error }, 'Error in migration 002')
     throw error
-  } finally {
-    await session.endSession()
   }
 }
