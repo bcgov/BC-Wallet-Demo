@@ -21,6 +21,7 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
   const [reorderedScreens, setReorderedScreens] = useState<Record<string, ScenarioScreen[]>>({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteConfirmIdx, setDeleteConfirmIdx] = useState<number | null>(null)
+  const [togglingHiddenId, setTogglingHiddenId] = useState<string | null>(null)
 
   const isEditingPredefinedScreen =
     editingScreen?.screenId === 'START' ||
@@ -159,6 +160,20 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
     closeEditModal()
   }
 
+  const handleToggleHidden = async (scenarioId: string) => {
+    if (!showcase.scenarios || togglingHiddenId) return
+    const updatedScenarios = showcase.scenarios.map((sc) => (sc.id === scenarioId ? { ...sc, hidden: !sc.hidden } : sc))
+    setTogglingHiddenId(scenarioId)
+    try {
+      await updateShowcase(auth, showcase.name, { scenarios: updatedScenarios })
+      await onRefresh?.()
+    } catch (error) {
+      log.error('Error toggling scenario visibility:', error)
+    } finally {
+      setTogglingHiddenId(null)
+    }
+  }
+
   return {
     editingScreenIdx,
     editingScreen,
@@ -176,5 +191,7 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
     handleShowDeleteConfirm,
     handleDeleteConnectionProofPair,
     handleDeleteScreen,
+    handleToggleHidden,
+    togglingHiddenId,
   }
 }
