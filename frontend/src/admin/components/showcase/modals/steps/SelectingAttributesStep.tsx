@@ -77,7 +77,7 @@ export function SelectingAttributesStep({
       }
     }
     fetchSchema()
-  }, [currentCredential?.schema_id, auth.user?.access_token])
+  }, [currentCredential, selectedAttributes, auth.user?.access_token])
 
   if (!currentCredential) return null
   const isAttributeSelected = (attrName: string) => {
