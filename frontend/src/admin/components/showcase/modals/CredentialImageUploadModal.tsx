@@ -18,7 +18,7 @@ export function CredentialImageUploadModal({ isOpen, onClose, onSelectImage }: C
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Validate file type - allow all image types
+    // Validate file type - only allow PNG and JPG
     const allowedExtensions = ['.png', '.jpg']
     const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
     if (!allowedExtensions.includes(fileExtension)) {
