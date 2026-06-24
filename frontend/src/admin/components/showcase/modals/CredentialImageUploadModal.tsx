@@ -18,11 +18,10 @@ export function CredentialImageUploadModal({ isOpen, onClose, onSelectImage }: C
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Validate file type - only allow PNG and JPG
-    const allowedExtensions = ['.png', '.jpg']
-    const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
-    if (!allowedExtensions.includes(fileExtension)) {
-      setUploadError('Please upload an image file (PNG, JPG)')
+    // Validate file type - only allow PNG and JPEG
+    const allowedMimeTypes = ['image/png', 'image/jpeg']
+    if (!allowedMimeTypes.includes(file.type)) {
+      setUploadError('Please upload an image file (PNG, JPG/JPEG)')
       return
     }
 
@@ -37,12 +36,14 @@ export function CredentialImageUploadModal({ isOpen, onClose, onSelectImage }: C
       setUploadError(null)
 
       // Convert file to base64
-      const reader = new FileReader()
-      reader.onloadend = async () => {
-        const base64String = reader.result as string
-        await onSelectImage(base64String)
-      }
-      reader.readAsDataURL(file)
+      const base64String = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onerror = () => reject(reader.error ?? new Error('Failed to read file'))
+        reader.onabort = () => reject(new Error('File read aborted'))
+        reader.onload = () => resolve(reader.result as string)
+        reader.readAsDataURL(file)
+      })
+      await onSelectImage(base64String)
       onClose()
     } catch (error) {
       log.error('Error uploading image:', error)
@@ -73,7 +74,7 @@ export function CredentialImageUploadModal({ isOpen, onClose, onSelectImage }: C
             <input
               ref={fileInputRef}
               type="file"
-              accept=".png,.jpg"
+              accept="image/png,image/jpeg,.png,.jpg,.jpeg"
               onChange={handleFileUpload}
               className="hidden"
               id="credential-file-upload"
@@ -82,7 +83,7 @@ export function CredentialImageUploadModal({ isOpen, onClose, onSelectImage }: C
             <p className="text-gray-600 mb-2">
               {isUploading ? 'Uploading...' : 'Click to select an image from your filesystem.'}
             </p>
-            <p className="text-xs text-gray-500">Supported formats: PNG, JPG (up to 60KB)</p>
+            <p className="text-xs text-gray-500">Supported formats: PNG, JPG/JPEG (up to 60KB)</p>
           </div>
           {uploadError && <p className="text-red-500 text-sm mt-2">{uploadError}</p>}
         </div>

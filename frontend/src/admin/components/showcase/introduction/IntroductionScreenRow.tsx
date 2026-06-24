@@ -134,7 +134,7 @@ export function IntroductionScreenRow({
                                 {cred.attributes.map((attr: any, attrIdx: number) => (
                                   <div key={attrIdx} className="grid grid-cols-[auto_1fr] gap-3">
                                     <span className="font-medium text-gray-700">{attr.name}:</span>
-                                    {attr.value.startsWith('data:image') ? (
+                                    {typeof attr.value === 'string' && attr.value.startsWith('data:image') ? (
                                       <img src={attr.value} alt={attr.name} className="w-8 h-8 object-contain" />
                                     ) : (
                                       <span className="text-gray-600">
