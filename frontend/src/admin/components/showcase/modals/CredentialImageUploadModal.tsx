@@ -26,9 +26,9 @@ export function CredentialImageUploadModal({ isOpen, onClose, onSelectImage }: C
       return
     }
 
-    // Validate file size (1MB max)
-    if (file.size > 1 * 1024 * 1024) {
-      setUploadError('File size must be less than 1MB')
+    // Validate file size (60KB max)
+    if (file.size > 60 * 1024) {
+      setUploadError('File size must be less than 60KB')
       return
     }
 
@@ -82,7 +82,7 @@ export function CredentialImageUploadModal({ isOpen, onClose, onSelectImage }: C
             <p className="text-gray-600 mb-2">
               {isUploading ? 'Uploading...' : 'Click to select an image from your filesystem.'}
             </p>
-            <p className="text-xs text-gray-500">Supported formats: PNG, JPG (up to 1MB)</p>
+            <p className="text-xs text-gray-500">Supported formats: PNG, JPG (up to 60KB)</p>
           </div>
           {uploadError && <p className="text-red-500 text-sm mt-2">{uploadError}</p>}
         </div>
