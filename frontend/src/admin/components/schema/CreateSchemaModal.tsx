@@ -9,7 +9,7 @@ import log from '../../utils/logger'
 
 interface Attribute {
   name: string
-  type: 'string' | 'date' | 'number'
+  type: 'string' | 'date' | 'number' | 'image'
 }
 
 interface CreateSchemaModalProps {
@@ -25,7 +25,7 @@ export function CreateSchemaModal({ isOpen, onClose, onSchemaCreated }: CreateSc
   const [selectedDid, setSelectedDid] = useState<Did | null>(null)
   const [attributes, setAttributes] = useState<Attribute[]>([])
   const [attributeKey, setAttributeKey] = useState('')
-  const [attributeType, setAttributeType] = useState<'string' | 'date' | 'number'>('string')
+  const [attributeType, setAttributeType] = useState<'string' | 'date' | 'number' | 'image'>('string')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [availableSchemas, setAvailableSchemas] = useState<Schema[]>([])

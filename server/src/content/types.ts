@@ -25,7 +25,7 @@ export interface Schema {
   attrNames: string[]
   attributes: {
     name: string
-    type: 'string' | 'date' | 'number'
+    type: 'string' | 'date' | 'number' | 'image'
   }[]
   credDefId?: string
   did?: string

@@ -114,7 +114,7 @@ export interface Schema {
   version: string
   // Retired - will be removed in favor of typed attributes
   attrNames: string[]
-  attributes: { name: string; type: 'string' | 'date' | 'number' }[]
+  attributes: { name: string; type: 'string' | 'date' | 'number' | 'image' }[]
   credDefId?: string
   did: Did
 }

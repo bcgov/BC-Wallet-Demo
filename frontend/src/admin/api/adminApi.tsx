@@ -307,7 +307,7 @@ export const createSchema = async (
   schemaData: {
     name: string
     version: string
-    attributes: { name: string; type: 'string' | 'date' | 'number' }[]
+    attributes: { name: string; type: 'string' | 'date' | 'number' | 'image' }[]
     did: string
   },
 ): Promise<Schema> => {

@@ -4,6 +4,7 @@ import { ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
 import { publicBaseUrl } from '../../../../api/adminApi'
+import { CredentialImageUploadModal } from '../CredentialImageUploadModal'
 import { ImageUploadModal } from '../ImageUploadModal'
 
 interface DefineCredentialValuesStepProps {
@@ -38,6 +39,8 @@ export function DefineCredentialValuesStep({
   const [dateOptions, setDateOptions] = useState<Record<string, 'custom' | 'issuance'>>({})
   const [yearOffsets, setYearOffsets] = useState<Record<string, number>>({})
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
+  const [credentialImageModalOpen, setCredentialImageModalOpen] = useState(false)
+  const [currentImageAttribute, setCurrentImageAttribute] = useState<string | null>(null)
 
   // Initialize values when selectedSchema or initialValues change
   useEffect(() => {
@@ -98,6 +101,22 @@ export function DefineCredentialValuesStep({
 
   const handleImageSelect = (imagePath: string) => {
     setIcon(imagePath)
+  }
+
+  const handleAttributeImageSelect = (imagePath: string) => {
+    if (currentImageAttribute) {
+      setValues((prev) => ({
+        ...prev,
+        [currentImageAttribute]: imagePath,
+      }))
+      setCurrentImageAttribute(null)
+      setCredentialImageModalOpen(false)
+    }
+  }
+
+  const openImageUploadModal = (attributeName: string) => {
+    setCurrentImageAttribute(attributeName)
+    setCredentialImageModalOpen(true)
   }
 
   const isFormValid = () => {
@@ -197,8 +216,28 @@ export function DefineCredentialValuesStep({
                   onChange={(e) => handleInputChange(attr.name, e.target.value)}
                   placeholder={`Enter ${attr.name.replace(/_/g, ' ')}`}
                   className="px-4 py-3 border-2 border-gray-200 rounded-lg bg-white text-bcgov-black placeholder-gray-400 transition-all focus:outline-none focus:border-bcgov-blue focus:ring-1 focus:ring-bcgov-blue hover:border-gray-300"
-                  hidden={attr.type === 'date'}
+                  hidden={attr.type === 'date' || attr.type === 'image'}
                 />
+                {attr.type === 'image' && (
+                  <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
+                    {!values[attr.name] ? (
+                      <button
+                        type="button"
+                        onClick={() => openImageUploadModal(attr.name)}
+                        className="w-full px-4 py-3 text-sm font-medium text-white bg-bcgov-blue hover:bg-bcgov-blue-dark rounded-lg transition-colors"
+                      >
+                        Upload Image
+                      </button>
+                    ) : (
+                      <img
+                        onClick={() => openImageUploadModal(attr.name)}
+                        src={values[attr.name]}
+                        alt={attr.name}
+                        className="w-24 h-24 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                      />
+                    )}
+                  </div>
+                )}
                 {attr.type === 'date' && (
                   <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
                     <p className="text-s font-semibold text-gray-700 uppercase tracking-wide">Time Option</p>
@@ -319,6 +358,15 @@ export function DefineCredentialValuesStep({
         onClose={() => setIsImageUploadModalOpen(false)}
         onSelectImage={handleImageSelect}
         type="icon"
+      />
+
+      <CredentialImageUploadModal
+        isOpen={credentialImageModalOpen}
+        onClose={() => {
+          setCredentialImageModalOpen(false)
+          setCurrentImageAttribute(null)
+        }}
+        onSelectImage={handleAttributeImageSelect}
       />
     </div>
   )
