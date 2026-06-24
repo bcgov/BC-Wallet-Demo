@@ -219,7 +219,7 @@ export function DefineCredentialValuesStep({
                   hidden={attr.type === 'date' || attr.type === 'image'}
                 />
                 {attr.type === 'image' && (
-                  <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
+                  <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
                     {!values[attr.name] ? (
                       <button
                         type="button"
@@ -233,7 +233,7 @@ export function DefineCredentialValuesStep({
                         onClick={() => openImageUploadModal(attr.name)}
                         src={values[attr.name]}
                         alt={attr.name}
-                        className="w-32 h-32 object-cover rounded-lg"
+                        className="w-24 h-24 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                       />
                     )}
                   </div>
