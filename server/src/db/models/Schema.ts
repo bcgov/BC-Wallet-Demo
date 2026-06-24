@@ -6,7 +6,7 @@ import { baseSchemaOptions } from '../baseSchema'
 
 /** Shape returned by SchemaModel queries with .lean(). Uses _id, not the id virtual. */
 
-export type AttributeType = 'string' | 'date' | 'number'
+export type AttributeType = 'string' | 'date' | 'number' | 'image'
 
 export interface SchemaAttribute {
   name: string
@@ -35,7 +35,7 @@ const SchemaSchema = new Schema(
     attributes: [
       {
         name: { type: String, required: true },
-        type: { type: String, required: true, enum: ['string', 'date', 'number'] },
+        type: { type: String, required: true, enum: ['string', 'date', 'number', 'image'] },
       },
     ],
     credDefId: { type: String },

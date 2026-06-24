@@ -53,7 +53,7 @@
       },
       {
         "name": "picture",
-        "type": "string"
+        "type": "image"
       },
       {
         "name": "given_names",

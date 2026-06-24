@@ -9,7 +9,7 @@ import log from '../../utils/logger'
 
 interface Attribute {
   name: string
-  type: 'string' | 'date' | 'number'
+  type: 'string' | 'date' | 'number' | 'image'
 }
 
 interface CreateSchemaModalProps {
