@@ -64,8 +64,11 @@ export async function runMigrations() {
 
       // Atomically attempt to claim the migration lock
       // This will only succeed if the document doesn't exist or status is not set
-      const claimed = await MigrationModel.findByIdAndUpdate(
-        migration.id,
+      const claimed = await MigrationModel.findOneAndUpdate(
+        {
+          _id: migration.id,
+          status: { $exists: false },
+        },
         {
           $set: {
             status: 'applying',
@@ -73,7 +76,10 @@ export async function runMigrations() {
             claimedAt: new Date(),
           },
         },
-        { upsert: true, new: true },
+        {
+          upsert: true,
+          new: true,
+        },
       )
 
       // Double-check we actually claimed it (verify our instanceId is set)
