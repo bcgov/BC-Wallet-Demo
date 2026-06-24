@@ -31,7 +31,7 @@ export function formatPredicateValue(value: any): string | number {
  * @param maxLength - Maximum length before truncation (default: 100)
  * @returns Truncated string with ellipsis, or original value if not a string or shorter than maxLength
  */
-export function truncateLongString(value: any, maxLength: number = 100): string | number {
+export function truncateLongString(value: any, maxLength: number = 80): string | number {
   if (typeof value === 'string' && value.length > maxLength) {
     return `${value.substring(0, maxLength)}...`
   }

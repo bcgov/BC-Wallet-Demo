@@ -135,7 +135,7 @@ export function IntroductionScreenRow({
                                   <div key={attrIdx} className="grid grid-cols-[auto_1fr] gap-3">
                                     <span className="font-medium text-gray-700">{attr.name}:</span>
                                     <span className="text-gray-600">
-                                      {truncateLongString(formatPredicateValue(attr.value), 200)}
+                                      {truncateLongString(formatPredicateValue(attr.value))}
                                     </span>
                                   </div>
                                 ))}
