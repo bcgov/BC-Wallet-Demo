@@ -31,6 +31,7 @@ export async function up() {
         }
       }
       // Save the showcase after updating all its scenarios
+      showcase.markModified('scenarios')
       await showcase.save()
     } catch (error) {
       logger.error({ showcase: showcase.name, error }, 'Error processing showcase in migration 003')

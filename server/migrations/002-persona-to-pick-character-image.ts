@@ -12,8 +12,17 @@ export async function up() {
         const pickCharacterScreen = showcase.introduction?.find((s) => s.screenId === 'PICK_CHARACTER')
 
         if (pickCharacterScreen && !pickCharacterScreen.image && showcase.persona?.image) {
-          pickCharacterScreen.image = showcase.persona.image
-          await showcase.save()
+          await ShowcaseModel.updateOne(
+            {
+              _id: showcase._id,
+              'introduction.screenId': 'PICK_CHARACTER',
+            },
+            {
+              $set: {
+                'introduction.$.image': showcase.persona.image,
+              },
+            },
+          )
           updatedCount++
         }
       } catch (error) {

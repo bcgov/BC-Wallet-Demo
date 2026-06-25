@@ -75,10 +75,9 @@ describe('runSeed', () => {
   it('upserts updated fields when config changes', async () => {
     const { runSeed } = await import('../seed')
     await runSeed()
-
     await ShowcaseModel.findOneAndUpdate(
       { 'persona.type': showcases[0].persona?.type },
-      { $set: { name: 'Modified Name' } },
+      { $setOnInsert: { name: 'Modified Name' } },
     )
 
     await runSeed()
