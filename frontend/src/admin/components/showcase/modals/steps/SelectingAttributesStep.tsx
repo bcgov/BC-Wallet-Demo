@@ -41,7 +41,7 @@ export function SelectingAttributesStep({
 
   useEffect(() => {
     const fetchSchema = async () => {
-      if (currentCredential?.schema_id && auth.user?.access_token) {
+      if (currentCredential?.schema_id && auth.isAuthenticated) {
         try {
           const schemaData = await getSchemaById(auth, currentCredential.schema_id)
           setSchema(schemaData)
@@ -77,7 +77,7 @@ export function SelectingAttributesStep({
       }
     }
     fetchSchema()
-  }, [currentCredential, selectedAttributes, auth.user?.access_token])
+  }, [currentCredential, selectedAttributes, auth.isAuthenticated])
 
   if (!currentCredential) return null
   const isAttributeSelected = (attrName: string) => {
