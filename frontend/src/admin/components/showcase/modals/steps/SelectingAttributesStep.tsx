@@ -1,4 +1,5 @@
 import type { Credential, AttributeRequest, Schema } from '../../../../types'
+import type { AuthContextProps } from 'react-oidc-context'
 
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
@@ -10,7 +11,7 @@ import logger from '../../../../utils/logger'
 /* -------------------------------------------------------
    Schema hook (NO caching, race-safe only)
 ------------------------------------------------------- */
-function useSchema(auth: any, schemaId?: string) {
+function useSchema(auth: AuthContextProps, schemaId?: string) {
   const [schema, setSchema] = useState<Schema | null>(null)
 
   const requestIdRef = useRef(0)
@@ -33,7 +34,8 @@ function useSchema(auth: any, schemaId?: string) {
         setSchema(result)
       } catch (err) {
         logger.error('Error fetching schema:', err)
-        if (!cancelled) setSchema(null)
+        if (cancelled || requestId !== requestIdRef.current) return
+        setSchema(null)
       }
     }
 
@@ -42,7 +44,7 @@ function useSchema(auth: any, schemaId?: string) {
     return () => {
       cancelled = true
     }
-  }, [auth, schemaId])
+  }, [schemaId, auth.isAuthenticated])
 
   return schema
 }
@@ -65,7 +67,8 @@ function getPredicateUIState(schema: Schema | null, selectedAttributes: Map<stri
     if (attr.type === 'date') {
       if (value?.startsWith('$dateint:')) {
         dateOptions[attr.name] = 'relative'
-        yearOffsets[attr.name] = parseInt(value.replace('$dateint:', ''), 10)
+        const parsed = parseInt(value.replace('$dateint:', ''), 10)
+        yearOffsets[attr.name] = Number.isNaN(parsed) ? 0 : parsed
       } else if (value) {
         dateOptions[attr.name] = 'custom'
       }
