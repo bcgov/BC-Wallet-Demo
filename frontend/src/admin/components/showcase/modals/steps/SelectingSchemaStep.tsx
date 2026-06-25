@@ -49,9 +49,9 @@ export function SelectingSchemaStep({
                   <p className="font-medium text-sm text-bcgov-black">{schema.name}</p>
                   <p className="text-xs text-gray-500">v{schema.version}</p>
                   <div className="text-xs text-gray-400 mt-2 flex flex-wrap gap-1">
-                    {schema.attrNames.map((attr) => (
-                      <span key={attr} className="bg-gray-100 px-2 py-1 rounded">
-                        {attr}
+                    {schema.attributes.map((attr) => (
+                      <span key={attr.name} className="bg-gray-100 px-2 py-1 rounded">
+                        {attr.name}
                       </span>
                     ))}
                   </div>
