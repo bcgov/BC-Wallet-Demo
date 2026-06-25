@@ -198,9 +198,9 @@ export function CreateConnectAndAcceptScreensModal({
                           name: selectedSchema.name,
                           icon,
                           version: selectedSchema.version,
-                          attributes: selectedSchema.attrNames.map((attrName) => ({
-                            name: attrName,
-                            value: values[attrName],
+                          attributes: selectedSchema.attributes.map((attr) => ({
+                            name: attr.name,
+                            value: values[attr.name],
                           })),
                           schema_id: selectedSchema.id,
                           cred_def_id: selectedSchema.credDefId,
