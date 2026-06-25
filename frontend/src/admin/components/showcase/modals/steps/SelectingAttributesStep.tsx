@@ -1,12 +1,83 @@
 import type { Credential, AttributeRequest, Schema } from '../../../../types'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { getSchemaById, publicBaseUrl } from '../../../../api/adminApi'
 import { truncateLongString } from '../../../../utils/formatters'
 import logger from '../../../../utils/logger'
 
+/* -------------------------------------------------------
+   Schema hook (NO caching, race-safe only)
+------------------------------------------------------- */
+function useSchema(auth: any, schemaId?: string) {
+  const [schema, setSchema] = useState<Schema | null>(null)
+
+  const requestIdRef = useRef(0)
+
+  useEffect(() => {
+    if (!schemaId || !auth?.isAuthenticated) {
+      setSchema(null)
+      return
+    }
+
+    let cancelled = false
+    const requestId = ++requestIdRef.current
+
+    const run = async () => {
+      try {
+        const result = await getSchemaById(auth, schemaId)
+
+        if (cancelled || requestId !== requestIdRef.current) return
+
+        setSchema(result)
+      } catch (err) {
+        logger.error('Error fetching schema:', err)
+        if (!cancelled) setSchema(null)
+      }
+    }
+
+    run()
+
+    return () => {
+      cancelled = true
+    }
+  }, [auth, schemaId])
+
+  return schema
+}
+
+/* -------------------------------------------------------
+   Pure derivation (NO state)
+------------------------------------------------------- */
+function getPredicateUIState(schema: Schema | null, selectedAttributes: Map<string, AttributeRequest>) {
+  const dateOptions: Record<string, 'custom' | 'relative'> = {}
+  const yearOffsets: Record<string, number> = {}
+
+  if (!schema) return { dateOptions, yearOffsets }
+
+  for (const attr of schema.attributes) {
+    const request = selectedAttributes.get(attr.name)
+    if (!request?.predicate) continue
+
+    const value = request.predicateValue
+
+    if (attr.type === 'date') {
+      if (value?.startsWith('$dateint:')) {
+        dateOptions[attr.name] = 'relative'
+        yearOffsets[attr.name] = parseInt(value.replace('$dateint:', ''), 10)
+      } else if (value) {
+        dateOptions[attr.name] = 'custom'
+      }
+    }
+  }
+
+  return { dateOptions, yearOffsets }
+}
+
+/* -------------------------------------------------------
+   Component
+------------------------------------------------------- */
 interface SelectingAttributesStepProps {
   currentCredential: Credential | null
   selectedAttributes: Map<string, AttributeRequest>
@@ -35,51 +106,16 @@ export function SelectingAttributesStep({
   onClose,
 }: SelectingAttributesStepProps) {
   const auth = useAuth()
-  const [schema, setSchema] = useState<Schema | null>(null)
-  const [predicateDateOptions, setPredicateDateOptions] = useState<Record<string, 'custom' | 'relative'>>({})
-  const [predicateYearOffsets, setPredicateYearOffsets] = useState<Record<string, number>>({})
 
-  useEffect(() => {
-    const fetchSchema = async () => {
-      if (currentCredential?.schema_id && auth.isAuthenticated) {
-        try {
-          const schemaData = await getSchemaById(auth, currentCredential.schema_id)
-          setSchema(schemaData)
+  const schema = useSchema(auth, currentCredential?.schema_id)
 
-          // Initialize predicate date options from selectedAttributes
-          const newDateOptions: Record<string, 'custom' | 'relative'> = {}
-          const newYearOffsets: Record<string, number> = {}
-
-          schemaData.attributes.forEach((attr: { name: string; type: string }) => {
-            if (attr.type === 'date') {
-              // Check all selected attributes for this credential
-              selectedAttributes.forEach((request, attrName) => {
-                if (attrName === attr.name && request.predicate) {
-                  const value = request.predicateValue
-                  if (value && value.startsWith('$dateint:')) {
-                    const yearOffset = parseInt(value.replace('$dateint:', ''), 10)
-                    newDateOptions[attrName] = 'relative'
-                    newYearOffsets[attrName] = yearOffset
-                  } else if (value) {
-                    newDateOptions[attrName] = 'custom'
-                  }
-                }
-              })
-            }
-          })
-
-          setPredicateDateOptions(newDateOptions)
-          setPredicateYearOffsets(newYearOffsets)
-        } catch (error) {
-          logger.error('Error fetching schema:', error)
-          setSchema(null)
-        }
-      }
-    }
-    fetchSchema()
-  }, [currentCredential, selectedAttributes, auth.isAuthenticated])
+  const { dateOptions: predicateDateOptions, yearOffsets: predicateYearOffsets } = getPredicateUIState(
+    schema,
+    selectedAttributes,
+  )
 
   if (!currentCredential) return null
+
   const isAttributeSelected = (attrName: string) => {
     const request = selectedAttributes.get(attrName)
     return request && (request.property || request.predicate || request.nonRevoked)
@@ -101,6 +137,7 @@ export function SelectingAttributesStep({
             <p className="text-xs text-gray-500">v{currentCredential.version}</p>
           </div>
         </div>
+
         <p className="text-sm text-gray-600">Configure how each attribute should be requested</p>
       </div>
 
@@ -113,10 +150,19 @@ export function SelectingAttributesStep({
             return (
               <div key={attr.name} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-3">
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium text-bcgov-black">{attr.name}</p>
-                    <p className="text-xs text-gray-500">{truncateLongString(attr.value)}</p>
+                    {typeof attr.value === 'string' && attr.value.startsWith('data:image') ? (
+                      <img
+                        src={attr.value}
+                        alt={attr.name}
+                        className="max-w-xs max-h-48 mt-2 rounded-lg border border-gray-200"
+                      />
+                    ) : (
+                      <p className="text-xs text-gray-500">{truncateLongString(attr.value)}</p>
+                    )}
                   </div>
+
                   {selected && (
                     <button
                       onClick={() => onRemoveAttribute(attr.name)}
@@ -134,6 +180,7 @@ export function SelectingAttributesStep({
                       checked={request.property || false}
                       onChange={(e) => {
                         const updated = { ...request, property: e.target.checked }
+
                         if (e.target.checked || request.predicate || request.nonRevoked) {
                           onUpdateAttribute(attr.name, updated)
                         } else {
@@ -154,15 +201,16 @@ export function SelectingAttributesStep({
                       checked={request.predicate || false}
                       onChange={(e) => {
                         const updated = { ...request, predicate: e.target.checked }
+
                         if (!e.target.checked) {
                           delete updated.predicateType
                           delete updated.predicateValue
                         } else {
-                          // When checking the predicate box, set defaults
                           if (!updated.predicateType) {
                             updated.predicateType = '>='
                           }
                         }
+
                         if (e.target.checked || request.property || request.nonRevoked) {
                           onUpdateAttribute(attr.name, updated)
                         } else {
@@ -181,10 +229,14 @@ export function SelectingAttributesStep({
                     <div className="ml-7 space-y-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Operator</label>
+
                         <select
                           value={request.predicateType || ''}
                           onChange={(e) => {
-                            const updated = { ...request, predicateType: e.target.value as any }
+                            const updated = {
+                              ...request,
+                              predicateType: e.target.value as any,
+                            }
                             onUpdateAttribute(attr.name, updated)
                           }}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bcgov-blue focus:border-transparent"
@@ -195,9 +247,11 @@ export function SelectingAttributesStep({
                           <option value="<">Less Than (&lt;)</option>
                         </select>
                       </div>
+
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Value</label>
-                        {schema && schema.attributes.find((a: any) => a.name === attr.name)?.type === 'date' ? (
+
+                        {schema?.attributes.find((a) => a.name === attr.name)?.type === 'date' ? (
                           <div className="space-y-3">
                             <p
                               className="text-xs font-semibold text-gray-700 uppercase tracking-wide"
@@ -205,6 +259,7 @@ export function SelectingAttributesStep({
                             >
                               Select an explicit date
                             </p>
+
                             <p
                               className="text-xs font-semibold text-gray-700 uppercase tracking-wide"
                               hidden={
@@ -214,41 +269,51 @@ export function SelectingAttributesStep({
                             >
                               Years relative to presentation
                             </p>
+
                             <input
                               type="date"
                               value={request.predicateValue || ''}
                               onChange={(e) => {
-                                const updated = { ...request, predicateValue: e.target.value }
+                                const updated = {
+                                  ...request,
+                                  predicateValue: e.target.value,
+                                }
                                 onUpdateAttribute(attr.name, updated)
                               }}
-                              placeholder="Enter the date to compare against"
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bcgov-blue focus:border-transparent"
                               hidden={predicateDateOptions[attr.name] === 'relative'}
                             />
+
                             <input
                               type="number"
                               value={predicateYearOffsets[attr.name] ?? 0}
                               onChange={(e) => {
                                 const parsed = e.target.value === '' ? 0 : parseInt(e.target.value, 10)
+
                                 const numVal = Number.isNaN(parsed) ? 0 : parsed
-                                setPredicateYearOffsets((prev) => ({ ...prev, [attr.name]: numVal }))
-                                const updated = { ...request, predicateValue: `$dateint:${numVal}` }
+
+                                const updated = {
+                                  ...request,
+                                  predicateValue: `$dateint:${numVal}`,
+                                }
+
                                 onUpdateAttribute(attr.name, updated)
                               }}
-                              placeholder="Years offset (positive or negative)"
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bcgov-blue focus:border-transparent"
                               hidden={
                                 predicateDateOptions[attr.name] === 'custom' ||
                                 predicateDateOptions[attr.name] === undefined
                               }
                             />
+
                             <div className="flex gap-2">
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setPredicateDateOptions((prev) => ({ ...prev, [attr.name]: 'custom' }))
-                                  setPredicateYearOffsets((prev) => ({ ...prev, [attr.name]: 0 }))
-                                  const updated = { ...request, predicateValue: '' }
+                                  const updated = {
+                                    ...request,
+                                    predicateValue: '',
+                                  }
                                   onUpdateAttribute(attr.name, updated)
                                 }}
                                 className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
@@ -259,13 +324,17 @@ export function SelectingAttributesStep({
                               >
                                 Custom Date
                               </button>
+
                               <button
                                 type="button"
                                 onClick={() => {
                                   const currentOffset = predicateYearOffsets[attr.name] ?? 0
-                                  setPredicateDateOptions((prev) => ({ ...prev, [attr.name]: 'relative' }))
-                                  setPredicateYearOffsets((prev) => ({ ...prev, [attr.name]: currentOffset }))
-                                  const updated = { ...request, predicateValue: `$dateint:${currentOffset}` }
+
+                                  const updated = {
+                                    ...request,
+                                    predicateValue: `$dateint:${currentOffset}`,
+                                  }
+
                                   onUpdateAttribute(attr.name, updated)
                                 }}
                                 className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
@@ -283,10 +352,12 @@ export function SelectingAttributesStep({
                             type="text"
                             value={request.predicateValue || ''}
                             onChange={(e) => {
-                              const updated = { ...request, predicateValue: e.target.value }
+                              const updated = {
+                                ...request,
+                                predicateValue: e.target.value,
+                              }
                               onUpdateAttribute(attr.name, updated)
                             }}
-                            placeholder="Enter the value to compare against"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bcgov-blue focus:border-transparent"
                           />
                         )}
@@ -299,7 +370,11 @@ export function SelectingAttributesStep({
                       type="checkbox"
                       checked={request.nonRevoked || false}
                       onChange={(e) => {
-                        const updated = { ...request, nonRevoked: e.target.checked }
+                        const updated = {
+                          ...request,
+                          nonRevoked: e.target.checked,
+                        }
+
                         if (e.target.checked || request.property || request.predicate) {
                           onUpdateAttribute(attr.name, updated)
                         } else {
@@ -333,6 +408,7 @@ export function SelectingAttributesStep({
             </button>
           )}
         </div>
+
         <div className="flex gap-3">
           {currentIndex > 0 && (
             <button
@@ -342,8 +418,7 @@ export function SelectingAttributesStep({
               Previous
             </button>
           )}
-        </div>
-        <div className="flex gap-3">
+
           {currentIndex < totalCredentials - 1 && (
             <button
               onClick={onNext}
@@ -352,6 +427,7 @@ export function SelectingAttributesStep({
               Next
             </button>
           )}
+
           {currentIndex === totalCredentials - 1 && (
             <button
               onClick={onContinue}
