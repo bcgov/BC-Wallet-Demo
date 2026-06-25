@@ -23,7 +23,11 @@ export async function runSeed(): Promise<void> {
   await tractionApiKeyUpdaterInit(true)
   const credResults = await Promise.all(
     allCredentials.map((cred) =>
-      CredentialModel.findOneAndUpdate({ _id: cred._id }, { $set: cred }, { upsert: true, returnDocument: 'after' }),
+      CredentialModel.findOneAndUpdate(
+        { _id: cred._id },
+        { $setOnInsert: cred },
+        { upsert: true, returnDocument: 'after' },
+      ),
     ),
   )
 
@@ -33,7 +37,7 @@ export async function runSeed(): Promise<void> {
     showcases.map((s) =>
       ShowcaseModel.findOneAndUpdate(
         { 'persona.type': s.persona?.type },
-        { $set: s },
+        { $setOnInsert: s },
         { upsert: true, returnDocument: 'after' },
       ),
     ),

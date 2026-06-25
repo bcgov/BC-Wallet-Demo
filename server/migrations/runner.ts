@@ -64,8 +64,11 @@ export async function runMigrations() {
 
       // Atomically attempt to claim the migration lock
       // This will only succeed if the document doesn't exist or status is not set
-      const claimed = await MigrationModel.findByIdAndUpdate(
-        migration.id,
+      const claimed = await MigrationModel.findOneAndUpdate(
+        {
+          _id: migration.id,
+          status: { $exists: false },
+        },
         {
           $set: {
             status: 'applying',
@@ -73,7 +76,10 @@ export async function runMigrations() {
             claimedAt: new Date(),
           },
         },
-        { upsert: true, new: true },
+        {
+          upsert: true,
+          new: true,
+        },
       )
 
       // Double-check we actually claimed it (verify our instanceId is set)
@@ -86,36 +92,42 @@ export async function runMigrations() {
       }
 
       // We successfully claimed the migration - proceed with application
+      let migrationError: unknown = null
       try {
         logger.info({ migrationId: migration.id }, 'Applying migration')
         await migration.up()
-
-        // Mark migration as successfully applied
-        await MigrationModel.updateOne(
-          { _id: migration.id },
-          {
-            $set: {
-              status: 'applied',
-              appliedAt: new Date(),
-            },
-          },
-        )
-        logger.info({ migrationId: migration.id }, 'Migration applied successfully')
+        logger.info({ migrationId: migration.id }, 'Migration execution completed, waiting for write acknowledgment')
       } catch (error) {
-        // Mark migration as failed so it can be investigated and retried
+        migrationError = error
         logger.error({ migrationId: migration.id, error }, 'Migration execution failed')
+      }
+
+      if (migrationError) {
+        // Mark migration as failed
         await MigrationModel.updateOne(
           { _id: migration.id },
           {
             $set: {
               status: 'failed',
-              error: error instanceof Error ? error.message : String(error),
+              error: migrationError instanceof Error ? migrationError.message : String(migrationError),
               failedAt: new Date(),
             },
           },
         )
-        throw error
+        throw migrationError
       }
+
+      // Mark migration as successfully applied
+      await MigrationModel.updateOne(
+        { _id: migration.id },
+        {
+          $set: {
+            status: 'applied',
+            appliedAt: new Date(),
+          },
+        },
+      )
+      logger.info({ migrationId: migration.id }, 'Migration applied successfully')
     } catch (error) {
       logger.error({ migrationId: migration.id, error }, 'Unexpected error during migration processing')
       throw error
