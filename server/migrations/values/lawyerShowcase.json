@@ -189,7 +189,7 @@
               {
                 "icon": "/public/common/screen/lsbc-logo.png",
                 "name": "member_card",
-                "cred_id": "lawyer-member-card",               
+                "cred_id": "lawyer-member-card",
                 "properties": ["Given Name", "Surname", "PPID"],
                 "nonRevoked": { "to": "$now" }
               },
