@@ -49,7 +49,9 @@ export async function runSeed(): Promise<void> {
   const webvhDid = await getOrCreateWebvhDid()
 
   await ensureDidInDatabase(indyDid, 'indy')
-  await ensureDidInDatabase(webvhDid, 'webvh')
+  if (webvhDid) {
+    await ensureDidInDatabase(webvhDid, 'webvh')
+  }
 
   for (const credential of credentialsSeed as SeedCredential[]) {
     await processSeededCredential(credential, indyDid)

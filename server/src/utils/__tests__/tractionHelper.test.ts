@@ -45,7 +45,6 @@ vi.mock('../../../scripts/values/credentials.json', () => ({
 }))
 
 import { CredentialModel } from '../../db/models/Credential'
-import { DidModel } from '../../db/models/Did'
 import { SchemaModel } from '../../db/models/Schema'
 import logger from '../logger'
 import * as th from '../tractionHelper'
@@ -267,9 +266,101 @@ describe('tractionGarbageCollection', () => {
   })
 })
 
+describe('getOrCreateWebvhDid', () => {
+  let getSpy: ReturnType<typeof vi.spyOn>
+  let postSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    delete process.env.WEBVH_ENABLED
+    getSpy = vi.spyOn(th.tractionRequest, 'get')
+    postSpy = vi.spyOn(th.tractionRequest, 'post')
+  })
+
+  afterEach(() => {
+    delete process.env.WEBVH_ENABLED
+    getSpy.mockRestore()
+    postSpy.mockRestore()
+  })
+
+  it('returns null without calling Traction when WEBVH_ENABLED is unset', async () => {
+    const did = await th.getOrCreateWebvhDid()
+
+    expect(did).toBeNull()
+    expect(getSpy).not.toHaveBeenCalled()
+  })
+
+  it('returns null without calling Traction when WEBVH_ENABLED is false', async () => {
+    process.env.WEBVH_ENABLED = 'false'
+
+    const did = await th.getOrCreateWebvhDid()
+
+    expect(did).toBeNull()
+    expect(getSpy).not.toHaveBeenCalled()
+  })
+
+  it('returns existing posted webvh did when enabled', async () => {
+    process.env.WEBVH_ENABLED = 'true'
+    getSpy.mockResolvedValue({
+      data: {
+        results: [{ did: 'did:webvh:example:abc' }],
+      },
+    })
+
+    const did = await th.getOrCreateWebvhDid()
+
+    expect(did).toBe('did:webvh:example:abc')
+    expect(getSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('creates a webvh did when enabled and config is available', async () => {
+    process.env.WEBVH_ENABLED = 'true'
+    getSpy
+      .mockResolvedValueOnce({ data: { results: [] } })
+      .mockResolvedValueOnce({ data: { server_url: 'https://webvh.example.com' } })
+
+    postSpy.mockResolvedValue({
+      data: {
+        state: {
+          id: 'did:webvh:example:new',
+        },
+      },
+    })
+
+    const did = await th.getOrCreateWebvhDid()
+
+    expect(postSpy).toHaveBeenCalledWith('/did/webvh/create', {
+      options: expect.objectContaining({
+        server_url: 'https://webvh.example.com',
+        namespace: 'showcase',
+      }),
+    })
+    expect(did).toBe('did:webvh:example:new')
+  })
+
+  it('throws when enabled and webvh config has no server_url', async () => {
+    process.env.WEBVH_ENABLED = 'true'
+    getSpy.mockResolvedValueOnce({ data: { results: [] } }).mockResolvedValueOnce({ data: {} })
+
+    await expect(th.getOrCreateWebvhDid()).rejects.toThrow('Webvh server URL not found in Traction webvh config')
+  })
+})
+
 describe('getOrCreateIndyDid', () => {
+  let getSpy: ReturnType<typeof vi.spyOn>
+  let postSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    getSpy = vi.spyOn(th.tractionRequest, 'get')
+    postSpy = vi.spyOn(th.tractionRequest, 'post')
+  })
+
+  afterEach(() => {
+    getSpy.mockRestore()
+    postSpy.mockRestore()
+  })
+
   it('returns existing posted indy did when present', async () => {
-    th.tractionRequest.get = vi.fn().mockResolvedValue({
+    getSpy.mockResolvedValue({
       data: {
         results: [{ did: 'did:sov:123' }],
       },
@@ -281,13 +372,13 @@ describe('getOrCreateIndyDid', () => {
   })
 
   it('creates a new indy did when none exist', async () => {
-    th.tractionRequest.get = vi.fn().mockResolvedValue({
+    getSpy.mockResolvedValue({
       data: {
         results: [],
       },
     })
 
-    th.tractionRequest.post = vi.fn().mockResolvedValue({
+    postSpy.mockResolvedValue({
       data: {
         result: {
           did: 'did:sov:new',
@@ -297,7 +388,7 @@ describe('getOrCreateIndyDid', () => {
 
     const did = await th.getOrCreateIndyDid()
 
-    expect(th.tractionRequest.post).toHaveBeenCalledWith('/wallet/did/create', {
+    expect(postSpy).toHaveBeenCalledWith('/wallet/did/create', {
       method: 'sov',
     })
 
@@ -306,8 +397,18 @@ describe('getOrCreateIndyDid', () => {
 })
 
 describe('findSchemaInTraction', () => {
+  let getSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    getSpy = vi.spyOn(th.tractionRequest, 'get')
+  })
+
+  afterEach(() => {
+    getSpy.mockRestore()
+  })
+
   it('returns schema id when found', async () => {
-    th.tractionRequest.get = vi.fn().mockResolvedValue({
+    getSpy.mockResolvedValue({
       data: {
         schema_ids: ['schema-id-1'],
       },
@@ -319,7 +420,7 @@ describe('findSchemaInTraction', () => {
   })
 
   it('returns null when no schemas found', async () => {
-    th.tractionRequest.get = vi.fn().mockResolvedValue({
+    getSpy.mockResolvedValue({
       data: {
         schema_ids: [],
       },
@@ -440,50 +541,33 @@ describe('checkSeededSchemasExistOrCreate', () => {
   beforeEach(() => {
     process.env.TRACTION_URL = 'https://traction.example.com'
     vi.clearAllMocks()
+    vi.spyOn(th, 'getOrCreateIndyDid').mockResolvedValue('did:sov:123')
+    vi.spyOn(th, 'getOrCreateWebvhDid').mockResolvedValue('did:webvh:123')
+    vi.spyOn(th, 'ensureDidInDatabase').mockResolvedValue(undefined)
+    vi.spyOn(th, 'processSeededCredential').mockResolvedValue(undefined)
+    vi.spyOn(th, 'populateMissingSchemaDids').mockResolvedValue(undefined)
   })
 
   afterEach(() => {
+    vi.restoreAllMocks()
     delete process.env.TRACTION_URL
   })
 
   it('logs when checking starts', async () => {
-    // Mock all axios calls to succeed
-    vi.mocked(axios.get).mockResolvedValue({
-      data: {
-        results: [{ did: 'did:sov:123' }],
-      },
-    })
-    vi.mocked(axios.post).mockResolvedValue({
-      data: {
-        schema_state: {
-          schema_id: 'schema-1',
-          schema: { name: 'test', version: '1.0' },
-        },
-        credential_definition_state: {
-          credential_definition_id: 'cred-def-1',
-        },
-      },
-    })
-    vi.mocked(SchemaModel.findOne).mockResolvedValue(null)
-    vi.mocked(SchemaModel.updateOne).mockResolvedValue({} as any)
-    vi.mocked(CredentialModel.updateOne).mockResolvedValue({} as any)
-    vi.mocked(DidModel.updateOne).mockResolvedValue({} as any)
-    vi.mocked(SchemaModel.find).mockResolvedValue([])
-
     await th.checkSeededSchemasExistOrCreate()
 
     expect(vi.mocked(logger.info)).toHaveBeenCalledWith('Checking seeded schemas')
   })
 
   it('does not rethrow errors, allowing server to continue', async () => {
-    vi.mocked(axios.get).mockRejectedValue(new Error('Fatal error'))
+    vi.mocked(th.getOrCreateIndyDid).mockRejectedValue(new Error('Fatal error'))
 
     await expect(th.checkSeededSchemasExistOrCreate()).resolves.toBeUndefined()
     expect(vi.mocked(logger.error)).toHaveBeenCalled()
   })
 
   it('logs error when an error occurs during DID retrieval', async () => {
-    vi.mocked(axios.get).mockRejectedValue(new Error('API unavailable'))
+    vi.mocked(th.getOrCreateIndyDid).mockRejectedValue(new Error('API unavailable'))
 
     await th.checkSeededSchemasExistOrCreate()
 

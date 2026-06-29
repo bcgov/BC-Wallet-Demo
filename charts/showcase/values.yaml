@@ -109,6 +109,9 @@ showcase:
     shortInvitationUrls:
       enabled: true
     extraEnv: []
+    ## WebVH DID setup during seed/startup. Requires Traction `/did/webvh/config` when enabled.
+    webvh:
+      enabled: false
     ## Traction (ACA-Py tenant proxy): non-secret base URL in values; tenant id + API key from a Secret (see traction.existingSecret).
     traction:
       ## Tenant proxy base URL (no path). Example: https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca

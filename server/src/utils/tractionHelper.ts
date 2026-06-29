@@ -219,7 +219,21 @@ export async function getOrCreateIndyDid(): Promise<string> {
   ).data.result.did
 }
 
-export async function getOrCreateWebvhDid(): Promise<string> {
+/** Opt-in via WEBVH_ENABLED (default false). */
+export function isWebvhEnabled(): boolean {
+  const raw = process.env.WEBVH_ENABLED?.trim().toLowerCase()
+  if (!raw) {
+    return false
+  }
+  return ['true', '1', 'yes', 'on'].includes(raw)
+}
+
+export async function getOrCreateWebvhDid(): Promise<string | null> {
+  if (!isWebvhEnabled()) {
+    logger.debug('WEBVH_ENABLED is not set; skipping WebVH DID setup')
+    return null
+  }
+
   const results = (
     await tractionRequest.get('/wallet/did', {
       params: {
@@ -232,6 +246,7 @@ export async function getOrCreateWebvhDid(): Promise<string> {
   if (results?.length) {
     return results[0].did
   }
+
   const configResponse = await tractionRequest.get('/did/webvh/config')
 
   if (!configResponse.data?.server_url) {
@@ -438,7 +453,9 @@ export const checkSeededSchemasExistOrCreate = async (failOnError: boolean = fal
     const webvhDid = await getOrCreateWebvhDid()
 
     await ensureDidInDatabase(indyDid, 'indy')
-    await ensureDidInDatabase(webvhDid, 'webvh')
+    if (webvhDid) {
+      await ensureDidInDatabase(webvhDid, 'webvh')
+    }
 
     for (const credential of credentialsSeed as (Omit<Credential, 'id'> & { _id: string })[]) {
       try {
