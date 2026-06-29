@@ -8,7 +8,7 @@ import { tractionRequest } from '../utils/tractionHelper'
 @Service()
 export class DeeplinkController {
   @Post('/offerCredential')
-  public async offerCredential(@Body() params: any) {
+  public async offerCredential(@Body({ options: { limit: '10mb' } }) params: any) {
     logger.info({ connectionId: params.connection_id }, 'Deep link: waiting for connection before offering credential')
     const state = await this.waitUntilConnected(params.connection_id)
     if (this.isConnected(state)) {
@@ -23,7 +23,7 @@ export class DeeplinkController {
   }
 
   @Post('/requestProof')
-  public async requestProof(@Body() params: any) {
+  public async requestProof(@Body({ options: { limit: '10mb' } }) params: any) {
     logger.info({ connectionId: params.connection_id }, 'Deep link: waiting for connection before requesting proof')
     const state = await this.waitUntilConnected(params.connection_id)
     if (this.isConnected(state)) {

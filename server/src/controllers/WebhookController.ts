@@ -12,7 +12,7 @@ export class WebhookController {
   public constructor(@Inject() private revocationService: RevocationService) {}
 
   @Post('/*')
-  public async handlePostWhook(@Body() params: any, @Req() req: any) {
+  public async handlePostWhook(@Body({ options: { limit: '10mb' } }) params: any, @Req() req: any) {
     logger.debug({ path: req.path }, 'Webhook payload received')
     const socketMap: Map<string, Socket> | undefined = req.app.get('sockets')
     const api_key = req.headers['x-api-key']
