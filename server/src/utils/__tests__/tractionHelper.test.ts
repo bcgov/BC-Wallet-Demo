@@ -45,7 +45,6 @@ vi.mock('../../../scripts/values/credentials.json', () => ({
 }))
 
 import { CredentialModel } from '../../db/models/Credential'
-import { DidModel } from '../../db/models/Did'
 import { SchemaModel } from '../../db/models/Schema'
 import logger from '../logger'
 import * as th from '../tractionHelper'
@@ -342,9 +341,7 @@ describe('getOrCreateWebvhDid', () => {
     process.env.WEBVH_ENABLED = 'true'
     getSpy.mockResolvedValueOnce({ data: { results: [] } }).mockResolvedValueOnce({ data: {} })
 
-    await expect(th.getOrCreateWebvhDid()).rejects.toThrow(
-      'Webvh server URL not found in Traction webvh config',
-    )
+    await expect(th.getOrCreateWebvhDid()).rejects.toThrow('Webvh server URL not found in Traction webvh config')
   })
 })
 

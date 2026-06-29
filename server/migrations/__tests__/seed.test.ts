@@ -110,8 +110,8 @@ describe('runSeed', () => {
     await runSeed()
 
     expect(tractionHelper.ensureDidInDatabase).toHaveBeenCalledWith('did:sov:test', 'indy')
-    expect(
-      vi.mocked(tractionHelper.ensureDidInDatabase).mock.calls.some(([, method]) => method === 'webvh'),
-    ).toBe(false)
+    expect(vi.mocked(tractionHelper.ensureDidInDatabase).mock.calls.some(([, method]) => method === 'webvh')).toBe(
+      false,
+    )
   })
 })
