@@ -219,7 +219,7 @@ export async function getOrCreateIndyDid(): Promise<string> {
   ).data.result.did
 }
 
-export async function getOrCreateWebvhDid(): Promise<string> {
+export async function getOrCreateWebvhDid(): Promise<string | null> {
   const results = (
     await tractionRequest.get('/wallet/did', {
       params: {
@@ -232,10 +232,22 @@ export async function getOrCreateWebvhDid(): Promise<string> {
   if (results?.length) {
     return results[0].did
   }
-  const configResponse = await tractionRequest.get('/did/webvh/config')
+
+  let configResponse
+  try {
+    configResponse = await tractionRequest.get('/did/webvh/config')
+  } catch (err) {
+    const status = (err as AxiosError).response?.status
+    if (status === 404) {
+      logger.warn('WebVH not available on Traction tenant; skipping WebVH DID setup')
+      return null
+    }
+    throw err
+  }
 
   if (!configResponse.data?.server_url) {
-    throw new Error('Webvh server URL not found in Traction webvh config')
+    logger.warn('WebVH config missing server_url; skipping WebVH DID setup')
+    return null
   }
 
   return (
@@ -438,7 +450,9 @@ export const checkSeededSchemasExistOrCreate = async (failOnError: boolean = fal
     const webvhDid = await getOrCreateWebvhDid()
 
     await ensureDidInDatabase(indyDid, 'indy')
-    await ensureDidInDatabase(webvhDid, 'webvh')
+    if (webvhDid) {
+      await ensureDidInDatabase(webvhDid, 'webvh')
+    }
 
     for (const credential of credentialsSeed as (Omit<Credential, 'id'> & { _id: string })[]) {
       try {

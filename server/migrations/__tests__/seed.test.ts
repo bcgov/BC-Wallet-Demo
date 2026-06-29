@@ -99,4 +99,18 @@ describe('runSeed', () => {
     const doc = await ShowcaseModel.findOne({ 'persona.type': showcases[0].persona?.type }).lean()
     expect(doc?.credentials.every((c) => typeof c === 'string')).toBe(true)
   })
+
+  it('skips webvh did when traction does not provide webvh', async () => {
+    const tractionHelper = await import('../../src/utils/tractionHelper')
+    vi.mocked(tractionHelper.getOrCreateWebvhDid).mockResolvedValue(null)
+    vi.mocked(tractionHelper.ensureDidInDatabase).mockClear()
+
+    const { runSeed } = await import('../seed')
+    await runSeed()
+
+    expect(tractionHelper.ensureDidInDatabase).toHaveBeenCalledWith('did:sov:test', 'indy')
+    expect(
+      vi.mocked(tractionHelper.ensureDidInDatabase).mock.calls.some(([, method]) => method === 'webvh'),
+    ).toBe(false)
+  })
 })
