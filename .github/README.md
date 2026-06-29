@@ -119,7 +119,7 @@ docker build -f frontend/Dockerfile \
 **File:** `.github/workflows/helm-publish-showcase.yaml`  
 **Name:** `Publish showcase Helm chart (GHCR OCI)`
 
-**Triggers:** Push to **`main`** when **`charts/showcase/**`** (or the workflow) changes; **`workflow_dispatch`**.
+**Triggers:** Push to **`main`** when **`charts/showcase/**`** (or the workflow) changes; **`workflow_dispatch`\*\*.
 
 Packages **`charts/showcase`** and pushes to **`oci://ghcr.io/bcgov/bc-wallet-showcase-chart`**. Does not require a chart version bump (overwrites the OCI tag for the packaged version).
 
@@ -130,7 +130,7 @@ Packages **`charts/showcase`** and pushes to **`oci://ghcr.io/bcgov/bc-wallet-sh
 **File:** `.github/workflows/helm-release-showcase.yaml`  
 **Name:** `Release showcase Helm chart (GitHub Pages)`
 
-**Triggers:** Push to **`main`** when **`charts/showcase/**`** (or the workflow) changes; **`workflow_dispatch`**.
+**Triggers:** Push to **`main`** when **`charts/showcase/**`** (or the workflow) changes; **`workflow_dispatch`\*\*.
 
 Runs **chart-releaser** when **`charts/showcase/Chart.yaml`** **`version`** is new: creates a GitHub Release, packages the chart (with vendored dependencies), and updates **`index.yaml`** on the **`gh-pages`** branch.
 
