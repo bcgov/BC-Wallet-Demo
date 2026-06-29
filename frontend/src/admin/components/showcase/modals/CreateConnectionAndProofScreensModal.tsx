@@ -385,6 +385,7 @@ export function CreateConnectionAndProofScreensModal({
                           name: credential?.name || req.name,
                           schema_id: credential?.schema_id,
                           cred_def_id: credential?.cred_def_id,
+                          cred_id: credential?.id,
                           icon: req.icon,
                           properties: req.properties,
                           ...(req.predicates && req.predicates.length > 0 && { predicates: req.predicates }),

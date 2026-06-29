@@ -4,7 +4,7 @@ import { Cog6ToothIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { publicBaseUrl, getAllCredentials, updateShowcase, getShowcaseByName } from '../../../api/adminApi'
+import { publicBaseUrl, updateShowcase, getShowcaseByName } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
 import { formatPredicateValue } from '../../../utils/formatters'
 import logger from '../../../utils/logger'
@@ -67,9 +67,18 @@ export function ScenarioScreenRow({
       if (editingCredIdx !== null && nextScreen?.requestOptions?.requestedCredentials?.[editingCredIdx]) {
         const proofRequest = nextScreen.requestOptions.requestedCredentials[editingCredIdx]
         try {
-          const credentials = await getAllCredentials(auth)
-          const cred = credentials.find((c) => c.name === proofRequest.name)
-          setEditingCredential(cred || null)
+          const showcase = await getShowcaseByName(auth, showcaseName)
+          const cred =
+            showcase.credentials.find((c) => c.id === proofRequest.cred_id) ||
+            showcase.credentials.find((c) => c.schema_id === proofRequest.schema_id) ||
+            null
+
+          if (!cred) {
+            logger.error('Credential not found for proof request', proofRequest)
+            return
+          }
+
+          setEditingCredential(cred)
 
           // Build and set initial attributes when modal opens
           const initialRequest = proofRequest

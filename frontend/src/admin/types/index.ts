@@ -42,6 +42,7 @@ export interface CredentialRequest {
   icon?: string
   schema_id?: string
   cred_def_id?: string
+  cred_id?: string
   predicates?: Predicate[]
   properties?: string[]
   nonRevoked?: { to: number | '$now'; from?: number | '$now' }
