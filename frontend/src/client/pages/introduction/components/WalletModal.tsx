@@ -130,7 +130,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                         color: 'transparent',
                       }}
                       qrOptions={{
-                        errorCorrectionLevel: 'M',
+                        errorCorrectionLevel: 'H',
                       }}
                     />
                   </div>
