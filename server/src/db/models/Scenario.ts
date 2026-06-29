@@ -43,6 +43,7 @@ const CredentialRequestSchema = new Schema<PersistedCredentialRequest>(
     icon: String,
     schema_id: String,
     cred_def_id: String,
+    cred_id: String,
     predicates: [PredicateSchema],
     properties: [String],
     nonRevoked: {

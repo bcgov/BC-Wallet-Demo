@@ -141,6 +141,7 @@
               {
                 "icon": "/public/common/screen/lsbc-logo.png",
                 "name": "member_card",
+                "cred_id": "lawyer-member-card",
                 "properties": ["Given Name", "Surname", "PPID"]
               },
               {
@@ -188,12 +189,14 @@
               {
                 "icon": "/public/common/screen/lsbc-logo.png",
                 "name": "member_card",
+                "cred_id": "lawyer-member-card",
                 "properties": ["Given Name", "Surname", "PPID"],
                 "nonRevoked": { "to": "$now" }
               },
               {
                 "icon": "/public/common/screen/bc-logo.png",
                 "name": "Person",
+                "cred_id": "lawyer-person",
                 "properties": ["given_names", "family_name", "picture"],
                 "nonRevoked": { "to": "$now" }
               }
@@ -237,12 +240,14 @@
               {
                 "icon": "/public/common/screen/bc-logo.png",
                 "name": "Certified Application",
+                "cred_id": "certified-application",
                 "properties": ["Issued At", "Assurance Level"],
                 "nonRevoked": { "to": "$now" }
               },
               {
                 "icon": "/public/common/screen/bc-logo.png",
                 "name": "Person",
+                "cred_id": "lawyer-person",
                 "properties": ["given_names", "family_name", "picture"],
                 "nonRevoked": { "to": "$now" }
               }

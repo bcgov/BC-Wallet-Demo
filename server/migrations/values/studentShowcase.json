@@ -115,6 +115,7 @@
               {
                 "icon": "/public/common/icon/icon-university-card.png",
                 "name": "student_card",
+                "cred_id": "student-card",
                 "predicates": [{ "name": "expiry_date", "type": ">=", "value": "$dateint:0" }]
               }
             ]
@@ -156,6 +157,7 @@
               {
                 "icon": "/public/common/icon/icon-university-card.png",
                 "name": "student_card",
+                "cred_id": "student-card",
                 "properties": ["student_first_name"]
               }
             ]

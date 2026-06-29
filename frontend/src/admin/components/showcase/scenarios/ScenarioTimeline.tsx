@@ -1,4 +1,4 @@
-import type { ScenarioScreen } from '../../../types'
+import type { ScenarioScreen, Showcase } from '../../../types'
 
 import { useMemo } from 'react'
 
@@ -10,7 +10,7 @@ import { ScenarioSectionHeader } from './ScenarioSectionHeader'
 interface ScenarioTimelineProps {
   screens: ScenarioScreen[]
   scenarioId: string
-  showcaseName: string
+  showcase: Showcase
   lineHeight: string
   containerRef: React.RefObject<HTMLDivElement>
   draggedIdx: number | null
@@ -31,7 +31,7 @@ interface ScenarioTimelineProps {
 export function ScenarioTimeline({
   screens,
   scenarioId,
-  showcaseName,
+  showcase,
   lineHeight,
   containerRef,
   draggedIdx,
@@ -68,7 +68,7 @@ export function ScenarioTimeline({
             nextScreen={nextScreen}
             idx={idx}
             scenarioId={scenarioId}
-            showcaseName={showcaseName}
+            showcase={showcase}
             screensLength={screens.length}
             hasProofChild={hasProofChild}
             isPredefinedScreen={isPredefinedScreen}
