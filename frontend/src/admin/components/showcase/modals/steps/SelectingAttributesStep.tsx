@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { getSchemaById, publicBaseUrl } from '../../../../api/adminApi'
-import { truncateLongString } from '../../../../utils/formatters'
+import { formatCustomDateStampValue, truncateLongString } from '../../../../utils/formatters'
 import logger from '../../../../utils/logger'
 
 /* -------------------------------------------------------
@@ -162,7 +162,9 @@ export function SelectingAttributesStep({
                         className="max-w-xs max-h-48 mt-2 rounded-lg border border-gray-200"
                       />
                     ) : (
-                      <p className="text-xs text-gray-500">{truncateLongString(attr.value)}</p>
+                      <p className="text-xs text-gray-500">
+                        {truncateLongString(formatCustomDateStampValue(attr.value, 'issuance'))}
+                      </p>
                     )}
                   </div>
 
@@ -346,7 +348,7 @@ export function SelectingAttributesStep({
                                     : 'bg-white text-gray-700 border border-gray-300 hover:border-bcgov-blue'
                                 }`}
                               >
-                                Time of Presentation
+                                Time of Issuance
                               </button>
                             </div>
                           </div>

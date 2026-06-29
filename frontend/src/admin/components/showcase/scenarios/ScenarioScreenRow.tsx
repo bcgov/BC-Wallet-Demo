@@ -6,7 +6,7 @@ import { useAuth } from 'react-oidc-context'
 
 import { publicBaseUrl, getAllCredentials, updateShowcase, getShowcaseByName } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
-import { formatPredicateValue } from '../../../utils/formatters'
+import { formatCustomDateStampValue } from '../../../utils/formatters'
 import logger from '../../../utils/logger'
 import { ScreenRowBase } from '../ScreenRowBase'
 import { SelectingAttributesStep } from '../modals/steps/SelectingAttributesStep'
@@ -168,7 +168,7 @@ export function ScenarioScreenRow({
                               <div className="text-xs space-y-1 ml-2 mt-2">
                                 <p className="font-semibold text-gray-700">Predicates:</p>
                                 {cred.predicates.map((pred, predIdx) => {
-                                  const displayValue = formatPredicateValue(pred.value)
+                                  const displayValue = formatCustomDateStampValue(pred.value, 'presentation')
                                   return (
                                     <div key={predIdx} className="text-gray-600 flex items-center gap-2">
                                       <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
