@@ -100,9 +100,10 @@ describe('runSeed', () => {
     expect(doc?.credentials.every((c) => typeof c === 'string')).toBe(true)
   })
 
-  it('skips webvh did when traction does not provide webvh', async () => {
+  it('skips webvh did when WEBVH_ENABLED is not set', async () => {
+    delete process.env.WEBVH_ENABLED
     const tractionHelper = await import('../../src/utils/tractionHelper')
-    vi.mocked(tractionHelper.getOrCreateWebvhDid).mockResolvedValue(null)
+    vi.mocked(tractionHelper.getOrCreateWebvhDid).mockRestore()
     vi.mocked(tractionHelper.ensureDidInDatabase).mockClear()
 
     const { runSeed } = await import('../seed')

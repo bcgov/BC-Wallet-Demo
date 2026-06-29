@@ -272,16 +272,35 @@ describe('getOrCreateWebvhDid', () => {
   let postSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    delete process.env.WEBVH_ENABLED
     getSpy = vi.spyOn(th.tractionRequest, 'get')
     postSpy = vi.spyOn(th.tractionRequest, 'post')
   })
 
   afterEach(() => {
+    delete process.env.WEBVH_ENABLED
     getSpy.mockRestore()
     postSpy.mockRestore()
   })
 
-  it('returns existing posted webvh did when present', async () => {
+  it('returns null without calling Traction when WEBVH_ENABLED is unset', async () => {
+    const did = await th.getOrCreateWebvhDid()
+
+    expect(did).toBeNull()
+    expect(getSpy).not.toHaveBeenCalled()
+  })
+
+  it('returns null without calling Traction when WEBVH_ENABLED is false', async () => {
+    process.env.WEBVH_ENABLED = 'false'
+
+    const did = await th.getOrCreateWebvhDid()
+
+    expect(did).toBeNull()
+    expect(getSpy).not.toHaveBeenCalled()
+  })
+
+  it('returns existing posted webvh did when enabled', async () => {
+    process.env.WEBVH_ENABLED = 'true'
     getSpy.mockResolvedValue({
       data: {
         results: [{ did: 'did:webvh:example:abc' }],
@@ -294,31 +313,8 @@ describe('getOrCreateWebvhDid', () => {
     expect(getSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('returns null when webvh config endpoint is unavailable', async () => {
-    getSpy
-      .mockResolvedValueOnce({ data: { results: [] } })
-      .mockRejectedValueOnce({ response: { status: 404 }, message: 'Not Found' })
-
-    const did = await th.getOrCreateWebvhDid()
-
-    expect(did).toBeNull()
-    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-      'WebVH not available on Traction tenant; skipping WebVH DID setup',
-    )
-  })
-
-  it('returns null when webvh config has no server_url', async () => {
-    getSpy.mockResolvedValueOnce({ data: { results: [] } }).mockResolvedValueOnce({ data: {} })
-
-    const did = await th.getOrCreateWebvhDid()
-
-    expect(did).toBeNull()
-    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-      'WebVH config missing server_url; skipping WebVH DID setup',
-    )
-  })
-
-  it('creates a webvh did when config is available', async () => {
+  it('creates a webvh did when enabled and config is available', async () => {
+    process.env.WEBVH_ENABLED = 'true'
     getSpy
       .mockResolvedValueOnce({ data: { results: [] } })
       .mockResolvedValueOnce({ data: { server_url: 'https://webvh.example.com' } })
@@ -340,6 +336,15 @@ describe('getOrCreateWebvhDid', () => {
       }),
     })
     expect(did).toBe('did:webvh:example:new')
+  })
+
+  it('throws when enabled and webvh config has no server_url', async () => {
+    process.env.WEBVH_ENABLED = 'true'
+    getSpy.mockResolvedValueOnce({ data: { results: [] } }).mockResolvedValueOnce({ data: {} })
+
+    await expect(th.getOrCreateWebvhDid()).rejects.toThrow(
+      'Webvh server URL not found in Traction webvh config',
+    )
   })
 })
 

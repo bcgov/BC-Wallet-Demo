@@ -219,7 +219,21 @@ export async function getOrCreateIndyDid(): Promise<string> {
   ).data.result.did
 }
 
+/** Opt-in via WEBVH_ENABLED (default false). */
+export function isWebvhEnabled(): boolean {
+  const raw = process.env.WEBVH_ENABLED?.trim().toLowerCase()
+  if (!raw) {
+    return false
+  }
+  return ['true', '1', 'yes', 'on'].includes(raw)
+}
+
 export async function getOrCreateWebvhDid(): Promise<string | null> {
+  if (!isWebvhEnabled()) {
+    logger.debug('WEBVH_ENABLED is not set; skipping WebVH DID setup')
+    return null
+  }
+
   const results = (
     await tractionRequest.get('/wallet/did', {
       params: {
@@ -233,21 +247,10 @@ export async function getOrCreateWebvhDid(): Promise<string | null> {
     return results[0].did
   }
 
-  let configResponse
-  try {
-    configResponse = await tractionRequest.get('/did/webvh/config')
-  } catch (err) {
-    const status = (err as AxiosError).response?.status
-    if (status === 404) {
-      logger.warn('WebVH not available on Traction tenant; skipping WebVH DID setup')
-      return null
-    }
-    throw err
-  }
+  const configResponse = await tractionRequest.get('/did/webvh/config')
 
   if (!configResponse.data?.server_url) {
-    logger.warn('WebVH config missing server_url; skipping WebVH DID setup')
-    return null
+    throw new Error('Webvh server URL not found in Traction webvh config')
   }
 
   return (

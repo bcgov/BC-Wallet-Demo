@@ -111,6 +111,8 @@ spec:
             {{- end }}
             - name: BASE_ROUTE
               value: {{ .Values.showcase.baseRoute | quote }}
+            - name: WEBVH_ENABLED
+              value: {{ .Values.showcase.server.webvh.enabled | quote }}
             {{- if .Values.showcase.server.traction.url }}
             - name: TRACTION_URL
               value: {{ .Values.showcase.server.traction.url | quote }}
@@ -174,6 +176,8 @@ spec:
               value: {{ .Values.showcase.publicOrigin | quote }}
             - name: SHOWCASE_SHORT_INVITATION_URLS_ENABLED
               value: {{ .Values.showcase.server.shortInvitationUrls.enabled | quote }}
+            - name: WEBVH_ENABLED
+              value: {{ .Values.showcase.server.webvh.enabled | quote }}
             {{- if .Values.showcase.server.traction.url }}
             - name: TRACTION_URL
               value: {{ .Values.showcase.server.traction.url | quote }}
