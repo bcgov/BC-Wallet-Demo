@@ -10,7 +10,7 @@
  * @param forType - The type of time ('issuance' or 'presentation')
  * @returns Formatted display string, or the original value if not a $dateint marker
  */
-export function formatPredicateValue(value: any, forType: 'issuance' | 'presentation'): string | number {
+export function formatCustomDateStampValue(value: any, forType: 'issuance' | 'presentation'): string | number {
   if (typeof value === 'string' && value.startsWith('$dateint:')) {
     const years = parseInt(value.replace('$dateint:', ''), 10)
     if (!isNaN(years)) {

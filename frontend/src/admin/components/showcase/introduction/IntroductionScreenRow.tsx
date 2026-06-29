@@ -7,7 +7,7 @@ import { useAuth } from 'react-oidc-context'
 
 import { getSchemaById, publicBaseUrl, updateCredential } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
-import { formatPredicateValue, truncateLongString } from '../../../utils/formatters'
+import { formatCustomDateStampValue, truncateLongString } from '../../../utils/formatters'
 import logger from '../../../utils/logger'
 import { ProgressIconWithTooltip } from '../ProgressIconWithTooltip'
 import { ScreenRowBase } from '../ScreenRowBase'
@@ -138,7 +138,7 @@ export function IntroductionScreenRow({
                                       <img src={attr.value} alt={attr.name} className="w-8 h-8 object-contain" />
                                     ) : (
                                       <span className="text-gray-600">
-                                        {truncateLongString(formatPredicateValue(attr.value, 'issuance'))}
+                                        {truncateLongString(formatCustomDateStampValue(attr.value, 'issuance'))}
                                       </span>
                                     )}
                                   </div>
