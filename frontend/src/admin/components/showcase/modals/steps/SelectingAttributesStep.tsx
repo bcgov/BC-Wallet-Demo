@@ -346,7 +346,7 @@ export function SelectingAttributesStep({
                                     : 'bg-white text-gray-700 border border-gray-300 hover:border-bcgov-blue'
                                 }`}
                               >
-                                Time of Presentation
+                                Time of Issuance
                               </button>
                             </div>
                           </div>

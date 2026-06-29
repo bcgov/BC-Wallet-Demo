@@ -2,22 +2,25 @@
  * Converts a $dateint marker to a human-readable display string.
  *
  * Supported markers:
- *   `$dateint:0`   → 'Time of Presentation'
- *   `$dateint:1`   → 'Time of Presentation + 1 years'
- *   `$dateint:-19` → 'Time of Presentation - 19 years'
+ *   `$dateint:0`   → 'Time of Issuance' or 'Time of Presentation'
+ *   `$dateint:1`   → 'Time of Issuance + 1 years' or 'Time of Presentation + 1 years'
+ *   `$dateint:-19` → 'Time of Issuance - 19 years' or 'Time of Presentation - 19 years'
  *
  * @param value - The predicate value to format
+ * @param forType - The type of time ('issuance' or 'presentation')
  * @returns Formatted display string, or the original value if not a $dateint marker
  */
-export function formatPredicateValue(value: any): string | number {
+export function formatPredicateValue(value: any, forType: 'issuance' | 'presentation'): string | number {
   if (typeof value === 'string' && value.startsWith('$dateint:')) {
     const years = parseInt(value.replace('$dateint:', ''), 10)
     if (!isNaN(years)) {
       if (years === 0) {
-        return 'Time of Presentation'
+        return forType === 'issuance' ? 'Time of Issuance' : 'Time of Presentation'
       } else {
         const operator = years > 0 ? '+' : '-'
-        return `Time of Presentation ${operator} ${Math.abs(years)} years`
+        return forType === 'issuance'
+          ? `Time of Issuance ${operator} ${Math.abs(years)} years`
+          : `Time of Presentation ${operator} ${Math.abs(years)} years`
       }
     }
   }

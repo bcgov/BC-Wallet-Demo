@@ -138,7 +138,7 @@ export function IntroductionScreenRow({
                                       <img src={attr.value} alt={attr.name} className="w-8 h-8 object-contain" />
                                     ) : (
                                       <span className="text-gray-600">
-                                        {truncateLongString(formatPredicateValue(attr.value))}
+                                        {truncateLongString(formatPredicateValue(attr.value, 'issuance'))}
                                       </span>
                                     )}
                                   </div>

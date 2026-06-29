@@ -168,7 +168,7 @@ export function ScenarioScreenRow({
                               <div className="text-xs space-y-1 ml-2 mt-2">
                                 <p className="font-semibold text-gray-700">Predicates:</p>
                                 {cred.predicates.map((pred, predIdx) => {
-                                  const displayValue = formatPredicateValue(pred.value)
+                                  const displayValue = formatPredicateValue(pred.value, 'presentation')
                                   return (
                                     <div key={predIdx} className="text-gray-600 flex items-center gap-2">
                                       <span className="w-1 h-1 bg-gray-400 rounded-full"></span>

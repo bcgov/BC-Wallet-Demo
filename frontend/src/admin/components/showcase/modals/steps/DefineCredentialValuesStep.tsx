@@ -147,10 +147,21 @@ export function DefineCredentialValuesStep({
       selectedSchema.attributes.forEach((attr) => {
         if (attr.type === 'date') {
           if (dateOptions[attr.name] === 'custom' || dateOptions[attr.name] === undefined) {
-            // Expecting a date string in YYYY-MM-DD format, convert to timestamp
-            const dateValue = new Date(values[attr.name])
-            if (!isNaN(dateValue.getTime())) {
-              finalValues[attr.name] = Math.floor(dateValue.getTime() / 1000).toString()
+            // Convert date to YYYYMMDD format
+            const dateValue = values[attr.name]
+            if (dateValue) {
+              // Check if it's a Unix timestamp (number) or date string
+              const timestampMs = !isNaN(Number(dateValue))
+                ? Number(dateValue) * 1000 // Assume it's seconds, convert to milliseconds
+                : new Date(dateValue).getTime() // Parse as date string
+
+              if (!isNaN(timestampMs)) {
+                const date = new Date(timestampMs)
+                const year = date.getUTCFullYear()
+                const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+                const day = String(date.getUTCDate()).padStart(2, '0')
+                finalValues[attr.name] = `${year}${month}${day}`
+              }
             }
           } else if (dateOptions[attr.name] === 'issuance') {
             const yearOffset = yearOffsets[attr.name] || 0
