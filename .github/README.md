@@ -114,29 +114,20 @@ docker build -f frontend/Dockerfile \
 
 ---
 
-## Workflow: Publish showcase Helm chart (GHCR OCI)
-
-**File:** `.github/workflows/helm-publish-showcase.yaml`  
-**Name:** `Publish showcase Helm chart (GHCR OCI)`
-
-**Triggers:** Push to **`main`** when **`charts/showcase/**`** (or the workflow) changes; **`workflow_dispatch`\*\*.
-
-Packages **`charts/showcase`** and pushes to **`oci://ghcr.io/bcgov/bc-wallet-showcase-chart`**. Does not require a chart version bump (overwrites the OCI tag for the packaged version).
-
----
-
 ## Workflow: Release showcase Helm chart (GitHub Pages)
 
 **File:** `.github/workflows/helm-release-showcase.yaml`  
 **Name:** `Release showcase Helm chart (GitHub Pages)`
 
-**Triggers:** Push to **`main`** when **`charts/showcase/**`** (or the workflow) changes; **`workflow_dispatch`\*\*.
+**Triggers:** **`release`** (`published`); manual **`workflow_dispatch`** (optional `ref` input).
 
-Runs **chart-releaser** when **`charts/showcase/Chart.yaml`** **`version`** is new: creates a GitHub Release, packages the chart (with vendored dependencies), and updates **`index.yaml`** on the **`gh-pages`** branch.
+Runs **chart-releaser** when **`charts/showcase/Chart.yaml`** **`version`** is new: packages the chart (with vendored dependencies), creates or updates the GitHub Release, and updates **`index.yaml`** on the **`gh-pages`** branch.
 
 **Helm repo URL:** `https://bcgov.github.io/BC-Wallet-Demo`
 
 **One-time setup:** In the GitHub repository, enable **Pages** with source branch **`gh-pages`** / **`/ (root)`**.
+
+**Release flow:** merge chart changes with a bumped **`Chart.yaml`** version, then publish a GitHub Release (tag at that commit). The workflow runs on **`release: published`**.
 
 **Install:**
 

@@ -1,14 +1,15 @@
 name: Release showcase Helm chart (GitHub Pages)
 
 on:
+  release:
+    types: [published]
+
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'charts/showcase/**'
-      - '.github/workflows/helm-release-showcase.yaml'
-      - '.github/actions/showcase-helm-lint/**'
+    inputs:
+      ref:
+        description: Optional git ref (branch, tag, or SHA). Defaults to the branch selected in Run workflow.
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -25,6 +26,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
+          ref: ${{ inputs.ref || github.ref }}
 
       - uses: ./.github/actions/showcase-helm-lint
         with:
@@ -49,7 +51,7 @@ jobs:
           {
             echo "### Showcase chart (GitHub Pages)"
             echo ""
-            echo "When \`charts/showcase/Chart.yaml\` **version** increases, chart-releaser publishes a GitHub Release and updates the **gh-pages** index."
+            echo "chart-releaser publishes when a GitHub Release is published and \`charts/showcase/Chart.yaml\` **version** is new."
             echo ""
             echo "**Helm repo:** \`https://bcgov.github.io/BC-Wallet-Demo\`"
             echo ""
