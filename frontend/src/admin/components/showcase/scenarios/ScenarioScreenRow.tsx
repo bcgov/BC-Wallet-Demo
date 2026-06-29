@@ -1,10 +1,10 @@
-import type { ScenarioScreen, Credential, CredentialRequest } from '../../../types'
+import type { ScenarioScreen, Credential, CredentialRequest, Showcase } from '../../../types'
 
 import { Cog6ToothIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 
-import { publicBaseUrl, updateShowcase, getShowcaseByName } from '../../../api/adminApi'
+import { publicBaseUrl, updateShowcase } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
 import { formatPredicateValue } from '../../../utils/formatters'
 import logger from '../../../utils/logger'
@@ -16,7 +16,7 @@ interface ScenarioScreenRowProps {
   nextScreen?: ScenarioScreen
   idx: number
   scenarioId: string
-  showcaseName: string
+  showcase: Showcase
   screensLength: number
   hasProofChild: boolean
   isPredefinedScreen: boolean
@@ -39,7 +39,7 @@ export function ScenarioScreenRow({
   nextScreen,
   idx,
   scenarioId,
-  showcaseName,
+  showcase,
   screensLength,
   hasProofChild,
   isPredefinedScreen,
@@ -67,7 +67,6 @@ export function ScenarioScreenRow({
       if (editingCredIdx !== null && nextScreen?.requestOptions?.requestedCredentials?.[editingCredIdx]) {
         const proofRequest = nextScreen.requestOptions.requestedCredentials[editingCredIdx]
         try {
-          const showcase = await getShowcaseByName(auth, showcaseName)
           const cred =
             showcase.credentials.find((c) => c.id === proofRequest.cred_id) ||
             showcase.credentials.find((c) => c.schema_id === proofRequest.schema_id) ||
@@ -75,6 +74,7 @@ export function ScenarioScreenRow({
 
           if (!cred) {
             logger.error('Credential not found for proof request', proofRequest)
+            setEditingCredential(null)
             return
           }
 
@@ -118,7 +118,7 @@ export function ScenarioScreenRow({
       }
     }
     fetchCredential()
-  }, [editingCredIdx, auth.isAuthenticated, nextScreen])
+  }, [editingCredIdx, showcase, nextScreen])
 
   return (
     <>
@@ -234,119 +234,118 @@ export function ScenarioScreenRow({
       />
 
       {/* Edit Proof Request Modal */}
-      {editingCredIdx !== null && nextScreen?.requestOptions?.requestedCredentials?.[editingCredIdx] && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <SelectingAttributesStep
-                currentCredential={editingCredential}
-                selectedAttributes={selectedAttributes}
-                currentIndex={0}
-                totalCredentials={1}
-                initialRequest={nextScreen.requestOptions?.requestedCredentials?.[editingCredIdx]}
-                onUpdateAttribute={(attrName, request) => {
-                  const updated = new Map(selectedAttributes)
-                  updated.set(attrName, request)
-                  setSelectedAttributes(updated)
-                }}
-                onRemoveAttribute={(attrName) => {
-                  const updated = new Map(selectedAttributes)
-                  updated.delete(attrName)
-                  setSelectedAttributes(updated)
-                }}
-                onPrevious={() => {}}
-                onNext={() => {}}
-                onContinue={async () => {
-                  try {
-                    // Convert selectedAttributes Map back to proof request format
-                    const properties: string[] = []
-                    const predicates: any[] = []
-                    let nonRevoked = false
+      {editingCredIdx !== null &&
+        editingCredential &&
+        nextScreen?.requestOptions?.requestedCredentials?.[editingCredIdx] && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <SelectingAttributesStep
+                  currentCredential={editingCredential}
+                  selectedAttributes={selectedAttributes}
+                  currentIndex={0}
+                  totalCredentials={1}
+                  initialRequest={nextScreen.requestOptions?.requestedCredentials?.[editingCredIdx]}
+                  onUpdateAttribute={(attrName, request) => {
+                    const updated = new Map(selectedAttributes)
+                    updated.set(attrName, request)
+                    setSelectedAttributes(updated)
+                  }}
+                  onRemoveAttribute={(attrName) => {
+                    const updated = new Map(selectedAttributes)
+                    updated.delete(attrName)
+                    setSelectedAttributes(updated)
+                  }}
+                  onPrevious={() => {}}
+                  onNext={() => {}}
+                  onContinue={async () => {
+                    try {
+                      // Convert selectedAttributes Map back to proof request format
+                      const properties: string[] = []
+                      const predicates: any[] = []
+                      let nonRevoked = false
 
-                    selectedAttributes.forEach((request, attrName) => {
-                      if (request.property) {
-                        properties.push(attrName)
-                      }
-                      if (request.predicate) {
-                        predicates.push({
-                          name: attrName,
-                          type: request.predicateType,
-                          value: request.predicateValue,
-                        })
-                      }
-                      if (request.nonRevoked) {
-                        nonRevoked = true
-                      }
-                    })
-
-                    // Fetch the current showcase
-                    const currentShowcase = await getShowcaseByName(auth, showcaseName)
-
-                    // Find and update the proof request in the scenarios
-                    const updatedScenarios = currentShowcase.scenarios.map((scenario) => {
-                      if (scenario.id === scenarioId) {
-                        return {
-                          ...scenario,
-                          screens: scenario.screens.map((scenarioScreen) => {
-                            if (scenarioScreen.screenId === nextScreen?.screenId && scenarioScreen.requestOptions) {
-                              const updatedCredentials = scenarioScreen.requestOptions.requestedCredentials.map(
-                                (cred, credIdx) => {
-                                  if (credIdx === editingCredIdx) {
-                                    const updated: CredentialRequest = {
-                                      ...cred,
-                                      properties: properties.length > 0 ? properties : undefined,
-                                      predicates: predicates.length > 0 ? predicates : undefined,
-                                      nonRevoked: nonRevoked ? { to: '$now' as const } : undefined,
-                                    }
-                                    return updated
-                                  }
-                                  return cred
-                                },
-                              )
-                              return {
-                                ...scenarioScreen,
-                                requestOptions: {
-                                  ...scenarioScreen.requestOptions,
-                                  requestedCredentials: updatedCredentials,
-                                },
-                              }
-                            }
-                            return scenarioScreen
-                          }),
+                      selectedAttributes.forEach((request, attrName) => {
+                        if (request.property) {
+                          properties.push(attrName)
                         }
+                        if (request.predicate) {
+                          predicates.push({
+                            name: attrName,
+                            type: request.predicateType,
+                            value: request.predicateValue,
+                          })
+                        }
+                        if (request.nonRevoked) {
+                          nonRevoked = true
+                        }
+                      })
+
+                      // Find and update the proof request in the scenarios
+                      const updatedScenarios = showcase.scenarios.map((scenario) => {
+                        if (scenario.id === scenarioId) {
+                          return {
+                            ...scenario,
+                            screens: scenario.screens.map((scenarioScreen) => {
+                              if (scenarioScreen.screenId === nextScreen?.screenId && scenarioScreen.requestOptions) {
+                                const updatedCredentials = scenarioScreen.requestOptions.requestedCredentials.map(
+                                  (cred, credIdx) => {
+                                    if (credIdx === editingCredIdx) {
+                                      const updated: CredentialRequest = {
+                                        ...cred,
+                                        properties: properties.length > 0 ? properties : undefined,
+                                        predicates: predicates.length > 0 ? predicates : undefined,
+                                        nonRevoked: nonRevoked ? { to: '$now' as const } : undefined,
+                                      }
+                                      return updated
+                                    }
+                                    return cred
+                                  },
+                                )
+                                return {
+                                  ...scenarioScreen,
+                                  requestOptions: {
+                                    ...scenarioScreen.requestOptions,
+                                    requestedCredentials: updatedCredentials,
+                                  },
+                                }
+                              }
+                              return scenarioScreen
+                            }),
+                          }
+                        }
+                        return scenario
+                      })
+
+                      // Update the showcase with the modified scenarios
+                      await updateShowcase(auth, showcase.name, {
+                        scenarios: updatedScenarios,
+                      })
+
+                      logger.info('Proof request updated successfully')
+
+                      // Refresh the showcase state in parent component
+                      if (onRefreshShowcase) {
+                        await onRefreshShowcase()
                       }
-                      return scenario
-                    })
-
-                    // Update the showcase with the modified scenarios
-                    await updateShowcase(auth, showcaseName, {
-                      scenarios: updatedScenarios,
-                    })
-
-                    logger.info('Proof request updated successfully')
-
-                    // Refresh the showcase state in parent component
-                    if (onRefreshShowcase) {
-                      await onRefreshShowcase()
+                    } catch (error) {
+                      logger.error('Error updating showcase:', error)
                     }
-                  } catch (error) {
-                    logger.error('Error updating showcase:', error)
-                  }
 
-                  setEditingCredIdx(null)
-                  setSelectedAttributes(new Map())
-                  setEditingCredential(null)
-                }}
-                onClose={() => {
-                  setEditingCredIdx(null)
-                  setSelectedAttributes(new Map())
-                  setEditingCredential(null)
-                }}
-              />
+                    setEditingCredIdx(null)
+                    setSelectedAttributes(new Map())
+                    setEditingCredential(null)
+                  }}
+                  onClose={() => {
+                    setEditingCredIdx(null)
+                    setSelectedAttributes(new Map())
+                    setEditingCredential(null)
+                  }}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </>
   )
 }

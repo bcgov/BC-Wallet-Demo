@@ -166,7 +166,7 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
                 key={scenario.id}
                 screens={currentScreens}
                 scenarioId={scenario.id}
-                showcaseName={showcase.name}
+                showcase={showcase}
                 lineHeight={lineHeight}
                 containerRef={containerRef}
                 draggedIdx={draggedIdx}
