@@ -2435,6 +2435,13 @@ csstype@^3.2.2:
   resolved "https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz"
   integrity sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==
 
+custom-qr-code@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/custom-qr-code/-/custom-qr-code-2.0.3.tgz#813ebf7d1bce2d65d016bba78afc28cd5dbf2937"
+  integrity sha512-TxdICdFyImwctnSzPngSe6j+cWTq7ej+rjAB0UHxkeQER7K0CUifZxQZzIeWiFBPkzJZfoIUdp3sDYxF7lU09Q==
+  dependencies:
+    qrcode-generator "^1.5.0"
+
 cypress@^13:
   version "13.17.0"
   resolved "https://registry.npmjs.org/cypress/-/cypress-13.17.0.tgz"
@@ -5634,10 +5641,10 @@ punycode@^2.1.0, punycode@^2.3.1:
   resolved "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-qrcode.react@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.npmjs.org/qrcode.react/-/qrcode.react-4.2.0.tgz"
-  integrity sha512-QpgqWi8rD9DsS9EP3z7BT+5lY5SFhsqGjpgW5DY/i3mK4M9DTBNz3ErMi8BWYEfI3L0d8GIbGmcdFAS1uIRGjA==
+qrcode-generator@^1.5.0:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/qrcode-generator/-/qrcode-generator-1.5.2.tgz#43faea8061a60d2b4ca5e9b0c0c0fb99e2d93e3a"
+  integrity sha512-pItrW0Z9HnDBnFmgiNrY1uxRdri32Uh9EjNYLPVC2zZ3ZRIIEqBoDgm4DkvDwNNDHTK7FNkmr8zAa77BYc9xNw==
 
 qs@^6.14.1, qs@^6.5.2:
   version "6.15.1"

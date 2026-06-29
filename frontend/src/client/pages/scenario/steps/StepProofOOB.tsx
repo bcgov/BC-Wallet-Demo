@@ -17,6 +17,7 @@ import { useAppDispatch } from '../../../hooks/hooks'
 import { useProof } from '../../../slices/proof/proofSelectors'
 import { createProofOOB, deleteProofById, fetchProofById } from '../../../slices/proof/proofThunks'
 import { useSocket } from '../../../slices/socket/socketSelector'
+import { prependApiUrl } from '../../../utils/Url'
 import log from '../../../utils/logger'
 import { ProofAttributesCard } from '../components/ProofAttributesCard'
 import { StepInfo } from '../components/StepInfo'
@@ -130,9 +131,12 @@ export const StepProofOOB: React.FC<Props> = ({ proof, step, requestedCredential
   }, [proofFailed])
 
   const qrUrl = shortProofUrl ?? proofUrl
+  const qrImage = step.verifier?.icon ? prependApiUrl(step.verifier.icon) : undefined
 
   const renderQRCode = (overlay?: boolean) => {
-    return qrUrl ? <QRCode invitationUrl={qrUrl} connectionState={proof?.state} overlay={overlay} /> : null
+    return qrUrl ? (
+      <QRCode invitationUrl={qrUrl} connectionState={proof?.state} overlay={overlay} image={qrImage} />
+    ) : null
   }
 
   const renderCTA = proofFailed ? (

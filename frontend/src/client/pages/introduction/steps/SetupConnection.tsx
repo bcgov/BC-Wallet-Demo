@@ -30,6 +30,7 @@ export interface Props {
   title: string
   text: string
   backgroundImage?: string
+  credentialIcon?: string
   onConnectionComplete?: () => void
 }
 
@@ -46,6 +47,7 @@ export const SetupConnection: React.FC<Props> = ({
   issuerName,
   disableSkipConnection,
   backgroundImage,
+  credentialIcon,
   onConnectionComplete,
 }) => {
   const deepLink = `bcwallet://aries_connection_invitation?${invitationUrl?.split('?')[1]}`
@@ -91,8 +93,12 @@ export const SetupConnection: React.FC<Props> = ({
 
   const qrUrl = shortInvitationUrl ?? invitationUrl
 
+  const qrImage = credentialIcon ? prependApiUrl(credentialIcon) : undefined
+
   const renderQRCode = (overlay?: boolean) => {
-    return qrUrl ? <QRCode invitationUrl={qrUrl} connectionState={connectionState} overlay={overlay} /> : null
+    return qrUrl ? (
+      <QRCode invitationUrl={qrUrl} connectionState={connectionState} overlay={overlay} image={qrImage} />
+    ) : null
   }
 
   const handleDeepLink = () => {
