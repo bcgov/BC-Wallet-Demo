@@ -114,6 +114,31 @@ docker build -f frontend/Dockerfile \
 
 ---
 
+## Workflow: Release showcase Helm chart (GitHub Pages)
+
+**File:** `.github/workflows/helm-release-showcase.yaml`  
+**Name:** `Release showcase Helm chart (GitHub Pages)`
+
+**Triggers:** **`release`** (`published`); manual **`workflow_dispatch`** (optional `ref` input).
+
+Runs **chart-releaser** when **`charts/showcase/Chart.yaml`** **`version`** is new: packages the chart (with vendored dependencies), creates or updates the GitHub Release, and updates **`index.yaml`** on the **`gh-pages`** branch.
+
+**Helm repo URL:** `https://bcgov.github.io/BC-Wallet-Demo`
+
+**One-time setup:** In the GitHub repository, enable **Pages** with source branch **`gh-pages`** / **`/ (root)`**.
+
+**Release flow:** merge chart changes with a bumped **`Chart.yaml`** version, then publish a GitHub Release (tag at that commit). The workflow runs on **`release: published`**.
+
+**Install:**
+
+```bash
+helm repo add bc-wallet-showcase https://bcgov.github.io/BC-Wallet-Demo
+helm repo update
+helm install my-showcase bc-wallet-showcase/showcase --version <chart-version>
+```
+
+---
+
 ## Related docs
 
 - Root [README.md](../README.md) — run and Docker overview for developers.

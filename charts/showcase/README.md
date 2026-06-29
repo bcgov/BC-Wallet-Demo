@@ -17,6 +17,22 @@ helm dependency update
 
 ## Install
 
+### From the GitHub Pages Helm repo
+
+Publishing a **GitHub Release** runs **chart-releaser** and updates the **`gh-pages`** index (see **`.github/workflows/helm-release-showcase.yaml`**). Bump **`charts/showcase/Chart.yaml`** **`version`** before cutting the release. Enable **GitHub Pages** on the repository (**Settings → Pages → Deploy from branch `gh-pages` / root**) before the first release.
+
+```bash
+helm repo add bc-wallet-showcase https://bcgov.github.io/BC-Wallet-Demo
+helm repo update
+helm search repo bc-wallet-showcase
+
+helm upgrade --install my-showcase bc-wallet-showcase/showcase \
+  --version <chart-version> \
+  -f deploy/showcase/values-dev.yaml \
+  --namespace <namespace> \
+  --create-namespace
+```
+
 ### OpenShift / BC Gov Silver (recommended overlay)
 
 Use **`deploy/showcase/values-dev.yaml`** for the shared **dev** overlay (ingress, route timeouts, optional auto-secrets, NetworkPolicy, public dev URL). Copy or override for other namespaces or hostnames.
@@ -122,6 +138,6 @@ Quick **public** checks (replace host with yours): **`curl -i`** to **`…/serve
 
 ## CI
 
-PRs touching **`charts/showcase/**`** or **`deploy/showcase/**`** run **`helm dependency update`**, **`helm lint`** (default values, **`deploy/showcase/values-dev.yaml`**, and **`deploy/showcase/values-pr.yaml`**), and **`helm template`** (see **`.github/workflows/helm-lint-showcase.yaml`**). Merges to **`main`** can run **`Deploy showcase (dev)`** when repository variables and a token secret are configured (see **`.github/workflows/deploy-showcase-dev.yaml`**).
+PRs touching **`charts/showcase/**`** or **`deploy/showcase/**`** run **`helm dependency update`**, **`helm lint`** (default values, **`deploy/showcase/values-dev.yaml`**, and **`deploy/showcase/values-pr.yaml`**), and **`helm template`** (see **`.github/workflows/helm-lint-showcase.yaml`**). Publishing a **GitHub Release** runs **chart-releaser** to **GitHub Pages** (**`.github/workflows/helm-release-showcase.yaml`**). Merges to **`main`** can run **`Deploy showcase (dev)`** when repository variables and a token secret are configured (see **`.github/workflows/deploy-showcase-dev.yaml`**).
 
 **PR environments** (bcgov repo only): **`.github/workflows/deploy-showcase-pr.yaml`** builds and pushes **`ghcr.io/bcgov/bc-wallet-showcase-{server,frontend}:pr-<N>`**, then **`helm upgrade --install pr-<N>-showcase`** with **`deploy/showcase/values-pr.yaml`**. Public URL uses workflow default host suffix **`bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca`** (override with repository variable **`SHOWCASE_PR_HOST_SUFFIX`** if needed). Requires OpenShift secrets **`OPENSHIFT_SERVER`**, **`OPENSHIFT_TOKEN`**, **`OPENSHIFT_DEV_NAMESPACE`**. **`.github/workflows/undeploy-showcase-pr.yaml`** runs on PR close to **`helm uninstall`** and delete labeled **`Secret`**/**`PVC`**.
