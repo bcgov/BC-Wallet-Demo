@@ -91,7 +91,7 @@ export class CredentialController {
   }
 
   @Post('/offerCredential')
-  public async offerCredential(@Body() params: CredentialOfferParams) {
+  public async offerCredential(@Body({ options: { limit: '10mb' } }) params: CredentialOfferParams) {
     logger.debug({ incomingParams: params }, 'Incoming credential offer params')
     const resolvedAttributes =
       params.credential_preview?.attributes != null
