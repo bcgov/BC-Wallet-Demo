@@ -232,7 +232,7 @@ export async function getOrCreateWebvhDid(): Promise<string> {
   if (results?.length) {
     return results[0].did
   }
-  const configResponse = await tractionRequest.get('/did/webvh/config')
+  const configResponse = await tractionRequest.get('/did/webvh/configuration')
 
   if (!configResponse.data?.server_url) {
     throw new Error('Webvh server URL not found in Traction webvh config')
