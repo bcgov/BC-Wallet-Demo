@@ -8,8 +8,9 @@
 #     SHOWCASE_DEV_OC_URL        — API URL, e.g. https://api.silver.devops.gov.bc.ca:6443
 #     SHOWCASE_DEV_NAMESPACE     — Target namespace (must already exist)
 #     SHOWCASE_DEV_PUBLIC_ORIGIN — Optional. Browser origin for Vite `VITE_HOST_BACKEND` in the
-#                                  frontend image (scheme + host, no path). Defaults to the URL
-#                                  in deploy/showcase/values-dev.yaml — set this if dev hostname changes.
+#                                  `:main` frontend image (scheme + host, no path). When unset,
+#                                  the image is built for same-origin (empty host) so prod/test/dev
+#                                  can share one tag. Set only if you need a fixed cross-host backend.
 #   Optional variable:
 #     SHOWCASE_DEV_HELM_RELEASE  — Helm release name (default: showcase)
 #   Secret:
@@ -88,7 +89,7 @@ jobs:
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
           tag: main
-          react_app_host_backend: ${{ vars.SHOWCASE_DEV_PUBLIC_ORIGIN || 'https://bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+          react_app_host_backend: ${{ vars.SHOWCASE_DEV_PUBLIC_ORIGIN }}
           react_app_insights_project_id: ${{ vars.REACT_APP_INSIGHTS_PROJECT_ID || secrets.REACT_APP_INSIGHTS_PROJECT_ID }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
