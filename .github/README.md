@@ -72,9 +72,9 @@ This folder defines automation for the BC Wallet Demo monorepo (`frontend` and `
 
 ### Job graph
 
-1. **`cypress-run`** (conditional) — On every **release** publish, or when manual dispatch sets `run_cypress: true`. Checks out the repo, uses `setup-node` (Node 22), runs `yarn install --frozen-lockfile`, starts `yarn dev` in the background, waits with `wait-on` for `http://localhost:3000` and `http://localhost:5000`, short warm-up sleep, then runs **Cypress** (`cypress-io/github-action@v6`, `install: false`, optional Dashboard recording via `CYPRESS_RECORD_KEY`).
+1. **`cypress-run`** (conditional) — Only when manual **`workflow_dispatch`** sets `run_cypress: true`. Checks out the repo, uses `setup-node` (Node 22), runs `yarn install --frozen-lockfile`, starts `yarn dev` in the background, waits with `wait-on` for `http://localhost:3000` and `http://localhost:5000`, short warm-up sleep, then runs **Cypress** (`cypress-io/github-action@v6`, `install: false`, optional Dashboard recording via `CYPRESS_RECORD_KEY`).
 
-2. **`cypress-skipped`** — Runs when Cypress is not required (manual dispatch with `run_cypress: false`). Satisfies `needs` for the image jobs without doing work.
+2. **`cypress-skipped`** — On **release** publish (E2E skipped) or manual dispatch with `run_cypress: false`. Satisfies `needs` for the image jobs without doing work.
 
 3. **`build-and-push-image-server`** and **`build-and-push-image-frontend`** — Both `need` the Cypress jobs and only proceed if nothing failed and at least one of the Cypress paths succeeded (see `if:` in the workflow). They **do not** run `yarn install` on the runner: the only install/build for the published images happens **inside Docker**, avoiding duplicate work.
 

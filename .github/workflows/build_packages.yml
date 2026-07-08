@@ -25,7 +25,7 @@ jobs:
     name: Cypress E2E (optional)
     runs-on: ubuntu-latest
     timeout-minutes: 180
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.run_cypress)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_cypress
     permissions:
       contents: read
     steps:
@@ -68,7 +68,7 @@ jobs:
   cypress-skipped:
     name: Cypress skipped
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && !inputs.run_cypress
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.run_cypress)
     permissions:
       contents: read
     steps:
