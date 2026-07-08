@@ -7,16 +7,6 @@ name: Showcase PR — uninstall
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'charts/showcase/**'
-      - 'deploy/showcase/**'
-      - 'frontend/**'
-      - 'server/**'
-      - 'package.json'
-      - 'yarn.lock'
-      - '.github/workflows/deploy-showcase-pr.yaml'
-      - '.github/workflows/undeploy-showcase-pr.yaml'
-      - '.github/scripts/showcase-traction-webhook.sh'
     types: [closed]
 
 permissions:
