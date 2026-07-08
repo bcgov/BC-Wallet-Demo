@@ -43,6 +43,7 @@ git checkout -b release/v0.2.0
 Update both version files to the new version:
 
 **`package.json`** (update the `version` field):
+
 ```json
 {
   "name": "bc-wallet-demo",
@@ -52,6 +53,7 @@ Update both version files to the new version:
 ```
 
 **`charts/showcase/Chart.yaml`** (update the `version` field):
+
 ```yaml
 apiVersion: v2
 name: showcase
@@ -76,6 +78,7 @@ git push origin release/v0.2.0
 ```
 
 Create a pull request on GitHub. This triggers:
+
 - Unit tests (server + frontend)
 - Cypress E2E tests
 - Helm chart lint
@@ -98,10 +101,12 @@ On GitHub, go to [Releases](https://github.com/bcgov/BC-Wallet-Demo/releases) an
 Both workflows should trigger automatically:
 
 #### a. Verify Docker Images
+
 - Go to [GHCR packages](https://github.com/bcgov/bc-wallet-demo/pkgs/container)
 - Check `bc-wallet-showcase-server` and `bc-wallet-showcase-frontend` have new tags with the version
 
 #### b. Verify Helm Chart Published
+
 - Go to [GitHub Pages Helm repo](https://bcgov.github.io/BC-Wallet-Demo)
 - Add the repo and search:
   ```bash
@@ -116,6 +121,7 @@ Both workflows should trigger automatically:
 ### Docker Build Failed
 
 Check the `build_packages.yml` workflow logs:
+
 - Cypress tests may have failed
 - Docker build may have failed
 - Fix the issue, update versions if needed, and create a new release tag
@@ -123,6 +129,7 @@ Check the `build_packages.yml` workflow logs:
 ### Helm Chart Not Published
 
 The `helm-release-showcase.yaml` workflow will fail with an error if:
+
 - **Chart.yaml version wasn't bumped** — compare with the previous release tag
   ```bash
   git show v0.1.0:charts/showcase/Chart.yaml | grep version
@@ -132,6 +139,7 @@ The `helm-release-showcase.yaml` workflow will fail with an error if:
 ### Version Not Bumped Error
 
 If you see:
+
 ```
 ❌ Chart.yaml version has not changed.
    Current version: 0.4.0
@@ -140,6 +148,7 @@ If you see:
 ```
 
 **Solution:**
+
 1. Update `Chart.yaml` to a new version (e.g., `0.4.1` → `0.5.0`)
 2. Commit with: `git commit -am "chore(release): bump Chart.yaml to v0.5.0"`
 3. Create a new GitHub Release with a new tag (delete the failed tag first if needed)
@@ -149,6 +158,7 @@ If you see:
 If a release needs to be rolled back:
 
 1. Delete the tag locally and remotely:
+
    ```bash
    git tag -d v0.2.0
    git push origin :refs/tags/v0.2.0
