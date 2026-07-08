@@ -42,34 +42,38 @@ jobs:
           set -euo pipefail
           current_version=$(grep '^version:' charts/showcase/Chart.yaml | awk '{print $2}')
 
-          # Find the latest tag (assuming semantic versioning: v* or chart-*-v*)
-          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # When checkout is on the release tag, git describe returns that same tag — compare
+          # Chart.yaml to the *previous* tag, not the tag being published.
+          current_tag=$(git describe --tags --exact-match 2>/dev/null || echo "")
+          if [[ -n "$current_tag" ]]; then
+            prev_tag=$(git tag --sort=-v:refname | awk -v cur="$current_tag" '$0 != cur {print; exit}')
+          else
+            prev_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          fi
 
-          if [[ -z "$latest_tag" ]]; then
-            echo "ℹ️  No previous tags found. First release — proceeding."
+          if [[ -z "$prev_tag" ]]; then
+            echo "ℹ️  No previous tag found. First chart release — proceeding."
             exit 0
           fi
 
-          # Extract Chart.yaml version from the previous release
-          prev_version=$(git show "$latest_tag:charts/showcase/Chart.yaml" 2>/dev/null | grep '^version:' | awk '{print $2}' || echo "")
+          prev_version=$(git show "$prev_tag:charts/showcase/Chart.yaml" 2>/dev/null | grep '^version:' | awk '{print $2}' || echo "")
 
           if [[ -z "$prev_version" ]]; then
-            echo "⚠️  Could not extract version from previous release ($latest_tag). Proceeding cautiously."
+            echo "⚠️  Could not extract version from $prev_tag. Proceeding cautiously."
             exit 0
           fi
 
-          # Compare versions
           if [[ "$current_version" == "$prev_version" ]]; then
-            echo "❌ Chart.yaml version has not changed."
-            echo "   Current version: $current_version"
-            echo "   Previous version (in $latest_tag): $prev_version"
+            echo "❌ Chart.yaml version has not changed since the previous tag."
+            echo "   Current version (at HEAD): $current_version"
+            echo "   Previous version (in $prev_tag): $prev_version"
             echo ""
             echo "   chart-releaser will skip this chart (skips existing versions)."
             echo "   To fix: Bump charts/showcase/Chart.yaml version before creating the release."
             exit 1
           fi
 
-          echo "✅ Chart.yaml version updated: $prev_version → $current_version"
+          echo "✅ Chart.yaml version updated: $prev_version ($prev_tag) → $current_version"
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
