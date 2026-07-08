@@ -59,10 +59,9 @@ export const StepConnection: React.FC<Props> = ({ step, connection, newConnectio
   }
 
   const qrUrl = shortInvitationUrl ?? invitationUrl
-  const qrImage = step.verifier?.icon ? prependApiUrl(step.verifier.icon) : undefined
 
   const renderQRCode = (overlay?: boolean) => {
-    return qrUrl ? <QRCode invitationUrl={qrUrl} connectionState={state} overlay={overlay} image={qrImage} /> : null
+    return qrUrl ? <QRCode invitationUrl={qrUrl} connectionState={state} overlay={overlay} /> : null
   }
 
   const renderCTA = !isCompleted ? (

@@ -143,15 +143,6 @@ export const IntroductionContainer: React.FC<Props> = ({
     }
   }, [connectionState])
 
-  const getCredentialIconForConnect = (connectScreenId: string): string | undefined => {
-    const intro = currentShowcase?.introduction
-    if (!intro) return undefined
-    const idx = intro.findIndex((s) => s.screenId === connectScreenId)
-    if (idx < 0) return undefined
-    const acceptScreen = intro.slice(idx + 1).find((s) => s.screenId.startsWith('ACCEPT'))
-    return acceptScreen?.credentials?.[0]?.icon
-  }
-
   const getComponentToRender = (progress: string) => {
     const { text, title, credentials, issuer_name } = getCharacterContent(progress)
     if (progress === 'PICK_CHARACTER') {
@@ -184,7 +175,6 @@ export const IntroductionContainer: React.FC<Props> = ({
           title={title}
           text={text}
           backgroundImage={currentShowcase?.persona?.image}
-          credentialIcon={getCredentialIconForConnect(progress)}
           onConnectionComplete={nextIntroductionPage}
         />
       )
