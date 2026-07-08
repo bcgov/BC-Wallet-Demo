@@ -29,17 +29,22 @@ const transformSchemaResponse = async (schema: any) => {
  * GET /admin/schemas
  * Get all anoncreds schemas from MongoDB.
  */
-router.get('/schemas', defaultRateLimiter, requireRole(['admin', 'creator']), async (_req: Request, res: Response) => {
-  logger.debug('Admin: fetching anoncreds schemas from MongoDB')
-  try {
-    const schemas = await SchemaModel.find().lean()
-    const response = await Promise.all(schemas.map(async (schema) => transformSchemaResponse(schema)))
-    res.json(response)
-  } catch (error) {
-    logger.error(error, 'Error fetching schemas from MongoDB')
-    res.status(500).json({ error: 'Failed to fetch schemas from MongoDB' })
-  }
-})
+router.get(
+  '/schemas',
+  defaultRateLimiter,
+  requireRole(['admin', 'creator', 'viewer']),
+  async (_req: Request, res: Response) => {
+    logger.debug('Admin: fetching anoncreds schemas from MongoDB')
+    try {
+      const schemas = await SchemaModel.find().lean()
+      const response = await Promise.all(schemas.map(async (schema) => transformSchemaResponse(schema)))
+      res.json(response)
+    } catch (error) {
+      logger.error(error, 'Error fetching schemas from MongoDB')
+      res.status(500).json({ error: 'Failed to fetch schemas from MongoDB' })
+    }
+  },
+)
 
 /**
  * GET /admin/schemas/:id
@@ -48,7 +53,7 @@ router.get('/schemas', defaultRateLimiter, requireRole(['admin', 'creator']), as
 router.get(
   '/schemas/:id',
   defaultRateLimiter,
-  requireRole(['admin', 'creator']),
+  requireRole(['admin', 'creator', 'viewer']),
   async (req: Request, res: Response) => {
     logger.debug({ id: req.params.id }, 'Admin: fetching schema by ID from MongoDB')
     try {

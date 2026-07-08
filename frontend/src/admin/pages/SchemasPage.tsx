@@ -10,11 +10,13 @@ import { AdminNavbar } from '../components/AdminNavbar'
 import { CreateSchemaModal } from '../components/schema/CreateSchemaModal'
 import { SchemaCard } from '../components/schema/SchemaCard'
 import { useCreatorTabs } from '../hooks/useCreatorTabs'
+import { useHasRole } from '../hooks/useUserRole'
 
 export function SchemasPage() {
   const auth = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const canCreateSchemas = useHasRole('creator') || useHasRole('admin')
   const [schemas, setSchemas] = useState<Schema[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -56,13 +58,15 @@ export function SchemasPage() {
                   <h5 className="text-gray-500 mt-2">Select or Create a schema for the showcase</h5>
                 )}
               </div>
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
-              >
-                <PlusIcon className="w-5 h-5" />
-                Create Schema
-              </button>
+              {canCreateSchemas && (
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-bcgov-blue text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
+                >
+                  <PlusIcon className="w-5 h-5" />
+                  Create Schema
+                </button>
+              )}
             </div>
 
             {isLoading ? (
