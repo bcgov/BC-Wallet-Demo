@@ -121,7 +121,7 @@ docker build -f frontend/Dockerfile \
 
 **Triggers:** **`release`** (`published`); manual **`workflow_dispatch`** (optional `ref` input).
 
-Runs **chart-releaser** when **`charts/showcase/Chart.yaml`** **`version`** is new: packages the chart (with vendored dependencies), creates or updates the GitHub Release, and updates **`index.yaml`** on the **`gh-pages`** branch.
+Runs **chart-releaser** when **`charts/showcase/Chart.yaml`** **`version`** is new compared to the **previous git tag** (not the tag being published): packages the chart (with vendored dependencies), creates or updates the GitHub Release, and updates **`index.yaml`** on the **`gh-pages`** branch.
 
 **Helm repo URL:** `https://bcgov.github.io/BC-Wallet-Demo`
 
