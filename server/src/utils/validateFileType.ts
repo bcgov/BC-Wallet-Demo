@@ -1,7 +1,7 @@
 /**
  * Allowed MIME types for image uploads
  */
-const ALLOWED_MIME_TYPES = new Set(['image/svg+xml', 'image/png', 'image/jpeg', 'image/webp'])
+const ALLOWED_MIME_TYPES = new Set(['image/svg+xml', 'image/png', 'image/jpeg', 'image/webp', 'application/xml'])
 
 /**
  * Validate file by magic bytes (actual file content) rather than just extension
