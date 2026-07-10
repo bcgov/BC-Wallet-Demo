@@ -50,7 +50,7 @@ export const PickCharacter: React.FC<Props> = ({ currentShowcase, showcases, tit
       >
         <motion.img
           whileHover={{ scale: 1.05 }}
-          className={`m-auto h-36 w-36 sm:h-36 sm:w-36 md:h-36 md:w-36 md:p-4 lg:h-36 lg:w-36 p-8 rounded-full bg-bcgov-white dark:bg-bcgov-black my-6 shadow ${
+          className={`m-auto h-36 w-36 sm:h-36 sm:w-36 md:h-36 md:w-36 md:p-4 lg:h-36 lg:w-36 p-8 rounded-full bg-bcgov-white dark:bg-bcgov-black my-6 shadow object-contain ${
             currentShowcase?.persona?.type === showcase.persona?.type ? cardStyleSelected : cardStyleUnselected
           }`}
           src={prependApiUrl(showcase.persona?.image || '')}
