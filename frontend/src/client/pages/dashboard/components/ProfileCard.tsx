@@ -45,7 +45,7 @@ export const ProfileCard: React.FC<Props> = ({ currentShowcase }) => {
       <motion.div initial="hidden" animate="show" exit="exit" variants={fade}>
         <motion.img
           whileHover={{ scale: 1.05 }}
-          className="m-auto h-32 w-32 md:h-36 md:w-36 p-4 rounded-full bg-bcgov-white dark:bg-bcgov-black ring-2 ring-white mb-4 shadow"
+          className="m-auto h-32 w-32 md:h-36 md:w-36 p-4 rounded-full bg-bcgov-white dark:bg-bcgov-black ring-2 ring-white mb-4 shadow object-contain"
           src={prependApiUrl(currentShowcase.persona?.image || '')}
           alt={currentShowcase.persona?.name}
         />

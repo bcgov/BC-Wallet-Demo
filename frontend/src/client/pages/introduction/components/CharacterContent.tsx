@@ -23,11 +23,11 @@ export const CharacterContent: React.FC<Props> = ({ showcase }) => {
             exit="exit"
             className="flex flex-col h-full justify-around"
           >
-            <div className="p-2 bg-bcgov-blue dark:bg-bcgov-gold text-white rounded-l-lg flex px-4 self-end">
+            <div className="p-2 bg-bcgov-blue dark:bg-bcgov-gold text-white rounded-l-lg flex px-4 self-end object-contain">
               <p>{showcase.persona?.type}</p>
             </div>
             <img
-              className="h-72"
+              className="h-72 max-w-full object-contain"
               src={prependApiUrl(
                 showcase.introduction?.find((s) => s.screenId === 'PICK_CHARACTER')?.image ||
                   showcase.persona?.image ||
