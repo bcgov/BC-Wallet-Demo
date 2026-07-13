@@ -59,7 +59,7 @@ export const ProofAttributesCard: React.FC<Props> = ({ entityName, requestedCred
                 </div>
                 {isDataUrl(value) ? (
                   <div className="text-sm bg-white dark:bg-grey p-1 px-2 rounded-lg m-2 truncate">
-                    <img src={value} style={{ height: 100 }} />
+                    <img src={value} style={{ height: 100, width: 100 }} className="object-contain" />
                   </div>
                 ) : (
                   <p className="flex-1 text-sm bg-white dark:bg-grey p-1 px-2 rounded-lg m-2 truncate">

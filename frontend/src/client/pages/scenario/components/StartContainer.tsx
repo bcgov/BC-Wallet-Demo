@@ -83,7 +83,9 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
         </div>
       </div>
       <div className="bg-bcgov-white dark:bg-bcgov-black hidden lg:flex lg:w-1/3 rounded-r-lg flex content-center p-4 select-none">
-        {step.image && <img className="p-8" src={prependApiUrl(step.image)} alt={step.name} />}
+        {step.image && (
+          <img className="max-h-full max-w-full object-contain" src={prependApiUrl(step.image)} alt={step.name} />
+        )}
       </div>
     </motion.div>
   )

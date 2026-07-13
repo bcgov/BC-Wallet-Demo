@@ -23,10 +23,8 @@ export const ScenarioPreviewPage: React.FC = () => {
   })
 
   useEffect(() => {
-    if (showcases.length === 0) {
-      dispatch(fetchAllShowcases())
-    }
-  }, [dispatch, showcases.length])
+    dispatch(fetchAllShowcases())
+  }, [dispatch])
 
   const previewShowcase = showcases.find((showcase) => !previewShowcaseName || showcase.name === previewShowcaseName)
 
