@@ -2,8 +2,8 @@ apiVersion: v2
 name: showcase
 description: Helm chart for the BC Wallet Demo showcase (frontend + server API + MongoDB by default)
 type: application
-version: 0.5.1
-appVersion: '0.2.2'
+version: 0.5.2
+appVersion: '0.2.3'
 dependencies:
   - name: mongodb
     version: 0.15.0
