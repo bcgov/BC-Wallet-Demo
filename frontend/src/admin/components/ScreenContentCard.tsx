@@ -58,12 +58,9 @@ function buildSafeImageUrl(image?: string): string | null {
     .map((segment) => encodeURIComponent(segment))
     .join('/')
 
-  try {
-    const baseUrl = publicBaseUrl.endsWith('/') ? publicBaseUrl : `${publicBaseUrl}/`
-    return new URL(encodedPath.startsWith('/') ? encodedPath.slice(1) : encodedPath, baseUrl).toString()
-  } catch {
-    return null
-  }
+  // Build URL with simple concatenation (works with both absolute URLs and relative paths)
+  const baseUrl = publicBaseUrl.endsWith('/') ? publicBaseUrl : `${publicBaseUrl}/`
+  return `${baseUrl}${encodedPath.startsWith('/') ? encodedPath.slice(1) : encodedPath}`
 }
 
 export function ScreenContentCard({
