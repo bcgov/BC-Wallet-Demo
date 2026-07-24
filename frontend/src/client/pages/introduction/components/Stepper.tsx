@@ -14,7 +14,14 @@ export interface Props {
 
 export const Stepper: React.FC<Props> = ({ currentShowcase, introductionStep }) => {
   const renderSteps = currentShowcase?.progressBar?.map((item) => {
-    return <StepperItem key={item.name} item={item} currentStep={introductionStep} currentShowcase={currentShowcase} />
+    return (
+      <StepperItem
+        key={item.introductionStep}
+        item={item}
+        currentStep={introductionStep}
+        currentShowcase={currentShowcase}
+      />
+    )
   })
 
   return (
