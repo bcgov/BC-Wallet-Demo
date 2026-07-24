@@ -48,18 +48,18 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
         {
           screenId: 'PICK_CHARACTER',
           name: 'Meet the Persona',
-          text: 'In this demo, you will use digital credentials from your BC Wallet to complete various tasks.',
+          text: 'In this demo, you will use digital credentials from your BC Services Card app to complete various tasks.',
         },
         {
           screenId: 'SETUP_START',
           name: "Let's get started!",
-          text: 'BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas.\nUsing your BC Wallet is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed.',
-          image: '/public/common/screen/getStarted.svg',
+          text: "The BC Services Card app allows you to access important services quickly and securely. You can sign in directly with your app, or share information with select services using digital credentials. Digital credentials are the electronic version of physical documents that you already have like IDs or licenses. Using your BC Services Card app is fast and simple. Simply open your app and scan a participating service's QR code to sign-in or share information.",
+          image: '/public/common/screen/bc-services-card.png',
         },
         {
           screenId: 'CHOOSE_WALLET',
-          name: 'Install BC Wallet',
-          text: 'First, install the BC Wallet app onto your smartphone. Select the button below for instructions and the next step.',
+          name: 'Install BC Services Card App',
+          text: 'First, install the BC Services Card app onto your smartphone. Select the button below for instructions and the next step.',
           image: '/public/common/screen/app-store-screenshots.png',
         },
         {

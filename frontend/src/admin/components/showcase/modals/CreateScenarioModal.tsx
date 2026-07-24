@@ -44,7 +44,7 @@ export function CreateScenarioModal({
         {
           screenId: 'START',
           name: `Welcome to ${name}`,
-          text: `In this scenario, you will use your digital credentials to complete a task with ${name}. This is a demonstration of how you can use your BC Wallet in real-world situations.`,
+          text: `In this scenario, you will use your digital credentials to complete a task with ${name}. This is a demonstration of how you can use your BC Services Card app in real-world situations.`,
           image: '/public/common/screen/card-school.svg',
         },
         {
