@@ -107,7 +107,7 @@ export function PersonaTab({
           return {
             ...screen,
             name: `Meet ${name}`,
-            text: `${name} is a ${personaType}. In this demo, ${name} will use digital credentials from their BC Wallet to complete various tasks.`,
+            text: `${name} is a ${personaType}. In this demo, ${name} will use digital credentials from their BC Services Card app to complete various tasks.`,
             image: localShowcase.persona?.image || screen.image,
           }
         }
