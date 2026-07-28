@@ -60,7 +60,7 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
           screenId: 'CHOOSE_WALLET',
           name: 'Install BC Services Card App',
           text: 'First, install the BC Services Card app onto your smartphone. Select the button below for instructions and the next step.',
-          image: '/public/common/screen/app-store-screenshots.png',
+          image: '/public/common/screen/bc-services-card-home.png',
         },
         {
           screenId: 'SETUP_COMPLETED',
