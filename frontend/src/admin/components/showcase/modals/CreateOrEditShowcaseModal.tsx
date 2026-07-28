@@ -53,12 +53,12 @@ export function CreateOrEditShowcaseModal({ isOpen, onClose, showcase, onSuccess
         {
           screenId: 'SETUP_START',
           name: "Let's get started!",
-          text: "The BC Services Card app allows you to access important services quickly and securely. You can sign in directly with your app, or share information with select services using digital credentials. Digital credentials are the electronic version of physical documents that you already have like IDs or licenses. Using your BC Services Card app is fast and simple. Simply open your app and scan a participating service's QR code to sign-in or share information.",
+          text: "The BC Services Card app allows you to access important services quickly and securely. You can sign in directly with your app, or share information with select services using digital credentials. Digital credentials are the electronic version of physical documents that you already have like IDs or licenses. Using your BC Services Card app is fast and simple. Simply open your app and scan a participating service's QR code to sign in or share information.",
           image: '/public/common/screen/bc-services-card.png',
         },
         {
           screenId: 'CHOOSE_WALLET',
-          name: 'Install BC Services Card App',
+          name: 'Install BC Services Card app',
           text: 'First, install the BC Services Card app onto your smartphone. Select the button below for instructions and the next step.',
           image: '/public/common/screen/bc-services-card-home.png',
         },
