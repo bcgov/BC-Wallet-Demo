@@ -9,7 +9,7 @@ import { MainSection } from './components/MainSection'
 import { NavBar } from './components/Navbar'
 
 export const LandingPage: React.FC = () => {
-  useTitle('BC Wallet Showcase')
+  useTitle('BC Digital Trust Showcase')
   return (
     <motion.div
       className="container p-4 flex flex-col h-screen"

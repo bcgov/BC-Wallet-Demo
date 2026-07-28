@@ -1,4 +1,4 @@
-# BC Wallet Showcase Developer Documentation
+# BC Digital Trust Showcase Developer Documentation
 
 https://github.com/bcgov/BC-Wallet-Demo
 

@@ -142,4 +142,4 @@ helm install my-showcase bc-wallet-showcase/showcase --version <chart-version>
 ## Related docs
 
 - Root [README.md](../README.md) — run and Docker overview for developers.
-- [DEVELOPER/BC Wallet Showcase.md](../DEVELOPER/BC%20Wallet%20Showcase.md) — Traction, env files, and OpenShift-oriented notes.
+- [DEVELOPER/BC Digital Trust Showcase.md](../DEVELOPER/BC%20Digital%20Trust%20Showcase.md) — Traction, env files, and OpenShift-oriented notes.

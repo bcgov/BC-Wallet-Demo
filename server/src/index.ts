@@ -151,8 +151,8 @@ const run = async () => {
   })
 
   // Redirect QR code scans for installing bc wallet to the apple or google play store
-  const androidUrl = 'https://play.google.com/store/apps/details?id=ca.bc.gov.BCWallet'
-  const appleUrl = 'https://apps.apple.com/us/app/bc-wallet/id1587380443'
+  const androidUrl = 'https://play.google.com/store/apps/details?id=ca.bc.gov.id.servicescard'
+  const appleUrl = 'https://apps.apple.com/us/app/bc-wallet/id1234298467'
   app.get(`${baseRoute}/qr`, async (req, res) => {
     const appleMatchers = [/iPhone/i, /iPad/i, /iPod/i]
     let url = androidUrl

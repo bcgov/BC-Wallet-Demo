@@ -1,7 +1,7 @@
 describe('Landing Page', () => {
-  it('loads and shows the BC Wallet Showcase heading', () => {
+  it('loads and shows the BC Digital Trust Showcase heading', () => {
     cy.visit('/')
-    cy.contains('BC Wallet Showcase').should('be.visible')
+    cy.contains('BC Digital Trust Showcase').should('be.visible')
   })
 
   it('has a Get started button that navigates to the onboarding page', () => {

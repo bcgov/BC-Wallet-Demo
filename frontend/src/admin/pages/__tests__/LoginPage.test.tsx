@@ -10,7 +10,7 @@ vi.mock('react-oidc-context', () => ({
   useAuth: () => ({ signinRedirect: mockSigninRedirect }),
 }))
 
-vi.mock('../../../client/assets/light/landing-screen.svg', () => ({ default: 'landing-screen.svg' }))
+vi.mock('../../../client/assets/light/landing.png', () => ({ default: 'landing.png' }))
 
 const renderLoginPage = (url = '/') =>
   render(
@@ -22,12 +22,12 @@ const renderLoginPage = (url = '/') =>
 describe('LoginPage', () => {
   it('renders the page heading', () => {
     renderLoginPage()
-    expect(screen.getByRole('heading', { name: 'BC Wallet Showcase' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'BC Digital Trust Showcase' })).toBeInTheDocument()
   })
 
   it('renders the admin portal description', () => {
     renderLoginPage()
-    expect(screen.getByText('Administration portal for the BC Wallet Showcase.')).toBeInTheDocument()
+    expect(screen.getByText('Administration portal for the BC Digital Trust Showcase.')).toBeInTheDocument()
   })
 
   it('renders the Admin Log In button', () => {
