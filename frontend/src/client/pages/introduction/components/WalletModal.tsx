@@ -60,13 +60,13 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
               <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                 <div className="px-2 md:px-6 pt-2 sm:mt-4 sm:pb-4">
                   <div className="mt-5">
-                    <p className="font-semibold">1. Download BC Wallet on your phone</p>
+                    <p className="font-semibold">1. Download BC Services Card app on your phone</p>
                     <p className="mt-5 mb-5">
                       To download,{' '}
                       {isMobile()
                         ? 'select the apps store icon below'
                         : 'scan this QR code with your phone or select the apps store icon below'}
-                      . You can also search for BC Wallet in your phone's apps store.
+                      . You can also search for BC Services Card app in your phone's apps store.
                     </p>
                     <div
                       style={{

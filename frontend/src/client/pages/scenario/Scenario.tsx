@@ -47,7 +47,7 @@ export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase,
   const effectiveSlug = propSlug || routeSlug
 
   const navigate = useNavigate()
-  useTitle(`${currentScenario?.name ?? 'Use case'} | BC Wallet Self-Sovereign Identity Demo`)
+  useTitle(`${currentScenario?.name ?? 'Use case'} | BC Digital Trust Showcase`)
 
   useEffect(() => {
     if (effectiveShowcase && effectiveSlug) {

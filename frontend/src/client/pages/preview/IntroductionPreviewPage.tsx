@@ -25,7 +25,7 @@ export const IntroductionPreviewPage: React.FC<PreviewPageProps> = ({ contentTyp
     (searchParams.get('type') as 'introduction' | 'scenarios' | 'persona' | null) || propContentType || 'introduction'
   const previewShowcaseName = searchParams.get('showcase') || undefined
 
-  useTitle('Get Started | BC Wallet Self-Sovereign Identity Demo')
+  useTitle('Get Started | BC Digital Trust Showcase')
 
   const dispatch = useAppDispatch()
   const { showcases, currentShowcase, uploadedShowcase } = useShowcases()

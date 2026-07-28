@@ -1,6 +1,6 @@
 # Showcase Helm chart
 
-Helm chart for the BC Wallet Demo **showcase**: **frontend** (Caddy + static SPA), **server** (Express API + Socket.IO), and **MongoDB** (CloudPirates subchart, on by default).
+Helm chart for the BC Digital Trust **showcase**: **frontend** (Caddy + static SPA), **server** (Express API + Socket.IO), and **MongoDB** (CloudPirates subchart, on by default).
 
 - **MongoDB** is pulled from **CloudPirates** OCI (`oci://registry-1.docker.io/cloudpirates/mongodb`), not Bitnami. Set **`mongodb.enabled: false`** if you use an external database only.
 - This chart does **not** deploy ACA-Py.

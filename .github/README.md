@@ -1,6 +1,6 @@
 # GitHub Actions and CI
 
-This folder defines automation for the BC Wallet Demo monorepo (`frontend` and `server` Yarn workspaces). All Node-based jobs use **Node.js 22**, matching `engines.node` in `package.json`.
+This folder defines automation for the BC Digital Trust Showcase monorepo (`frontend` and `server` Yarn workspaces). All Node-based jobs use **Node.js 22**, matching `engines.node` in `package.json`.
 
 ## Composite action: `actions/setup-node`
 
