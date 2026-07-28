@@ -37,7 +37,7 @@ describe('LoginPage', () => {
 
   it('renders the landing screen image', () => {
     renderLoginPage()
-    expect(screen.getByAltText('bc-wallet-showcase')).toBeInTheDocument()
+    expect(screen.getByAltText('bcgov-phone-light')).toBeInTheDocument()
   })
 
   it('renders the contact email link', () => {

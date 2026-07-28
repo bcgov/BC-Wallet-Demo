@@ -30,10 +30,10 @@ describe('WalletController', () => {
       expect(wallet).toHaveProperty('url')
     })
 
-    it('includes the BC Wallet entry', async () => {
+    it('includes the BC Services Card entry', async () => {
       const result = await controller.getAll()
 
-      expect(result.some((w) => w.name === 'BC Wallet')).toBe(true)
+      expect(result.some((w) => w.name === 'BC Services Card')).toBe(true)
     })
   })
 })
