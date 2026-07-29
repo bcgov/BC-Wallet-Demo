@@ -66,7 +66,8 @@ export const IntroductionContainer: React.FC<Props> = ({
   const isBackDisabled =
     introductionStep === 'PICK_CHARACTER' ||
     introductionStep.startsWith('CONNECT') ||
-    introductionStep.startsWith('ACCEPT')
+    introductionStep.startsWith('ACCEPT') ||
+    introductionStep === 'SETUP_COMPLETED'
   const isForwardDisabled =
     (introductionStep.startsWith('CONNECT') && !connectionCompleted) ||
     (introductionStep.startsWith('ACCEPT_') && !credentialsAccepted) ||
