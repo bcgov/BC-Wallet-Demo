@@ -75,7 +75,11 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                         marginBottom: '10px',
                       }}
                     >
-                      <a href="https://apps.apple.com/us/app/bc-services-card/id1234298467" target="_blank">
+                      <a
+                        href="https://apps.apple.com/us/app/bc-services-card/id1234298467"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <img
                           src={appStore}
                           style={
@@ -86,7 +90,11 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                           alt="app store"
                         />
                       </a>
-                      <a href="https://play.google.com/store/apps/details?id=ca.bc.gov.id.servicescard" target="_blank">
+                      <a
+                        href="https://play.google.com/store/apps/details?id=ca.bc.gov.id.servicescard"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <img
                           src={playStore}
                           style={isMobile() ? { width: '200px' } : { height: '50px' }}

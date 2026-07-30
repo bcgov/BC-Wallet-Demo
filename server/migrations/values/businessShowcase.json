@@ -108,7 +108,7 @@
         {
           "screenId": "PROOF",
           "name": "Confirm the information to send",
-          "text": "BC Services Card app is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. \nUsing your BC Services Card app is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed. \nIn this demo, you will use your Digital Business Card to prove who you are and access services online instead of in-person.",
+          "text": "BC Services Card app will now ask you to confirm what to send. Notice how it will only share if the credential has expired, not even the expiry date itself gets shared. You don't have to share anything else for it to be trustable.",
           "requestOptions": {
             "name": "City of Vancouver",
             "text": "City of Vancouver would like some of your business information.",

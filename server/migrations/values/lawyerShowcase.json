@@ -62,7 +62,7 @@
     {
       "screenId": "SETUP_START",
       "name": "Let's get started!",
-      "text": "BC Services Card is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. \nUsing your BC Services Card app is fast and simple. In the future it can be used online and in person.You approve every use, and share only what is needed. \nIn this demo, you will use two credentials to prove who you are and access court materials online instead of in-person.",
+      "text": "BC Services Card is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. \nUsing your BC Services Card app is fast and simple. In the future it can be used online and in person. You approve every use, and share only what is needed. \nIn this demo, you will use two credentials to prove who you are and access court materials online instead of in-person.",
       "image": "/public/common/screen/scan.svg"
     },
     {
