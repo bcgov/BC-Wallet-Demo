@@ -75,7 +75,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                         marginBottom: '10px',
                       }}
                     >
-                      <a href="https://apps.apple.com/us/app/bc-wallet/id1234298467" target="_blank">
+                      <a href="https://apps.apple.com/us/app/bc-services-card/id1234298467" target="_blank">
                         <img
                           src={appStore}
                           style={
@@ -107,7 +107,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                 )}
               </div>
               <div className="px-4 pb-4 flex justify-end">
-                <SmallButton onClick={onCompleted} text={'I HAVE MY WALLET'} />
+                <SmallButton onClick={onCompleted} text={"I'VE INSTALLED THE APP"} />
               </div>
             </motion.div>
           </div>

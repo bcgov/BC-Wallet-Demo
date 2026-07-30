@@ -61,7 +61,7 @@
       {
         "screenId": "ACCEPT_CREDENTIAL",
         "name": "Accept your student card",
-        "text": "Review the offer in BC Wallet.",
+        "text": "Review the offer in BC Services Card app.",
         "credentials": []
       },
       { "screenId": "SETUP_COMPLETED", "name": "You're all set!", "text": "Well done." }

@@ -62,7 +62,7 @@
     {
       "screenId": "SETUP_START",
       "name": "Let's get started!",
-      "text": "BC Wallet is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. \nUsing your BC Wallet is fast and simple. In the future it can be used online and in person.You approve every use, and share only what is needed. \nIn this demo, you will use two credentials to prove who you are and access court materials online instead of in-person.",
+      "text": "BC Services Card is a new app for storing and using credentials on your smartphone. Credentials are things like IDs, licenses and diplomas. \nUsing your BC Services Card app is fast and simple. In the future it can be used online and in person.You approve every use, and share only what is needed. \nIn this demo, you will use two credentials to prove who you are and access court materials online instead of in-person.",
       "image": "/public/common/screen/scan.svg"
     },
     {
@@ -80,35 +80,35 @@
     {
       "screenId": "CONNECT_LSBC",
       "name": "Get your lawyer credential",
-      "text": "Joyce is now ready to be issued her Law Society of British Columbia Member Card. She has logged into her member portal and is ready to accept a digital version of that card. Open the BC Wallet app on your phone, hit the scan button and accept.",
+      "text": "Joyce is now ready to be issued her Law Society of British Columbia Member Card. She has logged into her member portal and is ready to accept a digital version of that card. Open the BC Services Card app on your phone, hit the scan button and accept.",
       "image": "/public/common/screen/lawyerCredPhone.svg",
       "issuer_name": "Law Society of BC (Demo)"
     },
     {
       "screenId": "ACCEPT_LSBC",
       "name": "Accept your lawyer credential",
-      "text": "Check your phone. You’ve received a credential offer from the Law Society of British Columbia in your BC Wallet. You can use this credential to prove you’re a lawyer online.",
+      "text": "Check your phone. You’ve received a credential offer from the Law Society of British Columbia in your BC Services Card app. You can use this credential to prove you’re a lawyer online.",
       "image": "/public/common/screen/lawyerCredPhone.svg",
       "credentials": ["lawyer-member-card"]
     },
     {
       "screenId": "CONNECT_PERSON",
       "name": "Get Person credential",
-      "text": "Joyce gets her Person credential from the BC Services Card app. She starts the process within BC Wallet. For this demo you will scan this QR code to receive the credential offer.",
+      "text": "Joyce gets her Person credential from the BC Services Card app. She starts the process within the BC Services Card app. For this demo you will scan this QR code to receive the credential offer.",
       "image": "/public/common/screen/personCredPhone.svg",
       "issuer_name": "Service BC (Demo)"
     },
     {
       "screenId": "ACCEPT_PERSON",
       "name": "Accept your Person credential",
-      "text": "Check your phone. You've received a credential offer from Service BC in your BC Wallet. You can use this credential to prove who you are online.",
+      "text": "Check your phone. You've received a credential offer from Service BC in your BC Services Card app. You can use this credential to prove who you are online.",
       "image": "/public/common/screen/personCredPhone.svg",
       "credentials": ["lawyer-person"]
     },
     {
       "screenId": "SETUP_COMPLETED",
       "name": "You're all set!",
-      "text": "Congratulations, you've just received your first digital credentials. They are safely stored in your wallet and ready to be used. So, what are you waiting for? Let’s go!",
+      "text": "Congratulations, you've just received your first digital credentials. They are safely stored in your app and ready to be used. So, what are you waiting for? Let’s go!",
       "image": "/public/common/screen/lawyer2Success.svg"
     }
   ],
@@ -133,7 +133,7 @@
         {
           "screenId": "PROOF",
           "name": "Confirm the information to send",
-          "text": "BC Wallet will now ask you to confirm what to send. Notice how you’re not sharing your entire credential. Court Services Branch is requesting that you prove only what is needed.",
+          "text": "BC Services Card app will now ask you to confirm what to send. Notice how you’re not sharing your entire credential. Court Services Branch is requesting that you prove only what is needed.",
           "requestOptions": {
             "name": "Court Services Branch (DEMO) Request",
             "text": "Court Services Branch (DEMO) would like some of your personal information.",
@@ -181,7 +181,7 @@
         {
           "screenId": "PROOF",
           "name": "Confirm the information to send",
-          "text": "BC Wallet will now ask you to confirm what to send. Notice how you’re not sharing your entire credential. The Court Library is requesting that you prove only what is needed.",
+          "text": "BC Services Card app will now ask you to confirm what to send. Notice how you’re not sharing your entire credential. Court Services Branch is requesting that you prove only what is needed.",
           "requestOptions": {
             "name": "Court Library (DEMO) Request",
             "text": "Court Library (DEMO) would like some of your personal information.",
@@ -213,26 +213,26 @@
     },
     {
       "id": "attestation",
-      "name": "BC Wallet Attestation",
+      "name": "BC Services Card app Attestation",
       "hidden": true,
       "screens": [
         {
           "screenId": "START",
-          "name": "Verify a BC Wallet application",
-          "text": "Verify that you are using a valid BC Wallet application.",
+          "name": "Verify a BC Services Card app",
+          "text": "Verify that you are using a valid BC Services Card app.",
           "image": "/public/common/screen/bothCreds.svg"
         },
         {
           "screenId": "CONNECTION",
           "name": "Connect to Attestation Service",
-          "text": "You're now ready to prove you're using a valid BC Wallet application. Scan the QR code.",
+          "text": "You're now ready to prove you're using a valid BC Services Card app. Scan the QR code.",
           "image": "/public/common/screen/courtServicesOverlay.png",
-          "verifier": { "name": "BC Wallet Attestation", "icon": "/public/common/icon/bc-logo.png" }
+          "verifier": { "name": "BC Services Card app Attestation", "icon": "/public/common/icon/bc-logo.png" }
         },
         {
           "screenId": "PROOF",
           "name": "Confirm the information to send",
-          "text": "BC Wallet will now ask you to confirm what to send. Notice how you’re not sharing your entire credential.",
+          "text": "BC Services Card app will now ask you to confirm what to send. Notice how you’re not sharing your entire credential.",
           "requestOptions": {
             "name": "Attestation (DEMO) Request",
             "text": "Attestation (DEMO) would like some of your personal information.",
@@ -257,7 +257,7 @@
         {
           "screenId": "STEP_END",
           "name": "You're done!",
-          "text": "You’ve proved to the Attestation Service that you’re using a valid BC Wallet application. It only took a few seconds and you revealed minimal information that Attestation Service could easily and automatically trust.",
+          "text": "You’ve proved to the Attestation Service that you’re using a valid BC Services Card app. It only took a few seconds and you revealed minimal information that Attestation Service could easily and automatically trust.",
           "image": "/public/common/screen/lawyer2Success.svg"
         }
       ]
