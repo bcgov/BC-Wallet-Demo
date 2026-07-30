@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
-  "description": "BC Wallet - Verifiable Credential Demo",
+  "description": "BC Digital Trust Showcase - A showcase of how to use the BC Services Card app to prove things about yourself, in a way that's safe and secure.",
   "engines": {
     "node": ">=22"
   },

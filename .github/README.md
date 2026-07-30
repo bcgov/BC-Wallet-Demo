@@ -1,6 +1,6 @@
 # GitHub Actions and CI
 
-This folder defines automation for the BC Wallet Demo monorepo (`frontend` and `server` Yarn workspaces). All Node-based jobs use **Node.js 22**, matching `engines.node` in `package.json`.
+This folder defines automation for the BC Digital Trust Showcase monorepo (`frontend` and `server` Yarn workspaces). All Node-based jobs use **Node.js 22**, matching `engines.node` in `package.json`.
 
 ## Composite action: `actions/setup-node`
 
@@ -142,4 +142,4 @@ helm install my-showcase bc-wallet-showcase/showcase --version <chart-version>
 ## Related docs
 
 - Root [README.md](../README.md) — run and Docker overview for developers.
-- [DEVELOPER/BC Wallet Showcase.md](../DEVELOPER/BC%20Wallet%20Showcase.md) — Traction, env files, and OpenShift-oriented notes.
+- [DEVELOPER/BC Digital Trust Showcase.md](../DEVELOPER/BC%20Digital%20Trust%20Showcase.md) — Traction, env files, and OpenShift-oriented notes.

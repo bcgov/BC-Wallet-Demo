@@ -1,8 +1,8 @@
-# BC Wallet Showcase Developer Documentation
+# BC Digital Trust Showcase Developer Documentation
 
 https://github.com/bcgov/BC-Wallet-Demo
 
-The BC Wallet Showcase is an application used to issue demo credentials and proof requests. It consists of a React frontend and a TS-Node Backend. Additionally it needs to be connected to a traction agent.
+The BC Digital Trust Showcase is an application used to issue demo credentials and proof requests. It consists of a React frontend and a TS-Node Backend. Additionally it needs to be connected to a traction agent.
 
 ## Continuous integration
 

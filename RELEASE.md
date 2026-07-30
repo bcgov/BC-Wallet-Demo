@@ -1,10 +1,10 @@
 # Release Process
 
-This document explains how to create a release for BC Wallet Demo.
+This document explains how to create a release for BC Digital Trust Showcase.
 
 ## Release Overview
 
-The BC Wallet Demo has two independent versioning tracks:
+The BC Digital Trust Showcase has two independent versioning tracks:
 
 1. **Application Version** (`package.json`): Version of the Node.js application (frontend + server)
 2. **Helm Chart Version** (`charts/showcase/Chart.yaml`): Version of the Kubernetes Helm chart for deployment

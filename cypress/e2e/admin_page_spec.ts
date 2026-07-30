@@ -62,7 +62,7 @@ describe('Admin Portal Authentication', () => {
 
   it('shows the login page with the Admin Log In button', () => {
     cy.visit(ADMIN_PATH)
-    cy.contains('BC Wallet Showcase').should('be.visible')
+    cy.contains('BC Digital Trust Showcase').should('be.visible')
     cy.contains('button', 'Admin Log In').should('be.visible')
   })
 

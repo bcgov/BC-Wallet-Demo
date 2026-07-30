@@ -1,7 +1,7 @@
 import { useAuth } from 'react-oidc-context'
 import { useLocation } from 'react-router-dom'
 
-import landingScreen from '../../client/assets/light/landing-screen.svg'
+import landingScreen from '../../client/assets/light/landing.png'
 
 export function LoginPage() {
   const auth = useAuth()
@@ -28,11 +28,11 @@ export function LoginPage() {
       <div className="flex flex-col md:flex-row flex-grow">
         <div className="flex-1 text-left text-bcgov-black font-semibold text-4xl lg:text-5xl xl:text-6xl m-auto">
           <div className="overflow-hidden py-1 leading-tight">
-            <h1>BC Wallet Showcase</h1>
+            <h1>BC Digital Trust Showcase</h1>
           </div>
           <div className="overflow-hidden">
             <p className="text-base lg:text-lg font-normal mt-6 text-bcgov-darkgrey">
-              Administration portal for the BC Wallet Showcase.
+              Administration portal for the BC Digital Trust Showcase.
             </p>
           </div>
           <div className="flex flex-row text-base font-normal mt-6">
@@ -45,8 +45,8 @@ export function LoginPage() {
           </div>
         </div>
 
-        <div className="flex justify-center flex-grow">
-          <img className="m-5 max-w-lg" src={landingScreen} alt="bc-wallet-showcase" />
+        <div className="flex justify-center flex-shrink-0 md:w-1/2">
+          <img className="m-5 max-w-lg h-auto object-contain" src={landingScreen} alt="bcgov-phone-light" />
         </div>
       </div>
 

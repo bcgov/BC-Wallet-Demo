@@ -1,4 +1,4 @@
-## Default values for the showcase umbrella chart (BC Wallet Demo frontend + server + MongoDB).
+## Default values for the showcase umbrella chart (BC Digital Trust Showcase frontend + server + MongoDB).
 ## MongoDB is the CloudPirates OCI subchart (not Bitnami); set `mongodb.enabled: false` for an external database only. See charts/showcase/README.md.
 ## With Mongo on: either `showcase.server.existingSecret` (full env incl. MONGODB_URI), or chart-generated
 ## `*-server-env` from chart-generated Mongo root password Secret (`mongodb.auth.existingSecret` + key lookup).

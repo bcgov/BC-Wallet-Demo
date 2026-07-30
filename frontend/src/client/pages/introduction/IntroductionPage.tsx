@@ -23,7 +23,7 @@ import { IntroductionContainer } from './IntroductionContainer'
 import { Stepper } from './components/Stepper'
 
 export const IntroductionPage: React.FC = () => {
-  useTitle('Get Started | BC Wallet Self-Sovereign Identity Demo')
+  useTitle('Get Started | BC Digital Trust Showcase')
 
   const dispatch = useAppDispatch()
   const navigate = useNavigate()

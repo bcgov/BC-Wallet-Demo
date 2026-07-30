@@ -45,12 +45,12 @@
       {
         "screenId": "SETUP_START",
         "name": "Let's get started!",
-        "text": "BC Wallet is a new app for storing credentials."
+        "text": "BC Services Card app is a new app for storing credentials."
       },
       {
         "screenId": "CHOOSE_WALLET",
         "name": "Install BC Wallet",
-        "text": "Install the BC Wallet app onto your smartphone."
+        "text": "Install the BC Services Card app onto your smartphone."
       },
       {
         "screenId": "CONNECT",
@@ -61,7 +61,7 @@
       {
         "screenId": "ACCEPT_CREDENTIAL",
         "name": "Accept your student card",
-        "text": "Review the offer in BC Wallet.",
+        "text": "Review the offer in BC Services Card app.",
         "credentials": []
       },
       { "screenId": "SETUP_COMPLETED", "name": "You're all set!", "text": "Well done." }

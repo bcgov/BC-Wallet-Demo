@@ -1,11 +1,11 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Lifecycle:Maturing](https://img.shields.io/badge/Lifecycle-Maturing-007EC6)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
 
-# BC Wallet Demo
+# BC Digital Trust Showcase Demo
 
 ## Overview
 
-This application provides a showcase for the BC Wallet to illustrate the use cases for verifiable credentials. This application will take users through multiple steps to demonstrate how verifiable credentials are issued and verified using the BC Wallet.
+This application provides a showcase for the BC Digital Trust Showcase to illustrate the use cases for verifiable credentials. This application will take users through multiple steps to demonstrate how verifiable credentials are issued and verified using the BC Services Card App.
 
 ## Running
 
@@ -18,7 +18,7 @@ cp server/.env.example server/.env
 cp frontend/.env.example frontend/.env
 ```
 
-The placeholder values in `.env.example` are enough to start the app locally. To issue or verify **real** credentials you need a [Traction](https://digital.gov.bc.ca/digital-trust/technical-resources/traction/) tenant — set `TRACTION_TENANT_ID`, `TRACTION_TENANT_API_KEY`, `TRACTION_URL`, `TRACTION_DID`, and `WEBHOOK_SECRET` in `server/.env`. To test with a mobile wallet, run `ngrok http 5000` and set `SHOWCASE_PUBLIC_ORIGIN` to the ngrok URL — the same tunnel handles both Traction webhooks and short QR invitation URLs. See [DEVELOPER/BC Wallet Showcase.md](DEVELOPER/BC%20Wallet%20Showcase.md) for the full setup.
+The placeholder values in `.env.example` are enough to start the app locally. To issue or verify **real** credentials you need a [Traction](https://digital.gov.bc.ca/digital-trust/technical-resources/traction/) tenant — set `TRACTION_TENANT_ID`, `TRACTION_TENANT_API_KEY`, `TRACTION_URL`, `TRACTION_DID`, and `WEBHOOK_SECRET` in `server/.env`. To test with a mobile wallet, run `ngrok http 5000` and set `SHOWCASE_PUBLIC_ORIGIN` to the ngrok URL — the same tunnel handles both Traction webhooks and short QR invitation URLs. See [DEVELOPER/BC Digital Trust Showcase.md](DEVELOPER/BC%20Digital%20Trust%20Showcase.md) for the full setup.
 
 ### 2. Start the stack
 

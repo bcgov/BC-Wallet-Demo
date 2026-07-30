@@ -71,7 +71,7 @@ describe('ProofController', () => {
       expect(tractionRequest.post).toHaveBeenNthCalledWith(1, '/present-proof-2.0/create-request', expect.any(Object))
       expect(tractionRequest.post).toHaveBeenNthCalledWith(2, '/out-of-band/create-invitation', {
         accept: ['didcomm/aip1', 'didcomm/aip2;env=rfc19'],
-        alias: 'BC Wallet Showcase',
+        alias: 'BC Digital Trust Showcase',
         attachments: [{ id: 'pex1', type: 'present-proof-v2' }],
         handshake_protocols: ['https://didcomm.org/didexchange/1.0'],
         metadata: {},

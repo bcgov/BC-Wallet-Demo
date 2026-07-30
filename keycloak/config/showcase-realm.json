@@ -1,7 +1,7 @@
 {
   "realm": "showcase",
   "enabled": true,
-  "displayName": "BC Wallet Showcase",
+  "displayName": "BC Digital Trust Showcase",
   "sslRequired": "none",
   "registrationAllowed": false,
   "resetPasswordAllowed": false,
@@ -11,7 +11,7 @@
   "clients": [
     {
       "clientId": "showcase-admin",
-      "name": "BC Wallet Showcase Admin",
+      "name": "BC Digital Trust Showcase",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
@@ -24,7 +24,7 @@
     },
     {
       "clientId": "showcase-admin-cli",
-      "name": "BC Wallet Showcase Admin CLI (local dev only)",
+      "name": "BC Digital Trust Showcase Admin CLI (local dev only)",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": false,

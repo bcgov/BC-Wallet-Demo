@@ -28,7 +28,7 @@ import { RevocationContainer } from './components/RevocationContainer'
 import { ScenarioContainer } from './components/ScenarioContainer'
 
 export const DashboardPage: React.FC = () => {
-  useTitle('Dashboard | BC Wallet Self-Sovereign Identity Demo')
+  useTitle('Dashboard | BC Digital Trust Showcase')
 
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
