@@ -205,6 +205,9 @@ export function IntroductionScreenRow({
             <div className="p-6">
               {(() => {
                 const credential = nextScreen.credentials[editingCredentialIdx]
+                if (selectedSchema) {
+                  selectedSchema.name = credential.name
+                }
                 return (
                   <DefineCredentialValuesStep
                     selectedSchema={selectedSchema || null}
@@ -217,7 +220,7 @@ export function IntroductionScreenRow({
                       setEditingCredentialIdx(null)
                       setSelectedSchema(null)
                     }}
-                    onSelectCredential={async (values, icon) => {
+                    onSelectCredential={async (values, icon, name) => {
                       if (nextScreen?.credentials) {
                         const updatedCredential = {
                           ...nextScreen.credentials[editingCredentialIdx],
@@ -226,6 +229,7 @@ export function IntroductionScreenRow({
                             value: values[attr.name] || attr.value,
                           })),
                           icon,
+                          name,
                         }
                         nextScreen.credentials[editingCredentialIdx] = updatedCredential
                         try {
@@ -233,6 +237,7 @@ export function IntroductionScreenRow({
                             await updateCredential(auth, updatedCredential.id, {
                               attributes: updatedCredential.attributes,
                               icon: updatedCredential.icon,
+                              name: updatedCredential.name,
                             })
                           }
                           await onRefresh?.()

@@ -78,6 +78,7 @@ export interface CredentialRequest {
   predicates?: Predicate[]
   properties?: string[]
   nonRevoked?: { to: number | '$now'; from?: number | '$now' }
+  cred_id?: string
 }
 
 export interface CustomRequestOptions {

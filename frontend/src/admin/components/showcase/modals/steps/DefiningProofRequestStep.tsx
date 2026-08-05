@@ -10,6 +10,7 @@ interface DefiningProofRequestStepProps {
   currentIndex: number
   totalCredentials: number
   onUploadIcon: () => void
+  onSetIcon: (icon: string) => void
   onPrevious: () => void
   onNext: () => void
   onFinish: () => void
@@ -21,13 +22,12 @@ export function DefiningProofRequestStep({
   currentIndex,
   totalCredentials,
   onUploadIcon,
+  onSetIcon,
   onPrevious,
   onNext,
   onFinish,
 }: DefiningProofRequestStepProps) {
   if (!currentCredential || !currentRequest) return null
-
-  const isIconSelected = !!currentRequest.icon
 
   return (
     <div className="space-y-6">
@@ -51,6 +51,10 @@ export function DefiningProofRequestStep({
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-bcgov-black mb-2">Icon</label>
+          <p className="text-sm text-gray-600 mb-3">
+            This icon is shown to the user during the presentation request. It represents the credential. You can change
+            it to another image during the presentation step if you wish.
+          </p>
           <div className="relative group w-fit">
             {currentRequest.icon ? (
               <div className="w-24 h-24 border border-gray-300 rounded-lg overflow-hidden bg-gray-100">
@@ -62,6 +66,17 @@ export function DefiningProofRequestStep({
                 <PencilIcon
                   onClick={onUploadIcon}
                   className="absolute -top-2 -right-2 w-5 h-5 bg-bcgov-blue text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                />
+              </div>
+            ) : currentCredential.icon ? (
+              <div
+                className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={() => onSetIcon(currentCredential.icon)}
+              >
+                <img
+                  src={`${publicBaseUrl}${currentCredential.icon}`}
+                  alt="Credential icon preview"
+                  className="w-full h-full object-contain p-2"
                 />
               </div>
             ) : (
@@ -162,30 +177,13 @@ export function DefiningProofRequestStep({
           {currentIndex === totalCredentials - 1 && (
             <button
               onClick={onFinish}
-              disabled={!isIconSelected}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                isIconSelected
-                  ? 'text-white bg-bcgov-blue hover:bg-bcgov-blue-dark cursor-pointer'
-                  : 'text-white bg-gray-400 cursor-not-allowed'
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors text-white bg-bcgov-blue hover:bg-bcgov-blue-dark cursor-pointer`}
             >
               Finish
             </button>
           )}
         </div>
       </div>
-
-      {!isIconSelected && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm font-semibold text-red-800 mb-2">Please complete the following:</p>
-          <ul className="text-sm text-red-700 space-y-1">
-            <li className="flex items-center gap-2">
-              <span className="w-1 h-1 bg-red-700 rounded-full" />
-              Presentation request icon is required
-            </li>
-          </ul>
-        </div>
-      )}
     </div>
   )
 }

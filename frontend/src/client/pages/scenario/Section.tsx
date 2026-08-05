@@ -79,6 +79,21 @@ export const Section: React.FC<Props> = ({
   const verifier = section.find((x) => x.verifier !== undefined)?.verifier ?? { name: 'Unkown' }
   const currentShowcase = useCurrentShowcase()
 
+  const overrideCredentialNames = (requestedCredentials: any[] | undefined): any[] => {
+    if (!requestedCredentials || !currentShowcase?.credentials) {
+      return requestedCredentials ?? []
+    }
+    return requestedCredentials.map((cred) => {
+      const showcaseCredential = currentShowcase.credentials.find(
+        (c) =>
+          (cred.cred_id && c.id === cred.cred_id) ||
+          (cred.schema_id && c.schema_id === cred.schema_id) ||
+          (cred.cred_def_id && c.cred_def_id === cred.cred_def_id),
+      )
+      return showcaseCredential ? { ...cred, name: showcaseCredential.name } : cred
+    })
+  }
+
   const leave = () => {
     trackSelfDescribingEvent({
       event: {
@@ -180,7 +195,7 @@ export const Section: React.FC<Props> = ({
           characterType={currentShowcase?.persona?.type?.toLowerCase()}
           step={step}
           entity={verifier}
-          requestedCredentials={step.requestOptions?.requestedCredentials}
+          requestedCredentials={overrideCredentialNames(step.requestOptions?.requestedCredentials)}
         />
       )
     }
@@ -196,6 +211,7 @@ export const Section: React.FC<Props> = ({
               currentStep={step.screenId}
               entity={verifier}
               showLeaveModal={showLeaveModal}
+              currentShowcase={currentShowcase}
             />
             <motion.div
               key={'mainContentDiv'}
@@ -232,6 +248,7 @@ export const Section: React.FC<Props> = ({
                       step={step}
                       connectionId={connection.id}
                       requestedCredentials={step.requestOptions.requestedCredentials}
+                      currentShowcase={currentShowcase}
                     />
                   )}
                 {step.screenId.startsWith('STEP_END') && <StepEnd key={step.screenId} step={step} />}

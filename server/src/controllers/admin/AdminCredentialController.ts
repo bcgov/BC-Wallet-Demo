@@ -8,7 +8,7 @@ import logger from '../../utils/logger'
 
 // Fields that are locked once a credential is registered on the ledger.
 // Only showcase-specific fields (icon, attributes values, status) remain editable.
-const LEDGER_LOCKED_FIELDS = ['name', 'version', 'schema_id', 'cred_def_id'] as const
+const LEDGER_LOCKED_FIELDS = ['version', 'schema_id', 'cred_def_id'] as const
 
 @JsonController('/admin/credentials')
 @Service()

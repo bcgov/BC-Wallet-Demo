@@ -40,8 +40,16 @@ export const ScenarioPreviewPage: React.FC = () => {
     const requiredCredentials: string[] = []
     item.screens.forEach((screen) =>
       screen.requestOptions?.requestedCredentials.forEach((cred) => {
-        if (!requiredCredentials.includes(cred.name)) {
-          requiredCredentials.push(cred.name)
+        const actualCredential = previewShowcase.credentials.find(
+          (c) =>
+            c.id === cred.cred_id ||
+            c.schema_id === cred.schema_id ||
+            c.cred_def_id === cred.cred_def_id ||
+            c.name === cred.name,
+        )
+        const credentialName = actualCredential?.name ?? cred.name
+        if (!requiredCredentials.includes(credentialName)) {
+          requiredCredentials.push(credentialName)
         }
       }),
     )

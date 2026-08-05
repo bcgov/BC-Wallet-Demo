@@ -279,6 +279,7 @@ export function CreateConnectionAndProofScreensModal({
                   const newRequests = new Map<string, CredentialRequest>()
                   for (const credentialId of selectedCredentials) {
                     const attrs = selectedAttributes.get(credentialId)
+                    const credential = showcase?.credentials?.find((c) => c.id === credentialId)
                     const properties = attrs ? Array.from(attrs.keys()).filter((name) => attrs.get(name)?.property) : []
 
                     // Transform predicate configurations into Predicate objects
@@ -319,6 +320,7 @@ export function CreateConnectionAndProofScreensModal({
                     newRequests.set(credentialId, {
                       name: '',
                       schema_id: '',
+                      icon: credential?.icon,
                       properties,
                       predicates: predicates.length > 0 ? predicates : [],
                       nonRevoked: hasNonRevoked ? { to: '$now' } : undefined,
@@ -367,6 +369,18 @@ export function CreateConnectionAndProofScreensModal({
                 onUploadIcon={() => {
                   setImageUploadModalCredentialId(Array.from(selectedCredentials)[currentCredentialIdx])
                   setIsImageUploadModalOpen(true)
+                }}
+                onSetIcon={(iconPath: string) => {
+                  const credentialId = Array.from(selectedCredentials)[currentCredentialIdx]
+                  const newRequests = new Map(credentialRequests)
+                  const currentRequest = newRequests.get(credentialId)
+                  if (currentRequest) {
+                    newRequests.set(credentialId, {
+                      ...currentRequest,
+                      icon: iconPath,
+                    })
+                    setCredentialRequests(newRequests)
+                  }
                 }}
                 onPrevious={() => setCurrentCredentialIdx(currentCredentialIdx - 1)}
                 onNext={() => setCurrentCredentialIdx(currentCredentialIdx + 1)}

@@ -70,7 +70,11 @@ export function EnteringNameStep({
               </button>
             )}
           </div>
-          {!icon && <p className="text-red-600 text-sm mt-2">Icon is required</p>}
+          {!icon && (
+            <p className="text-red-600 text-sm mt-2">
+              Icon is required. This is the image that will represent the verifier when connecting and verifying.
+            </p>
+          )}
         </div>
       )}
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
