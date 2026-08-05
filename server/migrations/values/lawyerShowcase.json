@@ -147,6 +147,7 @@
               {
                 "icon": "/public/common/screen/bc-logo.png",
                 "name": "Person",
+                "cred_id": "lawyer-person",
                 "properties": ["given_names", "family_name"]
               }
             ]

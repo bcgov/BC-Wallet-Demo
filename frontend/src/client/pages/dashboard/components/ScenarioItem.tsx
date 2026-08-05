@@ -26,7 +26,11 @@ const getCredIcon = (currShowcase: Showcase, credName: string) => {
     scenario.screens.forEach((screen) => {
       if (screen) {
         screen.requestOptions?.requestedCredentials.forEach((cred) => {
-          if (cred.name === credName) {
+          // Try to match by cred_id first, then fall back to name
+          if (
+            (cred.cred_id && currShowcase.credentials.some((c) => c.id === cred.cred_id && c.name === credName)) ||
+            cred.name === credName
+          ) {
             icon = cred.icon ?? ''
           }
         })

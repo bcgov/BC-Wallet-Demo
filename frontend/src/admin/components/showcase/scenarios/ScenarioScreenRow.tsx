@@ -9,6 +9,7 @@ import { useHasRole } from '../../../hooks/useUserRole'
 import { formatCustomDateStampValue } from '../../../utils/formatters'
 import logger from '../../../utils/logger'
 import { ScreenRowBase } from '../ScreenRowBase'
+import { ImageUploadModal } from '../modals/ImageUploadModal'
 import { SelectingAttributesStep } from '../modals/steps/SelectingAttributesStep'
 
 interface ScenarioScreenRowProps {
@@ -61,6 +62,9 @@ export function ScenarioScreenRow({
   const [editingCredIdx, setEditingCredIdx] = useState<number | null>(null)
   const [selectedAttributes, setSelectedAttributes] = useState<Map<string, any>>(new Map())
   const [editingCredential, setEditingCredential] = useState<Credential | null>(null)
+  const [isVerifierIconEditOpen, setIsVerifierIconEditOpen] = useState(false)
+  const [isCredentialIconEditOpen, setIsCredentialIconEditOpen] = useState(false)
+  const [editingCredentialIconIdx, setEditingCredentialIconIdx] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchCredential = async () => {
@@ -120,6 +124,104 @@ export function ScenarioScreenRow({
     fetchCredential()
   }, [editingCredIdx, showcase, nextScreen])
 
+  const getCredentialDisplayName = (cred: CredentialRequest): string => {
+    const showcaseCredential = showcase.credentials.find(
+      (c) =>
+        (cred.cred_id && c.id === cred.cred_id) ||
+        (cred.schema_id && c.schema_id === cred.schema_id) ||
+        (cred.cred_def_id && c.cred_def_id === cred.cred_def_id),
+    )
+    return showcaseCredential ? showcaseCredential.name : cred.name
+  }
+
+  const handleVerifierIconSelect = async (imagePath: string) => {
+    try {
+      const updatedScenarios = showcase.scenarios.map((scenario) => {
+        if (scenario.id !== scenarioId) return scenario
+        return {
+          ...scenario,
+          screens: scenario.screens.map((s) => {
+            if (s.screenId === screen.screenId && s.verifier) {
+              return {
+                ...s,
+                verifier: {
+                  ...s.verifier,
+                  icon: imagePath,
+                },
+              }
+            }
+            return s
+          }),
+        }
+      })
+
+      await updateShowcase(auth, showcase.name, {
+        scenarios: updatedScenarios,
+      })
+
+      logger.info('Verifier icon updated successfully')
+
+      if (onRefreshShowcase) {
+        await onRefreshShowcase()
+      }
+
+      setIsVerifierIconEditOpen(false)
+    } catch (error) {
+      logger.error('Error updating verifier icon:', error)
+    }
+  }
+
+  const handleCredentialIconSelect = async (imagePath: string) => {
+    try {
+      if (editingCredentialIconIdx === null) return
+
+      const updatedScenarios = showcase.scenarios.map((scenario) => {
+        if (scenario.id === scenarioId) {
+          return {
+            ...scenario,
+            screens: scenario.screens.map((scenarioScreen) => {
+              if (scenarioScreen.screenId === nextScreen?.screenId && scenarioScreen.requestOptions) {
+                const updatedCredentials = scenarioScreen.requestOptions.requestedCredentials.map((cred, credIdx) => {
+                  if (credIdx === editingCredentialIconIdx) {
+                    return {
+                      ...cred,
+                      icon: imagePath,
+                    }
+                  }
+                  return cred
+                })
+                return {
+                  ...scenarioScreen,
+                  requestOptions: {
+                    ...scenarioScreen.requestOptions,
+                    requestedCredentials: updatedCredentials,
+                  },
+                }
+              }
+              return scenarioScreen
+            }),
+          }
+        }
+        return scenario
+      })
+
+      await updateShowcase(auth, showcase.name, {
+        scenarios: updatedScenarios,
+      })
+
+      logger.info('Credential icon updated successfully')
+
+      if (onRefreshShowcase) {
+        await onRefreshShowcase()
+      }
+
+      setIsCredentialIconEditOpen(false)
+      setEditingCredentialIconIdx(null)
+    } catch (error) {
+      logger.error('Error updating credential icon:', error)
+    }
+  }
+
   return (
     <>
       <ScreenRowBase<ScenarioScreen>
@@ -131,7 +233,40 @@ export function ScenarioScreenRow({
         headerContent={
           screen.screenId === 'CONNECTION' && screen.verifier?.name ? (
             <div className="mb-3 px-2">
-              <p className="text-sm font-semibold text-bcgov-black">{screen.verifier.name}</p>
+              <div className="flex items-center gap-3">
+                {screen.verifier.icon && canEdit && (
+                  <button
+                    onClick={() => setIsVerifierIconEditOpen(true)}
+                    className="flex items-center justify-center hover:opacity-75 transition-opacity p-0 border-none bg-transparent cursor-pointer"
+                    title="Click to edit icon. This icon is used as an image for the verifier when connecting and verifying."
+                    aria-label={`Change icon for ${screen.verifier.name}`}
+                  >
+                    <img
+                      src={`${publicBaseUrl}${screen.verifier.icon}`}
+                      alt={screen.verifier.name}
+                      className="w-8 h-8 object-contain"
+                    />
+                  </button>
+                )}
+                {screen.verifier.icon && !canEdit && (
+                  <img
+                    src={`${publicBaseUrl}${screen.verifier.icon}`}
+                    alt={screen.verifier.name}
+                    className="w-8 h-8 object-contain"
+                    title="Verifier icon"
+                  />
+                )}
+                {!screen.verifier.icon && canEdit && (
+                  <button
+                    onClick={() => setIsVerifierIconEditOpen(true)}
+                    className="w-8 h-8 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-bcgov-blue hover:text-bcgov-blue transition-colors"
+                    title="Add icon"
+                  >
+                    +
+                  </button>
+                )}
+                <p className="text-sm font-semibold text-bcgov-black">{screen.verifier.name}</p>
+              </div>
             </div>
           ) : null
         }
@@ -150,14 +285,34 @@ export function ScenarioScreenRow({
                         <div key={credIdx} className="bg-white rounded p-3 flex items-start justify-between gap-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              {cred.icon && (
+                              {cred.icon && canEdit && (
+                                <button
+                                  onClick={() => {
+                                    setEditingCredentialIconIdx(credIdx)
+                                    setIsCredentialIconEditOpen(true)
+                                  }}
+                                  className="flex items-center justify-center hover:opacity-75 transition-opacity p-0 border-none bg-transparent cursor-pointer"
+                                  title="Click to change icon. This icon represents the credential during the presentation steps. It defaults to the same icon as during issuance."
+                                  aria-label={`Change icon for ${getCredentialDisplayName(cred)}`}
+                                >
+                                  <img
+                                    src={`${publicBaseUrl}${cred.icon}`}
+                                    alt={cred.name}
+                                    className="w-8 h-8 object-contain"
+                                  />
+                                </button>
+                              )}
+                              {cred.icon && !canEdit && (
                                 <img
                                   src={`${publicBaseUrl}${cred.icon}`}
                                   alt={cred.name}
                                   className="w-8 h-8 object-contain"
+                                  title="Credential icon"
                                 />
                               )}
-                              <span className="text-sm font-medium text-bcgov-black">{cred.name}</span>
+                              <span className="text-sm font-medium text-bcgov-black">
+                                {getCredentialDisplayName(cred)}
+                              </span>
                             </div>
                             {cred.schema_id && (
                               <p className="text-xs text-gray-500 mb-2 font-mono break-all">{cred.schema_id}</p>
@@ -201,7 +356,7 @@ export function ScenarioScreenRow({
                               onClick={() => setEditingCredIdx(credIdx)}
                               className="flex-shrink-0 p-2 text-gray-600 hover:text-bcgov-blue hover:bg-blue-50 rounded transition-colors"
                               title="Edit proof request"
-                              aria-label={`Edit proof request for ${cred.name}`}
+                              aria-label={`Edit proof request for ${getCredentialDisplayName(cred)}`}
                             >
                               <Cog6ToothIcon className="w-5 h-5" />
                             </button>
@@ -346,6 +501,23 @@ export function ScenarioScreenRow({
             </div>
           </div>
         )}
+
+      <ImageUploadModal
+        isOpen={isVerifierIconEditOpen}
+        onClose={() => setIsVerifierIconEditOpen(false)}
+        onSelectImage={handleVerifierIconSelect}
+        type="icon"
+      />
+
+      <ImageUploadModal
+        isOpen={isCredentialIconEditOpen}
+        onClose={() => {
+          setIsCredentialIconEditOpen(false)
+          setEditingCredentialIconIdx(null)
+        }}
+        onSelectImage={handleCredentialIconSelect}
+        type="icon"
+      />
     </>
   )
 }

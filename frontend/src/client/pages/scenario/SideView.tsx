@@ -1,4 +1,4 @@
-import type { ScenarioScreen } from '../../slices/types'
+import type { ScenarioScreen, Showcase } from '../../slices/types'
 
 import { motion } from 'framer-motion'
 import React from 'react'
@@ -16,11 +16,24 @@ export interface Props {
   currentStep: string
   entity: { name: string; icon?: string }
   showLeaveModal(): void
+  currentShowcase?: Showcase
 }
 
-export const SideView: React.FC<Props> = ({ steps, currentStep, entity, showLeaveModal }) => {
+export const SideView: React.FC<Props> = ({ steps, currentStep, entity, showLeaveModal, currentShowcase }) => {
   const requestedCredentials = steps.find((step) => step.requestOptions?.requestedCredentials)?.requestOptions
     ?.requestedCredentials
+
+  const overriddenCredentials = requestedCredentials
+    ? requestedCredentials.map((cred) => {
+        const showcaseCredential = currentShowcase?.credentials.find(
+          (c) =>
+            (cred.cred_id && c.id === cred.cred_id) ||
+            (cred.schema_id && c.schema_id === cred.schema_id) ||
+            (cred.cred_def_id && c.cred_def_id === cred.cred_def_id),
+        )
+        return showcaseCredential ? { ...cred, name: showcaseCredential.name } : cred
+      })
+    : undefined
 
   return (
     <motion.div
@@ -52,7 +65,7 @@ export const SideView: React.FC<Props> = ({ steps, currentStep, entity, showLeav
       className="flex flex-col lg:mx-6 dark:text-white w-auto lg:w-1/3"
     >
       <ConnectionCard icon={entity.icon} entity={entity.name} />
-      {requestedCredentials && <ProofCard requestedItems={requestedCredentials} />}
+      {overriddenCredentials && <ProofCard requestedItems={overriddenCredentials} />}
       <StepperCard steps={steps} currentStep={currentStep} />
       <motion.button
         onClick={showLeaveModal}

@@ -10,7 +10,7 @@ import { ImageUploadModal } from '../ImageUploadModal'
 interface DefineCredentialValuesStepProps {
   selectedSchema: Schema | null
   onBack: () => void
-  onSelectCredential: (values: Record<string, string>, icon: string) => void
+  onSelectCredential: (values: Record<string, string>, icon: string, name: string) => void
   error?: string | null
   initialValues?: Record<string, string>
   initialIcon?: string
@@ -38,6 +38,8 @@ export function DefineCredentialValuesStep({
   const [icon, setIcon] = useState<string>(initialIcon ?? '')
   const [dateOptions, setDateOptions] = useState<Record<string, 'custom' | 'issuance'>>({})
   const [yearOffsets, setYearOffsets] = useState<Record<string, number>>({})
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editedName, setEditedName] = useState(selectedSchema?.name ?? '')
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
   const [credentialImageModalOpen, setCredentialImageModalOpen] = useState(false)
   const [currentImageAttribute, setCurrentImageAttribute] = useState<string | null>(null)
@@ -55,6 +57,13 @@ export function DefineCredentialValuesStep({
       setValues(newValues)
     }
   }, [selectedSchema, initialValues])
+
+  // Update edited name when schema changes
+  useEffect(() => {
+    if (selectedSchema) {
+      setEditedName(selectedSchema.name)
+    }
+  }, [selectedSchema])
 
   // Initialize date options based on initial values
   useEffect(() => {
@@ -169,15 +178,49 @@ export function DefineCredentialValuesStep({
           }
         }
       })
-      onSelectCredential(finalValues, icon)
+      onSelectCredential(finalValues, icon, editedName)
     }
   }
 
   return (
     <div className="space-y-6">
       <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-2xl font-semibold text-bcgov-black mb-1">{selectedSchema.name}</h3>
-        <p className="text-gray-600">v{selectedSchema.version}</p>
+        <div className="flex items-center gap-3">
+          {isEditingName ? (
+            <input
+              type="text"
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              onBlur={() => {
+                if (!editedName.trim()) setEditedName(selectedSchema.name)
+                setIsEditingName(false)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (!editedName.trim()) setEditedName(selectedSchema.name)
+                  setIsEditingName(false)
+                }
+                if (e.key === 'Escape') {
+                  setEditedName(selectedSchema.name)
+                  setIsEditingName(false)
+                }
+              }}
+              autoFocus
+              className="text-2xl font-semibold text-bcgov-black border-2 border-bcgov-blue rounded-lg px-3 py-1 focus:outline-none"
+            />
+          ) : (
+            <>
+              <h3 className="text-2xl font-semibold text-bcgov-black">{editedName}</h3>
+              <button
+                onClick={() => setIsEditingName(true)}
+                className="text-sm font-medium text-bcgov-blue hover:text-bcgov-blue-dark transition-colors"
+              >
+                Edit
+              </button>
+            </>
+          )}
+        </div>
+        <p className="text-gray-600 mt-2">v{selectedSchema.version}</p>
 
         <div className="mt-6">
           <div className="flex items-start gap-6">
@@ -196,12 +239,14 @@ export function DefineCredentialValuesStep({
                 className="mt-3 px-3 py-1.5 text-sm font-medium text-white bg-bcgov-blue hover:bg-bcgov-blue-dark rounded-lg transition-colors flex items-center gap-1"
               >
                 <ArrowUpTrayIcon className="w-4 h-4" />
-                Upload Icon
+                Change Icon
               </button>
             </div>
             <div className="flex-1">
               <p className="text-sm text-gray-600 mb-1">Credential Icon</p>
-              <p className="text-xs text-gray-500">Upload an SVG or image file to display as the credential icon</p>
+              <p className="text-xs text-gray-500">
+                Upload or select a SVG or image file to display as the credential icon
+              </p>
             </div>
           </div>
         </div>

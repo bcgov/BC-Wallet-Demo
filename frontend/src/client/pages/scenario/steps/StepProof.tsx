@@ -4,6 +4,7 @@ import type {
   ProofPredicateRequest,
   ProofRestriction,
   ScenarioScreen,
+  Showcase,
 } from '../../../slices/types'
 
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker'
@@ -28,6 +29,7 @@ export interface Props {
   connectionId: string
   requestedCredentials: CredentialRequest[]
   entityName: string
+  currentShowcase?: Showcase
 }
 
 /**
@@ -75,12 +77,24 @@ export const StepProof: React.FC<Props> = ({
   requestedCredentials,
   entityName,
   characterType,
+  currentShowcase,
 }) => {
   const dispatch = useAppDispatch()
   const proofRequestCreatedRef = useRef(false)
   const proofDone = (proof?.state as string) === 'verified' || proof?.state === 'done'
   const proofReceived = proofDone && proof?.verified !== 'false'
   const proofFailed = proofDone && proof?.verified === 'false'
+
+  // Override credential names for display purposes while keeping originals for proof request
+  const displayCredentials = requestedCredentials.map((cred) => {
+    const showcaseCredential = currentShowcase?.credentials.find(
+      (c) =>
+        (cred.cred_id && c.id === cred.cred_id) ||
+        (cred.schema_id && c.schema_id === cred.schema_id) ||
+        (cred.cred_def_id && c.cred_def_id === cred.cred_def_id),
+    )
+    return showcaseCredential ? { ...cred, name: showcaseCredential.name } : cred
+  })
 
   const [isFailedRequestModalOpen, setIsFailedRequestModalOpen] = useState(false)
   const showFailedRequestModal = () => setIsFailedRequestModalOpen(true)
@@ -95,9 +109,7 @@ export const StepProof: React.FC<Props> = ({
     const predicates: Record<string, ProofPredicateRequest> = {}
 
     requestedCredentials?.forEach((item) => {
-      const restriction: ProofRestriction = {
-        schema_name: item.name,
-      }
+      const restriction: ProofRestriction = {}
       if (item.schema_id) {
         restriction.schema_id = item.schema_id
       }
@@ -195,7 +207,7 @@ export const StepProof: React.FC<Props> = ({
           {proof && (
             <ProofAttributesCard
               entityName={entityName}
-              requestedCredentials={requestedCredentials}
+              requestedCredentials={displayCredentials}
               proof={proof}
               proofReceived={proofReceived}
             />

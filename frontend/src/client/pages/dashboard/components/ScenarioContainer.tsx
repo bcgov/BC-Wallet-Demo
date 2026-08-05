@@ -27,8 +27,15 @@ export const ScenarioContainer: React.FC<Props> = ({ currentShowcase, completedS
     // item.screens.forEach(screen => requiredCredentials.push(...(screen.requestOptions?.requestedCredentials.map(item => item.name) ?? [])))
     item.screens.forEach((screen) =>
       screen.requestOptions?.requestedCredentials.forEach((cred) => {
+        const actualCredential = currentShowcase.credentials.find(
+          (c) =>
+            c.id === cred.cred_id ||
+            c.schema_id === cred.schema_id ||
+            c.cred_def_id === cred.cred_def_id ||
+            c.name === cred.name,
+        )
         if (!requiredCredentials.includes(cred.name)) {
-          requiredCredentials.push(cred.name)
+          requiredCredentials.push(actualCredential?.name ?? cred.name)
         }
       }),
     )
