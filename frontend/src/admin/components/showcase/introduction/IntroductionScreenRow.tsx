@@ -205,12 +205,10 @@ export function IntroductionScreenRow({
             <div className="p-6">
               {(() => {
                 const credential = nextScreen.credentials[editingCredentialIdx]
-                if (selectedSchema) {
-                  selectedSchema.name = credential.name
-                }
+                const schemaForEditor = selectedSchema ? { ...selectedSchema, name: credential.name } : null
                 return (
                   <DefineCredentialValuesStep
-                    selectedSchema={selectedSchema || null}
+                    selectedSchema={schemaForEditor}
                     initialValues={credential.attributes?.reduce((acc: Record<string, string>, attr: any) => {
                       acc[attr.name] = attr.value || ''
                       return acc

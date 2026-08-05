@@ -109,9 +109,7 @@ export const StepProof: React.FC<Props> = ({
     const predicates: Record<string, ProofPredicateRequest> = {}
 
     requestedCredentials?.forEach((item) => {
-      const restriction: ProofRestriction = {
-        schema_name: item.name,
-      }
+      const restriction: ProofRestriction = {}
       if (item.schema_id) {
         restriction.schema_id = item.schema_id
       }

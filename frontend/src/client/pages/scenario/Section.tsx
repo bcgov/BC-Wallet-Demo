@@ -79,9 +79,9 @@ export const Section: React.FC<Props> = ({
   const verifier = section.find((x) => x.verifier !== undefined)?.verifier ?? { name: 'Unkown' }
   const currentShowcase = useCurrentShowcase()
 
-  const overrideCredentialNames = (requestedCredentials: any[] | undefined): any[] => {
+  const overrideCredentialNames = (requestedCredentials: any[] | undefined): any[] | undefined => {
     if (!requestedCredentials || !currentShowcase?.credentials) {
-      return requestedCredentials ?? []
+      return requestedCredentials
     }
     return requestedCredentials.map((cred) => {
       const showcaseCredential = currentShowcase.credentials.find(

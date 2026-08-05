@@ -191,9 +191,15 @@ export function DefineCredentialValuesStep({
               type="text"
               value={editedName}
               onChange={(e) => setEditedName(e.target.value)}
-              onBlur={() => setIsEditingName(false)}
+              onBlur={() => {
+                if (!editedName.trim()) setEditedName(selectedSchema.name)
+                setIsEditingName(false)
+              }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') setIsEditingName(false)
+                if (e.key === 'Enter') {
+                  if (!editedName.trim()) setEditedName(selectedSchema.name)
+                  setIsEditingName(false)
+                }
                 if (e.key === 'Escape') {
                   setEditedName(selectedSchema.name)
                   setIsEditingName(false)

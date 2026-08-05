@@ -136,21 +136,24 @@ export function ScenarioScreenRow({
 
   const handleVerifierIconSelect = async (imagePath: string) => {
     try {
-      const updatedScenarios = showcase.scenarios.map((scenario) => ({
-        ...scenario,
-        screens: scenario.screens.map((s) => {
-          if (s.screenId === screen.screenId && s.verifier) {
-            return {
-              ...s,
-              verifier: {
-                ...s.verifier,
-                icon: imagePath,
-              },
+      const updatedScenarios = showcase.scenarios.map((scenario) => {
+        if (scenario.id !== scenarioId) return scenario
+        return {
+          ...scenario,
+          screens: scenario.screens.map((s) => {
+            if (s.screenId === screen.screenId && s.verifier) {
+              return {
+                ...s,
+                verifier: {
+                  ...s.verifier,
+                  icon: imagePath,
+                },
+              }
             }
-          }
-          return s
-        }),
-      }))
+            return s
+          }),
+        }
+      })
 
       await updateShowcase(auth, showcase.name, {
         scenarios: updatedScenarios,
@@ -231,17 +234,26 @@ export function ScenarioScreenRow({
           screen.screenId === 'CONNECTION' && screen.verifier?.name ? (
             <div className="mb-3 px-2">
               <div className="flex items-center gap-3">
-                {screen.verifier.icon && (
+                {screen.verifier.icon && canEdit && (
+                  <button
+                    onClick={() => setIsVerifierIconEditOpen(true)}
+                    className="flex items-center justify-center hover:opacity-75 transition-opacity p-0 border-none bg-transparent cursor-pointer"
+                    title="Click to edit icon. This icon is used as an image for the verifier when connecting and verifying."
+                    aria-label={`Change icon for ${screen.verifier.name}`}
+                  >
+                    <img
+                      src={`${publicBaseUrl}${screen.verifier.icon}`}
+                      alt={screen.verifier.name}
+                      className="w-8 h-8 object-contain"
+                    />
+                  </button>
+                )}
+                {screen.verifier.icon && !canEdit && (
                   <img
                     src={`${publicBaseUrl}${screen.verifier.icon}`}
                     alt={screen.verifier.name}
-                    className="w-8 h-8 object-contain cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => canEdit && setIsVerifierIconEditOpen(true)}
-                    title={
-                      canEdit
-                        ? 'Click to edit icon. This icon is used as an image for the verifier when connecting and verifying.'
-                        : 'Verifier icon'
-                    }
+                    className="w-8 h-8 object-contain"
+                    title="Verifier icon"
                   />
                 )}
                 {!screen.verifier.icon && canEdit && (
@@ -273,19 +285,29 @@ export function ScenarioScreenRow({
                         <div key={credIdx} className="bg-white rounded p-3 flex items-start justify-between gap-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              {cred.icon && (
+                              {cred.icon && canEdit && (
+                                <button
+                                  onClick={() => {
+                                    setEditingCredentialIconIdx(credIdx)
+                                    setIsCredentialIconEditOpen(true)
+                                  }}
+                                  className="flex items-center justify-center hover:opacity-75 transition-opacity p-0 border-none bg-transparent cursor-pointer"
+                                  title="Click to change icon. This icon represents the credential during the presentation steps. It defaults to the same icon as during issuance."
+                                  aria-label={`Change icon for ${getCredentialDisplayName(cred)}`}
+                                >
+                                  <img
+                                    src={`${publicBaseUrl}${cred.icon}`}
+                                    alt={cred.name}
+                                    className="w-8 h-8 object-contain"
+                                  />
+                                </button>
+                              )}
+                              {cred.icon && !canEdit && (
                                 <img
                                   src={`${publicBaseUrl}${cred.icon}`}
                                   alt={cred.name}
-                                  className="w-8 h-8 object-contain cursor-pointer hover:opacity-75 transition-opacity"
-                                  onClick={() =>
-                                    canEdit && (setEditingCredentialIconIdx(credIdx), setIsCredentialIconEditOpen(true))
-                                  }
-                                  title={
-                                    canEdit
-                                      ? 'Click to change icon. This icon represents the credential during the presentation steps. It defaults to the same icon as during issuance.'
-                                      : 'Credential icon'
-                                  }
+                                  className="w-8 h-8 object-contain"
+                                  title="Credential icon"
                                 />
                               )}
                               <span className="text-sm font-medium text-bcgov-black">
