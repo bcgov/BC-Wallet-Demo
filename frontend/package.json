@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.1.0",
+  "version": "0.2.5",
   "private": true,
   "license": "Apache-2.0",
   "description": "BC Digital Trust Showcase - A showcase of how to use the BC Services Card app to prove things about yourself, in a way that's safe and secure.",

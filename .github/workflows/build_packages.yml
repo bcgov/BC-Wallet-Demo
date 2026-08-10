@@ -106,6 +106,11 @@ jobs:
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         with:
           images: ${{ env.SHOWCASE_SERVER_IMAGE }}
+          # Release tag `vX.Y.Z` -> images `X.Y.Z`, `X.Y`, and `latest` (latest=auto on semver). Branch runs -> branch name only.
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch
 
       - name: Build and push Docker image
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
@@ -154,6 +159,11 @@ jobs:
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         with:
           images: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
+          # Release tag `vX.Y.Z` -> images `X.Y.Z`, `X.Y`, and `latest` (latest=auto on semver). Branch runs -> branch name only.
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch
 
       - name: Build and push Docker image
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
