@@ -82,8 +82,8 @@ This folder defines automation for the BC Digital Trust Showcase monorepo (`fron
 
 Images are pushed to **GitHub Container Registry** (`ghcr.io`):
 
-| Variable in workflow      | Image                                         |
-| ------------------------- | --------------------------------------------- |
+| Variable in workflow      | Image                                             |
+| ------------------------- | ------------------------------------------------- |
 | `SHOWCASE_SERVER_IMAGE`   | `ghcr.io/<owner>/digital-trust-showcase-server`   |
 | `SHOWCASE_FRONTEND_IMAGE` | `ghcr.io/<owner>/digital-trust-showcase-frontend` |
 
