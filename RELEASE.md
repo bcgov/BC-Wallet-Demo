@@ -16,8 +16,9 @@ Both versions follow [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PA
 When you create a GitHub Release:
 
 - **Docker Images** → Published to GitHub Container Registry (GHCR)
-  - `ghcr.io/bcgov/bc-wallet-showcase-server:<version>`
-  - `ghcr.io/bcgov/bc-wallet-showcase-frontend:<version>`
+  - `ghcr.io/bcgov/digital-trust-showcase-server`
+  - `ghcr.io/bcgov/digital-trust-showcase-frontend`
+  - Tags for release `vX.Y.Z`: `X.Y.Z`, `X.Y`, and `latest` (the leading `v` is stripped)
   - Multi-platform: linux/amd64, linux/arm64
 
 - **Helm Chart** → Published to GitHub Pages
@@ -58,11 +59,11 @@ Update both version files to the new version:
 apiVersion: v2
 name: showcase
 version: 0.5.0
-appVersion: '1.0.0'
+appVersion: '0.2.0'
 ...
 ```
 
-> **Note:** `Chart.yaml` version and `package.json` version are independent. You may update them at different rates depending on your release strategy.
+> **Note:** `Chart.yaml` `version` (chart) and `package.json` `version` (app) are independent. Set `Chart.yaml` `appVersion` to the released app version (no leading `v`) — it is the default image tag the chart pulls, so it must match a published image tag (e.g. release `v0.2.0` publishes `:0.2.0`).
 
 ### 3. Commit Changes
 
@@ -103,16 +104,16 @@ Both workflows should trigger automatically:
 #### a. Verify Docker Images
 
 - Go to [GHCR packages](https://github.com/bcgov/bc-wallet-demo/pkgs/container)
-- Check `bc-wallet-showcase-server` and `bc-wallet-showcase-frontend` have new tags with the version
+- Check `digital-trust-showcase-server` and `digital-trust-showcase-frontend` have new tags with the version
 
 #### b. Verify Helm Chart Published
 
 - Go to [GitHub Pages Helm repo](https://bcgov.github.io/BC-Wallet-Demo)
 - Add the repo and search:
   ```bash
-  helm repo add bc-wallet-showcase https://bcgov.github.io/BC-Wallet-Demo
+  helm repo add digital-trust-showcase https://bcgov.github.io/BC-Wallet-Demo
   helm repo update
-  helm search repo bc-wallet-showcase
+  helm search repo digital-trust-showcase
   ```
 - Confirm the new chart version appears
 

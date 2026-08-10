@@ -51,11 +51,11 @@ permissions:
 env:
   HUSKY: '0'
   REGISTRY: ghcr.io
-  SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
-  SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
+  SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/digital-trust-showcase-server
+  SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/digital-trust-showcase-frontend
   # PR Route host fragment (no scheme): https://pr-<N>-<SHOWCASE_PR_HOST_SUFFIX>/…
   # Override per-repo with Actions variable SHOWCASE_PR_HOST_SUFFIX if your cluster DNS differs.
-  SHOWCASE_PR_HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX != '' && vars.SHOWCASE_PR_HOST_SUFFIX || 'bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+  SHOWCASE_PR_HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX != '' && vars.SHOWCASE_PR_HOST_SUFFIX || 'digital-trust-showcase-dev.apps.silver.devops.gov.bc.ca' }}
   # Traction tenant proxy for PR webhook registration (matches deploy/showcase/values-pr.yaml).
   TRACTION_URL: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
 
@@ -188,9 +188,9 @@ jobs:
             -f ../../deploy/showcase/values-pr.yaml
             --namespace "${ns}"
             --set-string "showcase.publicOrigin=${origin}"
-            --set "showcase.server.image.repository=${owner_lc}/bc-wallet-showcase-server"
+            --set "showcase.server.image.repository=${owner_lc}/digital-trust-showcase-server"
             --set "showcase.server.image.tag=pr-${PR_NUM}"
-            --set "showcase.frontend.image.repository=${owner_lc}/bc-wallet-showcase-frontend"
+            --set "showcase.frontend.image.repository=${owner_lc}/digital-trust-showcase-frontend"
             --set "showcase.frontend.image.tag=pr-${PR_NUM}"
             --wait
             --timeout 10m

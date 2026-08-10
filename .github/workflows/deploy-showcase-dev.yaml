@@ -53,8 +53,8 @@ permissions:
 env:
   HUSKY: '0'
   REGISTRY: ghcr.io
-  SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-server
-  SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bc-wallet-showcase-frontend
+  SHOWCASE_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/digital-trust-showcase-server
+  SHOWCASE_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/digital-trust-showcase-frontend
 
 jobs:
   build-server:
@@ -148,6 +148,8 @@ jobs:
           fi
           helm upgrade --install "${release}" . \
             -f ../../deploy/showcase/values-dev.yaml \
+            --set showcase.server.image.tag=main \
+            --set showcase.frontend.image.tag=main \
             --namespace "${ns}" \
             --wait \
             --timeout 15m \

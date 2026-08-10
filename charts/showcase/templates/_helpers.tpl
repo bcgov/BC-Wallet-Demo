@@ -66,7 +66,7 @@ Container image reference (registry + repository + tag or digest).
 {{- $global := .global -}}
 {{- $reg := coalesce $img.registry $global.imageRegistry "" -}}
 {{- $repo := $img.repository -}}
-{{- $tag := default "latest" $img.tag -}}
+{{- $tag := default (default "latest" .defaultTag) $img.tag -}}
 {{- $dig := $img.digest -}}
 {{- if $dig -}}
 {{- if $reg -}}
@@ -110,14 +110,14 @@ Frontend (Caddy + static SPA) resource name prefix.
 Server container image.
 */}}
 {{- define "showcase.server.image" -}}
-{{ include "showcase.image" (dict "image" .Values.showcase.server.image "global" .Values.global) }}
+{{ include "showcase.image" (dict "image" .Values.showcase.server.image "global" .Values.global "defaultTag" .Chart.AppVersion) }}
 {{- end }}
 
 {{/*
 Frontend container image.
 */}}
 {{- define "showcase.frontend.image" -}}
-{{ include "showcase.image" (dict "image" .Values.showcase.frontend.image "global" .Values.global) }}
+{{ include "showcase.image" (dict "image" .Values.showcase.frontend.image "global" .Values.global "defaultTag" .Chart.AppVersion) }}
 {{- end }}
 
 {{/*

@@ -1,8 +1,8 @@
 name: Showcase build frontend image
-description: Build and push bc-wallet-showcase-frontend to GHCR (Vite build-args, provenance + SBOM)
+description: Build and push digital-trust-showcase-frontend to GHCR (Vite build-args, provenance + SBOM)
 inputs:
   image:
-    description: Full image reference without tag (e.g. ghcr.io/bcgov/bc-wallet-showcase-frontend)
+    description: Full image reference without tag (e.g. ghcr.io/bcgov/digital-trust-showcase-frontend)
     required: true
   tag:
     description: Image tag (e.g. main or pr-42)

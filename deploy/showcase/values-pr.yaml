@@ -19,7 +19,7 @@ ingress:
 showcase:
   autoProvisionSecrets: true
   ## Overridden in CI; placeholder keeps helm lint/template valid locally.
-  publicOrigin: 'https://bc-wallet-showcase-pr-0.apps.silver.devops.gov.bc.ca'
+  publicOrigin: 'https://digital-trust-showcase-pr-0.apps.silver.devops.gov.bc.ca'
   networkPolicy:
     enabled: true
   server:

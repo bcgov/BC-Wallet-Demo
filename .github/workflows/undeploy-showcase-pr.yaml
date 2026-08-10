@@ -15,7 +15,7 @@ permissions:
   packages: write
 
 env:
-  SHOWCASE_PR_HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX != '' && vars.SHOWCASE_PR_HOST_SUFFIX || 'bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca' }}
+  SHOWCASE_PR_HOST_SUFFIX: ${{ vars.SHOWCASE_PR_HOST_SUFFIX != '' && vars.SHOWCASE_PR_HOST_SUFFIX || 'digital-trust-showcase-dev.apps.silver.devops.gov.bc.ca' }}
   TRACTION_URL: 'https://traction-tenant-proxy-dev.apps.silver.devops.gov.bc.ca'
 
 jobs:
@@ -117,7 +117,7 @@ jobs:
         with:
           account: ${{ github.repository_owner }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          image-names: bc-wallet-showcase-server bc-wallet-showcase-frontend
+          image-names: digital-trust-showcase-server digital-trust-showcase-frontend
           image-tags: pr-${{ github.event.pull_request.number }}
           cut-off: 1s
           tag-selection: tagged
