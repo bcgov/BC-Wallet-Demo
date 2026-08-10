@@ -53,10 +53,10 @@ jobs:
       - name: Run frontend unit tests
         run: yarn workspace frontend test:unit
 
-  cypress-run:
-    name: Cypress E2E Tests
+  static-checks:
+    name: Lint, Format & Types
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -77,6 +77,22 @@ jobs:
 
       - name: Compile
         run: yarn check-types
+
+  cypress-run:
+    name: Cypress E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/setup-node
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
       # Cypress: only the Vite dev server is started. cypress.config.ts sets apiUrl to :5000 for
       # specs that hit the API—if CI runs those, also start the server (e.g. concurrently) or align with build_packages.yml (yarn dev).

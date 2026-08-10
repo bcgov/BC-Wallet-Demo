@@ -17,6 +17,10 @@ inputs:
   github_token:
     description: Token with packages write (typically secrets.GITHUB_TOKEN)
     required: true
+  sbom:
+    description: Generate an SBOM (enable for released images; skip for ephemeral PR/dev builds to save time)
+    required: false
+    default: 'false'
 
 runs:
   using: composite
@@ -51,7 +55,7 @@ runs:
         labels: ${{ steps.meta.outputs.labels }}
         annotations: ${{ steps.meta.outputs.annotations }}
         provenance: mode=min
-        sbom: true
+        sbom: ${{ inputs.sbom }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: |

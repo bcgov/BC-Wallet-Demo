@@ -1,17 +1,30 @@
+# syntax=docker/dockerfile:1
 ARG build_image=node:22-alpine
 ARG runtime_image=caddy:alpine
 
 # build stage
 FROM ${build_image} AS build-stage
 WORKDIR /app
-ENV HUSKY=0
-COPY . .
+ENV HUSKY=0 \
+    YARN_NETWORK_CONCURRENCY=8
+
+# Install deps first so this layer stays cached unless a manifest/lockfile changes.
+# The whole workspace is resolved against the root lockfile, so every member
+# package.json must be present for `--frozen-lockfile` to succeed.
+COPY package.json yarn.lock ./
+COPY frontend/package.json ./frontend/
+COPY server/package.json ./server/
+RUN --mount=type=cache,target=/root/.cache/yarn \
+    yarn install --frozen-lockfile --network-timeout 600000 --non-interactive
+
 # CI passes legacy secret names (REACT_APP_*). Map them to Vite env for `vite build`.
 ARG REACT_APP_INSIGHTS_PROJECT_ID
 ARG REACT_APP_HOST_BACKEND
 ENV VITE_INSIGHTS_PROJECT_ID=$REACT_APP_INSIGHTS_PROJECT_ID
 ENV VITE_HOST_BACKEND=$REACT_APP_HOST_BACKEND
-RUN yarn install --frozen-lockfile --network-timeout 600000 --non-interactive
+
+# Copy source last so edits don't invalidate the dependency layer above.
+COPY frontend ./frontend
 RUN yarn workspace frontend build
 
 # production stage
