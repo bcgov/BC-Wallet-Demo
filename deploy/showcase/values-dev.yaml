@@ -17,7 +17,7 @@ ingress:
     tls: false
 
 showcase:
-  publicOrigin: 'https://bc-wallet-showcase-dev.apps.silver.devops.gov.bc.ca'
+  publicOrigin: 'https://digital-trust-showcase-dev.apps.silver.devops.gov.bc.ca'
   networkPolicy:
     enabled: true
   ## Force pod rollout on every helm upgrade so that Always-pull picks up rebuilt images behind the same tag.

@@ -1,8 +1,8 @@
 name: Showcase build server image
-description: Build and push bc-wallet-showcase-server to GHCR (provenance + SBOM)
+description: Build and push digital-trust-showcase-server to GHCR (provenance + SBOM)
 inputs:
   image:
-    description: Full image reference without tag (e.g. ghcr.io/bcgov/bc-wallet-showcase-server)
+    description: Full image reference without tag (e.g. ghcr.io/bcgov/digital-trust-showcase-server)
     required: true
   tag:
     description: Image tag (e.g. main or pr-42)

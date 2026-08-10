@@ -84,8 +84,8 @@ Images are pushed to **GitHub Container Registry** (`ghcr.io`):
 
 | Variable in workflow      | Image                                         |
 | ------------------------- | --------------------------------------------- |
-| `SHOWCASE_SERVER_IMAGE`   | `ghcr.io/<owner>/bc-wallet-showcase-server`   |
-| `SHOWCASE_FRONTEND_IMAGE` | `ghcr.io/<owner>/bc-wallet-showcase-frontend` |
+| `SHOWCASE_SERVER_IMAGE`   | `ghcr.io/<owner>/digital-trust-showcase-server`   |
+| `SHOWCASE_FRONTEND_IMAGE` | `ghcr.io/<owner>/digital-trust-showcase-frontend` |
 
 Jobs use `docker/login-action@v3`, `docker/setup-buildx-action@v3`, `docker/metadata-action@v5`, and `docker/build-push-action@v7` with **minimal provenance** and **SBOM** attestations (`provenance: mode=min`, `sbom: true`). Image build jobs set **`permissions: id-token: write`** (with `packages: write`) so attestation upload to GHCR is supported.
 
@@ -103,7 +103,7 @@ To approximate CI locally for the showcase web image:
 docker build -f frontend/Dockerfile \
   --build-arg REACT_APP_INSIGHTS_PROJECT_ID="..." \
   --build-arg REACT_APP_HOST_BACKEND="..." \
-  -t bc-wallet-showcase-frontend:local .
+  -t digital-trust-showcase-frontend:local .
 ```
 
 ---
@@ -132,9 +132,9 @@ Runs **chart-releaser** when **`charts/showcase/Chart.yaml`** **`version`** is n
 **Install:**
 
 ```bash
-helm repo add bc-wallet-showcase https://bcgov.github.io/BC-Wallet-Demo
+helm repo add digital-trust-showcase https://bcgov.github.io/BC-Wallet-Demo
 helm repo update
-helm install my-showcase bc-wallet-showcase/showcase --version <chart-version>
+helm install my-showcase digital-trust-showcase/showcase --version <chart-version>
 ```
 
 ---

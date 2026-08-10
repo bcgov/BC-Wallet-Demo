@@ -86,9 +86,9 @@ showcase:
     ## HTTP listen port for the server container and Service.
     containerPort: 5000
     image:
-      ## ghcr.io/bcgov/bc-wallet-showcase-server:main (see https://github.com/orgs/bcgov/packages?repo_name=BC-Wallet-Demo)
+      ## ghcr.io/bcgov/digital-trust-showcase-server:main (see https://github.com/orgs/bcgov/packages?repo_name=BC-Wallet-Demo)
       registry: ghcr.io
-      repository: bcgov/bc-wallet-showcase-server
+      repository: bcgov/digital-trust-showcase-server
       ## Defaults to the chart appVersion when empty. CI overrides to `main` for dev.
       tag: ''
       digest: ''
@@ -171,9 +171,9 @@ showcase:
     ## (same behaviour as before); set this to override without a new chart version.
     caddyfile: ''
     image:
-      ## ghcr.io/bcgov/bc-wallet-showcase-frontend:main
+      ## ghcr.io/bcgov/digital-trust-showcase-frontend:main
       registry: ghcr.io
-      repository: bcgov/bc-wallet-showcase-frontend
+      repository: bcgov/digital-trust-showcase-frontend
       ## Defaults to the chart appVersion when empty. CI overrides to `main` for dev.
       tag: ''
       digest: ''

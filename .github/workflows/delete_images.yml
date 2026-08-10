@@ -19,7 +19,7 @@ jobs:
         uses: snok/container-retention-policy@d3bdcf5ce9b05f685154e4a16c39233b245e3d53 # v3.1.0
         with:
           account: bcgov
-          image-names: bc-wallet-showcase-frontend, bc-wallet-showcase-server
+          image-names: digital-trust-showcase-frontend, digital-trust-showcase-server
           cut-off: 1month
           tag-selection: untagged
           token: ${{ secrets.GITHUB_TOKEN }}

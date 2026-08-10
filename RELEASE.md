@@ -16,8 +16,8 @@ Both versions follow [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PA
 When you create a GitHub Release:
 
 - **Docker Images** → Published to GitHub Container Registry (GHCR)
-  - `ghcr.io/bcgov/bc-wallet-showcase-server:<version>`
-  - `ghcr.io/bcgov/bc-wallet-showcase-frontend:<version>`
+  - `ghcr.io/bcgov/digital-trust-showcase-server:<version>`
+  - `ghcr.io/bcgov/digital-trust-showcase-frontend:<version>`
   - Multi-platform: linux/amd64, linux/arm64
 
 - **Helm Chart** → Published to GitHub Pages
@@ -103,16 +103,16 @@ Both workflows should trigger automatically:
 #### a. Verify Docker Images
 
 - Go to [GHCR packages](https://github.com/bcgov/bc-wallet-demo/pkgs/container)
-- Check `bc-wallet-showcase-server` and `bc-wallet-showcase-frontend` have new tags with the version
+- Check `digital-trust-showcase-server` and `digital-trust-showcase-frontend` have new tags with the version
 
 #### b. Verify Helm Chart Published
 
 - Go to [GitHub Pages Helm repo](https://bcgov.github.io/BC-Wallet-Demo)
 - Add the repo and search:
   ```bash
-  helm repo add bc-wallet-showcase https://bcgov.github.io/BC-Wallet-Demo
+  helm repo add digital-trust-showcase https://bcgov.github.io/BC-Wallet-Demo
   helm repo update
-  helm search repo bc-wallet-showcase
+  helm search repo digital-trust-showcase
   ```
 - Confirm the new chart version appears
 

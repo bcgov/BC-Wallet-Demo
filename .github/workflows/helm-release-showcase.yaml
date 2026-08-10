@@ -94,8 +94,8 @@ jobs:
             echo "**Helm repo:** \`https://bcgov.github.io/BC-Wallet-Demo\`"
             echo ""
             echo '```bash'
-            echo "helm repo add bc-wallet-showcase https://bcgov.github.io/BC-Wallet-Demo"
+            echo "helm repo add digital-trust-showcase https://bcgov.github.io/BC-Wallet-Demo"
             echo "helm repo update"
-            echo "helm search repo bc-wallet-showcase"
+            echo "helm search repo digital-trust-showcase"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
