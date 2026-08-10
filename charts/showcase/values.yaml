@@ -89,7 +89,8 @@ showcase:
       ## ghcr.io/bcgov/bc-wallet-showcase-server:main (see https://github.com/orgs/bcgov/packages?repo_name=BC-Wallet-Demo)
       registry: ghcr.io
       repository: bcgov/bc-wallet-showcase-server
-      tag: main
+      ## Defaults to the chart appVersion when empty. CI overrides to `main` for dev.
+      tag: ''
       digest: ''
       pullPolicy: IfNotPresent
     ## Database seeding. When enabled, runs as an init container before the server starts.
@@ -173,7 +174,8 @@ showcase:
       ## ghcr.io/bcgov/bc-wallet-showcase-frontend:main
       registry: ghcr.io
       repository: bcgov/bc-wallet-showcase-frontend
-      tag: main
+      ## Defaults to the chart appVersion when empty. CI overrides to `main` for dev.
+      tag: ''
       digest: ''
       pullPolicy: IfNotPresent
     resources: {}

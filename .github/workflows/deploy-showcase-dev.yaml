@@ -148,6 +148,8 @@ jobs:
           fi
           helm upgrade --install "${release}" . \
             -f ../../deploy/showcase/values-dev.yaml \
+            --set showcase.server.image.tag=main \
+            --set showcase.frontend.image.tag=main \
             --namespace "${ns}" \
             --wait \
             --timeout 15m \
