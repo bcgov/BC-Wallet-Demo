@@ -123,7 +123,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           provenance: mode=min
-          sbom: true
+          sbom: ${{ github.event_name == 'release' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -176,7 +176,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           provenance: mode=min
-          sbom: true
+          sbom: ${{ github.event_name == 'release' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
