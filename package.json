@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "check-types": "yarn workspace frontend exec tsc --noEmit -p tsconfig.json && yarn workspace server exec tsc --noEmit -p tsconfig.json",
-    "prettier": "prettier '**/*.+(js|json|ts|md|yml|yaml)'",
+    "prettier": "prettier \"**/*.+(js|json|ts|md|yml|yaml)\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "yarn prettier --write",
@@ -31,23 +31,23 @@
     "cy:run": "cypress run"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.22.0",
+    "@eslint/eslintrc": "^3.3.6",
+    "@eslint/js": "^9.39.5",
     "@types/node": "^25.6.0",
     "concurrently": "^7.0.0",
     "cypress": "^13",
-    "eslint": "^9.22.0",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-import-resolver-typescript": "^4.4.2",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-cypress": "^6.3.1",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.5",
-    "globals": "^16.0.0",
+    "eslint-plugin-prettier": "^5.5.6",
+    "globals": "^17.11.0",
     "husky": "^7.0.1",
-    "prettier": "^3.5.3",
+    "prettier": "^3.9.6",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.58.2"
+    "typescript-eslint": "^8.67.0"
   },
   "engines": {
     "node": ">=22"
