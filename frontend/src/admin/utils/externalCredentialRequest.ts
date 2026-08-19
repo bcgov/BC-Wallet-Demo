@@ -185,10 +185,10 @@ export function buildExternalCredentialRequest(
 }
 
 export function isExternalCredentialRequest(request: CredentialRequest, showcase: Showcase): boolean {
-  if (request.cred_id) return false
   return !showcase.credentials.some(
     (credential) =>
-      (credential.schema_id && toIdList(request.schema_id).includes(credential.schema_id)) ||
-      (credential.cred_def_id && toIdList(request.cred_def_id).includes(credential.cred_def_id)),
+      (!!request.cred_id && credential.id === request.cred_id) ||
+      (!!credential.schema_id && toIdList(request.schema_id).includes(credential.schema_id)) ||
+      (!!credential.cred_def_id && toIdList(request.cred_def_id).includes(credential.cred_def_id)),
   )
 }

@@ -1,10 +1,23 @@
+import type { CredentialRequest, Showcase } from '../../types'
+
 import { describe, expect, it } from 'vitest'
 
 import {
   EXTERNAL_CREDENTIAL_JSON_TEMPLATE,
   buildExternalCredentialRequest,
+  isExternalCredentialRequest,
   parseExternalCredentialJson,
 } from '../externalCredentialRequest'
+
+const showcase: Showcase = {
+  name: 'Test showcase',
+  progressBar: [],
+  introduction: [],
+  scenarios: [],
+  credentials: [
+    { id: 'cred-1', name: 'Student Card', icon: '', version: '1.0', attributes: [], schema_id: 'schema-1' },
+  ],
+}
 
 describe('external credential request parsing', () => {
   it('accepts a valid credential definition request', () => {
@@ -105,5 +118,25 @@ describe('external credential request parsing', () => {
     const result = parseExternalCredentialJson(JSON.stringify({ cred_def_id: ['abc', ''], properties: ['name'] }))
 
     expect(result.errors).toContain('cred_def_id must be a non-empty string or an array of non-empty strings.')
+  })
+})
+
+describe('isExternalCredentialRequest', () => {
+  const request: CredentialRequest = { name: 'Student Card' }
+
+  it('returns false when the request matches a showcase credential by cred_id', () => {
+    expect(isExternalCredentialRequest({ ...request, cred_id: 'cred-1' }, showcase)).toBe(false)
+  })
+
+  it('returns false when the request matches a showcase credential by schema_id', () => {
+    expect(isExternalCredentialRequest({ ...request, schema_id: 'schema-1' }, showcase)).toBe(false)
+  })
+
+  it('returns true when cred_id is set but does not match any showcase credential', () => {
+    expect(isExternalCredentialRequest({ ...request, cred_id: 'stale-id' }, showcase)).toBe(true)
+  })
+
+  it('returns true when neither cred_id, schema_id, nor cred_def_id match', () => {
+    expect(isExternalCredentialRequest({ ...request, schema_id: 'unmatched-schema' }, showcase)).toBe(true)
   })
 })

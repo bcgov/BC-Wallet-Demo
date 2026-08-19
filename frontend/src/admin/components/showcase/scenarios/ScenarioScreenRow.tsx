@@ -78,6 +78,9 @@ export function ScenarioScreenRow({
           const cred =
             showcase.credentials.find((c) => c.id === proofRequest.cred_id) ||
             showcase.credentials.find((c) => c.schema_id && toIdList(proofRequest.schema_id).includes(c.schema_id)) ||
+            showcase.credentials.find(
+              (c) => c.cred_def_id && toIdList(proofRequest.cred_def_id).includes(c.cred_def_id),
+            ) ||
             null
 
           if (!cred) {
