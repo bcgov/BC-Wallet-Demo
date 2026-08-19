@@ -15,7 +15,7 @@ interface ExternalCredentialRequestModalProps {
   initialValue?: CredentialRequest | null
   onSave: (request: CredentialRequest) => void
   onClose: () => void
-  onRequestIconUpload: () => void
+  onRequestIconUpload?: () => void
 }
 
 const fieldsFromRequest = (request?: CredentialRequest | null) =>
@@ -99,9 +99,11 @@ export function ExternalCredentialRequestModal({
               ) : (
                 <div className="w-12 h-12 border border-dashed border-gray-300 rounded-lg" />
               )}
-              <button onClick={onRequestIconUpload} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                Change icon
-              </button>
+              {onRequestIconUpload && (
+                <button onClick={onRequestIconUpload} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                  Change icon
+                </button>
+              )}
             </div>
           </div>
 
