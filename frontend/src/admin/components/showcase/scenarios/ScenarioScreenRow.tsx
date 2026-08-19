@@ -63,7 +63,6 @@ export function ScenarioScreenRow({
   const canEdit = useHasRole('creator')
   const [editingCredIdx, setEditingCredIdx] = useState<number | null>(null)
   const [editingExternalIdx, setEditingExternalIdx] = useState<number | null>(null)
-  const [isAddingExternalCredential, setIsAddingExternalCredential] = useState(false)
   const [selectedAttributes, setSelectedAttributes] = useState<Map<string, any>>(new Map())
   const [editingCredential, setEditingCredential] = useState<Credential | null>(null)
   const [isVerifierIconEditOpen, setIsVerifierIconEditOpen] = useState(false)
@@ -387,14 +386,6 @@ export function ScenarioScreenRow({
                       ))}
                     </div>
                   )}
-                {canEdit && (
-                  <button
-                    onClick={() => setIsAddingExternalCredential(true)}
-                    className="mt-3 w-full px-3 py-2 text-sm text-bcgov-blue border border-bcgov-blue rounded-lg hover:bg-blue-50"
-                  >
-                    Add external credential (advanced)
-                  </button>
-                )}
               </div>
             </div>
           ) : null
@@ -419,39 +410,6 @@ export function ScenarioScreenRow({
       />
 
       {/* Edit Proof Request Modal */}
-      {isAddingExternalCredential && (
-        <ExternalCredentialRequestModal
-          isOpen={true}
-          onClose={() => setIsAddingExternalCredential(false)}
-          onSave={async (request) => {
-            try {
-              const updatedScenarios = showcase.scenarios.map((scenario) => {
-                if (scenario.id !== scenarioId) return scenario
-                return {
-                  ...scenario,
-                  screens: scenario.screens.map((scenarioScreen) => {
-                    if (scenarioScreen.screenId !== nextScreen?.screenId || !scenarioScreen.requestOptions) {
-                      return scenarioScreen
-                    }
-                    return {
-                      ...scenarioScreen,
-                      requestOptions: {
-                        ...scenarioScreen.requestOptions,
-                        requestedCredentials: [...scenarioScreen.requestOptions.requestedCredentials, request],
-                      },
-                    }
-                  }),
-                }
-              })
-              await updateShowcase(auth, showcase.name, { scenarios: updatedScenarios })
-              await onRefreshShowcase?.()
-              setIsAddingExternalCredential(false)
-            } catch (error) {
-              logger.error('Error adding external proof request:', error)
-            }
-          }}
-        />
-      )}
       {editingExternalIdx !== null && nextScreen?.requestOptions?.requestedCredentials?.[editingExternalIdx] && (
         <ExternalCredentialRequestModal
           isOpen={true}
