@@ -19,7 +19,12 @@ interface ExternalCredentialRequestModalProps {
 }
 
 const fieldsFromRequest = (request?: CredentialRequest | null) =>
-  request
+  request &&
+  (request.schema_id ||
+    request.cred_def_id ||
+    request.properties?.length ||
+    request.predicates?.length ||
+    request.nonRevoked)
     ? JSON.stringify(
         {
           ...(request.schema_id ? { schema_id: request.schema_id } : {}),
