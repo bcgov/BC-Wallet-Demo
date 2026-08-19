@@ -86,12 +86,11 @@ export function parseExternalCredentialJson(raw: string): {
     }
   }
 
-  let predicates: Predicate[] | undefined
+  const predicates: Predicate[] = []
   if (parsed.predicates !== undefined) {
     if (!Array.isArray(parsed.predicates)) {
       errors.push('predicates must be an array.')
     } else {
-      predicates = []
       parsed.predicates.forEach((predicate, index) => {
         if (!isObject(predicate) || typeof predicate.name !== 'string' || !predicate.name.trim()) {
           errors.push(`predicates[${index}].name must be a non-empty string.`)
@@ -131,7 +130,13 @@ export function parseExternalCredentialJson(raw: string): {
 
   if (errors.length > 0) return { errors, warnings }
   return {
-    value: { schema_id: schemaId, cred_def_id: credDefId, properties, predicates, nonRevoked },
+    value: {
+      schema_id: schemaId,
+      cred_def_id: credDefId,
+      properties,
+      predicates: predicates.length > 0 ? predicates : undefined,
+      nonRevoked,
+    },
     errors,
     warnings,
   }
