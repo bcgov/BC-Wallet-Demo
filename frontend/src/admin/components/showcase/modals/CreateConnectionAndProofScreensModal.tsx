@@ -420,20 +420,25 @@ export function CreateConnectionAndProofScreensModal({
                       if (!scenario) return
 
                       // Build the requestOptions from credentialRequests
-                      const proofRequests = Array.from(credentialRequests.entries()).map(([credentialId, req]) => {
-                        const credential = showcase?.credentials?.find((c) => c.id === credentialId)
-                        return {
-                          name: credential?.name || req.name,
-                          schema_id: credential?.schema_id,
-                          cred_def_id: credential?.cred_def_id,
-                          cred_id: credential?.id,
-                          icon: req.icon,
-                          properties: req.properties,
-                          ...(req.predicates && req.predicates.length > 0 && { predicates: req.predicates }),
-                          nonRevoked: req.nonRevoked,
-                        }
-                      })
-                      proofRequests.push(...Array.from(externalCredentials.values()))
+                      const proofRequests: CredentialRequest[] = [
+                        ...Array.from(credentialRequests.entries()).map(([credentialId, req]) => {
+                          const credential = showcase?.credentials?.find((c) => c.id === credentialId)
+                          return {
+                            name: credential?.name || req.name,
+                            schema_id: credential?.schema_id,
+                            cred_def_id: credential?.cred_def_id,
+                            cred_id: credential?.id,
+                            icon: req.icon,
+                            properties: req.properties,
+                            ...(req.predicates && req.predicates.length > 0 && { predicates: req.predicates }),
+                            nonRevoked: req.nonRevoked,
+                          }
+                        }),
+                        ...Array.from(externalCredentials.values()).map((request) => ({
+                          ...request,
+                          nonRevoked: request.nonRevoked,
+                        })),
+                      ]
                       const requestOptions = {
                         name: verifierName,
                         text: "Review and confirm the information you're sharing",
