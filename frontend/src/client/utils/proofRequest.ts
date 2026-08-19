@@ -1,5 +1,4 @@
-import type { CredentialRequest } from '../slices/types'
-import type { ProofRestriction } from '../slices/types'
+import type { CredentialRequest, ProofRestriction } from '../slices/types'
 
 export function buildRestrictions(item: CredentialRequest): ProofRestriction[] {
   const restriction: ProofRestriction = {}

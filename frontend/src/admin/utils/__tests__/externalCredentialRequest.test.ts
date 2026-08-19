@@ -77,6 +77,10 @@ describe('external credential request parsing', () => {
       JSON.stringify({ schema_id: 'schema', cred_def_id: 'creddef', properties: ['name'] }),
     )
     expect(result.errors).toEqual([])
-    expect(result.warnings).toHaveLength(2)
+    expect(result.warnings).toEqual([
+      'schema_id does not match a recognized AnonCreds identifier format.',
+      'cred_def_id does not match a recognized AnonCreds identifier format.',
+      'schema_id and cred_def_id appear to use different issuer prefixes.',
+    ])
   })
 })

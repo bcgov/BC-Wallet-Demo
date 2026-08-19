@@ -3,12 +3,12 @@ import type { CredentialRequest } from '../../../types'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
-import { publicBaseUrl } from '../../../api/adminApi'
 import {
   EXTERNAL_CREDENTIAL_JSON_TEMPLATE,
   buildExternalCredentialRequest,
   parseExternalCredentialJson,
 } from '../../../utils/externalCredentialRequest'
+import { getPublicAssetUrl } from '../../../utils/publicAssetUrl'
 
 interface ExternalCredentialRequestModalProps {
   isOpen: boolean
@@ -74,8 +74,8 @@ export function ExternalCredentialRequestModal({
         </div>
         <div className="p-6 space-y-5">
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            Use this for a credential issued outside this showcase. The schema or credential definition must be available
-            to the verifier agent on the ledger it uses.
+            Use this for a credential issued outside this showcase. The schema or credential definition must be
+            available to the verifier agent on the ledger it uses.
           </div>
 
           <div>
@@ -95,7 +95,7 @@ export function ExternalCredentialRequestModal({
             <p className="block text-sm font-medium text-bcgov-black mb-2">Icon</p>
             <div className="flex items-center gap-3">
               {icon ? (
-                <img src={`${publicBaseUrl}${icon}`} alt="Credential icon" className="w-12 h-12 object-contain" />
+                <img src={getPublicAssetUrl(icon)} alt="Credential icon" className="w-12 h-12 object-contain" />
               ) : (
                 <div className="w-12 h-12 border border-dashed border-gray-300 rounded-lg" />
               )}
@@ -152,7 +152,9 @@ export function ExternalCredentialRequestModal({
               <p className="text-gray-600">Properties: {parsed.value.properties?.join(', ') || 'None'}</p>
               <p className="text-gray-600">
                 Predicates:{' '}
-                {parsed.value.predicates?.map((predicate) => `${predicate.name} ${predicate.type} ${predicate.value}`).join(', ') || 'None'}
+                {parsed.value.predicates
+                  ?.map((predicate) => `${predicate.name} ${predicate.type} ${predicate.value}`)
+                  .join(', ') || 'None'}
               </p>
               {parsed.value.nonRevoked && <p className="text-green-700">Non-revoked credential required</p>}
             </div>

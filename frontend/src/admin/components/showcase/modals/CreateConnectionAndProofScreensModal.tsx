@@ -196,11 +196,14 @@ export function CreateConnectionAndProofScreensModal({
                         ...(scenario.screens?.slice(0, insertIdx) ?? []),
                         connectionScreenData,
                         externalCredentials.size > 0
-                          ? { ...proofScreenData, requestOptions: {
-                              name: verifierName,
-                              text: "Review and confirm the information you're sharing",
-                              requestedCredentials: Array.from(externalCredentials.values()),
-                            } }
+                          ? {
+                              ...proofScreenData,
+                              requestOptions: {
+                                name: verifierName,
+                                text: "Review and confirm the information you're sharing",
+                                requestedCredentials: Array.from(externalCredentials.values()),
+                              },
+                            }
                           : proofScreenData,
                         ...(scenario.screens?.slice(insertIdx) ?? []),
                       ]

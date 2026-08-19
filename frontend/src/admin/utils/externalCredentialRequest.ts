@@ -72,7 +72,10 @@ export function parseExternalCredentialJson(raw: string): {
 
   let properties: string[] | undefined
   if (parsed.properties !== undefined) {
-    if (!Array.isArray(parsed.properties) || parsed.properties.some((property) => typeof property !== 'string' || !property.trim())) {
+    if (
+      !Array.isArray(parsed.properties) ||
+      parsed.properties.some((property) => typeof property !== 'string' || !property.trim())
+    ) {
       errors.push('properties must be an array of non-empty strings.')
     } else {
       properties = parsed.properties.map((property) => property.trim())
@@ -95,7 +98,10 @@ export function parseExternalCredentialJson(raw: string): {
           errors.push(`predicates[${index}].type must be one of >=, >, <=, <.`)
           return
         }
-        if (!((typeof predicate.value === 'number' && Number.isFinite(predicate.value)) || isDateInt(predicate.value))) {
+        if (!(
+          (typeof predicate.value === 'number' && Number.isFinite(predicate.value)) ||
+          isDateInt(predicate.value)
+        )) {
           errors.push(`predicates[${index}].value must be a number or $dateint marker.`)
           return
         }
@@ -121,7 +127,11 @@ export function parseExternalCredentialJson(raw: string): {
   }
 
   if (errors.length > 0) return { errors, warnings }
-  return { value: { schema_id: schemaId, cred_def_id: credDefId, properties, predicates, nonRevoked }, errors, warnings }
+  return {
+    value: { schema_id: schemaId, cred_def_id: credDefId, properties, predicates, nonRevoked },
+    errors,
+    warnings,
+  }
 }
 
 export function buildExternalCredentialRequest(
