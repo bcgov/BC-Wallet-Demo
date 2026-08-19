@@ -80,7 +80,8 @@ export function ExternalCredentialRequestModal({
         <div className="p-6 space-y-5">
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
             Use this for a credential issued outside this showcase. The schema or credential definition must be
-            available to the verifier agent on the ledger it uses.
+            available to the verifier agent on the ledger it uses. Provide an array of values for schema_id or
+            cred_def_id to accept any one of them (OR condition).
           </div>
 
           <div>

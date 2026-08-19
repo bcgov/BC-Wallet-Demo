@@ -18,6 +18,7 @@ import { nextStep, prevStep, resetStep } from '../../slices/scenarios/scenariosS
 import { useCurrentShowcase } from '../../slices/showcases/showcasesSelectors'
 import { basePath } from '../../utils/BasePath'
 import { isConnected, isCredIssued } from '../../utils/Helpers'
+import { toIdList } from '../../utils/proofRequest'
 
 import { SideView } from './SideView'
 import { EndContainer } from './components/EndContainer'
@@ -87,8 +88,8 @@ export const Section: React.FC<Props> = ({
       const showcaseCredential = currentShowcase.credentials.find(
         (c) =>
           (cred.cred_id && c.id === cred.cred_id) ||
-          (cred.schema_id && c.schema_id === cred.schema_id) ||
-          (cred.cred_def_id && c.cred_def_id === cred.cred_def_id),
+          (c.schema_id && toIdList(cred.schema_id).includes(c.schema_id)) ||
+          (c.cred_def_id && toIdList(cred.cred_def_id).includes(c.cred_def_id)),
       )
       return showcaseCredential ? { ...cred, name: showcaseCredential.name } : cred
     })

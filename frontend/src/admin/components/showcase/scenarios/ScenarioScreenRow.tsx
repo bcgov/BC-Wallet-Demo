@@ -6,7 +6,7 @@ import { useAuth } from 'react-oidc-context'
 
 import { publicBaseUrl, updateShowcase } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
-import { isExternalCredentialRequest } from '../../../utils/externalCredentialRequest'
+import { isExternalCredentialRequest, toIdList } from '../../../utils/externalCredentialRequest'
 import { formatCustomDateStampValue } from '../../../utils/formatters'
 import logger from '../../../utils/logger'
 import { ScreenRowBase } from '../ScreenRowBase'
@@ -77,7 +77,7 @@ export function ScenarioScreenRow({
         try {
           const cred =
             showcase.credentials.find((c) => c.id === proofRequest.cred_id) ||
-            showcase.credentials.find((c) => c.schema_id === proofRequest.schema_id) ||
+            showcase.credentials.find((c) => c.schema_id && toIdList(proofRequest.schema_id).includes(c.schema_id)) ||
             null
 
           if (!cred) {
@@ -135,8 +135,8 @@ export function ScenarioScreenRow({
     const showcaseCredential = showcase.credentials.find(
       (c) =>
         (cred.cred_id && c.id === cred.cred_id) ||
-        (cred.schema_id && c.schema_id === cred.schema_id) ||
-        (cred.cred_def_id && c.cred_def_id === cred.cred_def_id),
+        (c.schema_id && toIdList(cred.schema_id).includes(c.schema_id)) ||
+        (c.cred_def_id && toIdList(cred.cred_def_id).includes(c.cred_def_id)),
     )
     return showcaseCredential ? showcaseCredential.name : cred.name
   }
@@ -327,10 +327,14 @@ export function ScenarioScreenRow({
                               )}
                             </div>
                             {cred.schema_id && (
-                              <p className="text-xs text-gray-500 mb-2 font-mono break-all">{cred.schema_id}</p>
+                              <p className="text-xs text-gray-500 mb-2 font-mono break-all">
+                                {toIdList(cred.schema_id).join(', ')}
+                              </p>
                             )}
                             {cred.cred_def_id && (
-                              <p className="text-xs text-gray-500 mb-2 font-mono break-all">{cred.cred_def_id}</p>
+                              <p className="text-xs text-gray-500 mb-2 font-mono break-all">
+                                {toIdList(cred.cred_def_id).join(', ')}
+                              </p>
                             )}
                             {cred.properties && cred.properties.length > 0 && (
                               <div className="text-xs space-y-1 ml-2">

@@ -86,4 +86,24 @@ describe('external credential request parsing', () => {
       'schema_id and cred_def_id appear to use different issuer prefixes.',
     ])
   })
+
+  it('accepts an array of cred_def_id alternatives to define an OR condition', () => {
+    const result = parseExternalCredentialJson(
+      JSON.stringify({
+        cred_def_id: ['did:sov:example:3:CL:111:1.0', 'did:sov:example:3:CL:222:1.0'],
+        properties: ['name'],
+      }),
+    )
+
+    expect(result.errors).toEqual([])
+    expect(result.value).toMatchObject({
+      cred_def_id: ['did:sov:example:3:CL:111:1.0', 'did:sov:example:3:CL:222:1.0'],
+    })
+  })
+
+  it('rejects an array containing an empty or non-string entry', () => {
+    const result = parseExternalCredentialJson(JSON.stringify({ cred_def_id: ['abc', ''], properties: ['name'] }))
+
+    expect(result.errors).toContain('cred_def_id must be a non-empty string or an array of non-empty strings.')
+  })
 })

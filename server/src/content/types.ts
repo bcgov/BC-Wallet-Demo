@@ -69,8 +69,9 @@ export interface Predicate {
 export interface CredentialRequest {
   name: string
   icon?: string
-  schema_id?: string
-  cred_def_id?: string
+  // A single value restricts to one schema/creddef; an array is an OR of alternatives
+  schema_id?: string | string[]
+  cred_def_id?: string | string[]
   cred_id?: string
   predicates?: Predicate[]
   properties?: string[]

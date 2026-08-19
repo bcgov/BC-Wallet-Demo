@@ -6,6 +6,7 @@ import { isMobile } from 'react-device-detect'
 import { FiLogOut } from 'react-icons/fi'
 
 import { fadeDelay } from '../../FramerAnimations'
+import { toIdList } from '../../utils/proofRequest'
 
 import { ConnectionCard } from './components/ConnectionCard'
 import { ProofCard } from './components/ProofCard'
@@ -28,8 +29,8 @@ export const SideView: React.FC<Props> = ({ steps, currentStep, entity, showLeav
         const showcaseCredential = currentShowcase?.credentials.find(
           (c) =>
             (cred.cred_id && c.id === cred.cred_id) ||
-            (cred.schema_id && c.schema_id === cred.schema_id) ||
-            (cred.cred_def_id && c.cred_def_id === cred.cred_def_id),
+            (c.schema_id && toIdList(cred.schema_id).includes(c.schema_id)) ||
+            (c.cred_def_id && toIdList(cred.cred_def_id).includes(c.cred_def_id)),
         )
         return showcaseCredential ? { ...cred, name: showcaseCredential.name } : cred
       })

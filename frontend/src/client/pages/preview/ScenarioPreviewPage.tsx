@@ -6,6 +6,7 @@ import { dashboardTitle, page, rowContainer } from '../../FramerAnimations'
 import { useAppDispatch } from '../../hooks/hooks'
 import { useShowcases } from '../../slices/showcases/showcasesSelectors'
 import { fetchAllShowcases } from '../../slices/showcases/showcasesThunks'
+import { toIdList } from '../../utils/proofRequest'
 import { ProfileCard } from '../dashboard/components/ProfileCard'
 import { ScenarioItem } from '../dashboard/components/ScenarioItem'
 import { NavBar } from '../landing/components/Navbar'
@@ -43,8 +44,8 @@ export const ScenarioPreviewPage: React.FC = () => {
         const actualCredential = previewShowcase.credentials.find(
           (c) =>
             c.id === cred.cred_id ||
-            c.schema_id === cred.schema_id ||
-            c.cred_def_id === cred.cred_def_id ||
+            (!!c.schema_id && toIdList(cred.schema_id).includes(c.schema_id)) ||
+            (!!c.cred_def_id && toIdList(cred.cred_def_id).includes(c.cred_def_id)) ||
             c.name === cred.name,
         )
         const credentialName = actualCredential?.name ?? cred.name

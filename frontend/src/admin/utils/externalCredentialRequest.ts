@@ -36,6 +36,27 @@ const issuerPrefix = (value: string): string | undefined => {
 
 const isQualifiedIdentifier = (value: string): boolean => value.startsWith('did:')
 
+// Normalizes a single id or an OR-list of ids into an array
+export const toIdList = (value?: string | string[]): string[] => {
+  if (!value) return []
+  return Array.isArray(value) ? value : [value]
+}
+
+// Accepts a single identifier or an array of alternatives (OR); rejects any other shape
+const parseIdField = (value: unknown, fieldName: string, errors: string[]): string | string[] | undefined => {
+  if (value === undefined) return undefined
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) errors.push(`${fieldName} must be a non-empty string.`)
+    return trimmed || undefined
+  }
+  if (Array.isArray(value) && value.length > 0 && value.every((entry) => typeof entry === 'string' && entry.trim())) {
+    return value.map((entry) => (entry as string).trim())
+  }
+  errors.push(`${fieldName} must be a non-empty string or an array of non-empty strings.`)
+  return undefined
+}
+
 export function parseExternalCredentialJson(raw: string): {
   value?: ExternalCredentialFields
   errors: string[]
@@ -57,19 +78,24 @@ export function parseExternalCredentialJson(raw: string): {
     if (!allowedKeys.has(key)) errors.push(`"${key}" is not supported here. Use the name and icon fields above.`)
   })
 
-  const schemaId = typeof parsed.schema_id === 'string' ? parsed.schema_id.trim() : undefined
-  const credDefId = typeof parsed.cred_def_id === 'string' ? parsed.cred_def_id.trim() : undefined
-  if (parsed.schema_id !== undefined && !schemaId) errors.push('schema_id must be a non-empty string.')
-  if (parsed.cred_def_id !== undefined && !credDefId) errors.push('cred_def_id must be a non-empty string.')
-  if (!schemaId && !credDefId) errors.push('Provide at least one of schema_id or cred_def_id.')
+  const schemaId = parseIdField(parsed.schema_id, 'schema_id', errors)
+  const credDefId = parseIdField(parsed.cred_def_id, 'cred_def_id', errors)
+  const schemaIds = toIdList(schemaId)
+  const credDefIds = toIdList(credDefId)
+  if (schemaIds.length === 0 && credDefIds.length === 0)
+    errors.push('Provide at least one of schema_id or cred_def_id.')
 
-  if (schemaId && !isQualifiedIdentifier(schemaId) && !/^.+:2:.+:.+$/.test(schemaId)) {
+  if (schemaIds.some((id) => !isQualifiedIdentifier(id) && !/^.+:2:.+:.+$/.test(id))) {
     warnings.push('schema_id does not match a recognized AnonCreds identifier format.')
   }
-  if (credDefId && !isQualifiedIdentifier(credDefId) && !/^.+:3:CL:.+:.+$/.test(credDefId)) {
+  if (credDefIds.some((id) => !isQualifiedIdentifier(id) && !/^.+:3:CL:.+:.+$/.test(id))) {
     warnings.push('cred_def_id does not match a recognized AnonCreds identifier format.')
   }
-  if (schemaId && credDefId && issuerPrefix(schemaId) !== issuerPrefix(credDefId)) {
+  if (
+    schemaIds.length > 0 &&
+    credDefIds.length > 0 &&
+    schemaIds.some((s) => credDefIds.some((c) => issuerPrefix(s) !== issuerPrefix(c)))
+  ) {
     warnings.push('schema_id and cred_def_id appear to use different issuer prefixes.')
   }
 
@@ -162,7 +188,7 @@ export function isExternalCredentialRequest(request: CredentialRequest, showcase
   if (request.cred_id) return false
   return !showcase.credentials.some(
     (credential) =>
-      (request.schema_id && credential.schema_id === request.schema_id) ||
-      (request.cred_def_id && credential.cred_def_id === request.cred_def_id),
+      (credential.schema_id && toIdList(request.schema_id).includes(credential.schema_id)) ||
+      (credential.cred_def_id && toIdList(request.cred_def_id).includes(credential.cred_def_id)),
   )
 }
