@@ -1,7 +1,7 @@
 import type { CredentialRequest } from '../../../types'
 
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   EXTERNAL_CREDENTIAL_JSON_TEMPLATE,
@@ -49,15 +49,24 @@ export function ExternalCredentialRequestModal({
   const [icon, setIcon] = useState<string | undefined>()
   const [json, setJson] = useState(EXTERNAL_CREDENTIAL_JSON_TEMPLATE)
   const [touched, setTouched] = useState(false)
+  const wasOpenRef = useRef(false)
 
   const parsed = parseExternalCredentialJson(json)
 
   useEffect(() => {
-    if (!isOpen) return
-    setName(initialValue?.name || '')
+    if (!isOpen) {
+      wasOpenRef.current = false
+      return
+    }
+    // Only reset name/json on the open transition so picking an icon (which updates
+    // initialValue via the parent) doesn't discard unsaved edits still being typed.
+    if (!wasOpenRef.current) {
+      setName(initialValue?.name || '')
+      setJson(fieldsFromRequest(initialValue))
+      setTouched(false)
+    }
     setIcon(initialValue?.icon)
-    setJson(fieldsFromRequest(initialValue))
-    setTouched(false)
+    wasOpenRef.current = true
   }, [isOpen, initialValue])
 
   if (!isOpen) return null
