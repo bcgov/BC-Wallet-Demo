@@ -6,12 +6,12 @@ import { useAuth } from 'react-oidc-context'
 
 import { publicBaseUrl, updateShowcase } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
-import { formatCustomDateStampValue } from '../../../utils/formatters'
 import { isExternalCredentialRequest } from '../../../utils/externalCredentialRequest'
+import { formatCustomDateStampValue } from '../../../utils/formatters'
 import logger from '../../../utils/logger'
 import { ScreenRowBase } from '../ScreenRowBase'
-import { ImageUploadModal } from '../modals/ImageUploadModal'
 import { ExternalCredentialRequestModal } from '../modals/ExternalCredentialRequestModal'
+import { ImageUploadModal } from '../modals/ImageUploadModal'
 import { SelectingAttributesStep } from '../modals/steps/SelectingAttributesStep'
 
 interface ScenarioScreenRowProps {

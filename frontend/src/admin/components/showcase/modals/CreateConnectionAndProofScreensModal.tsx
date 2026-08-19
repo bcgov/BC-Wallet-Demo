@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { updateShowcase } from '../../../api/adminApi'
-import { ExternalCredentialRequestModal } from './ExternalCredentialRequestModal'
 
 import { CreateOrEditScreenModal } from './CreateOrEditScreenModal'
+import { ExternalCredentialRequestModal } from './ExternalCredentialRequestModal'
 import { ImageUploadModal } from './ImageUploadModal'
 import { EnteringNameStep, SelectingCredentialsStep, SelectingAttributesStep, DefiningProofRequestStep } from './steps'
 
