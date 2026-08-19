@@ -1,4 +1,4 @@
-import type { Credential, Showcase } from '../../../../types'
+import type { Credential, CredentialRequest, Showcase } from '../../../../types'
 
 import { publicBaseUrl } from '../../../../api/adminApi'
 
@@ -8,6 +8,10 @@ interface CreateCredentialStepProps {
   onSelectCredential: (credentialId: string, checked: boolean) => void
   onBack: () => void
   onContinue: () => void
+  externalCredentials: Map<string, CredentialRequest>
+  onAddExternal: () => void
+  onEditExternal: (key: string) => void
+  onRemoveExternal: (key: string) => void
 }
 
 export function CreateCredentialStep({
@@ -16,7 +20,13 @@ export function CreateCredentialStep({
   onSelectCredential,
   onBack,
   onContinue,
+  externalCredentials,
+  onAddExternal,
+  onEditExternal,
+  onRemoveExternal,
 }: CreateCredentialStepProps) {
+  const hasCredentials = selectedCredentials.size > 0 || externalCredentials.size > 0
+
   return (
     <div className="space-y-4">
       <div>
@@ -59,6 +69,31 @@ export function CreateCredentialStep({
         <p className="text-xs text-gray-500 italic">No credentials available in this showcase</p>
       )}
 
+      <div className="border-t border-gray-200 pt-4 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-bcgov-black">External credentials (advanced)</h3>
+          <p className="text-xs text-gray-500">Request a credential issued outside this showcase using its ledger identifiers.</p>
+        </div>
+        {Array.from(externalCredentials.entries()).map(([key, credential]) => (
+          <div key={key} className="border border-amber-200 bg-amber-50 rounded-lg p-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-bcgov-black">{credential.name}</p>
+              <p className="text-xs font-mono text-gray-600 break-all">{credential.cred_def_id || credential.schema_id}</p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button onClick={() => onEditExternal(key)} className="text-xs text-bcgov-blue">Edit</button>
+              <button onClick={() => onRemoveExternal(key)} className="text-xs text-red-700">Remove</button>
+            </div>
+          </div>
+        ))}
+        <button
+          onClick={onAddExternal}
+          className="w-full px-4 py-2 text-sm text-bcgov-blue border border-bcgov-blue rounded-lg hover:bg-blue-50"
+        >
+          Add external credential (advanced)
+        </button>
+      </div>
+
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
         <button
           onClick={onBack}
@@ -68,7 +103,8 @@ export function CreateCredentialStep({
         </button>
         <button
           onClick={onContinue}
-          className="px-4 py-2 text-white bg-bcgov-blue hover:bg-bcgov-blue-dark rounded-lg font-medium transition-colors"
+          disabled={!hasCredentials}
+          className="px-4 py-2 text-white bg-bcgov-blue hover:bg-bcgov-blue-dark rounded-lg font-medium transition-colors disabled:bg-gray-300"
         >
           Continue
         </button>

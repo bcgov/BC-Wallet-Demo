@@ -2,7 +2,6 @@ import type {
   CredentialRequest,
   ProofAttributeRequest,
   ProofPredicateRequest,
-  ProofRestriction,
   ScenarioScreen,
   Showcase,
 } from '../../../slices/types'
@@ -18,6 +17,7 @@ import { useConnection } from '../../../slices/connection/connectionSelectors'
 import { createProof, deleteProofById, createDeepProof, fetchProofById } from '../../../slices/proof/proofThunks'
 import { useSocket } from '../../../slices/socket/socketSelector'
 import log from '../../../utils/logger'
+import { buildRestrictions } from '../../../utils/proofRequest'
 import { FailedRequestModal } from '../../introduction/components/FailedRequestModal'
 import { ProofAttributesCard } from '../components/ProofAttributesCard'
 import { StepInfo } from '../components/StepInfo'
@@ -109,14 +109,7 @@ export const StepProof: React.FC<Props> = ({
     const predicates: Record<string, ProofPredicateRequest> = {}
 
     requestedCredentials?.forEach((item) => {
-      const restriction: ProofRestriction = {}
-      if (item.schema_id) {
-        restriction.schema_id = item.schema_id
-      }
-      if (item.cred_def_id) {
-        restriction.cred_def_id = item.cred_def_id
-      }
-      const restrictions: ProofRestriction[] = [restriction]
+      const restrictions = buildRestrictions(item)
       if (item.properties?.length) {
         proofs[item.name] = {
           restrictions,

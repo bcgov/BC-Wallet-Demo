@@ -21,7 +21,7 @@ export interface IntroductionStep {
   credentials?: Credential[]
 }
 
-type DateIntMarker = `$dateint:${number}`
+export type DateIntMarker = `$dateint:${number}`
 
 export interface Predicate {
   name: string
@@ -37,6 +37,11 @@ export interface AttributeRequest {
   nonRevoked?: boolean
 }
 
+export interface NonRevokedInterval {
+  to: number | '$now'
+  from?: number | '$now'
+}
+
 export interface CredentialRequest {
   name: string
   icon?: string
@@ -45,7 +50,7 @@ export interface CredentialRequest {
   cred_id?: string
   predicates?: Predicate[]
   properties?: string[]
-  nonRevoked?: { to: number | '$now'; from?: number | '$now' }
+  nonRevoked?: NonRevokedInterval
 }
 
 export interface CustomRequestOptions {

@@ -12,6 +12,7 @@ export async function up() {
         for (const screen of scenario.screens || []) {
           if (screen.requestOptions?.requestedCredentials) {
             for (const requestedCredential of screen.requestOptions.requestedCredentials) {
+              if (requestedCredential.schema_id || requestedCredential.cred_def_id) continue
               // Look up the credential by name
               const credential = await CredentialModel.findOne({ name: requestedCredential.name })
               if (credential?.schema_id) {

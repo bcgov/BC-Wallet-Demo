@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from 'react-oidc-context'
 
 import { updateShowcase } from '../../../api/adminApi'
+import { ExternalCredentialRequestModal } from './ExternalCredentialRequestModal'
 
 import { CreateOrEditScreenModal } from './CreateOrEditScreenModal'
 import { ImageUploadModal } from './ImageUploadModal'
@@ -43,6 +44,9 @@ export function CreateConnectionAndProofScreensModal({
   const [currentCredentialIdx, setCurrentCredentialIdx] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState<Map<string, Map<string, AttributeRequest>>>(new Map())
   const [credentialRequests, setCredentialRequests] = useState<Map<string, CredentialRequest>>(new Map())
+  const [externalCredentials, setExternalCredentials] = useState<Map<string, CredentialRequest>>(new Map())
+  const [editingExternalKey, setEditingExternalKey] = useState<string | null>(null)
+  const [editingExternalIconKey, setEditingExternalIconKey] = useState<string | null>(null)
   const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false)
   const [imageUploadModalCredentialId, setImageUploadModalCredentialId] = useState<string | null>(null)
   const [isVerifierIconUploadOpen, setIsVerifierIconUploadOpen] = useState(false)
@@ -75,6 +79,9 @@ export function CreateConnectionAndProofScreensModal({
     setCurrentCredentialIdx(0)
     setSelectedAttributes(new Map())
     setCredentialRequests(new Map())
+    setExternalCredentials(new Map())
+    setEditingExternalKey(null)
+    setEditingExternalIconKey(null)
     setIsImageUploadModalOpen(false)
     setImageUploadModalCredentialId(null)
     setIsVerifierIconUploadOpen(false)
@@ -154,8 +161,19 @@ export function CreateConnectionAndProofScreensModal({
                   setSelectedCredentials(newSelected)
                 }}
                 onBack={() => setStep({ type: 'EDITING_PROOF_SCREEN' })}
+                externalCredentials={externalCredentials}
+                onAddExternal={() => {
+                  const key = `external:${Date.now()}-${Math.random()}`
+                  setExternalCredentials(new Map(externalCredentials).set(key, { name: '' }))
+                  setEditingExternalKey(key)
+                }}
+                onEditExternal={(key) => setEditingExternalKey(key)}
+                onRemoveExternal={(key) => {
+                  const next = new Map(externalCredentials)
+                  next.delete(key)
+                  setExternalCredentials(next)
+                }}
                 onContinue={async () => {
-                  // If credentials are selected, go to attribute selection
                   if (selectedCredentials.size > 0) {
                     setStep({ type: 'SELECTING_ATTRIBUTES' })
                     setCurrentCredentialIdx(0)
@@ -177,7 +195,13 @@ export function CreateConnectionAndProofScreensModal({
                       const updatedScreens = [
                         ...(scenario.screens?.slice(0, insertIdx) ?? []),
                         connectionScreenData,
-                        proofScreenData,
+                        externalCredentials.size > 0
+                          ? { ...proofScreenData, requestOptions: {
+                              name: verifierName,
+                              text: "Review and confirm the information you're sharing",
+                              requestedCredentials: Array.from(externalCredentials.values()),
+                            } }
+                          : proofScreenData,
                         ...(scenario.screens?.slice(insertIdx) ?? []),
                       ]
 
@@ -406,6 +430,7 @@ export function CreateConnectionAndProofScreensModal({
                           nonRevoked: req.nonRevoked,
                         }
                       })
+                      proofRequests.push(...Array.from(externalCredentials.values()))
                       const requestOptions = {
                         name: verifierName,
                         text: "Review and confirm the information you're sharing",
@@ -448,6 +473,8 @@ export function CreateConnectionAndProofScreensModal({
                       setSelectedCredentials(new Set())
                       setSelectedAttributes(new Map())
                       setCredentialRequests(new Map())
+                      setExternalCredentials(new Map())
+                      setEditingExternalKey(null)
                       setCurrentCredentialIdx(0)
 
                       onComplete?.()
@@ -480,7 +507,14 @@ export function CreateConnectionAndProofScreensModal({
         onClose={() => setIsImageUploadModalOpen(false)}
         type="icon"
         onSelectImage={(imagePath) => {
-          if (imageUploadModalCredentialId) {
+          if (editingExternalIconKey) {
+            const next = new Map(externalCredentials)
+            const currentRequest = next.get(editingExternalIconKey)
+            if (currentRequest) next.set(editingExternalIconKey, { ...currentRequest, icon: imagePath })
+            setExternalCredentials(next)
+            setEditingExternalIconKey(null)
+            setIsImageUploadModalOpen(false)
+          } else if (imageUploadModalCredentialId) {
             const newRequests = new Map(credentialRequests)
             const currentRequest = newRequests.get(imageUploadModalCredentialId)
             if (currentRequest) {
@@ -493,6 +527,23 @@ export function CreateConnectionAndProofScreensModal({
             setIsImageUploadModalOpen(false)
             setImageUploadModalCredentialId(null)
           }
+        }}
+      />
+
+      <ExternalCredentialRequestModal
+        isOpen={editingExternalKey !== null}
+        initialValue={editingExternalKey ? externalCredentials.get(editingExternalKey) : null}
+        onClose={() => setEditingExternalKey(null)}
+        onRequestIconUpload={() => {
+          setEditingExternalIconKey(editingExternalKey)
+          setIsImageUploadModalOpen(true)
+        }}
+        onSave={(request) => {
+          if (!editingExternalKey) return
+          const next = new Map(externalCredentials)
+          next.set(editingExternalKey, request)
+          setExternalCredentials(next)
+          setEditingExternalKey(null)
         }}
       />
 
