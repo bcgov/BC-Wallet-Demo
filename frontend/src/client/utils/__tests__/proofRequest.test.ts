@@ -36,11 +36,10 @@ describe('buildRestrictions', () => {
     ])
   })
 
-  it('concatenates schema_id and cred_def_id entries into a union of restrictions', () => {
+  it('combines schema_id and cred_def_id entries into a cartesian product of restrictions', () => {
     expect(buildRestrictions({ ...base, schema_id: ['schema-1', 'schema-2'], cred_def_id: 'creddef-1' })).toEqual([
-      { schema_id: 'schema-1' },
-      { schema_id: 'schema-2' },
-      { cred_def_id: 'creddef-1' },
+      { schema_id: 'schema-1', cred_def_id: 'creddef-1' },
+      { schema_id: 'schema-2', cred_def_id: 'creddef-1' },
     ])
   })
 

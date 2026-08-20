@@ -7,9 +7,11 @@ export function toIdList(value?: string | string[]): string[] {
 }
 
 export function buildRestrictions(item: CredentialRequest): ProofRestriction[] {
-  const restrictions = [
-    ...toIdList(item.schema_id).map((schema_id) => ({ schema_id })),
-    ...toIdList(item.cred_def_id).map((cred_def_id) => ({ cred_def_id })),
-  ]
+  const schemaIds = toIdList(item.schema_id)
+  const credDefIds = toIdList(item.cred_def_id)
+  const restrictions =
+    schemaIds.length > 0 && credDefIds.length > 0
+      ? schemaIds.flatMap((schema_id) => credDefIds.map((cred_def_id) => ({ schema_id, cred_def_id })))
+      : [...schemaIds.map((schema_id) => ({ schema_id })), ...credDefIds.map((cred_def_id) => ({ cred_def_id }))]
   return restrictions.length > 0 ? restrictions : [{ schema_name: item.name }]
 }

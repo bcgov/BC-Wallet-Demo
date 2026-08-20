@@ -41,8 +41,10 @@ const PredicateSchema = new Schema<PersistedPredicate>(
 const idOrIdListValidator = {
   validator: (value: unknown) =>
     value === undefined ||
-    (typeof value === 'string' && value.length > 0) ||
-    (Array.isArray(value) && value.every((entry) => typeof entry === 'string' && entry.length > 0)),
+    (typeof value === 'string' && value.trim().length > 0) ||
+    (Array.isArray(value) &&
+      value.length > 0 &&
+      value.every((entry) => typeof entry === 'string' && entry.trim().length > 0)),
   message: 'Value must be a non-empty string or an array of non-empty strings',
 }
 

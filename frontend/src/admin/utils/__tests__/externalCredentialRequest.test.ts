@@ -25,8 +25,8 @@ describe('external credential request parsing', () => {
 
     expect(result.errors).toEqual([])
     expect(result.value).toMatchObject({
-      schema_id: 'did:sov:example:2:university_degree:1.0',
-      cred_def_id: 'did:sov:example:3:CL:12345:1.0',
+      schema_id: ['did:sov:example:2:university_degree:1.0'],
+      cred_def_id: ['did:sov:example:3:CL:12345:1.0'],
       properties: ['degree', 'institution'],
       predicates: [{ name: 'graduation_year', type: '>=', value: 2010 }],
       nonRevoked: { to: '$now' },
@@ -71,7 +71,7 @@ describe('external credential request parsing', () => {
   it('accepts date markers and emits non-empty request fields', () => {
     const result = parseExternalCredentialJson(
       JSON.stringify({
-        schema_id: 'did:sov:example:2:degree:1.0',
+        schema_id: ['did:sov:example:2:degree:1.0'],
         properties: ['name'],
         predicates: [{ name: 'graduation_year', type: '>=', value: '$dateint:-5' }],
         nonRevoked: { to: '$now' },
@@ -81,7 +81,7 @@ describe('external credential request parsing', () => {
     expect(buildExternalCredentialRequest('Degree', '/icon.svg', result.value!)).toEqual({
       name: 'Degree',
       icon: '/icon.svg',
-      schema_id: 'did:sov:example:2:degree:1.0',
+      schema_id: ['did:sov:example:2:degree:1.0'],
       properties: ['name'],
       predicates: [{ name: 'graduation_year', type: '>=', value: '$dateint:-5' }],
       nonRevoked: { to: '$now' },

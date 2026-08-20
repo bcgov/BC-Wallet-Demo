@@ -2,6 +2,16 @@ import type { Credential, CredentialRequest, Showcase } from '../../../../types'
 
 import { publicBaseUrl } from '../../../../api/adminApi'
 
+const hasIdentifier = (value?: string | string[]): boolean => {
+  if (Array.isArray(value)) return value.some((entry) => entry.trim().length > 0)
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+const isMinimallyValidExternalCredential = (credential: CredentialRequest): boolean =>
+  credential.name.trim().length > 0 &&
+  (hasIdentifier(credential.schema_id) || hasIdentifier(credential.cred_def_id)) &&
+  Boolean(credential.properties?.length || credential.predicates?.length)
+
 interface CreateCredentialStepProps {
   showcase: Showcase | null | undefined
   selectedCredentials: Set<string>
@@ -25,6 +35,7 @@ export function CreateCredentialStep({
   onEditExternal,
   onRemoveExternal,
 }: CreateCredentialStepProps) {
+  const hasValidExternalCredentials = Array.from(externalCredentials.values()).every(isMinimallyValidExternalCredential)
   const hasCredentials = selectedCredentials.size > 0 || externalCredentials.size > 0
 
   return (
@@ -114,7 +125,7 @@ export function CreateCredentialStep({
         </button>
         <button
           onClick={onContinue}
-          disabled={!hasCredentials}
+          disabled={!hasCredentials || !hasValidExternalCredentials}
           className="px-4 py-2 text-white bg-bcgov-blue hover:bg-bcgov-blue-dark rounded-lg font-medium transition-colors disabled:bg-gray-300"
         >
           Continue

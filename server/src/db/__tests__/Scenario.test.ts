@@ -150,7 +150,7 @@ describe('CredentialRequestSchema', () => {
     expect(cred.cred_def_id).toEqual(['abc:2:3:4:tag'])
   })
 
-  it('rejects an array containing a non-string entry for schema_id', async () => {
+  it('rejects an array containing an empty string entry for schema_id', async () => {
     await expect(
       HostModel.create({
         scenarios: [
@@ -166,6 +166,36 @@ describe('CredentialRequestSchema', () => {
                   name: 'T',
                   text: 'X',
                   requestedCredentials: [{ name: 'Bad', schema_id: ['abc', ''] }],
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    ).rejects.toThrow()
+  })
+
+  it.each([
+    ['an empty schema_id array', { schema_id: [] }],
+    ['an empty cred_def_id array', { cred_def_id: [] }],
+    ['a whitespace-only schema_id', { schema_id: '   ' }],
+    ['a whitespace-only cred_def_id', { cred_def_id: ['  '] }],
+  ])('rejects %s', async (_description, identifier) => {
+    await expect(
+      HostModel.create({
+        scenarios: [
+          {
+            id: 'invalid-identifier',
+            name: 'Invalid identifier',
+            screens: [
+              {
+                screenId: 'PROOF',
+                name: 'T',
+                text: 'X',
+                requestOptions: {
+                  name: 'T',
+                  text: 'X',
+                  requestedCredentials: [{ name: 'Bad', ...identifier }],
                 },
               },
             ],
