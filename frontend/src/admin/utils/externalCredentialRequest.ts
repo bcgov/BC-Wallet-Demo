@@ -7,8 +7,8 @@ export type ExternalCredentialFields = Pick<
 
 export const EXTERNAL_CREDENTIAL_JSON_TEMPLATE = JSON.stringify(
   {
-    schema_id: 'did:sov:example:2:university_degree:1.0',
-    cred_def_id: 'did:sov:example:3:CL:12345:1.0',
+    schema_id: ['did:sov:example:2:university_degree:1.0'],
+    cred_def_id: ['did:sov:example:3:CL:12345:1.0'],
     properties: ['degree', 'institution'],
     predicates: [{ name: 'graduation_year', type: '>=', value: 2010 }],
     nonRevoked: { to: '$now' },
