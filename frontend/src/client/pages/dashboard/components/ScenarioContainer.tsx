@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { dashboardTitle, rowContainer } from '../../../FramerAnimations'
 import { basePath } from '../../../utils/BasePath'
+import { toIdList } from '../../../utils/proofRequest'
 
 import { ScenarioItem } from './ScenarioItem'
 
@@ -30,8 +31,8 @@ export const ScenarioContainer: React.FC<Props> = ({ currentShowcase, completedS
         const actualCredential = currentShowcase.credentials.find(
           (c) =>
             c.id === cred.cred_id ||
-            c.schema_id === cred.schema_id ||
-            c.cred_def_id === cred.cred_def_id ||
+            (!!c.schema_id && toIdList(cred.schema_id).includes(c.schema_id)) ||
+            (!!c.cred_def_id && toIdList(cred.cred_def_id).includes(c.cred_def_id)) ||
             c.name === cred.name,
         )
         if (!requiredCredentials.includes(cred.name)) {

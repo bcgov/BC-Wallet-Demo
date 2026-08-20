@@ -1,0 +1,142 @@
+import type { CredentialRequest, Showcase } from '../../types'
+
+import { describe, expect, it } from 'vitest'
+
+import {
+  EXTERNAL_CREDENTIAL_JSON_TEMPLATE,
+  buildExternalCredentialRequest,
+  isExternalCredentialRequest,
+  parseExternalCredentialJson,
+} from '../externalCredentialRequest'
+
+const showcase: Showcase = {
+  name: 'Test showcase',
+  progressBar: [],
+  introduction: [],
+  scenarios: [],
+  credentials: [
+    { id: 'cred-1', name: 'Student Card', icon: '', version: '1.0', attributes: [], schema_id: 'schema-1' },
+  ],
+}
+
+describe('external credential request parsing', () => {
+  it('accepts a valid credential definition request', () => {
+    const result = parseExternalCredentialJson(EXTERNAL_CREDENTIAL_JSON_TEMPLATE)
+
+    expect(result.errors).toEqual([])
+    expect(result.value).toMatchObject({
+      schema_id: ['did:sov:example:2:university_degree:1.0'],
+      cred_def_id: ['did:sov:example:3:CL:12345:1.0'],
+      properties: ['degree', 'institution'],
+      predicates: [{ name: 'graduation_year', type: '>=', value: 2010 }],
+      nonRevoked: { to: '$now' },
+    })
+  })
+
+  it('rejects invalid JSON and unsupported fields', () => {
+    expect(parseExternalCredentialJson('{').errors).toContain('Enter valid JSON.')
+    expect(parseExternalCredentialJson('{"name":"outside"}').errors).toContain(
+      '"name" is not supported here. Use the name and icon fields above.',
+    )
+  })
+
+  it('requires an identifier and an attribute or predicate', () => {
+    expect(parseExternalCredentialJson('{"properties":["name"]}').errors).toContain(
+      'Provide at least one of schema_id or cred_def_id.',
+    )
+    expect(parseExternalCredentialJson('{"cred_def_id":"abc"}').errors).toContain(
+      'Provide at least one property or predicate.',
+    )
+  })
+
+  it('validates properties, predicates, and non-revocation', () => {
+    const result = parseExternalCredentialJson(
+      JSON.stringify({
+        cred_def_id: 'abc',
+        properties: ['name', 'name'],
+        predicates: [{ name: 'age', type: '==', value: 18 }],
+        nonRevoked: { to: 'tomorrow' },
+      }),
+    )
+
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        'properties must not contain duplicates.',
+        'predicates[0].type must be one of >=, >, <=, <.',
+        'nonRevoked.to must be a finite number or "$now".',
+      ]),
+    )
+  })
+
+  it('accepts date markers and emits non-empty request fields', () => {
+    const result = parseExternalCredentialJson(
+      JSON.stringify({
+        schema_id: ['did:sov:example:2:degree:1.0'],
+        properties: ['name'],
+        predicates: [{ name: 'graduation_year', type: '>=', value: '$dateint:-5' }],
+        nonRevoked: { to: '$now' },
+      }),
+    )
+    expect(result.errors).toEqual([])
+    expect(buildExternalCredentialRequest('Degree', '/icon.svg', result.value!)).toEqual({
+      name: 'Degree',
+      icon: '/icon.svg',
+      schema_id: ['did:sov:example:2:degree:1.0'],
+      properties: ['name'],
+      predicates: [{ name: 'graduation_year', type: '>=', value: '$dateint:-5' }],
+      nonRevoked: { to: '$now' },
+    })
+  })
+
+  it('reports identifier warnings without blocking a valid request', () => {
+    const result = parseExternalCredentialJson(
+      JSON.stringify({ schema_id: 'schema', cred_def_id: 'creddef', properties: ['name'] }),
+    )
+    expect(result.errors).toEqual([])
+    expect(result.warnings).toEqual([
+      'schema_id does not match a recognized AnonCreds identifier format.',
+      'cred_def_id does not match a recognized AnonCreds identifier format.',
+      'schema_id and cred_def_id appear to use different issuer prefixes.',
+    ])
+  })
+
+  it('accepts an array of cred_def_id alternatives to define an OR condition', () => {
+    const result = parseExternalCredentialJson(
+      JSON.stringify({
+        cred_def_id: ['did:sov:example:3:CL:111:1.0', 'did:sov:example:3:CL:222:1.0'],
+        properties: ['name'],
+      }),
+    )
+
+    expect(result.errors).toEqual([])
+    expect(result.value).toMatchObject({
+      cred_def_id: ['did:sov:example:3:CL:111:1.0', 'did:sov:example:3:CL:222:1.0'],
+    })
+  })
+
+  it('rejects an array containing an empty or non-string entry', () => {
+    const result = parseExternalCredentialJson(JSON.stringify({ cred_def_id: ['abc', ''], properties: ['name'] }))
+
+    expect(result.errors).toContain('cred_def_id must be a non-empty string or an array of non-empty strings.')
+  })
+})
+
+describe('isExternalCredentialRequest', () => {
+  const request: CredentialRequest = { name: 'Student Card' }
+
+  it('returns false when the request matches a showcase credential by cred_id', () => {
+    expect(isExternalCredentialRequest({ ...request, cred_id: 'cred-1' }, showcase)).toBe(false)
+  })
+
+  it('returns false when the request matches a showcase credential by schema_id', () => {
+    expect(isExternalCredentialRequest({ ...request, schema_id: 'schema-1' }, showcase)).toBe(false)
+  })
+
+  it('returns true when cred_id is set but does not match any showcase credential', () => {
+    expect(isExternalCredentialRequest({ ...request, cred_id: 'stale-id' }, showcase)).toBe(true)
+  })
+
+  it('returns true when neither cred_id, schema_id, nor cred_def_id match', () => {
+    expect(isExternalCredentialRequest({ ...request, schema_id: 'unmatched-schema' }, showcase)).toBe(true)
+  })
+})

@@ -117,4 +117,91 @@ describe('CredentialRequestSchema', () => {
       }),
     ).rejects.toThrow()
   })
+
+  it('persists an array of schema_id/cred_def_id alternatives to express an OR condition', async () => {
+    const doc = await HostModel.create({
+      scenarios: [
+        {
+          id: 'uc4',
+          name: 'UC4',
+          screens: [
+            {
+              screenId: 'PROOF',
+              name: 'T',
+              text: 'X',
+              requestOptions: {
+                name: 'Needed',
+                text: 'Provide the following',
+                requestedCredentials: [
+                  {
+                    name: 'Driver Licence',
+                    schema_id: ['abc:1:2:3', 'abc:1:2:4'],
+                    cred_def_id: ['abc:2:3:4:tag'],
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    })
+    const cred = doc.toJSON().scenarios[0].screens[0].requestOptions.requestedCredentials[0]
+    expect(cred.schema_id).toEqual(['abc:1:2:3', 'abc:1:2:4'])
+    expect(cred.cred_def_id).toEqual(['abc:2:3:4:tag'])
+  })
+
+  it('rejects an array containing an empty string entry for schema_id', async () => {
+    await expect(
+      HostModel.create({
+        scenarios: [
+          {
+            id: 'uc5',
+            name: 'UC5',
+            screens: [
+              {
+                screenId: 'PROOF',
+                name: 'T',
+                text: 'X',
+                requestOptions: {
+                  name: 'T',
+                  text: 'X',
+                  requestedCredentials: [{ name: 'Bad', schema_id: ['abc', ''] }],
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    ).rejects.toThrow()
+  })
+
+  it.each([
+    ['an empty schema_id array', { schema_id: [] }],
+    ['an empty cred_def_id array', { cred_def_id: [] }],
+    ['a whitespace-only schema_id', { schema_id: '   ' }],
+    ['a whitespace-only cred_def_id', { cred_def_id: ['  '] }],
+  ])('rejects %s', async (_description, identifier) => {
+    await expect(
+      HostModel.create({
+        scenarios: [
+          {
+            id: 'invalid-identifier',
+            name: 'Invalid identifier',
+            screens: [
+              {
+                screenId: 'PROOF',
+                name: 'T',
+                text: 'X',
+                requestOptions: {
+                  name: 'T',
+                  text: 'X',
+                  requestedCredentials: [{ name: 'Bad', ...identifier }],
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    ).rejects.toThrow()
+  })
 })

@@ -37,12 +37,23 @@ const PredicateSchema = new Schema<PersistedPredicate>(
   embeddedSchemaOptions,
 )
 
+// A single identifier restricts to one schema/creddef; an array expresses an OR of alternatives
+const idOrIdListValidator = {
+  validator: (value: unknown) =>
+    value === undefined ||
+    (typeof value === 'string' && value.trim().length > 0) ||
+    (Array.isArray(value) &&
+      value.length > 0 &&
+      value.every((entry) => typeof entry === 'string' && entry.trim().length > 0)),
+  message: 'Value must be a non-empty string or an array of non-empty strings',
+}
+
 const CredentialRequestSchema = new Schema<PersistedCredentialRequest>(
   {
     name: { type: String, required: true },
     icon: String,
-    schema_id: String,
-    cred_def_id: String,
+    schema_id: { type: Schema.Types.Mixed, validate: idOrIdListValidator },
+    cred_def_id: { type: Schema.Types.Mixed, validate: idOrIdListValidator },
     cred_id: String,
     predicates: [PredicateSchema],
     properties: [String],

@@ -6,9 +6,11 @@ import { useAuth } from 'react-oidc-context'
 
 import { publicBaseUrl, updateShowcase } from '../../../api/adminApi'
 import { useHasRole } from '../../../hooks/useUserRole'
+import { isExternalCredentialRequest, toIdList } from '../../../utils/externalCredentialRequest'
 import { formatCustomDateStampValue } from '../../../utils/formatters'
 import logger from '../../../utils/logger'
 import { ScreenRowBase } from '../ScreenRowBase'
+import { ExternalCredentialRequestModal } from '../modals/ExternalCredentialRequestModal'
 import { ImageUploadModal } from '../modals/ImageUploadModal'
 import { SelectingAttributesStep } from '../modals/steps/SelectingAttributesStep'
 
@@ -60,6 +62,7 @@ export function ScenarioScreenRow({
   const auth = useAuth()
   const canEdit = useHasRole('creator')
   const [editingCredIdx, setEditingCredIdx] = useState<number | null>(null)
+  const [editingExternalIdx, setEditingExternalIdx] = useState<number | null>(null)
   const [selectedAttributes, setSelectedAttributes] = useState<Map<string, any>>(new Map())
   const [editingCredential, setEditingCredential] = useState<Credential | null>(null)
   const [isVerifierIconEditOpen, setIsVerifierIconEditOpen] = useState(false)
@@ -73,11 +76,17 @@ export function ScenarioScreenRow({
         try {
           const cred =
             showcase.credentials.find((c) => c.id === proofRequest.cred_id) ||
-            showcase.credentials.find((c) => c.schema_id === proofRequest.schema_id) ||
+            showcase.credentials.find((c) => c.schema_id && toIdList(proofRequest.schema_id).includes(c.schema_id)) ||
+            showcase.credentials.find(
+              (c) => c.cred_def_id && toIdList(proofRequest.cred_def_id).includes(c.cred_def_id),
+            ) ||
             null
 
           if (!cred) {
-            logger.error('Credential not found for proof request', proofRequest)
+            if (isExternalCredentialRequest(proofRequest, showcase)) {
+              setEditingExternalIdx(editingCredIdx)
+              setEditingCredIdx(null)
+            }
             setEditingCredential(null)
             return
           }
@@ -128,8 +137,8 @@ export function ScenarioScreenRow({
     const showcaseCredential = showcase.credentials.find(
       (c) =>
         (cred.cred_id && c.id === cred.cred_id) ||
-        (cred.schema_id && c.schema_id === cred.schema_id) ||
-        (cred.cred_def_id && c.cred_def_id === cred.cred_def_id),
+        (c.schema_id && toIdList(cred.schema_id).includes(c.schema_id)) ||
+        (c.cred_def_id && toIdList(cred.cred_def_id).includes(c.cred_def_id)),
     )
     return showcaseCredential ? showcaseCredential.name : cred.name
   }
@@ -313,9 +322,21 @@ export function ScenarioScreenRow({
                               <span className="text-sm font-medium text-bcgov-black">
                                 {getCredentialDisplayName(cred)}
                               </span>
+                              {isExternalCredentialRequest(cred, showcase) && (
+                                <span className="text-[10px] uppercase tracking-wide text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
+                                  External
+                                </span>
+                              )}
                             </div>
                             {cred.schema_id && (
-                              <p className="text-xs text-gray-500 mb-2 font-mono break-all">{cred.schema_id}</p>
+                              <p className="text-xs text-gray-500 mb-2 font-mono break-all">
+                                {toIdList(cred.schema_id).join(', ')}
+                              </p>
+                            )}
+                            {cred.cred_def_id && (
+                              <p className="text-xs text-gray-500 mb-2 font-mono break-all">
+                                {toIdList(cred.cred_def_id).join(', ')}
+                              </p>
                             )}
                             {cred.properties && cred.properties.length > 0 && (
                               <div className="text-xs space-y-1 ml-2">
@@ -389,6 +410,46 @@ export function ScenarioScreenRow({
       />
 
       {/* Edit Proof Request Modal */}
+      {editingExternalIdx !== null && nextScreen?.requestOptions?.requestedCredentials?.[editingExternalIdx] && (
+        <ExternalCredentialRequestModal
+          isOpen={true}
+          initialValue={nextScreen.requestOptions.requestedCredentials[editingExternalIdx]}
+          onClose={() => setEditingExternalIdx(null)}
+          onRequestIconUpload={() => {
+            setEditingCredentialIconIdx(editingExternalIdx)
+            setIsCredentialIconEditOpen(true)
+          }}
+          onSave={async (request) => {
+            try {
+              const updatedScenarios = showcase.scenarios.map((scenario) => {
+                if (scenario.id !== scenarioId) return scenario
+                return {
+                  ...scenario,
+                  screens: scenario.screens.map((scenarioScreen) => {
+                    if (scenarioScreen.screenId !== nextScreen?.screenId || !scenarioScreen.requestOptions) {
+                      return scenarioScreen
+                    }
+                    return {
+                      ...scenarioScreen,
+                      requestOptions: {
+                        ...scenarioScreen.requestOptions,
+                        requestedCredentials: scenarioScreen.requestOptions.requestedCredentials.map((cred, index) =>
+                          index === editingExternalIdx ? request : cred,
+                        ),
+                      },
+                    }
+                  }),
+                }
+              })
+              await updateShowcase(auth, showcase.name, { scenarios: updatedScenarios })
+              await onRefreshShowcase?.()
+              setEditingExternalIdx(null)
+            } catch (error) {
+              logger.error('Error updating external proof request:', error)
+            }
+          }}
+        />
+      )}
       {editingCredIdx !== null &&
         editingCredential &&
         nextScreen?.requestOptions?.requestedCredentials?.[editingCredIdx] && (
