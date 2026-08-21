@@ -2,6 +2,22 @@ apiVersion: v1
 entries:
   showcase:
   - apiVersion: v2
+    appVersion: 0.3.0
+    created: "2026-08-21T18:10:18.278990492Z"
+    dependencies:
+    - condition: mongodb.enabled
+      name: mongodb
+      repository: oci://registry-1.docker.io/cloudpirates
+      version: 0.15.0
+    description: Helm chart for the BC Digital Trust Showcase (frontend + server API
+      + MongoDB by default)
+    digest: cae3f12b019b07b861a7ab88b76a3a15bf64fc32dd7d90e32fc4e3e4230aa2fb
+    name: showcase
+    type: application
+    urls:
+    - https://github.com/bcgov/BC-Wallet-Demo/releases/download/showcase-0.6.1/showcase-0.6.1.tgz
+    version: 0.6.1
+  - apiVersion: v2
     appVersion: 0.2.5
     created: "2026-08-10T18:55:06.202397911Z"
     dependencies:
@@ -97,4 +113,4 @@ entries:
     urls:
     - https://github.com/bcgov/BC-Wallet-Demo/releases/download/showcase-0.4.0/showcase-0.4.0.tgz
     version: 0.4.0
-generated: "2026-08-10T18:55:06.202421076Z"
+generated: "2026-08-21T18:10:18.279022793Z"
