@@ -6,7 +6,7 @@ This folder defines automation for the BC Digital Trust Showcase monorepo (`fron
 
 **Path:** `.github/actions/setup-node/action.yml`
 
-**Purpose:** Install Node and enable Yarn dependency caching in one step.
+**Purpose:** Install Node, activate the repository's Yarn version through Corepack, and cache Yarn dependencies.
 
 **Inputs:**
 
@@ -16,7 +16,9 @@ This folder defines automation for the BC Digital Trust Showcase monorepo (`fron
 
 **Behaviour:**
 
-- Runs [`actions/setup-node@v4`](https://github.com/actions/setup-node) with `cache: yarn` and `cache-dependency-path: yarn.lock` (repository root). No separate `actions/cache` step and no `yarn` invocation before Node is installed.
+- Runs [`actions/setup-node@v4`](https://github.com/actions/setup-node) without Yarn caching so the runner's global Yarn version is not invoked during setup.
+- Enables Corepack, installs and verifies Yarn `4.18.0`, then caches the Yarn cache directory with a key containing the OS, Node version, Yarn version, and `yarn.lock` hash.
+- The cache key intentionally does not restore the previous `setup-node` Yarn cache; the old entry is left for GitHub's normal eviction policy.
 
 **Usage:**
 

@@ -1,5 +1,5 @@
 name: Setup NodeJS
-description: Setup NodeJS with caching
+description: Setup NodeJS with Corepack and Yarn caching
 author: 'timo@animo.id'
 
 inputs:
@@ -14,11 +14,23 @@ runs:
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       with:
         node-version: ${{ inputs.node-version }}
-        cache: yarn
-        cache-dependency-path: yarn.lock
     - name: Enable Corepack
       shell: bash
-      run: corepack enable
+      run: |
+        corepack enable
+        corepack install --global yarn@4.18.0
+    - name: Verify Yarn version
+      shell: bash
+      run: test "$(yarn --version)" = "4.18.0"
+    - name: Get Yarn cache directory
+      id: yarn-cache-dir
+      shell: bash
+      run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+    - name: Cache Yarn dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.yarn-cache-dir.outputs.dir }}
+        key: yarn-${{ runner.os }}-node-${{ inputs.node-version }}-yarn-4.18.0-${{ hashFiles('yarn.lock') }}
 
 branding:
   icon: scissors
