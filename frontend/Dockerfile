@@ -15,7 +15,7 @@ COPY frontend/package.json ./frontend/
 COPY server/package.json ./server/
 RUN corepack enable
 RUN --mount=type=cache,target=/root/.yarn/berry/cache \
-    yarn install --immutable --network-timeout 600000 --non-interactive
+    yarn install --immutable --network-timeout 600000
 
 # CI passes legacy secret names (REACT_APP_*). Map them to Vite env for `vite build`.
 ARG REACT_APP_INSIGHTS_PROJECT_ID

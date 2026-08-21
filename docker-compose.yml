@@ -117,7 +117,7 @@ services:
       - prod
     working_dir: /app
     entrypoint: ['sh', '-c']
-    command: ['corepack enable && yarn install --immutable --non-interactive && yarn workspace server seed']
+    command: ['corepack enable && yarn install --immutable && yarn workspace server seed']
     restart: on-failure
     volumes:
       - ./:/app

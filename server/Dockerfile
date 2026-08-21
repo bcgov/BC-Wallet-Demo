@@ -12,7 +12,7 @@ ENV HUSKY=0
 
 RUN corepack enable
 RUN --mount=type=cache,target=/root/.yarn/berry/cache \
-    yarn install --immutable --network-timeout 600000 --non-interactive
+    yarn install --immutable --network-timeout 600000
 
 COPY server ./server
 
