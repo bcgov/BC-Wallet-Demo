@@ -57,7 +57,8 @@ export const IntroductionPage: React.FC = () => {
       dispatch(fetchAllShowcases())
       setMounted(true)
     }
-  }, [dispatch, showHiddenScenarios])
+    // Runs once on mount only; toggling showHiddenScenarios must not re-trigger this redirect/reset
+  }, [dispatch])
 
   useEffect(() => {
     trackPageView()

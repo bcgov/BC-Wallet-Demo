@@ -45,7 +45,8 @@ const pReducer = (state: any, action: any) => {
   }
 
   if (action.type === 'demo/RESET') {
-    return rootReducer(undefined, action)
+    // Reset demo progress, but keep dev/creator preferences (dark mode, hidden scenarios, etc.) intact
+    return rootReducer({ preferences: restState.preferences }, action)
   }
 
   return rootReducer(state === undefined ? undefined : restState, action)
