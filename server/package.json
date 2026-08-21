@@ -5,7 +5,7 @@
   "description": "",
   "main": "build/src/index.js",
   "engines": {
-    "node": ">=22"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "start:prod": "yarn build && yarn start",
