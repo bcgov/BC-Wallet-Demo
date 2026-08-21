@@ -47,11 +47,12 @@ docker compose --profile dev --profile mongo-ui up --build
 
 #### Native (Node.js 24.19.0 and Yarn 4.18.0)
 
-Corepack is included with Node.js and manages the repository's pinned Yarn version.
+Corepack is included with Node.js and manages the repository's pinned Yarn version. Enable it once before installing dependencies:
 
 MongoDB must be running separately (e.g. `docker compose up mongodb`).
 
 ```bash
+corepack enable
 yarn install
 yarn dev
 ```
@@ -92,7 +93,7 @@ docker build -f frontend/Dockerfile \
 # Backend
 docker build -f server/Dockerfile -t bc-wallet-demo-server:local .
 
-# Production-like Compose stack (no Keycloak, no hot-reload)
+# Production-like Compose stack (Keycloak included, no hot-reload)
 docker compose --profile prod up --build
 ```
 
