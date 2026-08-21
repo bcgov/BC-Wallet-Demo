@@ -22,6 +22,18 @@ export default defineConfig(({ command, mode }): UserConfig => {
       sourcemap: false,
       // Skip gzip size table during CI/Docker — saves noticeable time on large bundles.
       reportCompressedSize: false,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined
+            const packagePath = id.split('node_modules/').pop() ?? ''
+            const packageName = packagePath.startsWith('@')
+              ? packagePath.split('/').slice(0, 2).join('-')
+              : packagePath.split('/')[0]
+            return `vendor-${packageName.replaceAll('@', '').replaceAll('/', '-')}`
+          },
+        },
+      },
     },
     publicDir: 'public',
     server: {

@@ -4,6 +4,14 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 import { connectDB, registerShutdownHandlers } from '../connection'
 
+vi.mock('../../utils/logger', () => ({
+  default: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}))
+
 // --- connectDB — happy path ---------------------------------------------------
 
 let mongod: MongoMemoryServer
