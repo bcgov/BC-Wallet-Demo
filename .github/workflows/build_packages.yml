@@ -35,11 +35,11 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
         with:
-          node-version: 22
+          node-version: 24.19.0
 
       - name: Start App
         run: |
-          yarn install --frozen-lockfile --network-timeout 600000
+          yarn install --immutable --network-timeout 600000
           NODE_ENV=test VITE_HOST_BACKEND=http://localhost:5000 yarn dev &
 
       - name: Wait for dev servers (HTTP)

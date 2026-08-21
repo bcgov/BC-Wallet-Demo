@@ -16,6 +16,9 @@ runs:
         node-version: ${{ inputs.node-version }}
         cache: yarn
         cache-dependency-path: yarn.lock
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
 
 branding:
   icon: scissors

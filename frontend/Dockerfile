@@ -1,21 +1,21 @@
 # syntax=docker/dockerfile:1
-ARG build_image=node:22-alpine
+ARG build_image=node:24.19.0-alpine
 ARG runtime_image=caddy:alpine
 
 # build stage
 FROM ${build_image} AS build-stage
 WORKDIR /app
-ENV HUSKY=0 \
-    YARN_NETWORK_CONCURRENCY=8
+ENV HUSKY=0
 
 # Install deps first so this layer stays cached unless a manifest/lockfile changes.
 # The whole workspace is resolved against the root lockfile, so every member
-# package.json must be present for `--frozen-lockfile` to succeed.
-COPY package.json yarn.lock ./
+# package.json must be present for `--immutable` to succeed.
+COPY package.json yarn.lock .yarnrc.yml ./
 COPY frontend/package.json ./frontend/
 COPY server/package.json ./server/
-RUN --mount=type=cache,target=/root/.cache/yarn \
-    yarn install --frozen-lockfile --network-timeout 600000 --non-interactive
+RUN corepack enable
+RUN --mount=type=cache,target=/root/.yarn/berry/cache \
+    yarn install --immutable --network-timeout 600000 --non-interactive
 
 # CI passes legacy secret names (REACT_APP_*). Map them to Vite env for `vite build`.
 ARG REACT_APP_INSIGHTS_PROJECT_ID

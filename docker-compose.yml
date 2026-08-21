@@ -111,13 +111,13 @@ services:
         condition: service_healthy
 
   seed:
-    image: node:22-alpine
+    image: node:24.19.0-alpine
     profiles:
       - dev
       - prod
     working_dir: /app
     entrypoint: ['sh', '-c']
-    command: ['yarn install --frozen-lockfile --non-interactive && yarn workspace server seed']
+    command: ['corepack enable && yarn install --immutable --non-interactive && yarn workspace server seed']
     restart: on-failure
     volumes:
       - ./:/app

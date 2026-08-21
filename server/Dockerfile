@@ -1,25 +1,25 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS build
+FROM node:24.19.0-alpine AS build
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 COPY server/package.json ./server/
 COPY frontend/package.json ./frontend/
 
-ENV HUSKY=0 \
-    YARN_NETWORK_CONCURRENCY=8
+ENV HUSKY=0
 
-RUN --mount=type=cache,target=/root/.cache/yarn \
-    yarn install --frozen-lockfile --network-timeout 600000 --non-interactive
+RUN corepack enable
+RUN --mount=type=cache,target=/root/.yarn/berry/cache \
+    yarn install --immutable --network-timeout 600000 --non-interactive
 
 COPY server ./server
 
 WORKDIR /app/server
 RUN yarn build
 
-FROM node:22-alpine
+FROM node:24.19.0-alpine
 
 WORKDIR /app/server
 
