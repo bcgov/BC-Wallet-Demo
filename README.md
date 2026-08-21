@@ -45,7 +45,9 @@ To also open the optional MongoDB web UI:
 docker compose --profile dev --profile mongo-ui up --build
 ```
 
-#### Native (Node.js 22+ and Yarn 1.x)
+#### Native (Node.js 24.19.0 and Yarn 4.18.0)
+
+Corepack is included with Node.js and manages the repository's pinned Yarn version.
 
 MongoDB must be running separately (e.g. `docker compose up mongodb`).
 
