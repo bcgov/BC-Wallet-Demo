@@ -74,7 +74,7 @@ This folder defines automation for the BC Digital Trust Showcase monorepo (`fron
 
 ### Job graph
 
-1. **`cypress-run`** (conditional) — Only when manual **`workflow_dispatch`** sets `run_cypress: true`. Checks out the repo, uses `setup-node` (Node 22), runs `yarn install --immutable`, starts `yarn dev` in the background, waits with `wait-on` for `http://localhost:3000` and `http://localhost:5000`, short warm-up sleep, then runs **Cypress** (`cypress-io/github-action@v6`, `install: false`, optional Dashboard recording via `CYPRESS_RECORD_KEY`).
+1. **`cypress-run`** (conditional) — Only when manual **`workflow_dispatch`** sets `run_cypress: true`. Checks out the repo, uses `setup-node`, runs `yarn install --immutable` followed by `yarn cypress install`, starts `yarn dev` in the background, waits with `wait-on` for `http://localhost:3000` and `http://localhost:5000`, short warm-up sleep, then runs **Cypress** (`cypress-io/github-action@v6`, optional Dashboard recording via `CYPRESS_RECORD_KEY`).
 
 2. **`cypress-skipped`** — On **release** publish (E2E skipped) or manual dispatch with `run_cypress: false`. Satisfies `needs` for the image jobs without doing work.
 
