@@ -22,6 +22,7 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteConfirmIdx, setDeleteConfirmIdx] = useState<number | null>(null)
   const [togglingHiddenId, setTogglingHiddenId] = useState<string | null>(null)
+  const [renamingScenarioId, setRenamingScenarioId] = useState<string | null>(null)
 
   const isEditingPredefinedScreen =
     editingScreen?.screenId === 'START' ||
@@ -174,6 +175,24 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
     }
   }
 
+  const handleRenameScenario = async (scenarioId: string, newName: string) => {
+    const trimmedName = newName.trim()
+    const scenario = showcase.scenarios?.find((sc) => sc.id === scenarioId)
+    if (!showcase.scenarios || !scenario || !trimmedName || renamingScenarioId || trimmedName === scenario.name) return
+
+    const updatedScenarios = showcase.scenarios.map((sc) => (sc.id === scenarioId ? { ...sc, name: trimmedName } : sc))
+    setRenamingScenarioId(scenarioId)
+    try {
+      await updateShowcase(auth, showcase.name, { scenarios: updatedScenarios })
+      await onRefresh?.()
+    } catch (error) {
+      log.error('Error renaming scenario:', error)
+      throw error
+    } finally {
+      setRenamingScenarioId(null)
+    }
+  }
+
   return {
     editingScreenIdx,
     editingScreen,
@@ -193,5 +212,7 @@ export function useScenarioScreens({ showcase, activeScenario, onRefresh }: UseS
     handleDeleteScreen,
     handleToggleHidden,
     togglingHiddenId,
+    handleRenameScenario,
+    renamingScenarioId,
   }
 }
