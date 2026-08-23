@@ -1,6 +1,6 @@
 import type { ScenarioScreen, Showcase } from '../../../types'
 
-import { EyeIcon, EyeSlashIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { EyeIcon, EyeSlashIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate } from 'react-router-dom'
@@ -17,6 +17,7 @@ import { CreateConnectionAndProofScreensModal } from '../modals/CreateConnection
 import { CreateOrEditScreenModal } from '../modals/CreateOrEditScreenModal'
 import { CreateScenarioModal } from '../modals/CreateScenarioModal'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
+import { RenameScenarioModal } from '../modals/RenameScenarioModal'
 
 import { ScenarioTimeline } from './ScenarioTimeline'
 
@@ -35,6 +36,7 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
   const canEdit = useHasRole('creator')
   const [activeScenario, setActiveScenario] = useState<string | null>(null)
   const [isCreateScenarioModalOpen, setIsCreateScenarioModalOpen] = useState(false)
+  const [renamingScenario, setRenamingScenario] = useState<{ id: string; name: string } | null>(null)
   const [isCreateConnectionProofModalOpen, setIsCreateConnectionProofModalOpen] = useState(false)
   const [hoverIdx, setHoverIdx] = useState<string | number | null>(null)
   const [iframeRefreshKey, setIframeRefreshKey] = useState(0)
@@ -60,6 +62,8 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
     handleDeleteScreen,
     handleToggleHidden,
     togglingHiddenId,
+    handleRenameScenario,
+    renamingScenarioId,
   } = useScenarioScreens({ showcase, activeScenario, onRefresh })
 
   useEffect(() => {
@@ -144,6 +148,17 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
                 </button>
                 {canEdit && (
                   <button
+                    onClick={() => setRenamingScenario({ id: scenario.id, name: scenario.name })}
+                    disabled={renamingScenarioId !== null}
+                    title="Rename scenario"
+                    aria-label="Rename scenario"
+                    className="px-1 text-bcgov-darkgrey hover:text-bcgov-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <PencilIcon className="w-4 h-4" />
+                  </button>
+                )}
+                {canEdit && (
+                  <button
                     onClick={() => handleToggleHidden(scenario.id)}
                     disabled={togglingHiddenId !== null}
                     title={scenario.hidden ? 'Show scenario' : 'Hide scenario'}
@@ -219,6 +234,16 @@ export function ScenariosTab({ showcase, isNewShowcase, onRefresh, isExpanded, s
           onScenarioCreated={(scenarioId) => {
             setIsCreateScenarioModalOpen(false)
             setActiveScenario(scenarioId)
+          }}
+        />
+        <RenameScenarioModal
+          isOpen={renamingScenario !== null}
+          currentName={renamingScenario?.name ?? ''}
+          onClose={() => setRenamingScenario(null)}
+          onSave={async (newName) => {
+            if (!renamingScenario) return
+            await handleRenameScenario(renamingScenario.id, newName)
+            setRenamingScenario(null)
           }}
         />
         <CreateConnectionAndProofScreensModal
