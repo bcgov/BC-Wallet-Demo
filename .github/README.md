@@ -1,12 +1,12 @@
 # GitHub Actions and CI
 
-This folder defines automation for the BC Digital Trust Showcase monorepo (`frontend` and `server` Yarn workspaces). All Node-based jobs use **Node.js 22**, matching `engines.node` in `package.json`.
+This folder defines automation for the BC Digital Trust Showcase monorepo (`frontend` and `server` Yarn workspaces). All Node-based jobs use **Node.js 24.19.0**, matching the repository's supported Node 24.x LTS line.
 
 ## Composite action: `actions/setup-node`
 
 **Path:** `.github/actions/setup-node/action.yml`
 
-**Purpose:** Install Node and enable Yarn dependency caching in one step.
+**Purpose:** Install Node, activate the repository's Yarn version through Corepack, and cache Yarn dependencies.
 
 **Inputs:**
 
@@ -16,14 +16,16 @@ This folder defines automation for the BC Digital Trust Showcase monorepo (`fron
 
 **Behaviour:**
 
-- Runs [`actions/setup-node@v4`](https://github.com/actions/setup-node) with `cache: yarn` and `cache-dependency-path: yarn.lock` (repository root). No separate `actions/cache` step and no `yarn` invocation before Node is installed.
+- Runs [`actions/setup-node@v4`](https://github.com/actions/setup-node) without Yarn caching so the runner's global Yarn version is not invoked during setup.
+- Enables Corepack, installs and verifies Yarn `4.18.0`, then caches the Yarn cache directory with a key containing the OS, Node version, Yarn version, and `yarn.lock` hash.
+- The cache key intentionally does not restore the previous `setup-node` Yarn cache; the old entry is left for GitHub's normal eviction policy.
 
 **Usage:**
 
 ```yaml
 - uses: ./.github/actions/setup-node
   with:
-    node-version: 22
+    node-version: 24.19.0
 ```
 
 ---
@@ -41,8 +43,8 @@ This folder defines automation for the BC Digital Trust Showcase monorepo (`fron
 
 | Job                     | What it does                                                                                                                                        |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Server Unit Tests**   | `yarn install --frozen-lockfile`, then `yarn workspace server test`                                                                                 |
-| **Frontend Unit Tests** | `yarn install --frozen-lockfile`, then `yarn workspace frontend test:unit`                                                                          |
+| **Server Unit Tests**   | `yarn install --immutable`, then `yarn workspace server test`                                                                                       |
+| **Frontend Unit Tests** | `yarn install --immutable`, then `yarn workspace frontend test:unit`                                                                                |
 | **Cypress E2E Tests**   | Lint (`yarn lint`), Prettier check, `yarn check-types`, then Cypress with `yarn workspace frontend start` and `wait-on` for `http://localhost:3000` |
 
 ---
@@ -72,7 +74,7 @@ This folder defines automation for the BC Digital Trust Showcase monorepo (`fron
 
 ### Job graph
 
-1. **`cypress-run`** (conditional) — Only when manual **`workflow_dispatch`** sets `run_cypress: true`. Checks out the repo, uses `setup-node` (Node 22), runs `yarn install --frozen-lockfile`, starts `yarn dev` in the background, waits with `wait-on` for `http://localhost:3000` and `http://localhost:5000`, short warm-up sleep, then runs **Cypress** (`cypress-io/github-action@v6`, `install: false`, optional Dashboard recording via `CYPRESS_RECORD_KEY`).
+1. **`cypress-run`** (conditional) — Only when manual **`workflow_dispatch`** sets `run_cypress: true`. Checks out the repo, uses `setup-node`, runs `yarn install --immutable` followed by `yarn cypress install`, starts `yarn dev` in the background, waits with `wait-on` for `http://localhost:3000` and `http://localhost:5000`, short warm-up sleep, then runs **Cypress** (`cypress-io/github-action@v6`, optional Dashboard recording via `CYPRESS_RECORD_KEY`).
 
 2. **`cypress-skipped`** — On **release** publish (E2E skipped) or manual dispatch with `run_cypress: false`. Satisfies `needs` for the image jobs without doing work.
 

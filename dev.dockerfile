@@ -1,8 +1,8 @@
-FROM node:22-alpine AS base
+FROM node:24.19.0-alpine AS base
 
 WORKDIR /app
 COPY . .
-RUN yarn install
+RUN corepack enable && yarn install --immutable
 
 
 EXPOSE 5000

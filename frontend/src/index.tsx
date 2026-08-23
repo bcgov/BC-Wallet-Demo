@@ -1,16 +1,17 @@
 import { newTracker, enableActivityTracking, trackPageView } from '@snowplow/browser-tracker'
-import React from 'react'
+import { lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { PersistGate } from 'redux-persist/integration/react'
 
-import AdminApp from './admin/AdminApp'
-import ClientApp from './client/App'
 import './client/index.css'
 import { baseRoute } from './client/api/BaseUrl'
 import * as Redux from './client/store/configureStore'
 import { KBar } from './client/utils/KBar'
+
+const AdminApp = lazy(() => import('./admin/AdminApp'))
+const ClientApp = lazy(() => import('./client/App'))
 
 const { store, persistor } = Redux
 // Force https so local http://localhost dev does not hit http→https redirects on
@@ -28,7 +29,7 @@ trackPageView()
 
 const container = document.getElementById('root') as HTMLElement
 createRoot(container).render(
-  <React.StrictMode>
+  <Suspense fallback={null}>
     <BrowserRouter>
       <Routes>
         <Route path={`${baseRoute}/admin/*`} element={<AdminApp />} />
@@ -46,5 +47,5 @@ createRoot(container).render(
         />
       </Routes>
     </BrowserRouter>
-  </React.StrictMode>,
+  </Suspense>,
 )

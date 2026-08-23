@@ -99,7 +99,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['frontend/vite.config.ts'],
+    files: ['frontend/vite.config.mts'],
     rules: {
       'import/no-unresolved': 'off',
       'import/no-extraneous-dependencies': 'off',

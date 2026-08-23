@@ -4,9 +4,11 @@ https://github.com/bcgov/BC-Wallet-Demo
 
 The BC Digital Trust Showcase is an application used to issue demo credentials and proof requests. It consists of a React frontend and a TS-Node Backend. Additionally it needs to be connected to a traction agent.
 
+The repository uses Yarn 4.18.0 through Corepack. Node.js 24.x LTS is required; local development is pinned to Node.js 24.19.0.
+
 ## Continuous integration
 
-GitHub Actions run on pull requests (unit tests, lint, Cypress, Docker smoke builds) and on releases (optional Cypress, then publishing showcase images to GHCR). Node **22** is required in CI, matching the repo `engines` field. For workflow names, job graph, secrets used at Docker build time, and the reusable **setup-node** composite action, see **[.github/README.md](../.github/README.md)** in the repository.
+GitHub Actions run on pull requests (unit tests, lint, Cypress, Docker smoke builds) and on releases (optional Cypress, then publishing showcase images to GHCR). Node **24.19.0** is used in CI, with Node **24.x** supported by the repo `engines` field. For workflow names, job graph, secrets used at Docker build time, and the reusable **setup-node** composite action, see **[.github/README.md](../.github/README.md)** in the repository.
 
 ## Setup: Local Development
 
@@ -60,7 +62,7 @@ VITE_BASE_ROUTE=/digital-trust/showcase
 VITE_INSIGHTS_PROJECT_ID=
 ```
 
-When adding environment variables for the **Vite** dev client, use the `VITE_` prefix (see `frontend/.env.example`). In production the app is static files behind Caddy; **Caddy** reads `VITE_BASE_ROUTE` (and related vars) at runtime from the same `frontend/.env` when using Docker Compose.
+When adding environment variables for the **Vite** dev client, use the `VITE_` prefix (see `frontend/.env.example`). In production the app is static files behind Caddy. `VITE_BASE_ROUTE` is read by Caddy at container runtime from `frontend/.env`, while `VITE_HOST_BACKEND` and other Vite application values are embedded into the JavaScript bundle during the frontend image build. Changing those build-time values requires rebuilding the image.
 
 Ensure that both the env files are named `.env` and that they're in the same folder as their respective `.env.example` files, otherwise they won't get loaded.
 
@@ -91,7 +93,7 @@ The structure is similar for the use case flow. Those screens are located at `fr
 - StepInformation.tsx: like BasicSlide.tsx displays configured text and images to provide context for the proof.
 - StepProof.tsx: issues the configured proof to the user's wallet
 
-All of these steps are configurable via the JSON showcase files in `server/scripts/values` (`studentShowcase.json`, `lawyerShowcase.json`, `businessShowcase.json`), loaded by `server/src/content/Showcases.ts`
+All of these steps are configurable via the JSON showcase files in `server/migrations/values` (`studentShowcase.json`, `lawyerShowcase.json`, `businessShowcase.json`), loaded by `server/src/content/Showcases.ts`.
 
 ### Server Structure:
 
@@ -99,7 +101,7 @@ For the most part the server acts as a sort of proxy to pass requests to the tra
 
 ### Server Config:
 
-The showcase configurations live in `server/scripts/values/` as JSON files (`studentShowcase.json`, `lawyerShowcase.json`, `businessShowcase.json`). They are loaded by `server/src/content/Showcases.ts`. We'll walk through the structure and what the fields mean:
+The showcase configurations live in `server/migrations/values/` as JSON files (`studentShowcase.json`, `lawyerShowcase.json`, `businessShowcase.json`). They are loaded by `server/src/content/Showcases.ts`. Credentials are defined in the same directory in `credentials.json`. We'll walk through the structure and what the fields mean:
 
 #### Basic Character Info
 
@@ -195,7 +197,7 @@ The introduction sections follow a common structure. Key fields:
   - `SETUP_START`: (required) second step — renders `SetupStart.tsx`
   - `CHOOSE_WALLET`: (optional) renders `ChooseWallet.tsx`
   - `CONNECT*`: creates a connection invitation and renders `SetupConnection.tsx`. `issuer_name` is the display name shown in the user's wallet.
-  - `ACCEPT*`: renders `AcceptCredential.tsx` and sends the credential offer. Must be preceded by a `CONNECT*` step. The `credentials` field is an array of credential IDs referencing entries in `server/config/credentials.json`. If the schema or cred def do not exist, the server requests Traction to create them.
+  - `ACCEPT*`: renders `AcceptCredential.tsx` and sends the credential offer. Must be preceded by a `CONNECT*` step. The `credentials` field is an array of credential IDs referencing entries in `server/migrations/values/credentials.json`. If the schema or cred def do not exist, the server requests Traction to create them.
   - `SETUP_COMPLETED`: (required) last step — renders `SetupCompleted.tsx`
 - `name`: the page title
 - `text`: the main body text
