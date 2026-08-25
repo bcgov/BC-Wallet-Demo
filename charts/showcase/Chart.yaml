@@ -2,8 +2,8 @@ apiVersion: v2
 name: showcase
 description: Helm chart for the BC Digital Trust Showcase (frontend + server API + MongoDB by default)
 type: application
-version: 0.6.1
-appVersion: '0.3.0'
+version: 0.6.2
+appVersion: '0.3.1'
 dependencies:
   - name: mongodb
     version: 0.15.0
