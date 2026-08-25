@@ -76,7 +76,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                       }}
                     >
                       <a
-                        href="https://apps.apple.com/us/app/bc-services-card/id1234298467"
+                        href={`${baseUrl}/qr?platform=apple`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -91,7 +91,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                         />
                       </a>
                       <a
-                        href="https://play.google.com/store/apps/details?id=ca.bc.gov.id.servicescard"
+                        href={`${baseUrl}/qr?platform=android`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

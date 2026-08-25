@@ -190,6 +190,10 @@ showcase:
   publicOrigin: 'http://127.0.0.1:5000'
   ## Optional Microsoft Clarity / App Insights project id (`VITE_INSIGHTS_PROJECT_ID` on the frontend pod; typically baked at image build).
   insightsProjectId: ''
+  ## Optional install destinations. When empty, the server uses the BC Services Card defaults.
+  appStoreUrls:
+    apple: ''
+    android: ''
 
 ingress:
   enabled: false

@@ -22,6 +22,7 @@ import adminCredentialsRouter from './routes/adminCredentialsRouter'
 import adminDidsRouter from './routes/adminDidsRouter'
 import adminSchemaRouter from './routes/adminSchemasRouter'
 import adminShowcasesRouter from './routes/adminShowcasesRouter'
+import { getAppStoreRedirectUrl, type AppStorePlatform } from './utils/appStoreRedirect'
 import logger from './utils/logger'
 import { tractionApiKeyUpdaterInit, tractionGarbageCollection, tractionRequest } from './utils/tractionHelper'
 import { UPLOADS_DIR } from './utils/uploadsDir'
@@ -150,17 +151,10 @@ const run = async () => {
     res.send(serverStartTime)
   })
 
-  // Redirect QR code scans for installing bc services card to the apple or google play store
-  const androidUrl = 'https://play.google.com/store/apps/details?id=ca.bc.gov.id.servicescard'
-  const appleUrl = 'https://apps.apple.com/us/app/bc-services-card/id1234298467'
   app.get(`${baseRoute}/qr`, async (req, res) => {
-    const appleMatchers = [/iPhone/i, /iPad/i, /iPod/i]
-    let url = androidUrl
-    const isApple = appleMatchers.some((item) => req.get('User-Agent')?.match(item))
-    if (isApple) {
-      url = appleUrl
-    }
-    res.redirect(url)
+    const requestedPlatform = req.query.platform
+    const platform: AppStorePlatform | undefined = requestedPlatform === 'apple' || requestedPlatform === 'android' ? requestedPlatform : undefined
+    res.redirect(getAppStoreRedirectUrl(req.get('User-Agent'), undefined, platform))
     return res
   })
 
