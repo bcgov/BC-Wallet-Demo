@@ -101,8 +101,8 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                   </div>
                 </div>
                 {!isMobile() && (
-                  <div className="mt-10 mr-10">
-                    <QRCodeSVG value={`${baseUrl}/qr`} size={125} />
+                  <div className="mt-10 mr-10 rounded-lg bg-white p-3 shadow-lg">
+                    <QRCodeSVG value={`${baseUrl}/qr`} size={125} bgColor="#FFFFFF" fgColor="#000000" includeMargin />
                   </div>
                 )}
               </div>
