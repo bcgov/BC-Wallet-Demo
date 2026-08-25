@@ -4,7 +4,7 @@
 # Optional MongoDB web UI: add --profile mongo-ui to either command (see mongo-express service)
 services:
   mongodb:
-    image: mongo:8
+    image: mongo:8.3.8
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
@@ -21,7 +21,7 @@ services:
       start_period: 20s
 
   mongo-express:
-    image: mongo-express:1
+    image: mongo-express:1.0.2
     restart: unless-stopped
     profiles:
       - mongo-ui
@@ -135,7 +135,7 @@ services:
         condition: service_healthy
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.5
+    image: quay.io/keycloak/keycloak:26.5.7
     command: start-dev --import-realm
     profiles:
       - dev
@@ -161,7 +161,7 @@ services:
         condition: service_healthy
 
   keycloak-db:
-    image: postgres:15-alpine
+    image: postgres:15.19-alpine
     profiles:
       - dev
       - prod

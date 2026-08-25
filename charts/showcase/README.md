@@ -59,7 +59,7 @@ helm upgrade --install my-showcase . \
 
 Create the referenced **`Secret`** first (keys as env names; see **`server/.env.example`** in the app repo).
 
-Default images: **`ghcr.io/bcgov/digital-trust-showcase-server:main`**, **`ghcr.io/bcgov/digital-trust-showcase-frontend:main`**. Override **`showcase.server.image`** / **`showcase.frontend.image`** if needed.
+Default images: **`ghcr.io/bcgov/digital-trust-showcase-server:<Chart.appVersion>`**, **`ghcr.io/bcgov/digital-trust-showcase-frontend:<Chart.appVersion>`**. With the current chart, that defaults to **`0.3.1`**. Override **`showcase.server.image`** / **`showcase.frontend.image`** if needed.
 
 ## Applying chart changes
 

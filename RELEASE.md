@@ -36,7 +36,7 @@ When you create a GitHub Release:
 ### 1. Create a Release Branch (Optional but Recommended)
 
 ```bash
-git checkout -b release/v0.2.0
+git checkout -b release/v0.3.1
 ```
 
 ### 2. Bump Versions
@@ -48,7 +48,7 @@ Update both version files to the new version:
 ```json
 {
   "name": "bc-wallet-demo",
-  "version": "0.2.0",
+  "version": "0.3.1",
   ...
 }
 ```
@@ -58,8 +58,8 @@ Update both version files to the new version:
 ```yaml
 apiVersion: v2
 name: showcase
-version: 0.5.0
-appVersion: '0.2.0'
+version: 0.6.2
+appVersion: '0.3.1'
 ...
 ```
 
@@ -69,13 +69,13 @@ appVersion: '0.2.0'
 
 ```bash
 git add package.json charts/showcase/Chart.yaml
-git commit -m "chore(release): bump versions to v0.2.0"
+git commit -m "chore(release): bump versions to v0.3.1"
 ```
 
 ### 4. Push and Create Pull Request
 
 ```bash
-git push origin release/v0.2.0
+git push origin release/v0.3.1
 ```
 
 Create a pull request on GitHub. This triggers:
@@ -90,9 +90,9 @@ Wait for CI to pass ✅
 
 On GitHub, go to [Releases](https://github.com/bcgov/BC-Wallet-Demo/releases) and click **"Create a new release"**:
 
-1. **Tag version**: Enter the version (e.g., `v0.2.0`)
+1. **Tag version**: Enter the version (e.g., `v0.3.1`)
 2. **Target**: Select the release branch (or `main` if committing directly)
-3. **Title**: `Release v0.2.0` (or descriptive title)
+3. **Title**: `Release v0.3.1` (or descriptive title)
 4. **Description**: Add release notes describing changes
 5. **Set as latest release**: Check this (unless it's a pre-release)
 6. Click **"Publish release"**
@@ -110,11 +110,13 @@ Both workflows should trigger automatically:
 
 - Go to [GitHub Pages Helm repo](https://bcgov.github.io/BC-Wallet-Demo)
 - Add the repo and search:
+
   ```bash
   helm repo add digital-trust-showcase https://bcgov.github.io/BC-Wallet-Demo
   helm repo update
   helm search repo digital-trust-showcase
   ```
+
 - Confirm the new chart version appears
 
 ## Troubleshooting
@@ -132,16 +134,18 @@ Check the `build_packages.yml` workflow logs:
 The `helm-release-showcase.yaml` workflow will fail with an error if:
 
 - **Chart.yaml version wasn't bumped** — compare with the previous release tag
+
   ```bash
   git show v0.1.0:charts/showcase/Chart.yaml | grep version
   ```
+
 - **chart-releaser encountered an issue** — check workflow logs in GitHub Actions
 
 ### Version Not Bumped Error
 
 If you see:
 
-```
+```text
 ❌ Chart.yaml version has not changed.
    Current version: 0.4.0
    Previous version (in v0.1.0): 0.4.0
@@ -151,23 +155,18 @@ If you see:
 **Solution:**
 
 1. Update `Chart.yaml` to a new version (e.g., `0.4.1` → `0.5.0`)
-2. Commit with: `git commit -am "chore(release): bump Chart.yaml to v0.5.0"`
+2. Commit with: `git commit -am "chore(release): bump Chart.yaml to v0.6.2"`
 3. Create a new GitHub Release with a new tag (delete the failed tag first if needed)
 
 ## Rollback
 
 If a release needs to be rolled back:
 
-1. Delete the tag locally and remotely:
+1. Delete the tag locally and remotely with `git tag -d v0.3.1` and `git push origin :refs/tags/v0.3.1`.
 
-   ```bash
-   git tag -d v0.2.0
-   git push origin :refs/tags/v0.2.0
-   ```
+2. Delete the GitHub Release on GitHub UI.
 
-2. Delete the GitHub Release on GitHub UI
-
-3. Fix the issue and create a new release
+3. Fix the issue and create a new release.
 
 ## CI/CD Workflows
 

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG build_image=node:24.19.0-alpine
-ARG runtime_image=caddy:alpine
+ARG runtime_image=caddy:2.11.4-alpine
 
 # build stage
 FROM ${build_image} AS build-stage
