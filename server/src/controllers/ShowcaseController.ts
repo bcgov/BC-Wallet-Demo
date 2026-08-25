@@ -64,6 +64,23 @@ export class ShowcaseController {
   }
 
   /**
+   * Retrieve showcase by its stable public direct-link slug
+   */
+  @Get('/slug/:slug')
+  public async getShowcaseBySlug(@Param('slug') slug: string) {
+    logger.debug({ slug }, 'Fetching showcase by slug')
+    const showcase = await ShowcaseModel.findOne({ slug, deleted_at: null }).lean()
+
+    if (!showcase) {
+      logger.warn({ slug }, 'Showcase not found')
+      throw new NotFoundError(`showcase with slug "${slug}" not found.`)
+    }
+
+    logger.debug({ slug }, 'Showcase found')
+    return hydrateCredentials(showcase)
+  }
+
+  /**
    * Retrieve all showcases
    */
   @Get('/')

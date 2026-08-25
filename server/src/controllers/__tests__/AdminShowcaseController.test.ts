@@ -13,7 +13,7 @@ vi.mock('../../utils/uploadsDir', () => ({
   UPLOADS_DIR: '/tmp/uploads',
 }))
 
-const { mockFns } = vi.hoisted(() => ({
+const { mockFns, mockSave } = vi.hoisted(() => ({
   mockFns: {
     findOneAndUpdate: vi.fn(),
     findOneAndDelete: vi.fn(),
@@ -21,18 +21,19 @@ const { mockFns } = vi.hoisted(() => ({
     find: vi.fn(),
     countDocuments: vi.fn(),
     deleteMany: vi.fn(),
+    exists: vi.fn(),
   },
+  mockSave: vi.fn(),
 }))
 
-vi.mock('../../db/models/Showcase', () => ({
-  ShowcaseModel: {
-    findOneAndUpdate: mockFns.findOneAndUpdate,
-    findOneAndDelete: mockFns.findOneAndDelete,
-    findOne: mockFns.findOne,
-    find: mockFns.find,
-    countDocuments: mockFns.countDocuments,
-  },
-}))
+vi.mock('../../db/models/Showcase', () => {
+  const ShowcaseModelMock = vi.fn().mockImplementation(function (this: any, data: any) {
+    Object.assign(this, data)
+    this.save = mockSave
+  }) as any
+  Object.assign(ShowcaseModelMock, mockFns)
+  return { ShowcaseModel: ShowcaseModelMock }
+})
 
 vi.mock('../../db/models/Asset', () => ({
   AssetModel: {
@@ -59,6 +60,44 @@ describe('AdminShowcaseController', () => {
   beforeEach(() => {
     controller = new AdminShowcaseController()
     vi.clearAllMocks()
+  })
+
+  describe('createShowcase', () => {
+    it('generates a unique slug from the showcase name', async () => {
+      mockFns.exists.mockResolvedValue(false)
+      mockSave.mockResolvedValue({ toObject: () => ({ ...mockShowcase, slug: 'my-new-showcase' }) })
+
+      const result = await controller.createShowcase({ name: 'My New Showcase!' } as any)
+
+      expect(mockFns.exists).toHaveBeenCalledWith({ slug: 'my-new-showcase' })
+      expect(result).toEqual({ ...mockShowcase, slug: 'my-new-showcase' })
+    })
+
+    it('appends a numeric suffix when the slug is already taken', async () => {
+      mockFns.exists.mockResolvedValueOnce(true).mockResolvedValueOnce(false)
+      mockSave.mockResolvedValue({ toObject: () => ({ ...mockShowcase, slug: 'student-2' }) })
+
+      await controller.createShowcase({ name: 'Student' } as any)
+
+      expect(mockFns.exists).toHaveBeenCalledWith({ slug: 'student' })
+      expect(mockFns.exists).toHaveBeenCalledWith({ slug: 'student-2' })
+    })
+  })
+
+  describe('updateShowcase', () => {
+    it('ignores any client-supplied slug so links stay stable across renames', async () => {
+      mockFns.findOneAndUpdate.mockReturnValue({
+        lean: vi.fn().mockResolvedValue({ ...mockShowcase, name: 'Renamed' }),
+      })
+
+      await controller.updateShowcase('student', { name: 'Renamed', slug: 'hacked-slug' } as any)
+
+      expect(mockFns.findOneAndUpdate).toHaveBeenCalledWith(
+        { name: 'student', deleted_at: null },
+        { $set: { name: 'Renamed', deleted_at: undefined } },
+        { new: true, runValidators: true },
+      )
+    })
   })
 
   describe('deleteShowcase', () => {

@@ -8,6 +8,7 @@ import { AssetModel } from '../../db/models/Asset'
 import { ShowcaseModel } from '../../db/models/Showcase'
 import { ShowcaseNotDeletedError } from '../../errors'
 import logger from '../../utils/logger'
+import { generateUniqueSlug, slugify } from '../../utils/slug'
 import { UPLOADS_DIR } from '../../utils/uploadsDir'
 
 @JsonController('/admin/showcases')
@@ -22,7 +23,10 @@ export class AdminShowcaseController {
   public async createShowcase(@Body() body: Showcase) {
     logger.debug({ body }, 'Creating new showcase')
     try {
-      const showcase = new ShowcaseModel(body)
+      const slug = await generateUniqueSlug(slugify(body.name), (candidate) =>
+        ShowcaseModel.exists({ slug: candidate }).then(Boolean),
+      )
+      const showcase = new ShowcaseModel({ ...body, slug })
       const saved = await showcase.save()
       logger.debug({ showcaseId: saved._id }, 'Showcase created successfully')
       return saved.toObject()
@@ -40,9 +44,12 @@ export class AdminShowcaseController {
   public async updateShowcase(@Param('showcaseName') showcaseName: string, @Body() body: Partial<Showcase>) {
     logger.debug({ showcaseName, body }, 'Updating showcase')
     try {
+      // slug is system-generated and stable; ignore any client-supplied value so links never break on rename.
+      const updatable = { ...body }
+      delete updatable.slug
       const showcase = await ShowcaseModel.findOneAndUpdate(
         { name: showcaseName, deleted_at: null },
-        { $set: { ...body, deleted_at: undefined } },
+        { $set: { ...updatable, deleted_at: undefined } },
         { new: true, runValidators: true },
       ).lean()
 
