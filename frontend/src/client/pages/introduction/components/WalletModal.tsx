@@ -25,6 +25,12 @@ export interface Props {
 }
 
 export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletModalOpen, onCompleted }) => {
+  const installRedirectUrl = new URL(`${baseUrl}/qr`, window.location.origin)
+  const appleInstallUrl = new URL(installRedirectUrl)
+  appleInstallUrl.searchParams.set('platform', 'apple')
+  const androidInstallUrl = new URL(installRedirectUrl)
+  androidInstallUrl.searchParams.set('platform', 'android')
+
   function isMobile() {
     return window.innerWidth <= 760
   }
@@ -75,7 +81,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                         marginBottom: '10px',
                       }}
                     >
-                      <a href={`${baseUrl}/qr?platform=apple`} target="_blank" rel="noopener noreferrer">
+                      <a href={appleInstallUrl.toString()} target="_blank" rel="noopener noreferrer">
                         <img
                           src={appStore}
                           style={
@@ -86,7 +92,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                           alt="app store"
                         />
                       </a>
-                      <a href={`${baseUrl}/qr?platform=android`} target="_blank" rel="noopener noreferrer">
+                      <a href={androidInstallUrl.toString()} target="_blank" rel="noopener noreferrer">
                         <img
                           src={playStore}
                           style={isMobile() ? { width: '200px' } : { height: '50px' }}
@@ -102,7 +108,13 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                 </div>
                 {!isMobile() && (
                   <div className="mt-10 mr-10 rounded-lg bg-white p-3 shadow-lg">
-                    <QRCodeSVG value={`${baseUrl}/qr`} size={125} bgColor="#FFFFFF" fgColor="#000000" includeMargin />
+                    <QRCodeSVG
+                      value={installRedirectUrl.toString()}
+                      size={125}
+                      bgColor="#FFFFFF"
+                      fgColor="#000000"
+                      includeMargin
+                    />
                   </div>
                 )}
               </div>
