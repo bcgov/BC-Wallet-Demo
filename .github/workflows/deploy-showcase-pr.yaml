@@ -81,7 +81,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: ./.github/actions/showcase-build-server
         with:
           image: ${{ env.SHOWCASE_SERVER_IMAGE }}
@@ -99,7 +99,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: ./.github/actions/showcase-build-frontend
         with:
           image: ${{ env.SHOWCASE_FRONTEND_IMAGE }}
@@ -116,7 +116,7 @@ jobs:
     # Job-level `if` cannot use `secrets` (GitHub restriction). Verify OpenShift secrets in-step.
     if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.build_server.result == 'success' && needs.build_frontend.result == 'success' }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Verify OpenShift secrets for deploy
         env:
@@ -244,7 +244,7 @@ jobs:
     needs: [ready, deploy]
     if: ${{ always() && needs.ready.outputs.deploy == 'true' && needs.deploy.result == 'success' }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         id: fc

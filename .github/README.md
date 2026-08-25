@@ -89,7 +89,7 @@ Images are pushed to **GitHub Container Registry** (`ghcr.io`):
 | `SHOWCASE_SERVER_IMAGE`   | `ghcr.io/<owner>/digital-trust-showcase-server`   |
 | `SHOWCASE_FRONTEND_IMAGE` | `ghcr.io/<owner>/digital-trust-showcase-frontend` |
 
-Jobs use `docker/login-action@v3`, `docker/setup-buildx-action@v3`, `docker/metadata-action@v5`, and `docker/build-push-action@v7` with **minimal provenance** and **SBOM** attestations (`provenance: mode=min`, `sbom: true`). Image build jobs set **`permissions: id-token: write`** (with `packages: write`) so attestation upload to GHCR is supported.
+Jobs use `docker/login-action@v4`, `docker/setup-qemu-action@v4`, `docker/setup-buildx-action@v4`, `docker/metadata-action@v6`, and `docker/build-push-action@v7` with **minimal provenance** and **SBOM** attestations (`provenance: mode=min`, `sbom: true`). Image build jobs set **`permissions: id-token: write`** (with `packages: write`) so attestation upload to GHCR is supported.
 
 ### Frontend image: build-time configuration
 
