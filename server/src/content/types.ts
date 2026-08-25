@@ -124,6 +124,7 @@ export type ShowcaseStatus = 'active' | 'hidden' | 'pending'
 
 export interface Showcase {
   name: string
+  slug: string
   status: ShowcaseStatus
   deleted_at?: Date | null
   description?: string
