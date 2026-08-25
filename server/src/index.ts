@@ -153,7 +153,8 @@ const run = async () => {
 
   app.get(`${baseRoute}/qr`, async (req, res) => {
     const requestedPlatform = req.query.platform
-    const platform: AppStorePlatform | undefined = requestedPlatform === 'apple' || requestedPlatform === 'android' ? requestedPlatform : undefined
+    const platform: AppStorePlatform | undefined =
+      requestedPlatform === 'apple' || requestedPlatform === 'android' ? requestedPlatform : undefined
     res.redirect(getAppStoreRedirectUrl(req.get('User-Agent'), undefined, platform))
     return res
   })

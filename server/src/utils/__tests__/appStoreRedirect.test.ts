@@ -1,8 +1,4 @@
-import {
-  DEFAULT_ANDROID_APP_URL,
-  DEFAULT_APPLE_APP_URL,
-  getAppStoreRedirectUrl,
-} from '../appStoreRedirect'
+import { DEFAULT_ANDROID_APP_URL, DEFAULT_APPLE_APP_URL, getAppStoreRedirectUrl } from '../appStoreRedirect'
 
 describe('getAppStoreRedirectUrl', () => {
   it('redirects Android clients to Google Play by default', () => {

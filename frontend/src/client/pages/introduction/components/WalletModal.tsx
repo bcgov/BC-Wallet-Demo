@@ -75,11 +75,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                         marginBottom: '10px',
                       }}
                     >
-                      <a
-                        href={`${baseUrl}/qr?platform=apple`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={`${baseUrl}/qr?platform=apple`} target="_blank" rel="noopener noreferrer">
                         <img
                           src={appStore}
                           style={
@@ -90,11 +86,7 @@ export const WalletModal: React.FC<Props> = ({ isWalletModalOpen, setIsWalletMod
                           alt="app store"
                         />
                       </a>
-                      <a
-                        href={`${baseUrl}/qr?platform=android`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={`${baseUrl}/qr?platform=android`} target="_blank" rel="noopener noreferrer">
                         <img
                           src={playStore}
                           style={isMobile() ? { width: '200px' } : { height: '50px' }}
