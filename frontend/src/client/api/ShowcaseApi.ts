@@ -9,3 +9,7 @@ export const getShowcases = (): Promise<AxiosResponse> => {
 export const getShowcaseById = (showcaseId: string): Promise<AxiosResponse> => {
   return apiCall.get(`/demo/showcases/${showcaseId}`)
 }
+
+export const getShowcaseBySlug = (slug: string): Promise<AxiosResponse> => {
+  return apiCall.get(`/demo/showcases/slug/${slug}`)
+}

@@ -128,6 +128,7 @@ export type ShowcaseStatus = 'active' | 'hidden' | 'pending'
 
 export interface Showcase {
   name: string
+  slug?: string
   status: ShowcaseStatus
   description?: string
   persona?: Persona

@@ -98,6 +98,9 @@ function App() {
               <Route path={`${basePath}/:slug`} element={<LandingPage />} />
               <Route path={`${basePath}/demo`} element={<IntroductionPage />} />
               <Route path={`${basePath}/demo/:slug`} element={<IntroductionPage />} />
+              {/* Dedicated prefix (not "/demo") so full-page loads of shared showcase links aren't
+                  intercepted as API traffic by the reverse proxy's /demo/* routing rule. */}
+              <Route path={`${basePath}/s/:showcaseSlug`} element={<IntroductionPage />} />
               <Route
                 path={`${basePath}/dashboard`}
                 element={
