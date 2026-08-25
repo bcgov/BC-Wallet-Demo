@@ -69,6 +69,8 @@ Default images: **`ghcr.io/bcgov/digital-trust-showcase-server:main`**, **`ghcr.
 
 **`showcase.publicOrigin`** is the value passed to **`VITE_HOST_BACKEND`** (scheme + host + optional port, **no path**). With ingress enabled, the usual pattern is one public host: browser → Ingress → Caddy → static files and **`reverse_proxy`** to the API.
 
+The install QR and store badges use the server's `APPLE_APP_STORE_URL` and `ANDROID_APP_STORE_URL` settings. Set `showcase.appStoreUrls.apple` and `showcase.appStoreUrls.android` to override the BC Services Card defaults, or provide those keys through `showcase.server.existingSecret`.
+
 **`showcase.baseRoute`** must match **`BASE_ROUTE`** on the server (the chart sets the latter from the same value). It must also match how the **frontend image** was built (Vite `import.meta.env`); changing only Helm without rebuilding the image can desync routes (including Socket.IO paths).
 
 ## Caddy → API (in-cluster)
