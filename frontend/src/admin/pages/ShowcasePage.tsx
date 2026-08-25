@@ -1,7 +1,8 @@
-import { UserIcon, QueueListIcon, FilmIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { UserIcon, QueueListIcon, FilmIcon, ArrowLeftIcon, LinkIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
+import { basePath as clientBasePath } from '../../client/utils/BasePath'
 import { adminBaseRoute } from '../api/adminApi'
 import { AdminNavbar } from '../components/AdminNavbar'
 import { SecondaryNavbar } from '../components/showcase/SecondaryNavbar'
@@ -25,6 +26,7 @@ export function ShowcasePage() {
   const { showcase, isLoading, refetch } = useShowcase()
   const [isExpanded, setIsExpanded] = useState(false)
   const [isNewShowcase, setIsNewShowcase] = useState(location.state?.isNewShowcase || false)
+  const [linkCopied, setLinkCopied] = useState(false)
   const tabFromUrl = searchParams.get('tab')
   const [activeTab, setActiveTab] = useState<TabId>(isValidTabId(tabFromUrl) ? tabFromUrl : 'persona')
 
@@ -57,6 +59,19 @@ export function ShowcasePage() {
     navigate(`${adminBaseRoute}/creator`)
   }
 
+  const handleCopyDirectLink = () => {
+    if (!showcase?.slug) return
+    // "/s/" (not "/demo/") so full-page loads aren't intercepted as API traffic by the reverse proxy.
+    const directLink = `${window.location.origin}${clientBasePath}/s/${showcase.slug}`
+    navigator.clipboard
+      .writeText(directLink)
+      .then(() => {
+        setLinkCopied(true)
+        setTimeout(() => setLinkCopied(false), 2000)
+      })
+      .catch(() => undefined)
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <AdminNavbar onLogoClick={handleLogoClick} />
@@ -71,7 +86,19 @@ export function ShowcasePage() {
           <span className="font-medium">Back to Showcases</span>
         </button>
         <div className="w-full max-w-4xl">
-          <h2 className="text-2xl font-semibold text-bcgov-black">{showcase?.name || 'Showcase Name'}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-semibold text-bcgov-black">{showcase?.name || 'Showcase Name'}</h2>
+            {showcase?.slug && (
+              <button
+                onClick={handleCopyDirectLink}
+                title="Copy direct link"
+                className="text-gray-400 hover:text-bcgov-blue transition-all p-1 rounded"
+              >
+                <LinkIcon className="w-5 h-5" />
+              </button>
+            )}
+            {linkCopied && <span className="text-sm text-bcgov-blue">Copied!</span>}
+          </div>
           <h5 className="text-gray-500 mt-2">{showcase?.description || 'Description of the showcase.'}</h5>
         </div>
       </div>

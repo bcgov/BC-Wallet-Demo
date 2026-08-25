@@ -8,6 +8,7 @@ let mongod: MongoMemoryServer
 
 const minimal = {
   name: 'Student Showcase',
+  slug: 'student-showcase',
   persona: { name: 'Alice', type: 'Student', image: '/public/student/student.svg' },
 }
 
@@ -44,7 +45,7 @@ describe('ShowcaseModel', () => {
   })
 
   it('persists a showcase without optional persona field', async () => {
-    const doc = await ShowcaseModel.create({ name: 'No Persona Showcase' })
+    const doc = await ShowcaseModel.create({ name: 'No Persona Showcase', slug: 'no-persona-showcase' })
     const json = doc.toJSON()
     expect(json.name).toBe('No Persona Showcase')
     expect(json.persona).toBeUndefined()
@@ -56,6 +57,7 @@ describe('ShowcaseModel', () => {
     await expect(
       ShowcaseModel.create({
         name: 'Other Showcase',
+        slug: 'other-showcase',
         persona: { name: 'Bob', type: 'UniqueType', image: '/b.svg' },
       }),
     ).rejects.toThrow()
@@ -137,7 +139,7 @@ describe('soft-delete: deleted_at field', () => {
 
   it('excludes soft-deleted showcases from deleted_at: null queries', async () => {
     await ShowcaseModel.create(minimal)
-    await ShowcaseModel.create({ ...minimal, name: 'Trashed Showcase', persona: undefined })
+    await ShowcaseModel.create({ ...minimal, name: 'Trashed Showcase', slug: 'trashed-showcase', persona: undefined })
     await ShowcaseModel.updateOne({ name: 'Trashed Showcase' }, { deleted_at: new Date() })
 
     const active = await ShowcaseModel.find({ deleted_at: null }).lean()
@@ -147,7 +149,7 @@ describe('soft-delete: deleted_at field', () => {
 
   it('returns soft-deleted showcases when querying deleted_at: { $ne: null }', async () => {
     await ShowcaseModel.create(minimal)
-    await ShowcaseModel.create({ ...minimal, name: 'Trashed Showcase', persona: undefined })
+    await ShowcaseModel.create({ ...minimal, name: 'Trashed Showcase', slug: 'trashed-showcase', persona: undefined })
     await ShowcaseModel.updateOne({ name: 'Trashed Showcase' }, { deleted_at: new Date() })
 
     const deleted = await ShowcaseModel.find({ deleted_at: { $ne: null } }).lean()

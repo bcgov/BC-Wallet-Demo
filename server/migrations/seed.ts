@@ -10,6 +10,7 @@ import { connectDB } from '../src/db/connection'
 import { CredentialModel } from '../src/db/models/Credential'
 import { ShowcaseModel } from '../src/db/models/Showcase'
 import logger from '../src/utils/logger'
+import { generateUniqueSlug, slugify } from '../src/utils/slug'
 import {
   ensureDidInDatabase,
   getOrCreateIndyDid,
@@ -33,15 +34,20 @@ export async function runSeed(): Promise<void> {
 
   logger.info({ count: credResults.length }, 'Seeded credentials')
 
-  const showcaseResults = await Promise.all(
-    showcases.map((s) =>
-      ShowcaseModel.findOneAndUpdate(
-        { 'persona.type': s.persona?.type },
-        { $setOnInsert: s },
-        { upsert: true, returnDocument: 'after' },
-      ),
-    ),
-  )
+  const showcaseResults = []
+  for (const s of showcases) {
+    if (!s.slug) {
+      s.slug = await generateUniqueSlug(slugify(s.name), (candidate) =>
+        ShowcaseModel.exists({ slug: candidate }).then(Boolean),
+      )
+    }
+    const result = await ShowcaseModel.findOneAndUpdate(
+      { 'persona.type': s.persona?.type },
+      { $setOnInsert: s },
+      { upsert: true, returnDocument: 'after' },
+    )
+    showcaseResults.push(result)
+  }
 
   logger.info({ count: showcaseResults.length }, 'Seeded showcases')
 

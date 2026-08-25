@@ -16,6 +16,10 @@ const migrations = [
     id: '003-add-restrictions-to-presentations',
     up: () => import('./003-add-restrictions-to-presentations').then((m) => m.up()),
   },
+  {
+    id: '004-add-showcase-slug',
+    up: () => import('./004-add-showcase-slug').then((m) => m.up()),
+  },
 ]
 
 /**

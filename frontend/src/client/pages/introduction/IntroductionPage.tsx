@@ -1,7 +1,7 @@
 import { trackPageView } from '@snowplow/browser-tracker'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { page } from '../../FramerAnimations'
 import { CustomUpload } from '../../components/CustomUpload'
@@ -11,13 +11,14 @@ import { useConnection } from '../../slices/connection/connectionSelectors'
 import { clearConnection } from '../../slices/connection/connectionSlice'
 import { clearCredentials } from '../../slices/credentials/credentialsSlice'
 import { useIntroduction } from '../../slices/introduction/introductionSelectors'
-import { completeIntroduction } from '../../slices/introduction/introductionSlice'
+import { completeIntroduction, setIntroductionStep } from '../../slices/introduction/introductionSlice'
 import { usePreferences } from '../../slices/preferences/preferencesSelectors'
 import { useShowcases } from '../../slices/showcases/showcasesSelectors'
-import { fetchAllShowcases } from '../../slices/showcases/showcasesThunks'
+import { fetchAllShowcases, fetchShowcaseBySlug } from '../../slices/showcases/showcasesThunks'
 import { fetchWallets } from '../../slices/wallets/walletsThunks'
 import { basePath } from '../../utils/BasePath'
 import { IntroductionComplete } from '../../utils/IntroductionUtils'
+import { PageNotFound } from '../PageNotFound'
 
 import { IntroductionContainer } from './IntroductionContainer'
 import { Stepper } from './components/Stepper'
@@ -27,7 +28,8 @@ export const IntroductionPage: React.FC = () => {
 
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { showcases, currentShowcase, uploadedShowcase } = useShowcases()
+  const { showcaseSlug } = useParams<{ showcaseSlug?: string }>()
+  const { showcases, currentShowcase, uploadedShowcase, slugLookupFailed } = useShowcases()
 
   const { introductionStep, isCompleted } = useIntroduction()
   const { state, invitationUrl, shortInvitationUrl, id } = useConnection()
@@ -51,9 +53,20 @@ export const IntroductionPage: React.FC = () => {
       dispatch(clearCredentials())
       dispatch(clearConnection())
       navigate(`${basePath}/dashboard`)
+      return
+    }
+    dispatch({ type: 'demo/RESET' })
+    dispatch(fetchWallets())
+    if (showcaseSlug) {
+      // Direct link: load the showcase by its slug and skip straight past persona selection.
+      dispatch(fetchShowcaseBySlug(showcaseSlug))
+        .unwrap()
+        .then(() => {
+          dispatch(setIntroductionStep('SETUP_START'))
+          setMounted(true)
+        })
+        .catch(() => undefined)
     } else {
-      dispatch({ type: 'demo/RESET' })
-      dispatch(fetchWallets())
       dispatch(fetchAllShowcases())
       setMounted(true)
     }
@@ -63,6 +76,10 @@ export const IntroductionPage: React.FC = () => {
   useEffect(() => {
     trackPageView()
   }, [])
+
+  if (showcaseSlug && slugLookupFailed) {
+    return <PageNotFound />
+  }
 
   return (
     <>

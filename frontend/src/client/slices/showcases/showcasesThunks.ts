@@ -11,3 +11,8 @@ export const fetchShowcaseById = createAsyncThunk('showcases/fetchById', async (
   const response = await Api.getShowcaseById(id)
   return response.data
 })
+
+export const fetchShowcaseBySlug = createAsyncThunk('showcases/fetchBySlug', async (slug: string) => {
+  const response = await Api.getShowcaseBySlug(slug)
+  return response.data
+})

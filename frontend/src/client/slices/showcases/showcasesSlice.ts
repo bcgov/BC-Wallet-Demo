@@ -5,7 +5,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 import log from '../../utils/logger'
 
-import { fetchAllShowcases, fetchShowcaseById } from './showcasesThunks'
+import { fetchAllShowcases, fetchShowcaseById, fetchShowcaseBySlug } from './showcasesThunks'
 
 interface ShowcasesState {
   showcases: Showcase[]
@@ -13,6 +13,7 @@ interface ShowcasesState {
   currentShowcase?: Showcase
   isUploading: boolean
   isLoading: boolean
+  slugLookupFailed: boolean
 }
 
 const initialState: ShowcasesState = {
@@ -21,6 +22,7 @@ const initialState: ShowcasesState = {
   currentShowcase: undefined,
   isUploading: false,
   isLoading: false,
+  slugLookupFailed: false,
 }
 
 const showcaseSlice = createSlice({
@@ -48,6 +50,9 @@ const showcaseSlice = createSlice({
     setShowcase: (state, action: PayloadAction<Showcase>) => {
       state.currentShowcase = action.payload
     },
+    resetSlugLookup: (state) => {
+      state.slugLookupFailed = false
+    },
     removeShowcase: (state) => {
       state.currentShowcase = undefined
     },
@@ -68,9 +73,22 @@ const showcaseSlice = createSlice({
         state.isLoading = false
         state.currentShowcase = action.payload
       })
+      .addCase(fetchShowcaseBySlug.pending, (state) => {
+        state.isLoading = true
+        state.slugLookupFailed = false
+      })
+      .addCase(fetchShowcaseBySlug.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.currentShowcase = action.payload
+      })
+      .addCase(fetchShowcaseBySlug.rejected, (state) => {
+        state.isLoading = false
+        state.slugLookupFailed = true
+      })
   },
 })
 
-export const { setShowcase, removeShowcase, uploadShowcase, setUploadingStatus } = showcaseSlice.actions
+export const { setShowcase, removeShowcase, uploadShowcase, setUploadingStatus, resetSlugLookup } =
+  showcaseSlice.actions
 
 export default showcaseSlice.reducer
