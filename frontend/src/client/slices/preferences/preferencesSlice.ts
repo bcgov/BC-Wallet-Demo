@@ -73,6 +73,9 @@ const preferencesSlice = createSlice({
       .addCase('demo/RESET', (state) => {
         state.darkMode = localStorage.getItem('theme') === 'dark'
         state.connectionDate = undefined
+        state.completedScenarioSlugs = []
+        state.completeCanceled = false
+        state.demoCompleted = false
       })
       .addCase(fetchLastServerReset.fulfilled, (state, action) => {
         state.lastServerReset = action.payload
