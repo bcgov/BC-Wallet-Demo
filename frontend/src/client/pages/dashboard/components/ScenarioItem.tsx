@@ -7,6 +7,7 @@ import React from 'react'
 
 import { rowFadeX } from '../../../FramerAnimations'
 import { prependApiUrl } from '../../../utils/Url'
+import { toIdList } from '../../../utils/proofRequest'
 
 import { StartButton } from './StartButton'
 
@@ -26,11 +27,22 @@ const getCredIcon = (currShowcase: Showcase, credName: string) => {
     scenario.screens.forEach((screen) => {
       if (screen) {
         screen.requestOptions?.requestedCredentials.forEach((cred) => {
-          // Try to match by cred_id first, then fall back to name
-          if (
-            (cred.cred_id && currShowcase.credentials.some((c) => c.id === cred.cred_id && c.name === credName)) ||
-            cred.name === credName
-          ) {
+          const matchesByIdAndName = currShowcase.credentials.some(
+            (c) => c.name === credName && !!cred.cred_id && c.id === cred.cred_id,
+          )
+          const matchesBySchemaId =
+            !matchesByIdAndName &&
+            currShowcase.credentials.some(
+              (c) => c.name === credName && !!c.schema_id && toIdList(cred.schema_id).includes(c.schema_id),
+            )
+          const matchesByCredDefId =
+            !matchesByIdAndName &&
+            !matchesBySchemaId &&
+            currShowcase.credentials.some(
+              (c) => c.name === credName && !!c.cred_def_id && toIdList(cred.cred_def_id).includes(c.cred_def_id),
+            )
+
+          if (matchesByIdAndName || matchesBySchemaId || matchesByCredDefId || cred.name === credName) {
             icon = cred.icon ?? ''
           }
         })
