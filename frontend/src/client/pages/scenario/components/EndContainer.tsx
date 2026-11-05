@@ -68,7 +68,7 @@ export const EndContainer: React.FC<Props> = ({ step }) => {
     >
       <div className="flex flex-col">
         <h1 className="text-4xl	font-bold my-4">{step.name}</h1>
-        <p>{step.text}</p>
+        <p className="whitespace-pre-wrap">{step.text}</p>
       </div>
       {/* <div className="flex flex-col md:flex-row m-auto ">{renderEndSteps}</div> */}
       <div className="flex items-end self-end ">

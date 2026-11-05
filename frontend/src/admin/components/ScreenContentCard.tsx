@@ -93,7 +93,7 @@ export function ScreenContentCard({
     .filter(Boolean)
     .join(' ')
 
-  const textClasses = ['text-xs text-gray-600', textMarginClass].filter(Boolean).join(' ')
+  const textClasses = ['text-xs text-gray-600 whitespace-pre-wrap', textMarginClass].filter(Boolean).join(' ')
 
   return (
     <div
