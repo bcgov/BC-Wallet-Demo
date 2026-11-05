@@ -30,7 +30,7 @@ export const StepInformation: React.FC<Props> = ({ title, text, textWithImage })
         {textWithImage ? (
           textWithImage.map((item) => (
             <>
-              {item.text && <p>{item.text}</p>}
+              {item.text && <p className="whitespace-pre-wrap">{item.text}</p>}
               {item.image && (
                 <div className="bg-bcgov-white dark:bg-bcgov-black hidden lg:flex lg:w-1/3 rounded-lg flex-col justify-center select-none">
                   <motion.img
@@ -46,7 +46,7 @@ export const StepInformation: React.FC<Props> = ({ title, text, textWithImage })
             </>
           ))
         ) : (
-          <p className="text-pretty">{text}</p>
+          <p className="text-pretty whitespace-pre-wrap">{text}</p>
         )}
       </div>
     </div>

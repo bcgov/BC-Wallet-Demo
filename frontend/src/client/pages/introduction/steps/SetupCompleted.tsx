@@ -31,7 +31,7 @@ export const SetupCompleted: React.FC<Props> = ({ title, text }) => {
         </div>
         <div className="mb-8">
           <div className="dark:text-white">
-            <p>{text}</p>
+            <p className="whitespace-pre-wrap">{text}</p>
             <div className="bg-bcgov-white dark:bg-bcgov-black my-8 py-4 px-8">
               <ul className="list-disc">
                 <li>You control when you use your credentials</li>

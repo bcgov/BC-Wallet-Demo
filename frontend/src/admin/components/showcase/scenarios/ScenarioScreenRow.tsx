@@ -285,7 +285,7 @@ export function ScenarioScreenRow({
               <p className="text-xs font-semibold text-bcgov-black mb-3">Proof Requests</p>
               <div className="bg-blue-50 rounded-lg p-4">
                 <h4 className="text-sm font-semibold text-bcgov-black mb-2">{nextScreen.requestOptions.name}</h4>
-                <p className="text-xs text-gray-600 mb-4">{nextScreen.requestOptions.text}</p>
+                <p className="text-xs text-gray-600 mb-4 whitespace-pre-wrap">{nextScreen.requestOptions.text}</p>
 
                 {nextScreen.requestOptions.requestedCredentials &&
                   nextScreen.requestOptions.requestedCredentials.length > 0 && (
