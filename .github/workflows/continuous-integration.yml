@@ -102,8 +102,10 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@f790eee7a50d9505912f50c2095510be7de06aa7 # v6.10.9
         with:
+          install: false
           start: yarn workspace frontend start
-          wait-on: 'http://localhost:3000'
+          wait-on: 'http://127.0.0.1:3000/digital-trust/showcase/'
+          wait-on-timeout: 120
           browser: chrome
         env:
           NODE_ENV: test
