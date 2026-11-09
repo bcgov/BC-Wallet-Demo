@@ -92,7 +92,7 @@ export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase,
       initial="hidden"
       animate="show"
       exit="exit"
-      className="container flex flex-col h-auto lg:h-screen p-4 lg:p-6 xl:p-8 dark:text-white"
+      className="container flex flex-col h-auto lg:min-h-screen p-4 lg:p-6 xl:p-8 dark:text-white"
     >
       {isLoading ? (
         <div className="m-auto">
@@ -107,7 +107,7 @@ export const ScenarioPage: React.FC<ScenarioPageProps> = ({ propCurrentShowcase,
               animate={{ opacity: 1 }}
               transition={{ when: 'afterChildren' }}
               exit={{ opacity: 0 }}
-              className="h-full pb-16"
+              className="w-full shrink-0 pb-16"
             >
               <Section
                 key={section.screenId}

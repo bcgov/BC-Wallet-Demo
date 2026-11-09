@@ -138,7 +138,7 @@ export const SetupConnection: React.FC<Props> = ({
       exit="exit"
     >
       <StepInformation title={title} text={text} />
-      <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4  dark:text-black">
+      <div className="flex flex-col self-center items-center rounded-lg border border-bcgov-lightgrey p-2 shadow-sm">
         {renderQRCode(true)}
       </div>
       <div className="flex flex-col mt-4 text-center text-sm md:text-base font-semibold">{renderCTA}</div>
@@ -152,14 +152,14 @@ export const SetupConnection: React.FC<Props> = ({
       exit="exit"
     >
       <StepInformation title={title} text={text} />
-      <div
-        className="bg-contain position-relative bg-center bg-no-repeat h-full flex justify-center"
-        style={{ backgroundImage: `url(${prependApiUrl(backgroundImage as string)})` }}
-      >
-        <div className="max-w-xs flex flex-col self-center items-center bg-white rounded-lg p-4  dark:text-black">
-          <p className="text-center mb-2">Scan the QR Code below with your digital wallet.</p>
-          <div>{renderQRCode(true)}</div>
-          <div className="mt-5">
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-center gap-6 py-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <img className="mx-auto max-h-64 w-full min-w-0 object-contain" src={prependApiUrl(backgroundImage)} alt="" />
+        <div className="flex w-full max-w-xs flex-col items-center justify-self-center text-center">
+          <p className="mb-4 text-sm font-medium leading-relaxed text-bcgov-darkgrey dark:text-bcgov-lightgrey">
+            Scan the QR Code below with your digital wallet.
+          </p>
+          <div className="rounded-lg border border-bcgov-lightgrey p-2 shadow-sm">{renderQRCode(true)}</div>
+          <div className="mt-5 w-full">
             <Button text="I Already Have my Credential" onClick={skipIssuance}></Button>
           </div>
         </div>

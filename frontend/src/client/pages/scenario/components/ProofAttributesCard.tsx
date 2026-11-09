@@ -35,63 +35,59 @@ export const ProofAttributesCard: React.FC<Props> = ({ entityName, requestedCred
 
   const renderRequestedCreds = requestedCredentials.map((item) => {
     return (
-      <div className="block md:flex lg:block flex-1 lg:flex-col items-center justify-between pt-4" key={item.name}>
-        <div className="flex flex-1 flex-row">
+      <section className="min-w-0 py-5" key={item.name}>
+        <div className="mb-3 flex items-center gap-3">
           {item.icon && (
-            <div className="bg-bcgov-lightgrey dark:bg-bcgov-darkgrey rounded-lg p-2 w-12">
-              <img className="h-8 m-auto" src={prependApiUrl(item.icon)} alt="icon" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bcgov-lightgrey dark:bg-bcgov-darkgrey p-2">
+              <img className="h-full w-full object-contain" src={prependApiUrl(item.icon)} alt="" />
             </div>
           )}
-          <div className="flex flex-1 flex-row justify-between px-4 dark:text-white m-auto">
-            <p className="font-semibold self-center">{startCase(item.name)}</p>
-          </div>
+          <h2 className="min-w-0 break-words font-semibold text-bcgov-blue dark:text-white">{startCase(item.name)}</h2>
         </div>
-        <div className="flex flex-1 flex-col md:pl-16">
+        <dl className="flex flex-wrap gap-2">
           {item.properties?.map((prop: string) => {
             const value = values.find((x) => x.name === prop)?.value
             return (
-              <div key={prop} className="flex flex-row">
-                <div
-                  style={{ justifySelf: 'center', alignSelf: 'center' }}
-                  className="flex-1-1 text-sm bg-bcgov-lightgrey dark:bg-bcgov-darkgrey p-1 px-2 rounded-lg my-1 md:m-2"
-                >
-                  <p>{prop.charAt(0).toUpperCase() + prop.slice(1)}</p>
-                </div>
+              <div
+                key={prop}
+                className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-bcgov-lightgrey bg-white px-3 py-2 text-sm dark:border-bcgov-darkgrey dark:bg-bcgov-darkgrey"
+              >
+                <dt className="min-w-0 break-words text-bcgov-darkgrey dark:text-bcgov-lightgrey">{startCase(prop)}</dt>
                 {isDataUrl(value) ? (
-                  <div className="text-sm bg-white dark:bg-grey p-1 px-2 rounded-lg m-2 truncate">
-                    <img src={value} style={{ height: 100, width: 100 }} className="object-contain" />
-                  </div>
+                  <dd className="min-w-0">
+                    <img src={value} alt={startCase(prop)} className="h-24 w-24 max-w-full object-contain" />
+                  </dd>
                 ) : (
-                  <p className="flex-1 text-sm bg-white dark:bg-grey p-1 px-2 rounded-lg m-2 truncate">
+                  <dd className="min-w-0 font-semibold text-bcgov-blue dark:text-white [overflow-wrap:anywhere]">
                     {value && prop.includes('Date') ? formatDate(value) : value}
-                  </p>
+                  </dd>
                 )}
               </div>
             )
           })}
           {item.predicates?.map((predicate) => (
-            <div key={predicate.name} className="flex flex-row">
-              <p className="flex-1-1 text-sm bg-bcgov-lightgrey dark:bg-bcgov-darkgrey p-1 px-2 rounded-lg m-2">
-                {predicate.name.charAt(0).toUpperCase() + predicate.name.slice(1)}
-              </p>
-              <p className="flex-1 text-sm bg-white dark:bg-grey p-1 px-2 rounded-lg m-2">{proofReceived && 'OK'}</p>
+            <div
+              key={predicate.name}
+              className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-bcgov-lightgrey bg-white px-3 py-2 text-sm dark:border-bcgov-darkgrey dark:bg-bcgov-darkgrey"
+            >
+              <dt className="min-w-0 break-words text-bcgov-darkgrey dark:text-bcgov-lightgrey">{predicate.name}</dt>
+              <dd className="font-semibold text-bcgov-blue dark:text-white">{proofReceived && 'OK'}</dd>
             </div>
           ))}
-        </div>
-      </div>
+        </dl>
+      </section>
     )
   })
 
   return (
-    <div className="flex flex-col bg-bcgov-white dark:bg-bcgov-black p-4 md:mb-8 rounded-lg shadow max-h-64 my-2 sm:max-h-72 md:max-h-96 overflow-auto">
-      <div className="flex-1-1 title">
-        <div className="flex flex-row">
-          <h1 className="flex flex-1 font-semibold dark:text-white">{entityName} would like to know:</h1>
-          <div className="flex-1-1 h-8 mb-2">{proofReceived ? <CheckMark /> : <Loader />}</div>
-        </div>
-        <hr className="text-bcgov-lightgrey" />
+    <div className="my-2 flex w-full min-w-0 flex-col rounded-lg bg-bcgov-white p-4 shadow md:mb-8 md:p-6 dark:bg-bcgov-black dark:text-white">
+      <div className="flex items-center justify-between gap-4 border-b border-bcgov-lightgrey pb-4 dark:border-bcgov-darkgrey">
+        <h1 className="min-w-0 break-words font-semibold">{entityName} would like to know:</h1>
+        <div className="h-8 shrink-0">{proofReceived ? <CheckMark /> : <Loader />}</div>
       </div>
-      <div className="flex flex-col">{renderRequestedCreds}</div>
+      <div className="flex min-w-0 flex-col divide-y divide-bcgov-lightgrey dark:divide-bcgov-darkgrey">
+        {renderRequestedCreds}
+      </div>
     </div>
   )
 }

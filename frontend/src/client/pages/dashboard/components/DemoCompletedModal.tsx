@@ -25,60 +25,51 @@ export const DemoCompletedModal: React.FC<Props> = ({ action, cancel }) => {
         aria-modal="true"
       >
         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div className="fixed inset-0 bg-bcgov-black bg-opacity-50 transition-opacity" aria-hidden="true" />
+          <div
+            className="fixed inset-0 bg-bcgov-black bg-opacity-70 backdrop-blur-sm transition-opacity"
+            aria-hidden="true"
+          />
           <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true" />
           <motion.div
             variants={dropIn}
             initial="hidden"
             animate="show"
             exit="exit"
-            className="bg-bcgov-white dark:bg-bcgov-black inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full dark:text-white"
+            className="bg-bcgov-white dark:bg-bcgov-black inline-block align-bottom rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full dark:text-white border-t-8 border-bcgov-gold"
           >
-            <div className=" px-4 pt-2 mt-4 sm:pb-4">
-              <div className="sm:flex sm:items-start">
-                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <h2 className="text-xl font-medium text-grey-900">{TITLE}</h2>
-                  <div className="mt-2 text-sm">
-                    <p>{DESCRIPTION}</p>
-
-                    <a
-                      href="https://submit.digital.gov.bc.ca/app/form/submit?f=d61da710-acc3-46fc-b692-111cf6e348de"
-                      target="_blank"
-                    >
-                      <motion.button
-                        whileTap={{ scale: 0.8 }}
-                        className={`bg-bcgov-blue dark:bg-white text-white font-semibold dark:text-bcgov-black my-5 py-2.5 px-10 rounded transition duration-300 ease-in-out transform text-sm shadow-sm`}
-                        data-cy="standard-button"
-                      >
-                        {'Give feedback'}
-                      </motion.button>
-                    </a>
-
-                    <br />
-                    <a href="https://animo.id/">
-                      Based on code by <u>Animo</u>
-                    </a>
-                    <br />
-                    <a href="https://storyset.com/business">
-                      Business illustrations by <u>Storyset</u>
-                    </a>
-                    <div>
-                      Icons made by{' '}
-                      <u>
-                        <a href="https://www.freepik.com" title="Freepik">
-                          Freepik
-                        </a>
-                      </u>{' '}
-                      from{' '}
-                      <a href="https://www.flaticon.com/" title="Flaticon">
-                        <u>Flaticon.com</u>
-                      </a>
-                    </div>
-                  </div>
-                </div>
+            <div className="px-6 pt-8 pb-2 text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-bcgov-gold bg-opacity-20 mb-4">
+                <svg
+                  className="h-9 w-9 text-bcgov-blue dark:text-bcgov-gold"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
               </div>
+              <h2 id="modal-title" className="text-2xl font-bold text-bcgov-blue dark:text-white">
+                {TITLE}
+              </h2>
+              <p className="mt-3 text-sm text-bcgov-darkgrey dark:text-bcgov-lightgrey">{DESCRIPTION}</p>
+              <a
+                href="https://submit.digital.gov.bc.ca/app/form/submit?f=d61da710-acc3-46fc-b692-111cf6e348de"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-bcgov-blue dark:bg-bcgov-gold text-white dark:text-bcgov-black font-semibold my-6 py-3 px-10 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 ease-in-out"
+                  data-cy="standard-button"
+                >
+                  {'Give feedback'}
+                </motion.button>
+              </a>
             </div>
-            <div className="px-4 pb-4 sm:px-6 sm:flex sm:flex-row-reverse">
+            <div className="px-4 py-4 sm:px-6 sm:flex sm:flex-row-reverse border-t border-bcgov-lightgrey dark:border-bcgov-darkgrey">
               <SmallButton onClick={action} text={'FINISH'} disabled={false} />
               {cancel && <SmallButtonText onClick={cancel} text={'CANCEL'} disabled={false} />}
             </div>

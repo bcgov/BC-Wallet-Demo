@@ -196,7 +196,7 @@ export const StepProof: React.FC<Props> = ({
     <motion.div variants={fadeX} initial="hidden" animate="show" exit="exit" className="flex flex-col h-full">
       <StepInfo title={step.name} description={step.text} />
       <div className="flex flex-row m-auto w-full">
-        <div className="w-full lg:w-2/3 sxl:w-2/3 m-auto">
+        <div className="w-full min-w-0">
           {proof && (
             <ProofAttributesCard
               entityName={entityName}

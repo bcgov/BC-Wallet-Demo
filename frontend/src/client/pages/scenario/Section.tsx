@@ -221,7 +221,7 @@ export const Section: React.FC<Props> = ({
               animate="show"
               exit="exit"
               className="flex flex-col w-auto lg:w-2/3 p-8 bg-white dark:bg-bcgov-darkgrey rounded-lg shadow"
-              style={style}
+              style={step.screenId.startsWith('PROOF') ? { minHeight: isMobile ? '700px' : 'max(800px, 80vh)' } : style}
               data-cy="section"
             >
               <AnimatePresence initial={false} mode="wait" onExitComplete={() => null}>

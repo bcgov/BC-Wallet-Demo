@@ -38,7 +38,7 @@ export const CharacterContent: React.FC<Props> = ({ showcase }) => {
           </motion.div>
         </AnimatePresence>
       ) : (
-        <p className="flex h-full items-center justify-center text-grey">SELECT YOUR CHARACTER</p>
+        <p className="flex h-full items-center justify-center text-grey">SELECT YOUR SHOWCASE</p>
       )}
     </motion.div>
   )

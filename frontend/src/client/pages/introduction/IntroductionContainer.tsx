@@ -19,12 +19,11 @@ import { isConnected } from '../../utils/Helpers'
 import { addIntroductionProgress, removeIntroductionProgress } from '../../utils/IntroductionUtils'
 import { prependApiUrl } from '../../utils/Url'
 
-import { CharacterContent } from './components/CharacterContent'
 import { IntroductionBottomNav } from './components/IntroductionBottomNav'
 import { AcceptCredential } from './steps/AcceptCredential'
 import { BasicSlide } from './steps/BasicSlide'
 import { ChooseWallet } from './steps/ChooseWallet'
-import { PickCharacter } from './steps/PickCharacter'
+import { PickCharacter } from './steps/PickShowcase'
 import { SetupCompleted } from './steps/SetupCompleted'
 import { SetupConnection } from './steps/SetupConnection'
 import { SetupStart } from './steps/SetupStart'
@@ -206,22 +205,18 @@ export const IntroductionContainer: React.FC<Props> = ({
 
   const getImageToRender = (progress: string) => {
     const { image } = getCharacterContent(progress)
-    if (progress === 'PICK_CHARACTER') {
-      return <CharacterContent key={progress} showcase={currentShowcase} />
-    } else {
-      return (
-        <motion.img
-          variants={fadeExit}
-          initial="hidden"
-          animate="show"
-          exit="exit"
-          className="p-4"
-          key={progress}
-          src={prependApiUrl(image ?? '')}
-          alt={progress}
-        />
-      )
-    }
+    return (
+      <motion.img
+        variants={fadeExit}
+        initial="hidden"
+        animate="show"
+        exit="exit"
+        className="p-4"
+        key={progress}
+        src={prependApiUrl(image ?? '')}
+        alt={progress}
+      />
+    )
   }
 
   const navigate = useNavigate()
@@ -237,7 +232,12 @@ export const IntroductionContainer: React.FC<Props> = ({
     }
   }
 
-  const style = isMobile ? { minHeight: '85vh' } : { minHeight: '680px', height: '75vh', maxHeight: '940px' }
+  const isPickingShowcase = introductionStep === 'PICK_CHARACTER'
+  const style = isPickingShowcase
+    ? { minHeight: isMobile ? '85vh' : '680px', height: 'auto' }
+    : isMobile
+      ? { minHeight: '85vh' }
+      : { minHeight: '680px', height: '75vh', maxHeight: '940px' }
 
   const [leaveModal, setLeaveModal] = useState(false)
   const LEAVE_MODAL_TITLE = 'Are you sure you want to leave?'
@@ -260,12 +260,16 @@ export const IntroductionContainer: React.FC<Props> = ({
     dispatch({ type: 'demo/RESET' })
   }
 
+  const showSidePanel = !isMobile && !isPickingShowcase
+
   return (
     <motion.div
       className="flex flex-row h-full justify-between bg-white dark:bg-bcgov-darkgrey rounded-lg p-2 w-full sxl:w-5/6 shadow"
       style={style}
     >
-      <div className={`flex flex-col gap-8 justify-between overflow-hidden ${isMobile ? 'w-full' : 'w-2/3'} px-8`}>
+      <div
+        className={`flex flex-col gap-8 justify-between ${isPickingShowcase ? '' : 'overflow-hidden'} ${showSidePanel ? 'w-2/3' : 'w-full'} px-8`}
+      >
         {/* Top Navigation */}
         <div>
           <motion.button onClick={showLeaveModal} variants={fadeDelay}>
@@ -273,7 +277,11 @@ export const IntroductionContainer: React.FC<Props> = ({
           </motion.button>
         </div>
         {/* Main Content */}
-        <AnimatePresence mode="wait">{getComponentToRender(introductionStep)}</AnimatePresence>
+        {isPickingShowcase ? (
+          getComponentToRender(introductionStep)
+        ) : (
+          <AnimatePresence mode="wait">{getComponentToRender(introductionStep)}</AnimatePresence>
+        )}
         {/* Bottom Navigation */}
         <IntroductionBottomNav
           introductionStep={introductionStep}
@@ -286,7 +294,7 @@ export const IntroductionContainer: React.FC<Props> = ({
           showExitButton={introductionStep.startsWith('CONNECT') || introductionStep.startsWith('ACCEPT_')}
         />
       </div>
-      {!isMobile && (
+      {showSidePanel && (
         <div className="bg-bcgov-white dark:bg-bcgov-black hidden lg:flex lg:w-1/3 rounded-r-lg flex-col justify-center h-full select-none">
           <AnimatePresence mode="wait">{getImageToRender(introductionStep)}</AnimatePresence>
         </div>

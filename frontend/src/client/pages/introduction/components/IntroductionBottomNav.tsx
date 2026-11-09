@@ -32,9 +32,7 @@ export const IntroductionBottomNav: React.FC<Props> = ({
   const isCompleted = introductionStep === 'SETUP_COMPLETED'
 
   useEffect(() => {
-    if (isCompleted) {
-      setLabel('FINISH')
-    } else if (introductionStep === 'CHOOSE_WALLET') {
+    if (introductionStep === 'CHOOSE_WALLET') {
       setLabel('SKIP')
     } else {
       setLabel('NEXT')

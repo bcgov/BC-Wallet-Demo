@@ -28,7 +28,7 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
   const navigate = useNavigate()
   const { slug } = useParams()
 
-  const style = isMobile ? { minHeight: '85vh' } : { maxHeight: '940px' }
+  const style = { minHeight: isMobile ? '85vh' : 'clamp(680px, 80vh, 940px)' }
 
   const leave = () => {
     trackSelfDescribingEvent({
@@ -63,11 +63,11 @@ export const StartContainer: React.FC<Props> = ({ entity, requestedCredentials, 
       initial="hidden"
       animate="show"
       exit="exit"
-      className="flex flex-row bg-white dark:bg-bcgov-darkgrey rounded-lg p-2 h-max min-h-full my-8 shadow-sm"
+      className="flex flex-row bg-white dark:bg-bcgov-darkgrey rounded-lg p-2 h-auto my-8 shadow-sm"
       style={style}
       data-cy="start-container"
     >
-      <div className="flex flex-col p-6 md:p-12 md:pb-6 xl:p-16 xl:pb-8 w-full lg:w-2/3 ">
+      <div className="flex flex-col justify-between gap-6 p-6 md:p-12 md:pb-6 xl:p-16 xl:pb-8 w-full lg:w-2/3">
         <StarterInfo
           title={step.name}
           description={step.text ?? ''}
