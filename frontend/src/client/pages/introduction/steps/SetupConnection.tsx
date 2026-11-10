@@ -131,14 +131,14 @@ export const SetupConnection: React.FC<Props> = ({
 
   return !backgroundImage || isMobile ? (
     <motion.div
-      className="flex flex-col h-full  dark:text-white"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto dark:text-white"
       variants={fadeX}
       initial="hidden"
       animate="show"
       exit="exit"
     >
       <StepInformation title={title} text={text} />
-      <div className="flex flex-col self-center items-center rounded-lg border border-bcgov-lightgrey p-2 shadow-sm">
+      <div className="flex shrink-0 flex-col self-center items-center rounded-lg border border-bcgov-lightgrey p-2 shadow-sm">
         {renderQRCode(true)}
       </div>
       <div className="flex flex-col mt-4 text-center text-sm md:text-base font-semibold">{renderCTA}</div>
