@@ -268,7 +268,7 @@ export const IntroductionContainer: React.FC<Props> = ({
       style={style}
     >
       <div
-        className={`flex flex-col gap-8 justify-between ${isPickingShowcase ? '' : 'overflow-hidden'} ${showSidePanel ? 'w-2/3' : 'w-full'} px-8`}
+        className={`flex flex-col gap-4 justify-between ${isPickingShowcase ? '' : 'overflow-hidden'} ${showSidePanel ? 'w-2/3' : 'w-full'} px-8`}
       >
         {/* Top Navigation */}
         <div>
