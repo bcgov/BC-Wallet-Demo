@@ -20,13 +20,13 @@ export const StepInformation: React.FC<Props> = ({ title, text, textWithImage })
     <div className="leading-loose">
       {/* Title and Description */}
       <div className="flex-1">
-        <h2 className="mb-8 text-3xl md:text-4xl font-semibold dark:text-white">
+        <h2 className="mb-4 text-3xl md:text-4xl font-semibold dark:text-white">
           {newTitle}&nbsp;
           {lastWord}
         </h2>
       </div>
       {/* Content */}
-      <div className="mb-8 flex-1 dark:text-white">
+      <div className="mb-8 min-h-[8em] flex-1 dark:text-white">
         {textWithImage ? (
           textWithImage.map((item) => (
             <>

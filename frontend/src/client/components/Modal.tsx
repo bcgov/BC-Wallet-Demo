@@ -41,28 +41,31 @@ export const Modal: React.FC<Props> = ({
         aria-modal="true"
       >
         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div className="fixed inset-0 bg-bcgov-black bg-opacity-50 transition-opacity" aria-hidden="true" />
+          <div
+            className="fixed inset-0 bg-bcgov-black bg-opacity-70 backdrop-blur-sm transition-opacity"
+            aria-hidden="true"
+          />
           <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true" />
           <motion.div
             variants={dropIn}
             initial="hidden"
             animate="show"
             exit="exit"
-            className="bg-bcgov-white dark:bg-bcgov-black inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition transition-all duration-300 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full dark:text-white"
+            className="bg-bcgov-white dark:bg-bcgov-black inline-block align-bottom rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all duration-300 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full dark:text-white border-t-8 border-bcgov-gold"
           >
-            <div className=" px-4 pt-2 mt-4 sm:pb-4">
-              <div className="sm:flex sm:items-start">
-                <div className="mt-3 sm:mt-0 sm:ml-4 text-left">
-                  <h2 className="text-xl font-medium">{title}</h2>
-                  <div className="mt-2">
-                    <p className="text-sm">{description}</p>
-                    {loading && loadingText && <p className="text-sm">{loadingText}</p>}
-                  </div>
-                </div>
+            <div className="px-6 pt-6">
+              <h2 id="modal-title" className="text-xl font-bold text-bcgov-blue dark:text-white">
+                {title}
+              </h2>
+              <div className="mt-3">
+                <p className="text-sm text-bcgov-darkgrey dark:text-bcgov-lightgrey leading-relaxed">{description}</p>
+                {loading && loadingText && (
+                  <p className="mt-2 text-sm font-medium text-bcgov-blue dark:text-bcgov-gold">{loadingText}</p>
+                )}
               </div>
             </div>
-            <div className="m-8">{children}</div>
-            <div className="p-4 pb-4 sm:px-6 flex flex-row-reverse">
+            {children && <div className="px-6 py-6">{children}</div>}
+            <div className="mt-4 px-4 py-4 sm:px-6 flex flex-row-reverse border-t border-bcgov-lightgrey dark:border-bcgov-darkgrey">
               <SmallButton onClick={onOk} text={okText ?? 'OK'} disabled={okDisabled || loading} loading={loading} />
               {onCancel && <SmallButtonText onClick={onCancel} text={'CANCEL'} disabled={false} />}
             </div>

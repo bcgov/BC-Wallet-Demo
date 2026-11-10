@@ -32,9 +32,7 @@ export const IntroductionBottomNav: React.FC<Props> = ({
   const isCompleted = introductionStep === 'SETUP_COMPLETED'
 
   useEffect(() => {
-    if (isCompleted) {
-      setLabel('FINISH')
-    } else if (introductionStep === 'CHOOSE_WALLET') {
+    if (introductionStep === 'CHOOSE_WALLET') {
       setLabel('SKIP')
     } else {
       setLabel('NEXT')
@@ -47,7 +45,7 @@ export const IntroductionBottomNav: React.FC<Props> = ({
       initial="hidden"
       animate="show"
       exit="exit"
-      className="flex w-full justify-between mb-4 h-8 self-end select-none"
+      className="flex w-full shrink-0 justify-between mb-4 min-h-8 self-end select-none"
     >
       <div className="flex self-center">
         {showExitButton ? (
