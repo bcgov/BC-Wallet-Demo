@@ -164,11 +164,11 @@ export const SetupConnection: React.FC<Props> = ({
           src={prependApiUrl(backgroundImage)}
           alt=""
         />
-        <div className="flex h-full min-h-0 w-full max-w-xs flex-col items-center justify-self-center text-center">
+        <div className="flex w-full max-w-xs flex-col items-center justify-self-center text-center">
           <p className="mb-2 shrink-0 text-sm font-medium leading-relaxed text-bcgov-darkgrey dark:text-bcgov-lightgrey">
             Scan the QR Code below with your digital wallet.
           </p>
-          <div className="grid min-h-[207px] w-full flex-1 shrink-0 place-items-center">
+          <div className="grid min-h-[207px] w-full shrink-0 place-items-center">
             <div className="aspect-square w-[207px] rounded-lg border border-bcgov-lightgrey p-2 shadow-sm [&>div]:w-full [&>div>div]:w-full [&_svg]:h-auto [&_svg]:w-full">
               {renderQRCode(true)}
             </div>
