@@ -131,7 +131,7 @@ export const SetupConnection: React.FC<Props> = ({
 
   return !backgroundImage || isMobile ? (
     <motion.div
-      className="flex min-h-0 flex-1 flex-col dark:text-white"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto dark:text-white"
       variants={fadeX}
       initial="hidden"
       animate="show"
@@ -140,8 +140,8 @@ export const SetupConnection: React.FC<Props> = ({
       <div className="shrink-0">
         <StepInformation title={title} text={text} compact />
       </div>
-      <div className="grid min-h-0 flex-1 place-items-center [container-type:size]">
-        <div className="aspect-square w-[min(207px,100cqh,100cqw)] rounded-lg border border-bcgov-lightgrey p-2 shadow-sm [&>div]:w-full [&>div>div]:w-full [&_svg]:h-auto [&_svg]:w-full">
+      <div className="grid min-h-[207px] flex-1 shrink-0 place-items-center">
+        <div className="aspect-square w-[207px] rounded-lg border border-bcgov-lightgrey p-2 shadow-sm [&>div]:w-full [&>div>div]:w-full [&_svg]:h-auto [&_svg]:w-full">
           {renderQRCode(true)}
         </div>
       </div>
@@ -149,7 +149,7 @@ export const SetupConnection: React.FC<Props> = ({
     </motion.div>
   ) : (
     <motion.div
-      className="flex min-h-0 flex-1 flex-col dark:text-white"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto dark:text-white"
       variants={fadeX}
       initial="hidden"
       animate="show"
@@ -158,7 +158,7 @@ export const SetupConnection: React.FC<Props> = ({
       <div className="shrink-0">
         <StepInformation title={title} text={text} compact />
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] items-center gap-4 py-2">
+      <div className="grid min-h-min flex-1 shrink-0 grid-cols-2 grid-rows-[minmax(min-content,1fr)] items-center gap-4 py-2">
         <img
           className="mx-auto h-full max-h-64 w-full min-w-0 object-contain"
           src={prependApiUrl(backgroundImage)}
@@ -168,8 +168,8 @@ export const SetupConnection: React.FC<Props> = ({
           <p className="mb-2 shrink-0 text-sm font-medium leading-relaxed text-bcgov-darkgrey dark:text-bcgov-lightgrey">
             Scan the QR Code below with your digital wallet.
           </p>
-          <div className="grid min-h-0 w-full flex-1 place-items-center [container-type:size]">
-            <div className="aspect-square w-[min(207px,100cqh,100cqw)] rounded-lg border border-bcgov-lightgrey p-2 shadow-sm [&>div]:w-full [&>div>div]:w-full [&_svg]:h-auto [&_svg]:w-full">
+          <div className="grid min-h-[207px] w-full flex-1 shrink-0 place-items-center">
+            <div className="aspect-square w-[207px] rounded-lg border border-bcgov-lightgrey p-2 shadow-sm [&>div]:w-full [&>div>div]:w-full [&_svg]:h-auto [&_svg]:w-full">
               {renderQRCode(true)}
             </div>
           </div>
