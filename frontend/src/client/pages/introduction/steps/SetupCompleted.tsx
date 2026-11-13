@@ -16,13 +16,13 @@ export const SetupCompleted: React.FC<Props> = ({ title, text }) => {
 
   return (
     <motion.div
-      className="flex flex-col justify-center h-full"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto"
       variants={fadeX}
       initial="hidden"
       animate="show"
       exit="exit"
     >
-      <div className="leading-loose">
+      <div className="my-auto shrink-0 leading-loose">
         <div className="mb-8">
           <h2 className="text-3xl md:text-4xl font-semibold dark:text-white">
             {newTitle}&nbsp;

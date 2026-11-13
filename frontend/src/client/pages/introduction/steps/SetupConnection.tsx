@@ -137,29 +137,43 @@ export const SetupConnection: React.FC<Props> = ({
       animate="show"
       exit="exit"
     >
-      <StepInformation title={title} text={text} />
-      <div className="flex shrink-0 flex-col self-center items-center rounded-lg border border-bcgov-lightgrey p-2 shadow-sm">
-        {renderQRCode(true)}
+      <div className="shrink-0">
+        <StepInformation title={title} text={text} compact />
       </div>
-      <div className="flex flex-col mt-4 text-center text-sm md:text-base font-semibold">{renderCTA}</div>
+      <div className="grid min-h-[207px] flex-1 shrink-0 place-items-center">
+        <div className="aspect-square w-[207px] rounded-lg border border-bcgov-lightgrey p-2 shadow-sm [&>div]:w-full [&>div>div]:w-full [&_svg]:h-auto [&_svg]:w-full">
+          {renderQRCode(true)}
+        </div>
+      </div>
+      <div className="mt-2 flex shrink-0 flex-col text-center text-sm md:text-base font-semibold">{renderCTA}</div>
     </motion.div>
   ) : (
     <motion.div
-      className="flex flex-col h-full  dark:text-white"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto dark:text-white"
       variants={fadeX}
       initial="hidden"
       animate="show"
       exit="exit"
     >
-      <StepInformation title={title} text={text} />
-      <div className="grid min-h-0 flex-1 grid-cols-1 items-center gap-6 py-4 sm:grid-cols-[minmax(0,1fr)_auto]">
-        <img className="mx-auto max-h-64 w-full min-w-0 object-contain" src={prependApiUrl(backgroundImage)} alt="" />
+      <div className="shrink-0">
+        <StepInformation title={title} text={text} compact />
+      </div>
+      <div className="grid min-h-min flex-1 shrink-0 grid-cols-2 grid-rows-[minmax(min-content,1fr)] items-center gap-4 py-2">
+        <img
+          className="mx-auto h-full max-h-64 w-full min-w-0 object-contain"
+          src={prependApiUrl(backgroundImage)}
+          alt=""
+        />
         <div className="flex w-full max-w-xs flex-col items-center justify-self-center text-center">
-          <p className="mb-4 text-sm font-medium leading-relaxed text-bcgov-darkgrey dark:text-bcgov-lightgrey">
+          <p className="mb-2 shrink-0 text-sm font-medium leading-relaxed text-bcgov-darkgrey dark:text-bcgov-lightgrey">
             Scan the QR Code below with your digital wallet.
           </p>
-          <div className="rounded-lg border border-bcgov-lightgrey p-2 shadow-sm">{renderQRCode(true)}</div>
-          <div className="mt-5 w-full">
+          <div className="grid min-h-[207px] w-full shrink-0 place-items-center">
+            <div className="aspect-square w-[207px] rounded-lg border border-bcgov-lightgrey p-2 shadow-sm [&>div]:w-full [&>div>div]:w-full [&_svg]:h-auto [&_svg]:w-full">
+              {renderQRCode(true)}
+            </div>
+          </div>
+          <div className="mt-2 w-full shrink-0">
             <Button text="I Already Have my Credential" onClick={skipIssuance}></Button>
           </div>
         </div>

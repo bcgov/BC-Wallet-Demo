@@ -9,9 +9,10 @@ export interface Props {
   title: string
   text: string
   textWithImage?: TextWithImage[]
+  compact?: boolean
 }
 
-export const StepInformation: React.FC<Props> = ({ title, text, textWithImage }) => {
+export const StepInformation: React.FC<Props> = ({ title, text, textWithImage, compact }) => {
   const lastIndex = title.lastIndexOf(' ')
   const lastWord = <span className="inline text-bcgov-blue dark:text-bcgov-gold">{title.substring(lastIndex + 1)}</span>
   const newTitle = title.substring(0, lastIndex)
@@ -20,13 +21,13 @@ export const StepInformation: React.FC<Props> = ({ title, text, textWithImage })
     <div className="leading-loose">
       {/* Title and Description */}
       <div className="flex-1">
-        <h2 className="mb-4 text-3xl md:text-4xl font-semibold dark:text-white">
+        <h2 className={`${compact ? 'mb-2' : 'mb-4'} text-3xl md:text-4xl font-semibold dark:text-white`}>
           {newTitle}&nbsp;
           {lastWord}
         </h2>
       </div>
       {/* Content */}
-      <div className="mb-8 min-h-[8em] flex-1 dark:text-white">
+      <div className={`${compact ? 'mb-3' : 'mb-8 min-h-[8em]'} flex-1 dark:text-white`}>
         {textWithImage ? (
           textWithImage.map((item) => (
             <>

@@ -236,7 +236,9 @@ export const IntroductionContainer: React.FC<Props> = ({
   const style = isPickingShowcase
     ? { minHeight: isMobile ? '85vh' : '680px', height: 'auto' }
     : isMobile
-      ? { minHeight: '85vh' }
+      ? introductionStep === 'SETUP_COMPLETED'
+        ? { minHeight: '0', height: '85dvh' }
+        : { minHeight: '85vh' }
       : { minHeight: '680px', height: '75vh', maxHeight: '940px' }
 
   const [leaveModal, setLeaveModal] = useState(false)
