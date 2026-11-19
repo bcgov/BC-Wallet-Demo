@@ -12,7 +12,7 @@ interface ScenarioTimelineProps {
   scenarioId: string
   showcase: Showcase
   lineHeight: string
-  containerRef: React.RefObject<HTMLDivElement>
+  containerRef: React.RefObject<HTMLDivElement | null>
   draggedIdx: number | null
   dragOverIdx: number | null
   hoverIdx: string | number | null

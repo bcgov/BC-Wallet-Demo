@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 export function useLineHeightWithProgressIcons(
-  containerRef: React.RefObject<HTMLDivElement>,
+  containerRef: React.RefObject<HTMLDivElement | null>,
   dependencies: React.DependencyList,
 ) {
   const [lineHeight, setLineHeight] = useState<string>('auto')
