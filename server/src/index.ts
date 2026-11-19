@@ -1,5 +1,6 @@
 import type { Express, NextFunction, Request, Response } from 'express'
 import 'reflect-metadata'
+import type { Options } from 'pino-http'
 
 import { json, static as stx } from 'express'
 import { UnauthorizedError } from 'express-jwt'
@@ -107,7 +108,7 @@ const run = async () => {
   app.use(json({ limit: '10mb' }))
   app.use(
     pinoHttp({
-      logger,
+      logger: logger as unknown as Options['logger'],
       customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
       customErrorMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
       customLogLevel: (_req, res) => {

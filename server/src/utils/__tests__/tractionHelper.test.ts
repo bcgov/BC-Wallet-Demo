@@ -368,6 +368,10 @@ describe('syncSchemaToDatabase', () => {
 })
 
 describe('populateMissingSchemaDids', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('updates only schemas missing a did', async () => {
     SchemaModel.find = vi.fn().mockResolvedValue([
       {
@@ -386,7 +390,7 @@ describe('populateMissingSchemaDids', () => {
 
     await th.populateMissingSchemaDids('issuerDid')
 
-    expect(SchemaModel.updateOne).toHaveBeenCalledTimes(2)
+    expect(SchemaModel.updateOne).toHaveBeenCalledTimes(1)
 
     expect(SchemaModel.updateOne).toHaveBeenCalledWith(
       { _id: '1' },

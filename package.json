@@ -31,26 +31,29 @@
     "cy:run": "cypress run"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.6",
-    "@eslint/js": "^9.39.5",
+    "@eslint/eslintrc": "^3.3.7",
+    "@eslint/js": "^9",
     "@types/node": "^22",
-    "concurrently": "^10.0.4",
-    "cypress": "^15",
-    "eslint": "^9.39.5",
+    "concurrently": "^10.0.7",
+    "cypress": "^16.3.0",
+    "eslint": "^9",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
-    "eslint-plugin-cypress": "^6.3.1",
+    "eslint-plugin-cypress": "^6",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.6",
-    "globals": "^17.11.0",
-    "husky": "^7.0.1",
-    "prettier": "^3.9.6",
+    "eslint-plugin-prettier": "^5.5.7",
+    "globals": "^17.14.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.10.1",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.67.0"
+    "typescript": "^5",
+    "typescript-eslint": "^8.73.0"
   },
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "yarn@4.18.0"
+  "packageManager": "yarn@4.18.0",
+  "resolutions": {
+    "ws@npm:~8.18.3": "^8.23.0"
+  }
 }

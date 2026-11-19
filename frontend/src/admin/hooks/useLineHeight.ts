@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export function useLineHeight(containerRef: React.RefObject<HTMLDivElement>, dependencies: unknown[]) {
+export function useLineHeight(containerRef: React.RefObject<HTMLDivElement | null>, dependencies: unknown[]) {
   const [lineHeight, setLineHeight] = useState<string>('auto')
 
   useEffect(() => {
