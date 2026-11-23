@@ -13,7 +13,7 @@ interface IntroductionTimelineProps {
   hoverIdx: string | number | null
   setHoverIdx: (idx: string | number | null) => void
   lineHeight: string
-  containerRef: React.RefObject<HTMLDivElement>
+  containerRef: React.RefObject<HTMLDivElement | null>
   onEditClick: (idx: number, screen: IntroductionStep) => void
   onAddScreenClick: (afterIdx: number) => void
   onShowDeleteConfirm: (connectIdx: number) => void
